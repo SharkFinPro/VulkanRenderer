@@ -3,7 +3,9 @@ project(VulkanProject)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(VulkanProject main.cpp)
+add_executable(VulkanProject main.cpp
+  source/VulkanApp.cpp
+  source/VulkanApp.h)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   libraries/glfw-3.4.bin.WIN64/include
