@@ -39,12 +39,15 @@ private:
   void pickPhysicalDevice();
   bool isDeviceSuitable(VkPhysicalDevice device);
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+  void createLogicalDevice();
 
 private:
   GLFWwindow* window;
   VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+  VkDevice device;
+  VkQueue graphicsQueue;
 };
 
 
