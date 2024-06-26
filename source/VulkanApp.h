@@ -55,6 +55,7 @@ private:
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   void createSwapChain();
   void createImageViews();
+  void createGraphicsPipeline();
 
 private:
   GLFWwindow* window;
