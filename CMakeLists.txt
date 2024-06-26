@@ -3,6 +3,9 @@ project(VulkanProject)
 
 set(CMAKE_CXX_STANDARD 23)
 
+file(COPY "source/shaders/" DESTINATION "bin/shaders/")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 add_executable(VulkanProject main.cpp
   source/VulkanApp.cpp
   source/VulkanApp.h)

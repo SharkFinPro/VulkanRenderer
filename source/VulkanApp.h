@@ -56,6 +56,7 @@ private:
   void createSwapChain();
   void createImageViews();
   void createGraphicsPipeline();
+  VkShaderModule createShaderModule(const std::vector<char>& code);
 
 private:
   GLFWwindow* window;
