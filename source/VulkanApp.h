@@ -16,6 +16,12 @@ struct QueueFamilyIndices {
   }
 };
 
+struct SwapChainSupportDetails {
+  VkSurfaceCapabilitiesKHR capabilities;
+  std::vector<VkSurfaceFormatKHR> formats;
+  std::vector<VkPresentModeKHR> presentModes;
+};
+
 class VulkanApp {
 public:
   void run();
@@ -42,6 +48,12 @@ private:
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   void createLogicalDevice();
   void createSurface();
+  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+  VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+  VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+  void createSwapChain();
 
 private:
   GLFWwindow* window;
@@ -52,6 +64,10 @@ private:
   VkQueue graphicsQueue;
   VkSurfaceKHR surface;
   VkQueue presentQueue;
+  VkSwapchainKHR swapchain;
+  std::vector<VkImage> swapChainImages;
+  VkFormat swapChainImageFormat;
+  VkExtent2D swapChainExtent;
 };
 
 
