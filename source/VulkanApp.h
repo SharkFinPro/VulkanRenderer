@@ -72,6 +72,7 @@ private:
   VkFormat swapChainImageFormat;
   VkExtent2D swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
+  VkPipelineLayout pipelineLayout;
 };
 
 
