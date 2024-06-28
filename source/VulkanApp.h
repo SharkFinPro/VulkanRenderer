@@ -64,6 +64,9 @@ private:
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void drawFrame();
   void createSyncObjects();
+  void cleanupSwapChain();
+  void recreateSwapChain();
+  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 private:
   GLFWwindow* window;
@@ -89,6 +92,7 @@ private:
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkFence> inFlightFences;
   uint32_t currentFrame = 0;
+  bool framebufferResized = false;
 };
 
 
