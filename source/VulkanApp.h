@@ -56,7 +56,7 @@ struct Vertex {
 };
 
 const std::vector<Vertex> vertices = {
-  {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+  {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
   {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
   {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 };
@@ -106,6 +106,8 @@ private:
   void cleanupSwapChain();
   void recreateSwapChain();
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+  void createVertexBuffer();
+  uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 private:
   GLFWwindow* window;
@@ -132,6 +134,8 @@ private:
   std::vector<VkFence> inFlightFences;
   uint32_t currentFrame = 0;
   bool framebufferResized = false;
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
 };
 
 
