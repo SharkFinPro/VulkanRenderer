@@ -59,6 +59,9 @@ private:
   VkShaderModule createShaderModule(const std::vector<char>& code);
   void createRenderPass();
   void createFrameBuffers();
+  void createCommandPool();
+  void createCommandBuffer();
+  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 private:
   GLFWwindow* window;
@@ -78,6 +81,8 @@ private:
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
   std::vector<VkFramebuffer> swapChainFramebuffers;
+  VkCommandPool commandPool;
+  VkCommandBuffer commandBuffer;
 };
 
 
