@@ -8,7 +8,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(VulkanProject main.cpp
   source/VulkanApp.cpp
-  source/VulkanApp.h)
+  source/VulkanApp.h
+  source/Window.cpp
+  source/Window.h)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   libraries/glfw-3.4.bin.WIN64/include

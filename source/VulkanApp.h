@@ -1,8 +1,7 @@
 #ifndef VULKANPROJECT_VULKANAPP_H
 #define VULKANPROJECT_VULKANAPP_H
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "Window.h"
 #include <vector>
 #include <optional>
 #include <glm/glm.hpp>
@@ -70,7 +69,6 @@ private:
   void createInstance();
   void mainLoop();
   void cleanup();
-  void initWindow();
   static bool checkValidationLayerSupport();
   std::vector<const char*> getRequiredExtensions();
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -86,7 +84,6 @@ private:
   bool isDeviceSuitable(VkPhysicalDevice device);
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   void createLogicalDevice();
-  void createSurface();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
   VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -110,7 +107,7 @@ private:
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 private:
-  GLFWwindow* window;
+  Window* window;
   VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

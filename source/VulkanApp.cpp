@@ -49,9 +49,14 @@ static std::vector<char> readFile(const std::string& filename)
 
 void VulkanApp::run()
 {
-  initWindow();
+  glfwInit();
+
+  window = new Window(WINDOW_WIDTH, WINDOW_HEIGHT, framebufferResizeCallback);
+
   initVulkan();
+
   mainLoop();
+
   cleanup();
 }
 
@@ -59,7 +64,7 @@ void VulkanApp::initVulkan()
 {
   createInstance();
   setupDebugMessenger();
-  createSurface();
+  window->createSurface(instance, &surface);
   pickPhysicalDevice();
   createLogicalDevice();
   createSwapChain();
@@ -120,9 +125,10 @@ void VulkanApp::createInstance()
 
 void VulkanApp::mainLoop()
 {
-  while (!glfwWindowShouldClose(window))
+  while (window->isOpen())
   {
-    glfwPollEvents();
+    window->update();
+
     drawFrame();
   }
 
@@ -162,21 +168,9 @@ void VulkanApp::cleanup()
 
   vkDestroyInstance(instance, nullptr);
 
-  glfwDestroyWindow(window);
+  delete window;
+
   glfwTerminate();
-}
-
-void VulkanApp::initWindow()
-{
-  glfwInit();
-
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Vulkan", nullptr, nullptr);
-
-  glfwSetWindowUserPointer(window, this);
-  glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-
 }
 
 bool VulkanApp::checkValidationLayerSupport()
@@ -414,14 +408,6 @@ void VulkanApp::createLogicalDevice()
   vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
-void VulkanApp::createSurface()
-{
-  if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create window surface!");
-  }
-}
-
 bool VulkanApp::checkDeviceExtensionSupport(VkPhysicalDevice device)
 {
   uint32_t extensionCount;
@@ -502,7 +488,7 @@ VkExtent2D VulkanApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
   else
   {
     int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
+    window->getFramebufferSize(&width, &height);
 
     VkExtent2D actualExtent = {
       static_cast<uint32_t>(width),
@@ -1037,10 +1023,10 @@ void VulkanApp::cleanupSwapChain()
 void VulkanApp::recreateSwapChain()
 {
   int width = 0, height = 0;
-  glfwGetFramebufferSize(window, &width, &height);
+  window->getFramebufferSize(&width, &height);
   while (width == 0 || height == 0)
   {
-    glfwGetFramebufferSize(window, &width, &height);
+    window->getFramebufferSize(&width, &height);
     glfwWaitEvents();
   }
 
@@ -1102,7 +1088,7 @@ uint32_t VulkanApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags pr
   {
     if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
     {
-      return  i;
+      return i;
     }
   }
 
