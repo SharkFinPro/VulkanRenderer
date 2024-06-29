@@ -6,9 +6,13 @@
 #include <optional>
 #include <glm/glm.hpp>
 #include <array>
+#include <string>
 
 const uint32_t WINDOW_WIDTH = 800;
 const uint32_t WINDOW_HEIGHT = 600;
+
+const std::string VERTEX_SHADER_FILE = "shaders/vert.spv";
+const std::string FRAGMENT_SHADER_FILE = "shaders/frag.spv";
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
