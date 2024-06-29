@@ -8,6 +8,12 @@
 #include <algorithm>
 #include <fstream>
 
+#ifdef NDEBUG
+const bool enableValidationLayers = false;
+#else
+const bool enableValidationLayers = true;
+#endif
+
 static std::vector<char> readFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -27,12 +33,6 @@ static std::vector<char> readFile(const std::string& filename)
 
   return buffer;
 }
-
-#ifdef NDEBUG
-  const bool enableValidationLayers = false;
-#else
-  const bool enableValidationLayers = true;
-#endif
 
 void VulkanApp::run()
 {
