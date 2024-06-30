@@ -11,7 +11,7 @@
 
 const uint32_t WINDOW_WIDTH = 800;
 const uint32_t WINDOW_HEIGHT = 600;
-const char* WINDOW_TITLE = "Vulkan";
+const std::string WINDOW_TITLE = "Vulkan";
 
 const std::string VERTEX_SHADER_FILE = "shaders/vert.spv";
 const std::string FRAGMENT_SHADER_FILE = "shaders/frag.spv";
