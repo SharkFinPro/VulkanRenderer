@@ -1,11 +1,11 @@
 #include "Window.h"
 #include <stdexcept>
 
-Window::Window(int width, int height, GLFWframebuffersizefun framebufferResizeCallback)
+Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-  window = glfwCreateWindow(width, height, "Vulkan", nullptr, nullptr);
+  window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
   if (window == nullptr)
   {

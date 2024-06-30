@@ -39,7 +39,7 @@ void VulkanApp::run()
 {
   glfwInit();
 
-  window = new Window(WINDOW_WIDTH, WINDOW_HEIGHT, framebufferResizeCallback);
+  window = new Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, framebufferResizeCallback);
 
   initVulkan();
 

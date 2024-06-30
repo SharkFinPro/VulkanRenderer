@@ -6,7 +6,7 @@
 
 class Window {
 public:
-  Window(int width, int height, GLFWframebuffersizefun framebufferResizeCallback);
+  Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback);
   ~Window();
 
   bool isOpen();
