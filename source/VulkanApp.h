@@ -84,9 +84,9 @@ const std::vector<uint16_t> indices = {
 };
 
 struct UniformBufferObject {
-  glm::mat4 model;
-  glm::mat4 view;
-  glm::mat4 proj;
+  alignas(16) glm::mat4 model;
+  alignas(16) glm::mat4 view;
+  alignas(16) glm::mat4 proj;
 };
 
 class VulkanApp {
@@ -131,6 +131,8 @@ private:
   void createDescriptorSetLayout();
   void createUniformBuffers();
   void updateUniformBuffer(uint32_t currentImage);
+  void createDescriptorPool();
+  void createDescriptorSets();
 
 private:
   Window* window;
@@ -165,6 +167,8 @@ private:
   std::vector<VkBuffer> uniformBuffers;
   std::vector<VkDeviceMemory> uniformBuffersMemory;
   std::vector<void*> uniformBuffersMapped;
+  VkDescriptorPool descriptorPool;
+  std::vector<VkDescriptorSet> descriptorSets;
 };
 
 
