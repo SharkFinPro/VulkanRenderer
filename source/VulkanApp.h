@@ -2,6 +2,7 @@
 #define VULKANPROJECT_VULKANAPP_H
 
 #include "Window.h"
+#include "DebugMessenger.h"
 #include <vector>
 #include <optional>
 #include <glm/glm.hpp>
@@ -93,15 +94,6 @@ private:
   void cleanup();
   static bool checkValidationLayerSupport();
   std::vector<const char*> getRequiredExtensions();
-  static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData);
-  void setupDebugMessenger();
-  static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
-  static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
-  static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
   void pickPhysicalDevice();
   bool isDeviceSuitable(VkPhysicalDevice device);
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
@@ -134,7 +126,7 @@ private:
 private:
   Window* window;
   VkInstance instance;
-  VkDebugUtilsMessengerEXT debugMessenger;
+  DebugMessenger* debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
   VkDevice device;
   VkQueue graphicsQueue;
