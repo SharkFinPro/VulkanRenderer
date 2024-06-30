@@ -83,6 +83,12 @@ const std::vector<uint16_t> indices = {
   0, 1, 2, 2, 3, 0
 };
 
+struct UniformBufferObject {
+  glm::mat4 model;
+  glm::mat4 view;
+  glm::mat4 proj;
+};
+
 class VulkanApp {
 public:
   void run();
@@ -122,6 +128,9 @@ private:
   void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void createIndexBuffer();
+  void createDescriptorSetLayout();
+  void createUniformBuffers();
+  void updateUniformBuffer(uint32_t currentImage);
 
 private:
   Window* window;
@@ -138,6 +147,7 @@ private:
   VkExtent2D swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
   VkRenderPass renderPass;
+  VkDescriptorSetLayout descriptorSetLayout;
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
   std::vector<VkFramebuffer> swapChainFramebuffers;
@@ -152,6 +162,9 @@ private:
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
+  std::vector<VkBuffer> uniformBuffers;
+  std::vector<VkDeviceMemory> uniformBuffersMemory;
+  std::vector<void*> uniformBuffersMapped;
 };
 
 
