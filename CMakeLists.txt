@@ -4,6 +4,7 @@ project(VulkanProject)
 set(CMAKE_CXX_STANDARD 23)
 
 file(COPY "source/shaders/" DESTINATION "bin/shaders/")
+file(COPY "source/textures/" DESTINATION "bin/textures/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(VulkanProject main.cpp
@@ -18,6 +19,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   libraries/glfw-3.4.bin.WIN64/include
   libraries/glm
   C:/VulkanSDK/1.3.283.0/include
+  libraries/stb
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
