@@ -198,8 +198,6 @@ private:
   std::vector<void*> uniformBuffersMapped;
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
   VkImage textureImage;
   VkDeviceMemory textureImageMemory;
   VkImageView textureImageView;
