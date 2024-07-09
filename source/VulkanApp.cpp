@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <fstream>
 #include <chrono>
-#include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
