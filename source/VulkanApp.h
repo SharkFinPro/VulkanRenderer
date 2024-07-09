@@ -16,11 +16,11 @@ const uint32_t WINDOW_WIDTH = 800;
 const uint32_t WINDOW_HEIGHT = 600;
 const std::string WINDOW_TITLE = "Vulkan";
 
-const std::string MODEL_PATH = "models/viking_room.obj";
-const std::string TEXTURE_PATH = "textures/viking_room.png";
+const std::string MODEL_PATH = "assets/models/viking_room.obj";
+const std::string TEXTURE_PATH = "assets/textures/viking_room.png";
 
-const std::string VERTEX_SHADER_FILE = "shaders/vert.spv";
-const std::string FRAGMENT_SHADER_FILE = "shaders/frag.spv";
+const std::string VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
+const std::string FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
