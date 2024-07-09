@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 file(COPY "source/shaders/" DESTINATION "bin/shaders/")
 file(COPY "source/textures/" DESTINATION "bin/textures/")
+file(COPY "source/models/" DESTINATION "bin/models/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(VulkanProject main.cpp
@@ -20,6 +21,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   libraries/glm
   C:/VulkanSDK/1.3.283.0/include
   libraries/stb
+  libraries/tinyobjloader
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC

@@ -9,9 +9,15 @@
 #include <array>
 #include <string>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
 const uint32_t WINDOW_WIDTH = 800;
 const uint32_t WINDOW_HEIGHT = 600;
 const std::string WINDOW_TITLE = "Vulkan";
+
+const std::string MODEL_PATH = "models/viking_room.obj";
+const std::string TEXTURE_PATH = "textures/viking_room.png";
 
 const std::string VERTEX_SHADER_FILE = "shaders/vert.spv";
 const std::string FRAGMENT_SHADER_FILE = "shaders/frag.spv";
@@ -78,24 +84,23 @@ struct Vertex {
 
     return attributeDescriptions;
   }
+
+  bool operator==(const Vertex& other) const
+  {
+    return pos == other.pos && color == other.color && texCoord == other.texCoord;
+  }
 };
 
-const std::vector<Vertex> vertices = {
-  {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-  {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-  {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-  {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-  {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-  {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-  {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-  {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-};
-
-const std::vector<uint16_t> indices = {
-  0, 1, 2, 2, 3, 0,
-  4, 5, 6, 6, 7, 4
-};
+namespace std {
+  template<> struct hash<Vertex> {
+    size_t operator()(Vertex const& vertex) const
+    {
+      return ((hash<glm::vec3>()(vertex.pos) ^
+               (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+             (hash<glm::vec2>()(vertex.texCoord) << 1);
+    }
+  };
+}
 
 struct UniformBufferObject {
   alignas(16) glm::mat4 model;
@@ -162,6 +167,7 @@ private:
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
   bool hasStencilComponent(VkFormat format);
+  void loadModel();
 
 private:
   Window* window;
@@ -189,6 +195,8 @@ private:
   std::vector<VkFence> inFlightFences;
   uint32_t currentFrame = 0;
   bool framebufferResized = false;
+  std::vector<Vertex> vertices;
+  std::vector<uint32_t> indices;
   VkBuffer vertexBuffer;
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
