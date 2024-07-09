@@ -9,12 +9,12 @@
 #include <chrono>
 #include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tinyobjloader/tiny_obj_loader.h>
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -1610,42 +1610,43 @@ bool VulkanApp::hasStencilComponent(VkFormat format)
 
 void VulkanApp::loadModel()
 {
-  tinyobj::attrib_t attrib;
-  std::vector<tinyobj::shape_t> shapes;
-  std::vector<tinyobj::material_t> materials;
-  std::string err;
+  /* Load model with assimp */
+  Assimp::Importer importer;
+  const aiScene *scene = importer.ReadFile(MODEL_PATH.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, MODEL_PATH.c_str())) {
-    throw std::runtime_error(err);
+  // Check for errors
+  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    throw std::runtime_error("Assimp Error: " + std::string(importer.GetErrorString()));
+
+  // Read mesh data
+  aiMesh *mesh = scene->mMeshes[0];
+
+  for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+  {
+    Vertex vertex{};
+
+    vertex.pos = {
+      mesh->mVertices[i].x,
+      mesh->mVertices[i].y,
+      mesh->mVertices[i].z
+    };
+
+    vertex.texCoord = {
+      mesh->mTextureCoords[0][i].x,
+      mesh->mTextureCoords[0][i].y
+    };
+
+    vertex.color = {1.0f, 1.0f, 1.0f};
+
+    vertices.push_back(vertex);
   }
 
-  std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-  for (const auto& shape : shapes)
+  for (unsigned int i = 0; i < mesh->mNumFaces; i++)
   {
-    for (const auto& index : shape.mesh.indices)
+    aiFace face = mesh->mFaces[i];
+    for (unsigned int j = 0; j < face.mNumIndices; j++)
     {
-      Vertex vertex{};
-
-      vertex.pos = {
-        attrib.vertices[3 * index.vertex_index + 0],
-        attrib.vertices[3 * index.vertex_index + 1],
-        attrib.vertices[3 * index.vertex_index + 2]
-      };
-
-      vertex.texCoord = {
-        attrib.texcoords[2 * index.texcoord_index + 0],
-        1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
-      };
-
-      vertex.color = {1.0f, 1.0f, 1.0f};
-
-      if (uniqueVertices.count(vertex) == 0)
-      {
-        uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-        vertices.push_back(vertex);
-      }
-      indices.push_back(uniqueVertices[vertex]);
+      indices.push_back(face.mIndices[j]);
     }
   }
 }

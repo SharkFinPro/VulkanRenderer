@@ -21,12 +21,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   libraries/glm
   C:/VulkanSDK/1.3.283.0/include
   libraries/stb
-  libraries/tinyobjloader
+  libraries/assimp-5.4.2/include
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
   libraries/glfw-3.4.bin.WIN64/lib-mingw-w64
+  libraries/assimp-5.4.2/lib
 )
+
+file(COPY "libraries/assimp-5.4.2/lib/libassimp-5.dll" DESTINATION "bin/")
 
 set(ENV{VULKAN_SDK} "C:/VulkanSDK/1.3.283.0")
 find_package(Vulkan REQUIRED)
@@ -34,4 +37,5 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(${PROJECT_NAME}
   glfw3
   ${Vulkan_LIBRARIES}
+  assimp
 )
