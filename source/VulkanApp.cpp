@@ -1616,7 +1616,9 @@ void VulkanApp::loadModel()
 
   // Check for errors
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+  {
     throw std::runtime_error("Assimp Error: " + std::string(importer.GetErrorString()));
+  }
 
   // Read mesh data
   aiMesh *mesh = scene->mMeshes[0];
