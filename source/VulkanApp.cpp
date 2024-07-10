@@ -52,20 +52,9 @@ VulkanEngine::~VulkanEngine()
 {
   vkDeviceWaitIdle(device);
 
-  for (auto texture : textures)
-  {
-    delete texture;
-  }
-
-  for (auto model : models)
-  {
-    delete model;
-  }
-
-  for (auto object : objects)
-  {
-    delete object;
-  }
+  textures.clear();
+  models.clear();
+  objects.clear();
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
@@ -139,13 +128,14 @@ void VulkanEngine::initVulkan()
   createCommandBuffers();
   createSyncObjects();
 
-  auto texture = new Texture(device, physicalDevice, commandPool, graphicsQueue, TEXTURE_PATH.c_str());
+  auto texture = std::make_shared<Texture>(device, physicalDevice, commandPool, graphicsQueue, TEXTURE_PATH.c_str());
   textures.push_back(texture);
 
-  auto model = new Model(device, physicalDevice, commandPool, graphicsQueue, MODEL_PATH.c_str());
+  auto model = std::make_shared<Model>(device, physicalDevice, commandPool, graphicsQueue, MODEL_PATH.c_str());
   models.push_back(model);
 
-  objects.push_back(new RenderObject(device, physicalDevice, descriptorSetLayout, texture, model));
+  auto object = std::make_shared<RenderObject>(device, physicalDevice, descriptorSetLayout, texture, model);
+  objects.push_back(object);
 }
 
 void VulkanEngine::createInstance()

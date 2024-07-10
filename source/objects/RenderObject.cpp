@@ -1,6 +1,7 @@
 #include "RenderObject.h"
 #include <stdexcept>
 #include <chrono>
+#include <utility>
 #include "glm/gtc/matrix_transform.hpp"
 #include "../Buffers.h"
 
@@ -10,8 +11,9 @@
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
-                           VkDescriptorSetLayout& descriptorSetLayout, Texture* texture, Model* model)
-  : device(device), physicalDevice(physicalDevice), texture(texture), model(model)
+                           VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
+                           std::shared_ptr<Model> model)
+  : device(device), physicalDevice(physicalDevice), texture(std::move(texture)), model(std::move(model))
 {
   createUniformBuffers();
 

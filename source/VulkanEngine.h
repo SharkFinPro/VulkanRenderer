@@ -7,6 +7,7 @@
 #include <vector>
 #include <optional>
 #include <string>
+#include <memory>
 
 const uint32_t WINDOW_WIDTH = 800;
 const uint32_t WINDOW_HEIGHT = 600;
@@ -91,9 +92,9 @@ private:
 
 private:
   Window* window;
-  std::vector<Texture*> textures;
-  std::vector<Model*> models;
-  std::vector<RenderObject*> objects;
+  std::vector<std::shared_ptr<Texture>> textures;
+  std::vector<std::shared_ptr<Model>> models;
+  std::vector<std::shared_ptr<RenderObject>> objects;
 
   VkInstance instance;
   DebugMessenger* debugMessenger;

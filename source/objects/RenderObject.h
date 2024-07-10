@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <glm/glm.hpp>
+#include <memory>
 
 struct UniformBufferObject {
   alignas(16) glm::mat4 model;
@@ -17,7 +18,7 @@ class Texture;
 class RenderObject {
 public:
   RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice, VkDescriptorSetLayout& descriptorSetLayout,
-               Texture* texture, Model* model);
+               std::shared_ptr<Texture> texture, std::shared_ptr<Model> model);
   ~RenderObject();
 
   void draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipelineLayout, uint32_t currentFrame);
@@ -35,8 +36,8 @@ private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
 
-  Texture* texture;
-  Model* model;
+  std::shared_ptr<Texture> texture;
+  std::shared_ptr<Model> model;
 
   std::vector<VkBuffer> uniformBuffers;
   std::vector<VkDeviceMemory> uniformBuffersMemory;
