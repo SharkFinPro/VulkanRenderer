@@ -11,7 +11,9 @@ Texture::Texture(VkDevice &device, VkPhysicalDevice &physicalDevice, VkCommandPo
   : device(device), physicalDevice(physicalDevice)
 {
   createTextureImage(commandPool, graphicsQueue, path);
-  createTextureImageView();
+
+  textureImageView = Images::createImageView(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+
   createTextureSampler();
 }
 
@@ -168,11 +170,6 @@ void Texture::generateMipmaps(VkCommandPool& commandPool, VkQueue& graphicsQueue
                        1, &barrier);
 
   Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
-}
-
-void Texture::createTextureImageView()
-{
-  textureImageView = Images::createImageView(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
 }
 
 void Texture::createTextureSampler()

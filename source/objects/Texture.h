@@ -16,8 +16,6 @@ private:
   void generateMipmaps(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkImage image, VkFormat imageFormat,
                        int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
-  void createTextureImageView();
-
   void createTextureSampler();
 
 private:
