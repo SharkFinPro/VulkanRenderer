@@ -78,8 +78,10 @@ void VulkanApp::initVulkan()
   createCommandBuffers();
   createSyncObjects();
 
-  objects.push_back(new RenderObject(device, physicalDevice, commandPool, graphicsQueue, descriptorSetLayout, MODEL_PATH.c_str(), textureImageView, textureSampler));
-  objects.push_back(new RenderObject(device, physicalDevice, commandPool, graphicsQueue, descriptorSetLayout, MODEL_PATH.c_str(), textureImageView, textureSampler));
+  auto model = new Model(device, physicalDevice, commandPool, graphicsQueue, MODEL_PATH.c_str());
+  models.push_back(model);
+
+  objects.push_back(new RenderObject(device, physicalDevice, descriptorSetLayout, textureImageView, textureSampler, model));
 }
 
 void VulkanApp::createInstance()
@@ -142,6 +144,11 @@ void VulkanApp::mainLoop()
 
 void VulkanApp::cleanup()
 {
+  for (auto model : models)
+  {
+    delete model;
+  }
+
   for (auto object : objects)
   {
     delete object;

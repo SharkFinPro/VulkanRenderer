@@ -95,6 +95,7 @@ private:
 
 private:
   Window* window;
+  std::vector<Model*> models;
   std::vector<RenderObject*> objects;
 
   VkInstance instance;
