@@ -1,11 +1,11 @@
 #include <iostream>
-#include "source/VulkanApp.h"
+#include "source/VulkanEngine.h"
 
 int main()
 {
   try
   {
-    VulkanApp app;
+    VulkanEngine app;
 
     while (app.isActive())
     {

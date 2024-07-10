@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_VULKANAPP_H
-#define VULKANPROJECT_VULKANAPP_H
+#ifndef VULKANPROJECT_VULKANENGINE_H
+#define VULKANPROJECT_VULKANENGINE_H
 
 #include "Window.h"
 #include "DebugMessenger.h"
@@ -44,10 +44,10 @@ struct SwapChainSupportDetails {
   std::vector<VkPresentModeKHR> presentModes;
 };
 
-class VulkanApp {
+class VulkanEngine {
 public:
-  VulkanApp();
-  ~VulkanApp();
+  VulkanEngine();
+  ~VulkanEngine();
 
   [[nodiscard]] bool isActive() const;
 
@@ -129,4 +129,4 @@ private:
 };
 
 
-#endif //VULKANPROJECT_VULKANAPP_H
+#endif //VULKANPROJECT_VULKANENGINE_H
