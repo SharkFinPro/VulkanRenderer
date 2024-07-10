@@ -39,7 +39,7 @@ static std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-void VulkanApp::run()
+VulkanApp::VulkanApp()
 {
   glfwInit();
 
@@ -48,8 +48,58 @@ void VulkanApp::run()
   initVulkan();
 
   mainLoop();
+}
 
-  cleanup();
+VulkanApp::~VulkanApp()
+{
+  for (auto texture : textures)
+  {
+    delete texture;
+  }
+
+  for (auto model : models)
+  {
+    delete model;
+  }
+
+  for (auto object : objects)
+  {
+    delete object;
+  }
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+    vkDestroyFence(device, inFlightFences[i], nullptr);
+  }
+
+  vkDestroyCommandPool(device, commandPool, nullptr);
+
+  cleanupSwapChain();
+
+  vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+
+  vkDestroyPipeline(device, graphicsPipeline, nullptr);
+
+  vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+
+  vkDestroyRenderPass(device, renderPass, nullptr);
+
+  vkDestroyDevice(device, nullptr);
+
+  if (enableValidationLayers)
+  {
+    delete debugMessenger;
+  }
+
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+
+  vkDestroyInstance(instance, nullptr);
+
+  delete window;
+
+  glfwTerminate();
 }
 
 void VulkanApp::initVulkan()
@@ -142,58 +192,6 @@ void VulkanApp::mainLoop()
   }
 
   vkDeviceWaitIdle(device);
-}
-
-void VulkanApp::cleanup()
-{
-  for (auto texture : textures)
-  {
-    delete texture;
-  }
-
-  for (auto model : models)
-  {
-    delete model;
-  }
-
-  for (auto object : objects)
-  {
-    delete object;
-  }
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
-    vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-    vkDestroyFence(device, inFlightFences[i], nullptr);
-  }
-
-  vkDestroyCommandPool(device, commandPool, nullptr);
-
-  cleanupSwapChain();
-
-  vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-
-  vkDestroyPipeline(device, graphicsPipeline, nullptr);
-
-  vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-
-  vkDestroyRenderPass(device, renderPass, nullptr);
-
-  vkDestroyDevice(device, nullptr);
-
-  if (enableValidationLayers)
-  {
-    delete debugMessenger;
-  }
-
-  vkDestroySurfaceKHR(instance, surface, nullptr);
-
-  vkDestroyInstance(instance, nullptr);
-
-  delete window;
-
-  glfwTerminate();
 }
 
 bool VulkanApp::checkValidationLayerSupport()

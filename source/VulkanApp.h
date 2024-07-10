@@ -46,13 +46,13 @@ struct SwapChainSupportDetails {
 
 class VulkanApp {
 public:
-  void run();
+  VulkanApp();
+  ~VulkanApp();
 
 private:
   void initVulkan();
   void createInstance();
   void mainLoop();
-  void cleanup();
   static bool checkValidationLayerSupport();
   static std::vector<const char*> getRequiredExtensions();
   void pickPhysicalDevice();

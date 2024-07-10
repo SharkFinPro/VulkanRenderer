@@ -3,11 +3,9 @@
 
 int main()
 {
-  VulkanApp app;
-
   try
   {
-    app.run();
+    VulkanApp app;
   }
   catch (const std::exception& e)
   {
