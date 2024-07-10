@@ -52,6 +52,8 @@ VulkanApp::VulkanApp()
 
 VulkanApp::~VulkanApp()
 {
+  vkDeviceWaitIdle(device);
+
   for (auto texture : textures)
   {
     delete texture;
@@ -190,8 +192,6 @@ void VulkanApp::mainLoop()
 
     drawFrame();
   }
-
-  vkDeviceWaitIdle(device);
 }
 
 bool VulkanApp::checkValidationLayerSupport()
