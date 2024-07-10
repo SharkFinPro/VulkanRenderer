@@ -7,7 +7,7 @@ file(COPY "assets/" DESTINATION "bin/assets/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(VulkanProject main.cpp
-  source/VulkanApp.cpp
+  source/VulkanEngine.cpp
   source/VulkanEngine.h
   source/Window.cpp
   source/Window.h
