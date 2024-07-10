@@ -54,15 +54,15 @@ private:
   void mainLoop();
   void cleanup();
   static bool checkValidationLayerSupport();
-  std::vector<const char*> getRequiredExtensions();
+  static std::vector<const char*> getRequiredExtensions();
   void pickPhysicalDevice();
   bool isDeviceSuitable(VkPhysicalDevice device);
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   void createLogicalDevice();
-  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+  static bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-  VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-  VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+  static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+  static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   void createSwapChain();
   void createImageViews();
@@ -89,9 +89,10 @@ private:
   VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
   void createTextureSampler();
   void createDepthResources();
-  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+                               VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
-  bool hasStencilComponent(VkFormat format);
+  static bool hasStencilComponent(VkFormat format);
 
 private:
   Window* window;

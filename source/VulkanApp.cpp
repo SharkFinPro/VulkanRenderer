@@ -225,7 +225,7 @@ bool VulkanApp::checkValidationLayerSupport()
   return true;
 }
 
-std::vector<const char *> VulkanApp::getRequiredExtensions()
+std::vector<const char*> VulkanApp::getRequiredExtensions()
 {
   uint32_t glfwExtensionCount = 0;
   const char** glfwExtensions;
