@@ -54,7 +54,7 @@ VulkanEngine::~VulkanEngine()
 
   textures.clear();
   models.clear();
-  objects.clear();
+  renderObjects.clear();
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
@@ -103,6 +103,30 @@ void VulkanEngine::render()
   drawFrame();
 }
 
+std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
+{
+  auto texture = std::make_shared<Texture>(device, physicalDevice, commandPool, graphicsQueue, path);
+  textures.push_back(texture);
+
+  return texture;
+}
+
+std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
+{
+  auto model = std::make_shared<Model>(device, physicalDevice, commandPool, graphicsQueue, path);
+  models.push_back(model);
+
+  return model;
+}
+
+std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(std::shared_ptr<Texture> texture, std::shared_ptr<Model> model)
+{
+  auto renderObject = std::make_shared<RenderObject>(device, physicalDevice, descriptorSetLayout, texture, model);
+  renderObjects.push_back(renderObject);
+
+  return renderObject;
+}
+
 void VulkanEngine::initVulkan()
 {
   createInstance();
@@ -127,15 +151,6 @@ void VulkanEngine::initVulkan()
   createFrameBuffers();
   createCommandBuffers();
   createSyncObjects();
-
-  auto texture = std::make_shared<Texture>(device, physicalDevice, commandPool, graphicsQueue, TEXTURE_PATH.c_str());
-  textures.push_back(texture);
-
-  auto model = std::make_shared<Model>(device, physicalDevice, commandPool, graphicsQueue, MODEL_PATH.c_str());
-  models.push_back(model);
-
-  auto object = std::make_shared<RenderObject>(device, physicalDevice, descriptorSetLayout, texture, model);
-  objects.push_back(object);
 }
 
 void VulkanEngine::createInstance()
@@ -881,7 +896,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  for (auto& object : objects)
+  for (auto& object : renderObjects)
   {
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }
@@ -912,7 +927,7 @@ void VulkanEngine::drawFrame()
     throw std::runtime_error("failed to acquire swap chain image!");
   }
 
-  for (auto& object : objects)
+  for (auto& object : renderObjects)
   {
     object->updateUniformBuffer(currentFrame, swapChainExtent);
   }

@@ -13,9 +13,6 @@ const uint32_t WINDOW_WIDTH = 800;
 const uint32_t WINDOW_HEIGHT = 600;
 const std::string WINDOW_TITLE = "Vulkan";
 
-const std::string MODEL_PATH = "assets/models/viking_room.obj";
-const std::string TEXTURE_PATH = "assets/textures/viking_room.png";
-
 const std::string VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
 const std::string FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
 
@@ -53,6 +50,10 @@ public:
   [[nodiscard]] bool isActive() const;
 
   void render();
+
+  std::shared_ptr<Texture> loadTexture(const char* path);
+  std::shared_ptr<Model> loadModel(const char* path);
+  std::shared_ptr<RenderObject> loadRenderObject(std::shared_ptr<Texture>, std::shared_ptr<Model>);
 
 private:
   void initVulkan();
@@ -94,7 +95,7 @@ private:
   Window* window;
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
-  std::vector<std::shared_ptr<RenderObject>> objects;
+  std::vector<std::shared_ptr<RenderObject>> renderObjects;
 
   VkInstance instance;
   DebugMessenger* debugMessenger;
