@@ -13,7 +13,8 @@ const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
                            VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Model> model)
-  : device(device), physicalDevice(physicalDevice), texture(std::move(texture)), model(std::move(model))
+  : device(device), physicalDevice(physicalDevice), texture(std::move(texture)), model(std::move(model)),
+    position(0, 0, 0)
 {
   createUniformBuffers();
 
@@ -63,7 +64,10 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
   UniformBufferObject ubo{};
-  ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+  ubo.model = glm::translate(glm::mat4(1.0f), position);
+  ubo.model = glm::rotate(ubo.model, time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
   ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
   ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 10.0f);
   ubo.proj[1][1] *= -1;
@@ -135,4 +139,9 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
                            descriptorWrites.data(), 0, nullptr);
   }
+}
+
+void RenderObject::setPosition(glm::vec3 position_)
+{
+  position = position_;
 }

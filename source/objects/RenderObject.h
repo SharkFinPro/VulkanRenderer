@@ -25,6 +25,8 @@ public:
 
   void updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent);
 
+  void setPosition(glm::vec3 position);
+
 private:
 
   void createUniformBuffers();
@@ -35,6 +37,8 @@ private:
 private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
+
+  glm::vec3 position;
 
   std::shared_ptr<Texture> texture;
   std::shared_ptr<Model> model;
