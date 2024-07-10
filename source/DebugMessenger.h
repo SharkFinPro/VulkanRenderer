@@ -5,7 +5,7 @@
 
 class DebugMessenger {
 public:
-  explicit DebugMessenger(VkInstance* instance);
+  explicit DebugMessenger(VkInstance& instance);
   ~DebugMessenger();
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -18,7 +18,7 @@ public:
 
 private:
   VkDebugUtilsMessengerEXT debugMessenger;
-  VkInstance* instance;
+  VkInstance& instance;
 };
 
 

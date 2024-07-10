@@ -57,7 +57,7 @@ void VulkanApp::initVulkan()
 
   if (enableValidationLayers)
   {
-    debugMessenger = new DebugMessenger(&instance);
+    debugMessenger = new DebugMessenger(instance);
   }
 
   window->createSurface(instance, &surface);

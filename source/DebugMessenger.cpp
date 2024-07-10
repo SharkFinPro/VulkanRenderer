@@ -1,17 +1,17 @@
 #include "DebugMessenger.h"
 #include <iostream>
 
-DebugMessenger::DebugMessenger(VkInstance* instance)
+DebugMessenger::DebugMessenger(VkInstance& instance)
   : instance(instance)
 {
   VkResult result;
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
   populateCreateInfo(debugCreateInfo);
 
-  auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(*instance, "vkCreateDebugUtilsMessengerEXT");
+  auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
   if (func != nullptr)
   {
-    result = func(*instance, &debugCreateInfo, nullptr, &debugMessenger);
+    result = func(instance, &debugCreateInfo, nullptr, &debugMessenger);
   }
   else
   {
@@ -26,10 +26,10 @@ DebugMessenger::DebugMessenger(VkInstance* instance)
 
 DebugMessenger::~DebugMessenger()
 {
-  auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(*instance, "vkDestroyDebugUtilsMessengerEXT");
+  auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
   if (func != nullptr)
   {
-    func(*instance, debugMessenger, nullptr);
+    func(instance, debugMessenger, nullptr);
   }
 }
 
