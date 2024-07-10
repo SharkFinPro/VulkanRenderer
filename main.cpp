@@ -6,6 +6,11 @@ int main()
   try
   {
     VulkanApp app;
+
+    while (app.isActive())
+    {
+      app.render();
+    }
   }
   catch (const std::exception& e)
   {

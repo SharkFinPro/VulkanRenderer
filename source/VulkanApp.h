@@ -49,10 +49,13 @@ public:
   VulkanApp();
   ~VulkanApp();
 
+  [[nodiscard]] bool isActive() const;
+
+  void render();
+
 private:
   void initVulkan();
   void createInstance();
-  void mainLoop();
   static bool checkValidationLayerSupport();
   static std::vector<const char*> getRequiredExtensions();
   void pickPhysicalDevice();

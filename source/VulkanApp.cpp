@@ -46,8 +46,6 @@ VulkanApp::VulkanApp()
   window = new Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), framebufferResizeCallback);
 
   initVulkan();
-
-  mainLoop();
 }
 
 VulkanApp::~VulkanApp()
@@ -102,6 +100,18 @@ VulkanApp::~VulkanApp()
   delete window;
 
   glfwTerminate();
+}
+
+bool VulkanApp::isActive() const
+{
+  return window->isOpen();
+}
+
+void VulkanApp::render()
+{
+  window->update();
+
+  drawFrame();
 }
 
 void VulkanApp::initVulkan()
@@ -181,16 +191,6 @@ void VulkanApp::createInstance()
   if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create instance!");
-  }
-}
-
-void VulkanApp::mainLoop()
-{
-  while (window->isOpen())
-  {
-    window->update();
-
-    drawFrame();
   }
 }
 
