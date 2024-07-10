@@ -1126,8 +1126,6 @@ VkFormat VulkanApp::findDepthFormat()
   );
 }
 
-
-
 VkSampleCountFlagBits VulkanApp::getMaxUsableSampleCount()
 {
   VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -1174,5 +1172,4 @@ void VulkanApp::createColorResources()
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 
   colorImageView = Images::createImageView(device, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
 }
