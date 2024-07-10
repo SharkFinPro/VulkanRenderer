@@ -12,7 +12,15 @@ add_executable(VulkanProject main.cpp
   source/Window.cpp
   source/Window.h
   source/DebugMessenger.cpp
-  source/DebugMessenger.h)
+  source/DebugMessenger.h
+  source/objects/RenderObject.cpp
+  source/objects/RenderObject.h
+  source/Buffers.cpp
+  source/Buffers.h
+  source/objects/Model.cpp
+  source/objects/Model.h
+  source/objects/Texture.cpp
+  source/objects/Texture.h)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   libraries/glfw-3.4.bin.WIN64/include

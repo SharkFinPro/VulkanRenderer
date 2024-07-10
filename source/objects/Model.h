@@ -1,0 +1,10 @@
+#ifndef VULKANPROJECT_MODEL_H
+#define VULKANPROJECT_MODEL_H
+
+
+class Model {
+
+};
+
+
+#endif //VULKANPROJECT_MODEL_H
