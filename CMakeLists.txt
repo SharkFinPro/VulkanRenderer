@@ -20,7 +20,9 @@ add_executable(VulkanProject main.cpp
   source/objects/Model.cpp
   source/objects/Model.h
   source/objects/Texture.cpp
-  source/objects/Texture.h)
+  source/objects/Texture.h
+  source/Images.cpp
+  source/Images.h)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   libraries/glfw-3.4.bin.WIN64/include

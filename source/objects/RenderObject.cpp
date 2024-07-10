@@ -4,17 +4,19 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "../Buffers.h"
 
+#include "Model.h"
+#include "Texture.h"
+
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
-                           VkDescriptorSetLayout& descriptorSetLayout, VkImageView& textureImageView,
-                           VkSampler& textureSampler, Model* model)
-  : device(device), physicalDevice(physicalDevice), model(model)
+                           VkDescriptorSetLayout& descriptorSetLayout, Texture* texture, Model* model)
+  : device(device), physicalDevice(physicalDevice), texture(texture), model(model)
 {
   createUniformBuffers();
 
   createDescriptorPool();
-  createDescriptorSets(descriptorSetLayout, textureImageView, textureSampler);
+  createDescriptorSets(descriptorSetLayout);
 }
 
 RenderObject::~RenderObject()
@@ -87,8 +89,7 @@ void RenderObject::createDescriptorPool()
   }
 }
 
-void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout, VkImageView& textureImageView,
-                                        VkSampler& textureSampler)
+void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout)
 {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
@@ -110,10 +111,7 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
 
-    VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = textureImageView;
-    imageInfo.sampler = textureSampler;
+    auto imageInfo = texture->getImageInfo();
 
     std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
