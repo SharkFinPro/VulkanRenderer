@@ -12,16 +12,16 @@ int main()
     vulkanEngineOptions.VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
     vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
 
-    VulkanEngine app(&vulkanEngineOptions);
+    VulkanEngine renderer(&vulkanEngineOptions);
 
-    auto texture = app.loadTexture("assets/textures/viking_room.png");
-    auto model = app.loadModel("assets/models/viking_room.obj");
+    auto texture = renderer.loadTexture("assets/textures/viking_room.png");
+    auto model = renderer.loadModel("assets/models/viking_room.obj");
 
-    auto object = app.loadRenderObject(texture, model);
+    auto object = renderer.loadRenderObject(texture, model);
 
-    while (app.isActive())
+    while (renderer.isActive())
     {
-      app.render();
+      renderer.render();
     }
   }
   catch (const std::exception& e)
