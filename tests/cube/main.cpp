@@ -5,7 +5,14 @@ int main()
 {
   try
   {
-    VulkanEngine app;
+    auto vulkanEngineOptions = VulkanEngineOptions{};
+    vulkanEngineOptions.WINDOW_WIDTH = 800;
+    vulkanEngineOptions.WINDOW_HEIGHT = 600;
+    vulkanEngineOptions.WINDOW_TITLE = "Vulkan";
+    vulkanEngineOptions.VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
+    vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
+
+    VulkanEngine app(&vulkanEngineOptions);
 
     auto texture = app.loadTexture("assets/textures/container.png");
     auto model = app.loadModel("assets/models/cube.obj");

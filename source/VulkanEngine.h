@@ -9,12 +9,14 @@
 #include <string>
 #include <memory>
 
-const uint32_t WINDOW_WIDTH = 800;
-const uint32_t WINDOW_HEIGHT = 600;
-const std::string WINDOW_TITLE = "Vulkan";
+struct VulkanEngineOptions {
+  uint32_t WINDOW_WIDTH;
+  uint32_t WINDOW_HEIGHT;
+  const char* WINDOW_TITLE;
 
-const std::string VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
-const std::string FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
+  const char* VERTEX_SHADER_FILE;
+  const char* FRAGMENT_SHADER_FILE;
+};
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -44,7 +46,7 @@ struct SwapChainSupportDetails {
 
 class VulkanEngine {
 public:
-  VulkanEngine();
+  explicit VulkanEngine(VulkanEngineOptions* vulkanEngineOptions);
   ~VulkanEngine();
 
   [[nodiscard]] bool isActive() const;
@@ -92,6 +94,8 @@ private:
   void createColorResources();
 
 private:
+  VulkanEngineOptions* vulkanEngineOptions;
+
   Window* window;
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;

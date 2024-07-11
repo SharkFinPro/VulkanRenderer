@@ -39,11 +39,13 @@ static std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-VulkanEngine::VulkanEngine()
+VulkanEngine::VulkanEngine(VulkanEngineOptions* vulkanEngineOptions)
+  : vulkanEngineOptions(vulkanEngineOptions)
 {
   glfwInit();
 
-  window = new Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), framebufferResizeCallback);
+  window = new Window(vulkanEngineOptions->WINDOW_WIDTH, vulkanEngineOptions->WINDOW_HEIGHT,
+                      vulkanEngineOptions->WINDOW_TITLE, framebufferResizeCallback);
 
   initVulkan();
 }
@@ -551,8 +553,8 @@ void VulkanEngine::createImageViews()
 
 void VulkanEngine::createGraphicsPipeline()
 {
-  auto vertShaderCode = readFile(VERTEX_SHADER_FILE);
-  auto fragShaderCode = readFile(FRAGMENT_SHADER_FILE);
+  auto vertShaderCode = readFile(vulkanEngineOptions->VERTEX_SHADER_FILE);
+  auto fragShaderCode = readFile(vulkanEngineOptions->FRAGMENT_SHADER_FILE);
 
   VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
   VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
