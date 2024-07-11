@@ -8,7 +8,7 @@ int main()
     auto vulkanEngineOptions = VulkanEngineOptions{};
     vulkanEngineOptions.WINDOW_WIDTH = 800;
     vulkanEngineOptions.WINDOW_HEIGHT = 600;
-    vulkanEngineOptions.WINDOW_TITLE = "Vulkan";
+    vulkanEngineOptions.WINDOW_TITLE = "Object Loading";
     vulkanEngineOptions.VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
     vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
 
