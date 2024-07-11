@@ -4,6 +4,7 @@
 #include <utility>
 #include "glm/gtc/matrix_transform.hpp"
 #include "../Buffers.h"
+#include "../Camera.h"
 
 #include "Model.h"
 #include "Texture.h"
@@ -56,7 +57,7 @@ void RenderObject::createUniformBuffers()
   }
 }
 
-void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent)
+void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent, std::shared_ptr<Camera>& camera)
 {
   static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -68,7 +69,7 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   ubo.model = glm::translate(glm::mat4(1.0f), position);
   ubo.model = glm::rotate(ubo.model, time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-  ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  ubo.view = camera->getViewMatrix();
   ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 10.0f);
   ubo.proj[1][1] *= -1;
 

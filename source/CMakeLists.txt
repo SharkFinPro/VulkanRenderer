@@ -17,4 +17,6 @@ add_library(${PROJECT_NAME} SHARED
   objects/Texture.h
   Images.cpp
   Images.h
+  Camera.cpp
+  Camera.h
 )

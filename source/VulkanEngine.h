@@ -2,12 +2,17 @@
 #define VULKANPROJECT_VULKANENGINE_H
 
 #include "Window.h"
-#include "DebugMessenger.h"
-#include "objects/RenderObject.h"
 #include <vector>
 #include <optional>
 #include <string>
 #include <memory>
+#include <glm/glm.hpp>
+
+class DebugMessenger;
+class Camera;
+class Texture;
+class Model;
+class RenderObject;
 
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
@@ -16,6 +21,9 @@ struct VulkanEngineOptions {
 
   const char* VERTEX_SHADER_FILE;
   const char* FRAGMENT_SHADER_FILE;
+
+  glm::vec3 cameraPosition = { 0.0f, 0.0f, 0.0f };
+  float cameraSpeed = 1.0f;
 };
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -96,13 +104,17 @@ private:
 private:
   VulkanEngineOptions* vulkanEngineOptions;
 
-  Window* window;
+  std::shared_ptr<Window> window;
+
+  std::shared_ptr<Camera> camera;
+
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
   std::vector<std::shared_ptr<RenderObject>> renderObjects;
 
+  std::unique_ptr<DebugMessenger> debugMessenger;
+
   VkInstance instance;
-  DebugMessenger* debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
   VkDevice device;
   VkQueue graphicsQueue;

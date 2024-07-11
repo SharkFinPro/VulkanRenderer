@@ -17,8 +17,30 @@ public:
 
   void createSurface(VkInstance instance, VkSurfaceKHR* surface);
 
+  [[nodiscard]] bool keyDown(int key) const;
+
+  [[nodiscard]] bool buttonDown(int button) const;
+
+  void getCursorPos(double &xpos, double &ypos) const;
+
+  void getPreviousCursorPos(double &xpos, double &ypos) const;
+
+  [[nodiscard]] float getDeltaTime() const;
+
+  int getWidth() const;
+
+  int getHeight() const;
+
 private:
   GLFWwindow* window;
+
+  double previousMouseX;
+  double previousMouseY;
+  double mouseX;
+  double mouseY;
+
+  float deltaTime;
+  float lastTime;
 };
 
 

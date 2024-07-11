@@ -10,8 +10,13 @@
 #include "Buffers.h"
 #include "Images.h"
 
+#include "DebugMessenger.h"
+
+#include "Camera.h"
+
 #include "objects/Texture.h"
 #include "objects/Model.h"
+#include "objects/RenderObject.h"
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -44,8 +49,11 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions* vulkanEngineOptions)
 {
   glfwInit();
 
-  window = new Window(vulkanEngineOptions->WINDOW_WIDTH, vulkanEngineOptions->WINDOW_HEIGHT,
+  window = std::make_shared<Window>(vulkanEngineOptions->WINDOW_WIDTH, vulkanEngineOptions->WINDOW_HEIGHT,
                       vulkanEngineOptions->WINDOW_TITLE, framebufferResizeCallback);
+
+  camera = std::make_shared<Camera>(vulkanEngineOptions->cameraPosition);
+  camera->setSpeed(vulkanEngineOptions->cameraSpeed);
 
   initVulkan();
 }
@@ -79,16 +87,11 @@ VulkanEngine::~VulkanEngine()
 
   vkDestroyDevice(device, nullptr);
 
-  if (enableValidationLayers)
-  {
-    delete debugMessenger;
-  }
+  debugMessenger.reset();
 
   vkDestroySurfaceKHR(instance, surface, nullptr);
 
   vkDestroyInstance(instance, nullptr);
-
-  delete window;
 
   glfwTerminate();
 }
@@ -101,6 +104,8 @@ bool VulkanEngine::isActive() const
 void VulkanEngine::render()
 {
   window->update();
+
+  camera->processInput(window);
 
   drawFrame();
 }
@@ -135,7 +140,7 @@ void VulkanEngine::initVulkan()
 
   if (enableValidationLayers)
   {
-    debugMessenger = new DebugMessenger(instance);
+    debugMessenger = std::make_unique<DebugMessenger>(instance);
   }
 
   window->createSurface(instance, &surface);
@@ -931,7 +936,7 @@ void VulkanEngine::drawFrame()
 
   for (auto& object : renderObjects)
   {
-    object->updateUniformBuffer(currentFrame, swapChainExtent);
+    object->updateUniformBuffer(currentFrame, swapChainExtent, camera);
   }
 
   vkResetFences(device, 1, &inFlightFences[currentFrame]);

@@ -14,6 +14,7 @@ struct UniformBufferObject {
 
 class Model;
 class Texture;
+class Camera;
 
 class RenderObject {
 public:
@@ -23,12 +24,11 @@ public:
 
   void draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipelineLayout, uint32_t currentFrame);
 
-  void updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent);
+  void updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent, std::shared_ptr<Camera>& camera);
 
   void setPosition(glm::vec3 position);
 
 private:
-
   void createUniformBuffers();
 
   void createDescriptorPool();

@@ -11,6 +11,7 @@ int main()
     vulkanEngineOptions.WINDOW_TITLE = "Cube";
     vulkanEngineOptions.VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
     vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
+    vulkanEngineOptions.cameraPosition = { 0.0f, 0.0f, -5.0f };
 
     VulkanEngine renderer(&vulkanEngineOptions);
 
