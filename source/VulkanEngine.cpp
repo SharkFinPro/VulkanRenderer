@@ -87,9 +87,9 @@ VulkanEngine::~VulkanEngine()
 
   vkDestroyDevice(device, nullptr);
 
-  debugMessenger.reset();
-
   vkDestroySurfaceKHR(instance, surface, nullptr);
+
+  debugMessenger.reset();
 
   vkDestroyInstance(instance, nullptr);
 
