@@ -34,7 +34,7 @@ link_libraries(
 )
 
 # Project Settings
-project(RenderingProject)
+project(VulkanProject)
 
 set(CMAKE_CXX_STANDARD 23)
 
