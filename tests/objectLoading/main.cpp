@@ -1,5 +1,6 @@
 #include <iostream>
 #include <source/VulkanEngine.h>
+#include <source/objects/RenderObject.h>
 
 int main()
 {
@@ -18,6 +19,8 @@ int main()
     auto model = renderer.loadModel("assets/models/viking_room.obj");
 
     auto object = renderer.loadRenderObject(texture, model);
+    object->setPosition({ 0, -0.5f, 3.0f });
+
 
     while (renderer.isActive())
     {

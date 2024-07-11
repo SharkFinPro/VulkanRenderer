@@ -67,10 +67,11 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   UniformBufferObject ubo{};
 
   ubo.model = glm::translate(glm::mat4(1.0f), position);
+  ubo.model = glm::rotate(ubo.model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
   ubo.model = glm::rotate(ubo.model, time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
   ubo.view = camera->getViewMatrix();
-  ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 10.0f);
+  ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 100.0f);
   ubo.proj[1][1] *= -1;
 
   memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
