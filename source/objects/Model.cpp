@@ -49,6 +49,12 @@ void Model::loadModel(const char* path)
       mesh->mVertices[i].z
     };
 
+    vertex.normal = {
+      mesh->mNormals[i].x,
+      mesh->mNormals[i].y,
+      mesh->mNormals[i].z
+    };
+
     vertex.texCoord = {
       mesh->mTextureCoords[0][i].x,
       mesh->mTextureCoords[0][i].y
