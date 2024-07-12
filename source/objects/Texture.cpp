@@ -30,6 +30,15 @@ Texture::~Texture()
   vkFreeMemory(device, textureImageMemory, nullptr);
 }
 
+VkDescriptorPoolSize Texture::getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT) const
+{
+  VkDescriptorPoolSize poolSize{};
+  poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+  return poolSize;
+}
+
 VkWriteDescriptorSet Texture::getDescriptorSet(VkDescriptorSet& dstSet, uint32_t binding) const
 {
   VkWriteDescriptorSet descriptorSet{};

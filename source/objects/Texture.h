@@ -8,6 +8,8 @@ public:
   Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path);
   ~Texture();
 
+  [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT) const;
+
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(VkDescriptorSet& dstSet, uint32_t binding) const;
 
 private:

@@ -79,11 +79,14 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
 
 void RenderObject::createDescriptorPool()
 {
-  std::array<VkDescriptorPoolSize, 2> poolSizes{};
-  poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-  poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  std::vector<VkDescriptorPoolSize> poolSizes{};
+
+  VkDescriptorPoolSize uniformPoolSize{};
+  uniformPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  uniformPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  poolSizes.push_back(uniformPoolSize);
+  
+  poolSizes.push_back(texture->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT));
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -114,22 +117,25 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformBuffers[i];
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
-
     std::vector<VkWriteDescriptorSet> descriptorWrites{};
 
-    VkWriteDescriptorSet uniformDescriptorSet{};
-    uniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    uniformDescriptorSet.dstSet = descriptorSets[i];
-    uniformDescriptorSet.dstBinding = 0;
-    uniformDescriptorSet.dstArrayElement = 0;
-    uniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uniformDescriptorSet.descriptorCount = 1;
-    uniformDescriptorSet.pBufferInfo = &bufferInfo;
-    descriptorWrites.push_back(uniformDescriptorSet);
+    // TODO: descriptorWrites.push_back(uniform->getDescriptorSet(descriptorSets[i], 0));
+    {
+      VkDescriptorBufferInfo bufferInfo{};
+      bufferInfo.buffer = uniformBuffers[i];
+      bufferInfo.offset = 0;
+      bufferInfo.range = sizeof(UniformBufferObject);
+
+      VkWriteDescriptorSet uniformDescriptorSet{};
+      uniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      uniformDescriptorSet.dstSet = descriptorSets[i];
+      uniformDescriptorSet.dstBinding = 0;
+      uniformDescriptorSet.dstArrayElement = 0;
+      uniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      uniformDescriptorSet.descriptorCount = 1;
+      uniformDescriptorSet.pBufferInfo = &bufferInfo;
+      descriptorWrites.push_back(uniformDescriptorSet);
+    }
 
     descriptorWrites.push_back(texture->getDescriptorSet(descriptorSets[i], 1));
 
