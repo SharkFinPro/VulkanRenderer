@@ -13,13 +13,15 @@ int main()
     vulkanEngineOptions.VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
     vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
     vulkanEngineOptions.cameraPosition = { 0.0f, 0.0f, -5.0f };
+    vulkanEngineOptions.cameraSpeed = 0.5f;
 
     VulkanEngine renderer(&vulkanEngineOptions);
 
     auto texture = renderer.loadTexture("assets/textures/container.png");
+    auto specularMap = renderer.loadTexture("assets/textures/container_specular.png");
     auto model = renderer.loadModel("assets/models/cube.obj");
 
-    auto object = renderer.loadRenderObject(texture, model);
+    auto object = renderer.loadRenderObject(texture, specularMap, model);
     object->setPosition({-1.0f, -1.0f, 0.0f});
 
     while (renderer.isActive())

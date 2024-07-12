@@ -126,9 +126,12 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
   return model;
 }
 
-std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(std::shared_ptr<Texture> texture, std::shared_ptr<Model> model)
+std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(std::shared_ptr<Texture> texture,
+                                                             std::shared_ptr<Texture> specularMap,
+                                                             std::shared_ptr<Model> model)
 {
-  auto renderObject = std::make_shared<RenderObject>(device, physicalDevice, descriptorSetLayout, texture, model);
+  auto renderObject = std::make_shared<RenderObject>(device, physicalDevice,
+                                                     descriptorSetLayout, texture, specularMap, model);
   renderObjects.push_back(renderObject);
 
   return renderObject;
@@ -1076,6 +1079,20 @@ void VulkanEngine::createDescriptorSetLayout()
   uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
   uboLayoutBinding.pImmutableSamplers = nullptr;
 
+  VkDescriptorSetLayoutBinding uboLayoutBinding2{};
+  uboLayoutBinding2.binding = 2;
+  uboLayoutBinding2.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  uboLayoutBinding2.descriptorCount = 1;
+  uboLayoutBinding2.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  uboLayoutBinding2.pImmutableSamplers = nullptr;
+
+  VkDescriptorSetLayoutBinding uboLayoutBinding3{};
+  uboLayoutBinding3.binding = 3;
+  uboLayoutBinding3.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  uboLayoutBinding3.descriptorCount = 1;
+  uboLayoutBinding3.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  uboLayoutBinding3.pImmutableSamplers = nullptr;
+
   VkDescriptorSetLayoutBinding samplerLayoutBinding{};
   samplerLayoutBinding.binding = 1;
   samplerLayoutBinding.descriptorCount = 1;
@@ -1083,7 +1100,15 @@ void VulkanEngine::createDescriptorSetLayout()
   samplerLayoutBinding.pImmutableSamplers = nullptr;
   samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-  std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+  VkDescriptorSetLayoutBinding samplerLayoutBinding2{};
+  samplerLayoutBinding2.binding = 4;
+  samplerLayoutBinding2.descriptorCount = 1;
+  samplerLayoutBinding2.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  samplerLayoutBinding2.pImmutableSamplers = nullptr;
+  samplerLayoutBinding2.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+
+  std::array<VkDescriptorSetLayoutBinding, 5> bindings = {uboLayoutBinding, uboLayoutBinding2, uboLayoutBinding3, samplerLayoutBinding, samplerLayoutBinding2};
 
   VkDescriptorSetLayoutCreateInfo layoutCreateInfo{};
   layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;

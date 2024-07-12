@@ -63,7 +63,8 @@ public:
 
   std::shared_ptr<Texture> loadTexture(const char* path);
   std::shared_ptr<Model> loadModel(const char* path);
-  std::shared_ptr<RenderObject> loadRenderObject(std::shared_ptr<Texture>, std::shared_ptr<Model>);
+  std::shared_ptr<RenderObject> loadRenderObject(std::shared_ptr<Texture> texture, std::shared_ptr<Texture> specularMap,
+                                                 std::shared_ptr<Model>);
 
 private:
   void initVulkan();

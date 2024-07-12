@@ -12,6 +12,19 @@ struct TransformUniform {
   alignas(16) glm::mat4 proj;
 };
 
+struct LightUniform {
+  alignas(16) glm::vec3 position;
+  alignas(16) glm::vec3 color;
+
+  alignas(4) float ambient;
+  alignas(4) float diffuse;
+  alignas(4) float specular;
+};
+
+struct CameraUniform {
+  alignas(16) glm::vec3 position;
+};
+
 class Model;
 class Texture;
 class Camera;
@@ -20,7 +33,7 @@ class UniformBuffer;
 class RenderObject {
 public:
   RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice, VkDescriptorSetLayout& descriptorSetLayout,
-               std::shared_ptr<Texture> texture, std::shared_ptr<Model> model);
+               std::shared_ptr<Texture> texture, std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model);
   ~RenderObject();
 
   void draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipelineLayout, uint32_t currentFrame);
@@ -40,9 +53,12 @@ private:
   glm::vec3 position;
 
   std::shared_ptr<Texture> texture;
+  std::shared_ptr<Texture> specularMap;
   std::shared_ptr<Model> model;
 
-  std::unique_ptr<UniformBuffer> uniformBuffer;
+  std::unique_ptr<UniformBuffer> transformUniform;
+  std::unique_ptr<UniformBuffer> lightUniform;
+  std::unique_ptr<UniformBuffer> cameraUniform;
 
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
