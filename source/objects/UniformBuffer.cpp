@@ -1,4 +1,5 @@
 #include "UniformBuffer.h"
+#include <cstring>
 #include "../Buffers.h"
 
 UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, uint32_t MAX_FRAMES_IN_FLIGHT, VkDeviceSize bufferSize)
@@ -52,4 +53,9 @@ VkWriteDescriptorSet UniformBuffer::getDescriptorSet(uint32_t binding, VkDescrip
   uniformDescriptorSet.pBufferInfo = &bufferInfos[frame];
 
   return uniformDescriptorSet;
+}
+
+void UniformBuffer::update(uint32_t frame, void* data, size_t size)
+{
+  memcpy(uniformBuffersMapped[frame], data, size);
 }

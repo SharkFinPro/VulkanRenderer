@@ -6,10 +6,16 @@
 #include <glm/glm.hpp>
 #include <memory>
 
+struct TransformUniform {
+  alignas(16) glm::mat4 model;
+  alignas(16) glm::mat4 view;
+  alignas(16) glm::mat4 proj;
+};
+
 class Model;
 class Texture;
 class Camera;
-class TransformUniformBuffer;
+class UniformBuffer;
 
 class RenderObject {
 public:
@@ -36,7 +42,7 @@ private:
   std::shared_ptr<Texture> texture;
   std::shared_ptr<Model> model;
 
-  std::unique_ptr<TransformUniformBuffer> transformUniformBuffer;
+  std::unique_ptr<UniformBuffer> uniformBuffer;
 
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;

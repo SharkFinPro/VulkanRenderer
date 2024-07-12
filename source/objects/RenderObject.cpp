@@ -7,7 +7,7 @@
 
 #include "Model.h"
 #include "Texture.h"
-#include "TransformUniformBuffer.h"
+#include "UniformBuffer.h"
 
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
@@ -16,7 +16,7 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
                            std::shared_ptr<Model> model)
   : device(device), physicalDevice(physicalDevice), texture(std::move(texture)), model(std::move(model)),
     position(0, 0, 0),
-    transformUniformBuffer(std::make_unique<TransformUniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT))
+    uniformBuffer(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
 {
   createDescriptorPool();
   createDescriptorSets(descriptorSetLayout);
@@ -51,13 +51,13 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 100.0f);
   ubo.proj[1][1] *= -1;
 
-  transformUniformBuffer->update(currentFrame, ubo);
+  uniformBuffer->update(currentFrame, &ubo, sizeof(TransformUniform));
 }
 
 void RenderObject::createDescriptorPool()
 {
   std::vector<VkDescriptorPoolSize> poolSizes{};
-  poolSizes.push_back(transformUniformBuffer->getDescriptorPoolSize());
+  poolSizes.push_back(uniformBuffer->getDescriptorPoolSize());
   poolSizes.push_back(texture->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT));
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
@@ -90,7 +90,7 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{};
-    descriptorWrites.push_back(transformUniformBuffer->getDescriptorSet(0, descriptorSets[i], i));
+    descriptorWrites.push_back(uniformBuffer->getDescriptorSet(0, descriptorSets[i], i));
     descriptorWrites.push_back(texture->getDescriptorSet(1, descriptorSets[i]));
 
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),

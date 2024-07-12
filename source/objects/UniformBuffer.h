@@ -14,6 +14,8 @@ public:
 
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet, size_t frame) const;
 
+  void update(uint32_t frame, void* data, size_t size);
+
 protected:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
