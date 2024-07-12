@@ -131,7 +131,7 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
     uniformDescriptorSet.pBufferInfo = &bufferInfo;
     descriptorWrites.push_back(uniformDescriptorSet);
 
-    descriptorWrites.push_back(texture->getDescriptorSet(descriptorSets[i]));
+    descriptorWrites.push_back(texture->getDescriptorSet(descriptorSets[i], 1));
 
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
                            descriptorWrites.data(), 0, nullptr);

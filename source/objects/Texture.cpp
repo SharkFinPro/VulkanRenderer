@@ -30,12 +30,12 @@ Texture::~Texture()
   vkFreeMemory(device, textureImageMemory, nullptr);
 }
 
-VkWriteDescriptorSet Texture::getDescriptorSet(VkDescriptorSet& dstSet) const
+VkWriteDescriptorSet Texture::getDescriptorSet(VkDescriptorSet& dstSet, uint32_t binding) const
 {
   VkWriteDescriptorSet descriptorSet{};
   descriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
   descriptorSet.dstSet = dstSet;
-  descriptorSet.dstBinding = 1;
+  descriptorSet.dstBinding = binding;
   descriptorSet.dstArrayElement = 0;
   descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
   descriptorSet.descriptorCount = 1;
