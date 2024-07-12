@@ -16,9 +16,10 @@ int main()
     VulkanEngine renderer(&vulkanEngineOptions);
 
     auto texture = renderer.loadTexture("assets/textures/viking_room.png");
+    auto specular = renderer.loadTexture("assets/textures/blank_specular.png");
     auto model = renderer.loadModel("assets/models/viking_room.obj");
 
-    auto object = renderer.loadRenderObject(texture, model);
+    auto object = renderer.loadRenderObject(texture, specular, model);
     object->setPosition({ 0, -0.5f, 3.0f });
 
 
