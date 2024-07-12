@@ -119,24 +119,19 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
     bufferInfo.offset = 0;
     bufferInfo.range = sizeof(UniformBufferObject);
 
-    auto imageInfo = texture->getImageInfo();
+    std::vector<VkWriteDescriptorSet> descriptorWrites{};
 
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[0].dstSet = descriptorSets[i];
-    descriptorWrites[0].dstBinding = 0;
-    descriptorWrites[0].dstArrayElement = 0;
-    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrites[0].descriptorCount = 1;
-    descriptorWrites[0].pBufferInfo = &bufferInfo;
+    VkWriteDescriptorSet uniformDescriptorSet{};
+    uniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    uniformDescriptorSet.dstSet = descriptorSets[i];
+    uniformDescriptorSet.dstBinding = 0;
+    uniformDescriptorSet.dstArrayElement = 0;
+    uniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uniformDescriptorSet.descriptorCount = 1;
+    uniformDescriptorSet.pBufferInfo = &bufferInfo;
+    descriptorWrites.push_back(uniformDescriptorSet);
 
-    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrites[1].dstSet = descriptorSets[i];
-    descriptorWrites[1].dstBinding = 1;
-    descriptorWrites[1].dstArrayElement = 0;
-    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pImageInfo = &imageInfo;
+    descriptorWrites.push_back(texture->getDescriptorSet(descriptorSets[i]));
 
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
                            descriptorWrites.data(), 0, nullptr);

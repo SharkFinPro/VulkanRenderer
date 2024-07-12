@@ -15,6 +15,10 @@ Texture::Texture(VkDevice &device, VkPhysicalDevice &physicalDevice, VkCommandPo
   textureImageView = Images::createImageView(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
 
   createTextureSampler();
+
+  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  imageInfo.imageView = textureImageView;
+  imageInfo.sampler = textureSampler;
 }
 
 Texture::~Texture()
@@ -26,14 +30,18 @@ Texture::~Texture()
   vkFreeMemory(device, textureImageMemory, nullptr);
 }
 
-VkDescriptorImageInfo Texture::getImageInfo() const
+VkWriteDescriptorSet Texture::getDescriptorSet(VkDescriptorSet& dstSet) const
 {
-  VkDescriptorImageInfo imageInfo{};
-  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  imageInfo.imageView = textureImageView;
-  imageInfo.sampler = textureSampler;
+  VkWriteDescriptorSet descriptorSet{};
+  descriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorSet.dstSet = dstSet;
+  descriptorSet.dstBinding = 1;
+  descriptorSet.dstArrayElement = 0;
+  descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  descriptorSet.descriptorCount = 1;
+  descriptorSet.pImageInfo = &imageInfo;
 
-  return imageInfo;
+  return descriptorSet;
 }
 
 void Texture::createTextureImage(VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path)

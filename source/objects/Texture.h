@@ -8,7 +8,7 @@ public:
   Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path);
   ~Texture();
 
-  [[nodiscard]] VkDescriptorImageInfo getImageInfo() const;
+  [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(VkDescriptorSet& dstSet) const;
 
 private:
   void createTextureImage(VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path);
@@ -28,6 +28,8 @@ private:
   VkDeviceMemory textureImageMemory;
   VkImageView textureImageView;
   VkSampler textureSampler;
+
+  VkDescriptorImageInfo imageInfo;
 };
 
 
