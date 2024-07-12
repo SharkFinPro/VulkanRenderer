@@ -1,5 +1,6 @@
 #include <iostream>
 #include <source/VulkanEngine.h>
+#include <source/objects/RenderObject.h>
 
 int main()
 {
@@ -19,6 +20,7 @@ int main()
     auto model = renderer.loadModel("assets/models/cube.obj");
 
     auto object = renderer.loadRenderObject(texture, model);
+    object->setPosition({-1.0f, -1.0f, 0.0f});
 
     while (renderer.isActive())
     {
