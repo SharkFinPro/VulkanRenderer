@@ -36,16 +36,10 @@ void RenderObject::draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipeli
 
 void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent, std::shared_ptr<Camera>& camera)
 {
-  static auto startTime = std::chrono::high_resolution_clock::now();
-
-  auto currentTime = std::chrono::high_resolution_clock::now();
-  float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
   TransformUniform ubo{};
 
   ubo.model = glm::translate(glm::mat4(1.0f), position);
   ubo.model = glm::rotate(ubo.model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
-  ubo.model = glm::rotate(ubo.model, time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
   ubo.view = camera->getViewMatrix();
   ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 100.0f);
