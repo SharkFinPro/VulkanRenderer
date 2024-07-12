@@ -27,6 +27,7 @@ protected:
   std::vector<void*> uniformBuffersMapped;
 
   std::vector<VkDescriptorBufferInfo> bufferInfos;
+  VkDescriptorPoolSize poolSize;
 };
 
 

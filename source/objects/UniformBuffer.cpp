@@ -22,6 +22,9 @@ UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice,
 
     bufferInfos.push_back(bufferInfo);
   }
+
+  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
 }
 
 UniformBuffer::~UniformBuffer() {
@@ -34,10 +37,6 @@ UniformBuffer::~UniformBuffer() {
 
 VkDescriptorPoolSize UniformBuffer::getDescriptorPoolSize() const
 {
-  VkDescriptorPoolSize poolSize{};
-  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-
   return poolSize;
 }
 
