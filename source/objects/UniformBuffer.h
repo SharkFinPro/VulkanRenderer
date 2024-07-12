@@ -12,7 +12,7 @@ public:
 
   [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
-  [[nodiscard]] virtual VkWriteDescriptorSet getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet, size_t frame) const = 0;
+  [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet, size_t frame) const;
 
 protected:
   VkDevice& device;
