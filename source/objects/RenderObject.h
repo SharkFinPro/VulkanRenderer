@@ -6,15 +6,10 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-struct UniformBufferObject {
-  alignas(16) glm::mat4 model;
-  alignas(16) glm::mat4 view;
-  alignas(16) glm::mat4 proj;
-};
-
 class Model;
 class Texture;
 class Camera;
+class TransformUniformBuffer;
 
 class RenderObject {
 public:
@@ -29,8 +24,6 @@ public:
   void setPosition(glm::vec3 position);
 
 private:
-  void createUniformBuffers();
-
   void createDescriptorPool();
   void createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout);
 
@@ -43,9 +36,8 @@ private:
   std::shared_ptr<Texture> texture;
   std::shared_ptr<Model> model;
 
-  std::vector<VkBuffer> uniformBuffers;
-  std::vector<VkDeviceMemory> uniformBuffersMemory;
-  std::vector<void*> uniformBuffersMapped;
+  std::unique_ptr<TransformUniformBuffer> transformUniformBuffer;
+
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
 };

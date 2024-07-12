@@ -3,11 +3,11 @@
 #include <chrono>
 #include <utility>
 #include "glm/gtc/matrix_transform.hpp"
-#include "../Buffers.h"
 #include "../Camera.h"
 
 #include "Model.h"
 #include "Texture.h"
+#include "TransformUniformBuffer.h"
 
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
@@ -15,22 +15,15 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
                            VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Model> model)
   : device(device), physicalDevice(physicalDevice), texture(std::move(texture)), model(std::move(model)),
-    position(0, 0, 0)
+    position(0, 0, 0),
+    transformUniformBuffer(std::make_unique<TransformUniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT))
 {
-  createUniformBuffers();
-
   createDescriptorPool();
   createDescriptorSets(descriptorSetLayout);
 }
 
 RenderObject::~RenderObject()
 {
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-    vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
-  }
-
   vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
@@ -41,22 +34,6 @@ void RenderObject::draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipeli
   model->draw(commandBuffer);
 }
 
-void RenderObject::createUniformBuffers()
-{
-  VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-  uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    Buffers::createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
-
-    vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
-  }
-}
-
 void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent, std::shared_ptr<Camera>& camera)
 {
   static auto startTime = std::chrono::high_resolution_clock::now();
@@ -64,7 +41,7 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   auto currentTime = std::chrono::high_resolution_clock::now();
   float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-  UniformBufferObject ubo{};
+  TransformUniform ubo{};
 
   ubo.model = glm::translate(glm::mat4(1.0f), position);
   ubo.model = glm::rotate(ubo.model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
@@ -74,18 +51,13 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 100.0f);
   ubo.proj[1][1] *= -1;
 
-  memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
+  transformUniformBuffer->update(currentFrame, ubo);
 }
 
 void RenderObject::createDescriptorPool()
 {
   std::vector<VkDescriptorPoolSize> poolSizes{};
-
-  VkDescriptorPoolSize uniformPoolSize{};
-  uniformPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  uniformPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-  poolSizes.push_back(uniformPoolSize);
-  
+  poolSizes.push_back(transformUniformBuffer->getDescriptorPoolSize());
   poolSizes.push_back(texture->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT));
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
@@ -118,26 +90,8 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{};
-
-    // TODO: descriptorWrites.push_back(uniform->getDescriptorSet(descriptorSets[i], 0));
-    {
-      VkDescriptorBufferInfo bufferInfo{};
-      bufferInfo.buffer = uniformBuffers[i];
-      bufferInfo.offset = 0;
-      bufferInfo.range = sizeof(UniformBufferObject);
-
-      VkWriteDescriptorSet uniformDescriptorSet{};
-      uniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      uniformDescriptorSet.dstSet = descriptorSets[i];
-      uniformDescriptorSet.dstBinding = 0;
-      uniformDescriptorSet.dstArrayElement = 0;
-      uniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-      uniformDescriptorSet.descriptorCount = 1;
-      uniformDescriptorSet.pBufferInfo = &bufferInfo;
-      descriptorWrites.push_back(uniformDescriptorSet);
-    }
-
-    descriptorWrites.push_back(texture->getDescriptorSet(descriptorSets[i], 1));
+    descriptorWrites.push_back(transformUniformBuffer->getDescriptorSet(0, descriptorSets[i], i));
+    descriptorWrites.push_back(texture->getDescriptorSet(1, descriptorSets[i]));
 
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
                            descriptorWrites.data(), 0, nullptr);

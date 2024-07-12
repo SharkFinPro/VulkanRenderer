@@ -39,7 +39,7 @@ VkDescriptorPoolSize Texture::getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGH
   return poolSize;
 }
 
-VkWriteDescriptorSet Texture::getDescriptorSet(VkDescriptorSet& dstSet, uint32_t binding) const
+VkWriteDescriptorSet Texture::getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet) const
 {
   VkWriteDescriptorSet descriptorSet{};
   descriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

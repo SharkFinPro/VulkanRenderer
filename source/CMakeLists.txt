@@ -19,4 +19,8 @@ add_library(${PROJECT_NAME} SHARED
   Images.h
   Camera.cpp
   Camera.h
+  objects/UniformBuffer.cpp
+  objects/UniformBuffer.h
+  objects/TransformUniformBuffer.cpp
+  objects/TransformUniformBuffer.h
 )
