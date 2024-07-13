@@ -41,7 +41,6 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   TransformUniform transformUBO{};
 
   transformUBO.model = glm::translate(glm::mat4(1.0f), position);
-  transformUBO.model = glm::rotate(transformUBO.model, glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
 
   transformUBO.view = camera->getViewMatrix();
   transformUBO.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 100.0f);
