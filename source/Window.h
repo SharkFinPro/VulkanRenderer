@@ -27,9 +27,9 @@ public:
 
   [[nodiscard]] float getDeltaTime() const;
 
-  int getWidth() const;
+  [[nodiscard]] int getWidth() const;
 
-  int getHeight() const;
+  [[nodiscard]] int getHeight() const;
 
 private:
   GLFWwindow* window;
