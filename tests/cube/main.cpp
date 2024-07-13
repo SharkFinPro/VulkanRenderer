@@ -13,7 +13,6 @@ int main()
     vulkanEngineOptions.VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
     vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
     vulkanEngineOptions.cameraPosition = { 0.0f, 0.0f, -5.0f };
-    vulkanEngineOptions.cameraSpeed = 0.5f;
 
     VulkanEngine renderer(&vulkanEngineOptions);
 
