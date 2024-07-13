@@ -48,7 +48,7 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
 
   LightUniform lightUBO{};
-  lightUBO.position = {1.2f, 1.0f, -1.0f};
+  lightUBO.position = {0, 3.0f, 0};
   lightUBO.color = {1.0f, 1.0f, 1.0f};
   lightUBO.ambient = 0.2f;
   lightUBO.diffuse = 0.5f;
