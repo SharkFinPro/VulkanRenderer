@@ -58,11 +58,11 @@ jobs:
       if: ${{ matrix.os != 'windows-latest' }}
       run: |
         sudo apt-get update
-        sudo apt-get install -y libwayland-dev libxkbcommon-dev libxrandr-dev
+        sudo apt-get install -y libwayland-dev libxkbcommon-dev libxrandr-dev libxinerama-dev
     - name: Install dependencies (windows)
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
-        choco install vulkan-sdk -y
+        choco install vulkan-sdk --version=1.3.283.0 -y
         refreshenv  # Refresh environment variables to pick up Vulkan SDK changes
 
     - name: Configure CMake
