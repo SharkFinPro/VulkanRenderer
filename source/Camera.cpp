@@ -20,9 +20,9 @@ void Camera::setSpeed(float cameraSpeed)
   speed = cameraSpeed;
 }
 
-void Camera::processInput(const std::shared_ptr<Window> &window)
+void Camera::processInput(const std::shared_ptr<Window>& window)
 {
-  float cameraSpeed = speed * window->getDeltaTime() * 0.05f;
+  float cameraSpeed = speed * 0.025f;
 
   if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
   {
