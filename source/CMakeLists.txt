@@ -94,7 +94,10 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC
   Vulkan::Vulkan
   glfw
-  glm
   assimp
   stb
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  ${glm_SOURCE_DIR}
 )
