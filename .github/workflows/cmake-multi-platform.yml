@@ -61,6 +61,7 @@ jobs:
         sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev
 
     - name: Prepare Vulkan SDK (windows)
+      if: ${{ matrix.os == 'windows-latest' }}
       uses: humbletim/setup-vulkan-sdk@v1.2.0
       with:
         vulkan-query-version: 1.3.283.0
@@ -77,9 +78,15 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
 
-    - name: Build
-      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+    - name: Build VulkanEngine
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --target VulkanEngine --config ${{ matrix.build_type }}
+
+    - name: Build cube test project
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --target cube --config ${{ matrix.build_type }}
+
+    - name: Build object loading test project
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --target objectLoading --config ${{ matrix.build_type }}
+
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
