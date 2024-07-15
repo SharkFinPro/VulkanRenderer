@@ -8,6 +8,10 @@ project(VulkanProject)
 
 set(CMAKE_CXX_STANDARD 23)
 
+if (MSVC)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 1)
+endif()
+
 add_subdirectory(source)
 
 # Tests

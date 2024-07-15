@@ -1,7 +1,9 @@
 project(VulkanEngine)
 include(FetchContent)
 
-add_library(${PROJECT_NAME} SHARED
+set(BUILD_SHARED_LIBS ON)
+
+add_library(${PROJECT_NAME}
   VulkanEngine.cpp
   VulkanEngine.h
   Window.cpp
@@ -23,8 +25,6 @@ add_library(${PROJECT_NAME} SHARED
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
 )
-
-set(BUILD_SHARED_LIBS ON)
 
 # Vulkan
 FetchContent_Declare(
