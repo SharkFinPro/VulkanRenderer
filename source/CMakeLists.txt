@@ -87,9 +87,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   Vulkan::Vulkan
   glfw
   assimp
-  stb
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${glm_SOURCE_DIR}
+  ${stb_SOURCE_DIR}
 )
