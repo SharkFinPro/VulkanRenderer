@@ -81,6 +81,12 @@ jobs:
     - name: Build VulkanEngine
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --target VulkanEngine --config ${{ matrix.build_type }}
 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: VulkanEngine
+        path: build/bin/Release/VulkanEngine.dll
+
     - name: Build cube test project
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --target cube --config ${{ matrix.build_type }}
 
