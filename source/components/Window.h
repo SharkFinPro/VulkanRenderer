@@ -25,8 +25,6 @@ public:
 
   void getPreviousCursorPos(double &xpos, double &ypos) const;
 
-  [[nodiscard]] float getDeltaTime() const;
-
   [[nodiscard]] int getWidth() const;
 
   [[nodiscard]] int getHeight() const;
@@ -38,9 +36,6 @@ private:
   double previousMouseY;
   double mouseX;
   double mouseY;
-
-  float deltaTime;
-  float lastTime;
 };
 
 

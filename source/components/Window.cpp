@@ -16,11 +16,6 @@ Window::Window(int width, int height, const char* title, GLFWframebuffersizefun 
   glfwSetWindowUserPointer(window, this);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 
-  // Get new deltatime
-  auto currentTime = static_cast<float>(glfwGetTime());
-  deltaTime = currentTime - lastTime;
-  lastTime = currentTime;
-
   glfwGetCursorPos(window, &mouseX, &mouseY);
   previousMouseX = mouseX;
   previousMouseY = mouseY;
@@ -83,11 +78,6 @@ void Window::getPreviousCursorPos(double &xpos, double &ypos) const
 {
   xpos = previousMouseX;
   ypos = previousMouseY;
-}
-
-float Window::getDeltaTime() const
-{
-  return deltaTime;
 }
 
 int Window::getWidth() const
