@@ -7,7 +7,7 @@
 #include "RenderPass.h"
 
 #include "../objects/RenderObject.h"
-#include "../Camera.h"
+#include "../components/Camera.h"
 
 static std::vector<char> readFile(const std::string& filename)
 {

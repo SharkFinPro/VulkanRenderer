@@ -1,5 +1,5 @@
 #include "Model.h"
-#include "../Buffers.h"
+#include "../utilities/Buffers.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

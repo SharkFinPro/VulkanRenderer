@@ -1,6 +1,6 @@
 #include "UniformBuffer.h"
 #include <cstring>
-#include "../Buffers.h"
+#include "../utilities/Buffers.h"
 
 UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, uint32_t MAX_FRAMES_IN_FLIGHT, VkDeviceSize bufferSize)
   : device(device), physicalDevice(physicalDevice), MAX_FRAMES_IN_FLIGHT(MAX_FRAMES_IN_FLIGHT)

@@ -3,7 +3,7 @@
 #include <chrono>
 #include <utility>
 #include "glm/gtc/matrix_transform.hpp"
-#include "../Camera.h"
+#include "../components/Camera.h"
 
 #include "Model.h"
 #include "Texture.h"

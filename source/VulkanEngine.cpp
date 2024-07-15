@@ -6,15 +6,15 @@
 #include <limits>
 #include <algorithm>
 
-#include "Buffers.h"
-#include "Images.h"
+#include "utilities/Buffers.h"
+#include "utilities/Images.h"
 
-#include "DebugMessenger.h"
+#include "components/DebugMessenger.h"
 
 #include "pipeline/GraphicsPipeline.h"
 #include "pipeline/RenderPass.h"
 
-#include "Camera.h"
+#include "components/Camera.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"

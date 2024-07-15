@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
-#include "Window.h"
+#include "components/Window.h"
 #include <vector>
 #include <optional>
 #include <string>

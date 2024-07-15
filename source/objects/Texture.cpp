@@ -5,8 +5,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "../Buffers.h"
-#include "../Images.h"
+#include "../utilities/Buffers.h"
+#include "../utilities/Images.h"
 
 Texture::Texture(VkDevice &device, VkPhysicalDevice &physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path)
   : device(device), physicalDevice(physicalDevice)

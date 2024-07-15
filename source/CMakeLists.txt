@@ -6,22 +6,22 @@ set(BUILD_SHARED_LIBS ON)
 add_library(${PROJECT_NAME}
   VulkanEngine.cpp
   VulkanEngine.h
-  Window.cpp
-  Window.h
-  DebugMessenger.cpp
-  DebugMessenger.h
+  components/Window.cpp
+  components/Window.h
+  components/DebugMessenger.cpp
+  components/DebugMessenger.h
   objects/RenderObject.cpp
   objects/RenderObject.h
-  Buffers.cpp
-  Buffers.h
+  utilities/Buffers.cpp
+  utilities/Buffers.h
   objects/Model.cpp
   objects/Model.h
   objects/Texture.cpp
   objects/Texture.h
-  Images.cpp
-  Images.h
-  Camera.cpp
-  Camera.h
+  utilities/Images.cpp
+  utilities/Images.h
+  components/Camera.cpp
+  components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
   pipeline/GraphicsPipeline.cpp
