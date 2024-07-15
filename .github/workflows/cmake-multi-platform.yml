@@ -54,13 +54,13 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install dependencies (ubuntu)
-      if: ${{ matrix.os != 'windows-latest' }}
+    - name: Install dependencies (Ubuntu)
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         sudo apt-get update
         sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev
 
-    - name: Prepare Vulkan SDK (windows)
+    - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       uses: humbletim/setup-vulkan-sdk@v1.2.0
       with:
