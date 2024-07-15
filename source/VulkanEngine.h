@@ -13,6 +13,8 @@ class Camera;
 class Texture;
 class Model;
 class RenderObject;
+class GraphicsPipeline;
+class RenderPass;
 
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
@@ -82,9 +84,6 @@ private:
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   void createSwapChain();
   void createImageViews();
-  void createGraphicsPipeline();
-  VkShaderModule createShaderModule(const std::vector<char>& code);
-  void createRenderPass();
   void createFrameBuffers();
   void createCommandPool();
   void createCommandBuffers();
@@ -94,7 +93,6 @@ private:
   void cleanupSwapChain();
   void recreateSwapChain();
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-  void createDescriptorSetLayout();
   void createDepthResources();
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
                                VkFormatFeatureFlags features);
@@ -111,9 +109,12 @@ private:
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
-  std::vector<std::shared_ptr<RenderObject>> renderObjects;
 
   std::unique_ptr<DebugMessenger> debugMessenger;
+
+  std::shared_ptr<RenderPass> renderPass;
+
+  std::unique_ptr<GraphicsPipeline> graphicsPipeline;
 
   VkInstance instance;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -126,10 +127,6 @@ private:
   VkFormat swapChainImageFormat;
   VkExtent2D swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
-  VkRenderPass renderPass;
-  VkDescriptorSetLayout descriptorSetLayout;
-  VkPipelineLayout pipelineLayout;
-  VkPipeline graphicsPipeline;
   std::vector<VkFramebuffer> swapChainFramebuffers;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;

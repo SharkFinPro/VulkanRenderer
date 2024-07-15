@@ -5,6 +5,8 @@
 #include <assimp/postprocess.h>
 #include <stdexcept>
 
+#include "../pipeline/Vertex.h"
+
 Model::Model(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue,
              const char* path)
   : device(device), physicalDevice(physicalDevice)

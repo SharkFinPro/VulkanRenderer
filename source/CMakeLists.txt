@@ -24,6 +24,14 @@ add_library(${PROJECT_NAME}
   Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
+  pipeline/GraphicsPipeline.cpp
+  pipeline/GraphicsPipeline.h
+  pipeline/Vertex.cpp
+  pipeline/Vertex.h
+  pipeline/RenderPass.cpp
+  pipeline/RenderPass.h
+  pipeline/Framebuffer.cpp
+  pipeline/Framebuffer.h
 )
 
 # GLFW
