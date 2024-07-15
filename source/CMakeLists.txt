@@ -26,13 +26,6 @@ add_library(${PROJECT_NAME}
   objects/UniformBuffer.h
 )
 
-# Vulkan
-FetchContent_Declare(
-  vulkanHeaders
-  GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
-  GIT_TAG v1.3.290
-)
-
 # GLFW
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
@@ -86,7 +79,6 @@ FetchContent_MakeAvailable(
   glm
   assimp
   stb
-  vulkanHeaders
 )
 
 find_package(Vulkan REQUIRED)
