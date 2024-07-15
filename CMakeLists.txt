@@ -13,8 +13,6 @@ add_subdirectory(source)
 # Tests
 include_directories(PUBLIC .)
 
-link_libraries(VulkanEngine)
-
 file(COPY "tests/assets/" DESTINATION "bin/assets/")
 
 add_subdirectory(tests)
