@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 
 Camera::Camera(glm::vec3 pos)
     : position(pos)
@@ -37,14 +38,7 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     pitch -= deltaMY;
   }
 
-  if (pitch > 89.0f)
-  {
-    pitch = 89.0f;
-  }
-  else if (pitch < -89.0f)
-  {
-    pitch = -89.0f;
-  }
+  pitch = std::clamp(pitch, -89.9f, 89.9f);
 
   direction.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
   direction.y = std::sin(glm::radians(pitch));
