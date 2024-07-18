@@ -14,14 +14,12 @@ const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
                            VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)
-  : device(device), physicalDevice(physicalDevice), texture(std::move(texture)), specularMap(std::move(specularMap)),
-    model(std::move(model)), position(0, 0, 0),
-    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform))),
-    lightUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform))),
-    cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform)))
+  : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
+    texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)), position(0, 0, 0),
+    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
 {
   createDescriptorPool();
-  createDescriptorSets(descriptorSetLayout);
+  createDescriptorSets();
 }
 
 RenderObject::~RenderObject()
@@ -31,7 +29,7 @@ RenderObject::~RenderObject()
 
 void RenderObject::draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipelineLayout, uint32_t currentFrame)
 {
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   model->draw(commandBuffer);
 }
@@ -46,28 +44,14 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   transformUBO.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 100.0f);
   transformUBO.proj[1][1] *= -1;
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
-
-  LightUniform lightUBO{};
-  lightUBO.position = {0, 3.0f, 0};
-  lightUBO.color = {1.0f, 1.0f, 1.0f};
-  lightUBO.ambient = 0.2f;
-  lightUBO.diffuse = 0.5f;
-  lightUBO.specular = 1.0f;
-  lightUniform->update(currentFrame, &lightUBO, sizeof(LightUniform));
-
-  CameraUniform cameraUBO{};
-  cameraUBO.position = camera->getPosition();
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
 }
 
 void RenderObject::createDescriptorPool()
 {
-  std::array<VkDescriptorPoolSize, 5> poolSizes{};
+  std::array<VkDescriptorPoolSize, 3> poolSizes{};
   poolSizes[0] = transformUniform->getDescriptorPoolSize();
-  poolSizes[1] = lightUniform->getDescriptorPoolSize();
-  poolSizes[2] = cameraUniform->getDescriptorPoolSize();
-  poolSizes[3] = texture->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
-  poolSizes[4] = specularMap->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
+  poolSizes[1] = texture->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
+  poolSizes[2] = specularMap->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -81,7 +65,7 @@ void RenderObject::createDescriptorPool()
   }
 }
 
-void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout)
+void RenderObject::createDescriptorSets()
 {
   std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
@@ -98,12 +82,10 @@ void RenderObject::createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayo
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 5> descriptorWrites{};
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
     descriptorWrites[0] = transformUniform->getDescriptorSet(0, descriptorSets[i], i);
-    descriptorWrites[1] = lightUniform->getDescriptorSet(2, descriptorSets[i], i);
-    descriptorWrites[2] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
-    descriptorWrites[3] = texture->getDescriptorSet(1, descriptorSets[i]);
-    descriptorWrites[4] = specularMap->getDescriptorSet(4, descriptorSets[i]);
+    descriptorWrites[1] = texture->getDescriptorSet(1, descriptorSets[i]);
+    descriptorWrites[2] = specularMap->getDescriptorSet(4, descriptorSets[i]);
 
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
                            descriptorWrites.data(), 0, nullptr);

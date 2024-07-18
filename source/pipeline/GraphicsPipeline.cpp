@@ -8,6 +8,9 @@
 
 #include "../objects/RenderObject.h"
 #include "../components/Camera.h"
+#include "../objects/UniformBuffer.h"
+
+const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 static std::vector<char> readFile(const std::string& filename)
 {
@@ -32,15 +35,25 @@ static std::vector<char> readFile(const std::string& filename)
 GraphicsPipeline::GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
                                    const char* fragmentShader, VkExtent2D& swapChainExtent,
                                    VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
-  : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent), renderPass(std::move(renderPass))
+  : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent), renderPass(std::move(renderPass)),
+    lightUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform))),
+    cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform)))
 {
   createDescriptorSetLayout();
 
   createGraphicsPipeline(vertexShader, fragmentShader, msaaSamples);
+
+  createDescriptorPool();
+
+  createDescriptorSets();
 }
 
 GraphicsPipeline::~GraphicsPipeline()
 {
+  vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+
+  vkDestroyDescriptorSetLayout(device, objectDescriptorSetLayout, nullptr);
+
   vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
   vkDestroyPipeline(device, graphicsPipeline, nullptr);
@@ -55,7 +68,7 @@ VkRenderPass& GraphicsPipeline::getRenderPass()
 
 VkDescriptorSetLayout& GraphicsPipeline::getLayout()
 {
-  return descriptorSetLayout;
+  return objectDescriptorSetLayout;
 }
 
 void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t imageIndex, uint32_t currentFrame,
@@ -91,6 +104,20 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t imageInde
   scissor.offset = {0, 0};
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+  LightUniform lightUBO{};
+  lightUBO.position = {0, 3.0f, 0};
+  lightUBO.color = {1.0f, 1.0f, 1.0f};
+  lightUBO.ambient = 0.2f;
+  lightUBO.diffuse = 0.5f;
+  lightUBO.specular = 1.0f;
+  lightUniform->update(currentFrame, &lightUBO, sizeof(LightUniform));
+
+  CameraUniform cameraUBO{};
+  cameraUBO.position = camera->getPosition();
+  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   for (auto& object : renderObjects)
   {
@@ -195,10 +222,11 @@ void GraphicsPipeline::createGraphicsPipeline(const char* vertexShader, const ch
   colorBlending.blendConstants[2] = 0.0f;
   colorBlending.blendConstants[3] = 0.0f;
 
+  std::array<VkDescriptorSetLayout, 2> layouts = {descriptorSetLayout, objectDescriptorSetLayout};
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 1;
-  pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+  pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(layouts.size());
+  pipelineLayoutInfo.pSetLayouts = layouts.data();
   pipelineLayoutInfo.pushConstantRangeCount = 0;
   pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -266,51 +294,108 @@ VkShaderModule GraphicsPipeline::createShaderModule(const char* file)
 
 void GraphicsPipeline::createDescriptorSetLayout()
 {
-  VkDescriptorSetLayoutBinding uboLayoutBinding{};
-  uboLayoutBinding.binding = 0;
-  uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  uboLayoutBinding.descriptorCount = 1;
-  uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-  uboLayoutBinding.pImmutableSamplers = nullptr;
+  VkDescriptorSetLayoutBinding lightLayout{};
+  lightLayout.binding = 2;
+  lightLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightLayout.descriptorCount = 1;
+  lightLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  lightLayout.pImmutableSamplers = nullptr;
 
-  VkDescriptorSetLayoutBinding uboLayoutBinding2{};
-  uboLayoutBinding2.binding = 2;
-  uboLayoutBinding2.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  uboLayoutBinding2.descriptorCount = 1;
-  uboLayoutBinding2.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  uboLayoutBinding2.pImmutableSamplers = nullptr;
-
-  VkDescriptorSetLayoutBinding uboLayoutBinding3{};
-  uboLayoutBinding3.binding = 3;
-  uboLayoutBinding3.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  uboLayoutBinding3.descriptorCount = 1;
-  uboLayoutBinding3.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  uboLayoutBinding3.pImmutableSamplers = nullptr;
-
-  VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-  samplerLayoutBinding.binding = 1;
-  samplerLayoutBinding.descriptorCount = 1;
-  samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  samplerLayoutBinding.pImmutableSamplers = nullptr;
-  samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-  VkDescriptorSetLayoutBinding samplerLayoutBinding2{};
-  samplerLayoutBinding2.binding = 4;
-  samplerLayoutBinding2.descriptorCount = 1;
-  samplerLayoutBinding2.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  samplerLayoutBinding2.pImmutableSamplers = nullptr;
-  samplerLayoutBinding2.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  VkDescriptorSetLayoutBinding cameraLayout{};
+  cameraLayout.binding = 3;
+  cameraLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  cameraLayout.descriptorCount = 1;
+  cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  cameraLayout.pImmutableSamplers = nullptr;
 
 
-  std::array<VkDescriptorSetLayoutBinding, 5> bindings = {uboLayoutBinding, uboLayoutBinding2, uboLayoutBinding3, samplerLayoutBinding, samplerLayoutBinding2};
+  std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
 
-  VkDescriptorSetLayoutCreateInfo layoutCreateInfo{};
-  layoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  layoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-  layoutCreateInfo.pBindings = bindings.data();
+  VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo{};
+  globalLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  globalLayoutCreateInfo.bindingCount = static_cast<uint32_t>(globalBindings.size());
+  globalLayoutCreateInfo.pBindings = globalBindings.data();
 
-  if (vkCreateDescriptorSetLayout(device, &layoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+  if (vkCreateDescriptorSetLayout(device, &globalLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor set layout!");
+  }
+
+  VkDescriptorSetLayoutBinding transformLayout{};
+  transformLayout.binding = 0;
+  transformLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  transformLayout.descriptorCount = 1;
+  transformLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  transformLayout.pImmutableSamplers = nullptr;
+
+  VkDescriptorSetLayoutBinding textureLayout{};
+  textureLayout.binding = 1;
+  textureLayout.descriptorCount = 1;
+  textureLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  textureLayout.pImmutableSamplers = nullptr;
+  textureLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+  VkDescriptorSetLayoutBinding specularLayout{};
+  specularLayout.binding = 4;
+  specularLayout.descriptorCount = 1;
+  specularLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  specularLayout.pImmutableSamplers = nullptr;
+  specularLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+
+  std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {transformLayout, textureLayout, specularLayout};
+
+  VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo{};
+  objectLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  objectLayoutCreateInfo.bindingCount = static_cast<uint32_t>(objectBindings.size());
+  objectLayoutCreateInfo.pBindings = objectBindings.data();
+
+  if (vkCreateDescriptorSetLayout(device, &objectLayoutCreateInfo, nullptr, &objectDescriptorSetLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create descriptor set layout!");
+  }
+}
+
+void GraphicsPipeline::createDescriptorPool()
+{
+  std::array<VkDescriptorPoolSize, 2> poolSizes{};
+  poolSizes[0] = lightUniform->getDescriptorPoolSize();
+  poolSizes[1] = cameraUniform->getDescriptorPoolSize();
+
+  VkDescriptorPoolCreateInfo poolCreateInfo{};
+  poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+  poolCreateInfo.pPoolSizes = poolSizes.data();
+  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+  if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create descriptor pool!");
+  }
+}
+
+void GraphicsPipeline::createDescriptorSets()
+{
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+  VkDescriptorSetAllocateInfo allocateInfo{};
+  allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocateInfo.descriptorPool = descriptorPool;
+  allocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  allocateInfo.pSetLayouts = layouts.data();
+
+  descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  if (vkAllocateDescriptorSets(device, &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to allocate descriptor sets!");
+  }
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+    descriptorWrites[0] = lightUniform->getDescriptorSet(2, descriptorSets[i], i);
+    descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
+
+    vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
+                           descriptorWrites.data(), 0, nullptr);
   }
 }

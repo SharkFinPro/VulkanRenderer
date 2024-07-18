@@ -8,6 +8,7 @@
 class RenderPass;
 class RenderObject;
 class Camera;
+class UniformBuffer;
 
 class GraphicsPipeline {
 public:
@@ -17,6 +18,7 @@ public:
   ~GraphicsPipeline();
 
   VkRenderPass& getRenderPass();
+
   VkDescriptorSetLayout& getLayout();
 
   void render(VkCommandBuffer& commandBuffer, uint32_t imageIndex, uint32_t currentFrame,
@@ -31,6 +33,10 @@ private:
 
   void createDescriptorSetLayout();
 
+  void createDescriptorPool();
+
+  void createDescriptorSets();
+
 private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
@@ -42,9 +48,16 @@ private:
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
 
-  VkDescriptorSetLayout descriptorSetLayout;
-
   VkExtent2D& swapChainExtent;
+
+  VkDescriptorSetLayout descriptorSetLayout;
+  VkDescriptorSetLayout objectDescriptorSetLayout;
+
+  VkDescriptorPool descriptorPool;
+  std::vector<VkDescriptorSet> descriptorSets;
+
+  std::unique_ptr<UniformBuffer> lightUniform;
+  std::unique_ptr<UniformBuffer> cameraUniform;
 };
 
 

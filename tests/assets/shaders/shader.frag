@@ -1,9 +1,9 @@
 #version 450
 
-layout(binding = 1) uniform sampler2D texSampler;
-layout(binding = 4) uniform sampler2D specSampler;
+layout(set = 1, binding = 1) uniform sampler2D texSampler;
+layout(set = 1, binding = 4) uniform sampler2D specSampler;
 
-layout(binding = 2) uniform Light {
+layout(set = 0, binding = 2) uniform Light {
   vec3 position;
   vec3 color;
 
@@ -12,7 +12,7 @@ layout(binding = 2) uniform Light {
   float specular;
 } light;
 
-layout(binding = 3) uniform Camera {
+layout(set = 0, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 

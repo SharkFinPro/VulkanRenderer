@@ -44,7 +44,7 @@ public:
 
 private:
   void createDescriptorPool();
-  void createDescriptorSets(VkDescriptorSetLayout& descriptorSetLayout);
+  void createDescriptorSets();
 
 private:
   VkDevice& device;
@@ -56,12 +56,11 @@ private:
   std::shared_ptr<Texture> specularMap;
   std::shared_ptr<Model> model;
 
-  std::unique_ptr<UniformBuffer> transformUniform;
-  std::unique_ptr<UniformBuffer> lightUniform;
-  std::unique_ptr<UniformBuffer> cameraUniform;
-
+  VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
+
+  std::unique_ptr<UniformBuffer> transformUniform;
 };
 
 
