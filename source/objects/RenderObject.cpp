@@ -9,6 +9,8 @@
 #include "Texture.h"
 #include "UniformBuffer.h"
 
+#include "../pipeline/Uniforms.h"
+
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
@@ -41,7 +43,7 @@ void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapCh
   transformUBO.model = glm::translate(glm::mat4(1.0f), position);
 
   transformUBO.view = camera->getViewMatrix();
-  transformUBO.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 100.0f);
+  transformUBO.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 1000.0f);
   transformUBO.proj[1][1] *= -1;
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
 }

@@ -5,6 +5,7 @@
 
 #include "Vertex.h"
 #include "RenderPass.h"
+#include "Uniforms.h"
 
 #include "../objects/RenderObject.h"
 #include "../components/Camera.h"

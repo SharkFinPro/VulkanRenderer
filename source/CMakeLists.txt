@@ -32,6 +32,7 @@ add_library(${PROJECT_NAME}
   pipeline/RenderPass.h
   pipeline/Framebuffer.cpp
   pipeline/Framebuffer.h
+  pipeline/Uniforms.h
 )
 
 # GLFW
