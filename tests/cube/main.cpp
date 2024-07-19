@@ -25,9 +25,8 @@ int main()
     auto model = renderer.loadModel("assets/models/square.glb");
 
     auto object = renderer.loadRenderObject(texture, specularMap, model);
-    object->setPosition({0.0f, -5.0f, 0.0f});
-
-    float x = 0;
+    glm::vec3 position = {0, -5, 0};
+    object->setPosition(position);
 
     while (renderer.isActive())
     {
@@ -37,10 +36,12 @@ int main()
 
       ImGui::Begin("Window");
       ImGui::Text("Control Object:");
-      ImGui::SliderFloat("x", &x, -50.0f, 50.0f);
+      ImGui::SliderFloat("x", &position.x, -50.0f, 50.0f);
+      ImGui::SliderFloat("y", &position.y, -50.0f, 50.0f);
+      ImGui::SliderFloat("z", &position.z, -50.0f, 50.0f);
       ImGui::End();
 
-      object->setPosition({x, -5.0f, 0.0f});
+      object->setPosition(position);
 
       renderer.render();
     }
