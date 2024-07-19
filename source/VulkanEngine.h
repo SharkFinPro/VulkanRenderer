@@ -101,6 +101,8 @@ private:
   VkSampleCountFlagBits getMaxUsableSampleCount();
   void createColorResources();
 
+  void initImgui();
+
 private:
   VulkanEngineOptions* vulkanEngineOptions;
 

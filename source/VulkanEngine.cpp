@@ -43,6 +43,8 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions* vulkanEngineOptions)
   camera->setSpeed(vulkanEngineOptions->cameraSpeed);
 
   initVulkan();
+
+  initImgui();
 }
 
 VulkanEngine::~VulkanEngine()
@@ -155,49 +157,6 @@ void VulkanEngine::initVulkan()
   createFrameBuffers();
   createCommandBuffers();
   createSyncObjects();
-
-  // imgui
-
-  imguiPipeline = std::make_unique<ImguiPipeline>(device, physicalDevice,
-                                                     "assets/shaders/imgui/ui_vert.spv",
-                                                     "assets/shaders/imgui/ui_frag.spv",
-                                                     swapChainExtent, msaaSamples, renderPass);
-
-  ImGui::CreateContext();
-
-  // Setup Platform/Renderer bindings
-  ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
-
-  ImGui_ImplVulkan_InitInfo init_info = {};
-  init_info.Instance = instance;
-  init_info.PhysicalDevice = physicalDevice;
-  init_info.Device = device;
-  init_info.Queue = graphicsQueue;
-  init_info.DescriptorPool = imguiPipeline->getPool();
-  init_info.Allocator = nullptr;
-  init_info.RenderPass = renderPass->getRenderPass();
-  init_info.MSAASamples = msaaSamples;
-  init_info.PipelineRenderingCreateInfo = {};
-
-  SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
-
-  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-  if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
-  {
-    imageCount = swapChainSupport.capabilities.maxImageCount;
-  }
-  init_info.MinImageCount = imageCount;
-  init_info.ImageCount = imageCount;
-
-  ImGui_ImplVulkan_Init(&init_info);
-
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
-  ImGui_ImplVulkan_CreateFontsTexture();
-  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
-
-  ImGui_ImplVulkan_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
 }
 
 void VulkanEngine::createInstance()
@@ -927,4 +886,48 @@ void VulkanEngine::createColorResources()
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 
   colorImageView = Images::createImageView(device, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+}
+
+void VulkanEngine::initImgui()
+{
+  imguiPipeline = std::make_unique<ImguiPipeline>(device, physicalDevice,
+                                                  "assets/shaders/imgui/ui_vert.spv",
+                                                  "assets/shaders/imgui/ui_frag.spv",
+                                                  swapChainExtent, msaaSamples, renderPass);
+
+  ImGui::CreateContext();
+
+  // Setup Platform/Renderer bindings
+  ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
+
+  ImGui_ImplVulkan_InitInfo init_info = {};
+  init_info.Instance = instance;
+  init_info.PhysicalDevice = physicalDevice;
+  init_info.Device = device;
+  init_info.Queue = graphicsQueue;
+  init_info.DescriptorPool = imguiPipeline->getPool();
+  init_info.Allocator = nullptr;
+  init_info.RenderPass = renderPass->getRenderPass();
+  init_info.MSAASamples = msaaSamples;
+  init_info.PipelineRenderingCreateInfo = {};
+
+  SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+
+  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+  if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+  {
+    imageCount = swapChainSupport.capabilities.maxImageCount;
+  }
+  init_info.MinImageCount = imageCount;
+  init_info.ImageCount = imageCount;
+
+  ImGui_ImplVulkan_Init(&init_info);
+
+  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  ImGui_ImplVulkan_CreateFontsTexture();
+  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
 }
