@@ -84,7 +84,6 @@ endif()
 # imgui
 FetchContent_Declare(
   imgui
-  SOURCE_DIR ${FETCHCONTENT_BASE_DIR}/imgui-src/imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git
   GIT_TAG v1.90.9
 )
