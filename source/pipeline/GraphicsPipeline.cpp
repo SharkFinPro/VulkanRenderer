@@ -12,6 +12,12 @@
 
 #include <imgui.h>
 
+#ifdef NDEBUG
+const bool enableValidationLayers = false;
+#else
+const bool enableValidationLayers = true;
+#endif
+
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 static std::vector<char> readFile(const std::string& filename)
@@ -87,10 +93,13 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFr
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  ImGui::Begin("Colors");
-  ImGui::Text("Control Light Color:");
-  ImGui::ColorEdit3("Color", color);
-  ImGui::End();
+  if (enableValidationLayers)
+  {
+    ImGui::Begin("Colors");
+    ImGui::Text("Control Light Color:");
+    ImGui::ColorEdit3("Color", color);
+    ImGui::End();
+  }
 
   LightUniform lightUBO{};
   lightUBO.position = {0, 3.0f, 0};

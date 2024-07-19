@@ -44,16 +44,24 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions* vulkanEngineOptions)
 
   initVulkan();
 
-  initImgui();
+  if (enableValidationLayers)
+  {
+    initImgui();
+  }
 }
 
 VulkanEngine::~VulkanEngine()
 {
   vkDeviceWaitIdle(device);
 
-  ImGui_ImplVulkan_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
+  if (enableValidationLayers)
+  {
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    imguiPipeline.reset();
+  }
 
   textures.clear();
   models.clear();
@@ -68,8 +76,6 @@ VulkanEngine::~VulkanEngine()
   vkDestroyCommandPool(device, commandPool, nullptr);
 
   cleanupSwapChain();
-
-  imguiPipeline.reset();
 
   graphicsPipeline.reset();
 
@@ -644,7 +650,10 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
   graphicsPipeline->render(commandBuffer, currentFrame, camera);
 
-  imguiPipeline->render(commandBuffer);
+  if (enableValidationLayers)
+  {
+    imguiPipeline->render(commandBuffer);
+  }
 
   vkCmdEndRenderPass(commandBuffer);
 
