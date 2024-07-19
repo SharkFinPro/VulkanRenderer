@@ -93,3 +93,8 @@ int Window::getHeight() const
   glfwGetWindowSize(window, nullptr, &height);
   return height;
 }
+
+GLFWwindow* Window::getWindow() const
+{
+  return window;
+}

@@ -11,6 +11,10 @@
 #include "../components/Camera.h"
 #include "../objects/UniformBuffer.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 static std::vector<char> readFile(const std::string& filename)
@@ -126,6 +130,17 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t imageInde
 
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }
+
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+
+  ImGui::Begin("Window");
+  ImGui::Text("Hello, World!");
+  ImGui::End();
+
+  ImGui::Render();
+  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer, nullptr);
 
   vkCmdEndRenderPass(commandBuffer);
 }
@@ -365,9 +380,10 @@ void GraphicsPipeline::createDescriptorPool()
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
   poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
   poolCreateInfo.pPoolSizes = poolSizes.data();
-  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
 
   if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
@@ -399,4 +415,9 @@ void GraphicsPipeline::createDescriptorSets()
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
                            descriptorWrites.data(), 0, nullptr);
   }
+}
+
+VkDescriptorPool& GraphicsPipeline::getPool()
+{
+  return descriptorPool;
 }

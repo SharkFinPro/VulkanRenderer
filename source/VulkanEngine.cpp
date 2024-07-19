@@ -48,6 +48,10 @@ VulkanEngine::~VulkanEngine()
 {
   vkDeviceWaitIdle(device);
 
+  ImGui_ImplVulkan_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+
   textures.clear();
   models.clear();
 
@@ -148,6 +152,39 @@ void VulkanEngine::initVulkan()
   createFrameBuffers();
   createCommandBuffers();
   createSyncObjects();
+
+  // imgui
+  ImGui::CreateContext();
+
+  // Setup Platform/Renderer bindings
+  ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
+
+  ImGui_ImplVulkan_InitInfo init_info = {};
+  init_info.Instance = instance;
+  init_info.PhysicalDevice = physicalDevice;
+  init_info.Device = device;
+  init_info.Queue = graphicsQueue;
+  init_info.DescriptorPool = graphicsPipeline->getPool();
+  init_info.Allocator = nullptr;
+  init_info.RenderPass = graphicsPipeline->getRenderPass();
+  init_info.MSAASamples = msaaSamples;
+  init_info.PipelineRenderingCreateInfo = {};
+
+  SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+
+  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+  if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+  {
+    imageCount = swapChainSupport.capabilities.maxImageCount;
+  }
+  init_info.MinImageCount = imageCount;
+  init_info.ImageCount = imageCount;
+
+  ImGui_ImplVulkan_Init(&init_info);
+
+  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  ImGui_ImplVulkan_CreateFontsTexture();
+  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
 }
 
 void VulkanEngine::createInstance()
@@ -427,7 +464,8 @@ VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat(const std::vector<VkSur
 {
   for (const auto& availableFormat : availableFormats)
   {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+//    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
     {
       return availableFormat;
     }

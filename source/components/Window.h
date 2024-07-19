@@ -29,6 +29,8 @@ public:
 
   [[nodiscard]] int getHeight() const;
 
+  [[nodiscard]] GLFWwindow* getWindow() const;
+
 private:
   GLFWwindow* window;
 

@@ -26,6 +26,8 @@ public:
 
   void insertRenderObject(std::shared_ptr<RenderObject>& renderObject);
 
+  VkDescriptorPool& getPool();
+
 private:
   void createGraphicsPipeline(const char* vertexShader, const char* fragmentShader, VkSampleCountFlagBits msaaSamples);
 
