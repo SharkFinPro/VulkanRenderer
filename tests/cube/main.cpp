@@ -2,6 +2,10 @@
 #include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+
 int main()
 {
   try
@@ -25,6 +29,14 @@ int main()
 
     while (renderer.isActive())
     {
+      ImGui_ImplVulkan_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+
+      ImGui::Begin("Window");
+      ImGui::Text("Hello, World!");
+      ImGui::End();
+
       renderer.render();
     }
   }

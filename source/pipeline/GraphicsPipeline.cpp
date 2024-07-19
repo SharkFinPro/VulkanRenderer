@@ -131,14 +131,6 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t imageInde
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }
 
-  ImGui_ImplVulkan_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-
-  ImGui::Begin("Window");
-  ImGui::Text("Hello, World!");
-  ImGui::End();
-
   ImGui::Render();
   ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer, nullptr);
 
