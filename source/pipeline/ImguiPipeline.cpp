@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 #include <fstream>
-#include <utility>
 
 #include "Vertex.h"
 #include "RenderPass.h"

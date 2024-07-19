@@ -1,7 +1,6 @@
 #include "GraphicsPipeline.h"
 #include <stdexcept>
 #include <fstream>
-#include <utility>
 
 #include "Vertex.h"
 #include "RenderPass.h"
@@ -12,8 +11,6 @@
 #include "../objects/UniformBuffer.h"
 
 #include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
 
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
