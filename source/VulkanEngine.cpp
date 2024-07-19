@@ -12,6 +12,7 @@
 #include "components/DebugMessenger.h"
 
 #include "pipeline/GraphicsPipeline.h"
+#include "pipeline/ImguiPipeline.h"
 #include "pipeline/RenderPass.h"
 
 #include "components/Camera.h"
@@ -65,6 +66,8 @@ VulkanEngine::~VulkanEngine()
   vkDestroyCommandPool(device, commandPool, nullptr);
 
   cleanupSwapChain();
+
+  imguiPipeline.reset();
 
   graphicsPipeline.reset();
 
@@ -154,6 +157,12 @@ void VulkanEngine::initVulkan()
   createSyncObjects();
 
   // imgui
+
+  imguiPipeline = std::make_unique<ImguiPipeline>(device, physicalDevice,
+                                                     "assets/shaders/imgui/ui_vert.spv",
+                                                     "assets/shaders/imgui/ui_frag.spv",
+                                                     swapChainExtent, msaaSamples, renderPass);
+
   ImGui::CreateContext();
 
   // Setup Platform/Renderer bindings
@@ -164,9 +173,9 @@ void VulkanEngine::initVulkan()
   init_info.PhysicalDevice = physicalDevice;
   init_info.Device = device;
   init_info.Queue = graphicsQueue;
-  init_info.DescriptorPool = graphicsPipeline->getPool();
+  init_info.DescriptorPool = imguiPipeline->getPool();
   init_info.Allocator = nullptr;
-  init_info.RenderPass = graphicsPipeline->getRenderPass();
+  init_info.RenderPass = renderPass->getRenderPass();
   init_info.MSAASamples = msaaSamples;
   init_info.PipelineRenderingCreateInfo = {};
 
@@ -185,6 +194,10 @@ void VulkanEngine::initVulkan()
   VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
   ImGui_ImplVulkan_CreateFontsTexture();
   Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
 }
 
 void VulkanEngine::createInstance()
@@ -598,7 +611,7 @@ void VulkanEngine::createFrameBuffers()
 
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = graphicsPipeline->getRenderPass();
+    framebufferInfo.renderPass = renderPass->getRenderPass();
     framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
     framebufferInfo.pAttachments = attachments.data();
     framebufferInfo.width = swapChainExtent.width;
@@ -655,7 +668,26 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  graphicsPipeline->render(commandBuffer, imageIndex, currentFrame, swapChainFramebuffers, camera);
+  VkRenderPassBeginInfo renderPassInfo{};
+  renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+  renderPassInfo.renderPass = renderPass->getRenderPass();
+  renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
+  renderPassInfo.renderArea.offset = {0, 0};
+  renderPassInfo.renderArea.extent = swapChainExtent;
+
+  std::array<VkClearValue, 2> clearValues{};
+  clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+  clearValues[1].depthStencil = {1.0f, 0};
+  renderPassInfo.clearValueCount = static_cast<uint32_t >(clearValues.size());
+  renderPassInfo.pClearValues = clearValues.data();
+
+  vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+  graphicsPipeline->render(commandBuffer, currentFrame, camera);
+
+  imguiPipeline->render(commandBuffer);
+
+  vkCmdEndRenderPass(commandBuffer);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {

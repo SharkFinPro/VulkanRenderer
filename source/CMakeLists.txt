@@ -33,6 +33,8 @@ add_library(${PROJECT_NAME}
   pipeline/Framebuffer.cpp
   pipeline/Framebuffer.h
   pipeline/Uniforms.h
+  pipeline/ImguiPipeline.cpp
+  pipeline/ImguiPipeline.h
 )
 
 # Vulkan
