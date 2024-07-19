@@ -81,6 +81,21 @@ if(NOT stb_POPULATED)
   target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 endif()
 
+# imgui
+FetchContent_Declare(
+  imgui
+  SOURCE_DIR ${FETCHCONTENT_BASE_DIR}/imgui-src/imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG v1.90.9
+)
+
+FetchContent_GetProperties(imgui)
+if(NOT imgui_POPULATED)
+  FetchContent_Populate(imgui)
+  add_library(imgui INTERFACE)
+  target_include_directories(imgui INTERFACE ${imgui_SOURCE_DIR})
+endif()
+
 
 # Include
 FetchContent_MakeAvailable(
@@ -88,6 +103,7 @@ FetchContent_MakeAvailable(
   glm
   assimp
   stb
+  imgui
 )
 
 find_package(Vulkan REQUIRED)
@@ -96,6 +112,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   Vulkan::Vulkan
   glfw
   assimp
+  imgui
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

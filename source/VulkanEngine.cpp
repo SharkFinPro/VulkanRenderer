@@ -20,6 +20,10 @@
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
 #else
