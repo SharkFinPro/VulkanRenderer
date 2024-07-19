@@ -42,7 +42,8 @@ GraphicsPipeline::GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalD
                                    VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
   : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent), renderPass(std::move(renderPass)),
     lightUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform))),
-    cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform)))
+    cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform))),
+    color{1, 1, 1}
 {
   createDescriptorSetLayout();
 
@@ -110,9 +111,14 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t imageInde
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+  ImGui::Begin("Colors");
+  ImGui::Text("Control Light Color:");
+  ImGui::ColorEdit3("Color", color);
+  ImGui::End();
+
   LightUniform lightUBO{};
   lightUBO.position = {0, 3.0f, 0};
-  lightUBO.color = {1.0f, 1.0f, 1.0f};
+  lightUBO.color = {color[0], color[1], color[2]};
   lightUBO.ambient = 0.2f;
   lightUBO.diffuse = 0.5f;
   lightUBO.specular = 1.0f;

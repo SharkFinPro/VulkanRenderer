@@ -60,6 +60,8 @@ private:
 
   std::unique_ptr<UniformBuffer> lightUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
+
+  float color[3];
 };
 
 
