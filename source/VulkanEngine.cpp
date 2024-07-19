@@ -897,7 +897,6 @@ void VulkanEngine::initImgui()
 
   ImGui::CreateContext();
 
-  // Setup Platform/Renderer bindings
   ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
 
   ImGui_ImplVulkan_InitInfo init_info = {};
