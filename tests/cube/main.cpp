@@ -27,6 +27,8 @@ int main()
     auto object = renderer.loadRenderObject(texture, specularMap, model);
     object->setPosition({0.0f, -5.0f, 0.0f});
 
+    float x = 0;
+
     while (renderer.isActive())
     {
       ImGui_ImplVulkan_NewFrame();
@@ -34,8 +36,11 @@ int main()
       ImGui::NewFrame();
 
       ImGui::Begin("Window");
-      ImGui::Text("Hello, World!");
+      ImGui::Text("Control Object:");
+      ImGui::SliderFloat("x", &x, -50.0f, 50.0f);
       ImGui::End();
+
+      object->setPosition({x, -5.0f, 0.0f});
 
       renderer.render();
     }
