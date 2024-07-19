@@ -33,7 +33,12 @@ add_library(${PROJECT_NAME}
   pipeline/Framebuffer.cpp
   pipeline/Framebuffer.h
   pipeline/Uniforms.h
+  pipeline/ImguiPipeline.cpp
+  pipeline/ImguiPipeline.h
 )
+
+# Vulkan
+find_package(Vulkan REQUIRED)
 
 # GLFW
 set(GLFW_BUILD_EXAMPLES OFF)
@@ -81,6 +86,34 @@ if(NOT stb_POPULATED)
   target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 endif()
 
+# imgui
+FetchContent_Declare(
+  imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG v1.90.9
+)
+
+FetchContent_GetProperties(imgui)
+if(NOT imgui_POPULATED)
+  FetchContent_Populate(imgui)
+  add_library(imgui
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+  )
+  target_link_libraries(imgui PUBLIC
+    Vulkan::Vulkan
+    glfw
+  )
+  target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+  )
+endif()
+
 
 # Include
 FetchContent_MakeAvailable(
@@ -88,14 +121,14 @@ FetchContent_MakeAvailable(
   glm
   assimp
   stb
+  imgui
 )
-
-find_package(Vulkan REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   Vulkan::Vulkan
   glfw
   assimp
+  imgui
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

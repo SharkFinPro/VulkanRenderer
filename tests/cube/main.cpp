@@ -2,6 +2,8 @@
 #include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
 
+#include <imgui.h>
+
 int main()
 {
   try
@@ -21,10 +23,21 @@ int main()
     auto model = renderer.loadModel("assets/models/square.glb");
 
     auto object = renderer.loadRenderObject(texture, specularMap, model);
-    object->setPosition({0.0f, -5.0f, 0.0f});
+    glm::vec3 position = {0, -5, 0};
+    object->setPosition(position);
 
     while (renderer.isActive())
     {
+
+      ImGui::Begin("Window");
+      ImGui::Text("Control Object:");
+      ImGui::SliderFloat("x", &position.x, -50.0f, 50.0f);
+      ImGui::SliderFloat("y", &position.y, -50.0f, 50.0f);
+      ImGui::SliderFloat("z", &position.z, -50.0f, 50.0f);
+      ImGui::End();
+
+      object->setPosition(position);
+
       renderer.render();
     }
   }

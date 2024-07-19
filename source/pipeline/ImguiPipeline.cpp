@@ -1,16 +1,14 @@
-#include "GraphicsPipeline.h"
+#include "ImguiPipeline.h"
+
 #include <stdexcept>
 #include <fstream>
 
 #include "Vertex.h"
 #include "RenderPass.h"
-#include "Uniforms.h"
-
-#include "../objects/RenderObject.h"
-#include "../components/Camera.h"
-#include "../objects/UniformBuffer.h"
 
 #include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
@@ -34,42 +32,26 @@ static std::vector<char> readFile(const std::string& filename)
   return buffer;
 }
 
-GraphicsPipeline::GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
+ImguiPipeline::ImguiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
                                    const char* fragmentShader, VkExtent2D& swapChainExtent,
                                    VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
-  : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent),
-    lightUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform))),
-    cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform))),
-    color{1, 1, 1}
+  : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent)
 {
-  createDescriptorSetLayout();
-
   createGraphicsPipeline(vertexShader, fragmentShader, msaaSamples, renderPass);
 
   createDescriptorPool();
-
-  createDescriptorSets();
 }
 
-GraphicsPipeline::~GraphicsPipeline()
+ImguiPipeline::~ImguiPipeline()
 {
   vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-
-  vkDestroyDescriptorSetLayout(device, objectDescriptorSetLayout, nullptr);
-
-  vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
   vkDestroyPipeline(device, graphicsPipeline, nullptr);
 
   vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 }
 
-VkDescriptorSetLayout& GraphicsPipeline::getLayout()
-{
-  return objectDescriptorSetLayout;
-}
-
-void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame,std::shared_ptr<Camera> camera)
+void ImguiPipeline::render(VkCommandBuffer& commandBuffer)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
@@ -87,39 +69,15 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFr
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  ImGui::Begin("Colors");
-  ImGui::Text("Control Light Color:");
-  ImGui::ColorEdit3("Color", color);
-  ImGui::End();
+  ImGui::Render();
+  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer, nullptr);
 
-  LightUniform lightUBO{};
-  lightUBO.position = {0, 3.0f, 0};
-  lightUBO.color = {color[0], color[1], color[2]};
-  lightUBO.ambient = 0.2f;
-  lightUBO.diffuse = 0.5f;
-  lightUBO.specular = 1.0f;
-  lightUniform->update(currentFrame, &lightUBO, sizeof(LightUniform));
-
-  CameraUniform cameraUBO{};
-  cameraUBO.position = camera->getPosition();
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-
-  for (auto& object : renderObjects)
-  {
-    object->updateUniformBuffer(currentFrame, swapChainExtent, camera);
-
-    object->draw(commandBuffer, pipelineLayout, currentFrame);
-  }
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
 }
 
-void GraphicsPipeline::insertRenderObject(std::shared_ptr<RenderObject>& renderObject)
-{
-  renderObjects.push_back(renderObject);
-}
-
-void GraphicsPipeline::createGraphicsPipeline(const char* vertexShader, const char* fragmentShader,
+void ImguiPipeline::createGraphicsPipeline(const char* vertexShader, const char* fragmentShader,
                                               VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass>& renderPass)
 {
   VkShaderModule vertShaderModule = createShaderModule(vertexShader);
@@ -207,11 +165,10 @@ void GraphicsPipeline::createGraphicsPipeline(const char* vertexShader, const ch
   colorBlending.blendConstants[2] = 0.0f;
   colorBlending.blendConstants[3] = 0.0f;
 
-  std::array<VkDescriptorSetLayout, 2> layouts = {descriptorSetLayout, objectDescriptorSetLayout};
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(layouts.size());
-  pipelineLayoutInfo.pSetLayouts = layouts.data();
+  pipelineLayoutInfo.setLayoutCount = 0;
+  pipelineLayoutInfo.pSetLayouts = nullptr;
   pipelineLayoutInfo.pushConstantRangeCount = 0;
   pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -259,7 +216,7 @@ void GraphicsPipeline::createGraphicsPipeline(const char* vertexShader, const ch
   vkDestroyShaderModule(device, vertShaderModule, nullptr);
 }
 
-VkShaderModule GraphicsPipeline::createShaderModule(const char* file)
+VkShaderModule ImguiPipeline::createShaderModule(const char* file)
 {
   auto code = readFile(file);
 
@@ -277,80 +234,13 @@ VkShaderModule GraphicsPipeline::createShaderModule(const char* file)
   return shaderModule;
 }
 
-void GraphicsPipeline::createDescriptorSetLayout()
+void ImguiPipeline::createDescriptorPool()
 {
-  VkDescriptorSetLayoutBinding lightLayout{};
-  lightLayout.binding = 2;
-  lightLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  lightLayout.descriptorCount = 1;
-  lightLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  lightLayout.pImmutableSamplers = nullptr;
-
-  VkDescriptorSetLayoutBinding cameraLayout{};
-  cameraLayout.binding = 3;
-  cameraLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  cameraLayout.descriptorCount = 1;
-  cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  cameraLayout.pImmutableSamplers = nullptr;
-
-
-  std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
-
-  VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo{};
-  globalLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  globalLayoutCreateInfo.bindingCount = static_cast<uint32_t>(globalBindings.size());
-  globalLayoutCreateInfo.pBindings = globalBindings.data();
-
-  if (vkCreateDescriptorSetLayout(device, &globalLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor set layout!");
-  }
-
-  VkDescriptorSetLayoutBinding transformLayout{};
-  transformLayout.binding = 0;
-  transformLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  transformLayout.descriptorCount = 1;
-  transformLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-  transformLayout.pImmutableSamplers = nullptr;
-
-  VkDescriptorSetLayoutBinding textureLayout{};
-  textureLayout.binding = 1;
-  textureLayout.descriptorCount = 1;
-  textureLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  textureLayout.pImmutableSamplers = nullptr;
-  textureLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-  VkDescriptorSetLayoutBinding specularLayout{};
-  specularLayout.binding = 4;
-  specularLayout.descriptorCount = 1;
-  specularLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  specularLayout.pImmutableSamplers = nullptr;
-  specularLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-
-  std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {transformLayout, textureLayout, specularLayout};
-
-  VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo{};
-  objectLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  objectLayoutCreateInfo.bindingCount = static_cast<uint32_t>(objectBindings.size());
-  objectLayoutCreateInfo.pBindings = objectBindings.data();
-
-  if (vkCreateDescriptorSetLayout(device, &objectLayoutCreateInfo, nullptr, &objectDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor set layout!");
-  }
-}
-
-void GraphicsPipeline::createDescriptorPool()
-{
-  std::array<VkDescriptorPoolSize, 2> poolSizes{};
-  poolSizes[0] = lightUniform->getDescriptorPoolSize();
-  poolSizes[1] = cameraUniform->getDescriptorPoolSize();
-
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  poolCreateInfo.pPoolSizes = poolSizes.data();
+  poolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+  poolCreateInfo.poolSizeCount = 0;
+  poolCreateInfo.pPoolSizes = nullptr;
   poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
   if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
@@ -359,28 +249,7 @@ void GraphicsPipeline::createDescriptorPool()
   }
 }
 
-void GraphicsPipeline::createDescriptorSets()
+VkDescriptorPool& ImguiPipeline::getPool()
 {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
-  VkDescriptorSetAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocateInfo.descriptorPool = descriptorPool;
-  allocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-  allocateInfo.pSetLayouts = layouts.data();
-
-  descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-  if (vkAllocateDescriptorSets(device, &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-    descriptorWrites[0] = lightUniform->getDescriptorSet(2, descriptorSets[i], i);
-    descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
-
-    vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
-  }
+  return descriptorPool;
 }

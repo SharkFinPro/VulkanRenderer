@@ -15,6 +15,7 @@ class Model;
 class RenderObject;
 class GraphicsPipeline;
 class RenderPass;
+class ImguiPipeline;
 
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
@@ -100,6 +101,8 @@ private:
   VkSampleCountFlagBits getMaxUsableSampleCount();
   void createColorResources();
 
+  void initImgui();
+
 private:
   VulkanEngineOptions* vulkanEngineOptions;
 
@@ -115,6 +118,8 @@ private:
   std::shared_ptr<RenderPass> renderPass;
 
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+
+  std::unique_ptr<ImguiPipeline> imguiPipeline;
 
   VkInstance instance;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

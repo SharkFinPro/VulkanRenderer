@@ -12,6 +12,7 @@
 #include "components/DebugMessenger.h"
 
 #include "pipeline/GraphicsPipeline.h"
+#include "pipeline/ImguiPipeline.h"
 #include "pipeline/RenderPass.h"
 
 #include "components/Camera.h"
@@ -19,6 +20,10 @@
 #include "objects/Texture.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
+
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -38,11 +43,17 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions* vulkanEngineOptions)
   camera->setSpeed(vulkanEngineOptions->cameraSpeed);
 
   initVulkan();
+
+  initImgui();
 }
 
 VulkanEngine::~VulkanEngine()
 {
   vkDeviceWaitIdle(device);
+
+  ImGui_ImplVulkan_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 
   textures.clear();
   models.clear();
@@ -57,6 +68,8 @@ VulkanEngine::~VulkanEngine()
   vkDestroyCommandPool(device, commandPool, nullptr);
 
   cleanupSwapChain();
+
+  imguiPipeline.reset();
 
   graphicsPipeline.reset();
 
@@ -423,7 +436,7 @@ VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat(const std::vector<VkSur
 {
   for (const auto& availableFormat : availableFormats)
   {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
     {
       return availableFormat;
     }
@@ -556,7 +569,7 @@ void VulkanEngine::createFrameBuffers()
 
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = graphicsPipeline->getRenderPass();
+    framebufferInfo.renderPass = renderPass->getRenderPass();
     framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
     framebufferInfo.pAttachments = attachments.data();
     framebufferInfo.width = swapChainExtent.width;
@@ -613,7 +626,26 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  graphicsPipeline->render(commandBuffer, imageIndex, currentFrame, swapChainFramebuffers, camera);
+  VkRenderPassBeginInfo renderPassInfo{};
+  renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+  renderPassInfo.renderPass = renderPass->getRenderPass();
+  renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
+  renderPassInfo.renderArea.offset = {0, 0};
+  renderPassInfo.renderArea.extent = swapChainExtent;
+
+  std::array<VkClearValue, 2> clearValues{};
+  clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+  clearValues[1].depthStencil = {1.0f, 0};
+  renderPassInfo.clearValueCount = static_cast<uint32_t >(clearValues.size());
+  renderPassInfo.pClearValues = clearValues.data();
+
+  vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+  graphicsPipeline->render(commandBuffer, currentFrame, camera);
+
+  imguiPipeline->render(commandBuffer);
+
+  vkCmdEndRenderPass(commandBuffer);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {
@@ -853,4 +885,47 @@ void VulkanEngine::createColorResources()
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 
   colorImageView = Images::createImageView(device, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+}
+
+void VulkanEngine::initImgui()
+{
+  imguiPipeline = std::make_unique<ImguiPipeline>(device, physicalDevice,
+                                                  "assets/shaders/imgui/ui_vert.spv",
+                                                  "assets/shaders/imgui/ui_frag.spv",
+                                                  swapChainExtent, msaaSamples, renderPass);
+
+  ImGui::CreateContext();
+
+  ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
+
+  ImGui_ImplVulkan_InitInfo init_info = {};
+  init_info.Instance = instance;
+  init_info.PhysicalDevice = physicalDevice;
+  init_info.Device = device;
+  init_info.Queue = graphicsQueue;
+  init_info.DescriptorPool = imguiPipeline->getPool();
+  init_info.Allocator = nullptr;
+  init_info.RenderPass = renderPass->getRenderPass();
+  init_info.MSAASamples = msaaSamples;
+  init_info.PipelineRenderingCreateInfo = {};
+
+  SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+
+  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+  if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+  {
+    imageCount = swapChainSupport.capabilities.maxImageCount;
+  }
+  init_info.MinImageCount = imageCount;
+  init_info.ImageCount = imageCount;
+
+  ImGui_ImplVulkan_Init(&init_info);
+
+  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  ImGui_ImplVulkan_CreateFontsTexture();
+  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
 }

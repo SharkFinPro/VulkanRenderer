@@ -17,17 +17,15 @@ public:
                    VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
   ~GraphicsPipeline();
 
-  VkRenderPass& getRenderPass();
-
   VkDescriptorSetLayout& getLayout();
 
-  void render(VkCommandBuffer& commandBuffer, uint32_t imageIndex, uint32_t currentFrame,
-              const std::vector<VkFramebuffer>& swapChainFramebuffers, std::shared_ptr<Camera> camera);
+  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame, std::shared_ptr<Camera> camera);
 
   void insertRenderObject(std::shared_ptr<RenderObject>& renderObject);
 
 private:
-  void createGraphicsPipeline(const char* vertexShader, const char* fragmentShader, VkSampleCountFlagBits msaaSamples);
+  void createGraphicsPipeline(const char* vertexShader, const char* fragmentShader, VkSampleCountFlagBits msaaSamples,
+                              std::shared_ptr<RenderPass>& renderPass);
 
   VkShaderModule createShaderModule(const char* file);
 
@@ -43,8 +41,6 @@ private:
 
   std::vector<std::shared_ptr<RenderObject>> renderObjects;
 
-  std::shared_ptr<RenderPass> renderPass;
-
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
 
@@ -58,6 +54,8 @@ private:
 
   std::unique_ptr<UniformBuffer> lightUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
+
+  float color[3];
 };
 
 
