@@ -35,6 +35,9 @@ add_library(${PROJECT_NAME}
   pipeline/Uniforms.h
 )
 
+# Vulkan
+find_package(Vulkan REQUIRED)
+
 # GLFW
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
@@ -91,8 +94,22 @@ FetchContent_Declare(
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
   FetchContent_Populate(imgui)
-  add_library(imgui INTERFACE)
-  target_include_directories(imgui INTERFACE ${imgui_SOURCE_DIR})
+  add_library(imgui STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+  )
+  target_link_libraries(imgui PUBLIC
+    Vulkan::Vulkan
+    glfw
+  )
+  target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+  )
 endif()
 
 
@@ -104,8 +121,6 @@ FetchContent_MakeAvailable(
   stb
   imgui
 )
-
-find_package(Vulkan REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   Vulkan::Vulkan
