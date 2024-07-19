@@ -237,19 +237,11 @@ VkShaderModule ImguiPipeline::createShaderModule(const char* file)
 
 void ImguiPipeline::createDescriptorPool()
 {
-//  std::array<VkDescriptorPoolSize, 2> poolSizes{};
-//  poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-//  poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT; // Adjust based on your needs
-//  poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-//  poolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT; // Adjust based on your needs
-
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   poolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
   poolCreateInfo.poolSizeCount = 0;
   poolCreateInfo.pPoolSizes = nullptr;
-//  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-//  poolCreateInfo.pPoolSizes = poolSizes.data();
   poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
   if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
