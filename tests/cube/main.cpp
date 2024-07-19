@@ -4,12 +4,6 @@
 
 #include <imgui.h>
 
-#ifdef NDEBUG
-const bool enableValidationLayers = false;
-#else
-const bool enableValidationLayers = true;
-#endif
-
 int main()
 {
   try
@@ -35,15 +29,12 @@ int main()
     while (renderer.isActive())
     {
 
-      if (enableValidationLayers)
-      {
-        ImGui::Begin("Window");
-        ImGui::Text("Control Object:");
-        ImGui::SliderFloat("x", &position.x, -50.0f, 50.0f);
-        ImGui::SliderFloat("y", &position.y, -50.0f, 50.0f);
-        ImGui::SliderFloat("z", &position.z, -50.0f, 50.0f);
-        ImGui::End();
-      }
+      ImGui::Begin("Window");
+      ImGui::Text("Control Object:");
+      ImGui::SliderFloat("x", &position.x, -50.0f, 50.0f);
+      ImGui::SliderFloat("y", &position.y, -50.0f, 50.0f);
+      ImGui::SliderFloat("z", &position.z, -50.0f, 50.0f);
+      ImGui::End();
 
       object->setPosition(position);
 
