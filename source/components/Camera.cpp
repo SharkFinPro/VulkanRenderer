@@ -5,7 +5,7 @@
 const glm::vec3 UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(glm::vec3 pos)
-  : position(pos)
+  : position(pos), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0)
 {}
 
 glm::mat4 Camera::getViewMatrix() const
@@ -18,17 +18,17 @@ glm::vec3 Camera::getPosition() const
   return position;
 }
 
-void Camera::setSpeed(float cameraSpeed)
+void Camera::setSpeed(float cameraSpeed_)
 {
-  speed = cameraSpeed;
+  speed = cameraSpeed_;
+
+  cameraSpeed = speed * 0.025f;
+  scrollSpeed = speed * 15.0f;
+  swivelSpeed = speed / 5.0f;
 }
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
 {
-  float cameraSpeed = speed * 0.025f;
-  float scrollSpeed = speed * 15.0f;
-  float swivelSpeed = speed / 5.0f;
-
   if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
   {
     double mx, my, omx, omy;
