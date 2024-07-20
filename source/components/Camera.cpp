@@ -40,9 +40,9 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
 
     yaw += deltaMX;
     pitch -= deltaMY;
-  }
 
-  pitch = std::clamp(pitch, -89.9f, 89.9f);
+    pitch = std::clamp(pitch, -89.9f, 89.9f);
+  }
 
   direction = glm::normalize(glm::vec3(
     std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
