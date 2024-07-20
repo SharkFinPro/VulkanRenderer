@@ -2,13 +2,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
+const glm::vec3 UP = glm::vec3(0.0f, 1.0f, 0.0f);
+
 Camera::Camera(glm::vec3 pos)
   : position(pos)
 {}
 
 glm::mat4 Camera::getViewMatrix() const
 {
-  return glm::lookAt(position, position + direction, glm::vec3(0.0f, 1.0f, 0.0f));
+  return glm::lookAt(position, position + direction, UP);
 }
 
 glm::vec3 Camera::getPosition() const
@@ -49,6 +51,9 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
   pDirection.x = -std::sin(glm::radians(yaw));
   pDirection.z = std::cos(glm::radians(yaw));
 
+  direction = glm::normalize(direction);
+  pDirection = glm::normalize(pDirection);
+
   position += static_cast<float>(window->getScroll()) * scrollSpeed * direction;
 
   if (window->keyDown(GLFW_KEY_W))
@@ -71,10 +76,10 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
 
   if (window->keyDown(GLFW_KEY_SPACE))
   {
-    position += cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
+    position += cameraSpeed * UP;
   }
   if (window->keyDown(GLFW_KEY_LEFT_SHIFT))
   {
-    position -= cameraSpeed * glm::vec3(0.0f, 1.0f, 0.0f);
+    position -= cameraSpeed * UP;
   }
 }
