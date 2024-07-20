@@ -25,6 +25,7 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
 {
   float cameraSpeed = speed * 0.025f;
   float scrollSpeed = speed * 15.0f;
+  float swivelSpeed = speed / 5.0f;
 
   if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
   {
@@ -32,8 +33,8 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     window->getCursorPos(mx, my);
     window->getPreviousCursorPos(omx, omy);
 
-    auto deltaMX = static_cast<float>(mx - omx) / (static_cast<float>(window->getWidth()) / 800.0f);
-    auto deltaMY = static_cast<float>(my - omy) / (static_cast<float>(window->getHeight()) / 600.0f);
+    auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
+    auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
 
     yaw += deltaMX;
     pitch -= deltaMY;
