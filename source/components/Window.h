@@ -31,6 +31,10 @@ public:
 
   [[nodiscard]] GLFWwindow* getWindow() const;
 
+  [[nodiscard]] double getScroll() const;
+
+  static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
 private:
   GLFWwindow* window;
 
@@ -38,6 +42,8 @@ private:
   double previousMouseY;
   double mouseX;
   double mouseY;
+
+  double scroll;
 };
 
 

@@ -23,7 +23,11 @@ private:
   glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f);
   glm::vec3 pDirection = glm::vec3(0.0f);
 
-  float speed = 5.0f;
+  float speed;
+  float cameraSpeed;
+  float scrollSpeed;
+  float swivelSpeed;
+
   float pitch = 0.0f;
   float yaw = 90.0f;
 };
