@@ -44,15 +44,17 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
 
   pitch = std::clamp(pitch, -89.9f, 89.9f);
 
-  direction.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
-  direction.y = std::sin(glm::radians(pitch));
-  direction.z = std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+  direction = glm::normalize(glm::vec3(
+    std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
+    std::sin(glm::radians(pitch)),
+    std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch))
+  ));
 
-  pDirection.x = -std::sin(glm::radians(yaw));
-  pDirection.z = std::cos(glm::radians(yaw));
-
-  direction = glm::normalize(direction);
-  pDirection = glm::normalize(pDirection);
+  pDirection = glm::normalize(glm::vec3(
+    pDirection.x = -std::sin(glm::radians(yaw)),
+    0.0f,
+    pDirection.z = std::cos(glm::radians(yaw))
+  ));
 
   position += static_cast<float>(window->getScroll()) * scrollSpeed * direction;
 
