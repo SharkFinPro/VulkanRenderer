@@ -24,6 +24,7 @@ void Camera::setSpeed(float cameraSpeed)
 void Camera::processInput(const std::shared_ptr<Window>& window)
 {
   float cameraSpeed = speed * 0.025f;
+  float scrollSpeed = speed * 15.0f;
 
   if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
   {
@@ -46,6 +47,8 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
 
   pDirection.x = -std::sin(glm::radians(yaw));
   pDirection.z = std::cos(glm::radians(yaw));
+
+  position += static_cast<float>(window->getScroll()) * scrollSpeed * direction;
 
   if (window->keyDown(GLFW_KEY_W))
   {

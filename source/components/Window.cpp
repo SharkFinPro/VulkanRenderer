@@ -1,7 +1,10 @@
 #include "Window.h"
 #include <stdexcept>
 
+#include "../VulkanEngine.h"
+
 Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback)
+  : scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -15,6 +18,8 @@ Window::Window(int width, int height, const char* title, GLFWframebuffersizefun 
 
   glfwSetWindowUserPointer(window, this);
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+
+  glfwSetScrollCallback(window, scrollCallback);
 
   glfwGetCursorPos(window, &mouseX, &mouseY);
   previousMouseX = mouseX;
@@ -33,6 +38,8 @@ bool Window::isOpen()
 
 void Window::update()
 {
+  scroll = 0;
+
   glfwPollEvents();
 
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -97,4 +104,15 @@ int Window::getHeight() const
 GLFWwindow* Window::getWindow() const
 {
   return window;
+}
+
+double Window::getScroll() const
+{
+  return scroll;
+}
+
+void Window::scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+{
+  auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+  app->scroll = yoffset;
 }
