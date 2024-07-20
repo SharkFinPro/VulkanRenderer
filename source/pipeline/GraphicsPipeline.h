@@ -55,7 +55,10 @@ private:
   std::unique_ptr<UniformBuffer> lightUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
 
+  float position[3];
   float color[3];
+  float ambient;
+  float diffuse;
 };
 
 

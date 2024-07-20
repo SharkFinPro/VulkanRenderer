@@ -63,8 +63,6 @@ void Model::loadModel(const char* path)
       mesh->mTextureCoords[0][i].y
     };
 
-    vertex.color = {1.0f, 1.0f, 1.0f};
-
     vertices.push_back(vertex);
   }
 
