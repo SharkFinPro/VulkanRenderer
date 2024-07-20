@@ -40,7 +40,7 @@ GraphicsPipeline::GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalD
   : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent),
     lightUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform))),
     cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform))),
-    color{1, 1, 1}
+    color{1, 1, 1}, ambient(0.2f), diffuse(0.5f)
 {
   createDescriptorSetLayout();
 
@@ -90,13 +90,15 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFr
   ImGui::Begin("Colors");
   ImGui::Text("Control Light Color:");
   ImGui::ColorEdit3("Color", color);
+  ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
+  ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
   ImGui::End();
 
   LightUniform lightUBO{};
   lightUBO.position = {0, 3.0f, 0};
   lightUBO.color = {color[0], color[1], color[2]};
-  lightUBO.ambient = 0.2f;
-  lightUBO.diffuse = 0.5f;
+  lightUBO.ambient = ambient;
+  lightUBO.diffuse = diffuse;
   lightUBO.specular = 1.0f;
   lightUniform->update(currentFrame, &lightUBO, sizeof(LightUniform));
 
@@ -292,7 +294,6 @@ void GraphicsPipeline::createDescriptorSetLayout()
   cameraLayout.descriptorCount = 1;
   cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   cameraLayout.pImmutableSamplers = nullptr;
-
 
   std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
 
