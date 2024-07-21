@@ -27,8 +27,6 @@ private:
   void createGraphicsPipeline(const char* vertexShader, const char* fragmentShader, VkSampleCountFlagBits msaaSamples,
                               std::shared_ptr<RenderPass>& renderPass);
 
-  VkShaderModule createShaderModule(const char* file);
-
   void createDescriptorSetLayout();
 
   void createDescriptorPool();
