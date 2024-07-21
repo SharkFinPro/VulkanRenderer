@@ -3,9 +3,7 @@
 
 #include "../VulkanEngine.h"
 
-#include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
 
 Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback)
   : scroll(0)
@@ -79,13 +77,13 @@ bool Window::buttonDown(int button) const
   return glfwGetMouseButton(window, button) == GLFW_PRESS;
 }
 
-void Window::getCursorPos(double &xpos, double &ypos) const
+void Window::getCursorPos(double& xpos, double& ypos) const
 {
   xpos = mouseX;
   ypos = mouseY;
 }
 
-void Window::getPreviousCursorPos(double &xpos, double &ypos) const
+void Window::getPreviousCursorPos(double& xpos, double& ypos) const
 {
   xpos = previousMouseX;
   ypos = previousMouseY;
