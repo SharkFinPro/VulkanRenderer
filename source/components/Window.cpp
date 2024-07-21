@@ -111,7 +111,7 @@ double Window::getScroll() const
   return scroll;
 }
 
-void Window::scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+void Window::scrollCallback(GLFWwindow *window, [[maybe_unused]] double xoffset, double yoffset)
 {
   auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
   app->scroll = yoffset;

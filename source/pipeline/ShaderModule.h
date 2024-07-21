@@ -18,8 +18,8 @@ private:
 
 private:
   VkDevice& device;
-  VkShaderModule module;
   VkShaderStageFlagBits stage;
+  VkShaderModule module;
 };
 
 

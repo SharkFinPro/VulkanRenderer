@@ -793,7 +793,7 @@ void VulkanEngine::recreateSwapChain()
   createFrameBuffers();
 }
 
-void VulkanEngine::framebufferResizeCallback(GLFWwindow *window, int width, int height)
+void VulkanEngine::framebufferResizeCallback(GLFWwindow *window, [[maybe_unused]] int width, [[maybe_unused]] int height)
 {
   auto app = reinterpret_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
   app->framebufferResized = true;
