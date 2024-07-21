@@ -31,15 +31,15 @@ private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
 
-  glm::vec3 position;
+  VkDescriptorSetLayout descriptorSetLayout;
+  VkDescriptorPool descriptorPool;
+  std::vector<VkDescriptorSet> descriptorSets;
 
   std::shared_ptr<Texture> texture;
   std::shared_ptr<Texture> specularMap;
   std::shared_ptr<Model> model;
 
-  VkDescriptorSetLayout descriptorSetLayout;
-  VkDescriptorPool descriptorPool;
-  std::vector<VkDescriptorSet> descriptorSets;
+  glm::vec3 position;
 
   std::unique_ptr<UniformBuffer> transformUniform;
 };

@@ -3,6 +3,8 @@
 
 #include "../VulkanEngine.h"
 
+#include <backends/imgui_impl_glfw.h>
+
 Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback)
   : scroll(0)
 {
@@ -75,35 +77,21 @@ bool Window::buttonDown(int button) const
   return glfwGetMouseButton(window, button) == GLFW_PRESS;
 }
 
-void Window::getCursorPos(double &xpos, double &ypos) const
+void Window::getCursorPos(double& xpos, double& ypos) const
 {
   xpos = mouseX;
   ypos = mouseY;
 }
 
-void Window::getPreviousCursorPos(double &xpos, double &ypos) const
+void Window::getPreviousCursorPos(double& xpos, double& ypos) const
 {
   xpos = previousMouseX;
   ypos = previousMouseY;
 }
 
-int Window::getWidth() const
+void Window::initImGui() const
 {
-  int width;
-  glfwGetWindowSize(window, &width, nullptr);
-  return width;
-}
-
-int Window::getHeight() const
-{
-  int height;
-  glfwGetWindowSize(window, nullptr, &height);
-  return height;
-}
-
-GLFWwindow* Window::getWindow() const
-{
-  return window;
+  ImGui_ImplGlfw_InitForVulkan(window, true);
 }
 
 double Window::getScroll() const
@@ -111,7 +99,7 @@ double Window::getScroll() const
   return scroll;
 }
 
-void Window::scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, double yoffset)
 {
   auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
   app->scroll = yoffset;

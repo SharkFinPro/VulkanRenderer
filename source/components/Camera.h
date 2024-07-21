@@ -15,7 +15,7 @@ public:
 
   void setSpeed(float cameraSpeed);
 
-  void processInput(const std::shared_ptr<Window> &window);
+  void processInput(const std::shared_ptr<Window>& window);
 
 private:
   glm::vec3 position{};

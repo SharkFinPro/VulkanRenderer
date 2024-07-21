@@ -16,6 +16,8 @@ public:
 
   static void populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
+  static const char* readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity);
+
 private:
   VkDebugUtilsMessengerEXT debugMessenger;
   VkInstance& instance;

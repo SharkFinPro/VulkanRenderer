@@ -116,9 +116,9 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
   return model;
 }
 
-std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(std::shared_ptr<Texture> texture,
-                                                             std::shared_ptr<Texture> specularMap,
-                                                             std::shared_ptr<Model> model)
+std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture>& texture,
+                                                             const std::shared_ptr<Texture>& specularMap,
+                                                             const std::shared_ptr<Model>& model)
 {
   auto renderObject = std::make_shared<RenderObject>(device, physicalDevice,
                                                      graphicsPipeline->getLayout(), texture, specularMap, model);
@@ -793,7 +793,7 @@ void VulkanEngine::recreateSwapChain()
   createFrameBuffers();
 }
 
-void VulkanEngine::framebufferResizeCallback(GLFWwindow *window, int width, int height)
+void VulkanEngine::framebufferResizeCallback(GLFWwindow *window, [[maybe_unused]] int width, [[maybe_unused]] int height)
 {
   auto app = reinterpret_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
   app->framebufferResized = true;
@@ -896,18 +896,16 @@ void VulkanEngine::initImgui()
 
   ImGui::CreateContext();
 
-  ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
+  window->initImGui();
 
-  ImGui_ImplVulkan_InitInfo init_info = {};
+  ImGui_ImplVulkan_InitInfo init_info{};
   init_info.Instance = instance;
   init_info.PhysicalDevice = physicalDevice;
   init_info.Device = device;
   init_info.Queue = graphicsQueue;
   init_info.DescriptorPool = imguiPipeline->getPool();
-  init_info.Allocator = nullptr;
   init_info.RenderPass = renderPass->getRenderPass();
   init_info.MSAASamples = msaaSamples;
-  init_info.PipelineRenderingCreateInfo = {};
 
   SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
 
