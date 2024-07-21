@@ -8,7 +8,7 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
-Texture::Texture(VkDevice &device, VkPhysicalDevice &physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path)
+Texture::Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path)
   : device(device), physicalDevice(physicalDevice)
 {
   createTextureImage(commandPool, graphicsQueue, path);

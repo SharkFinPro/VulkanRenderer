@@ -21,9 +21,9 @@ public:
 
   [[nodiscard]] bool buttonDown(int button) const;
 
-  void getCursorPos(double &xpos, double &ypos) const;
+  void getCursorPos(double& xpos, double& ypos) const;
 
-  void getPreviousCursorPos(double &xpos, double &ypos) const;
+  void getPreviousCursorPos(double& xpos, double& ypos) const;
 
   void initImGui() const;
 
