@@ -2,7 +2,6 @@
 #define VULKANPROJECT_DEBUGMESSENGER_H
 
 #include <vulkan/vulkan.h>
-#include <string>
 
 class DebugMessenger {
 public:

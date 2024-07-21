@@ -1,6 +1,5 @@
 #include "DebugMessenger.h"
 #include <iostream>
-#include <string>
 
 DebugMessenger::DebugMessenger(VkInstance& instance)
   : instance(instance)
