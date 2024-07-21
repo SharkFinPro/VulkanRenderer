@@ -3,6 +3,10 @@
 
 #include "../VulkanEngine.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+
 Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback)
   : scroll(0)
 {
@@ -87,23 +91,9 @@ void Window::getPreviousCursorPos(double &xpos, double &ypos) const
   ypos = previousMouseY;
 }
 
-int Window::getWidth() const
+void Window::initImGui() const
 {
-  int width;
-  glfwGetWindowSize(window, &width, nullptr);
-  return width;
-}
-
-int Window::getHeight() const
-{
-  int height;
-  glfwGetWindowSize(window, nullptr, &height);
-  return height;
-}
-
-GLFWwindow* Window::getWindow() const
-{
-  return window;
+  ImGui_ImplGlfw_InitForVulkan(window, true);
 }
 
 double Window::getScroll() const
@@ -111,7 +101,7 @@ double Window::getScroll() const
   return scroll;
 }
 
-void Window::scrollCallback(GLFWwindow *window, [[maybe_unused]] double xoffset, double yoffset)
+void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, double yoffset)
 {
   auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
   app->scroll = yoffset;

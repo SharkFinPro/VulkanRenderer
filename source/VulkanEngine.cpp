@@ -896,18 +896,16 @@ void VulkanEngine::initImgui()
 
   ImGui::CreateContext();
 
-  ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
+  window->initImGui();
 
-  ImGui_ImplVulkan_InitInfo init_info = {};
+  ImGui_ImplVulkan_InitInfo init_info{};
   init_info.Instance = instance;
   init_info.PhysicalDevice = physicalDevice;
   init_info.Device = device;
   init_info.Queue = graphicsQueue;
   init_info.DescriptorPool = imguiPipeline->getPool();
-  init_info.Allocator = nullptr;
   init_info.RenderPass = renderPass->getRenderPass();
   init_info.MSAASamples = msaaSamples;
-  init_info.PipelineRenderingCreateInfo = {};
 
   SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
 

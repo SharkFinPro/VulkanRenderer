@@ -25,11 +25,7 @@ public:
 
   void getPreviousCursorPos(double &xpos, double &ypos) const;
 
-  [[nodiscard]] int getWidth() const;
-
-  [[nodiscard]] int getHeight() const;
-
-  [[nodiscard]] GLFWwindow* getWindow() const;
+  void initImGui() const;
 
   [[nodiscard]] double getScroll() const;
 
