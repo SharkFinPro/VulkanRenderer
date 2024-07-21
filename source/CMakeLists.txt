@@ -30,8 +30,6 @@ add_library(${PROJECT_NAME}
   pipeline/Vertex.h
   pipeline/RenderPass.cpp
   pipeline/RenderPass.h
-  pipeline/Framebuffer.cpp
-  pipeline/Framebuffer.h
   pipeline/Uniforms.h
   pipeline/ImguiPipeline.cpp
   pipeline/ImguiPipeline.h
