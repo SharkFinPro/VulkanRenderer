@@ -2,6 +2,7 @@
 #define VULKANPROJECT_DEBUGMESSENGER_H
 
 #include <vulkan/vulkan.h>
+#include <string>
 
 class DebugMessenger {
 public:
@@ -15,6 +16,8 @@ public:
     void* pUserData);
 
   static void populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
+  static const char* readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity);
 
 private:
   VkDebugUtilsMessengerEXT debugMessenger;
