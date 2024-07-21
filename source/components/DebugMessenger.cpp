@@ -2,7 +2,7 @@
 #include <iostream>
 
 DebugMessenger::DebugMessenger(VkInstance& instance)
-  : instance(instance)
+  : debugMessenger{}, instance(instance)
 {
   VkResult result;
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
