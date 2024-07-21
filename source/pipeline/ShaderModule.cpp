@@ -2,7 +2,7 @@
 #include <fstream>
 
 ShaderModule::ShaderModule(VkDevice& device, const char* filename, VkShaderStageFlagBits stage)
-  : device(device), stage(stage)
+  : device(device), stage(stage), module{}
 {
   createShaderModule(filename);
 }
