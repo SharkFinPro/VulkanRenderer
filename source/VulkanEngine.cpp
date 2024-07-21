@@ -116,9 +116,9 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
   return model;
 }
 
-std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(std::shared_ptr<Texture> texture,
-                                                             std::shared_ptr<Texture> specularMap,
-                                                             std::shared_ptr<Model> model)
+std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture>& texture,
+                                                             const std::shared_ptr<Texture>& specularMap,
+                                                             const std::shared_ptr<Model>& model)
 {
   auto renderObject = std::make_shared<RenderObject>(device, physicalDevice,
                                                      graphicsPipeline->getLayout(), texture, specularMap, model);
