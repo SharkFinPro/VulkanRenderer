@@ -44,7 +44,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(
   return VK_FALSE;
 }
 
-void DebugMessenger::populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+void DebugMessenger::populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 {
   createInfo = {};
   createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
