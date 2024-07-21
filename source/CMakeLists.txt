@@ -39,12 +39,6 @@ add_library(${PROJECT_NAME}
   pipeline/ShaderModule.h
 )
 
-if (MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE /W4)
-else()
-  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -pedantic)
-endif()
-
 # Vulkan
 find_package(Vulkan REQUIRED)
 
