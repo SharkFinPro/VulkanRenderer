@@ -53,8 +53,6 @@ VulkanEngine::~VulkanEngine()
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
-
-
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
