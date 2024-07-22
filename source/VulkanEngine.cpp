@@ -1,27 +1,11 @@
 #include "VulkanEngine.h"
 #include <stdexcept>
-#include <set>
 #include <cstdint>
 #include <limits>
 #include <algorithm>
 
 #include "utilities/Buffers.h"
 #include "utilities/Images.h"
-
-#include "components/Instance.h"
-#include "components/DebugMessenger.h"
-#include "components/Window.h"
-#include "components/PhysicalDevice.h"
-#include "components/LogicalDevice.h"
-#include "components/Camera.h"
-
-#include "pipeline/RenderPass.h"
-#include "pipeline/GraphicsPipeline.h"
-#include "pipeline/GuiPipeline.h"
-
-#include "objects/Texture.h"
-#include "objects/Model.h"
-#include "objects/RenderObject.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>

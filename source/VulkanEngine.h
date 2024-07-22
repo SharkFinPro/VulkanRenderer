@@ -6,21 +6,22 @@
 #include <memory>
 #include <vulkan/vulkan.h>
 
-#include "VulkanEngineOptions.h"
+#include "components/Instance.h"
+#include "components/DebugMessenger.h"
+#include "components/Window.h"
+#include "components/PhysicalDevice.h"
+#include "components/LogicalDevice.h"
+#include "components/Camera.h"
+#include "pipeline/RenderPass.h"
 
-class Instance;
-class DebugMessenger;
-class Window;
-class GLFWwindow;
-class PhysicalDevice;
-class LogicalDevice;
-class RenderPass;
-class GraphicsPipeline;
-class GuiPipeline;
-class Texture;
-class Model;
-class Camera;
-class RenderObject;
+#include "pipeline/GraphicsPipeline.h"
+#include "pipeline/GuiPipeline.h"
+#include "objects/Texture.h"
+
+#include "objects/Model.h"
+#include "objects/RenderObject.h"
+
+#include "VulkanEngineOptions.h"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
