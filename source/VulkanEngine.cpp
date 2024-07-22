@@ -12,7 +12,7 @@
 #include "components/PhysicalDevice.h"
 
 #include "pipeline/GraphicsPipeline.h"
-#include "pipeline/ImguiPipeline.h"
+#include "pipeline/GuiPipeline.h"
 #include "pipeline/RenderPass.h"
 
 #include "components/Camera.h"
@@ -69,7 +69,7 @@ VulkanEngine::~VulkanEngine()
 
   cleanupSwapChain();
 
-  imguiPipeline.reset();
+  guiPipeline.reset();
 
   graphicsPipeline.reset();
 
@@ -516,7 +516,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
   graphicsPipeline->render(commandBuffer, currentFrame, camera);
 
-  imguiPipeline->render(commandBuffer);
+  guiPipeline->render(commandBuffer);
 
   vkCmdEndRenderPass(commandBuffer);
 
@@ -727,10 +727,10 @@ void VulkanEngine::createColorResources()
 
 void VulkanEngine::initImgui()
 {
-  imguiPipeline = std::make_unique<ImguiPipeline>(device, physicalDevice->getPhysicalDevice(),
-                                                  "assets/shaders/imgui/ui_vert.spv",
-                                                  "assets/shaders/imgui/ui_frag.spv",
-                                                  swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
+  guiPipeline = std::make_unique<GuiPipeline>(device, physicalDevice->getPhysicalDevice(),
+                                                "assets/shaders/imgui/ui_vert.spv",
+                                                "assets/shaders/imgui/ui_frag.spv",
+                                                swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
 
   ImGui::CreateContext();
 
@@ -741,7 +741,7 @@ void VulkanEngine::initImgui()
   init_info.PhysicalDevice = physicalDevice->getPhysicalDevice();
   init_info.Device = device;
   init_info.Queue = graphicsQueue;
-  init_info.DescriptorPool = imguiPipeline->getPool();
+  init_info.DescriptorPool = guiPipeline->getPool();
   init_info.RenderPass = renderPass->getRenderPass();
   init_info.MSAASamples = physicalDevice->getMsaaSamples();
 

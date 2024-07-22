@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_IMGUIPIPELINE_H
-#define VULKANPROJECT_IMGUIPIPELINE_H
+#ifndef VULKANPROJECT_GUIPIPELINE_H
+#define VULKANPROJECT_GUIPIPELINE_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -7,12 +7,12 @@
 
 class RenderPass;
 
-class ImguiPipeline {
+class GuiPipeline {
 public:
-  ImguiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
-                const char* fragmentShader, VkExtent2D& swapChainExtent,
-                VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
-  ~ImguiPipeline();
+  GuiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
+              const char* fragmentShader, VkExtent2D& swapChainExtent,
+              VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
+  ~GuiPipeline();
 
   void render(VkCommandBuffer& commandBuffer);
 
@@ -37,4 +37,4 @@ private:
 };
 
 
-#endif //VULKANPROJECT_IMGUIPIPELINE_H
+#endif //VULKANPROJECT_GUIPIPELINE_H

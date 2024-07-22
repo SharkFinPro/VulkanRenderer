@@ -14,7 +14,7 @@ class Model;
 class RenderObject;
 class GraphicsPipeline;
 class RenderPass;
-class ImguiPipeline;
+class GuiPipeline;
 class PhysicalDevice;
 
 struct VulkanEngineOptions {
@@ -93,7 +93,7 @@ private:
 
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
 
-  std::unique_ptr<ImguiPipeline> imguiPipeline;
+  std::unique_ptr<GuiPipeline> guiPipeline;
 
   VkInstance instance;
 
