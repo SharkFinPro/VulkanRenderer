@@ -39,7 +39,7 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
 {
   glfwInit();
   initVulkan();
-  initImgui();
+  initImGui();
 
   camera = std::make_shared<Camera>(vulkanEngineOptions.cameraPosition);
   camera->setSpeed(vulkanEngineOptions.cameraSpeed);
@@ -566,7 +566,7 @@ void VulkanEngine::createColorResources()
   colorImageView = Images::createImageView(logicalDevice->getDevice(), colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
-void VulkanEngine::initImgui()
+void VulkanEngine::initImGui()
 {
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                 "assets/shaders/gui/ui_vert.spv",

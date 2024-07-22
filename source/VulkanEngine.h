@@ -70,7 +70,7 @@ private:
                                VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
   void createColorResources();
-  void initImgui();
+  void initImGui();
 
 private:
   std::unique_ptr<Instance> instance;
