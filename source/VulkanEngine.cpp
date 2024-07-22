@@ -37,13 +37,11 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
   : vulkanEngineOptions(vulkanEngineOptions)
 {
   glfwInit();
+  initVulkan();
+  initImgui();
 
   camera = std::make_shared<Camera>(vulkanEngineOptions.cameraPosition);
   camera->setSpeed(vulkanEngineOptions.cameraSpeed);
-
-  initVulkan();
-
-  initImgui();
 }
 
 VulkanEngine::~VulkanEngine()
