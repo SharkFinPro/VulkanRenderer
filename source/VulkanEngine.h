@@ -61,7 +61,7 @@ private:
   void createColorResources();
   void initImGui();
 
-  friend class Window;
+  friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 private:
   std::unique_ptr<Instance> instance;

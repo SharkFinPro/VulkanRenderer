@@ -112,7 +112,7 @@ void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset,
   app->scroll = yoffset;
 }
 
-void Window::framebufferResizeCallback(GLFWwindow *window, [[maybe_unused]] int width, [[maybe_unused]] int height)
+void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
 {
   auto app = reinterpret_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
   app->framebufferResized = true;
