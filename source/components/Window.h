@@ -6,7 +6,7 @@
 
 class Window {
 public:
-  Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance);
+  Window(int width, int height, const char* title, VkInstance& instance);
   ~Window();
 
   [[nodiscard]] bool isOpen() const;
@@ -30,6 +30,8 @@ public:
   [[nodiscard]] double getScroll() const;
 
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
+  static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
 
 private:
   void createSurface();

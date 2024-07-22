@@ -64,13 +64,14 @@ private:
   void createSyncObjects();
   void cleanupSwapChain();
   void recreateSwapChain();
-  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
   void createDepthResources();
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
                                VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
   void createColorResources();
   void initImGui();
+
+  friend class Window;
 
 private:
   std::unique_ptr<Instance> instance;

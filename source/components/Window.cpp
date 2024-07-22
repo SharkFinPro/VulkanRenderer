@@ -1,8 +1,9 @@
 #include "Window.h"
+#include "../VulkanEngine.h"
 #include <stdexcept>
 #include <backends/imgui_impl_glfw.h>
 
-Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance)
+Window::Window(int width, int height, const char* title, VkInstance& instance)
   : scroll(0), instance(instance)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -109,4 +110,10 @@ void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset,
 {
   auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
   app->scroll = yoffset;
+}
+
+void Window::framebufferResizeCallback(GLFWwindow *window, [[maybe_unused]] int width, [[maybe_unused]] int height)
+{
+  auto app = reinterpret_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
+  app->framebufferResized = true;
 }
