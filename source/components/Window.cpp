@@ -1,8 +1,5 @@
 #include "Window.h"
 #include <stdexcept>
-
-#include "../VulkanEngine.h"
-
 #include <backends/imgui_impl_glfw.h>
 
 Window::Window(VulkanEngineOptions& engineOptions, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance)
