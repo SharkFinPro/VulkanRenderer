@@ -37,7 +37,7 @@ Window::~Window()
   glfwDestroyWindow(window);
 }
 
-bool Window::isOpen()
+bool Window::isOpen() const
 {
   return !glfwWindowShouldClose(window);
 }

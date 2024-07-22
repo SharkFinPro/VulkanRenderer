@@ -9,7 +9,7 @@ public:
   Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance);
   ~Window();
 
-  bool isOpen();
+  [[nodiscard]] bool isOpen() const;
 
   void update();
 
