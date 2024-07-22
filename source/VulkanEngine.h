@@ -48,8 +48,6 @@ public:
 
 private:
   void initVulkan();
-  static bool checkValidationLayerSupport();
-  static std::vector<const char*> getRequiredExtensions();
   void createLogicalDevice();
   static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
   static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -70,7 +68,6 @@ private:
                                VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
   void createColorResources();
-
   void initImgui();
 
 private:
