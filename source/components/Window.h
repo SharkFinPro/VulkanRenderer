@@ -6,7 +6,7 @@
 
 class Window {
 public:
-  Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback);
+  Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance);
   ~Window();
 
   bool isOpen();
@@ -15,7 +15,7 @@ public:
 
   void getFramebufferSize(int* width, int* height);
 
-  void createSurface(VkInstance instance, VkSurfaceKHR* surface);
+  VkSurfaceKHR& getSurface();
 
   [[nodiscard]] bool keyDown(int key) const;
 
@@ -32,7 +32,13 @@ public:
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 private:
+  void createSurface();
+
+private:
   GLFWwindow* window;
+
+  VkInstance& instance;
+  VkSurfaceKHR surface;
 
   double previousMouseX;
   double previousMouseY;

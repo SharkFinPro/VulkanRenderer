@@ -5,8 +5,8 @@
 
 #include <backends/imgui_impl_glfw.h>
 
-Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback)
-  : scroll(0)
+Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance)
+  : scroll(0), instance(instance)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -26,10 +26,14 @@ Window::Window(int width, int height, const char* title, GLFWframebuffersizefun 
   glfwGetCursorPos(window, &mouseX, &mouseY);
   previousMouseX = mouseX;
   previousMouseY = mouseY;
+
+  createSurface();
 }
 
 Window::~Window()
 {
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+
   glfwDestroyWindow(window);
 }
 
@@ -59,12 +63,17 @@ void Window::getFramebufferSize(int* width, int* height)
   glfwGetFramebufferSize(window, width, height);
 }
 
-void Window::createSurface(VkInstance instance, VkSurfaceKHR* surface)
+void Window::createSurface()
 {
-  if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create window surface!");
   }
+}
+
+VkSurfaceKHR& Window::getSurface()
+{
+  return surface;
 }
 
 bool Window::keyDown(int key) const

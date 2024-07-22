@@ -34,7 +34,7 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 class VulkanEngine {
 public:
-  explicit VulkanEngine(VulkanEngineOptions* vulkanEngineOptions);
+  explicit VulkanEngine(VulkanEngineOptions vulkanEngineOptions);
   ~VulkanEngine();
 
   [[nodiscard]] bool isActive() const;
@@ -74,7 +74,7 @@ private:
   void initImgui();
 
 private:
-  VulkanEngineOptions* vulkanEngineOptions;
+  VulkanEngineOptions vulkanEngineOptions;
 
   std::shared_ptr<Window> window;
 
@@ -97,7 +97,6 @@ private:
 
   VkDevice device;
   VkQueue graphicsQueue;
-  VkSurfaceKHR surface;
   VkQueue presentQueue;
   VkSwapchainKHR swapchain;
   std::vector<VkImage> swapChainImages;

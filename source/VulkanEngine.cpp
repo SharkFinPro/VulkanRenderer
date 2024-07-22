@@ -32,16 +32,13 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-VulkanEngine::VulkanEngine(VulkanEngineOptions* vulkanEngineOptions)
+VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
   : vulkanEngineOptions(vulkanEngineOptions)
 {
   glfwInit();
 
-  window = std::make_shared<Window>(vulkanEngineOptions->WINDOW_WIDTH, vulkanEngineOptions->WINDOW_HEIGHT,
-                      vulkanEngineOptions->WINDOW_TITLE, framebufferResizeCallback);
-
-  camera = std::make_shared<Camera>(vulkanEngineOptions->cameraPosition);
-  camera->setSpeed(vulkanEngineOptions->cameraSpeed);
+  camera = std::make_shared<Camera>(vulkanEngineOptions.cameraPosition);
+  camera->setSpeed(vulkanEngineOptions.cameraSpeed);
 
   initVulkan();
 
@@ -78,7 +75,7 @@ VulkanEngine::~VulkanEngine()
 
   vkDestroyDevice(device, nullptr);
 
-  vkDestroySurfaceKHR(instance->getInstance(), surface, nullptr);
+  window.reset();
 
   debugMessenger.reset();
 
@@ -138,9 +135,10 @@ void VulkanEngine::initVulkan()
     debugMessenger = std::make_unique<DebugMessenger>(instance->getInstance());
   }
 
-  window->createSurface(instance->getInstance(), &surface);
+  window = std::make_shared<Window>(vulkanEngineOptions.WINDOW_WIDTH, vulkanEngineOptions.WINDOW_HEIGHT,
+                                    vulkanEngineOptions.WINDOW_TITLE, framebufferResizeCallback, instance->getInstance());
 
-  physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), surface);
+  physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
 
   createLogicalDevice();
   createSwapChain();
@@ -150,8 +148,8 @@ void VulkanEngine::initVulkan()
                                             physicalDevice->getMsaaSamples(), findDepthFormat());
 
   graphicsPipeline = std::make_unique<GraphicsPipeline>(device, physicalDevice->getPhysicalDevice(),
-                                                        vulkanEngineOptions->VERTEX_SHADER_FILE,
-                                                        vulkanEngineOptions->FRAGMENT_SHADER_FILE,
+                                                        vulkanEngineOptions.VERTEX_SHADER_FILE,
+                                                        vulkanEngineOptions.FRAGMENT_SHADER_FILE,
                                                         swapChainExtent, physicalDevice->getMsaaSamples(),renderPass);
 
   createCommandPool();
@@ -279,7 +277,7 @@ void VulkanEngine::createSwapChain()
 
   VkSwapchainCreateInfoKHR createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-  createInfo.surface = surface;
+  createInfo.surface = window->getSurface();
 
   createInfo.minImageCount = imageCount;
   createInfo.imageFormat = surfaceFormat.format;
