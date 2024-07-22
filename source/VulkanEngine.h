@@ -1,12 +1,14 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
-#include "components/Window.h"
+#include <vulkan/vulkan.h>
 #include <vector>
 #include <string>
 #include <memory>
 #include <glm/glm.hpp>
 
+class Window;
+class GLFWwindow;
 class DebugMessenger;
 class Camera;
 class Texture;
