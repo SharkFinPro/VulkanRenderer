@@ -3,7 +3,6 @@
 
 #include "components/Window.h"
 #include <vector>
-#include <optional>
 #include <string>
 #include <memory>
 #include <glm/glm.hpp>
@@ -16,6 +15,7 @@ class RenderObject;
 class GraphicsPipeline;
 class RenderPass;
 class ImguiPipeline;
+class PhysicalDevice;
 
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
@@ -33,26 +33,6 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = {
   "VK_LAYER_KHRONOS_validation"
-};
-
-const std::vector<const char*> deviceExtensions = {
-  VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
-
-struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicsFamily;
-  std::optional<uint32_t> presentFamily;
-
-  [[nodiscard]] bool isComplete() const
-  {
-    return graphicsFamily.has_value() && presentFamily.has_value();
-  }
-};
-
-struct SwapChainSupportDetails {
-  VkSurfaceCapabilitiesKHR capabilities;
-  std::vector<VkSurfaceFormatKHR> formats;
-  std::vector<VkPresentModeKHR> presentModes;
 };
 
 class VulkanEngine {
@@ -74,12 +54,7 @@ private:
   void createInstance();
   static bool checkValidationLayerSupport();
   static std::vector<const char*> getRequiredExtensions();
-  void pickPhysicalDevice();
-  bool isDeviceSuitable(VkPhysicalDevice device);
-  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   void createLogicalDevice();
-  static bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
   static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
   static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
@@ -98,7 +73,6 @@ private:
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
                                VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
-  VkSampleCountFlagBits getMaxUsableSampleCount();
   void createColorResources();
 
   void initImgui();
@@ -122,7 +96,9 @@ private:
   std::unique_ptr<ImguiPipeline> imguiPipeline;
 
   VkInstance instance;
-  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
+  std::shared_ptr<PhysicalDevice> physicalDevice;
+
   VkDevice device;
   VkQueue graphicsQueue;
   VkSurfaceKHR surface;
@@ -143,7 +119,6 @@ private:
   VkImage depthImage;
   VkDeviceMemory depthImageMemory;
   VkImageView depthImageView;
-  VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
   VkImage colorImage;
   VkDeviceMemory colorImageMemory;
   VkImageView colorImageView;

@@ -35,6 +35,8 @@ add_library(${PROJECT_NAME}
   pipeline/ImguiPipeline.h
   pipeline/ShaderModule.cpp
   pipeline/ShaderModule.h
+  components/PhysicalDevice.cpp
+  components/PhysicalDevice.h
 )
 
 # Vulkan

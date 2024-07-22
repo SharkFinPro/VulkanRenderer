@@ -1,6 +1,5 @@
 #include "VulkanEngine.h"
 #include <stdexcept>
-#include <cstring>
 #include <set>
 #include <cstdint>
 #include <limits>
@@ -10,6 +9,7 @@
 #include "utilities/Images.h"
 
 #include "components/DebugMessenger.h"
+#include "components/PhysicalDevice.h"
 
 #include "pipeline/GraphicsPipeline.h"
 #include "pipeline/ImguiPipeline.h"
@@ -102,7 +102,7 @@ void VulkanEngine::render()
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 {
-  auto texture = std::make_shared<Texture>(device, physicalDevice, commandPool, graphicsQueue, path);
+  auto texture = std::make_shared<Texture>(device, physicalDevice->getPhysicalDevice(), commandPool, graphicsQueue, path);
   textures.push_back(texture);
 
   return texture;
@@ -110,7 +110,7 @@ std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 
 std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
 {
-  auto model = std::make_shared<Model>(device, physicalDevice, commandPool, graphicsQueue, path);
+  auto model = std::make_shared<Model>(device, physicalDevice->getPhysicalDevice(), commandPool, graphicsQueue, path);
   models.push_back(model);
 
   return model;
@@ -120,7 +120,7 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Texture>& specularMap,
                                                              const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(device, physicalDevice,
+  auto renderObject = std::make_shared<RenderObject>(device, physicalDevice->getPhysicalDevice(),
                                                      graphicsPipeline->getLayout(), texture, specularMap, model);
 
   graphicsPipeline->insertRenderObject(renderObject);
@@ -139,17 +139,19 @@ void VulkanEngine::initVulkan()
 
   window->createSurface(instance, &surface);
 
-  pickPhysicalDevice();
+  physicalDevice = std::make_shared<PhysicalDevice>(instance, surface);
+
   createLogicalDevice();
   createSwapChain();
   createImageViews();
 
-  renderPass = std::make_shared<RenderPass>(device, physicalDevice, swapChainImageFormat, msaaSamples, findDepthFormat());
+  renderPass = std::make_shared<RenderPass>(device, physicalDevice->getPhysicalDevice(), swapChainImageFormat,
+                                            physicalDevice->getMsaaSamples(), findDepthFormat());
 
-  graphicsPipeline = std::make_unique<GraphicsPipeline>(device, physicalDevice,
+  graphicsPipeline = std::make_unique<GraphicsPipeline>(device, physicalDevice->getPhysicalDevice(),
                                                         vulkanEngineOptions->VERTEX_SHADER_FILE,
                                                         vulkanEngineOptions->FRAGMENT_SHADER_FILE,
-                                                        swapChainExtent, msaaSamples, renderPass);
+                                                        swapChainExtent, physicalDevice->getMsaaSamples(),renderPass);
 
   createCommandPool();
   createColorResources();
@@ -251,94 +253,9 @@ std::vector<const char*> VulkanEngine::getRequiredExtensions()
   return extensions;
 }
 
-void VulkanEngine::pickPhysicalDevice()
-{
-  uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-
-  if (deviceCount == 0)
-  {
-    throw std::runtime_error("failed to find GPUs with Vulkan support!");
-  }
-
-  std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-  for (const auto& device : devices)
-  {
-    if (isDeviceSuitable(device))
-    {
-      physicalDevice = device;
-      msaaSamples = getMaxUsableSampleCount();
-      break;
-    }
-  }
-
-  if (physicalDevice == VK_NULL_HANDLE)
-  {
-    throw std::runtime_error("failed to find a suitable GPU!");
-  }
-}
-
-bool VulkanEngine::isDeviceSuitable(VkPhysicalDevice device)
-{
-  QueueFamilyIndices indices = findQueueFamilies(device);
-
-  bool extensionsSupported = checkDeviceExtensionSupport(device);
-
-  bool swapChainAdequate = false;
-  if (extensionsSupported)
-  {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
-    swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-  }
-
-  VkPhysicalDeviceFeatures supportedFeatures;
-  vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
-
-  return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
-}
-
-QueueFamilyIndices VulkanEngine::findQueueFamilies(VkPhysicalDevice device)
-{
-  QueueFamilyIndices indices;
-
-  uint32_t queueFamilyCount = 0;
-  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-  std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-  int i = 0;
-  for (const auto& queueFamily : queueFamilies)
-  {
-    if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-    {
-      indices.graphicsFamily = i;
-    }
-
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-
-    if (presentSupport)
-    {
-      indices.presentFamily = i;
-    }
-
-    if (indices.isComplete())
-    {
-      break;
-    }
-
-    i++;
-  }
-
-  return indices;
-}
-
 void VulkanEngine::createLogicalDevice()
 {
-  QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+  QueueFamilyIndices indices = physicalDevice->getQueueFamilies();
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -378,58 +295,13 @@ void VulkanEngine::createLogicalDevice()
     createInfo.enabledLayerCount = 0;
   }
 
-  if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
+  if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create logical device!");
   }
 
   vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
   vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
-}
-
-bool VulkanEngine::checkDeviceExtensionSupport(VkPhysicalDevice device)
-{
-  uint32_t extensionCount;
-  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
-  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-  std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-
-  for (const auto& extension : availableExtensions)
-  {
-    requiredExtensions.erase(extension.extensionName);
-  }
-
-  return requiredExtensions.empty();
-}
-
-SwapChainSupportDetails VulkanEngine::querySwapChainSupport(VkPhysicalDevice device)
-{
-  SwapChainSupportDetails details;
-
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
-
-  uint32_t formatCount;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-
-  if (formatCount != 0)
-  {
-    details.formats.resize(formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-  }
-
-  uint32_t presentModeCount;
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-
-  if (presentModeCount != 0)
-  {
-    details.presentModes.resize(presentModeCount);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
-  }
-
-  return details;
 }
 
 VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
@@ -483,7 +355,7 @@ VkExtent2D VulkanEngine::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabi
 
 void VulkanEngine::createSwapChain()
 {
-  SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+  SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
 
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
   VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -506,7 +378,7 @@ void VulkanEngine::createSwapChain()
   createInfo.imageArrayLayers = 1;
   createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-  QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+  QueueFamilyIndices indices = physicalDevice->getQueueFamilies();
   uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
   if (indices.graphicsFamily != indices.presentFamily)
@@ -585,7 +457,7 @@ void VulkanEngine::createFrameBuffers()
 
 void VulkanEngine::createCommandPool()
 {
-  QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
+  QueueFamilyIndices queueFamilyIndices = physicalDevice->getQueueFamilies();
 
   VkCommandPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -803,7 +675,8 @@ void VulkanEngine::createDepthResources()
 {
   VkFormat depthFormat = findDepthFormat();
 
-  Images::createImage(device, physicalDevice, swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+  Images::createImage(device, physicalDevice->getPhysicalDevice(), swapChainExtent.width, swapChainExtent.height,
+                      1, physicalDevice->getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
               depthImage, depthImageMemory);
   depthImageView = Images::createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
@@ -818,7 +691,7 @@ VkFormat VulkanEngine::findSupportedFormat(const std::vector<VkFormat>& candidat
   for (auto format : candidates)
   {
     VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+    vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), format, &props);
 
     if ((tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) ||
         (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features))
@@ -839,48 +712,49 @@ VkFormat VulkanEngine::findDepthFormat()
   );
 }
 
-VkSampleCountFlagBits VulkanEngine::getMaxUsableSampleCount()
-{
-  VkPhysicalDeviceProperties physicalDeviceProperties;
-  vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
-
-  VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
-                              physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-  if (counts & VK_SAMPLE_COUNT_64_BIT)
-  {
-    return VK_SAMPLE_COUNT_64_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_32_BIT)
-  {
-    return VK_SAMPLE_COUNT_32_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_16_BIT)
-  {
-    return VK_SAMPLE_COUNT_16_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_8_BIT)
-  {
-    return VK_SAMPLE_COUNT_8_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_4_BIT)
-  {
-    return VK_SAMPLE_COUNT_4_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_2_BIT)
-  {
-    return VK_SAMPLE_COUNT_2_BIT;
-  }
-
-  return VK_SAMPLE_COUNT_1_BIT;
-}
+// TODO: Remove
+//VkSampleCountFlagBits VulkanEngine::getMaxUsableSampleCount()
+//{
+//  VkPhysicalDeviceProperties physicalDeviceProperties;
+//  vkGetPhysicalDeviceProperties(*physicalDevice, &physicalDeviceProperties);
+//
+//  VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+//                              physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+//
+//  if (counts & VK_SAMPLE_COUNT_64_BIT)
+//  {
+//    return VK_SAMPLE_COUNT_64_BIT;
+//  }
+//  if (counts & VK_SAMPLE_COUNT_32_BIT)
+//  {
+//    return VK_SAMPLE_COUNT_32_BIT;
+//  }
+//  if (counts & VK_SAMPLE_COUNT_16_BIT)
+//  {
+//    return VK_SAMPLE_COUNT_16_BIT;
+//  }
+//  if (counts & VK_SAMPLE_COUNT_8_BIT)
+//  {
+//    return VK_SAMPLE_COUNT_8_BIT;
+//  }
+//  if (counts & VK_SAMPLE_COUNT_4_BIT)
+//  {
+//    return VK_SAMPLE_COUNT_4_BIT;
+//  }
+//  if (counts & VK_SAMPLE_COUNT_2_BIT)
+//  {
+//    return VK_SAMPLE_COUNT_2_BIT;
+//  }
+//
+//  return VK_SAMPLE_COUNT_1_BIT;
+//}
 
 void VulkanEngine::createColorResources()
 {
   VkFormat colorFormat = swapChainImageFormat;
 
-  Images::createImage(device, physicalDevice, swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat,
-              VK_IMAGE_TILING_OPTIMAL,
+  Images::createImage(device, physicalDevice->getPhysicalDevice(), swapChainExtent.width, swapChainExtent.height,
+                      1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 
@@ -889,10 +763,10 @@ void VulkanEngine::createColorResources()
 
 void VulkanEngine::initImgui()
 {
-  imguiPipeline = std::make_unique<ImguiPipeline>(device, physicalDevice,
+  imguiPipeline = std::make_unique<ImguiPipeline>(device, physicalDevice->getPhysicalDevice(),
                                                   "assets/shaders/imgui/ui_vert.spv",
                                                   "assets/shaders/imgui/ui_frag.spv",
-                                                  swapChainExtent, msaaSamples, renderPass);
+                                                  swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
 
   ImGui::CreateContext();
 
@@ -900,14 +774,14 @@ void VulkanEngine::initImgui()
 
   ImGui_ImplVulkan_InitInfo init_info{};
   init_info.Instance = instance;
-  init_info.PhysicalDevice = physicalDevice;
+  init_info.PhysicalDevice = physicalDevice->getPhysicalDevice();
   init_info.Device = device;
   init_info.Queue = graphicsQueue;
   init_info.DescriptorPool = imguiPipeline->getPool();
   init_info.RenderPass = renderPass->getRenderPass();
-  init_info.MSAASamples = msaaSamples;
+  init_info.MSAASamples = physicalDevice->getMsaaSamples();
 
-  SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+  SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
 
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
   if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
