@@ -5,7 +5,8 @@
 #include <string>
 #include <memory>
 #include <vulkan/vulkan.h>
-#include <glm/vec3.hpp>
+
+#include "VulkanEngineOptions.h"
 
 class Instance;
 class DebugMessenger;
@@ -20,18 +21,6 @@ class Texture;
 class Model;
 class Camera;
 class RenderObject;
-
-struct VulkanEngineOptions {
-  uint32_t WINDOW_WIDTH;
-  uint32_t WINDOW_HEIGHT;
-  const char* WINDOW_TITLE;
-
-  const char* VERTEX_SHADER_FILE;
-  const char* FRAGMENT_SHADER_FILE;
-
-  glm::vec3 cameraPosition = { 0.0f, 0.0f, 0.0f };
-  float cameraSpeed = 1.0f;
-};
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 

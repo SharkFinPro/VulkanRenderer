@@ -41,6 +41,7 @@ add_library(${PROJECT_NAME}
   components/Instance.h
   components/LogicalDevice.cpp
   components/LogicalDevice.h
+  VulkanEngineOptions.h
 )
 
 # Vulkan
