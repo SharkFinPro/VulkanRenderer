@@ -400,7 +400,7 @@ void VulkanEngine::drawFrame()
   presentInfo.waitSemaphoreCount = 1;
   presentInfo.pWaitSemaphores = signalSemaphores;
 
-  VkSwapchainKHR  swapChains[] = {swapchain};
+  VkSwapchainKHR swapChains[] = {swapchain};
   presentInfo.swapchainCount = 1;
   presentInfo.pSwapchains = swapChains;
   presentInfo.pImageIndices = &imageIndex;
