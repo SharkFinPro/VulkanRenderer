@@ -1,10 +1,10 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
-#include "components/Window.h"
 #include <vector>
 #include <string>
 #include <memory>
+#include <vulkan/vulkan.h>
 #include <glm/vec3.hpp>
 
 class Instance;

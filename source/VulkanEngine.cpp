@@ -8,16 +8,16 @@
 #include "utilities/Buffers.h"
 #include "utilities/Images.h"
 
-#include "components/DebugMessenger.h"
-#include "components/PhysicalDevice.h"
 #include "components/Instance.h"
+#include "components/DebugMessenger.h"
+#include "components/Window.h"
+#include "components/PhysicalDevice.h"
 #include "components/LogicalDevice.h"
+#include "components/Camera.h"
 
+#include "pipeline/RenderPass.h"
 #include "pipeline/GraphicsPipeline.h"
 #include "pipeline/GuiPipeline.h"
-#include "pipeline/RenderPass.h"
-
-#include "components/Camera.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
