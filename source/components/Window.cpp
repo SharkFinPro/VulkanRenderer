@@ -2,13 +2,12 @@
 #include <stdexcept>
 #include <backends/imgui_impl_glfw.h>
 
-Window::Window(VulkanEngineOptions& engineOptions, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance)
+Window::Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance)
   : scroll(0), instance(instance)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-  window = glfwCreateWindow(engineOptions.WINDOW_WIDTH, engineOptions.WINDOW_HEIGHT,
-                            engineOptions.WINDOW_TITLE, nullptr, nullptr);
+  window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
   if (window == nullptr)
   {

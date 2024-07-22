@@ -8,7 +8,6 @@
 #include "utilities/Buffers.h"
 #include "utilities/Images.h"
 
-#include "components/Window.h"
 #include "components/DebugMessenger.h"
 #include "components/PhysicalDevice.h"
 #include "components/Instance.h"
@@ -120,7 +119,8 @@ void VulkanEngine::initVulkan()
     debugMessenger = std::make_unique<DebugMessenger>(instance->getInstance());
   }
 
-  window = std::make_shared<Window>(vulkanEngineOptions, framebufferResizeCallback, instance->getInstance());
+  window = std::make_shared<Window>(vulkanEngineOptions.WINDOW_WIDTH, vulkanEngineOptions.WINDOW_HEIGHT,
+                                    vulkanEngineOptions.WINDOW_TITLE, framebufferResizeCallback, instance->getInstance());
 
   physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
 

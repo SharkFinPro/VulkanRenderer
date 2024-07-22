@@ -4,11 +4,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "../VulkanEngine.h"
-
 class Window {
 public:
-  Window(VulkanEngineOptions& engineOptions, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance);
+  Window(int width, int height, const char* title, GLFWframebuffersizefun framebufferResizeCallback, VkInstance& instance);
   ~Window();
 
   [[nodiscard]] bool isOpen() const;
