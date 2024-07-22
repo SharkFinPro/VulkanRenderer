@@ -7,19 +7,19 @@
 #include <memory>
 #include <glm/glm.hpp>
 
+class Instance;
+class DebugMessenger;
 class Window;
 class GLFWwindow;
-class DebugMessenger;
-class Camera;
+class PhysicalDevice;
+class LogicalDevice;
+class RenderPass;
+class GraphicsPipeline;
+class GuiPipeline;
 class Texture;
 class Model;
+class Camera;
 class RenderObject;
-class GraphicsPipeline;
-class RenderPass;
-class GuiPipeline;
-class PhysicalDevice;
-class Instance;
-class LogicalDevice;
 
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
