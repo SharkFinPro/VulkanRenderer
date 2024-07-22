@@ -17,6 +17,7 @@ class RenderPass;
 class GuiPipeline;
 class PhysicalDevice;
 class Instance;
+class LogicalDevice;
 
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
@@ -48,7 +49,6 @@ public:
 
 private:
   void initVulkan();
-  void createLogicalDevice();
   static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
   static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
@@ -71,30 +71,21 @@ private:
   void initImgui();
 
 private:
-  VulkanEngineOptions vulkanEngineOptions;
-
+  std::unique_ptr<Instance> instance;
+  std::unique_ptr<DebugMessenger> debugMessenger;
   std::shared_ptr<Window> window;
-
-  std::shared_ptr<Camera> camera;
+  std::shared_ptr<PhysicalDevice> physicalDevice;
+  std::unique_ptr<LogicalDevice> logicalDevice;
+  std::shared_ptr<RenderPass> renderPass;
+  std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+  std::unique_ptr<GuiPipeline> guiPipeline;
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
+  std::shared_ptr<Camera> camera;
 
-  std::unique_ptr<DebugMessenger> debugMessenger;
+  VulkanEngineOptions vulkanEngineOptions;
 
-  std::shared_ptr<RenderPass> renderPass;
-
-  std::unique_ptr<GraphicsPipeline> graphicsPipeline;
-
-  std::unique_ptr<GuiPipeline> guiPipeline;
-
-  std::unique_ptr<Instance> instance;
-
-  std::shared_ptr<PhysicalDevice> physicalDevice;
-
-  VkDevice device;
-  VkQueue graphicsQueue;
-  VkQueue presentQueue;
   VkSwapchainKHR swapchain;
   std::vector<VkImage> swapChainImages;
   VkFormat swapChainImageFormat;

@@ -39,6 +39,8 @@ add_library(${PROJECT_NAME}
   components/PhysicalDevice.h
   components/Instance.cpp
   components/Instance.h
+  components/LogicalDevice.cpp
+  components/LogicalDevice.h
 )
 
 # Vulkan

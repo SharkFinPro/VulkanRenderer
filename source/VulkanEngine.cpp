@@ -11,6 +11,7 @@
 #include "components/DebugMessenger.h"
 #include "components/PhysicalDevice.h"
 #include "components/Instance.h"
+#include "components/LogicalDevice.h"
 
 #include "pipeline/GraphicsPipeline.h"
 #include "pipeline/GuiPipeline.h"
@@ -47,7 +48,7 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
 
 VulkanEngine::~VulkanEngine()
 {
-  vkDeviceWaitIdle(device);
+  logicalDevice->waitIdle();
 
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplGlfw_Shutdown();
@@ -55,26 +56,14 @@ VulkanEngine::~VulkanEngine()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
-    vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-    vkDestroyFence(device, inFlightFences[i], nullptr);
+    vkDestroySemaphore(logicalDevice->getDevice(), renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(logicalDevice->getDevice(), imageAvailableSemaphores[i], nullptr);
+    vkDestroyFence(logicalDevice->getDevice(), inFlightFences[i], nullptr);
   }
 
-  vkDestroyCommandPool(device, commandPool, nullptr);
+  vkDestroyCommandPool(logicalDevice->getDevice(), commandPool, nullptr);
 
   cleanupSwapChain();
-
-  textures.clear();
-  models.clear();
-  guiPipeline.reset();
-  graphicsPipeline.reset();
-  renderPass.reset();
-
-  vkDestroyDevice(device, nullptr);
-
-  window.reset();
-  debugMessenger.reset();
-  instance.reset();
 
   glfwTerminate();
 }
@@ -95,7 +84,8 @@ void VulkanEngine::render()
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 {
-  auto texture = std::make_shared<Texture>(device, physicalDevice->getPhysicalDevice(), commandPool, graphicsQueue, path);
+  auto texture = std::make_shared<Texture>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
+                                           commandPool, logicalDevice->getGraphicsQueue(), path);
   textures.push_back(texture);
 
   return texture;
@@ -103,7 +93,8 @@ std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 
 std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
 {
-  auto model = std::make_shared<Model>(device, physicalDevice->getPhysicalDevice(), commandPool, graphicsQueue, path);
+  auto model = std::make_shared<Model>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
+                                       commandPool, logicalDevice->getGraphicsQueue(), path);
   models.push_back(model);
 
   return model;
@@ -113,7 +104,7 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Texture>& specularMap,
                                                              const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(device, physicalDevice->getPhysicalDevice(),
+  auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                      graphicsPipeline->getLayout(), texture, specularMap, model);
 
   graphicsPipeline->insertRenderObject(renderObject);
@@ -135,14 +126,15 @@ void VulkanEngine::initVulkan()
 
   physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
 
-  createLogicalDevice();
+  logicalDevice = std::make_unique<LogicalDevice>(physicalDevice);
+
   createSwapChain();
   createImageViews();
 
-  renderPass = std::make_shared<RenderPass>(device, physicalDevice->getPhysicalDevice(), swapChainImageFormat,
+  renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChainImageFormat,
                                             physicalDevice->getMsaaSamples(), findDepthFormat());
 
-  graphicsPipeline = std::make_unique<GraphicsPipeline>(device, physicalDevice->getPhysicalDevice(),
+  graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         vulkanEngineOptions.VERTEX_SHADER_FILE,
                                                         vulkanEngineOptions.FRAGMENT_SHADER_FILE,
                                                         swapChainExtent, physicalDevice->getMsaaSamples(),renderPass);
@@ -153,58 +145,6 @@ void VulkanEngine::initVulkan()
   createFrameBuffers();
   createCommandBuffers();
   createSyncObjects();
-}
-
-void VulkanEngine::createLogicalDevice()
-{
-  auto queueFamilyIndices = physicalDevice->getQueueFamilies();
-
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.graphicsFamily.value(),
-                                            queueFamilyIndices.presentFamily.value()};
-
-  float queuePriority = 1.0f;
-  for (uint32_t queueFamily : uniqueQueueFamilies)
-  {
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = queueFamily;
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
-    queueCreateInfos.push_back(queueCreateInfo);
-  }
-
-  VkPhysicalDeviceFeatures deviceFeatures{};
-  deviceFeatures.samplerAnisotropy = VK_TRUE;
-
-  VkDeviceCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-  createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-  createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
-  createInfo.pEnabledFeatures = &deviceFeatures;
-
-  createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-  createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
-  if (enableValidationLayers)
-  {
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-  }
-  else
-  {
-    createInfo.enabledLayerCount = 0;
-  }
-
-  if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create logical device!");
-  }
-
-  vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);
-  vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
 }
 
 VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
@@ -306,14 +246,14 @@ void VulkanEngine::createSwapChain()
 
   createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapchain) != VK_SUCCESS)
+  if (vkCreateSwapchainKHR(logicalDevice->getDevice(), &createInfo, nullptr, &swapchain) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create swap chain!");
   }
 
-  vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
+  vkGetSwapchainImagesKHR(logicalDevice->getDevice(), swapchain, &imageCount, nullptr);
   swapChainImages.resize(imageCount);
-  vkGetSwapchainImagesKHR(device, swapchain, &imageCount, swapChainImages.data());
+  vkGetSwapchainImagesKHR(logicalDevice->getDevice(), swapchain, &imageCount, swapChainImages.data());
 
   swapChainImageFormat = surfaceFormat.format;
   swapChainExtent = extent;
@@ -325,7 +265,7 @@ void VulkanEngine::createImageViews()
 
   for (size_t i = 0; i < swapChainImages.size(); i++)
   {
-    swapChainImageViews[i] = Images::createImageView(device, swapChainImages[i], swapChainImageFormat,
+    swapChainImageViews[i] = Images::createImageView(logicalDevice->getDevice(), swapChainImages[i], swapChainImageFormat,
                                                      VK_IMAGE_ASPECT_COLOR_BIT, 1);
   }
 }
@@ -351,7 +291,7 @@ void VulkanEngine::createFrameBuffers()
     framebufferInfo.height = swapChainExtent.height;
     framebufferInfo.layers = 1;
 
-    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
+    if (vkCreateFramebuffer(logicalDevice->getDevice(), &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create framebuffer!");
     }
@@ -367,7 +307,7 @@ void VulkanEngine::createCommandPool()
   poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-  if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+  if (vkCreateCommandPool(logicalDevice->getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create command pool!");
   }
@@ -383,7 +323,7 @@ void VulkanEngine::createCommandBuffers()
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
 
-  if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }
@@ -430,10 +370,10 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
 void VulkanEngine::drawFrame()
 {
-  vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(logicalDevice->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
   uint32_t imageIndex;
-  VkResult result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+  VkResult result = vkAcquireNextImageKHR(logicalDevice->getDevice(), swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
   {
@@ -446,7 +386,7 @@ void VulkanEngine::drawFrame()
     throw std::runtime_error("failed to acquire swap chain image!");
   }
 
-  vkResetFences(device, 1, &inFlightFences[currentFrame]);
+  vkResetFences(logicalDevice->getDevice(), 1, &inFlightFences[currentFrame]);
 
   vkResetCommandBuffer(commandBuffers[currentFrame], 0);
   recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
@@ -467,7 +407,7 @@ void VulkanEngine::drawFrame()
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSemaphores;
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
+  if (vkQueueSubmit(logicalDevice->getGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
@@ -485,7 +425,7 @@ void VulkanEngine::drawFrame()
 
   presentInfo.pResults = nullptr;
 
-  result = vkQueuePresentKHR(presentQueue, &presentInfo);
+  result = vkQueuePresentKHR(logicalDevice->getPresentQueue(), &presentInfo);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
   {
@@ -515,9 +455,9 @@ void VulkanEngine::createSyncObjects()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+    if (vkCreateSemaphore(logicalDevice->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(logicalDevice->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(logicalDevice->getDevice(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create semaphores!");
     }
@@ -526,25 +466,25 @@ void VulkanEngine::createSyncObjects()
 
 void VulkanEngine::cleanupSwapChain()
 {
-  vkDestroyImageView(device, colorImageView, nullptr);
-  vkDestroyImage(device, colorImage, nullptr);
-  vkFreeMemory(device, colorImageMemory, nullptr);
+  vkDestroyImageView(logicalDevice->getDevice(), colorImageView, nullptr);
+  vkDestroyImage(logicalDevice->getDevice(), colorImage, nullptr);
+  vkFreeMemory(logicalDevice->getDevice(), colorImageMemory, nullptr);
 
-  vkDestroyImageView(device, depthImageView, nullptr);
-  vkDestroyImage(device, depthImage, nullptr);
-  vkFreeMemory(device, depthImageMemory, nullptr);
+  vkDestroyImageView(logicalDevice->getDevice(), depthImageView, nullptr);
+  vkDestroyImage(logicalDevice->getDevice(), depthImage, nullptr);
+  vkFreeMemory(logicalDevice->getDevice(), depthImageMemory, nullptr);
 
   for (auto framebuffer : swapChainFramebuffers)
   {
-    vkDestroyFramebuffer(device, framebuffer, nullptr);
+    vkDestroyFramebuffer(logicalDevice->getDevice(), framebuffer, nullptr);
   }
 
   for (auto imageView : swapChainImageViews)
   {
-    vkDestroyImageView(device, imageView, nullptr);
+    vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
   }
 
-  vkDestroySwapchainKHR(device, swapchain, nullptr);
+  vkDestroySwapchainKHR(logicalDevice->getDevice(), swapchain, nullptr);
 }
 
 void VulkanEngine::recreateSwapChain()
@@ -557,7 +497,7 @@ void VulkanEngine::recreateSwapChain()
     glfwWaitEvents();
   }
 
-  vkDeviceWaitIdle(device);
+  logicalDevice->waitIdle();
 
   cleanupSwapChain();
 
@@ -578,13 +518,14 @@ void VulkanEngine::createDepthResources()
 {
   VkFormat depthFormat = findDepthFormat();
 
-  Images::createImage(device, physicalDevice->getPhysicalDevice(), swapChainExtent.width, swapChainExtent.height,
+  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChainExtent.width, swapChainExtent.height,
                       1, physicalDevice->getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
               depthImage, depthImageMemory);
-  depthImageView = Images::createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+  depthImageView = Images::createImageView(logicalDevice->getDevice(), depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
-  Images::transitionImageLayout(device, commandPool, graphicsQueue, depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+  Images::transitionImageLayout(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(),
+                                depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
 
@@ -619,17 +560,17 @@ void VulkanEngine::createColorResources()
 {
   VkFormat colorFormat = swapChainImageFormat;
 
-  Images::createImage(device, physicalDevice->getPhysicalDevice(), swapChainExtent.width, swapChainExtent.height,
+  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChainExtent.width, swapChainExtent.height,
                       1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 
-  colorImageView = Images::createImageView(device, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+  colorImageView = Images::createImageView(logicalDevice->getDevice(), colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
 void VulkanEngine::initImgui()
 {
-  guiPipeline = std::make_unique<GuiPipeline>(device, physicalDevice->getPhysicalDevice(),
+  guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                 "assets/shaders/gui/ui_vert.spv",
                                                 "assets/shaders/gui/ui_frag.spv",
                                                 swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
@@ -641,8 +582,8 @@ void VulkanEngine::initImgui()
   ImGui_ImplVulkan_InitInfo init_info{};
   init_info.Instance = instance->getInstance();
   init_info.PhysicalDevice = physicalDevice->getPhysicalDevice();
-  init_info.Device = device;
-  init_info.Queue = graphicsQueue;
+  init_info.Device = logicalDevice->getDevice();
+  init_info.Queue = logicalDevice->getGraphicsQueue();
   init_info.DescriptorPool = guiPipeline->getPool();
   init_info.RenderPass = renderPass->getRenderPass();
   init_info.MSAASamples = physicalDevice->getMsaaSamples();
@@ -659,9 +600,9 @@ void VulkanEngine::initImgui()
 
   ImGui_ImplVulkan_Init(&init_info);
 
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
   ImGui_ImplVulkan_CreateFontsTexture();
-  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+  Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
