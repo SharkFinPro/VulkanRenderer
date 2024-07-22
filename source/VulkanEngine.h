@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 
 class Instance;
 class DebugMessenger;
