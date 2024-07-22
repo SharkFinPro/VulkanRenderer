@@ -728,8 +728,8 @@ void VulkanEngine::createColorResources()
 void VulkanEngine::initImgui()
 {
   guiPipeline = std::make_unique<GuiPipeline>(device, physicalDevice->getPhysicalDevice(),
-                                                "assets/shaders/imgui/ui_vert.spv",
-                                                "assets/shaders/imgui/ui_frag.spv",
+                                                "assets/shaders/gui/ui_vert.spv",
+                                                "assets/shaders/gui/ui_frag.spv",
                                                 swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
 
   ImGui::CreateContext();
