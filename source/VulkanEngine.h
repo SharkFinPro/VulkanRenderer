@@ -16,6 +16,7 @@ class GraphicsPipeline;
 class RenderPass;
 class GuiPipeline;
 class PhysicalDevice;
+class Instance;
 
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
@@ -30,10 +31,6 @@ struct VulkanEngineOptions {
 };
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
-
-const std::vector<const char*> validationLayers = {
-  "VK_LAYER_KHRONOS_validation"
-};
 
 class VulkanEngine {
 public:
@@ -51,7 +48,6 @@ public:
 
 private:
   void initVulkan();
-  void createInstance();
   static bool checkValidationLayerSupport();
   static std::vector<const char*> getRequiredExtensions();
   void createLogicalDevice();
@@ -95,7 +91,7 @@ private:
 
   std::unique_ptr<GuiPipeline> guiPipeline;
 
-  VkInstance instance;
+  std::unique_ptr<Instance> instance;
 
   std::shared_ptr<PhysicalDevice> physicalDevice;
 

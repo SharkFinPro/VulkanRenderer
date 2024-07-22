@@ -10,6 +10,7 @@
 
 #include "components/DebugMessenger.h"
 #include "components/PhysicalDevice.h"
+#include "components/Instance.h"
 
 #include "pipeline/GraphicsPipeline.h"
 #include "pipeline/GuiPipeline.h"
@@ -77,11 +78,11 @@ VulkanEngine::~VulkanEngine()
 
   vkDestroyDevice(device, nullptr);
 
-  vkDestroySurfaceKHR(instance, surface, nullptr);
+  vkDestroySurfaceKHR(instance->getInstance(), surface, nullptr);
 
   debugMessenger.reset();
 
-  vkDestroyInstance(instance, nullptr);
+  instance.reset();
 
   glfwTerminate();
 }
@@ -130,16 +131,16 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
 
 void VulkanEngine::initVulkan()
 {
-  createInstance();
+  instance = std::make_unique<Instance>();
 
   if (enableValidationLayers)
   {
-    debugMessenger = std::make_unique<DebugMessenger>(instance);
+    debugMessenger = std::make_unique<DebugMessenger>(instance->getInstance());
   }
 
-  window->createSurface(instance, &surface);
+  window->createSurface(instance->getInstance(), &surface);
 
-  physicalDevice = std::make_shared<PhysicalDevice>(instance, surface);
+  physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), surface);
 
   createLogicalDevice();
   createSwapChain();
@@ -159,98 +160,6 @@ void VulkanEngine::initVulkan()
   createFrameBuffers();
   createCommandBuffers();
   createSyncObjects();
-}
-
-void VulkanEngine::createInstance()
-{
-  if (enableValidationLayers && !checkValidationLayerSupport())
-  {
-    throw std::runtime_error("validation layers requested, but not available!");
-  }
-
-  VkApplicationInfo appInfo{};
-  appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-  appInfo.pApplicationName = "Vulkan Engine";
-  appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-  appInfo.pEngineName = "No Engine";
-  appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-  appInfo.apiVersion = VK_API_VERSION_1_0;
-
-  VkInstanceCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-  createInfo.pApplicationInfo = &appInfo;
-
-  auto extensions = getRequiredExtensions();
-  createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-  createInfo.ppEnabledExtensionNames = extensions.data();
-
-  if (enableValidationLayers)
-  {
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    DebugMessenger::populateCreateInfo(debugCreateInfo);
-
-    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
-  }
-  else
-  {
-    createInfo.enabledLayerCount = 0;
-
-    createInfo.pNext = nullptr;
-  }
-
-  if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create instance!");
-  }
-}
-
-bool VulkanEngine::checkValidationLayerSupport()
-{
-  uint32_t layerCount;
-  vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-  std::vector<VkLayerProperties> availableLayers(layerCount);
-  vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-  for (const char* layerName : validationLayers)
-  {
-    bool layerFound = false;
-
-    for (const auto& layerProperties : availableLayers)
-    {
-      if (strcmp(layerName, layerProperties.layerName) == 0)
-      {
-        layerFound = true;
-        break;
-      }
-    }
-
-    if (!layerFound)
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-std::vector<const char*> VulkanEngine::getRequiredExtensions()
-{
-  uint32_t glfwExtensionCount = 0;
-  const char** glfwExtensions;
-  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-  std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-  if (enableValidationLayers)
-  {
-    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-  }
-
-  return extensions;
 }
 
 void VulkanEngine::createLogicalDevice()
@@ -737,7 +646,7 @@ void VulkanEngine::initImgui()
   window->initImGui();
 
   ImGui_ImplVulkan_InitInfo init_info{};
-  init_info.Instance = instance;
+  init_info.Instance = instance->getInstance();
   init_info.PhysicalDevice = physicalDevice->getPhysicalDevice();
   init_info.Device = device;
   init_info.Queue = graphicsQueue;
