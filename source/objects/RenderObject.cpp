@@ -11,8 +11,6 @@
 
 #include "../pipeline/Uniforms.h"
 
-const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
-
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
                            VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)

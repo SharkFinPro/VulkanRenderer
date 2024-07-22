@@ -12,8 +12,6 @@
 
 #include <imgui.h>
 
-const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
-
 GraphicsPipeline::GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
                                    const char* fragmentShader, VkExtent2D& swapChainExtent,
                                    VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
