@@ -16,7 +16,7 @@ int main()
     vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
     vulkanEngineOptions.cameraPosition = { 0.0f, 0.0f, -5.0f };
 
-    VulkanEngine renderer(&vulkanEngineOptions);
+    VulkanEngine renderer(vulkanEngineOptions);
 
     auto texture = renderer.loadTexture("assets/textures/white.png");
     auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");

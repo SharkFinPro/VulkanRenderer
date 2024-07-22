@@ -13,7 +13,7 @@ int main()
     vulkanEngineOptions.VERTEX_SHADER_FILE = "assets/shaders/vert.spv";
     vulkanEngineOptions.FRAGMENT_SHADER_FILE = "assets/shaders/frag.spv";
 
-    VulkanEngine renderer(&vulkanEngineOptions);
+    VulkanEngine renderer(vulkanEngineOptions);
 
     auto texture = renderer.loadTexture("assets/textures/viking_room.png");
     auto specular = renderer.loadTexture("assets/textures/blank_specular.png");

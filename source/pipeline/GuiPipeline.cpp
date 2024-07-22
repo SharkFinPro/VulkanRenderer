@@ -1,4 +1,4 @@
-#include "ImguiPipeline.h"
+#include "GuiPipeline.h"
 
 #include <stdexcept>
 
@@ -12,9 +12,9 @@
 
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
-ImguiPipeline::ImguiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
-                                   const char* fragmentShader, VkExtent2D& swapChainExtent,
-                                   VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
+GuiPipeline::GuiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
+                         const char* fragmentShader, VkExtent2D& swapChainExtent,
+                         VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
   : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent)
 {
   createGraphicsPipeline(vertexShader, fragmentShader, msaaSamples, renderPass);
@@ -22,7 +22,7 @@ ImguiPipeline::ImguiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice,
   createDescriptorPool();
 }
 
-ImguiPipeline::~ImguiPipeline()
+GuiPipeline::~GuiPipeline()
 {
   vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
@@ -31,7 +31,7 @@ ImguiPipeline::~ImguiPipeline()
   vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 }
 
-void ImguiPipeline::render(VkCommandBuffer& commandBuffer)
+void GuiPipeline::render(VkCommandBuffer& commandBuffer)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
@@ -57,8 +57,8 @@ void ImguiPipeline::render(VkCommandBuffer& commandBuffer)
   ImGui::NewFrame();
 }
 
-void ImguiPipeline::createGraphicsPipeline(const char* vertexShader, const char* fragmentShader,
-                                              VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass>& renderPass)
+void GuiPipeline::createGraphicsPipeline(const char* vertexShader, const char* fragmentShader,
+                                         VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass>& renderPass)
 {
   ShaderModule vertexShaderModule{device, vertexShader, VK_SHADER_STAGE_VERTEX_BIT};
   ShaderModule fragmentShaderModule{device, fragmentShader, VK_SHADER_STAGE_FRAGMENT_BIT};
@@ -180,7 +180,7 @@ void ImguiPipeline::createGraphicsPipeline(const char* vertexShader, const char*
   }
 }
 
-void ImguiPipeline::createDescriptorPool()
+void GuiPipeline::createDescriptorPool()
 {
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -195,7 +195,7 @@ void ImguiPipeline::createDescriptorPool()
   }
 }
 
-VkDescriptorPool& ImguiPipeline::getPool()
+VkDescriptorPool& GuiPipeline::getPool()
 {
   return descriptorPool;
 }
