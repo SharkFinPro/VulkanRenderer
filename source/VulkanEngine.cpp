@@ -378,7 +378,7 @@ void VulkanEngine::createSwapChain()
   createInfo.imageArrayLayers = 1;
   createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-  QueueFamilyIndices indices = physicalDevice->getQueueFamilies();
+  auto indices = physicalDevice->getQueueFamilies();
   uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
   if (indices.graphicsFamily != indices.presentFamily)
@@ -457,7 +457,7 @@ void VulkanEngine::createFrameBuffers()
 
 void VulkanEngine::createCommandPool()
 {
-  QueueFamilyIndices queueFamilyIndices = physicalDevice->getQueueFamilies();
+  auto queueFamilyIndices = physicalDevice->getQueueFamilies();
 
   VkCommandPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
