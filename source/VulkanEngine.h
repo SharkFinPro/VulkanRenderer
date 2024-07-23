@@ -51,7 +51,6 @@ private:
   void createCommandBuffers();
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void drawFrame();
-  void createSyncObjects();
   void cleanupSwapChain();
   void recreateSwapChain();
   void createDepthResources();
@@ -87,9 +86,6 @@ private:
   std::vector<VkFramebuffer> swapChainFramebuffers;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
-  std::vector<VkSemaphore> imageAvailableSemaphores;
-  std::vector<VkSemaphore> renderFinishedSemaphores;
-  std::vector<VkFence> inFlightFences;
   uint32_t currentFrame = 0;
   bool framebufferResized = false;
   VkImage depthImage;

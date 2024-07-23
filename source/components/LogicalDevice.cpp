@@ -1,7 +1,6 @@
 #include "LogicalDevice.h"
 #include "PhysicalDevice.h"
 #include "Instance.h"
-#include <vector>
 #include <set>
 #include <stdexcept>
 
@@ -11,7 +10,48 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
+const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
+
 LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
+{
+  createDevice(physicalDevice);
+
+  createSyncObjects();
+}
+
+LogicalDevice::~LogicalDevice()
+{
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+    vkDestroyFence(device, inFlightFences[i], nullptr);
+  }
+
+  vkDestroyDevice(device, nullptr);
+}
+
+VkDevice& LogicalDevice::getDevice()
+{
+  return device;
+}
+
+void LogicalDevice::waitIdle() const
+{
+  vkDeviceWaitIdle(device);
+}
+
+VkQueue& LogicalDevice::getGraphicsQueue()
+{
+  return graphicsQueue;
+}
+
+VkQueue& LogicalDevice::getPresentQueue()
+{
+  return presentQueue;
+}
+
+void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
 {
   auto queueFamilyIndices = physicalDevice->getQueueFamilies();
 
@@ -63,27 +103,85 @@ LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevi
   vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
 }
 
-LogicalDevice::~LogicalDevice()
+void LogicalDevice::createSyncObjects()
 {
-  vkDestroyDevice(device, nullptr);
+  imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+  VkSemaphoreCreateInfo semaphoreInfo{};
+  semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+  VkFenceCreateInfo fenceInfo{};
+  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create semaphores!");
+    }
+  }
 }
 
-VkDevice& LogicalDevice::getDevice()
+void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer)
 {
-  return device;
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+  VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  submitInfo.waitSemaphoreCount = 1;
+  submitInfo.pWaitSemaphores = waitSemaphores;
+  submitInfo.pWaitDstStageMask = waitStages;
+
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = commandBuffer;
+
+  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = signalSemaphores;
+
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to submit draw command buffer!");
+  }
 }
 
-void LogicalDevice::waitIdle() const
+void LogicalDevice::waitForFences(uint32_t currentFrame)
 {
-  vkDeviceWaitIdle(device);
+  vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 
-VkQueue& LogicalDevice::getGraphicsQueue()
+void LogicalDevice::resetFences(uint32_t currentFrame)
 {
-  return graphicsQueue;
+  vkResetFences(device, 1, &inFlightFences[currentFrame]);
 }
 
-VkQueue& LogicalDevice::getPresentQueue()
+VkResult LogicalDevice::queuePresent(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex)
 {
-  return presentQueue;
+  VkPresentInfoKHR presentInfo{};
+  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+  presentInfo.waitSemaphoreCount = 1;
+  presentInfo.pWaitSemaphores = signalSemaphores;
+
+  VkSwapchainKHR swapChains[] = {swapchain};
+  presentInfo.swapchainCount = 1;
+  presentInfo.pSwapchains = swapChains;
+  presentInfo.pImageIndices = imageIndex;
+
+  presentInfo.pResults = nullptr;
+
+  return vkQueuePresentKHR(presentQueue, &presentInfo);
+}
+
+VkResult LogicalDevice::acquireNextImage(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex)
+{
+  return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
+                               imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);
 }
