@@ -11,13 +11,14 @@
 #include "components/Window.h"
 #include "components/PhysicalDevice.h"
 #include "components/LogicalDevice.h"
+#include "components/ImGuiInstance.h"
 #include "components/Camera.h"
-#include "pipeline/RenderPass.h"
 
+#include "pipeline/RenderPass.h"
 #include "pipeline/GraphicsPipeline.h"
 #include "pipeline/GuiPipeline.h"
-#include "objects/Texture.h"
 
+#include "objects/Texture.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 
@@ -58,7 +59,6 @@ private:
                                VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
   void createColorResources();
-  void initImGui();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
@@ -71,6 +71,8 @@ private:
   std::shared_ptr<RenderPass> renderPass;
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
+
+  std::unique_ptr<ImGuiInstance> imGuiInstance;
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
