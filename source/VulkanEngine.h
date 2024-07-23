@@ -5,33 +5,23 @@
 #include <string>
 #include <memory>
 #include <vulkan/vulkan.h>
-#include <glm/vec3.hpp>
 
-class Instance;
-class DebugMessenger;
-class Window;
-class GLFWwindow;
-class PhysicalDevice;
-class LogicalDevice;
-class RenderPass;
-class GraphicsPipeline;
-class GuiPipeline;
-class Texture;
-class Model;
-class Camera;
-class RenderObject;
+#include "components/Instance.h"
+#include "components/DebugMessenger.h"
+#include "components/Window.h"
+#include "components/PhysicalDevice.h"
+#include "components/LogicalDevice.h"
+#include "components/Camera.h"
+#include "pipeline/RenderPass.h"
 
-struct VulkanEngineOptions {
-  uint32_t WINDOW_WIDTH;
-  uint32_t WINDOW_HEIGHT;
-  const char* WINDOW_TITLE;
+#include "pipeline/GraphicsPipeline.h"
+#include "pipeline/GuiPipeline.h"
+#include "objects/Texture.h"
 
-  const char* VERTEX_SHADER_FILE;
-  const char* FRAGMENT_SHADER_FILE;
+#include "objects/Model.h"
+#include "objects/RenderObject.h"
 
-  glm::vec3 cameraPosition = { 0.0f, 0.0f, 0.0f };
-  float cameraSpeed = 1.0f;
-};
+#include "VulkanEngineOptions.h"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -71,7 +61,7 @@ private:
   void createColorResources();
   void initImGui();
 
-  friend class Window;
+  friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 private:
   std::unique_ptr<Instance> instance;

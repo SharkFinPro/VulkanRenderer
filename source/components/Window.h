@@ -31,7 +31,7 @@ public:
 
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
-  static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
+  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 private:
   void createSurface();
