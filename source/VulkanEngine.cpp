@@ -108,8 +108,8 @@ void VulkanEngine::initVulkan()
                                                         swapChainExtent, physicalDevice->getMsaaSamples(),renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                              "assets/shaders/gui/ui_vert.spv",
-                                              "assets/shaders/gui/ui_frag.spv",
+                                              "assets/shaders/ui_vert.spv",
+                                              "assets/shaders/ui_frag.spv",
                                               swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
 
   createCommandPool();
