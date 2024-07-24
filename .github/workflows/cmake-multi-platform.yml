@@ -58,8 +58,12 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         sudo apt-get update
-        sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev
-          libxkbcommon-dev libvulkan-dev libgl1-mesa-dev glslang-tools
+        sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev
+        sudo apt-get install -y \
+          cmake \
+          g++ \
+          ninja-build \
+          glslang-tools \
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
@@ -74,18 +78,30 @@ jobs:
       run: |
         curl -LO https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip
         powershell -Command "Expand-Archive glslang-master-windows-x64-Release.zip -DestinationPath glslang"
-        setx PATH "%PATH%;%CD%\\glslang\\bin"
-        echo "::add-path::%CD%\\glslang\\bin"
-        glslang\\bin\\glslangValidator.exe --version
+        echo "glslang/bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+        echo "::add-path::${{ runner.temp }}/glslang/bin"
+        glslang/bin/glslangValidator.exe --version
       shell: cmd
 
-    - name: Configure CMake
+    - name: Configure CMake (Ubuntu)
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
+        -G "Ninja"
+
+    - name: Configure CMake (Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -S ${{ github.workspace }}
+        -G "Ninja"
 
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
