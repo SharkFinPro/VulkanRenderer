@@ -53,10 +53,10 @@ set(shadersDst ${CMAKE_BINARY_DIR}/bin/assets/shaders)
 file(MAKE_DIRECTORY ${shadersDst})
 
 add_custom_target(Shaders ALL
-  COMMAND glslc ${shadersSrc}/shader.vert -o ${shadersDst}/vert.spv
-  COMMAND glslc ${shadersSrc}/shader.frag -o ${shadersDst}/frag.spv
-  COMMAND glslc ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui_vert.spv
-  COMMAND glslc ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui_frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/shader.vert -o ${shadersDst}/vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/shader.frag -o ${shadersDst}/frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui_vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui_frag.spv
   COMMENT Compiling shaders
 )
 
