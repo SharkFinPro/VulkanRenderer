@@ -59,6 +59,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev
+        sudo apt-get install -y \
+          cmake \
+          g++ \
+          ninja-build \
+          glslang-tools \
+
+    - name: Install dependencies (Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+        choco install ninja
+        choco install glslang
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
@@ -77,6 +89,7 @@ jobs:
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
+        -G "Ninja"
 
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
