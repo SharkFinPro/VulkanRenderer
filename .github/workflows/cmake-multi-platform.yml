@@ -70,8 +70,15 @@ jobs:
       run: |
         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
         choco install ninja
+        git clone https://github.com/KhronosGroup/SPIRV-Tools.git
         git clone https://github.com/KhronosGroup/glslang.git
-        cd glslang
+        cd SPIRV-Tools
+        mkdir build
+        cd build
+        cmake -G "Ninja" ..
+        ninja
+        ninja install
+        cd ../glslang
         git submodule update --init --recursive
         mkdir build
         cd build
