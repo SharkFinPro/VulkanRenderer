@@ -75,8 +75,10 @@ jobs:
         git submodule update --init --recursive
         mkdir build
         cd build
-        cmake -G "Visual Studio 16 2019" ..  # Adjust for your version of Visual Studio
-        cmake --build . --config Release
+        cmake -G "Ninja" ..
+        ninja
+        ninja install
+
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
