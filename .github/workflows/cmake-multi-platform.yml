@@ -70,22 +70,10 @@ jobs:
       run: |
         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
         choco install ninja
-        git clone https://github.com/KhronosGroup/SPIRV-Tools.git
-        git clone https://github.com/KhronosGroup/glslang.git
-        cd SPIRV-Tools
-        mkdir build
-        cd build
-        cmake -G "Ninja" ..
-        ninja
-        ninja install
-        cd ../glslang
-        git submodule update --init --recursive
-        mkdir build
-        cd build
-        cmake -G "Ninja" ..
-        ninja
-        ninja install
-
+        curl -LO https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip
+        unzip glslang-master-windows-x64-Release.zip -d glslang
+        setx PATH "%PATH%;%CD%\glslang\bin"
+        glslangValidator --version
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
