@@ -65,16 +65,6 @@ jobs:
           ninja-build \
           glslang-tools \
 
-    - name: Install dependencies (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-        choco install ninja
-        curl -LO https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip
-        tar -xf glslang-master-windows-x64-Release.zip -C $Env:TEMP
-        $Env:PATH += ";$Env:TEMP\glslang\bin"
-        glslangValidator --version
-
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       uses: humbletim/setup-vulkan-sdk@v1.2.0
