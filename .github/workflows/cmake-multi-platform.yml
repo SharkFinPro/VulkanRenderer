@@ -60,30 +60,20 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev glslang-tools
 
-    - name: Install dependencies (Windows)
+    - name: Install SPIRV-Tools (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
         choco install ninja
-
-    - name: Clone glslang repository (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        git clone https://github.com/KhronosGroup/glslang.git
-        cd glslang
-        git checkout 14.3.0
-        git submodule update --init --recursive
-
-    - name: Build glslang (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        mkdir glslang/build
-        cd glslang/build
+        git clone https://github.com/KhronosGroup/SPIRV-Tools.git
+        cd SPIRV-Tools
+        git checkout tags/sdk-2023.2
+        mkdir build
+        cd build
         cmake -G "Ninja" ..
+        ninja
         ninja install
-
-    - name: Add glslang tools to PATH (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: echo "::add-path::$(pwd)/glslang/build/install/bin"
+        $env:PATH += ";$(pwd)/SPIRV-Tools/build/install/bin"
+        [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
