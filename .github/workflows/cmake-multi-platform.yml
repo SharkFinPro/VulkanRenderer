@@ -68,17 +68,6 @@ jobs:
         vulkan-components: Vulkan-Headers, Vulkan-Loader, SPIRV-Toold, SPIRV-Headers, Glslang
         vulkan-use-cache: true
 
-    - name: Install glslangValidator (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      shell: powershell
-      run: |
-        $GLSLANG_VERSION = '14.3.0'
-        $GLSLANG_PATH = "C:\glslang"
-        Invoke-WebRequest -Uri "https://github.com/KhronosGroup/glslang/archive/refs/tags/$GLSLANG_VERSION.zip" -OutFile "glslang.zip"
-        Expand-Archive -Path "glslang.zip" -DestinationPath $GLSLANG_PATH
-        Remove-Item -Force "glslang.zip"
-        echo "$GLSLANG_PATH\bin" >> $Env:GITHUB_PATH
-
     - name: Configure CMake
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
