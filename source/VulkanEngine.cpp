@@ -4,12 +4,7 @@
 #include <limits>
 #include <algorithm>
 
-#include "utilities/Buffers.h"
 #include "utilities/Images.h"
-
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -22,7 +17,9 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
 {
   glfwInit();
   initVulkan();
-  initImGui();
+
+  imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
+                                                  renderPass, guiPipeline);
 
   camera = std::make_shared<Camera>(vulkanEngineOptions.cameraPosition);
   camera->setSpeed(vulkanEngineOptions.cameraSpeed);
@@ -31,17 +28,6 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
 VulkanEngine::~VulkanEngine()
 {
   logicalDevice->waitIdle();
-
-  ImGui_ImplVulkan_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    vkDestroySemaphore(logicalDevice->getDevice(), renderFinishedSemaphores[i], nullptr);
-    vkDestroySemaphore(logicalDevice->getDevice(), imageAvailableSemaphores[i], nullptr);
-    vkDestroyFence(logicalDevice->getDevice(), inFlightFences[i], nullptr);
-  }
 
   vkDestroyCommandPool(logicalDevice->getDevice(), commandPool, nullptr);
 
@@ -121,12 +107,16 @@ void VulkanEngine::initVulkan()
                                                         vulkanEngineOptions.FRAGMENT_SHADER_FILE,
                                                         swapChainExtent, physicalDevice->getMsaaSamples(),renderPass);
 
+  guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
+                                              "assets/shaders/ui_vert.spv",
+                                              "assets/shaders/ui_frag.spv",
+                                              swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
+
   createCommandPool();
   createColorResources();
   createDepthResources();
   createFrameBuffers();
   createCommandBuffers();
-  createSyncObjects();
 }
 
 VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
@@ -352,10 +342,10 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
 void VulkanEngine::drawFrame()
 {
-  vkWaitForFences(logicalDevice->getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  logicalDevice->waitForFences(currentFrame);
 
   uint32_t imageIndex;
-  VkResult result = vkAcquireNextImageKHR(logicalDevice->getDevice(), swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+  auto result = logicalDevice->acquireNextImage(currentFrame, swapchain, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
   {
@@ -368,46 +358,14 @@ void VulkanEngine::drawFrame()
     throw std::runtime_error("failed to acquire swap chain image!");
   }
 
-  vkResetFences(logicalDevice->getDevice(), 1, &inFlightFences[currentFrame]);
+  logicalDevice->resetFences(currentFrame);
 
   vkResetCommandBuffer(commandBuffers[currentFrame], 0);
   recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  logicalDevice->submitGraphicsQueue(currentFrame, &commandBuffers[currentFrame]);
 
-  VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-  submitInfo.waitSemaphoreCount = 1;
-  submitInfo.pWaitSemaphores = waitSemaphores;
-  submitInfo.pWaitDstStageMask = waitStages;
-
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
-
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
-  submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = signalSemaphores;
-
-  if (vkQueueSubmit(logicalDevice->getGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to submit draw command buffer!");
-  }
-
-  VkPresentInfoKHR presentInfo{};
-  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-  presentInfo.waitSemaphoreCount = 1;
-  presentInfo.pWaitSemaphores = signalSemaphores;
-
-  VkSwapchainKHR swapChains[] = {swapchain};
-  presentInfo.swapchainCount = 1;
-  presentInfo.pSwapchains = swapChains;
-  presentInfo.pImageIndices = &imageIndex;
-
-  presentInfo.pResults = nullptr;
-
-  result = vkQueuePresentKHR(logicalDevice->getPresentQueue(), &presentInfo);
+  result = logicalDevice->queuePresent(currentFrame, swapchain, &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
   {
@@ -420,30 +378,6 @@ void VulkanEngine::drawFrame()
   }
 
   currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-}
-
-void VulkanEngine::createSyncObjects()
-{
-  imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-  VkSemaphoreCreateInfo semaphoreInfo{};
-  semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-  VkFenceCreateInfo fenceInfo{};
-  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-  fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    if (vkCreateSemaphore(logicalDevice->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(logicalDevice->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-        vkCreateFence(logicalDevice->getDevice(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create semaphores!");
-    }
-  }
 }
 
 void VulkanEngine::cleanupSwapChain()
@@ -542,45 +476,4 @@ void VulkanEngine::createColorResources()
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 
   colorImageView = Images::createImageView(logicalDevice->getDevice(), colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-}
-
-void VulkanEngine::initImGui()
-{
-  guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                                "assets/shaders/gui/ui_vert.spv",
-                                                "assets/shaders/gui/ui_frag.spv",
-                                                swapChainExtent, physicalDevice->getMsaaSamples(), renderPass);
-
-  ImGui::CreateContext();
-
-  window->initImGui();
-
-  ImGui_ImplVulkan_InitInfo init_info{};
-  init_info.Instance = instance->getInstance();
-  init_info.PhysicalDevice = physicalDevice->getPhysicalDevice();
-  init_info.Device = logicalDevice->getDevice();
-  init_info.Queue = logicalDevice->getGraphicsQueue();
-  init_info.DescriptorPool = guiPipeline->getPool();
-  init_info.RenderPass = renderPass->getRenderPass();
-  init_info.MSAASamples = physicalDevice->getMsaaSamples();
-
-  SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
-
-  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-  if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
-  {
-    imageCount = swapChainSupport.capabilities.maxImageCount;
-  }
-  init_info.MinImageCount = imageCount;
-  init_info.ImageCount = imageCount;
-
-  ImGui_ImplVulkan_Init(&init_info);
-
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
-  ImGui_ImplVulkan_CreateFontsTexture();
-  Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
-
-  ImGui_ImplVulkan_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
 }

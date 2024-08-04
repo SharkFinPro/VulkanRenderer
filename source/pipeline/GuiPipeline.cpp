@@ -182,11 +182,35 @@ void GuiPipeline::createGraphicsPipeline(const char* vertexShader, const char* f
 
 void GuiPipeline::createDescriptorPool()
 {
+  std::array<VkDescriptorPoolSize, 11> poolSizes{};
+  poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLER;
+  poolSizes[0].descriptorCount = 1000;
+  poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  poolSizes[1].descriptorCount = 1000;
+  poolSizes[2].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+  poolSizes[2].descriptorCount = 1000;
+  poolSizes[3].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+  poolSizes[3].descriptorCount = 1000;
+  poolSizes[4].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+  poolSizes[4].descriptorCount = 1000;
+  poolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+  poolSizes[5].descriptorCount = 1000;
+  poolSizes[6].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  poolSizes[6].descriptorCount = 1000;
+  poolSizes[7].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  poolSizes[7].descriptorCount = 1000;
+  poolSizes[8].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+  poolSizes[8].descriptorCount = 1000;
+  poolSizes[9].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+  poolSizes[9].descriptorCount = 1000;
+  poolSizes[10].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+  poolSizes[10].descriptorCount = 1000;
+
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   poolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-  poolCreateInfo.poolSizeCount = 0;
-  poolCreateInfo.pPoolSizes = nullptr;
+  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+  poolCreateInfo.pPoolSizes = poolSizes.data();
   poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
   if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)

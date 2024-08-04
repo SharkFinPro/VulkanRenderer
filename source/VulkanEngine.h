@@ -11,13 +11,14 @@
 #include "components/Window.h"
 #include "components/PhysicalDevice.h"
 #include "components/LogicalDevice.h"
+#include "components/ImGuiInstance.h"
 #include "components/Camera.h"
-#include "pipeline/RenderPass.h"
 
+#include "pipeline/RenderPass.h"
 #include "pipeline/GraphicsPipeline.h"
 #include "pipeline/GuiPipeline.h"
-#include "objects/Texture.h"
 
+#include "objects/Texture.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 
@@ -51,7 +52,6 @@ private:
   void createCommandBuffers();
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void drawFrame();
-  void createSyncObjects();
   void cleanupSwapChain();
   void recreateSwapChain();
   void createDepthResources();
@@ -59,7 +59,6 @@ private:
                                VkFormatFeatureFlags features);
   VkFormat findDepthFormat();
   void createColorResources();
-  void initImGui();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
@@ -72,6 +71,8 @@ private:
   std::shared_ptr<RenderPass> renderPass;
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
+
+  std::unique_ptr<ImGuiInstance> imGuiInstance;
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
@@ -87,9 +88,6 @@ private:
   std::vector<VkFramebuffer> swapChainFramebuffers;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
-  std::vector<VkSemaphore> imageAvailableSemaphores;
-  std::vector<VkSemaphore> renderFinishedSemaphores;
-  std::vector<VkFence> inFlightFences;
   uint32_t currentFrame = 0;
   bool framebufferResized = false;
   VkImage depthImage;

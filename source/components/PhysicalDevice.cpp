@@ -1,7 +1,6 @@
 #include "PhysicalDevice.h"
 #include <stdexcept>
 #include <set>
-#include <string>
 
 PhysicalDevice::PhysicalDevice(VkInstance& instance, VkSurfaceKHR& surface)
   : instance(instance), surface(surface), msaaSamples(VK_SAMPLE_COUNT_1_BIT)

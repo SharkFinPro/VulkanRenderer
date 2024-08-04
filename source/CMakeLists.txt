@@ -42,7 +42,25 @@ add_library(${PROJECT_NAME}
   components/LogicalDevice.cpp
   components/LogicalDevice.h
   VulkanEngineOptions.h
+  components/ImGuiInstance.cpp
+  components/ImGuiInstance.h
 )
+
+# Shaders
+set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
+set(shadersDst ${CMAKE_BINARY_DIR}/bin/assets/shaders)
+
+file(MAKE_DIRECTORY ${shadersDst})
+
+add_custom_target(Shaders ALL
+  COMMAND glslangValidator -V ${shadersSrc}/shader.vert -o ${shadersDst}/vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/shader.frag -o ${shadersDst}/frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui_vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui_frag.spv
+  COMMENT Compiling shaders
+)
+
+add_dependencies(${PROJECT_NAME} Shaders)
 
 # Vulkan
 find_package(Vulkan REQUIRED)
