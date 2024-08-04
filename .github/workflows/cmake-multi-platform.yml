@@ -74,7 +74,7 @@ jobs:
       run: |
         $GLSLANG_VERSION = '14.3.0'
         $GLSLANG_PATH = "C:\glslang"
-        Invoke-WebRequest -Uri "https://github.com/KhronosGroup/glslang/releases/download/$GLSLANG_VERSION/glslang-$GLSLANG_VERSION-win64.zip" -OutFile "glslang.zip"
+        Invoke-WebRequest -Uri "https://github.com/KhronosGroup/glslang/archive/refs/tags/$GLSLANG_VERSION.zip" -OutFile "glslang.zip"
         Expand-Archive -Path "glslang.zip" -DestinationPath $GLSLANG_PATH
         Remove-Item -Force "glslang.zip"
         echo "$GLSLANG_PATH\bin" >> $Env:GITHUB_PATH
