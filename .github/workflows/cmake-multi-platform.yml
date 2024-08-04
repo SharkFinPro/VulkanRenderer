@@ -82,7 +82,8 @@ jobs:
         cmake -G "Ninja" ..
         ninja install
 
-    - name: Add glslang tools to PATH
+    - name: Add glslang tools to PATH (Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
       run: echo "::add-path::$(pwd)/glslang/build/install/bin"
 
     - name: Prepare Vulkan SDK (Windows)
