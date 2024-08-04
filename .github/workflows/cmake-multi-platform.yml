@@ -63,7 +63,13 @@ jobs:
     - name: Install SPIRV-Tools (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       run: |
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
         choco install ninja
+        choco install python --version=3.12.4
+
+    - name: Build and Install SPIRV-Tools (Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
         git clone https://github.com/KhronosGroup/SPIRV-Tools.git
         cd SPIRV-Tools
         git checkout tags/sdk-2023.2
@@ -74,6 +80,22 @@ jobs:
         ninja install
         $env:PATH += ";$(pwd)/SPIRV-Tools/build/install/bin"
         [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
+
+    - name: Install glslangValidator (Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: |
+        git clone https://github.com/KhronosGroup/glslang.git
+        cd glslang
+        git checkout 14.3.0
+        git submodule update --init --recursive
+        mkdir build
+        cd build
+        cmake -G "Ninja" -D SPIRV_TOOLS_INSTALL_DIR=../../SPIRV-Tools/build/install ..
+        ninja
+        ninja install
+        $env:PATH += ";$(pwd)/glslang/build/install/bin"
+        [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
+
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
