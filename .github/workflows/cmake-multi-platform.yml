@@ -60,48 +60,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev glslang-tools
 
-    - name: Install SPIRV-Tools (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        choco install ninja
-        choco install python --version=3.12.4
-
-    - name: Build and Install SPIRV-Tools (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        git clone https://github.com/KhronosGroup/SPIRV-Tools.git
-        cd SPIRV-Tools
-        git checkout tags/sdk-2023.2
-        mkdir build
-        cd build
-        cmake -G "Ninja" ..
-        ninja
-        ninja install
-        $env:PATH += ";$(pwd)/SPIRV-Tools/build/install/bin"
-        [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
-
-    - name: Install glslangValidator (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: |
-        git clone https://github.com/KhronosGroup/glslang.git
-        cd glslang
-        git checkout 14.3.0
-        git submodule update --init --recursive
-        mkdir build
-        cd build
-        cmake -G "Ninja" -D SPIRV_TOOLS_INSTALL_DIR=../../SPIRV-Tools/build/install ..
-        ninja
-        ninja install
-        $env:PATH += ";$(pwd)/glslang/build/install/bin"
-        [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
-
-
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
       uses: humbletim/setup-vulkan-sdk@v1.2.0
       with:
         vulkan-query-version: 1.3.283.0
-        vulkan-components: Vulkan-Headers, Vulkan-Loader
+        vulkan-components: Vulkan-Headers Vulkan-Loader SPIRV-Headers SPIRV-Tools
         vulkan-use-cache: true
 
 
