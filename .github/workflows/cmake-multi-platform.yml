@@ -72,7 +72,7 @@ jobs:
       if: ${{ matrix.os == 'windows-latest' }}
       shell: powershell
       run: |
-        $GLSLANG_VERSION = '11.7.0'
+        $GLSLANG_VERSION = '14.3.0'
         $GLSLANG_PATH = "C:\glslang"
         Invoke-WebRequest -Uri "https://github.com/KhronosGroup/glslang/releases/download/$GLSLANG_VERSION/glslang-$GLSLANG_VERSION-win64.zip" -OutFile "glslang.zip"
         Expand-Archive -Path "glslang.zip" -DestinationPath $GLSLANG_PATH
