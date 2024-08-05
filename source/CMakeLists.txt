@@ -123,6 +123,8 @@ add_library(imgui STATIC
   ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
 )
 
+set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(imgui PUBLIC
   Vulkan::Vulkan
   glfw
