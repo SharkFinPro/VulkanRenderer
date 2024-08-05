@@ -104,13 +104,6 @@ FetchContent_Declare(
   GIT_TAG master
 )
 
-FetchContent_GetProperties(stb)
-if(NOT stb_POPULATED)
-  FetchContent_Populate(stb)
-  add_library(stb INTERFACE)
-  target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
-endif()
-
 # imgui
 FetchContent_Declare(
   imgui
