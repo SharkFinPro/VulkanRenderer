@@ -12,7 +12,7 @@ public:
   VkPipelineShaderStageCreateInfo getShaderStageCreateInfo();
 
 private:
-  std::vector<char> readFile(const char* filename);
+  static std::vector<char> readFile(const char* filename);
 
   void createShaderModule(const char* file);
 
