@@ -44,6 +44,8 @@ add_library(${PROJECT_NAME}
   VulkanEngineOptions.h
   components/ImGuiInstance.cpp
   components/ImGuiInstance.h
+  components/SwapChain.cpp
+  components/SwapChain.h
 )
 
 # Shaders
