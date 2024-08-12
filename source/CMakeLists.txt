@@ -59,7 +59,7 @@ add_custom_target(Shaders ALL
   COMMAND glslangValidator -V ${shadersSrc}/shader.frag -o ${shadersDst}/frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui_vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui_frag.spv
-  COMMENT Compiling shaders
+  COMMENT "Compiling Shaders"
 )
 
 add_dependencies(${PROJECT_NAME} Shaders)
