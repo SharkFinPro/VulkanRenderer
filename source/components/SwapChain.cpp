@@ -24,7 +24,7 @@ SwapChain::~SwapChain()
   vkDestroySwapchainKHR(logicalDevice->getDevice(), swapchain, nullptr);
 }
 
-VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
+VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
   for (const auto& availableFormat : availableFormats)
   {
@@ -37,7 +37,7 @@ VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfac
   return availableFormats[0];
 }
 
-VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes)
+VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
   for (const auto& availablePresentMode : availablePresentModes)
   {
@@ -50,7 +50,7 @@ VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentMod
   return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities)
+VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
   if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
   {
@@ -73,6 +73,15 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
   }
 }
 
+uint32_t SwapChain::chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities)
+{
+  uint32_t imageCount = capabilities.minImageCount + 1;
+
+  const bool imageCountExceeded = capabilities.maxImageCount && imageCount > capabilities.maxImageCount;
+
+  return imageCountExceeded ? capabilities.maxImageCount : imageCount;
+}
+
 void SwapChain::createSwapChain()
 {
   SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
@@ -80,12 +89,7 @@ void SwapChain::createSwapChain()
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
   VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
   VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
-  uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-  if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
-  {
-    imageCount = swapChainSupport.capabilities.maxImageCount;
-  }
+  uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
   VkSwapchainCreateInfoKHR createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
