@@ -11,6 +11,7 @@
 #include "components/Window.h"
 #include "components/PhysicalDevice.h"
 #include "components/LogicalDevice.h"
+#include "components/SwapChain.h"
 #include "components/ImGuiInstance.h"
 #include "components/Camera.h"
 
@@ -42,11 +43,6 @@ public:
 
 private:
   void initVulkan();
-  static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-  static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-  void createSwapChain();
-  void createImageViews();
   void createFrameBuffers();
   void createCommandPool();
   void createCommandBuffers();
@@ -67,7 +63,8 @@ private:
   std::unique_ptr<DebugMessenger> debugMessenger;
   std::shared_ptr<Window> window;
   std::shared_ptr<PhysicalDevice> physicalDevice;
-  std::unique_ptr<LogicalDevice> logicalDevice;
+  std::shared_ptr<LogicalDevice> logicalDevice;
+  std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
@@ -80,11 +77,6 @@ private:
 
   VulkanEngineOptions vulkanEngineOptions;
 
-  VkSwapchainKHR swapchain;
-  std::vector<VkImage> swapChainImages;
-  VkFormat swapChainImageFormat;
-  VkExtent2D swapChainExtent;
-  std::vector<VkImageView> swapChainImageViews;
   std::vector<VkFramebuffer> swapChainFramebuffers;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
