@@ -14,6 +14,7 @@
 #include "components/SwapChain.h"
 #include "components/ImGuiInstance.h"
 #include "components/Camera.h"
+#include "components/Framebuffer.h"
 
 #include "pipeline/RenderPass.h"
 #include "pipeline/GraphicsPipeline.h"
@@ -43,18 +44,11 @@ public:
 
 private:
   void initVulkan();
-  void createFrameBuffers();
   void createCommandPool();
   void createCommandBuffers();
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void drawFrame();
-  void cleanupSwapChain();
   void recreateSwapChain();
-  void createDepthResources();
-  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-                               VkFormatFeatureFlags features);
-  VkFormat findDepthFormat();
-  void createColorResources();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
@@ -66,28 +60,23 @@ private:
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
+  std::shared_ptr<Framebuffer> framebuffer;
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+
   std::unique_ptr<GuiPipeline> guiPipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
-
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
+
   std::shared_ptr<Camera> camera;
 
   VulkanEngineOptions vulkanEngineOptions;
-
-  std::vector<VkFramebuffer> swapChainFramebuffers;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
-  uint32_t currentFrame = 0;
-  bool framebufferResized = false;
-  VkImage depthImage;
-  VkDeviceMemory depthImageMemory;
-  VkImageView depthImageView;
-  VkImage colorImage;
-  VkDeviceMemory colorImageMemory;
-  VkImageView colorImageView;
+  uint32_t currentFrame;
+
+  bool framebufferResized;
 };
 
 
