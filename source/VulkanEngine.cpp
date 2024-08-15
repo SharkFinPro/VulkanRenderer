@@ -98,8 +98,8 @@ void VulkanEngine::initVulkan()
                                             physicalDevice->getMsaaSamples());
 
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                                        vulkanEngineOptions.VERTEX_SHADER_FILE,
-                                                        vulkanEngineOptions.FRAGMENT_SHADER_FILE,
+                                                        "assets/shaders/vert.spv",
+                                                        "assets/shaders/frag.spv",
                                                         swapChain->getExtent(), physicalDevice->getMsaaSamples(),renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
