@@ -142,5 +142,5 @@ void RenderPass::begin(VkFramebuffer& framebuffer, VkExtent2D& extent, VkCommand
 
 void RenderPass::end(VkCommandBuffer& commandBuffer)
 {
-
+  vkCmdEndRenderPass(commandBuffer);
 }
