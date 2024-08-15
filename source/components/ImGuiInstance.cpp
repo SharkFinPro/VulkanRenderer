@@ -11,8 +11,8 @@
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
-#include "../pipeline/RenderPass.h"
-#include "../pipeline/GuiPipeline.h"
+#include "../pipelines/RenderPass.h"
+#include "../pipelines/GuiPipeline.h"
 
 ImGuiInstance::ImGuiInstance(VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
                              const std::unique_ptr<Instance>& instance,

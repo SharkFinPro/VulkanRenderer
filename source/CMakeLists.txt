@@ -24,17 +24,17 @@ add_library(${PROJECT_NAME}
   components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
-  pipeline/GraphicsPipeline.cpp
-  pipeline/GraphicsPipeline.h
-  pipeline/Vertex.cpp
-  pipeline/Vertex.h
-  pipeline/RenderPass.cpp
-  pipeline/RenderPass.h
-  pipeline/Uniforms.h
-  pipeline/GuiPipeline.cpp
-  pipeline/GuiPipeline.h
-  pipeline/ShaderModule.cpp
-  pipeline/ShaderModule.h
+  pipelines/GraphicsPipeline.cpp
+  pipelines/GraphicsPipeline.h
+  pipelines/Vertex.cpp
+  pipelines/Vertex.h
+  pipelines/RenderPass.cpp
+  pipelines/RenderPass.h
+  pipelines/Uniforms.h
+  pipelines/GuiPipeline.cpp
+  pipelines/GuiPipeline.h
+  pipelines/ShaderModule.cpp
+  pipelines/ShaderModule.h
   components/PhysicalDevice.cpp
   components/PhysicalDevice.h
   components/Instance.cpp

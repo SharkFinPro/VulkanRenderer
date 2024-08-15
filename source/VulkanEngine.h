@@ -16,9 +16,9 @@
 #include "components/Camera.h"
 #include "components/Framebuffer.h"
 
-#include "pipeline/RenderPass.h"
-#include "pipeline/GraphicsPipeline.h"
-#include "pipeline/GuiPipeline.h"
+#include "pipelines/RenderPass.h"
+#include "pipelines/GraphicsPipeline.h"
+#include "pipelines/GuiPipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
