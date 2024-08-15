@@ -15,7 +15,7 @@ public:
   VkFormat findDepthFormat();
 
   void begin(VkFramebuffer& framebuffer, VkExtent2D& extent, VkCommandBuffer& commandBuffer);
-  void end(VkCommandBuffer& commandBuffer);
+  static void end(VkCommandBuffer& commandBuffer);
 
 private:
   void createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples);
