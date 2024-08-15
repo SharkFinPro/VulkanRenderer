@@ -11,7 +11,7 @@ const bool enableValidationLayers = true;
 #endif
 
 VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
-  : vulkanEngineOptions(vulkanEngineOptions)
+  : vulkanEngineOptions(vulkanEngineOptions), currentFrame(0), framebufferResized(false)
 {
   glfwInit();
   initVulkan();

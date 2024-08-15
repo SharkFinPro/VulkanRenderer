@@ -60,23 +60,23 @@ private:
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
+  std::shared_ptr<Framebuffer> framebuffer;
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+
   std::unique_ptr<GuiPipeline> guiPipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
-
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
+
   std::shared_ptr<Camera> camera;
 
   VulkanEngineOptions vulkanEngineOptions;
-
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
-  uint32_t currentFrame = 0;
-  bool framebufferResized = false;
+  uint32_t currentFrame;
 
-  std::shared_ptr<Framebuffer> framebuffer;
+  bool framebufferResized;
 };
 
 
