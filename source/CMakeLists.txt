@@ -48,6 +48,8 @@ add_library(${PROJECT_NAME}
   components/SwapChain.h
   components/Framebuffer.cpp
   components/Framebuffer.h
+  pipelines/ComputePipeline.cpp
+  pipelines/ComputePipeline.h
 )
 
 # Shaders
