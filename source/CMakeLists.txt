@@ -46,6 +46,8 @@ add_library(${PROJECT_NAME}
   components/ImGuiInstance.h
   components/SwapChain.cpp
   components/SwapChain.h
+  components/Framebuffer.cpp
+  components/Framebuffer.h
 )
 
 # Shaders

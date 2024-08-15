@@ -14,6 +14,7 @@
 #include "components/SwapChain.h"
 #include "components/ImGuiInstance.h"
 #include "components/Camera.h"
+#include "components/Framebuffer.h"
 
 #include "pipeline/RenderPass.h"
 #include "pipeline/GraphicsPipeline.h"
@@ -43,18 +44,11 @@ public:
 
 private:
   void initVulkan();
-  void createFrameBuffers();
   void createCommandPool();
   void createCommandBuffers();
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void drawFrame();
-  void cleanupSwapChain();
   void recreateSwapChain();
-  void createDepthResources();
-  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-                               VkFormatFeatureFlags features);
-  VkFormat findDepthFormat();
-  void createColorResources();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
@@ -77,17 +71,12 @@ private:
 
   VulkanEngineOptions vulkanEngineOptions;
 
-  std::vector<VkFramebuffer> swapChainFramebuffers;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
   uint32_t currentFrame = 0;
   bool framebufferResized = false;
-  VkImage depthImage;
-  VkDeviceMemory depthImageMemory;
-  VkImageView depthImageView;
-  VkImage colorImage;
-  VkDeviceMemory colorImageMemory;
-  VkImageView colorImageView;
+
+  std::shared_ptr<Framebuffer> framebuffer;
 };
 
 

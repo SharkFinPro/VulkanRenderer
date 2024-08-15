@@ -29,8 +29,6 @@ VulkanEngine::~VulkanEngine()
 
   vkDestroyCommandPool(logicalDevice->getDevice(), commandPool, nullptr);
 
-  cleanupSwapChain();
-
   glfwTerminate();
 }
 
@@ -97,7 +95,7 @@ void VulkanEngine::initVulkan()
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getImageFormat(),
-                                            physicalDevice->getMsaaSamples(), findDepthFormat());
+                                            physicalDevice->getMsaaSamples());
 
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         vulkanEngineOptions.VERTEX_SHADER_FILE,
@@ -110,40 +108,8 @@ void VulkanEngine::initVulkan()
                                               swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
   createCommandPool();
-  createColorResources();
-  createDepthResources();
-  createFrameBuffers();
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
   createCommandBuffers();
-}
-
-void VulkanEngine::createFrameBuffers()
-{
-  auto swapChainImageViews = swapChain->getImageViews();
-
-  swapChainFramebuffers.resize(swapChainImageViews.size());
-
-  for (size_t i = 0; i < swapChainImageViews.size(); i++)
-  {
-    std::array<VkImageView, 3> attachments = {
-      colorImageView,
-      depthImageView,
-      swapChainImageViews[i]
-    };
-
-    VkFramebufferCreateInfo framebufferInfo{};
-    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = renderPass->getRenderPass();
-    framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = swapChain->getExtent().width;
-    framebufferInfo.height = swapChain->getExtent().height;
-    framebufferInfo.layers = 1;
-
-    if (vkCreateFramebuffer(logicalDevice->getDevice(), &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create framebuffer!");
-    }
-  }
 }
 
 void VulkanEngine::createCommandPool()
@@ -192,7 +158,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
   renderPassInfo.renderPass = renderPass->getRenderPass();
-  renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
+  renderPassInfo.framebuffer = framebuffer->getFramebuffer(imageIndex);
   renderPassInfo.renderArea.offset = {0, 0};
   renderPassInfo.renderArea.extent = swapChain->getExtent();
 
@@ -256,24 +222,6 @@ void VulkanEngine::drawFrame()
   currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void VulkanEngine::cleanupSwapChain()
-{
-  vkDestroyImageView(logicalDevice->getDevice(), colorImageView, nullptr);
-  vkDestroyImage(logicalDevice->getDevice(), colorImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), colorImageMemory, nullptr);
-
-  vkDestroyImageView(logicalDevice->getDevice(), depthImageView, nullptr);
-  vkDestroyImage(logicalDevice->getDevice(), depthImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), depthImageMemory, nullptr);
-
-  for (auto framebuffer : swapChainFramebuffers)
-  {
-    vkDestroyFramebuffer(logicalDevice->getDevice(), framebuffer, nullptr);
-  }
-
-  swapChain.reset();
-}
-
 void VulkanEngine::recreateSwapChain()
 {
   int width = 0, height = 0;
@@ -286,65 +234,9 @@ void VulkanEngine::recreateSwapChain()
 
   logicalDevice->waitIdle();
 
-  cleanupSwapChain();
+  framebuffer.reset();
+  swapChain.reset();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
-
-  createColorResources();
-  createDepthResources();
-  createFrameBuffers();
-}
-
-void VulkanEngine::createDepthResources()
-{
-  VkFormat depthFormat = findDepthFormat();
-
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getExtent().width, swapChain->getExtent().height,
-                      1, physicalDevice->getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-              depthImage, depthImageMemory);
-  depthImageView = Images::createImageView(logicalDevice->getDevice(), depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-
-  Images::transitionImageLayout(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(),
-                                depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
-                        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
-}
-
-VkFormat VulkanEngine::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-                                           VkFormatFeatureFlags features)
-{
-  for (auto format : candidates)
-  {
-    VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), format, &props);
-
-    if ((tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) ||
-        (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features))
-    {
-      return format;
-    }
-  }
-
-  throw std::runtime_error("failed to find supported format!");
-}
-
-VkFormat VulkanEngine::findDepthFormat()
-{
-  return findSupportedFormat(
-    {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-    VK_IMAGE_TILING_OPTIMAL,
-    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-  );
-}
-
-void VulkanEngine::createColorResources()
-{
-  VkFormat colorFormat = swapChain->getImageFormat();
-
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getExtent().width, swapChain->getExtent().height,
-                      1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
-
-  colorImageView = Images::createImageView(logicalDevice->getDevice(), colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
 }

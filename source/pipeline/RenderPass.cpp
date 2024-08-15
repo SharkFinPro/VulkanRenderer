@@ -3,10 +3,10 @@
 #include <stdexcept>
 
 RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, VkFormat swapChainImageFormat,
-                       VkSampleCountFlagBits msaaSamples, VkFormat depthFormat)
+                       VkSampleCountFlagBits msaaSamples)
   : device(device), physicalDevice(physicalDevice)
 {
-  createRenderPass(swapChainImageFormat, msaaSamples, depthFormat);
+  createRenderPass(swapChainImageFormat, msaaSamples);
 }
 
 RenderPass::~RenderPass()
@@ -19,10 +19,10 @@ VkRenderPass& RenderPass::getRenderPass()
   return renderPass;
 }
 
-void RenderPass::createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples, VkFormat depthFormat)
+void RenderPass::createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples)
 {
   VkAttachmentDescription depthAttachment{};
-  depthAttachment.format = depthFormat;
+  depthAttachment.format = findDepthFormat();
   depthAttachment.samples = msaaSamples;
   depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
   depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -93,4 +93,31 @@ void RenderPass::createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFl
   {
     throw std::runtime_error("failed to create render pass!");
   }
+}
+
+VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+                                          VkFormatFeatureFlags features)
+{
+  for (auto format : candidates)
+  {
+    VkFormatProperties props;
+    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+    if ((tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) ||
+        (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features))
+    {
+      return format;
+    }
+  }
+
+  throw std::runtime_error("failed to find supported format!");
+}
+
+VkFormat RenderPass::findDepthFormat()
+{
+  return findSupportedFormat(
+    {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+    VK_IMAGE_TILING_OPTIMAL,
+    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+  );
 }
