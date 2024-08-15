@@ -2,6 +2,7 @@
 #include "../utilities/Images.h"
 #include <array>
 #include <utility>
+#include <stdexcept>
 
 Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
                          std::shared_ptr<LogicalDevice> logicalDevice,
