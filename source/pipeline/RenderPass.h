@@ -14,6 +14,9 @@ public:
 
   VkFormat findDepthFormat();
 
+  void begin(VkFramebuffer& framebuffer, VkExtent2D& extent, VkCommandBuffer& commandBuffer);
+  void end(VkCommandBuffer& commandBuffer);
+
 private:
   void createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples);
   VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);

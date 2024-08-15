@@ -31,7 +31,7 @@ Framebuffer::~Framebuffer()
   }
 }
 
-VkFramebuffer Framebuffer::getFramebuffer(uint32_t imageIndex)
+VkFramebuffer& Framebuffer::getFramebuffer(uint32_t imageIndex)
 {
   return framebuffers[imageIndex];
 }

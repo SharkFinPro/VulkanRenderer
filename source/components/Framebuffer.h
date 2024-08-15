@@ -19,7 +19,7 @@ public:
               std::shared_ptr<RenderPass> renderPass);
   ~Framebuffer();
 
-  VkFramebuffer getFramebuffer(uint32_t imageIndex);
+  VkFramebuffer& getFramebuffer(uint32_t imageIndex);
 
 private:
   void createDepthResources(VkCommandPool& commandPool, VkFormat depthFormat);
