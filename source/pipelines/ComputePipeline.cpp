@@ -39,8 +39,10 @@ ComputePipeline::~ComputePipeline()
     vkFreeMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], nullptr);
   }
 
-  vkDestroyPipeline(logicalDevice->getDevice(), computePipeline, nullptr);
+  vkDestroyPipeline(logicalDevice->getDevice(), graphicsPipeline, nullptr);
+  vkDestroyPipelineLayout(logicalDevice->getDevice(), graphicsPipelineLayout, nullptr);
 
+  vkDestroyPipeline(logicalDevice->getDevice(), computePipeline, nullptr);
   vkDestroyPipelineLayout(logicalDevice->getDevice(), computePipelineLayout, nullptr);
 }
 
