@@ -25,7 +25,9 @@ LogicalDevice::~LogicalDevice()
   {
     vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
     vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(device, computeFinishedSemaphores[i], nullptr);
     vkDestroyFence(device, inFlightFences[i], nullptr);
+    vkDestroyFence(device, computeInFlightFences[i], nullptr);
   }
 
   vkDestroyDevice(device, nullptr);
@@ -113,7 +115,9 @@ void LogicalDevice::createSyncObjects()
 {
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkSemaphoreCreateInfo semaphoreInfo{};
   semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -128,7 +132,13 @@ void LogicalDevice::createSyncObjects()
         vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
         vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create semaphores!");
+      throw std::runtime_error("failed to create graphics sync objects!");
+    }
+
+    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create compute sync objects!");
     }
   }
 }
