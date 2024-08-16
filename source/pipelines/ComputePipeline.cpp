@@ -22,7 +22,8 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   createDescriptorSets();
 }
 
-ComputePipeline::~ComputePipeline() {
+ComputePipeline::~ComputePipeline()
+{
   vkDestroyDescriptorPool(logicalDevice->getDevice(), computeDescriptorPool, nullptr);
 
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), computeDescriptorSetLayout,
