@@ -9,13 +9,14 @@
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                                 std::shared_ptr<LogicalDevice> logicalDevice)
+                                 std::shared_ptr<LogicalDevice> logicalDevice,
+                                 VkCommandPool& commandPool)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   createPipeline();
 
   createUniformBuffers();
-  createShaderStorageBuffers();
+  createShaderStorageBuffers(commandPool);
 
   createDescriptorPool();
   createDescriptorSets();
@@ -118,7 +119,9 @@ void ComputePipeline::createUniformBuffers() {
                           uniformBuffers[i], uniformBuffersMemory[i]);
   }
 }
-void ComputePipeline::createShaderStorageBuffers() {
+
+void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
+{
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -164,8 +167,10 @@ void ComputePipeline::createShaderStorageBuffers() {
             VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i],
         shaderStorageBuffersMemory[i]);
-    // TODO: Copy Buffer
-    // Buffers::copyBuffer()
+
+    Buffers::copyBuffer(logicalDevice->getDevice(), commandPool,
+      logicalDevice->getComputeQueue(), stagingBuffer,
+      shaderStorageBuffers[i], bufferSize);
   }
 }
 
@@ -236,9 +241,9 @@ void ComputePipeline::createDescriptorSets()
     writeDescriptorSets[1].pBufferInfo = &storageBufferInfoLastFrame;
 
     VkDescriptorBufferInfo storageBufferInfoCurrentFrame{};
-    storageBufferInfoLastFrame.buffer = shaderStorageBuffers[i];
-    storageBufferInfoLastFrame.offset = 0;
-    storageBufferInfoLastFrame.range = sizeof(Particle) * PARTICLE_COUNT;
+    storageBufferInfoCurrentFrame.buffer = shaderStorageBuffers[i];
+    storageBufferInfoCurrentFrame.offset = 0;
+    storageBufferInfoCurrentFrame.range = sizeof(Particle) * PARTICLE_COUNT;
 
     writeDescriptorSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writeDescriptorSets[2].dstSet = descriptorSets[i];

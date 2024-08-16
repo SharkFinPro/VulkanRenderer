@@ -97,6 +97,10 @@ void VulkanEngine::initVulkan()
   renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getImageFormat(),
                                             physicalDevice->getMsaaSamples());
 
+  createCommandPool();
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
+  createCommandBuffers();
+
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         "assets/shaders/vert.spv",
                                                         "assets/shaders/frag.spv",
@@ -107,11 +111,7 @@ void VulkanEngine::initVulkan()
                                               "assets/shaders/ui_frag.spv",
                                               swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
-  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice);
-
-  createCommandPool();
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
-  createCommandBuffers();
+  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool);
 }
 
 void VulkanEngine::createCommandPool()

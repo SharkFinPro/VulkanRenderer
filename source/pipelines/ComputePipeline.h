@@ -26,7 +26,8 @@ constexpr int HEIGHT = 400;
 class ComputePipeline {
 public:
   ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                  std::shared_ptr<LogicalDevice> logicalDevice);
+                  std::shared_ptr<LogicalDevice> logicalDevice,
+                  VkCommandPool& commandPool);
   ~ComputePipeline();
 
   void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
@@ -35,7 +36,7 @@ private:
   void createPipeline();
 
   void createUniformBuffers();
-  void createShaderStorageBuffers();
+  void createShaderStorageBuffers(VkCommandPool& commandPool);
 
   void createDescriptorPool();
   void createDescriptorSets();

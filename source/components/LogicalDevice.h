@@ -17,6 +17,7 @@ public:
 
   VkQueue& getGraphicsQueue();
   VkQueue& getPresentQueue();
+  VkQueue& getComputeQueue();
 
   void submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer);
   void submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer);
@@ -36,9 +37,9 @@ private:
 private:
   VkDevice device;
 
-  VkQueue computeQueue;
   VkQueue graphicsQueue;
   VkQueue presentQueue;
+  VkQueue computeQueue;
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;

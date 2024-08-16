@@ -51,6 +51,11 @@ VkQueue& LogicalDevice::getPresentQueue()
   return presentQueue;
 }
 
+VkQueue& LogicalDevice::getComputeQueue()
+{
+  return computeQueue;
+}
+
 void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
 {
   auto queueFamilyIndices = physicalDevice->getQueueFamilies();
