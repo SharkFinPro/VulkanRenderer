@@ -172,7 +172,7 @@ void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer) co
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  computePipeline->render(commandBuffer, currentFrame);
+  computePipeline->compute(commandBuffer, currentFrame);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {
@@ -195,6 +195,8 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer) const
   renderPass->begin(framebuffer->getFramebuffer(currentFrame), swapChain->getExtent(), commandBuffer);
 
   graphicsPipeline->render(commandBuffer, currentFrame, camera);
+
+  computePipeline->render(commandBuffer, currentFrame);
 
   guiPipeline->render(commandBuffer);
 

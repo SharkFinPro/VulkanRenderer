@@ -2,7 +2,6 @@
 #include "ShaderModule.h"
 #include "../utilities/Buffers.h"
 
-#include <array>
 #include <stdexcept>
 #include <random>
 
@@ -22,11 +21,11 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   createDescriptorSets();
 }
 
-ComputePipeline::~ComputePipeline()
-{
+ComputePipeline::~ComputePipeline() {
   vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), descriptorSetLayout, nullptr);
+  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), descriptorSetLayout,
+                               nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
@@ -42,23 +41,28 @@ ComputePipeline::~ComputePipeline()
   vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
 }
 
-void ComputePipeline::render(VkCommandBuffer &commandBuffer,
-                             uint32_t currentFrame) {
+void ComputePipeline::compute(VkCommandBuffer &commandBuffer,
+                              uint32_t currentFrame)
+{
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
                           pipelineLayout, 0, 1, &descriptorSets[currentFrame],
                           0, nullptr);
 
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
-
-  // VkDeviceSize offsets[] = {0};
-  // vkCmdBindVertexBuffers(commandBuffer, 0, 1,
-  // &shaderStorageBuffers[currentFrame], offsets);
-  //
-  // const int PARTICLE_COUNT = 1000;
-  // vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 }
-void ComputePipeline::updateUniformBuffer(uint32_t currentFrame)
+
+void ComputePipeline::render(VkCommandBuffer &commandBuffer,
+                             uint32_t currentFrame)
+{
+  VkDeviceSize offsets[] = {0};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1,
+                         &shaderStorageBuffers[currentFrame], offsets);
+
+  vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
+}
+
+void ComputePipeline::updateUniformBuffer(uint32_t currentFrame) const
 {
   UniformBufferObject ubo{};
   ubo.deltaTime = lastFrameTime * 2.0f;
