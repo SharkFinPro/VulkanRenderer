@@ -179,7 +179,7 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
                   distribution(randomEngine), 1.0f);
   }
 
-  VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
+  const VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
