@@ -1,4 +1,7 @@
 #include "LogicalDevice.h"
+
+#include <array>
+
 #include "PhysicalDevice.h"
 #include "Instance.h"
 #include <set>
@@ -148,7 +151,7 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* 
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-  const VkSemaphore waitSemaphores[] = {
+  std::array<VkSemaphore, 2> waitSemaphores = {
     computeFinishedSemaphores[currentFrame],
     imageAvailableSemaphores[currentFrame]
   };
@@ -156,8 +159,8 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* 
     VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
     VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
   };
-  submitInfo.waitSemaphoreCount = 2;
-  submitInfo.pWaitSemaphores = waitSemaphores;
+  submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+  submitInfo.pWaitSemaphores = waitSemaphores.data();
   submitInfo.pWaitDstStageMask = waitStages;
 
   submitInfo.commandBufferCount = 1;
