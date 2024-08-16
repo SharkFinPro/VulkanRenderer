@@ -95,6 +95,7 @@ void ComputePipeline::createPipeline() {
     throw std::runtime_error("failed to create compute pipeline!");
   }
 }
+
 void ComputePipeline::initializeParticles() {
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -145,6 +146,7 @@ void ComputePipeline::initializeParticles() {
     // Buffers::copyBuffer()
   }
 }
+
 void ComputePipeline::createUniformBuffers()
 {
   VkDeviceSize bufferSize = sizeof(UniformBufferObject);
