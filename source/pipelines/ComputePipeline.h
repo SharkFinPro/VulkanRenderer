@@ -34,9 +34,9 @@ public:
 private:
   void createPipeline();
 
-  void initializeParticles();
-
   void createUniformBuffers();
+  void createShaderStorageBuffers();
+
   void createDescriptorPool();
   void createDescriptorSets();
 

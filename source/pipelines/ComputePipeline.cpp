@@ -14,10 +14,11 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 {
   createPipeline();
 
+  createUniformBuffers();
+  createShaderStorageBuffers();
+
   createDescriptorPool();
   createDescriptorSets();
-
-  initializeParticles();
 }
 
 ComputePipeline::~ComputePipeline() {}
@@ -101,7 +102,23 @@ void ComputePipeline::createPipeline() {
   }
 }
 
-void ComputePipeline::initializeParticles() {
+void ComputePipeline::createUniformBuffers() {
+  VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+  uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    Buffers::createBuffer(logicalDevice->getDevice(),
+                          physicalDevice->getPhysicalDevice(), bufferSize,
+                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                              VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                          uniformBuffers[i], uniformBuffersMemory[i]);
+  }
+}
+void ComputePipeline::createShaderStorageBuffers() {
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -109,16 +126,16 @@ void ComputePipeline::initializeParticles() {
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 
   std::vector<Particle> particles(PARTICLE_COUNT);
-  for (auto& particle : particles) {
+  for (auto &particle : particles) {
     float r = 0.25f * sqrt(distribution(randomEngine));
     float theta = distribution(randomEngine) * 2 * M_PI;
     float x = r * cos(theta) * HEIGHT / WIDTH;
     float y = r * sin(theta);
     particle.position = glm::vec2(x, y);
     particle.velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
-    particle.color = glm::vec4(distribution(randomEngine),
-                               distribution(randomEngine),
-                               distribution(randomEngine), 1.0f);
+    particle.color =
+        glm::vec4(distribution(randomEngine), distribution(randomEngine),
+                  distribution(randomEngine), 1.0f);
   }
 
   VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
@@ -149,24 +166,6 @@ void ComputePipeline::initializeParticles() {
         shaderStorageBuffersMemory[i]);
     // TODO: Copy Buffer
     // Buffers::copyBuffer()
-  }
-}
-
-void ComputePipeline::createUniformBuffers()
-{
-  VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-  uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    Buffers::createBuffer(logicalDevice->getDevice(),
-                      physicalDevice->getPhysicalDevice(), bufferSize,
-                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                      uniformBuffers[i], uniformBuffersMemory[i]);
   }
 }
 
