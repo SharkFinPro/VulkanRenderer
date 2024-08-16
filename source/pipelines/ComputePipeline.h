@@ -74,8 +74,8 @@ private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
 
-  VkPipelineLayout pipelineLayout;
-  VkPipeline pipeline;
+  VkPipelineLayout computePipelineLayout;
+  VkPipeline computePipeline;
 
   std::vector<VkBuffer> shaderStorageBuffers;
   std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
@@ -84,9 +84,9 @@ private:
   std::vector<VkDeviceMemory> uniformBuffersMemory;
   std::vector<void*> uniformBuffersMapped;
 
-  VkDescriptorSetLayout descriptorSetLayout;
-  VkDescriptorPool descriptorPool;
-  std::vector<VkDescriptorSet> descriptorSets;
+  VkDescriptorSetLayout computeDescriptorSetLayout;
+  VkDescriptorPool computeDescriptorPool;
+  std::vector<VkDescriptorSet> computeDescriptorSets;
 
   float lastFrameTime = 0.0f;
 };

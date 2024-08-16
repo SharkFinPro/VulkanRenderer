@@ -22,9 +22,9 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 }
 
 ComputePipeline::~ComputePipeline() {
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
+  vkDestroyDescriptorPool(logicalDevice->getDevice(), computeDescriptorPool, nullptr);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), descriptorSetLayout,
+  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), computeDescriptorSetLayout,
                                nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -36,17 +36,17 @@ ComputePipeline::~ComputePipeline() {
     vkFreeMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], nullptr);
   }
 
-  vkDestroyPipeline(logicalDevice->getDevice(), pipeline, nullptr);
+  vkDestroyPipeline(logicalDevice->getDevice(), computePipeline, nullptr);
 
-  vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
+  vkDestroyPipelineLayout(logicalDevice->getDevice(), computePipelineLayout, nullptr);
 }
 
 void ComputePipeline::compute(VkCommandBuffer &commandBuffer,
                               uint32_t currentFrame)
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          pipelineLayout, 0, 1, &descriptorSets[currentFrame],
+                          computePipelineLayout, 0, 1, &computeDescriptorSets[currentFrame],
                           0, nullptr);
 
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
@@ -109,30 +109,30 @@ void ComputePipeline::createPipeline() {
 
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(),
                                   &descriptorSetLayoutInfo, nullptr,
-                                  &descriptorSetLayout) != VK_SUCCESS) {
+                                  &computeDescriptorSetLayout) != VK_SUCCESS) {
     throw std::runtime_error("failed to create descriptor set layout!");
   }
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipelineLayoutInfo.setLayoutCount = 1;
-  pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+  pipelineLayoutInfo.pSetLayouts = &computeDescriptorSetLayout;
 
   if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo,
-                             nullptr, &pipelineLayout) != VK_SUCCESS) {
+                             nullptr, &computePipelineLayout) != VK_SUCCESS) {
     throw std::runtime_error("failed to create pipeline layout!");
   }
 
   VkComputePipelineCreateInfo computePipelineCreateInfo{};
   computePipelineCreateInfo.sType =
       VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-  computePipelineCreateInfo.layout = pipelineLayout;
+  computePipelineCreateInfo.layout = computePipelineLayout;
   computePipelineCreateInfo.stage =
       computeShaderModule.getShaderStageCreateInfo();
 
   if (vkCreateComputePipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1,
                                &computePipelineCreateInfo, nullptr,
-                               &pipeline) != VK_SUCCESS) {
+                               &computePipeline) != VK_SUCCESS) {
     throw std::runtime_error("failed to create compute pipeline!");
   }
 }
@@ -229,7 +229,7 @@ void ComputePipeline::createDescriptorPool()
   poolCreateInfo.pPoolSizes = poolSizes.data();
   poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &computeDescriptorPool) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor pool!");
   }
@@ -237,15 +237,15 @@ void ComputePipeline::createDescriptorPool()
 
 void ComputePipeline::createDescriptorSets()
 {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocateInfo.descriptorPool = descriptorPool;
+  allocateInfo.descriptorPool = computeDescriptorPool;
   allocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
   allocateInfo.pSetLayouts = layouts.data();
 
-  descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
+  computeDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, computeDescriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
@@ -259,7 +259,7 @@ void ComputePipeline::createDescriptorSets()
 
     std::array<VkWriteDescriptorSet, 3> writeDescriptorSets{};
     writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSets[0].dstSet = descriptorSets[i];
+    writeDescriptorSets[0].dstSet = computeDescriptorSets[i];
     writeDescriptorSets[0].dstBinding = 0;
     writeDescriptorSets[0].dstArrayElement = 0;
     writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -272,7 +272,7 @@ void ComputePipeline::createDescriptorSets()
     storageBufferInfoLastFrame.range = sizeof(Particle) * PARTICLE_COUNT;
 
     writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSets[1].dstSet = descriptorSets[i];
+    writeDescriptorSets[1].dstSet = computeDescriptorSets[i];
     writeDescriptorSets[1].dstBinding = 1;
     writeDescriptorSets[1].dstArrayElement = 0;
     writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -285,7 +285,7 @@ void ComputePipeline::createDescriptorSets()
     storageBufferInfoCurrentFrame.range = sizeof(Particle) * PARTICLE_COUNT;
 
     writeDescriptorSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSets[2].dstSet = descriptorSets[i];
+    writeDescriptorSets[2].dstSet = computeDescriptorSets[i];
     writeDescriptorSets[2].dstBinding = 2;
     writeDescriptorSets[2].dstArrayElement = 0;
     writeDescriptorSets[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
