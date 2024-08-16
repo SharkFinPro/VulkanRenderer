@@ -113,7 +113,7 @@ void VulkanEngine::initVulkan()
                                               "assets/shaders/ui_frag.spv",
                                               swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
-  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass());
+  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(), swapChain->getExtent());
 }
 
 void VulkanEngine::createCommandPool()

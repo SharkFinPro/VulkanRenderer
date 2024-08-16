@@ -46,14 +46,12 @@ struct UniformBufferObject {
 };
 
 constexpr int PARTICLE_COUNT = 1000;
-constexpr int WIDTH = 600;
-constexpr int HEIGHT = 400;
 
 class ComputePipeline {
 public:
   ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                   std::shared_ptr<LogicalDevice> logicalDevice,
-                  VkCommandPool& commandPool, VkRenderPass& renderPass);
+                  VkCommandPool& commandPool, VkRenderPass& renderPass, VkExtent2D& swapChainExtent);
   ~ComputePipeline();
 
   void compute(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
@@ -67,7 +65,7 @@ private:
   void createGraphicsPipeline(VkRenderPass& renderPass);
 
   void createUniformBuffers();
-  void createShaderStorageBuffers(VkCommandPool& commandPool);
+  void createShaderStorageBuffers(VkCommandPool& commandPool, VkExtent2D& swapChainExtent);
 
   void createDescriptorPool();
   void createDescriptorSets();

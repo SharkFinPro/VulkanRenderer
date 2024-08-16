@@ -10,14 +10,14 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                  std::shared_ptr<LogicalDevice> logicalDevice,
-                                 VkCommandPool& commandPool, VkRenderPass& renderPass)
+                                 VkCommandPool& commandPool, VkRenderPass& renderPass, VkExtent2D& swapChainExtent)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   createComputePipeline();
   createGraphicsPipeline(renderPass);
 
   createUniformBuffers();
-  createShaderStorageBuffers(commandPool);
+  createShaderStorageBuffers(commandPool, swapChainExtent);
 
   createDescriptorPool();
   createDescriptorSets();
@@ -146,8 +146,8 @@ void ComputePipeline::createComputePipeline() {
       computeShaderModule.getShaderStageCreateInfo();
 
   if (vkCreateComputePipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1,
-                               &computePipelineCreateInfo, nullptr,
-                               &computePipeline) != VK_SUCCESS) {
+                               &computePipelineCreateInfo, nullptr, &computePipeline) != VK_SUCCESS)
+  {
     throw std::runtime_error("failed to create compute pipeline!");
   }
 }
@@ -302,7 +302,7 @@ void ComputePipeline::createUniformBuffers()
   }
 }
 
-void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
+void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool, VkExtent2D& swapChainExtent)
 {
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -315,7 +315,7 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
   {
     const float r = 0.25f * sqrt(distribution(randomEngine));
     const float theta = distribution(randomEngine) * 2 * M_PI;
-    const float x = r * std::cos(theta) * HEIGHT / WIDTH;
+    const float x = r * std::cos(theta) * swapChainExtent.height / swapChainExtent.width;
     const float y = r * std::sin(theta);
     particle.position = glm::vec2(x, y);
     particle.velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
