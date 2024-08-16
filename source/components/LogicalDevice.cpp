@@ -169,8 +169,8 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* 
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo,
-                    inFlightFences[currentFrame]) != VK_SUCCESS) {
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
+  {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
 }
