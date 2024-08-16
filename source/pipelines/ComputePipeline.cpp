@@ -52,14 +52,14 @@ void ComputePipeline::createPipeline() {
   layoutBindings[0].pImmutableSamplers = nullptr;
   layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-  layoutBindings[1].binding = 0;
-  layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  layoutBindings[1].binding = 1;
+  layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   layoutBindings[1].descriptorCount = 1;
   layoutBindings[1].pImmutableSamplers = nullptr;
   layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-  layoutBindings[2].binding = 0;
-  layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  layoutBindings[2].binding = 2;
+  layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   layoutBindings[2].descriptorCount = 1;
   layoutBindings[2].pImmutableSamplers = nullptr;
   layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
@@ -243,7 +243,7 @@ void ComputePipeline::createDescriptorSets()
 
     writeDescriptorSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writeDescriptorSets[2].dstSet = descriptorSets[i];
-    writeDescriptorSets[2].dstBinding = 1;
+    writeDescriptorSets[2].dstBinding = 2;
     writeDescriptorSets[2].dstArrayElement = 0;
     writeDescriptorSets[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     writeDescriptorSets[2].descriptorCount = 1;
