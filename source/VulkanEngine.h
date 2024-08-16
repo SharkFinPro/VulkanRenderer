@@ -19,6 +19,7 @@
 #include "pipelines/RenderPass.h"
 #include "pipelines/GraphicsPipeline.h"
 #include "pipelines/GuiPipeline.h"
+#include "pipelines/ComputePipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -63,8 +64,8 @@ private:
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<Framebuffer> framebuffer;
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
-
   std::unique_ptr<GuiPipeline> guiPipeline;
+  std::unique_ptr<ComputePipeline> computePipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
   std::vector<std::shared_ptr<Texture>> textures;

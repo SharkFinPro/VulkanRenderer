@@ -90,7 +90,7 @@ void VulkanEngine::initVulkan()
 
   physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
 
-  logicalDevice = std::make_unique<LogicalDevice>(physicalDevice);
+  logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
@@ -106,6 +106,8 @@ void VulkanEngine::initVulkan()
                                               "assets/shaders/ui_vert.spv",
                                               "assets/shaders/ui_frag.spv",
                                               swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
+
+  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice);
 
   createCommandPool();
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);

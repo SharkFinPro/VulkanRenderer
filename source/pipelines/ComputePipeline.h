@@ -23,7 +23,8 @@ constexpr int HEIGHT = 400;
 
 class ComputePipeline {
 public:
-  ComputePipeline();
+  ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
+                  std::shared_ptr<LogicalDevice> logicalDevice);
   ~ComputePipeline();
 
   void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame);

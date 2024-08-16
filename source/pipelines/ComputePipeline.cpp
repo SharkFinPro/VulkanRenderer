@@ -8,7 +8,9 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-ComputePipeline::ComputePipeline()
+ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
+                                 std::shared_ptr<LogicalDevice> logicalDevice)
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   createPipeline();
 
@@ -22,11 +24,14 @@ ComputePipeline::~ComputePipeline() {}
 
 void ComputePipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame)
 {
-  VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-  const int PARTICLE_COUNT = 1000;
-  vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
+  // VkDeviceSize offsets[] = {0};
+  // vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
+  //
+  // const int PARTICLE_COUNT = 1000;
+  // vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 }
 
 void ComputePipeline::createPipeline() {
