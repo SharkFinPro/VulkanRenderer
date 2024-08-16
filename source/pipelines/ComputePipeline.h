@@ -15,6 +15,8 @@ struct Particle {
   glm::vec4 color;
 };
 
+struct UniformBufferObject {};
+
 constexpr int PARTICLE_COUNT = 100;
 constexpr int WIDTH = 600;
 constexpr int HEIGHT = 400;
@@ -31,6 +33,10 @@ private:
 
   void initializeParticles();
 
+  void createUniformBuffers();
+  void createDescriptorPool();
+  void createDescriptorSets();
+
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
@@ -41,6 +47,13 @@ private:
   VkDescriptorSetLayout descriptorSetLayout;
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
+
+  std::vector<VkBuffer> uniformBuffers;
+  std::vector<VkDeviceMemory> uniformBuffersMemory;
+  std::vector<void*> uniformBuffersMapped;
+
+  VkDescriptorPool descriptorPool;
+  std::vector<VkDescriptorSet> descriptorSets;
 };
 
 
