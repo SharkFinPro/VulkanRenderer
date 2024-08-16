@@ -45,7 +45,7 @@ struct UniformBufferObject {
   float deltaTime = 1.0f;
 };
 
-constexpr int PARTICLE_COUNT = 1000;
+constexpr int PARTICLE_COUNT = 8192;
 
 class ComputePipeline {
 public:
