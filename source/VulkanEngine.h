@@ -40,13 +40,13 @@ public:
   std::shared_ptr<Texture> loadTexture(const char* path);
   std::shared_ptr<Model> loadModel(const char* path);
   std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture, const std::shared_ptr<Texture>& specularMap,
-                                                 const std::shared_ptr<Model>&);
+                                                 const std::shared_ptr<Model>&) const;
 
 private:
   void initVulkan();
   void createCommandPool();
   void createCommandBuffers();
-  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
   void drawFrame();
   void recreateSwapChain();
 

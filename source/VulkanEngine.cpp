@@ -66,7 +66,7 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
 
 std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                              const std::shared_ptr<Texture>& specularMap,
-                                                             const std::shared_ptr<Model>& model)
+                                                             const std::shared_ptr<Model>& model) const
 {
   auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                      graphicsPipeline->getLayout(), texture, specularMap, model);
@@ -143,7 +143,7 @@ void VulkanEngine::createCommandBuffers()
   }
 }
 
-void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
