@@ -46,8 +46,7 @@ ComputePipeline::~ComputePipeline()
   vkDestroyPipelineLayout(logicalDevice->getDevice(), computePipelineLayout, nullptr);
 }
 
-void ComputePipeline::compute(VkCommandBuffer &commandBuffer,
-                              uint32_t currentFrame)
+void ComputePipeline::compute(VkCommandBuffer &commandBuffer, uint32_t currentFrame)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
