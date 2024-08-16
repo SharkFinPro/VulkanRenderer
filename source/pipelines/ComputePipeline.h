@@ -53,12 +53,11 @@ class ComputePipeline {
 public:
   ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                   std::shared_ptr<LogicalDevice> logicalDevice,
-                  VkCommandPool& commandPool,
-                  VkRenderPass& renderPass);
+                  VkCommandPool& commandPool, VkRenderPass& renderPass);
   ~ComputePipeline();
 
   void compute(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
-  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
+  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent);
 
   void updateUniformBuffer(uint32_t currentFrame) const;
 

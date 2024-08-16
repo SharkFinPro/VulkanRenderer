@@ -197,7 +197,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer) const
 
   graphicsPipeline->render(commandBuffer, currentFrame, camera);
 
-  computePipeline->render(commandBuffer, currentFrame);
+  computePipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
 
   guiPipeline->render(commandBuffer);
 

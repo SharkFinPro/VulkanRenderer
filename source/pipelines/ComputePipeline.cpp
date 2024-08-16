@@ -10,8 +10,7 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                  std::shared_ptr<LogicalDevice> logicalDevice,
-                                 VkCommandPool& commandPool,
-                                 VkRenderPass& renderPass)
+                                 VkCommandPool& commandPool, VkRenderPass& renderPass)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   createComputePipeline();
@@ -56,9 +55,25 @@ void ComputePipeline::compute(VkCommandBuffer &commandBuffer,
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
 }
 
-void ComputePipeline::render(VkCommandBuffer &commandBuffer,
-                             uint32_t currentFrame)
+void ComputePipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent)
 {
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = static_cast<float>(swapChainExtent.width);
+  viewport.height = static_cast<float>(swapChainExtent.height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+  VkRect2D scissor{};
+  scissor.offset = {0, 0};
+  scissor.extent = swapChainExtent;
+  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+
   VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1,
                          &shaderStorageBuffers[currentFrame], offsets);
@@ -182,7 +197,11 @@ void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
   VkPipelineMultisampleStateCreateInfo multisampleState{};
   multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
   multisampleState.sampleShadingEnable = VK_FALSE;
-  multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+  multisampleState.rasterizationSamples = physicalDevice->getMsaaSamples();
+  multisampleState.minSampleShading = 1.0f;
+  multisampleState.pSampleMask = nullptr;
+  multisampleState.alphaToCoverageEnable = VK_FALSE;
+  multisampleState.alphaToOneEnable = VK_FALSE;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment{};
   colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -225,6 +244,18 @@ void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
     throw std::runtime_error("failed to create pipeline layout!");
   }
 
+  VkPipelineDepthStencilStateCreateInfo depthStencilState{};
+  depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+  depthStencilState.depthTestEnable = VK_TRUE;
+  depthStencilState.depthWriteEnable = VK_TRUE;
+  depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
+  depthStencilState.depthBoundsTestEnable = VK_FALSE;
+  depthStencilState.minDepthBounds = 0.0f;
+  depthStencilState.maxDepthBounds = 1.0f;
+  depthStencilState.stencilTestEnable = VK_FALSE;
+  depthStencilState.front = {};
+  depthStencilState.back = {};
+
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
@@ -236,6 +267,7 @@ void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
   pipelineInfo.pMultisampleState = &multisampleState;
   pipelineInfo.pColorBlendState = &colorBlendState;
   pipelineInfo.pDynamicState = &dynamicState;
+  pipelineInfo.pDepthStencilState = &depthStencilState;
   pipelineInfo.layout = graphicsPipelineLayout;
   pipelineInfo.renderPass = renderPass;
   pipelineInfo.subpass = 0;
