@@ -143,8 +143,7 @@ void LogicalDevice::createSyncObjects()
   }
 }
 
-void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
-                                        VkCommandBuffer *commandBuffer) const
+void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const
 {
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -172,8 +171,7 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
     throw std::runtime_error("failed to submit draw command buffer!");
   }
 }
-void LogicalDevice::submitComputeQueue(uint32_t currentFrame,
-                                       VkCommandBuffer* commandBuffer) const
+void LogicalDevice::submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const
 {
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
