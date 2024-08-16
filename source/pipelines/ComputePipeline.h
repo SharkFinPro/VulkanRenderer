@@ -15,7 +15,9 @@ struct Particle {
   glm::vec4 color;
 };
 
-struct UniformBufferObject {};
+struct UniformBufferObject {
+  float deltaTime = 1.0f;
+};
 
 constexpr int PARTICLE_COUNT = 100;
 constexpr int WIDTH = 600;
