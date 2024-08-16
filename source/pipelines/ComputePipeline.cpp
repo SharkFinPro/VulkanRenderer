@@ -151,6 +151,7 @@ void ComputePipeline::createComputePipeline() {
     throw std::runtime_error("failed to create compute pipeline!");
   }
 }
+
 void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
 {
   ShaderModule vertexShaderModule{logicalDevice->getDevice(),
