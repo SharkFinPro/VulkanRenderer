@@ -8,7 +8,7 @@ DebugMessenger::DebugMessenger(VkInstance& instance)
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
   populateCreateInfo(debugCreateInfo);
 
-  auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+  auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
   if (func != nullptr)
   {
     result = func(instance, &debugCreateInfo, nullptr, &debugMessenger);
@@ -26,7 +26,7 @@ DebugMessenger::DebugMessenger(VkInstance& instance)
 
 DebugMessenger::~DebugMessenger()
 {
-  auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+  auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
   if (func != nullptr)
   {
     func(instance, debugMessenger, nullptr);
