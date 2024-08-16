@@ -181,7 +181,7 @@ void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer) co
   }
 }
 
-void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer) const
+void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -193,7 +193,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer) const
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  renderPass->begin(framebuffer->getFramebuffer(currentFrame), swapChain->getExtent(), commandBuffer);
+  renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
 
   graphicsPipeline->render(commandBuffer, currentFrame, camera);
 
@@ -243,7 +243,7 @@ void VulkanEngine::drawFrame()
   logicalDevice->resetGraphicsFences(currentFrame);
 
   vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-  recordCommandBuffer(commandBuffers[currentFrame]);
+  recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
   logicalDevice->submitGraphicsQueue(currentFrame, &commandBuffers[currentFrame]);
 

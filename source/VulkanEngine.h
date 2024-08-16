@@ -49,7 +49,7 @@ private:
   void createCommandBuffers();
   void createComputeCommandBuffers();
   void recordComputeCommandBuffer(VkCommandBuffer& commandBuffer) const;
-  void recordCommandBuffer(VkCommandBuffer commandBuffer) const;
+  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
   void drawFrame();
   void recreateSwapChain();
 
