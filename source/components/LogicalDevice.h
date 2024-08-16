@@ -19,11 +19,13 @@ public:
   VkQueue& getPresentQueue();
   VkQueue& getComputeQueue();
 
-  void submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer);
-  void submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer);
+  void submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const;
+  void submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const;
 
-  void waitForFences(uint32_t currentFrame);
-  void resetFences(uint32_t currentFrame);
+  void waitForGraphicsFences(uint32_t currentFrame) const;
+  void waitForComputeFences(uint32_t currentFrame) const;
+  void resetGraphicsFences(uint32_t currentFrame) const;
+  void resetComputeFences(uint32_t currentFrame) const;
 
   VkResult queuePresent(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex);
 

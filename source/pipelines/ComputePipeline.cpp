@@ -42,20 +42,28 @@ ComputePipeline::~ComputePipeline()
   vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
 }
 
-void ComputePipeline::render(VkCommandBuffer& commandBuffer,
-                             VkCommandBuffer& computeCommandBuffer,
-                             uint32_t currentFrame)
-{
+void ComputePipeline::render(VkCommandBuffer &commandBuffer,
+                             uint32_t currentFrame) {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          pipelineLayout, 0, 1, &descriptorSets[currentFrame],
+                          0, nullptr);
 
-  vkCmdDispatch(computeCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
+  vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
 
   // VkDeviceSize offsets[] = {0};
-  // vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
+  // vkCmdBindVertexBuffers(commandBuffer, 0, 1,
+  // &shaderStorageBuffers[currentFrame], offsets);
   //
   // const int PARTICLE_COUNT = 1000;
   // vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
+}
+void ComputePipeline::updateUniformBuffer(uint32_t currentFrame)
+{
+  UniformBufferObject ubo{};
+  ubo.deltaTime = lastFrameTime * 2.0f;
+
+  memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
 }
 
 void ComputePipeline::createPipeline() {
@@ -139,6 +147,8 @@ void ComputePipeline::createUniformBuffers() {
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                           uniformBuffers[i], uniformBuffersMemory[i]);
+
+    vkMapMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
   }
 }
 

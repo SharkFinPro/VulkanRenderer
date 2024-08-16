@@ -48,10 +48,8 @@ private:
   void createCommandPool();
   void createCommandBuffers();
   void createComputeCommandBuffers();
-  void recordComputeCommandBuffer(VkCommandBuffer& commandBuffer,
-                                  VkCommandBuffer& computeCommandBuffer,
-                                  uint32_t imageIndex) const;
-  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
+  void recordComputeCommandBuffer(VkCommandBuffer& commandBuffer) const;
+  void recordCommandBuffer(VkCommandBuffer commandBuffer) const;
   void drawFrame();
   void recreateSwapChain();
 

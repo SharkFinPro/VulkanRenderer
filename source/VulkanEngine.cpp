@@ -162,9 +162,7 @@ void VulkanEngine::createComputeCommandBuffers()
   }
 }
 
-void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer,
-                                              VkCommandBuffer& computeCommandBuffer,
-                                              uint32_t imageIndex) const
+void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer) const
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -174,7 +172,7 @@ void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer,
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  computePipeline->render(commandBuffer, computeCommandBuffer, imageIndex);
+  computePipeline->render(commandBuffer, currentFrame);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {
@@ -182,7 +180,7 @@ void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer,
   }
 }
 
-void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const
+void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer) const
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -194,7 +192,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
+  renderPass->begin(framebuffer->getFramebuffer(currentFrame), swapChain->getExtent(), commandBuffer);
 
   graphicsPipeline->render(commandBuffer, currentFrame, camera);
 
@@ -210,7 +208,20 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
 void VulkanEngine::drawFrame()
 {
-  logicalDevice->waitForFences(currentFrame);
+  // Compute
+  logicalDevice->waitForComputeFences(currentFrame);
+
+  computePipeline->updateUniformBuffer(currentFrame);
+
+  logicalDevice->resetComputeFences(currentFrame);
+
+  vkResetCommandBuffer(computeCommandBuffers[currentFrame], 0);
+  recordComputeCommandBuffer(computeCommandBuffers[currentFrame]);
+
+  logicalDevice->submitComputeQueue(currentFrame, &computeCommandBuffers[currentFrame]);
+
+  // Graphics
+  logicalDevice->waitForGraphicsFences(currentFrame);
 
   uint32_t imageIndex;
   auto result = logicalDevice->acquireNextImage(currentFrame, swapChain->getSwapChain(), &imageIndex);
@@ -226,10 +237,10 @@ void VulkanEngine::drawFrame()
     throw std::runtime_error("failed to acquire swap chain image!");
   }
 
-  logicalDevice->resetFences(currentFrame);
+  logicalDevice->resetGraphicsFences(currentFrame);
 
   vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-  recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+  recordCommandBuffer(commandBuffers[currentFrame]);
 
   logicalDevice->submitGraphicsQueue(currentFrame, &commandBuffers[currentFrame]);
 

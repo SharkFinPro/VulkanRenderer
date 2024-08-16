@@ -30,8 +30,9 @@ public:
                   VkCommandPool& commandPool);
   ~ComputePipeline();
 
-  void render(VkCommandBuffer& commandBuffer,
-              VkCommandBuffer& computeCommandBuffer, uint32_t currentFrame);
+  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
+
+  void updateUniformBuffer(uint32_t currentFrame);
 
 private:
   void createPipeline();
@@ -59,6 +60,8 @@ private:
   VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
+
+  float lastFrameTime = 0.0f;
 };
 
 

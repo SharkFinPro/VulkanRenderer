@@ -5,9 +5,9 @@
 #include <stdexcept>
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = true;
 #endif
 
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
@@ -144,23 +144,28 @@ void LogicalDevice::createSyncObjects()
 }
 
 void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
-                                        VkCommandBuffer *commandBuffer) {
+                                        VkCommandBuffer *commandBuffer) const
+{
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-  VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-  VkPipelineStageFlags waitStages[] = {
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-  submitInfo.waitSemaphoreCount = 1;
+  const VkSemaphore waitSemaphores[] = {
+    computeFinishedSemaphores[currentFrame],
+    imageAvailableSemaphores[currentFrame]
+  };
+  constexpr VkPipelineStageFlags waitStages[] = {
+    VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  };
+  submitInfo.waitSemaphoreCount = 2;
   submitInfo.pWaitSemaphores = waitSemaphores;
   submitInfo.pWaitDstStageMask = waitStages;
 
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = commandBuffer;
 
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
   submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = signalSemaphores;
+  submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
 
   if (vkQueueSubmit(graphicsQueue, 1, &submitInfo,
                     inFlightFences[currentFrame]) != VK_SUCCESS) {
@@ -168,30 +173,41 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
   }
 }
 void LogicalDevice::submitComputeQueue(uint32_t currentFrame,
-                                       VkCommandBuffer* commandBuffer)
+                                       VkCommandBuffer* commandBuffer) const
 {
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = commandBuffer;
+
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
 
-  if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS)
+  if (vkQueueSubmit(computeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit compute command buffer!");
   }
 }
 
-void LogicalDevice::waitForFences(uint32_t currentFrame)
+void LogicalDevice::waitForGraphicsFences(uint32_t currentFrame) const
 {
-  vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(device, 1, &inFlightFences[currentFrame],
+    VK_TRUE, UINT64_MAX);
+}
+void LogicalDevice::waitForComputeFences(uint32_t currentFrame) const
+{
+  vkWaitForFences(device, 1, &computeInFlightFences[currentFrame],
+    VK_TRUE, UINT64_MAX);
 }
 
-void LogicalDevice::resetFences(uint32_t currentFrame)
+void LogicalDevice::resetGraphicsFences(uint32_t currentFrame) const
 {
   vkResetFences(device, 1, &inFlightFences[currentFrame]);
+}
+void LogicalDevice::resetComputeFences(uint32_t currentFrame) const
+{
+  vkResetFences(device, 1, &computeInFlightFences[currentFrame]);
 }
 
 VkResult LogicalDevice::queuePresent(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex)
