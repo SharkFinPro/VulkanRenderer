@@ -184,7 +184,7 @@ void LogicalDevice::submitComputeQueue(uint32_t currentFrame,
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
 
-  if (vkQueueSubmit(computeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS)
+  if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit compute command buffer!");
   }
