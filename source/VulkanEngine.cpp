@@ -99,7 +99,9 @@ void VulkanEngine::initVulkan()
 
   createCommandPool();
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
+
   createCommandBuffers();
+  createComputeCommandBuffers();
 
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         "assets/shaders/vert.spv",
@@ -143,7 +145,25 @@ void VulkanEngine::createCommandBuffers() {
     throw std::runtime_error("failed to allocate command buffers!");
   }
 }
-void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
+
+void VulkanEngine::createComputeCommandBuffers()
+{
+  computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandPool = commandPool;
+  allocInfo.commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size());
+
+  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS)
+    {
+    throw std::runtime_error("failed to allocate command buffers!");
+  }
+}
+
+void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer,
+                                              VkCommandBuffer& computeCommandBuffer,
                                               uint32_t imageIndex) const
 {
   VkCommandBufferBeginInfo beginInfo{};
@@ -154,7 +174,7 @@ void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  // TODO: render
+  computePipeline->render(commandBuffer, computeCommandBuffer, imageIndex);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {

@@ -30,7 +30,8 @@ public:
                   VkCommandPool& commandPool);
   ~ComputePipeline();
 
-  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
+  void render(VkCommandBuffer& commandBuffer,
+              VkCommandBuffer& computeCommandBuffer, uint32_t currentFrame);
 
 private:
   void createPipeline();

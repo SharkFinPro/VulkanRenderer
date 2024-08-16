@@ -47,7 +47,10 @@ private:
   void initVulkan();
   void createCommandPool();
   void createCommandBuffers();
-  void recordComputeCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
+  void createComputeCommandBuffers();
+  void recordComputeCommandBuffer(VkCommandBuffer& commandBuffer,
+                                  VkCommandBuffer& computeCommandBuffer,
+                                  uint32_t imageIndex) const;
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
   void drawFrame();
   void recreateSwapChain();
@@ -76,6 +79,7 @@ private:
   VulkanEngineOptions vulkanEngineOptions;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
+  std::vector<VkCommandBuffer> computeCommandBuffers;
   uint32_t currentFrame;
 
   bool framebufferResized;

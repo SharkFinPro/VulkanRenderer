@@ -42,10 +42,14 @@ ComputePipeline::~ComputePipeline()
   vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
 }
 
-void ComputePipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame)
+void ComputePipeline::render(VkCommandBuffer& commandBuffer,
+                             VkCommandBuffer& computeCommandBuffer,
+                             uint32_t currentFrame)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+  vkCmdDispatch(computeCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
 
   // VkDeviceSize offsets[] = {0};
   // vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
