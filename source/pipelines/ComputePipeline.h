@@ -45,17 +45,17 @@ private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
 
-  std::vector<VkBuffer> shaderStorageBuffers;
-  std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
-
-  VkDescriptorSetLayout descriptorSetLayout;
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
+
+  std::vector<VkBuffer> shaderStorageBuffers;
+  std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
 
   std::vector<VkBuffer> uniformBuffers;
   std::vector<VkDeviceMemory> uniformBuffersMemory;
   std::vector<void*> uniformBuffersMapped;
 
+  VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
 };

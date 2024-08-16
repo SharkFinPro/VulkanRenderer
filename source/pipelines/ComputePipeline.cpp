@@ -22,7 +22,25 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   createDescriptorSets();
 }
 
-ComputePipeline::~ComputePipeline() {}
+ComputePipeline::~ComputePipeline()
+{
+  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
+
+  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), descriptorSetLayout, nullptr);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    vkDestroyBuffer(logicalDevice->getDevice(), shaderStorageBuffers[i], nullptr);
+    vkFreeMemory(logicalDevice->getDevice(), shaderStorageBuffersMemory[i], nullptr);
+
+    vkDestroyBuffer(logicalDevice->getDevice(), uniformBuffers[i], nullptr);
+    vkFreeMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], nullptr);
+  }
+
+  vkDestroyPipeline(logicalDevice->getDevice(), pipeline, nullptr);
+
+  vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
+}
 
 void ComputePipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame)
 {
@@ -172,6 +190,9 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
       logicalDevice->getComputeQueue(), stagingBuffer,
       shaderStorageBuffers[i], bufferSize);
   }
+
+  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
+  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
 }
 
 void ComputePipeline::createDescriptorPool()
