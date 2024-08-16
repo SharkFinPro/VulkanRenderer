@@ -128,13 +128,14 @@ void LogicalDevice::createSyncObjects()
   }
 }
 
-void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer)
-{
+void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
+                                        VkCommandBuffer *commandBuffer) {
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
   VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  VkPipelineStageFlags waitStages[] = {
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = waitSemaphores;
   submitInfo.pWaitDstStageMask = waitStages;
@@ -146,9 +147,25 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* 
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSemaphores;
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
-  {
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo,
+                    inFlightFences[currentFrame]) != VK_SUCCESS) {
     throw std::runtime_error("failed to submit draw command buffer!");
+  }
+}
+void LogicalDevice::submitComputeQueue(uint32_t currentFrame,
+                                       VkCommandBuffer* commandBuffer)
+{
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = commandBuffer;
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
+
+  if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to submit compute command buffer!");
   }
 }
 

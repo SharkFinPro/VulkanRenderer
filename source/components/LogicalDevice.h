@@ -19,6 +19,7 @@ public:
   VkQueue& getPresentQueue();
 
   void submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer);
+  void submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer);
 
   void waitForFences(uint32_t currentFrame);
   void resetFences(uint32_t currentFrame);
@@ -42,6 +43,9 @@ private:
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkFence> inFlightFences;
+
+  std::vector<VkSemaphore> computeFinishedSemaphores;
+  std::vector<VkFence> computeInFlightFences;
 };
 
 
