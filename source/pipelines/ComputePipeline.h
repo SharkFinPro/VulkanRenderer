@@ -62,7 +62,7 @@ public:
   void updateUniformBuffer(uint32_t currentFrame) const;
 
 private:
-  void createPipeline();
+  void createComputePipeline();
 
   void createUniformBuffers();
   void createShaderStorageBuffers(VkCommandPool& commandPool);

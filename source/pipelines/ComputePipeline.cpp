@@ -13,7 +13,7 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                  VkCommandPool& commandPool)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
-  createPipeline();
+  createComputePipeline();
 
   createUniformBuffers();
   createShaderStorageBuffers(commandPool);
@@ -71,7 +71,8 @@ void ComputePipeline::updateUniformBuffer(uint32_t currentFrame) const
   memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
 }
 
-void ComputePipeline::createPipeline() {
+void ComputePipeline::createComputePipeline()
+{
   ShaderModule vertexShaderModule{logicalDevice->getDevice(),
                                   "assets/shaders/compute.vert.spv",
                                   VK_SHADER_STAGE_VERTEX_BIT};
