@@ -161,7 +161,7 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
   guiPipeline->render(commandBuffer);
 
-  renderPass->end(commandBuffer);
+  RenderPass::end(commandBuffer);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {
