@@ -7,6 +7,18 @@
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
+#include <glm/glm.hpp>
+
+struct Particle {
+  glm::vec2 position;
+  glm::vec2 velocity;
+  glm::vec4 color;
+};
+
+constexpr int PARTICLE_COUNT = 100;
+constexpr int WIDTH = 600;
+constexpr int HEIGHT = 400;
+
 class ComputePipeline {
 public:
   ComputePipeline();
@@ -16,6 +28,8 @@ public:
 
 private:
   void createPipeline();
+
+  void initializeParticles();
 
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
