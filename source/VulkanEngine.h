@@ -46,6 +46,7 @@ private:
   void initVulkan();
   void createCommandPool();
   void createCommandBuffers();
+  void recordComputeCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
   void drawFrame();
   void recreateSwapChain();

@@ -127,8 +127,7 @@ void VulkanEngine::createCommandPool()
   }
 }
 
-void VulkanEngine::createCommandBuffers()
-{
+void VulkanEngine::createCommandBuffers() {
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocInfo{};
@@ -137,9 +136,27 @@ void VulkanEngine::createCommandBuffers()
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
-  {
+  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo,
+                               commandBuffers.data()) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate command buffers!");
+  }
+}
+void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer commandBuffer,
+                                              uint32_t imageIndex) const
+{
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to begin recording command buffer!");
+  }
+
+  // TODO: render
+
+  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to record command buffer!");
   }
 }
 
