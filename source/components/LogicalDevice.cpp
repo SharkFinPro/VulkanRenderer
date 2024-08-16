@@ -99,6 +99,7 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
     throw std::runtime_error("failed to create logical device!");
   }
 
+  vkGetDeviceQueue(device, queueFamilyIndices.computeFamily.value(), 0, &computeQueue);
   vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);
   vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
 }

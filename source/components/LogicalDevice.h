@@ -35,6 +35,7 @@ private:
 private:
   VkDevice device;
 
+  VkQueue computeQueue;
   VkQueue graphicsQueue;
   VkQueue presentQueue;
 
