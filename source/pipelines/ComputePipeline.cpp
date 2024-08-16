@@ -2,6 +2,7 @@
 #include "ShaderModule.h"
 #include "../utilities/Buffers.h"
 
+#include <cmath>
 #include <stdexcept>
 #include <random>
 
@@ -167,10 +168,10 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
   std::vector<Particle> particles(PARTICLE_COUNT);
   for (auto& particle : particles)
   {
-    float r = 0.25f * sqrt(distribution(randomEngine));
-    float theta = distribution(randomEngine) * 2 * M_PI;
-    float x = r * cos(theta) * HEIGHT / WIDTH;
-    float y = r * sin(theta);
+    const float r = 0.25f * sqrt(distribution(randomEngine));
+    const float theta = distribution(randomEngine) * 2 * M_PI;
+    const float x = r * std::cos(theta) * HEIGHT / WIDTH;
+    const float y = r * std::sin(theta);
     particle.position = glm::vec2(x, y);
     particle.velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
     particle.color =
