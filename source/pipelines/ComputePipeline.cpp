@@ -101,10 +101,8 @@ void ComputePipeline::createPipeline() {
   layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
   VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
-  descriptorSetLayoutInfo.sType =
-      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  descriptorSetLayoutInfo.bindingCount =
-      static_cast<uint32_t>(layoutBindings.size());
+  descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
   descriptorSetLayoutInfo.pBindings = layoutBindings.data();
 
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(),
@@ -119,32 +117,34 @@ void ComputePipeline::createPipeline() {
   pipelineLayoutInfo.pSetLayouts = &computeDescriptorSetLayout;
 
   if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo,
-                             nullptr, &computePipelineLayout) != VK_SUCCESS) {
+                             nullptr, &computePipelineLayout) != VK_SUCCESS)
+  {
     throw std::runtime_error("failed to create pipeline layout!");
   }
 
   VkComputePipelineCreateInfo computePipelineCreateInfo{};
-  computePipelineCreateInfo.sType =
-      VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
   computePipelineCreateInfo.layout = computePipelineLayout;
-  computePipelineCreateInfo.stage =
-      computeShaderModule.getShaderStageCreateInfo();
+  computePipelineCreateInfo.stage = computeShaderModule.getShaderStageCreateInfo();
 
   if (vkCreateComputePipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1,
                                &computePipelineCreateInfo, nullptr,
-                               &computePipeline) != VK_SUCCESS) {
+                               &computePipeline) != VK_SUCCESS)
+  {
     throw std::runtime_error("failed to create compute pipeline!");
   }
 }
 
-void ComputePipeline::createUniformBuffers() {
+void ComputePipeline::createUniformBuffers()
+{
   VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
   uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
   uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
     Buffers::createBuffer(logicalDevice->getDevice(),
                           physicalDevice->getPhysicalDevice(), bufferSize,
                           VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -165,7 +165,8 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 
   std::vector<Particle> particles(PARTICLE_COUNT);
-  for (auto &particle : particles) {
+  for (auto& particle : particles)
+  {
     float r = 0.25f * sqrt(distribution(randomEngine));
     float theta = distribution(randomEngine) * 2 * M_PI;
     float x = r * cos(theta) * HEIGHT / WIDTH;
@@ -195,7 +196,8 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
   memcpy(data, particles.data(), bufferSize);
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
     Buffers::createBuffer(
         logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
         bufferSize,
