@@ -5,9 +5,9 @@
 #include "utilities/Images.h"
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = true;
 #endif
 
 VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
