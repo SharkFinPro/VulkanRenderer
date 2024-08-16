@@ -162,7 +162,7 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool)
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
-  std::default_random_engine randomEngine((unsigned int)time(nullptr));
+  std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 
   std::vector<Particle> particles(PARTICLE_COUNT);
