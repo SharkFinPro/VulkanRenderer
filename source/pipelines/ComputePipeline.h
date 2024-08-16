@@ -53,7 +53,8 @@ class ComputePipeline {
 public:
   ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                   std::shared_ptr<LogicalDevice> logicalDevice,
-                  VkCommandPool& commandPool);
+                  VkCommandPool& commandPool,
+                  VkRenderPass& renderPass);
   ~ComputePipeline();
 
   void compute(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
@@ -63,6 +64,8 @@ public:
 
 private:
   void createComputePipeline();
+
+  void createGraphicsPipeline(VkRenderPass& renderPass);
 
   void createUniformBuffers();
   void createShaderStorageBuffers(VkCommandPool& commandPool);
@@ -76,6 +79,9 @@ private:
 
   VkPipelineLayout computePipelineLayout;
   VkPipeline computePipeline;
+
+  VkPipelineLayout graphicsPipelineLayout;
+  VkPipeline graphicsPipeline;
 
   std::vector<VkBuffer> shaderStorageBuffers;
   std::vector<VkDeviceMemory> shaderStorageBuffersMemory;

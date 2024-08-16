@@ -106,14 +106,14 @@ void VulkanEngine::initVulkan()
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         "assets/shaders/vert.spv",
                                                         "assets/shaders/frag.spv",
-                                                        swapChain->getExtent(), physicalDevice->getMsaaSamples(),renderPass);
+                                                        swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                               "assets/shaders/ui_vert.spv",
                                               "assets/shaders/ui_frag.spv",
                                               swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
-  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool);
+  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass());
 }
 
 void VulkanEngine::createCommandPool()
@@ -131,7 +131,8 @@ void VulkanEngine::createCommandPool()
   }
 }
 
-void VulkanEngine::createCommandBuffers() {
+void VulkanEngine::createCommandBuffers()
+{
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocInfo{};
@@ -157,7 +158,7 @@ void VulkanEngine::createComputeCommandBuffers()
   allocInfo.commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size());
 
   if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS)
-    {
+  {
     throw std::runtime_error("failed to allocate command buffers!");
   }
 }
