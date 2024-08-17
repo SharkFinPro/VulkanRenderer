@@ -96,7 +96,7 @@ void RenderPass::createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFl
 }
 
 VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-                                          VkFormatFeatureFlags features)
+                                          VkFormatFeatureFlags features) const
 {
   for (const auto format : candidates)
   {
@@ -113,7 +113,7 @@ VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates
   throw std::runtime_error("failed to find supported format!");
 }
 
-VkFormat RenderPass::findDepthFormat()
+VkFormat RenderPass::findDepthFormat() const
 {
   return findSupportedFormat(
     {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
@@ -122,7 +122,7 @@ VkFormat RenderPass::findDepthFormat()
   );
 }
 
-void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const VkCommandBuffer& commandBuffer)
+void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const VkCommandBuffer& commandBuffer) const
 {
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

@@ -54,7 +54,7 @@ VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, con
   return uniformDescriptorSet;
 }
 
-void UniformBuffer::update(const uint32_t frame, const void* data, const size_t size)
+void UniformBuffer::update(const uint32_t frame, const void* data, const size_t size) const
 {
   memcpy(uniformBuffersMapped[frame], data, size);
 }

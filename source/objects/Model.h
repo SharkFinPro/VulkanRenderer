@@ -14,7 +14,7 @@ public:
         const char* path);
   ~Model();
 
-  void draw(const VkCommandBuffer& commandBuffer);
+  void draw(const VkCommandBuffer& commandBuffer) const;
 
 private:
 
@@ -22,7 +22,7 @@ private:
   void createVertexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue);
   void createIndexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue);
 
-  void bind(const VkCommandBuffer& commandBuffer);
+  void bind(const VkCommandBuffer& commandBuffer) const;
 
 private:
   VkDevice& device;

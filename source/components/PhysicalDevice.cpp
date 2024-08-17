@@ -29,7 +29,7 @@ SwapChainSupportDetails& PhysicalDevice::getSwapChainSupport()
   return swapChainSupportDetails;
 }
 
-VkSampleCountFlagBits PhysicalDevice::getMsaaSamples()
+VkSampleCountFlagBits PhysicalDevice::getMsaaSamples() const
 {
   return msaaSamples;
 }
@@ -82,7 +82,7 @@ bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device)
   return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-QueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkPhysicalDevice device)
+QueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkPhysicalDevice device) const
 {
   QueueFamilyIndices indices;
 
@@ -142,7 +142,7 @@ bool PhysicalDevice::checkDeviceExtensionSupport(const VkPhysicalDevice device)
   return requiredExtensions.empty();
 }
 
-SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const VkPhysicalDevice device)
+SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const VkPhysicalDevice device) const
 {
   SwapChainSupportDetails details;
 
@@ -169,7 +169,7 @@ SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const VkPhysicalDe
   return details;
 }
 
-VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount()
+VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount() const
 {
   VkPhysicalDeviceProperties physicalDeviceProperties;
   vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);

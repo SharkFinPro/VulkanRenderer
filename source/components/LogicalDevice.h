@@ -27,9 +27,9 @@ public:
   void resetGraphicsFences(uint32_t currentFrame) const;
   void resetComputeFences(uint32_t currentFrame) const;
 
-  VkResult queuePresent(uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex);
+  VkResult queuePresent(uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const;
 
-  VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex);
+  VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const;
 
 private:
   void createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);

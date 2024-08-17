@@ -56,7 +56,7 @@ void Window::update()
   glfwGetCursorPos(window, &mouseX, &mouseY);
 }
 
-void Window::getFramebufferSize(int* width, int* height)
+void Window::getFramebufferSize(int* width, int* height) const
 {
   glfwGetFramebufferSize(window, width, height);
 }

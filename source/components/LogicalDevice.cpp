@@ -211,7 +211,7 @@ void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
   vkResetFences(device, 1, &computeInFlightFences[currentFrame]);
 }
 
-VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex)
+VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const
 {
   VkPresentInfoKHR presentInfo{};
   presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -228,7 +228,7 @@ VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapch
   return vkQueuePresentKHR(presentQueue, &presentInfo);
 }
 
-VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex)
+VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const
 {
   return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
                                imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);

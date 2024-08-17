@@ -12,14 +12,14 @@ public:
 
   VkRenderPass& getRenderPass();
 
-  VkFormat findDepthFormat();
+  VkFormat findDepthFormat() const;
 
-  void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const VkCommandBuffer& commandBuffer);
+  void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const VkCommandBuffer& commandBuffer) const;
   static void end(const VkCommandBuffer& commandBuffer);
 
 private:
   void createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples);
-  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+  VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 
 private:
   VkDevice& device;

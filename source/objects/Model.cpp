@@ -119,7 +119,7 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool, const VkQueue& g
   vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void Model::bind(const VkCommandBuffer& commandBuffer)
+void Model::bind(const VkCommandBuffer& commandBuffer) const
 {
   constexpr VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
@@ -127,7 +127,7 @@ void Model::bind(const VkCommandBuffer& commandBuffer)
   vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void Model::draw(const VkCommandBuffer& commandBuffer)
+void Model::draw(const VkCommandBuffer& commandBuffer) const
 {
   bind(commandBuffer);
 
