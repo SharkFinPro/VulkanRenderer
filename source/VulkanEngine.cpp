@@ -107,12 +107,12 @@ void VulkanEngine::initVulkan()
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         "assets/shaders/vert.spv",
                                                         "assets/shaders/frag.spv",
-                                                        swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
+                                                        physicalDevice->getMsaaSamples(), renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                               "assets/shaders/ui_vert.spv",
                                               "assets/shaders/ui_frag.spv",
-                                              swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
+                                              physicalDevice->getMsaaSamples(), renderPass);
 
   computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool,
                                                       renderPass->getRenderPass(), swapChain->getExtent());
@@ -198,11 +198,11 @@ void VulkanEngine::recordCommandBuffer(const VkCommandBuffer commandBuffer, cons
 
   renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
 
-  graphicsPipeline->render(commandBuffer, currentFrame, camera);
+  graphicsPipeline->render(commandBuffer, currentFrame, camera, swapChain->getExtent());
 
   computePipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
 
-  guiPipeline->render(commandBuffer);
+  guiPipeline->render(commandBuffer, swapChain->getExtent());
 
   RenderPass::end(commandBuffer);
 

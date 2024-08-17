@@ -13,9 +13,9 @@
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 GuiPipeline::GuiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
-                         const char* fragmentShader, VkExtent2D& swapChainExtent,
-                         const VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
-  : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent)
+                         const char* fragmentShader, const VkSampleCountFlagBits msaaSamples,
+                         std::shared_ptr<RenderPass> renderPass)
+  : device(device), physicalDevice(physicalDevice)
 {
   createGraphicsPipeline(vertexShader, fragmentShader, msaaSamples, renderPass);
 
@@ -31,7 +31,7 @@ GuiPipeline::~GuiPipeline()
   vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 }
 
-void GuiPipeline::render(const VkCommandBuffer& commandBuffer) const
+void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D swapChainExtent) const
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 

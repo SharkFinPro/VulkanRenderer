@@ -9,11 +9,10 @@ class RenderPass;
 class GuiPipeline {
 public:
   GuiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
-              const char* fragmentShader, VkExtent2D& swapChainExtent,
-              VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
+              const char* fragmentShader, VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
   ~GuiPipeline();
 
-  void render(const VkCommandBuffer& commandBuffer) const;
+  void render(const VkCommandBuffer& commandBuffer, VkExtent2D swapChainExtent) const;
 
   VkDescriptorPool& getPool();
 
@@ -29,8 +28,6 @@ private:
 
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
-
-  VkExtent2D& swapChainExtent;
 
   VkDescriptorPool descriptorPool;
 };
