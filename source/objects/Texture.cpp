@@ -94,7 +94,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const VkQueue
 }
 
 void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const VkImage image, VkFormat imageFormat,
-                              const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels)
+                              const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
   VkFormatProperties formatProperties;
   vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
