@@ -3,8 +3,8 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-
 #include <memory>
+
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 

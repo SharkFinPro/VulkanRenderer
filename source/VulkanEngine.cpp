@@ -49,8 +49,7 @@ void VulkanEngine::render()
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 {
-  auto texture = std::make_shared<Texture>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                           commandPool, logicalDevice->getGraphicsQueue(), path);
+  auto texture = std::make_shared<Texture>(physicalDevice, logicalDevice, commandPool, path);
   textures.push_back(texture);
 
   return texture;

@@ -8,12 +8,11 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
-Texture::Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path)
-  : device(device), physicalDevice(physicalDevice)
+Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+                 const VkCommandPool& commandPool, const char* path)
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
-  createTextureImage(commandPool, graphicsQueue, path);
-
-  textureImageView = Images::createImageView(device, textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+  createTextureImage(commandPool, path);
 
   createTextureSampler();
 
@@ -24,11 +23,11 @@ Texture::Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCom
 
 Texture::~Texture()
 {
-  vkDestroySampler(device, textureSampler, nullptr);
-  vkDestroyImageView(device, textureImageView, nullptr);
+  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
+  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
 
-  vkDestroyImage(device, textureImage, nullptr);
-  vkFreeMemory(device, textureImageMemory, nullptr);
+  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
+  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
 }
 
 VkDescriptorPoolSize Texture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
@@ -54,7 +53,7 @@ VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkD
   return descriptorSet;
 }
 
-void Texture::createTextureImage(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path)
+void Texture::createTextureImage(const VkCommandPool& commandPool, const char* path)
 {
   int texWidth, texHeight, texChannels;
 
@@ -70,41 +69,44 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const VkQueue
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(device, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
   void* data;
-  vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
   memcpy(data, pixels, imageSize);
-  vkUnmapMemory(device, stagingBufferMemory);
+  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
   stbi_image_free(pixels);
 
-  Images::createImage(device, physicalDevice, texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
               VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
-  Images::transitionImageLayout(device, commandPool, graphicsQueue, textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
-  Images::copyBufferToImage(device, commandPool, graphicsQueue, stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+  Images::transitionImageLayout(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+  Images::copyBufferToImage(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
   // Transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
-  vkDestroyBuffer(device, stagingBuffer, nullptr);
-  vkFreeMemory(device, stagingBufferMemory, nullptr);
+  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
+  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
 
-  generateMipmaps(commandPool, graphicsQueue, textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
+  generateMipmaps(commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
+
+  textureImageView = Images::createImageView(logicalDevice->getDevice(), textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+                                             VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
 }
 
-void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const VkImage image, VkFormat imageFormat,
+void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, VkFormat imageFormat,
                               const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
   VkFormatProperties formatProperties;
-  vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
+  vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), imageFormat, &formatProperties);
 
   if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
   {
     throw std::runtime_error("texture image format does not support linear blitting!");
   }
 
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -187,7 +189,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkQueue& g
                        0, nullptr,
                        1, &barrier);
 
-  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+  Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 }
 
 void Texture::createTextureSampler()
@@ -204,7 +206,7 @@ void Texture::createTextureSampler()
   samplerCreateInfo.anisotropyEnable = VK_TRUE;
 
   VkPhysicalDeviceProperties deviceProperties{};
-  vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+  vkGetPhysicalDeviceProperties(physicalDevice->getPhysicalDevice(), &deviceProperties);
 
   samplerCreateInfo.maxAnisotropy = deviceProperties.limits.maxSamplerAnisotropy;
 
@@ -219,7 +221,7 @@ void Texture::createTextureSampler()
   samplerCreateInfo.minLod = 0.0f;
   samplerCreateInfo.maxLod = VK_LOD_CLAMP_NONE;
 
-  if (vkCreateSampler(device, &samplerCreateInfo, nullptr, &textureSampler) != VK_SUCCESS)
+  if (vkCreateSampler(logicalDevice->getDevice(), &samplerCreateInfo, nullptr, &textureSampler) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create texture sampler!");
   }
