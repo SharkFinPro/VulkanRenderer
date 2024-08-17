@@ -8,7 +8,7 @@
 #include "PhysicalDevice.h"
 #include "LogicalDevice.h"
 #include "SwapChain.h"
-#include "../pipeline/RenderPass.h"
+#include "../pipelines/RenderPass.h"
 
 class Framebuffer {
 public:

@@ -5,9 +5,9 @@
 #include "utilities/Images.h"
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = true;
 #endif
 
 VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
@@ -66,7 +66,7 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
 
 std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                              const std::shared_ptr<Texture>& specularMap,
-                                                             const std::shared_ptr<Model>& model)
+                                                             const std::shared_ptr<Model>& model) const
 {
   auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                      graphicsPipeline->getLayout(), texture, specularMap, model);
@@ -90,26 +90,30 @@ void VulkanEngine::initVulkan()
 
   physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
 
-  logicalDevice = std::make_unique<LogicalDevice>(physicalDevice);
+  logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getImageFormat(),
                                             physicalDevice->getMsaaSamples());
 
+  createCommandPool();
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
+
+  createCommandBuffers();
+  createComputeCommandBuffers();
+
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                                        vulkanEngineOptions.VERTEX_SHADER_FILE,
-                                                        vulkanEngineOptions.FRAGMENT_SHADER_FILE,
-                                                        swapChain->getExtent(), physicalDevice->getMsaaSamples(),renderPass);
+                                                        "assets/shaders/vert.spv",
+                                                        "assets/shaders/frag.spv",
+                                                        swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                               "assets/shaders/ui_vert.spv",
                                               "assets/shaders/ui_frag.spv",
                                               swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
-  createCommandPool();
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
-  createCommandBuffers();
+  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(), swapChain->getExtent());
 }
 
 void VulkanEngine::createCommandPool()
@@ -137,13 +141,47 @@ void VulkanEngine::createCommandBuffers()
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo,
+                               commandBuffers.data()) != VK_SUCCESS) {
+    throw std::runtime_error("failed to allocate command buffers!");
+  }
+}
+
+void VulkanEngine::createComputeCommandBuffers()
+{
+  computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandPool = commandPool;
+  allocInfo.commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size());
+
+  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }
 }
 
-void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+void VulkanEngine::recordComputeCommandBuffer(VkCommandBuffer& commandBuffer) const
+{
+  VkCommandBufferBeginInfo beginInfo{};
+  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to begin recording command buffer!");
+  }
+
+  computePipeline->compute(commandBuffer, currentFrame);
+
+  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to record command buffer!");
+  }
+}
+
+void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -159,9 +197,11 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
   graphicsPipeline->render(commandBuffer, currentFrame, camera);
 
+  computePipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
+
   guiPipeline->render(commandBuffer);
 
-  renderPass->end(commandBuffer);
+  RenderPass::end(commandBuffer);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {
@@ -171,7 +211,20 @@ void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
 void VulkanEngine::drawFrame()
 {
-  logicalDevice->waitForFences(currentFrame);
+  // Compute
+  logicalDevice->waitForComputeFences(currentFrame);
+
+  computePipeline->updateUniformBuffer(currentFrame);
+
+  logicalDevice->resetComputeFences(currentFrame);
+
+  vkResetCommandBuffer(computeCommandBuffers[currentFrame], 0);
+  recordComputeCommandBuffer(computeCommandBuffers[currentFrame]);
+
+  logicalDevice->submitComputeQueue(currentFrame, &computeCommandBuffers[currentFrame]);
+
+  // Graphics
+  logicalDevice->waitForGraphicsFences(currentFrame);
 
   uint32_t imageIndex;
   auto result = logicalDevice->acquireNextImage(currentFrame, swapChain->getSwapChain(), &imageIndex);
@@ -187,7 +240,7 @@ void VulkanEngine::drawFrame()
     throw std::runtime_error("failed to acquire swap chain image!");
   }
 
-  logicalDevice->resetFences(currentFrame);
+  logicalDevice->resetGraphicsFences(currentFrame);
 
   vkResetCommandBuffer(commandBuffers[currentFrame], 0);
   recordCommandBuffer(commandBuffers[currentFrame], imageIndex);

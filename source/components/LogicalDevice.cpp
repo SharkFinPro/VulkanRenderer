@@ -1,13 +1,16 @@
 #include "LogicalDevice.h"
+
+#include <array>
+
 #include "PhysicalDevice.h"
 #include "Instance.h"
 #include <set>
 #include <stdexcept>
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = true;
 #endif
 
 const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
@@ -25,7 +28,9 @@ LogicalDevice::~LogicalDevice()
   {
     vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
     vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(device, computeFinishedSemaphores[i], nullptr);
     vkDestroyFence(device, inFlightFences[i], nullptr);
+    vkDestroyFence(device, computeInFlightFences[i], nullptr);
   }
 
   vkDestroyDevice(device, nullptr);
@@ -49,6 +54,11 @@ VkQueue& LogicalDevice::getGraphicsQueue()
 VkQueue& LogicalDevice::getPresentQueue()
 {
   return presentQueue;
+}
+
+VkQueue& LogicalDevice::getComputeQueue()
+{
+  return computeQueue;
 }
 
 void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
@@ -99,6 +109,7 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
     throw std::runtime_error("failed to create logical device!");
   }
 
+  vkGetDeviceQueue(device, queueFamilyIndices.computeFamily.value(), 0, &computeQueue);
   vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);
   vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
 }
@@ -107,7 +118,9 @@ void LogicalDevice::createSyncObjects()
 {
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
   VkSemaphoreCreateInfo semaphoreInfo{};
   semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -122,43 +135,80 @@ void LogicalDevice::createSyncObjects()
         vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
         vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create semaphores!");
+      throw std::runtime_error("failed to create graphics sync objects!");
+    }
+
+    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create compute sync objects!");
     }
   }
 }
 
-void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer)
+void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const
 {
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-  VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-  submitInfo.waitSemaphoreCount = 1;
-  submitInfo.pWaitSemaphores = waitSemaphores;
+  std::array<VkSemaphore, 2> waitSemaphores = {
+    computeFinishedSemaphores[currentFrame],
+    imageAvailableSemaphores[currentFrame]
+  };
+  constexpr VkPipelineStageFlags waitStages[] = {
+    VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  };
+  submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+  submitInfo.pWaitSemaphores = waitSemaphores.data();
   submitInfo.pWaitDstStageMask = waitStages;
 
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = commandBuffer;
 
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
   submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = signalSemaphores;
+  submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
 
   if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
 }
-
-void LogicalDevice::waitForFences(uint32_t currentFrame)
+void LogicalDevice::submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const
 {
-  vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = commandBuffer;
+
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
+
+  if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to submit compute command buffer!");
+  }
 }
 
-void LogicalDevice::resetFences(uint32_t currentFrame)
+void LogicalDevice::waitForGraphicsFences(uint32_t currentFrame) const
+{
+  vkWaitForFences(device, 1, &inFlightFences[currentFrame],
+    VK_TRUE, UINT64_MAX);
+}
+void LogicalDevice::waitForComputeFences(uint32_t currentFrame) const
+{
+  vkWaitForFences(device, 1, &computeInFlightFences[currentFrame],
+    VK_TRUE, UINT64_MAX);
+}
+
+void LogicalDevice::resetGraphicsFences(uint32_t currentFrame) const
 {
   vkResetFences(device, 1, &inFlightFences[currentFrame]);
+}
+void LogicalDevice::resetComputeFences(uint32_t currentFrame) const
+{
+  vkResetFences(device, 1, &computeInFlightFences[currentFrame]);
 }
 
 VkResult LogicalDevice::queuePresent(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex)

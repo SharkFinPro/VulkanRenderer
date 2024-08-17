@@ -24,17 +24,17 @@ add_library(${PROJECT_NAME}
   components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
-  pipeline/GraphicsPipeline.cpp
-  pipeline/GraphicsPipeline.h
-  pipeline/Vertex.cpp
-  pipeline/Vertex.h
-  pipeline/RenderPass.cpp
-  pipeline/RenderPass.h
-  pipeline/Uniforms.h
-  pipeline/GuiPipeline.cpp
-  pipeline/GuiPipeline.h
-  pipeline/ShaderModule.cpp
-  pipeline/ShaderModule.h
+  pipelines/GraphicsPipeline.cpp
+  pipelines/GraphicsPipeline.h
+  pipelines/Vertex.cpp
+  pipelines/Vertex.h
+  pipelines/RenderPass.cpp
+  pipelines/RenderPass.h
+  pipelines/Uniforms.h
+  pipelines/GuiPipeline.cpp
+  pipelines/GuiPipeline.h
+  pipelines/ShaderModule.cpp
+  pipelines/ShaderModule.h
   components/PhysicalDevice.cpp
   components/PhysicalDevice.h
   components/Instance.cpp
@@ -48,6 +48,8 @@ add_library(${PROJECT_NAME}
   components/SwapChain.h
   components/Framebuffer.cpp
   components/Framebuffer.h
+  pipelines/ComputePipeline.cpp
+  pipelines/ComputePipeline.h
 )
 
 # Shaders
@@ -61,6 +63,9 @@ add_custom_target(Shaders ALL
   COMMAND glslangValidator -V ${shadersSrc}/shader.frag -o ${shadersDst}/frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui_vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui_frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/compute/compute.vert -o ${shadersDst}/compute.vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/compute/compute.frag -o ${shadersDst}/compute.frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/compute/compute.comp -o ${shadersDst}/compute.comp.spv
   COMMENT "Compiling Shaders"
 )
 

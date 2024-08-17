@@ -16,9 +16,10 @@
 #include "components/Camera.h"
 #include "components/Framebuffer.h"
 
-#include "pipeline/RenderPass.h"
-#include "pipeline/GraphicsPipeline.h"
-#include "pipeline/GuiPipeline.h"
+#include "pipelines/RenderPass.h"
+#include "pipelines/GraphicsPipeline.h"
+#include "pipelines/GuiPipeline.h"
+#include "pipelines/ComputePipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -40,13 +41,15 @@ public:
   std::shared_ptr<Texture> loadTexture(const char* path);
   std::shared_ptr<Model> loadModel(const char* path);
   std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture, const std::shared_ptr<Texture>& specularMap,
-                                                 const std::shared_ptr<Model>&);
+                                                 const std::shared_ptr<Model>&) const;
 
 private:
   void initVulkan();
   void createCommandPool();
   void createCommandBuffers();
-  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+  void createComputeCommandBuffers();
+  void recordComputeCommandBuffer(VkCommandBuffer& commandBuffer) const;
+  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
   void drawFrame();
   void recreateSwapChain();
 
@@ -62,8 +65,8 @@ private:
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<Framebuffer> framebuffer;
   std::unique_ptr<GraphicsPipeline> graphicsPipeline;
-
   std::unique_ptr<GuiPipeline> guiPipeline;
+  std::unique_ptr<ComputePipeline> computePipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
   std::vector<std::shared_ptr<Texture>> textures;
@@ -74,6 +77,7 @@ private:
   VulkanEngineOptions vulkanEngineOptions;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
+  std::vector<VkCommandBuffer> computeCommandBuffers;
   uint32_t currentFrame;
 
   bool framebufferResized;
