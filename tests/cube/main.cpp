@@ -16,11 +16,11 @@ int main()
 
     VulkanEngine renderer(vulkanEngineOptions);
 
-    auto texture = renderer.loadTexture("assets/textures/white.png");
-    auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    auto model = renderer.loadModel("assets/models/square.glb");
+    const auto texture = renderer.loadTexture("assets/textures/white.png");
+    const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
+    const auto model = renderer.loadModel("assets/models/square.glb");
 
-    auto object = renderer.loadRenderObject(texture, specularMap, model);
+    const auto object = renderer.loadRenderObject(texture, specularMap, model);
     glm::vec3 position = {0, -5, 0};
     object->setPosition(position);
 
