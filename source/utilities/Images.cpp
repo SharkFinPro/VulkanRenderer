@@ -45,10 +45,11 @@ void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physica
   vkBindImageMemory(device, image, imageMemory, 0);
 }
 
-void Images::transitionImageLayout(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const VkImage image,
-                                   const VkFormat format, const VkImageLayout oldLayout, const VkImageLayout newLayout, const uint32_t mipLevels)
+void Images::transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
+                                   const VkImage image, const VkFormat format, const VkImageLayout oldLayout,
+                                   const VkImageLayout newLayout, const uint32_t mipLevels)
 {
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -117,13 +118,13 @@ void Images::transitionImageLayout(const VkDevice& device, const VkCommandPool& 
     1, &barrier
   );
 
-  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+  Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 }
 
-void Images::copyBufferToImage(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const VkBuffer buffer,
-                               const VkImage image, const uint32_t width, const uint32_t height)
+void Images::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
+                               const VkBuffer buffer, const VkImage image, const uint32_t width, const uint32_t height)
 {
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
@@ -151,7 +152,7 @@ void Images::copyBufferToImage(const VkDevice& device, const VkCommandPool& comm
     &region
   );
 
-  Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+  Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 }
 
 VkImageView Images::createImageView(const VkDevice& device, const VkImage image, const VkFormat format, const VkImageAspectFlags aspectFlags, const uint32_t mipLevels)
