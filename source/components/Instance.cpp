@@ -6,9 +6,9 @@
 #include <GLFW/glfw3.h>
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = true;
 #endif
 
 Instance::Instance()

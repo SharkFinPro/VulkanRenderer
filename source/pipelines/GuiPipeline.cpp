@@ -10,7 +10,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
-const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
+constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 GuiPipeline::GuiPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
                          const char* fragmentShader, VkExtent2D& swapChainExtent,

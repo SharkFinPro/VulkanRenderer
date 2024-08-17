@@ -13,7 +13,7 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
-const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
+constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
 {

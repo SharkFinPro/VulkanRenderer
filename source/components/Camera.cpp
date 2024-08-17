@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
-const glm::vec3 UP = glm::vec3(0.0f, 1.0f, 0.0f);
+constexpr glm::vec3 UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(glm::vec3 pos)
   : position(pos), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0)
