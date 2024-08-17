@@ -11,7 +11,7 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                  std::shared_ptr<LogicalDevice> logicalDevice,
-                                 VkCommandPool& commandPool, VkRenderPass& renderPass, VkExtent2D& swapChainExtent)
+                                 VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   createComputePipeline();
@@ -47,7 +47,7 @@ ComputePipeline::~ComputePipeline()
   vkDestroyPipelineLayout(logicalDevice->getDevice(), computePipelineLayout, nullptr);
 }
 
-void ComputePipeline::compute(VkCommandBuffer &commandBuffer, uint32_t currentFrame)
+void ComputePipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -57,7 +57,7 @@ void ComputePipeline::compute(VkCommandBuffer &commandBuffer, uint32_t currentFr
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
 }
 
-void ComputePipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent)
+void ComputePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent) const
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
@@ -302,7 +302,7 @@ void ComputePipeline::createUniformBuffers()
   }
 }
 
-void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool, VkExtent2D& swapChainExtent)
+void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
 {
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -336,7 +336,7 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool, VkE
                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void *data;
+  void* data;
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0,
               &data);
   memcpy(data, particles.data(), bufferSize);

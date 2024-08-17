@@ -15,7 +15,8 @@ struct Particle {
   glm::vec2 velocity;
   glm::vec4 color;
 
-  static VkVertexInputBindingDescription getBindingDescription() {
+  static VkVertexInputBindingDescription getBindingDescription()
+  {
     VkVertexInputBindingDescription bindingDescription{};
     bindingDescription.binding = 0;
     bindingDescription.stride = sizeof(Particle);
@@ -24,7 +25,8 @@ struct Particle {
     return bindingDescription;
   }
 
-  static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+  static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions()
+  {
     std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
 
     attributeDescriptions[0].binding = 0;
@@ -49,13 +51,12 @@ constexpr int PARTICLE_COUNT = 8192;
 
 class ComputePipeline {
 public:
-  ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                  std::shared_ptr<LogicalDevice> logicalDevice,
-                  VkCommandPool& commandPool, VkRenderPass& renderPass, VkExtent2D& swapChainExtent);
+  ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+                  VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
   ~ComputePipeline();
 
-  void compute(VkCommandBuffer& commandBuffer, uint32_t currentFrame);
-  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent);
+  void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
+  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent) const;
 
   void updateUniformBuffer(uint32_t currentFrame) const;
 
@@ -65,7 +66,7 @@ private:
   void createGraphicsPipeline(VkRenderPass& renderPass);
 
   void createUniformBuffers();
-  void createShaderStorageBuffers(VkCommandPool& commandPool, VkExtent2D& swapChainExtent);
+  void createShaderStorageBuffers(VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 
   void createDescriptorPool();
   void createDescriptorSets();
