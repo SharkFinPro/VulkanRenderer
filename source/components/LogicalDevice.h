@@ -27,7 +27,7 @@ public:
   void resetGraphicsFences(uint32_t currentFrame) const;
   void resetComputeFences(uint32_t currentFrame) const;
 
-  VkResult queuePresent(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex);
+  VkResult queuePresent(uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex);
 
   VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex);
 

@@ -19,7 +19,7 @@ public:
 
   VkDescriptorSetLayout& getLayout();
 
-  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera);
+  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera);
 
   void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
 
