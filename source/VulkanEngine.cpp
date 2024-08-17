@@ -92,17 +92,17 @@ void VulkanEngine::initVulkan()
 
   logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
-  swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
-
-  renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getImageFormat(),
-                                            physicalDevice->getMsaaSamples());
-
   createCommandPool();
-  
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
-
   createCommandBuffers();
   createComputeCommandBuffers();
+
+  swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
+
+  renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
+                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples());
+
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
+
 
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         "assets/shaders/vert.spv",
@@ -114,7 +114,8 @@ void VulkanEngine::initVulkan()
                                               "assets/shaders/ui_frag.spv",
                                               swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
 
-  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(), swapChain->getExtent());
+  computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool,
+                                                      renderPass->getRenderPass(), swapChain->getExtent());
 }
 
 void VulkanEngine::createCommandPool()
@@ -143,7 +144,8 @@ void VulkanEngine::createCommandBuffers()
   allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
   if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo,
-                               commandBuffers.data()) != VK_SUCCESS) {
+                               commandBuffers.data()) != VK_SUCCESS)
+  {
     throw std::runtime_error("failed to allocate command buffers!");
   }
 }
