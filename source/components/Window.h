@@ -13,7 +13,7 @@ public:
 
   void update();
 
-  void getFramebufferSize(int* width, int* height);
+  void getFramebufferSize(int* width, int* height) const;
 
   VkSurfaceKHR& getSurface();
 

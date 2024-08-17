@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <backends/imgui_impl_glfw.h>
 
-Window::Window(int width, int height, const char* title, VkInstance& instance)
-  : scroll(0), instance(instance)
+Window::Window(const int width, const int height, const char* title, VkInstance& instance)
+  : instance(instance), scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -56,7 +56,7 @@ void Window::update()
   glfwGetCursorPos(window, &mouseX, &mouseY);
 }
 
-void Window::getFramebufferSize(int* width, int* height)
+void Window::getFramebufferSize(int* width, int* height) const
 {
   glfwGetFramebufferSize(window, width, height);
 }
@@ -74,12 +74,12 @@ VkSurfaceKHR& Window::getSurface()
   return surface;
 }
 
-bool Window::keyDown(int key) const
+bool Window::keyDown(const int key) const
 {
   return glfwGetKey(window, key) == GLFW_PRESS;
 }
 
-bool Window::buttonDown(int button) const
+bool Window::buttonDown(const int button) const
 {
   return glfwGetMouseButton(window, button) == GLFW_PRESS;
 }
@@ -106,14 +106,14 @@ double Window::getScroll() const
   return scroll;
 }
 
-void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, double yoffset)
+void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, const double yoffset)
 {
-  auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
   app->scroll = yoffset;
 }
 
 void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
 {
-  auto app = reinterpret_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
+  const auto app = static_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
   app->framebufferResized = true;
 }

@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
-#include <vector>
 
 class RenderPass;
 
@@ -14,7 +13,7 @@ public:
               VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
   ~GuiPipeline();
 
-  void render(VkCommandBuffer& commandBuffer);
+  void render(const VkCommandBuffer& commandBuffer) const;
 
   VkDescriptorPool& getPool();
 

@@ -8,8 +8,7 @@ DebugMessenger::DebugMessenger(VkInstance& instance)
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
   populateCreateInfo(debugCreateInfo);
 
-  auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
-  if (func != nullptr)
+  if (const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT")); func != nullptr)
   {
     result = func(instance, &debugCreateInfo, nullptr, &debugMessenger);
   }
@@ -26,15 +25,14 @@ DebugMessenger::DebugMessenger(VkInstance& instance)
 
 DebugMessenger::~DebugMessenger()
 {
-  auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
-  if (func != nullptr)
+  if (const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT")); func != nullptr)
   {
     func(instance, debugMessenger, nullptr);
   }
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(
-  VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+  const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
   [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
   [[maybe_unused]] void* pUserData)
@@ -53,21 +51,24 @@ void DebugMessenger::populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& crea
   createInfo.pfnUserCallback = debugCallback;
 }
 
-const char* DebugMessenger::readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
+const char* DebugMessenger::readMessageSeverity(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
 {
   if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
   {
     return "verbose";
   }
-  else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+
+  if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
   {
     return "info";
   }
-  else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+
+  if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
   {
     return "warning";
   }
-  else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+
+  if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
   {
     return "error";
   }

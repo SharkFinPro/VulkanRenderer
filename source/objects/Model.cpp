@@ -7,7 +7,7 @@
 
 #include "../pipelines/Vertex.h"
 
-Model::Model(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue,
+Model::Model(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue,
              const char* path)
   : device(device), physicalDevice(physicalDevice)
 {
@@ -40,7 +40,7 @@ void Model::loadModel(const char* path)
   }
 
   // Read mesh data
-  aiMesh *mesh = scene->mMeshes[0];
+  const aiMesh* mesh = scene->mMeshes[0];
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
   {
@@ -68,7 +68,7 @@ void Model::loadModel(const char* path)
 
   for (unsigned int i = 0; i < mesh->mNumFaces; i++)
   {
-    aiFace face = mesh->mFaces[i];
+    const aiFace face = mesh->mFaces[i];
     for (unsigned int j = 0; j < face.mNumIndices; j++)
     {
       indices.push_back(face.mIndices[j]);
@@ -76,9 +76,9 @@ void Model::loadModel(const char* path)
   }
 }
 
-void Model::createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue)
+void Model::createVertexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue)
 {
-  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+  const VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -86,7 +86,7 @@ void Model::createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueu
 
   void* data;
   vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, vertices.data(), (size_t) bufferSize);
+  memcpy(data, vertices.data(), bufferSize);
   vkUnmapMemory(device, stagingBufferMemory);
 
   Buffers::createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
@@ -97,9 +97,9 @@ void Model::createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueu
   vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void Model::createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue)
+void Model::createIndexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue)
 {
-  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+  const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -108,7 +108,7 @@ void Model::createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue
 
   void* data;
   vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, indices.data(), (size_t) bufferSize);
+  memcpy(data, indices.data(), bufferSize);
   vkUnmapMemory(device, stagingBufferMemory);
 
   Buffers::createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
@@ -119,15 +119,15 @@ void Model::createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue
   vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void Model::bind(VkCommandBuffer& commandBuffer)
+void Model::bind(const VkCommandBuffer& commandBuffer) const
 {
-  VkDeviceSize offsets[] = {0};
+  constexpr VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
 
   vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void Model::draw(VkCommandBuffer& commandBuffer)
+void Model::draw(const VkCommandBuffer& commandBuffer) const
 {
   bind(commandBuffer);
 

@@ -11,7 +11,7 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                  std::shared_ptr<LogicalDevice> logicalDevice,
-                                 VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent)
+                                 const VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   createComputePipeline();
@@ -82,7 +82,7 @@ void ComputePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 }
 
-void ComputePipeline::updateUniformBuffer(uint32_t currentFrame) const
+void ComputePipeline::updateUniformBuffer(const uint32_t currentFrame) const
 {
   UniformBufferObject ubo{};
   ubo.deltaTime = lastFrameTime * 2.0f;
@@ -90,8 +90,9 @@ void ComputePipeline::updateUniformBuffer(uint32_t currentFrame) const
   memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
 }
 
-void ComputePipeline::createComputePipeline() {
-  ShaderModule computeShaderModule{logicalDevice->getDevice(),
+void ComputePipeline::createComputePipeline()
+{
+  const ShaderModule computeShaderModule{logicalDevice->getDevice(),
                                    "assets/shaders/compute.comp.spv",
                                    VK_SHADER_STAGE_COMPUTE_BIT};
 
@@ -283,26 +284,24 @@ void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
 
 void ComputePipeline::createUniformBuffers()
 {
-  VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
   uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
   uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
+    constexpr VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
     Buffers::createBuffer(logicalDevice->getDevice(),
-                          physicalDevice->getPhysicalDevice(), bufferSize,
-                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                              VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                          physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                           uniformBuffers[i], uniformBuffersMemory[i]);
 
     vkMapMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
   }
 }
 
-void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
+void ComputePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
 {
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -383,7 +382,7 @@ void ComputePipeline::createDescriptorPool()
 
 void ComputePipeline::createDescriptorSets()
 {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   allocateInfo.descriptorPool = computeDescriptorPool;

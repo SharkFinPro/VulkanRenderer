@@ -35,20 +35,20 @@ public:
   VkPhysicalDevice& getPhysicalDevice();
   QueueFamilyIndices& getQueueFamilies();
   SwapChainSupportDetails& getSwapChainSupport();
-  VkSampleCountFlagBits getMsaaSamples();
+  [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
 
 private:
   void pickPhysicalDevice();
 
-  bool isDeviceSuitable(VkPhysicalDevice device);
+  bool isDeviceSuitable(VkPhysicalDevice device) const;
 
-  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
 
-  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+  static bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
-  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) const;
 
-  VkSampleCountFlagBits getMaxUsableSampleCount();
+  [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;
 
 private:
   VkPhysicalDevice physicalDevice;

@@ -2,7 +2,7 @@
 #include <cstring>
 #include "../utilities/Buffers.h"
 
-UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, uint32_t MAX_FRAMES_IN_FLIGHT, VkDeviceSize bufferSize)
+UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, const uint32_t MAX_FRAMES_IN_FLIGHT, const VkDeviceSize bufferSize)
   : device(device), physicalDevice(physicalDevice), MAX_FRAMES_IN_FLIGHT(MAX_FRAMES_IN_FLIGHT)
 {
   uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -40,7 +40,7 @@ VkDescriptorPoolSize UniformBuffer::getDescriptorPoolSize() const
   return poolSize;
 }
 
-VkWriteDescriptorSet UniformBuffer::getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet, size_t frame) const
+VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet, const size_t frame) const
 {
   VkWriteDescriptorSet uniformDescriptorSet{};
   uniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -54,7 +54,7 @@ VkWriteDescriptorSet UniformBuffer::getDescriptorSet(uint32_t binding, VkDescrip
   return uniformDescriptorSet;
 }
 
-void UniformBuffer::update(uint32_t frame, void* data, size_t size)
+void UniformBuffer::update(const uint32_t frame, const void* data, const size_t size) const
 {
   memcpy(uniformBuffersMapped[frame], data, size);
 }

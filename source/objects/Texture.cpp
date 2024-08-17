@@ -8,7 +8,7 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
-Texture::Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path)
+Texture::Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path)
   : device(device), physicalDevice(physicalDevice)
 {
   createTextureImage(commandPool, graphicsQueue, path);
@@ -31,7 +31,7 @@ Texture::~Texture()
   vkFreeMemory(device, textureImageMemory, nullptr);
 }
 
-VkDescriptorPoolSize Texture::getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT) const
+VkDescriptorPoolSize Texture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
 {
   VkDescriptorPoolSize poolSize{};
   poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -40,7 +40,7 @@ VkDescriptorPoolSize Texture::getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGH
   return poolSize;
 }
 
-VkWriteDescriptorSet Texture::getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet) const
+VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet) const
 {
   VkWriteDescriptorSet descriptorSet{};
   descriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -54,7 +54,7 @@ VkWriteDescriptorSet Texture::getDescriptorSet(uint32_t binding, VkDescriptorSet
   return descriptorSet;
 }
 
-void Texture::createTextureImage(VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path)
+void Texture::createTextureImage(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path)
 {
   int texWidth, texHeight, texChannels;
 
@@ -66,7 +66,7 @@ void Texture::createTextureImage(VkCommandPool& commandPool, VkQueue& graphicsQu
 
   mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
-  VkDeviceSize imageSize = texWidth * texHeight * 4;
+  const VkDeviceSize imageSize = texWidth * texHeight * 4;
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -74,7 +74,7 @@ void Texture::createTextureImage(VkCommandPool& commandPool, VkQueue& graphicsQu
 
   void* data;
   vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-  memcpy(data, pixels, static_cast<size_t>(imageSize));
+  memcpy(data, pixels, imageSize);
   vkUnmapMemory(device, stagingBufferMemory);
 
   stbi_image_free(pixels);
@@ -93,8 +93,8 @@ void Texture::createTextureImage(VkCommandPool& commandPool, VkQueue& graphicsQu
   generateMipmaps(commandPool, graphicsQueue, textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
 }
 
-void Texture::generateMipmaps(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkImage image, VkFormat imageFormat,
-                              int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
+void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const VkImage image, VkFormat imageFormat,
+                              const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
   VkFormatProperties formatProperties;
   vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
@@ -104,7 +104,7 @@ void Texture::generateMipmaps(VkCommandPool& commandPool, VkQueue& graphicsQueue
     throw std::runtime_error("texture image format does not support linear blitting!");
   }
 
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

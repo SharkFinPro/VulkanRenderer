@@ -9,7 +9,7 @@ public:
   ShaderModule(VkDevice& device, const char* filename, VkShaderStageFlagBits stage);
   ~ShaderModule();
 
-  VkPipelineShaderStageCreateInfo getShaderStageCreateInfo();
+  [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
 
 private:
   static std::vector<char> readFile(const char* filename);

@@ -2,7 +2,6 @@
 #define VULKANPROJECT_MODEL_H
 
 #include <vulkan/vulkan.h>
-#include <array>
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -10,19 +9,19 @@ class Vertex;
 
 class Model {
 public:
-  Model(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue,
+  Model(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue,
         const char* path);
   ~Model();
 
-  void draw(VkCommandBuffer& commandBuffer);
+  void draw(const VkCommandBuffer& commandBuffer) const;
 
 private:
 
   void loadModel(const char* path);
-  void createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue);
-  void createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue);
+  void createVertexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue);
+  void createIndexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue);
 
-  void bind(VkCommandBuffer& commandBuffer);
+  void bind(const VkCommandBuffer& commandBuffer) const;
 
 private:
   VkDevice& device;

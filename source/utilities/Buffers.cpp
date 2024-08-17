@@ -1,8 +1,8 @@
 #include "Buffers.h"
 #include <stdexcept>
 
-uint32_t Buffers::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter,
-                                 VkMemoryPropertyFlags properties)
+uint32_t Buffers::findMemoryType(const VkPhysicalDevice& physicalDevice, const uint32_t typeFilter,
+                                 const VkMemoryPropertyFlags properties)
 {
   VkPhysicalDeviceMemoryProperties memoryProperties;
   vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
@@ -18,8 +18,8 @@ uint32_t Buffers::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t type
   throw std::runtime_error("failed to find suitable memory type!");
 }
 
-void Buffers::createBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, VkDeviceSize size,
-                           VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+void Buffers::createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, const VkDeviceSize size,
+                           const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, VkBuffer& buffer,
                            VkDeviceMemory& bufferMemory)
 {
   VkBufferCreateInfo bufferInfo{};
@@ -49,10 +49,10 @@ void Buffers::createBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, V
   vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
 
-void Buffers::copyBuffer(VkDevice& device, VkCommandPool& commandPool, VkQueue& queue, VkBuffer srcBuffer,
-                         VkBuffer dstBuffer, VkDeviceSize size)
+void Buffers::copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue, const VkBuffer srcBuffer,
+                         const VkBuffer dstBuffer, const VkDeviceSize size)
 {
-  VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
   VkBufferCopy copyRegion{};
   copyRegion.size = size;
@@ -61,7 +61,7 @@ void Buffers::copyBuffer(VkDevice& device, VkCommandPool& commandPool, VkQueue& 
   endSingleTimeCommands(device, commandPool, queue, commandBuffer);
 }
 
-VkCommandBuffer Buffers::beginSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool)
+VkCommandBuffer Buffers::beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool)
 {
   VkCommandBufferAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -81,8 +81,8 @@ VkCommandBuffer Buffers::beginSingleTimeCommands(VkDevice& device, VkCommandPool
   return commandBuffer;
 }
 
-void Buffers::endSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool, VkQueue& queue,
-                                    VkCommandBuffer commandBuffer)
+void Buffers::endSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
+                                    const VkCommandBuffer commandBuffer)
 {
   vkEndCommandBuffer(commandBuffer);
 

@@ -29,7 +29,7 @@ SwapChainSupportDetails& PhysicalDevice::getSwapChainSupport()
   return swapChainSupportDetails;
 }
 
-VkSampleCountFlagBits PhysicalDevice::getMsaaSamples()
+VkSampleCountFlagBits PhysicalDevice::getMsaaSamples() const
 {
   return msaaSamples;
 }
@@ -63,7 +63,7 @@ void PhysicalDevice::pickPhysicalDevice()
   }
 }
 
-bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device)
+bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device) const
 {
   QueueFamilyIndices indices = findQueueFamilies(device);
 
@@ -82,7 +82,7 @@ bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device)
   return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkPhysicalDevice device) const
 {
   QueueFamilyIndices indices;
 
@@ -124,7 +124,7 @@ QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalDevice device)
   return indices;
 }
 
-bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
+bool PhysicalDevice::checkDeviceExtensionSupport(const VkPhysicalDevice device)
 {
   uint32_t extensionCount;
   vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -142,7 +142,7 @@ bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
   return requiredExtensions.empty();
 }
 
-SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(VkPhysicalDevice device)
+SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const VkPhysicalDevice device) const
 {
   SwapChainSupportDetails details;
 
@@ -169,13 +169,13 @@ SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(VkPhysicalDevice d
   return details;
 }
 
-VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount()
+VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount() const
 {
   VkPhysicalDeviceProperties physicalDeviceProperties;
   vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-  VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
-                              physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+  const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                    physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
   if (counts & VK_SAMPLE_COUNT_64_BIT)
   {

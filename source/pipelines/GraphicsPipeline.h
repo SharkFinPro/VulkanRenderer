@@ -19,9 +19,9 @@ public:
 
   VkDescriptorSetLayout& getLayout();
 
-  void render(VkCommandBuffer& commandBuffer, uint32_t currentFrame, std::shared_ptr<Camera> camera);
+  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera);
 
-  void insertRenderObject(std::shared_ptr<RenderObject>& renderObject);
+  void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
 
 private:
   void createGraphicsPipeline(const char* vertexShader, const char* fragmentShader, VkSampleCountFlagBits msaaSamples,

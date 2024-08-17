@@ -12,11 +12,11 @@
 
 #include <imgui.h>
 
-const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
+constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 GraphicsPipeline::GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
                                    const char* fragmentShader, VkExtent2D& swapChainExtent,
-                                   VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
+                                   const VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
   : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent),
     lightUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform))),
     cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform))),
@@ -49,7 +49,7 @@ VkDescriptorSetLayout& GraphicsPipeline::getLayout()
   return objectDescriptorSetLayout;
 }
 
-void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame,std::shared_ptr<Camera> camera)
+void GraphicsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const std::shared_ptr<Camera>& camera)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
@@ -89,7 +89,7 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFr
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-  for (auto& object : renderObjects)
+  for (const auto& object : renderObjects)
   {
     object->updateUniformBuffer(currentFrame, swapChainExtent, camera);
 
@@ -97,7 +97,7 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFr
   }
 }
 
-void GraphicsPipeline::insertRenderObject(std::shared_ptr<RenderObject>& renderObject)
+void GraphicsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& renderObject)
 {
   renderObjects.push_back(renderObject);
 }
@@ -244,7 +244,7 @@ void GraphicsPipeline::createDescriptorSetLayout()
   cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   cameraLayout.pImmutableSamplers = nullptr;
 
-  std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
+  const std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
 
   VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo{};
   globalLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -278,7 +278,7 @@ void GraphicsPipeline::createDescriptorSetLayout()
   specularLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 
-  std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {transformLayout, textureLayout, specularLayout};
+  const std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {transformLayout, textureLayout, specularLayout};
 
   VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo{};
   objectLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -311,7 +311,7 @@ void GraphicsPipeline::createDescriptorPool()
 
 void GraphicsPipeline::createDescriptorSets()
 {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   allocateInfo.descriptorPool = descriptorPool;
@@ -330,7 +330,7 @@ void GraphicsPipeline::createDescriptorSets()
     descriptorWrites[0] = lightUniform->getDescriptorSet(2, descriptorSets[i], i);
     descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
 
-    vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),
+                           0, nullptr);
   }
 }

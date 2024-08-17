@@ -14,7 +14,7 @@
 #include "../pipelines/RenderPass.h"
 #include "../pipelines/GuiPipeline.h"
 
-ImGuiInstance::ImGuiInstance(VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
+ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
                              const std::unique_ptr<Instance>& instance,
                              const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -46,7 +46,7 @@ ImGuiInstance::ImGuiInstance(VkCommandPool& commandPool, const std::shared_ptr<W
 
   ImGui_ImplVulkan_Init(&init_info);
 
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
   ImGui_ImplVulkan_CreateFontsTexture();
   Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 

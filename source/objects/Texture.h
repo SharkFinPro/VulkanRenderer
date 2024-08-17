@@ -5,18 +5,18 @@
 
 class Texture {
 public:
-  Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path);
+  Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path);
   ~Texture();
 
-  [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT) const;
+  [[nodiscard]] static VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT);
 
-  [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet) const;
+  [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
 
 private:
-  void createTextureImage(VkCommandPool& commandPool, VkQueue& graphicsQueue, const char* path);
+  void createTextureImage(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path);
 
-  void generateMipmaps(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkImage image, VkFormat imageFormat,
-                       int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+  void generateMipmaps(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, VkImage image, VkFormat imageFormat,
+                       int32_t texWidth, int32_t texHeight, uint32_t mipLevels) const;
 
   void createTextureSampler();
 

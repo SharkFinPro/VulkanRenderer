@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <chrono>
 #include <utility>
+#include <array>
 #include "glm/gtc/matrix_transform.hpp"
 #include "../components/Camera.h"
 
@@ -11,10 +12,10 @@
 
 #include "../pipelines/Uniforms.h"
 
-const int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
+constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
-                           VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
+                           const VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)
   : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)), position(0, 0, 0),
@@ -29,14 +30,14 @@ RenderObject::~RenderObject()
   vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
-void RenderObject::draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipelineLayout, uint32_t currentFrame)
+void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t currentFrame) const
 {
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   model->draw(commandBuffer);
 }
 
-void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent, std::shared_ptr<Camera>& camera)
+void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const
 {
   TransformUniform transformUBO{};
 
@@ -52,8 +53,8 @@ void RenderObject::createDescriptorPool()
 {
   std::array<VkDescriptorPoolSize, 3> poolSizes{};
   poolSizes[0] = transformUniform->getDescriptorPoolSize();
-  poolSizes[1] = texture->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
-  poolSizes[2] = specularMap->getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
+  poolSizes[1] = Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
+  poolSizes[2] = Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -69,7 +70,7 @@ void RenderObject::createDescriptorPool()
 
 void RenderObject::createDescriptorSets()
 {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   allocateInfo.descriptorPool = descriptorPool;
@@ -89,8 +90,8 @@ void RenderObject::createDescriptorSets()
     descriptorWrites[1] = texture->getDescriptorSet(1, descriptorSets[i]);
     descriptorWrites[2] = specularMap->getDescriptorSet(4, descriptorSets[i]);
 
-    vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),
+                           0, nullptr);
   }
 }
 

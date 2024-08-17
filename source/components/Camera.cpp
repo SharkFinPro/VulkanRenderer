@@ -2,9 +2,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
-const glm::vec3 UP = glm::vec3(0.0f, 1.0f, 0.0f);
+constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
-Camera::Camera(glm::vec3 pos)
+Camera::Camera(const glm::vec3 pos)
   : position(pos), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0)
 {}
 
@@ -35,8 +35,8 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     window->getCursorPos(mx, my);
     window->getPreviousCursorPos(omx, omy);
 
-    auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
-    auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
+    const auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
+    const auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
 
     yaw += deltaMX;
     pitch -= deltaMY;

@@ -6,9 +6,9 @@
 #include <GLFW/glfw3.h>
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = true;
 #endif
 
 Instance::Instance()
@@ -30,7 +30,7 @@ Instance::Instance()
   createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   createInfo.pApplicationInfo = &appInfo;
 
-  auto extensions = getRequiredExtensions();
+  const auto extensions = getRequiredExtensions();
   createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
   createInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -42,7 +42,7 @@ Instance::Instance()
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
     DebugMessenger::populateCreateInfo(debugCreateInfo);
 
-    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+    createInfo.pNext = &debugCreateInfo;
   }
   else
   {
