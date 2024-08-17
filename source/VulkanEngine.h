@@ -48,7 +48,7 @@ private:
   void createCommandBuffers();
   void createComputeCommandBuffers();
   void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
-  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
+  void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void doComputing() const;
   void doRendering();
   void recreateSwapChain();
