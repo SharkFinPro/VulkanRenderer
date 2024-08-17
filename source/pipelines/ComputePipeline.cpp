@@ -59,6 +59,8 @@ void ComputePipeline::compute(const VkCommandBuffer& commandBuffer, const uint32
 
 void ComputePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent) const
 {
+  updateUniformBuffer(currentFrame);
+
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
   VkViewport viewport{};

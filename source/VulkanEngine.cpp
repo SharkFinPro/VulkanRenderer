@@ -43,7 +43,8 @@ void VulkanEngine::render()
 
   camera->processInput(window);
 
-  drawFrame();
+  doComputing();
+  doRendering();
 }
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
@@ -212,12 +213,9 @@ void VulkanEngine::recordCommandBuffer(const VkCommandBuffer commandBuffer, cons
   }
 }
 
-void VulkanEngine::drawFrame()
+void VulkanEngine::doComputing() const
 {
-  // Compute
   logicalDevice->waitForComputeFences(currentFrame);
-
-  computePipeline->updateUniformBuffer(currentFrame);
 
   logicalDevice->resetComputeFences(currentFrame);
 
@@ -225,8 +223,10 @@ void VulkanEngine::drawFrame()
   recordComputeCommandBuffer(computeCommandBuffers[currentFrame]);
 
   logicalDevice->submitComputeQueue(currentFrame, &computeCommandBuffers[currentFrame]);
+}
 
-  // Graphics
+void VulkanEngine::doRendering()
+{
   logicalDevice->waitForGraphicsFences(currentFrame);
 
   uint32_t imageIndex;

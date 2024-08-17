@@ -49,7 +49,8 @@ private:
   void createComputeCommandBuffers();
   void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const;
-  void drawFrame();
+  void doComputing() const;
+  void doRendering();
   void recreateSwapChain();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);

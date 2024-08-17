@@ -58,9 +58,9 @@ public:
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent) const;
 
+private:
   void updateUniformBuffer(uint32_t currentFrame) const;
 
-private:
   void createComputePipeline();
 
   void createGraphicsPipeline(VkRenderPass& renderPass);
