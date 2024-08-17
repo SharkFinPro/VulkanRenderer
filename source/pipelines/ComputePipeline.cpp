@@ -3,7 +3,6 @@
 #include "../utilities/Buffers.h"
 
 #include <cmath>
-#include <corecrt_math_defines.h>
 #include <stdexcept>
 #include <random>
 #include <cstring>
@@ -315,7 +314,7 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool, VkE
   for (auto& particle : particles)
   {
     const float r = 0.25f * sqrt(distribution(randomEngine));
-    const float theta = distribution(randomEngine) * 2 * M_PI;
+    const float theta = distribution(randomEngine) * 2 * 3.14159265358979323846;
     const float x = r * std::cos(theta) * swapChainExtent.height / swapChainExtent.width;
     const float y = r * std::sin(theta);
     particle.position = glm::vec2(x, y);
