@@ -2,7 +2,6 @@
 #define VULKANPROJECT_VULKANENGINE_H
 
 #include <vector>
-#include <string>
 #include <memory>
 #include <vulkan/vulkan.h>
 

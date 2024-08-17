@@ -2,7 +2,6 @@
 #define VULKANPROJECT_MODEL_H
 
 #include <vulkan/vulkan.h>
-#include <array>
 #include <vector>
 #include <glm/glm.hpp>
 
