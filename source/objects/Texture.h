@@ -16,7 +16,7 @@ private:
   void createTextureImage(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path);
 
   void generateMipmaps(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, VkImage image, VkFormat imageFormat,
-                       int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+                       int32_t texWidth, int32_t texHeight, uint32_t mipLevels) const;
 
   void createTextureSampler();
 

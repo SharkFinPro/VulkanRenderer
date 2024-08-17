@@ -14,7 +14,7 @@ public:
               VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
   ~GuiPipeline();
 
-  void render(const VkCommandBuffer& commandBuffer);
+  void render(const VkCommandBuffer& commandBuffer) const;
 
   VkDescriptorPool& getPool();
 

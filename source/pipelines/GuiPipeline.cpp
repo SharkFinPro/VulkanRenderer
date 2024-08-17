@@ -31,7 +31,7 @@ GuiPipeline::~GuiPipeline()
   vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 }
 
-void GuiPipeline::render(const VkCommandBuffer& commandBuffer)
+void GuiPipeline::render(const VkCommandBuffer& commandBuffer) const
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
