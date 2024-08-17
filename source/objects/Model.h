@@ -3,14 +3,17 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <glm/glm.hpp>
+
+#include <memory>
+#include "../components/PhysicalDevice.h"
+#include "../components/LogicalDevice.h"
 
 class Vertex;
 
 class Model {
 public:
-  Model(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue,
-        const char* path);
+  Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+        const VkCommandPool& commandPool, const char* path);
   ~Model();
 
   void draw(const VkCommandBuffer& commandBuffer) const;
@@ -18,14 +21,14 @@ public:
 private:
 
   void loadModel(const char* path);
-  void createVertexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue);
-  void createIndexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue);
+  void createVertexBuffer(const VkCommandPool& commandPool);
+  void createIndexBuffer(const VkCommandPool& commandPool);
 
   void bind(const VkCommandBuffer& commandBuffer) const;
 
 private:
-  VkDevice& device;
-  VkPhysicalDevice& physicalDevice;
+  std::shared_ptr<PhysicalDevice> physicalDevice;
+  std::shared_ptr<LogicalDevice> logicalDevice;
 
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;

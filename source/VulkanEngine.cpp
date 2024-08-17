@@ -58,8 +58,7 @@ std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 
 std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
 {
-  auto model = std::make_shared<Model>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                       commandPool, logicalDevice->getGraphicsQueue(), path);
+  auto model = std::make_shared<Model>(physicalDevice, logicalDevice, commandPool, path);
   models.push_back(model);
 
   return model;
