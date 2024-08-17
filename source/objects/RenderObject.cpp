@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <chrono>
 #include <utility>
+#include <array>
 #include "glm/gtc/matrix_transform.hpp"
 #include "../components/Camera.h"
 
