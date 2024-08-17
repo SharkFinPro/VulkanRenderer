@@ -35,8 +35,8 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     window->getCursorPos(mx, my);
     window->getPreviousCursorPos(omx, omy);
 
-    auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
-    auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
+    const auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
+    const auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
 
     yaw += deltaMX;
     pitch -= deltaMY;

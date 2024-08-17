@@ -383,7 +383,7 @@ void ComputePipeline::createDescriptorPool()
 
 void ComputePipeline::createDescriptorSets()
 {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   allocateInfo.descriptorPool = computeDescriptorPool;

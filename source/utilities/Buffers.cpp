@@ -52,7 +52,7 @@ void Buffers::createBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, V
 void Buffers::copyBuffer(VkDevice& device, VkCommandPool& commandPool, VkQueue& queue, VkBuffer srcBuffer,
                          VkBuffer dstBuffer, VkDeviceSize size)
 {
-  VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
   VkBufferCopy copyRegion{};
   copyRegion.size = size;

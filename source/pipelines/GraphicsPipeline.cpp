@@ -89,7 +89,7 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFr
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-  for (auto& object : renderObjects)
+  for (const auto& object : renderObjects)
   {
     object->updateUniformBuffer(currentFrame, swapChainExtent, camera);
 
@@ -244,7 +244,7 @@ void GraphicsPipeline::createDescriptorSetLayout()
   cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   cameraLayout.pImmutableSamplers = nullptr;
 
-  std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
+  const std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
 
   VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo{};
   globalLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -278,7 +278,7 @@ void GraphicsPipeline::createDescriptorSetLayout()
   specularLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 
-  std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {transformLayout, textureLayout, specularLayout};
+  const std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {transformLayout, textureLayout, specularLayout};
 
   VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo{};
   objectLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -311,7 +311,7 @@ void GraphicsPipeline::createDescriptorPool()
 
 void GraphicsPipeline::createDescriptorSets()
 {
-  std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
   allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   allocateInfo.descriptorPool = descriptorPool;

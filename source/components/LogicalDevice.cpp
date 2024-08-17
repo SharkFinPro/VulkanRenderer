@@ -151,7 +151,7 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* 
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-  std::array<VkSemaphore, 2> waitSemaphores = {
+  const std::array<VkSemaphore, 2> waitSemaphores = {
     computeFinishedSemaphores[currentFrame],
     imageAvailableSemaphores[currentFrame]
   };
@@ -216,13 +216,11 @@ VkResult LogicalDevice::queuePresent(uint32_t currentFrame, VkSwapchainKHR& swap
   VkPresentInfoKHR presentInfo{};
   presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
   presentInfo.waitSemaphoreCount = 1;
-  presentInfo.pWaitSemaphores = signalSemaphores;
+  presentInfo.pWaitSemaphores = &renderFinishedSemaphores[currentFrame];
 
-  VkSwapchainKHR swapChains[] = {swapchain};
   presentInfo.swapchainCount = 1;
-  presentInfo.pSwapchains = swapChains;
+  presentInfo.pSwapchains = &swapchain;
   presentInfo.pImageIndices = imageIndex;
 
   presentInfo.pResults = nullptr;

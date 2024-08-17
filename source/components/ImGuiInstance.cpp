@@ -46,7 +46,7 @@ ImGuiInstance::ImGuiInstance(VkCommandPool& commandPool, const std::shared_ptr<W
 
   ImGui_ImplVulkan_Init(&init_info);
 
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
   ImGui_ImplVulkan_CreateFontsTexture();
   Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 

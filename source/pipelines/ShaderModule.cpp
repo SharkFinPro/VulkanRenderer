@@ -32,7 +32,7 @@ std::vector<char> ShaderModule::readFile(const char* filename)
     throw std::runtime_error("failed to open file!");
   }
 
-  size_t fileSize = (size_t) file.tellg();
+  const size_t fileSize = file.tellg();
   std::vector<char> buffer(fileSize);
 
   file.seekg(0);
@@ -45,7 +45,7 @@ std::vector<char> ShaderModule::readFile(const char* filename)
 
 void ShaderModule::createShaderModule(const char* file)
 {
-  auto code = readFile(file);
+  const auto code = readFile(file);
 
   VkShaderModuleCreateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

@@ -16,7 +16,7 @@ SwapChain::SwapChain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
 
 SwapChain::~SwapChain()
 {
-  for (auto imageView : swapChainImageViews)
+  for (const auto imageView : swapChainImageViews)
   {
     vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
   }
@@ -75,7 +75,7 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
 
 uint32_t SwapChain::chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities)
 {
-  uint32_t imageCount = capabilities.minImageCount + 1;
+  const uint32_t imageCount = capabilities.minImageCount + 1;
 
   const bool imageCountExceeded = capabilities.maxImageCount && imageCount > capabilities.maxImageCount;
 
@@ -87,8 +87,8 @@ void SwapChain::createSwapChain()
   SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
 
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-  VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-  VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+  const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+  const VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
   uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
   VkSwapchainCreateInfoKHR createInfo{};
@@ -103,7 +103,7 @@ void SwapChain::createSwapChain()
   createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
   auto indices = physicalDevice->getQueueFamilies();
-  uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+  const uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
   if (indices.graphicsFamily != indices.presentFamily)
   {

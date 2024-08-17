@@ -48,7 +48,7 @@ void Images::createImage(VkDevice& device, VkPhysicalDevice& physicalDevice, uin
 void Images::transitionImageLayout(VkDevice& device, VkCommandPool& commandPool, VkQueue& graphicsQueue, VkImage image,
                                    VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
 {
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
 
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -123,7 +123,7 @@ void Images::transitionImageLayout(VkDevice& device, VkCommandPool& commandPool,
 void Images::copyBufferToImage(VkDevice& device, VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer buffer,
                                VkImage image, uint32_t width, uint32_t height)
 {
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
 
   VkBufferImageCopy region{};
   region.bufferOffset = 0;

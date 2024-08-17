@@ -174,8 +174,8 @@ VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount()
   VkPhysicalDeviceProperties physicalDeviceProperties;
   vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-  VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
-                              physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+  const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                    physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
   if (counts & VK_SAMPLE_COUNT_64_BIT)
   {

@@ -26,7 +26,7 @@ Framebuffer::~Framebuffer()
   vkDestroyImage(logicalDevice->getDevice(), depthImage, nullptr);
   vkFreeMemory(logicalDevice->getDevice(), depthImageMemory, nullptr);
 
-  for (auto framebuffer : framebuffers)
+  for (const auto framebuffer : framebuffers)
   {
     vkDestroyFramebuffer(logicalDevice->getDevice(), framebuffer, nullptr);
   }
@@ -52,7 +52,7 @@ void Framebuffer::createDepthResources(VkCommandPool& commandPool, VkFormat dept
 
 void Framebuffer::createColorResources()
 {
-  VkFormat colorFormat = swapChain->getImageFormat();
+  const VkFormat colorFormat = swapChain->getImageFormat();
 
   Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getExtent().width, swapChain->getExtent().height,
                       1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
@@ -64,7 +64,7 @@ void Framebuffer::createColorResources()
 
 void Framebuffer::createFrameBuffers(VkRenderPass& renderPass)
 {
-  auto swapChainImageViews = swapChain->getImageViews();
+  const auto swapChainImageViews = swapChain->getImageViews();
 
   framebuffers.resize(swapChainImageViews.size());
 

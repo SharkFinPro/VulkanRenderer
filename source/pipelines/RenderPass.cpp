@@ -98,7 +98,7 @@ void RenderPass::createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFl
 VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
                                           VkFormatFeatureFlags features)
 {
-  for (auto format : candidates)
+  for (const auto format : candidates)
   {
     VkFormatProperties props;
     vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);

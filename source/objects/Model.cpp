@@ -40,7 +40,7 @@ void Model::loadModel(const char* path)
   }
 
   // Read mesh data
-  aiMesh *mesh = scene->mMeshes[0];
+  const aiMesh* mesh = scene->mMeshes[0];
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
   {
@@ -68,7 +68,7 @@ void Model::loadModel(const char* path)
 
   for (unsigned int i = 0; i < mesh->mNumFaces; i++)
   {
-    aiFace face = mesh->mFaces[i];
+    const aiFace face = mesh->mFaces[i];
     for (unsigned int j = 0; j < face.mNumIndices; j++)
     {
       indices.push_back(face.mIndices[j]);
@@ -78,7 +78,7 @@ void Model::loadModel(const char* path)
 
 void Model::createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue)
 {
-  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+  const VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -99,7 +99,7 @@ void Model::createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueu
 
 void Model::createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue)
 {
-  VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+  const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -121,7 +121,7 @@ void Model::createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue
 
 void Model::bind(VkCommandBuffer& commandBuffer)
 {
-  VkDeviceSize offsets[] = {0};
+  constexpr VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
 
   vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
