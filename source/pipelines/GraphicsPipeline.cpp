@@ -1,13 +1,11 @@
 #include "GraphicsPipeline.h"
 
-GraphicsPipeline::GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                                   std::shared_ptr<LogicalDevice> logicalDevice, const VkRenderPass& renderPass)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
-{
-  createPipelineLayout();
+#include "ShaderModule.h"
 
-  createPipeline(renderPass);
-}
+GraphicsPipeline::GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
+                                   std::shared_ptr<LogicalDevice> logicalDevice)
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+{}
 
 GraphicsPipeline::~GraphicsPipeline()
 {
@@ -32,6 +30,8 @@ void GraphicsPipeline::createPipelineLayout()
 
 void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
 {
+  createPipelineLayout();
+
   const auto colorBlendState = defineColorBlendState();
   const auto depthStencilState = defineDepthStencilState();
   const auto dynamicState = defineDynamicState();
@@ -41,6 +41,12 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
   const auto tessellationState = defineTessellationState();
   const auto vertexInputState = defineVertexInputState();
   const auto viewportState = defineViewportState();
+
+  const ShaderModule vertexShaderModule{logicalDevice->getDevice(), "assets/shaders/ui_vert.spv", VK_SHADER_STAGE_VERTEX_BIT};
+  const ShaderModule fragmentShaderModule{logicalDevice->getDevice(), "assets/shaders/ui_frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT};
+
+  shaderStages.push_back(vertexShaderModule.getShaderStageCreateInfo());
+  shaderStages.push_back(fragmentShaderModule.getShaderStageCreateInfo());
 
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

@@ -10,11 +10,11 @@
 
 class GraphicsPipeline {
 public:
-  GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-                   const VkRenderPass& renderPass);
-  ~GraphicsPipeline();
+  GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice);
 
-private:
+  virtual ~GraphicsPipeline();
+
+protected:
   void createPipelineLayout();
 
   void createPipeline(const VkRenderPass& renderPass);
