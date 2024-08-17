@@ -98,6 +98,7 @@ void VulkanEngine::initVulkan()
                                             physicalDevice->getMsaaSamples());
 
   createCommandPool();
+  
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
 
   createCommandBuffers();
