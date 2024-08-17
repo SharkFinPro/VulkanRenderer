@@ -63,7 +63,7 @@ void PhysicalDevice::pickPhysicalDevice()
   }
 }
 
-bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device)
+bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device) const
 {
   QueueFamilyIndices indices = findQueueFamilies(device);
 

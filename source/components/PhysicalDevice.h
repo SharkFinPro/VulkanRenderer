@@ -40,11 +40,11 @@ public:
 private:
   void pickPhysicalDevice();
 
-  bool isDeviceSuitable(VkPhysicalDevice device);
+  bool isDeviceSuitable(VkPhysicalDevice device) const;
 
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
 
-  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+  static bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) const;
 

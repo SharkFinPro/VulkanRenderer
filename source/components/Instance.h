@@ -16,9 +16,9 @@ public:
   VkInstance& getInstance();
 
 private:
-  bool checkValidationLayerSupport();
+  static bool checkValidationLayerSupport();
 
-  std::vector<const char*> getRequiredExtensions();
+  static std::vector<const char*> getRequiredExtensions();
 
 private:
   VkInstance instance;
