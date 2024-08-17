@@ -91,7 +91,7 @@ private:
   VkDescriptorPool computeDescriptorPool;
   std::vector<VkDescriptorSet> computeDescriptorSets;
 
-  float lastFrameTime = 0.025f;
+  float lastFrameTime = 0.25f;
 };
 
 
