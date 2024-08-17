@@ -2,8 +2,8 @@
 #include <array>
 #include <stdexcept>
 
-RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, VkFormat swapChainImageFormat,
-                       VkSampleCountFlagBits msaaSamples)
+RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkFormat swapChainImageFormat,
+                       const VkSampleCountFlagBits msaaSamples)
   : device(device), physicalDevice(physicalDevice)
 {
   createRenderPass(swapChainImageFormat, msaaSamples);
@@ -122,7 +122,7 @@ VkFormat RenderPass::findDepthFormat()
   );
 }
 
-void RenderPass::begin(VkFramebuffer& framebuffer, VkExtent2D& extent, VkCommandBuffer& commandBuffer)
+void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const VkCommandBuffer& commandBuffer)
 {
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -140,7 +140,7 @@ void RenderPass::begin(VkFramebuffer& framebuffer, VkExtent2D& extent, VkCommand
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void RenderPass::end(VkCommandBuffer& commandBuffer)
+void RenderPass::end(const VkCommandBuffer& commandBuffer)
 {
   vkCmdEndRenderPass(commandBuffer);
 }

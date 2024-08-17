@@ -7,7 +7,7 @@
 Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
                          std::shared_ptr<LogicalDevice> logicalDevice,
                          std::shared_ptr<SwapChain> swapChain,
-                         VkCommandPool& commandPool,
+                         const VkCommandPool& commandPool,
                          const std::shared_ptr<RenderPass>& renderPass)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), swapChain(std::move(swapChain))
 {
@@ -32,12 +32,12 @@ Framebuffer::~Framebuffer()
   }
 }
 
-VkFramebuffer& Framebuffer::getFramebuffer(uint32_t imageIndex)
+VkFramebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex)
 {
   return framebuffers[imageIndex];
 }
 
-void Framebuffer::createDepthResources(VkCommandPool& commandPool, VkFormat depthFormat)
+void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const VkFormat depthFormat)
 {
   Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getExtent().width, swapChain->getExtent().height,
                       1, physicalDevice->getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL,
@@ -62,7 +62,7 @@ void Framebuffer::createColorResources()
   colorImageView = Images::createImageView(logicalDevice->getDevice(), colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
-void Framebuffer::createFrameBuffers(VkRenderPass& renderPass)
+void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass)
 {
   const auto swapChainImageViews = swapChain->getImageViews();
 

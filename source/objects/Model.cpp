@@ -7,7 +7,7 @@
 
 #include "../pipelines/Vertex.h"
 
-Model::Model(VkDevice& device, VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue,
+Model::Model(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue,
              const char* path)
   : device(device), physicalDevice(physicalDevice)
 {
@@ -76,7 +76,7 @@ void Model::loadModel(const char* path)
   }
 }
 
-void Model::createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue)
+void Model::createVertexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue)
 {
   const VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -97,7 +97,7 @@ void Model::createVertexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueu
   vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void Model::createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue)
+void Model::createIndexBuffer(const VkCommandPool& commandPool, const VkQueue& graphicsQueue)
 {
   const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
@@ -119,7 +119,7 @@ void Model::createIndexBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue
   vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void Model::bind(VkCommandBuffer& commandBuffer)
+void Model::bind(const VkCommandBuffer& commandBuffer)
 {
   constexpr VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
@@ -127,7 +127,7 @@ void Model::bind(VkCommandBuffer& commandBuffer)
   vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void Model::draw(VkCommandBuffer& commandBuffer)
+void Model::draw(const VkCommandBuffer& commandBuffer)
 {
   bind(commandBuffer);
 

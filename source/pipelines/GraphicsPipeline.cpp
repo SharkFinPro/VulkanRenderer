@@ -16,7 +16,7 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 GraphicsPipeline::GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
                                    const char* fragmentShader, VkExtent2D& swapChainExtent,
-                                   VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
+                                   const VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass)
   : device(device), physicalDevice(physicalDevice), swapChainExtent(swapChainExtent),
     lightUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform))),
     cameraUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform))),
@@ -49,7 +49,7 @@ VkDescriptorSetLayout& GraphicsPipeline::getLayout()
   return objectDescriptorSetLayout;
 }
 
-void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFrame,std::shared_ptr<Camera> camera)
+void GraphicsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const std::shared_ptr<Camera>& camera)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
@@ -97,7 +97,7 @@ void GraphicsPipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFr
   }
 }
 
-void GraphicsPipeline::insertRenderObject(std::shared_ptr<RenderObject>& renderObject)
+void GraphicsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& renderObject)
 {
   renderObjects.push_back(renderObject);
 }

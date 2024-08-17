@@ -52,7 +52,7 @@ constexpr int PARTICLE_COUNT = 8192;
 class ComputePipeline {
 public:
   ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-                  VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
+                  const VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
   ~ComputePipeline();
 
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
@@ -66,7 +66,7 @@ private:
   void createGraphicsPipeline(VkRenderPass& renderPass);
 
   void createUniformBuffers();
-  void createShaderStorageBuffers(VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
+  void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 
   void createDescriptorPool();
   void createDescriptorSets();

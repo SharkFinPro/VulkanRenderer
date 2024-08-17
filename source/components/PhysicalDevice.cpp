@@ -82,7 +82,7 @@ bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device)
   return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkPhysicalDevice device)
 {
   QueueFamilyIndices indices;
 
@@ -124,7 +124,7 @@ QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalDevice device)
   return indices;
 }
 
-bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
+bool PhysicalDevice::checkDeviceExtensionSupport(const VkPhysicalDevice device)
 {
   uint32_t extensionCount;
   vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -142,7 +142,7 @@ bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
   return requiredExtensions.empty();
 }
 
-SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(VkPhysicalDevice device)
+SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const VkPhysicalDevice device)
 {
   SwapChainSupportDetails details;
 

@@ -3,9 +3,9 @@
 
 #include "Buffers.h"
 
-void Images::createImage(VkDevice& device, VkPhysicalDevice& physicalDevice, uint32_t width, uint32_t height,
-                         uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
-                         VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physicalDevice, const uint32_t width, const uint32_t height,
+                         const uint32_t mipLevels, const VkSampleCountFlagBits numSamples, const VkFormat format, const VkImageTiling tiling,
+                         const VkImageUsageFlags usage, const VkMemoryPropertyFlags properties, VkImage& image,
                          VkDeviceMemory& imageMemory)
 {
   VkImageCreateInfo imageCreateInfo{};
@@ -45,8 +45,8 @@ void Images::createImage(VkDevice& device, VkPhysicalDevice& physicalDevice, uin
   vkBindImageMemory(device, image, imageMemory, 0);
 }
 
-void Images::transitionImageLayout(VkDevice& device, VkCommandPool& commandPool, VkQueue& graphicsQueue, VkImage image,
-                                   VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
+void Images::transitionImageLayout(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const VkImage image,
+                                   const VkFormat format, const VkImageLayout oldLayout, const VkImageLayout newLayout, const uint32_t mipLevels)
 {
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
 
@@ -120,8 +120,8 @@ void Images::transitionImageLayout(VkDevice& device, VkCommandPool& commandPool,
   Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
 }
 
-void Images::copyBufferToImage(VkDevice& device, VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer buffer,
-                               VkImage image, uint32_t width, uint32_t height)
+void Images::copyBufferToImage(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const VkBuffer buffer,
+                               const VkImage image, const uint32_t width, const uint32_t height)
 {
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(device, commandPool);
 
@@ -154,7 +154,7 @@ void Images::copyBufferToImage(VkDevice& device, VkCommandPool& commandPool, VkQ
   Buffers::endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
 }
 
-VkImageView Images::createImageView(VkDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+VkImageView Images::createImageView(const VkDevice& device, const VkImage image, const VkFormat format, const VkImageAspectFlags aspectFlags, const uint32_t mipLevels)
 {
   VkImageViewCreateInfo imageViewCreateInfo{};
   imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -184,7 +184,7 @@ VkImageView Images::createImageView(VkDevice& device, VkImage image, VkFormat fo
   return imageView;
 }
 
-bool Images::hasStencilComponent(VkFormat format)
+bool Images::hasStencilComponent(const VkFormat format)
 {
   return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }

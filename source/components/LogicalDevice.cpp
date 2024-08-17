@@ -146,7 +146,7 @@ void LogicalDevice::createSyncObjects()
   }
 }
 
-void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const
+void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -174,7 +174,7 @@ void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* 
     throw std::runtime_error("failed to submit draw command buffer!");
   }
 }
-void LogicalDevice::submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const
+void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -191,27 +191,27 @@ void LogicalDevice::submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* c
   }
 }
 
-void LogicalDevice::waitForGraphicsFences(uint32_t currentFrame) const
+void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
 {
   vkWaitForFences(device, 1, &inFlightFences[currentFrame],
     VK_TRUE, UINT64_MAX);
 }
-void LogicalDevice::waitForComputeFences(uint32_t currentFrame) const
+void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
 {
   vkWaitForFences(device, 1, &computeInFlightFences[currentFrame],
     VK_TRUE, UINT64_MAX);
 }
 
-void LogicalDevice::resetGraphicsFences(uint32_t currentFrame) const
+void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
 {
   vkResetFences(device, 1, &inFlightFences[currentFrame]);
 }
-void LogicalDevice::resetComputeFences(uint32_t currentFrame) const
+void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
 {
   vkResetFences(device, 1, &computeInFlightFences[currentFrame]);
 }
 
-VkResult LogicalDevice::queuePresent(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex)
+VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex)
 {
   VkPresentInfoKHR presentInfo{};
   presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -228,7 +228,7 @@ VkResult LogicalDevice::queuePresent(uint32_t currentFrame, VkSwapchainKHR& swap
   return vkQueuePresentKHR(presentQueue, &presentInfo);
 }
 
-VkResult LogicalDevice::acquireNextImage(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex)
+VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex)
 {
   return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
                                imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);

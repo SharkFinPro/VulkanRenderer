@@ -1,7 +1,7 @@
 #include "ShaderModule.h"
 #include <fstream>
 
-ShaderModule::ShaderModule(VkDevice& device, const char* filename, VkShaderStageFlagBits stage)
+ShaderModule::ShaderModule(VkDevice& device, const char* filename, const VkShaderStageFlagBits stage)
   : device(device), stage(stage), module{}
 {
   createShaderModule(filename);

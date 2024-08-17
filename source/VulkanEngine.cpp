@@ -181,7 +181,7 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
   }
 }
 
-void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) const
+void VulkanEngine::recordCommandBuffer(VkCommandBuffer commandBuffer, const uint32_t imageIndex) const
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

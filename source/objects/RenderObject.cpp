@@ -14,7 +14,7 @@
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
-                           VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
+                           const VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)
   : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)), position(0, 0, 0),
@@ -29,14 +29,14 @@ RenderObject::~RenderObject()
   vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
-void RenderObject::draw(VkCommandBuffer& commandBuffer, VkPipelineLayout& pipelineLayout, uint32_t currentFrame)
+void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t currentFrame)
 {
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   model->draw(commandBuffer);
 }
 
-void RenderObject::updateUniformBuffer(uint32_t currentFrame, VkExtent2D& swapChainExtent, std::shared_ptr<Camera>& camera)
+void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera)
 {
   TransformUniform transformUBO{};
 

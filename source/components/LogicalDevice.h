@@ -19,8 +19,8 @@ public:
   VkQueue& getPresentQueue();
   VkQueue& getComputeQueue();
 
-  void submitGraphicsQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const;
-  void submitComputeQueue(uint32_t currentFrame, VkCommandBuffer* commandBuffer) const;
+  void submitGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
+  void submitComputeQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
 
   void waitForGraphicsFences(uint32_t currentFrame) const;
   void waitForComputeFences(uint32_t currentFrame) const;
@@ -29,7 +29,7 @@ public:
 
   VkResult queuePresent(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex);
 
-  VkResult acquireNextImage(uint32_t currentFrame, VkSwapchainKHR& swapchain, uint32_t* imageIndex);
+  VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex);
 
 private:
   void createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);

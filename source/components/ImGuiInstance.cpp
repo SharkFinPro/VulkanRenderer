@@ -14,7 +14,7 @@
 #include "../pipelines/RenderPass.h"
 #include "../pipelines/GuiPipeline.h"
 
-ImGuiInstance::ImGuiInstance(VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
+ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
                              const std::unique_ptr<Instance>& instance,
                              const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,

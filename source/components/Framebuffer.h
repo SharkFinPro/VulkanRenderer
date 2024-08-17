@@ -15,16 +15,16 @@ public:
   Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
               std::shared_ptr<LogicalDevice> logicalDevice,
               std::shared_ptr<SwapChain> swapChain,
-              VkCommandPool& commandPool,
+              const VkCommandPool& commandPool,
               const std::shared_ptr<RenderPass>& renderPass);
   ~Framebuffer();
 
   VkFramebuffer& getFramebuffer(uint32_t imageIndex);
 
 private:
-  void createDepthResources(VkCommandPool& commandPool, VkFormat depthFormat);
+  void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat);
   void createColorResources();
-  void createFrameBuffers(VkRenderPass& renderPass);
+  void createFrameBuffers(const VkRenderPass& renderPass);
 
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;

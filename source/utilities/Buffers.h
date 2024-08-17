@@ -5,19 +5,19 @@
 
 class Buffers {
 public:
-  static uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter,
+  static uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter,
                                  VkMemoryPropertyFlags properties);
 
-  static void createBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, VkDeviceSize size,
+  static void createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, VkDeviceSize size,
                            VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
                            VkDeviceMemory& bufferMemory);
 
-  static void copyBuffer(VkDevice& device, VkCommandPool& commandPool, VkQueue& queue, VkBuffer srcBuffer,
+  static void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue, VkBuffer srcBuffer,
                          VkBuffer dstBuffer, VkDeviceSize size);
 
-  static VkCommandBuffer beginSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool);
+  static VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool);
 
-  static void endSingleTimeCommands(VkDevice& device, VkCommandPool& commandPool, VkQueue& queue,
+  static void endSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
                                     VkCommandBuffer commandBuffer);
 };
 

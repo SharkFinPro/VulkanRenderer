@@ -34,7 +34,7 @@ DebugMessenger::~DebugMessenger()
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(
-  VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+  const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
   [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
   [[maybe_unused]] void* pUserData)
@@ -53,7 +53,7 @@ void DebugMessenger::populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& crea
   createInfo.pfnUserCallback = debugCallback;
 }
 
-const char* DebugMessenger::readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
+const char* DebugMessenger::readMessageSeverity(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
 {
   if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
   {

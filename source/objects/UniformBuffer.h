@@ -12,9 +12,9 @@ public:
 
   [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
-  [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, VkDescriptorSet& dstSet, size_t frame) const;
+  [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet, size_t frame) const;
 
-  void update(uint32_t frame, void* data, size_t size);
+  void update(uint32_t frame, const void* data, size_t size);
 
 protected:
   VkDevice& device;
