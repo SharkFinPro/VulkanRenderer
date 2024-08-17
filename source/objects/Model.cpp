@@ -86,7 +86,7 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool, const VkQueue& 
 
   void* data;
   vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, vertices.data(), (size_t) bufferSize);
+  memcpy(data, vertices.data(), bufferSize);
   vkUnmapMemory(device, stagingBufferMemory);
 
   Buffers::createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
@@ -108,7 +108,7 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool, const VkQueue& g
 
   void* data;
   vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, indices.data(), (size_t) bufferSize);
+  memcpy(data, indices.data(), bufferSize);
   vkUnmapMemory(device, stagingBufferMemory);
 
   Buffers::createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);

@@ -89,8 +89,8 @@ void RenderObject::createDescriptorSets()
     descriptorWrites[1] = texture->getDescriptorSet(1, descriptorSets[i]);
     descriptorWrites[2] = specularMap->getDescriptorSet(4, descriptorSets[i]);
 
-    vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),
+                           0, nullptr);
   }
 }
 

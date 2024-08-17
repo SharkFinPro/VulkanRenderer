@@ -42,7 +42,7 @@ Instance::Instance()
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
     DebugMessenger::populateCreateInfo(debugCreateInfo);
 
-    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+    createInfo.pNext = &debugCreateInfo;
   }
   else
   {

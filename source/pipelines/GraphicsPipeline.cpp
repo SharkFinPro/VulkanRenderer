@@ -330,7 +330,7 @@ void GraphicsPipeline::createDescriptorSets()
     descriptorWrites[0] = lightUniform->getDescriptorSet(2, descriptorSets[i], i);
     descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
 
-    vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),
+                           0, nullptr);
   }
 }
