@@ -75,9 +75,8 @@ void ComputePipeline::render(VkCommandBuffer& commandBuffer, uint32_t currentFra
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 
-  VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1,
-                         &shaderStorageBuffers[currentFrame], offsets);
+  constexpr VkDeviceSize offsets[] = {0};
+  vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
 
   vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 }
