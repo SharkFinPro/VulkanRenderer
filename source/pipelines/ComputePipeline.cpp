@@ -3,6 +3,7 @@
 #include "../utilities/Buffers.h"
 
 #include <cmath>
+#include <corecrt_math_defines.h>
 #include <stdexcept>
 #include <random>
 #include <cstring>
