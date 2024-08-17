@@ -1,61 +1,53 @@
-#ifndef VULKANPROJECT_GRAPHICSPIPELINE_H
-#define VULKANPROJECT_GRAPHICSPIPELINE_H
+#ifndef GRAPHICSPIPELINE_H
+#define GRAPHICSPIPELINE_H
 
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <memory>
+#include <vector>
 
-class RenderPass;
-class RenderObject;
-class Camera;
-class UniformBuffer;
+#include "../components/PhysicalDevice.h"
+#include "../components/LogicalDevice.h"
 
 class GraphicsPipeline {
 public:
-  GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
-                   const char* fragmentShader, VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
+  GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+                   const VkRenderPass& renderPass);
   ~GraphicsPipeline();
 
-  VkDescriptorSetLayout& getLayout();
-
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera,
-              VkExtent2D swapChainExtent);
-
-  void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
-
 private:
-  void createGraphicsPipeline(const char* vertexShader, const char* fragmentShader, VkSampleCountFlagBits msaaSamples,
-                              std::shared_ptr<RenderPass>& renderPass);
+  void createPipelineLayout();
 
-  void createDescriptorSetLayout();
+  void createPipeline(const VkRenderPass& renderPass);
 
-  void createDescriptorPool();
+  virtual std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() { return nullptr; };
 
-  void createDescriptorSets();
+  virtual std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() { return nullptr; };
 
-private:
-  VkDevice& device;
-  VkPhysicalDevice& physicalDevice;
+  virtual std::unique_ptr<VkPipelineDynamicStateCreateInfo> defineDynamicState() { return nullptr; };
 
-  std::vector<std::shared_ptr<RenderObject>> renderObjects;
+  virtual std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> defineInputAssemblyState() { return nullptr; };
+
+  virtual std::unique_ptr<VkPipelineMultisampleStateCreateInfo> defineMultisampleState() { return nullptr; };
+
+  virtual std::unique_ptr<VkPipelineRasterizationStateCreateInfo> defineRasterizationState() { return nullptr; };
+
+  virtual std::unique_ptr<VkPipelineTessellationStateCreateInfo> defineTessellationState() { return nullptr; };
+
+  virtual std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() { return nullptr; };
+
+  virtual std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() { return nullptr; };
+
+protected:
+  std::shared_ptr<PhysicalDevice> physicalDevice;
+  std::shared_ptr<LogicalDevice> logicalDevice;
 
   VkPipelineLayout pipelineLayout;
-  VkPipeline graphicsPipeline;
+  VkPipeline pipeline;
 
-  VkDescriptorSetLayout descriptorSetLayout;
-  VkDescriptorSetLayout objectDescriptorSetLayout;
-
-  VkDescriptorPool descriptorPool;
-  std::vector<VkDescriptorSet> descriptorSets;
-
-  std::unique_ptr<UniformBuffer> lightUniform;
-  std::unique_ptr<UniformBuffer> cameraUniform;
-
-  float position[3];
-  float color[3];
-  float ambient;
-  float diffuse;
+  std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+  std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 };
 
 
-#endif //VULKANPROJECT_GRAPHICSPIPELINE_H
+
+#endif //GRAPHICSPIPELINE_H

@@ -16,7 +16,7 @@
 #include "components/Framebuffer.h"
 
 #include "pipelines/RenderPass.h"
-#include "pipelines/GraphicsPipeline.h"
+#include "pipelines/ObjectsPipeline.h"
 #include "pipelines/GuiPipeline.h"
 #include "pipelines/ComputePipeline.h"
 
@@ -64,7 +64,7 @@ private:
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<Framebuffer> framebuffer;
-  std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+  std::unique_ptr<ObjectsPipeline> objectsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<ComputePipeline> computePipeline;
 

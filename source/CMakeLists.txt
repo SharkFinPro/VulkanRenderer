@@ -24,8 +24,8 @@ add_library(${PROJECT_NAME}
   components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
-  pipelines/GraphicsPipeline.cpp
-  pipelines/GraphicsPipeline.h
+  pipelines/ObjectsPipeline.cpp
+  pipelines/ObjectsPipeline.h
   pipelines/Vertex.cpp
   pipelines/Vertex.h
   pipelines/RenderPass.cpp
@@ -50,6 +50,8 @@ add_library(${PROJECT_NAME}
   components/Framebuffer.h
   pipelines/ComputePipeline.cpp
   pipelines/ComputePipeline.h
+  pipelines/GraphicsPipeline.cpp
+  pipelines/GraphicsPipeline.h
 )
 
 # Shaders
