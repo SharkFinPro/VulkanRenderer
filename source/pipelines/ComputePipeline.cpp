@@ -92,7 +92,7 @@ void ComputePipeline::updateUniformBuffer(const uint32_t currentFrame) const
 
 void ComputePipeline::createComputePipeline()
 {
-  ShaderModule computeShaderModule{logicalDevice->getDevice(),
+  const ShaderModule computeShaderModule{logicalDevice->getDevice(),
                                    "assets/shaders/compute.comp.spv",
                                    VK_SHADER_STAGE_COMPUTE_BIT};
 
