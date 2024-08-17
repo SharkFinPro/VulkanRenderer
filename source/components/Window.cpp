@@ -4,7 +4,7 @@
 #include <backends/imgui_impl_glfw.h>
 
 Window::Window(const int width, const int height, const char* title, VkInstance& instance)
-  : scroll(0), instance(instance)
+  : instance(instance), scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 

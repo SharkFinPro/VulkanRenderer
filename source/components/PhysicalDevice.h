@@ -35,7 +35,7 @@ public:
   VkPhysicalDevice& getPhysicalDevice();
   QueueFamilyIndices& getQueueFamilies();
   SwapChainSupportDetails& getSwapChainSupport();
-  VkSampleCountFlagBits getMsaaSamples() const;
+  [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
 
 private:
   void pickPhysicalDevice();
@@ -48,7 +48,7 @@ private:
 
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) const;
 
-  VkSampleCountFlagBits getMaxUsableSampleCount() const;
+  [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;
 
 private:
   VkPhysicalDevice physicalDevice;
