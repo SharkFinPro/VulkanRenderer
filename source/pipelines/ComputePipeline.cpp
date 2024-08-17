@@ -5,6 +5,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <random>
+#include <cstring>
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
