@@ -56,21 +56,19 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
   {
     return capabilities.currentExtent;
   }
-  else
-  {
-    int width, height;
-    window->getFramebufferSize(&width, &height);
 
-    VkExtent2D actualExtent = {
-      static_cast<uint32_t>(width),
-      static_cast<uint32_t>(height),
-    };
+  int width, height;
+  window->getFramebufferSize(&width, &height);
 
-    actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-    actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+  VkExtent2D actualExtent = {
+    static_cast<uint32_t>(width),
+    static_cast<uint32_t>(height),
+  };
 
-    return actualExtent;
-  }
+  actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+  actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+  return actualExtent;
 }
 
 uint32_t SwapChain::chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities)
