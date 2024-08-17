@@ -59,6 +59,8 @@ void ComputePipeline::compute(const VkCommandBuffer& commandBuffer, const uint32
 
 void ComputePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent) const
 {
+  updateUniformBuffer(currentFrame);
+
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
   VkViewport viewport{};
@@ -74,7 +76,6 @@ void ComputePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   scissor.offset = {0, 0};
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
 
   constexpr VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
@@ -92,9 +93,11 @@ void ComputePipeline::updateUniformBuffer(const uint32_t currentFrame) const
 
 void ComputePipeline::createComputePipeline()
 {
-  const ShaderModule computeShaderModule{logicalDevice->getDevice(),
-                                   "assets/shaders/compute.comp.spv",
-                                   VK_SHADER_STAGE_COMPUTE_BIT};
+  const ShaderModule computeShaderModule {
+    logicalDevice->getDevice(),
+    "assets/shaders/compute.comp.spv",
+    VK_SHADER_STAGE_COMPUTE_BIT
+  };
 
   std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
   layoutBindings[0].binding = 0;
@@ -116,15 +119,13 @@ void ComputePipeline::createComputePipeline()
   layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
   VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
-  descriptorSetLayoutInfo.sType =
-      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  descriptorSetLayoutInfo.bindingCount =
-      static_cast<uint32_t>(layoutBindings.size());
+  descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
   descriptorSetLayoutInfo.pBindings = layoutBindings.data();
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(),
-                                  &descriptorSetLayoutInfo, nullptr,
-                                  &computeDescriptorSetLayout) != VK_SUCCESS) {
+  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &descriptorSetLayoutInfo, nullptr,
+                                  &computeDescriptorSetLayout) != VK_SUCCESS)
+  {
     throw std::runtime_error("failed to create descriptor set layout!");
   }
 
@@ -133,17 +134,16 @@ void ComputePipeline::createComputePipeline()
   pipelineLayoutInfo.setLayoutCount = 1;
   pipelineLayoutInfo.pSetLayouts = &computeDescriptorSetLayout;
 
-  if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo,
-                             nullptr, &computePipelineLayout) != VK_SUCCESS) {
+  if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr,
+                             &computePipelineLayout) != VK_SUCCESS)
+  {
     throw std::runtime_error("failed to create pipeline layout!");
   }
 
   VkComputePipelineCreateInfo computePipelineCreateInfo{};
-  computePipelineCreateInfo.sType =
-      VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+  computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
   computePipelineCreateInfo.layout = computePipelineLayout;
-  computePipelineCreateInfo.stage =
-      computeShaderModule.getShaderStageCreateInfo();
+  computePipelineCreateInfo.stage = computeShaderModule.getShaderStageCreateInfo();
 
   if (vkCreateComputePipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1,
                                &computePipelineCreateInfo, nullptr, &computePipeline) != VK_SUCCESS)
@@ -154,12 +154,16 @@ void ComputePipeline::createComputePipeline()
 
 void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
 {
-  ShaderModule vertexShaderModule{logicalDevice->getDevice(),
-                                  "assets/shaders/compute.vert.spv",
-                                  VK_SHADER_STAGE_VERTEX_BIT};
-  ShaderModule fragmentShaderModule{logicalDevice->getDevice(),
-                                    "assets/shaders/compute.frag.spv",
-                                    VK_SHADER_STAGE_FRAGMENT_BIT};
+  ShaderModule vertexShaderModule {
+    logicalDevice->getDevice(),
+    "assets/shaders/compute.vert.spv",
+    VK_SHADER_STAGE_VERTEX_BIT
+  };
+  ShaderModule fragmentShaderModule {
+    logicalDevice->getDevice(),
+    "assets/shaders/compute.frag.spv",
+    VK_SHADER_STAGE_FRAGMENT_BIT
+  };
 
   std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {
     vertexShaderModule.getShaderStageCreateInfo(),
@@ -276,7 +280,8 @@ void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
   pipelineInfo.subpass = 0;
   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-  if (vkCreateGraphicsPipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+  if (vkCreateGraphicsPipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo,
+                                nullptr, &graphicsPipeline) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create graphics pipeline!");
   }
@@ -330,29 +335,22 @@ void ComputePipeline::createShaderStorageBuffers(const VkCommandPool& commandPoo
   Buffers::createBuffer(logicalDevice->getDevice(),
                         physicalDevice->getPhysicalDevice(), bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
   void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0,
-              &data);
+  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
   memcpy(data, particles.data(), bufferSize);
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    Buffers::createBuffer(
-        logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-        bufferSize,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i],
-        shaderStorageBuffersMemory[i]);
+    Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 
-    Buffers::copyBuffer(logicalDevice->getDevice(), commandPool,
-      logicalDevice->getComputeQueue(), stagingBuffer,
-      shaderStorageBuffers[i], bufferSize);
+    Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getComputeQueue(),
+                        stagingBuffer, shaderStorageBuffers[i], bufferSize);
   }
 
   vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
@@ -437,6 +435,7 @@ void ComputePipeline::createDescriptorSets()
     writeDescriptorSets[2].descriptorCount = 1;
     writeDescriptorSets[2].pBufferInfo = &storageBufferInfoCurrentFrame;
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
+    vkUpdateDescriptorSets(logicalDevice->getDevice(), writeDescriptorSets.size(),
+                           writeDescriptorSets.data(), 0, nullptr);
   }
 }

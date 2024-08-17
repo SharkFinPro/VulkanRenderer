@@ -2,10 +2,15 @@
 #define VULKANPROJECT_TEXTURE_H
 
 #include <vulkan/vulkan.h>
+#include <memory>
+
+#include "../components/PhysicalDevice.h"
+#include "../components/LogicalDevice.h"
 
 class Texture {
 public:
-  Texture(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path);
+  Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+          const VkCommandPool& commandPool, const char* path);
   ~Texture();
 
   [[nodiscard]] static VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT);
@@ -13,16 +18,16 @@ public:
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
 
 private:
-  void createTextureImage(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const char* path);
+  void createTextureImage(const VkCommandPool& commandPool, const char* path);
 
-  void generateMipmaps(const VkCommandPool& commandPool, const VkQueue& graphicsQueue, VkImage image, VkFormat imageFormat,
-                       int32_t texWidth, int32_t texHeight, uint32_t mipLevels) const;
+  void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
+                       int32_t texHeight, uint32_t mipLevels) const;
 
   void createTextureSampler();
 
 private:
-  VkDevice& device;
-  VkPhysicalDevice& physicalDevice;
+  std::shared_ptr<PhysicalDevice> physicalDevice;
+  std::shared_ptr<LogicalDevice> logicalDevice;
 
   uint32_t mipLevels;
 

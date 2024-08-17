@@ -43,13 +43,13 @@ void VulkanEngine::render()
 
   camera->processInput(window);
 
-  drawFrame();
+  doComputing();
+  doRendering();
 }
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 {
-  auto texture = std::make_shared<Texture>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                           commandPool, logicalDevice->getGraphicsQueue(), path);
+  auto texture = std::make_shared<Texture>(physicalDevice, logicalDevice, commandPool, path);
   textures.push_back(texture);
 
   return texture;
@@ -57,8 +57,7 @@ std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 
 std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
 {
-  auto model = std::make_shared<Model>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                       commandPool, logicalDevice->getGraphicsQueue(), path);
+  auto model = std::make_shared<Model>(physicalDevice, logicalDevice, commandPool, path);
   models.push_back(model);
 
   return model;
@@ -107,12 +106,12 @@ void VulkanEngine::initVulkan()
   graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                                         "assets/shaders/vert.spv",
                                                         "assets/shaders/frag.spv",
-                                                        swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
+                                                        physicalDevice->getMsaaSamples(), renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                               "assets/shaders/ui_vert.spv",
                                               "assets/shaders/ui_frag.spv",
-                                              swapChain->getExtent(), physicalDevice->getMsaaSamples(), renderPass);
+                                              physicalDevice->getMsaaSamples(), renderPass);
 
   computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool,
                                                       renderPass->getRenderPass(), swapChain->getExtent());
@@ -184,7 +183,7 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
   }
 }
 
-void VulkanEngine::recordCommandBuffer(const VkCommandBuffer commandBuffer, const uint32_t imageIndex) const
+void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -198,11 +197,11 @@ void VulkanEngine::recordCommandBuffer(const VkCommandBuffer commandBuffer, cons
 
   renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
 
-  graphicsPipeline->render(commandBuffer, currentFrame, camera);
+  graphicsPipeline->render(commandBuffer, currentFrame, camera, swapChain->getExtent());
 
   computePipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
 
-  guiPipeline->render(commandBuffer);
+  guiPipeline->render(commandBuffer, swapChain->getExtent());
 
   RenderPass::end(commandBuffer);
 
@@ -212,12 +211,9 @@ void VulkanEngine::recordCommandBuffer(const VkCommandBuffer commandBuffer, cons
   }
 }
 
-void VulkanEngine::drawFrame()
+void VulkanEngine::doComputing() const
 {
-  // Compute
   logicalDevice->waitForComputeFences(currentFrame);
-
-  computePipeline->updateUniformBuffer(currentFrame);
 
   logicalDevice->resetComputeFences(currentFrame);
 
@@ -225,8 +221,10 @@ void VulkanEngine::drawFrame()
   recordComputeCommandBuffer(computeCommandBuffers[currentFrame]);
 
   logicalDevice->submitComputeQueue(currentFrame, &computeCommandBuffers[currentFrame]);
+}
 
-  // Graphics
+void VulkanEngine::doRendering()
+{
   logicalDevice->waitForGraphicsFences(currentFrame);
 
   uint32_t imageIndex;

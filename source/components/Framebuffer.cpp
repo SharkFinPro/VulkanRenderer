@@ -45,8 +45,7 @@ void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const V
                       depthImage, depthImageMemory);
   depthImageView = Images::createImageView(logicalDevice->getDevice(), depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
-  Images::transitionImageLayout(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(),
-                                depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+  Images::transitionImageLayout(logicalDevice, commandPool, depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
 

@@ -13,13 +13,13 @@ class UniformBuffer;
 class GraphicsPipeline {
 public:
   GraphicsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
-                   const char* fragmentShader, VkExtent2D& swapChainExtent,
-                   VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
+                   const char* fragmentShader, VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
   ~GraphicsPipeline();
 
   VkDescriptorSetLayout& getLayout();
 
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera);
+  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera,
+              VkExtent2D swapChainExtent);
 
   void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
 
@@ -41,8 +41,6 @@ private:
 
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;
-
-  VkExtent2D& swapChainExtent;
 
   VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
