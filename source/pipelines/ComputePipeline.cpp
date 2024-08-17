@@ -319,9 +319,8 @@ void ComputePipeline::createShaderStorageBuffers(VkCommandPool& commandPool, con
     const float y = r * std::sin(theta);
     particle.position = glm::vec2(x, y);
     particle.velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
-    particle.color =
-        glm::vec4(distribution(randomEngine), distribution(randomEngine),
-                  distribution(randomEngine), 1.0f);
+    particle.color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
+                               distribution(randomEngine), 1.0f);
   }
 
   constexpr VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
@@ -369,7 +368,6 @@ void ComputePipeline::createDescriptorPool()
 
   poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
-
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
