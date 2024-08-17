@@ -8,7 +8,7 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
                          std::shared_ptr<LogicalDevice> logicalDevice,
                          std::shared_ptr<SwapChain> swapChain,
                          VkCommandPool& commandPool,
-                         std::shared_ptr<RenderPass> renderPass)
+                         const std::shared_ptr<RenderPass>& renderPass)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), swapChain(std::move(swapChain))
 {
   createColorResources();

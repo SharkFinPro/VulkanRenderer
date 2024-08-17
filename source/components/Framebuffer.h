@@ -16,7 +16,7 @@ public:
               std::shared_ptr<LogicalDevice> logicalDevice,
               std::shared_ptr<SwapChain> swapChain,
               VkCommandPool& commandPool,
-              std::shared_ptr<RenderPass> renderPass);
+              const std::shared_ptr<RenderPass>& renderPass);
   ~Framebuffer();
 
   VkFramebuffer& getFramebuffer(uint32_t imageIndex);
