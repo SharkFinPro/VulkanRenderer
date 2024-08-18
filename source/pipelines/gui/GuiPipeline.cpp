@@ -54,8 +54,8 @@ void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D 
 
 void GuiPipeline::loadShaders()
 {
-  createShader("assets/shaders/ui_vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/ui_frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  createShader("assets/shaders/ui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/ui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 std::unique_ptr<VkPipelineColorBlendStateCreateInfo> GuiPipeline::defineColorBlendState()
