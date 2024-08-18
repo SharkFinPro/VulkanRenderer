@@ -30,12 +30,12 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 
   Light light{};
   light.position[0] = 0.0f;
-  light.position[1] = 3.0f;
+  light.position[1] = -3.5f;
   light.position[2] = 0.0f;
   light.color[0] = 1.0f;
   light.color[1] = 1.0f;
   light.color[2] = 1.0f;
-  light.ambient = 0.2f;
+  light.ambient = 0.1f;
   light.diffuse = 0.5f;
   light.specular = 1.0f;
   lights.push_back(light);
@@ -46,7 +46,7 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   light.color[0] = 1.0f;
   light.color[1] = 1.0f;
   light.color[2] = 0.0f;
-  light.ambient = 0.25;
+  light.ambient = 0;
   light.diffuse = 0.5f;
   light.specular = 1.0f;
   lights.push_back(light);
@@ -57,7 +57,7 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   light.color[0] = 0.5f;
   light.color[1] = 0.5f;
   light.color[2] = 1.0f;
-  light.ambient = 0.25;
+  light.ambient = 0;
   light.diffuse = 0.5f;
   light.specular = 1.0f;
   lights.push_back(light);
@@ -68,7 +68,7 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   light.color[0] = 0.0f;
   light.color[1] = 1.0f;
   light.color[2] = 0.0f;
-  light.ambient = 0.25;
+  light.ambient = 0;
   light.diffuse = 0.5f;
   light.specular = 1.0f;
   lights.push_back(light);
@@ -79,7 +79,7 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   light.color[0] = 1.0f;
   light.color[1] = 0.5f;
   light.color[2] = 1.0f;
-  light.ambient = 0.25;
+  light.ambient = 0;
   light.diffuse = 0.5f;
   light.specular = 1.0f;
   lights.push_back(light);
