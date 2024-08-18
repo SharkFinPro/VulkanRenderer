@@ -36,7 +36,7 @@ struct alignas(16) Light {
 
 struct LightUniform {
   alignas(16) int numLights;
-  Light lights[3];  // Fixed-size array, aligned to 16 bytes
+  Light lights[5];  // Fixed-size array, aligned to 16 bytes
 };
 
 struct CameraUniform {

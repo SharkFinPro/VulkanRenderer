@@ -61,6 +61,28 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   light.diffuse = 0.5f;
   light.specular = 1.0f;
   lights.push_back(light);
+
+  light.position[0] = 5.0f;
+  light.position[1] = -3.6f;
+  light.position[2] = -5.0f;
+  light.color[0] = 0.0f;
+  light.color[1] = 1.0f;
+  light.color[2] = 0.0f;
+  light.ambient = 0.25;
+  light.diffuse = 0.5f;
+  light.specular = 1.0f;
+  lights.push_back(light);
+
+  light.position[0] = -5.0f;
+  light.position[1] = -3.6f;
+  light.position[2] = 5.0f;
+  light.color[0] = 1.0f;
+  light.color[1] = 0.5f;
+  light.color[2] = 1.0f;
+  light.ambient = 0.25;
+  light.diffuse = 0.5f;
+  light.specular = 1.0f;
+  lights.push_back(light);
 }
 
 ObjectsPipeline::~ObjectsPipeline()
@@ -102,7 +124,7 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
   for (size_t i = 0; i < lights.size(); i++)
   {
-    lights[i].displayGui(i);
+    lights[i].displayGui(i + 1);
     lightUBO.lights[i] = lights[i];
   }
 
