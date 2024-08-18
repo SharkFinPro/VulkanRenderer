@@ -5,7 +5,7 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
-#include "GraphicsPipeline.h"
+#include "../GraphicsPipeline.h"
 
 class RenderPass;
 

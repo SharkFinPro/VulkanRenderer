@@ -31,8 +31,8 @@ add_library(${PROJECT_NAME}
   pipelines/RenderPass.cpp
   pipelines/RenderPass.h
   pipelines/Uniforms.h
-  pipelines/GuiPipeline.cpp
-  pipelines/GuiPipeline.h
+  pipelines/gui/GuiPipeline.cpp
+  pipelines/gui/GuiPipeline.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
   components/PhysicalDevice.cpp

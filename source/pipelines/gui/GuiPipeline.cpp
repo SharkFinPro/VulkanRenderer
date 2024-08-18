@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <utility>
 
-#include "Vertex.h"
-#include "RenderPass.h"
+#include "../Vertex.h"
+#include "../RenderPass.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>

@@ -17,7 +17,7 @@
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/ObjectsPipeline.h"
-#include "pipelines/GuiPipeline.h"
+#include "pipelines/gui/GuiPipeline.h"
 #include "pipelines/ComputePipeline.h"
 
 #include "objects/Texture.h"
