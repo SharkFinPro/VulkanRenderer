@@ -10,7 +10,7 @@
 #include "Texture.h"
 #include "UniformBuffer.h"
 
-#include "../pipelines/Uniforms.h"
+#include "../pipelines/objects/Uniforms.h"
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 

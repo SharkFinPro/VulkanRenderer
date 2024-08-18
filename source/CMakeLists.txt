@@ -30,7 +30,7 @@ add_library(${PROJECT_NAME}
   pipelines/Vertex.h
   pipelines/RenderPass.cpp
   pipelines/RenderPass.h
-  pipelines/Uniforms.h
+  pipelines/objects/Uniforms.h
   pipelines/gui/GuiPipeline.cpp
   pipelines/gui/GuiPipeline.h
   pipelines/ShaderModule.cpp

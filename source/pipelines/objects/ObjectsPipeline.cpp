@@ -3,7 +3,7 @@
 
 #include "../Vertex.h"
 #include "../RenderPass.h"
-#include "../Uniforms.h"
+#include "Uniforms.h"
 #include "../ShaderModule.h"
 
 #include "../../objects/RenderObject.h"
