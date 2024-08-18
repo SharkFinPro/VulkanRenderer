@@ -16,9 +16,9 @@
 #include "components/Framebuffer.h"
 
 #include "pipelines/RenderPass.h"
-#include "pipelines/GraphicsPipeline.h"
-#include "pipelines/GuiPipeline.h"
-#include "pipelines/ComputePipeline.h"
+#include "pipelines/objects/ObjectsPipeline.h"
+#include "pipelines/gui/GuiPipeline.h"
+#include "pipelines/compute/ComputePipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -39,8 +39,9 @@ public:
 
   std::shared_ptr<Texture> loadTexture(const char* path);
   std::shared_ptr<Model> loadModel(const char* path);
-  [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture, const std::shared_ptr<Texture>& specularMap,
-                                                 const std::shared_ptr<Model>&) const;
+  [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
+                                                               const std::shared_ptr<Texture>& specularMap,
+                                                               const std::shared_ptr<Model>&) const;
 
 private:
   void initVulkan();
@@ -64,7 +65,7 @@ private:
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<Framebuffer> framebuffer;
-  std::unique_ptr<GraphicsPipeline> graphicsPipeline;
+  std::unique_ptr<ObjectsPipeline> objectsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<ComputePipeline> computePipeline;
 

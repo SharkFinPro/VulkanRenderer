@@ -68,9 +68,9 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Model>& model) const
 {
   auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                                     graphicsPipeline->getLayout(), texture, specularMap, model);
+                                                     objectsPipeline->getLayout(), texture, specularMap, model);
 
-  graphicsPipeline->insertRenderObject(renderObject);
+  objectsPipeline->insertRenderObject(renderObject);
 
   return renderObject;
 }
@@ -103,15 +103,9 @@ void VulkanEngine::initVulkan()
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
 
 
-  graphicsPipeline = std::make_unique<GraphicsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                                        "assets/shaders/vert.spv",
-                                                        "assets/shaders/frag.spv",
-                                                        physicalDevice->getMsaaSamples(), renderPass);
+  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
 
-  guiPipeline = std::make_unique<GuiPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                              "assets/shaders/ui_vert.spv",
-                                              "assets/shaders/ui_frag.spv",
-                                              physicalDevice->getMsaaSamples(), renderPass);
+  guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass);
 
   computePipeline = std::make_unique<ComputePipeline>(physicalDevice, logicalDevice, commandPool,
                                                       renderPass->getRenderPass(), swapChain->getExtent());
@@ -197,7 +191,7 @@ void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, con
 
   renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
 
-  graphicsPipeline->render(commandBuffer, currentFrame, camera, swapChain->getExtent());
+  objectsPipeline->render(commandBuffer, currentFrame, camera, swapChain->getExtent());
 
   computePipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
 

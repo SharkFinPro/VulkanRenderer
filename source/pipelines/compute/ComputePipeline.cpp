@@ -1,6 +1,6 @@
 #include "ComputePipeline.h"
-#include "ShaderModule.h"
-#include "../utilities/Buffers.h"
+#include "../ShaderModule.h"
+#include "../../utilities/Buffers.h"
 
 #include <cmath>
 #include <stdexcept>
@@ -11,7 +11,8 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                  std::shared_ptr<LogicalDevice> logicalDevice,
-                                 const VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent)
+                                 const VkCommandPool& commandPool, VkRenderPass& renderPass,
+                                 const VkExtent2D& swapChainExtent)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   createComputePipeline();

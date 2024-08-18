@@ -4,8 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-#include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../../components/LogicalDevice.h"
+#include "../../components/PhysicalDevice.h"
 
 #include <array>
 #include <glm/glm.hpp>

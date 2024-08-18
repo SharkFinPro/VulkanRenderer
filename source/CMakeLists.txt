@@ -24,15 +24,14 @@ add_library(${PROJECT_NAME}
   components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
-  pipelines/GraphicsPipeline.cpp
-  pipelines/GraphicsPipeline.h
-  pipelines/Vertex.cpp
+  pipelines/objects/ObjectsPipeline.cpp
+  pipelines/objects/ObjectsPipeline.h
   pipelines/Vertex.h
   pipelines/RenderPass.cpp
   pipelines/RenderPass.h
-  pipelines/Uniforms.h
-  pipelines/GuiPipeline.cpp
-  pipelines/GuiPipeline.h
+  pipelines/objects/Uniforms.h
+  pipelines/gui/GuiPipeline.cpp
+  pipelines/gui/GuiPipeline.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
   components/PhysicalDevice.cpp
@@ -48,8 +47,10 @@ add_library(${PROJECT_NAME}
   components/SwapChain.h
   components/Framebuffer.cpp
   components/Framebuffer.h
-  pipelines/ComputePipeline.cpp
-  pipelines/ComputePipeline.h
+  pipelines/compute/ComputePipeline.cpp
+  pipelines/compute/ComputePipeline.h
+  pipelines/GraphicsPipeline.cpp
+  pipelines/GraphicsPipeline.h
 )
 
 # Shaders
@@ -59,10 +60,10 @@ set(shadersDst ${CMAKE_BINARY_DIR}/bin/assets/shaders)
 file(MAKE_DIRECTORY ${shadersDst})
 
 add_custom_target(Shaders ALL
-  COMMAND glslangValidator -V ${shadersSrc}/shader.vert -o ${shadersDst}/vert.spv
-  COMMAND glslangValidator -V ${shadersSrc}/shader.frag -o ${shadersDst}/frag.spv
-  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui_vert.spv
-  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui_frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/objects/objects.vert -o ${shadersDst}/objects.vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/objects/objects.frag -o ${shadersDst}/objects.frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui.vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/compute/compute.vert -o ${shadersDst}/compute.vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/compute/compute.frag -o ${shadersDst}/compute.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/compute/compute.comp -o ${shadersDst}/compute.comp.spv
