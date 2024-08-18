@@ -1,4 +1,5 @@
 #include "GraphicsPipeline.h"
+#include <stdexcept>
 
 GraphicsPipeline::GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                    std::shared_ptr<LogicalDevice> logicalDevice)
