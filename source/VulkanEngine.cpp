@@ -75,6 +75,11 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
   return renderObject;
 }
 
+ImGuiContext* VulkanEngine::getImGuiContext()
+{
+  return ImGui::GetCurrentContext();
+}
+
 void VulkanEngine::initVulkan()
 {
   instance = std::make_unique<Instance>();

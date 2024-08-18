@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <vulkan/vulkan.h>
+#include <imgui.h>
 
 #include "components/Instance.h"
 #include "components/DebugMessenger.h"
@@ -42,6 +43,8 @@ public:
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                                const std::shared_ptr<Texture>& specularMap,
                                                                const std::shared_ptr<Model>&) const;
+
+  static ImGuiContext* getImGuiContext();
 
 private:
   void initVulkan();
