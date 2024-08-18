@@ -16,8 +16,7 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass)
-  : GraphicsPipeline(std::move(physicalDevice), std::move(logicalDevice)),
-    position{0, 3, 0}, color{1, 1, 1}, ambient(0.2f), diffuse(0.5f)
+  : GraphicsPipeline(std::move(physicalDevice), std::move(logicalDevice))
 {
   createUniforms();
 
@@ -28,6 +27,40 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   createDescriptorSets();
 
   createPipeline(renderPass->getRenderPass());
+
+  Light light{};
+  light.position[0] = 0.0f;
+  light.position[1] = 3.0f;
+  light.position[2] = 0.0f;
+  light.color[0] = 1.0f;
+  light.color[1] = 1.0f;
+  light.color[2] = 1.0f;
+  light.ambient = 0.2f;
+  light.diffuse = 0.5f;
+  light.specular = 1.0f;
+  lights.push_back(light);
+
+  light.position[0] = 5.0f;
+  light.position[1] = -3.5f;
+  light.position[2] = 5.0f;
+  light.color[0] = 1.0f;
+  light.color[1] = 1.0f;
+  light.color[2] = 0.0f;
+  light.ambient = 0.25;
+  light.diffuse = 0.5f;
+  light.specular = 1.0f;
+  lights.push_back(light);
+
+  light.position[0] = -5.0f;
+  light.position[1] = -3.6f;
+  light.position[2] = -5.0f;
+  light.color[0] = 0.5f;
+  light.color[1] = 0.5f;
+  light.color[2] = 1.0f;
+  light.ambient = 0.25;
+  light.diffuse = 0.5f;
+  light.specular = 1.0f;
+  lights.push_back(light);
 }
 
 ObjectsPipeline::~ObjectsPipeline()
@@ -63,42 +96,15 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  ImGui::Begin("Colors");
-  ImGui::Text("Control Light:");
-  ImGui::ColorEdit3("Color", color);
-  ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
-  ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
-  ImGui::SliderFloat3("Position", position, -50.0f, 50.0f);
-  ImGui::End();
-
-  Light light{};
-  light.position = {position[0], position[1], position[2]};
-  light.color = {color[0], color[1], color[2]};
-  light.ambient = ambient / 2.0f;
-  light.diffuse = diffuse;
-  light.specular = 1.0f;
-
-  Light light2{};
-  light2.position = {5, -3.5f, 5};
-  light2.color = {1, 1, 0};
-  light2.ambient = ambient / 2.0f;
-  light2.diffuse = diffuse;
-  light2.specular = 1.0f;
-
-  Light light3{};
-  light3.position = {-5.0f, -3.6f, -5.0f};
-  light3.color = {0.5, 0.5, 1};
-  light3.ambient = ambient / 2.0f;
-  light3.diffuse = diffuse;
-  light3.specular = 1.0f;
-
-  constexpr int numLights = 3;
 
   LightUniform lightUBO{};
-  lightUBO.numLights = numLights;
-  lightUBO.lights[0] = light;
-  lightUBO.lights[1] = light2;
-  lightUBO.lights[2] = light3;
+  lightUBO.numLights = static_cast<int>(lights.size());
+
+  for (size_t i = 0; i < lights.size(); i++)
+  {
+    lights[i].displayGui(i);
+    lightUBO.lights[i] = lights[i];
+  }
 
   lightUniform->update(currentFrame, &lightUBO, sizeof(lightUBO));
 

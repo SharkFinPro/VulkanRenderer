@@ -6,6 +6,7 @@
 #include <memory>
 #include <array>
 
+#include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 
 class RenderPass;
@@ -60,10 +61,7 @@ private:
   std::unique_ptr<UniformBuffer> lightUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
 
-  float position[3];
-  float color[3];
-  float ambient;
-  float diffuse;
+  std::vector<Light> lights;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 
