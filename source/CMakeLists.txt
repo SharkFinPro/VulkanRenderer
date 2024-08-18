@@ -26,7 +26,6 @@ add_library(${PROJECT_NAME}
   objects/UniformBuffer.h
   pipelines/objects/ObjectsPipeline.cpp
   pipelines/objects/ObjectsPipeline.h
-  pipelines/Vertex.cpp
   pipelines/Vertex.h
   pipelines/RenderPass.cpp
   pipelines/RenderPass.h
