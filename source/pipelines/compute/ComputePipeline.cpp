@@ -1,6 +1,6 @@
 #include "ComputePipeline.h"
-#include "ShaderModule.h"
-#include "../utilities/Buffers.h"
+#include "../ShaderModule.h"
+#include "../../utilities/Buffers.h"
 
 #include <cmath>
 #include <stdexcept>
