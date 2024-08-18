@@ -1,14 +1,14 @@
 #include "ObjectsPipeline.h"
 #include <stdexcept>
 
-#include "Vertex.h"
-#include "RenderPass.h"
-#include "Uniforms.h"
-#include "ShaderModule.h"
+#include "../Vertex.h"
+#include "../RenderPass.h"
+#include "../Uniforms.h"
+#include "../ShaderModule.h"
 
-#include "../objects/RenderObject.h"
-#include "../components/Camera.h"
-#include "../objects/UniformBuffer.h"
+#include "../../objects/RenderObject.h"
+#include "../../components/Camera.h"
+#include "../../objects/UniformBuffer.h"
 
 #include <imgui.h>
 

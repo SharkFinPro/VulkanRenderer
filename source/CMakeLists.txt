@@ -24,8 +24,8 @@ add_library(${PROJECT_NAME}
   components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
-  pipelines/ObjectsPipeline.cpp
-  pipelines/ObjectsPipeline.h
+  pipelines/objects/ObjectsPipeline.cpp
+  pipelines/objects/ObjectsPipeline.h
   pipelines/Vertex.cpp
   pipelines/Vertex.h
   pipelines/RenderPass.cpp

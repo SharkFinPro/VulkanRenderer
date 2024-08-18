@@ -16,7 +16,7 @@
 #include "components/Framebuffer.h"
 
 #include "pipelines/RenderPass.h"
-#include "pipelines/ObjectsPipeline.h"
+#include "pipelines/objects/ObjectsPipeline.h"
 #include "pipelines/gui/GuiPipeline.h"
 #include "pipelines/ComputePipeline.h"
 
