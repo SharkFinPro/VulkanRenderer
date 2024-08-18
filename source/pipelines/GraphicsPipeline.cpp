@@ -77,4 +77,6 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
   {
     throw std::runtime_error("failed to create graphics pipeline!");
   }
+
+  shaderModules.clear();
 }
