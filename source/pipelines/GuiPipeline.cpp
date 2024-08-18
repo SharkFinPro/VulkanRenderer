@@ -5,7 +5,6 @@
 
 #include "Vertex.h"
 #include "RenderPass.h"
-#include "ShaderModule.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
@@ -51,6 +50,12 @@ void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D 
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
+}
+
+void GuiPipeline::loadShaders()
+{
+  createShader("assets/shaders/ui_vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/ui_frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 std::unique_ptr<VkPipelineColorBlendStateCreateInfo> GuiPipeline::defineColorBlendState()

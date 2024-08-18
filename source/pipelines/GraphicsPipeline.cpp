@@ -1,7 +1,5 @@
 #include "GraphicsPipeline.h"
 
-#include "ShaderModule.h"
-
 GraphicsPipeline::GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                    std::shared_ptr<LogicalDevice> logicalDevice)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
@@ -11,6 +9,11 @@ GraphicsPipeline::~GraphicsPipeline()
 {
   vkDestroyPipeline(logicalDevice->getDevice(), pipeline, nullptr);
   vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
+}
+
+void GraphicsPipeline::createShader(const char *filename, VkShaderStageFlagBits stage)
+{
+  shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice->getDevice(), filename, stage));
 }
 
 void GraphicsPipeline::createPipelineLayout()
@@ -42,11 +45,13 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
   const auto vertexInputState = defineVertexInputState();
   const auto viewportState = defineViewportState();
 
-  const ShaderModule vertexShaderModule{logicalDevice->getDevice(), "assets/shaders/ui_vert.spv", VK_SHADER_STAGE_VERTEX_BIT};
-  const ShaderModule fragmentShaderModule{logicalDevice->getDevice(), "assets/shaders/ui_frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT};
+  loadShaders();
 
-  shaderStages.push_back(vertexShaderModule.getShaderStageCreateInfo());
-  shaderStages.push_back(fragmentShaderModule.getShaderStageCreateInfo());
+  std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+  for (const auto& shader : shaderModules)
+  {
+    shaderStages.push_back(shader->getShaderStageCreateInfo());
+  }
 
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

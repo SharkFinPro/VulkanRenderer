@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "ShaderModule.h"
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
@@ -15,6 +16,10 @@ public:
   virtual ~GraphicsPipeline();
 
 protected:
+  void createShader(const char* filename, VkShaderStageFlagBits stage);
+
+  virtual void loadShaders() = 0;
+
   void createPipelineLayout();
 
   void createPipeline(const VkRenderPass& renderPass);
@@ -45,7 +50,8 @@ protected:
   VkPipeline pipeline;
 
   std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-  std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+
+  std::vector<std::unique_ptr<ShaderModule>> shaderModules;
 };
 
 
