@@ -71,13 +71,36 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   ImGui::SliderFloat3("Position", position, -50.0f, 50.0f);
   ImGui::End();
 
+  Light light{};
+  light.position = {position[0], position[1], position[2]};
+  light.color = {color[0], color[1], color[2]};
+  light.ambient = ambient / 2.0f;
+  light.diffuse = diffuse;
+  light.specular = 1.0f;
+
+  Light light2{};
+  light2.position = {5, -3.5f, 5};
+  light2.color = {1, 1, 0};
+  light2.ambient = ambient / 2.0f;
+  light2.diffuse = diffuse;
+  light2.specular = 1.0f;
+
+  Light light3{};
+  light3.position = {-5.0f, -3.6f, -5.0f};
+  light3.color = {0.5, 0.5, 1};
+  light3.ambient = ambient / 2.0f;
+  light3.diffuse = diffuse;
+  light3.specular = 1.0f;
+
+  constexpr int numLights = 3;
+
   LightUniform lightUBO{};
-  lightUBO.position = {position[0], position[1], position[2]};
-  lightUBO.color = {color[0], color[1], color[2]};
-  lightUBO.ambient = ambient;
-  lightUBO.diffuse = diffuse;
-  lightUBO.specular = 1.0f;
-  lightUniform->update(currentFrame, &lightUBO, sizeof(LightUniform));
+  lightUBO.numLights = numLights;
+  lightUBO.lights[0] = light;
+  lightUBO.lights[1] = light2;
+  lightUBO.lights[2] = light3;
+
+  lightUniform->update(currentFrame, &lightUBO, sizeof(lightUBO));
 
   CameraUniform cameraUBO{};
   cameraUBO.position = camera->getPosition();
