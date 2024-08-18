@@ -4,17 +4,20 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <memory>
+#include <array>
+
+#include "../GraphicsPipeline.h"
 
 class RenderPass;
 class RenderObject;
 class Camera;
 class UniformBuffer;
 
-class ObjectsPipeline {
+class ObjectsPipeline final : public GraphicsPipeline {
 public:
-  ObjectsPipeline(VkDevice& device, VkPhysicalDevice& physicalDevice, const char* vertexShader,
-                   const char* fragmentShader, VkSampleCountFlagBits msaaSamples, std::shared_ptr<RenderPass> renderPass);
-  ~ObjectsPipeline();
+  ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+                  const std::shared_ptr<RenderPass>& renderPass);
+  ~ObjectsPipeline() override;
 
   VkDescriptorSetLayout& getLayout();
 
@@ -24,8 +27,18 @@ public:
   void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
 
 private:
-  void createGraphicsPipeline(const char* vertexShader, const char* fragmentShader, VkSampleCountFlagBits msaaSamples,
-                              std::shared_ptr<RenderPass>& renderPass);
+  void loadShaders() override;
+
+  void loadDescriptorSetLayouts() override;
+
+  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() override;
+  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() override;
+  std::unique_ptr<VkPipelineDynamicStateCreateInfo> defineDynamicState() override;
+  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> defineInputAssemblyState() override;
+  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> defineMultisampleState() override;
+  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> defineRasterizationState() override;
+  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
+  std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
 
   void createDescriptorSetLayout();
 
@@ -33,14 +46,10 @@ private:
 
   void createDescriptorSets();
 
+  void createUniforms();
+
 private:
-  VkDevice& device;
-  VkPhysicalDevice& physicalDevice;
-
   std::vector<std::shared_ptr<RenderObject>> renderObjects;
-
-  VkPipelineLayout pipelineLayout;
-  VkPipeline graphicsPipeline;
 
   VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
@@ -55,6 +64,13 @@ private:
   float color[3];
   float ambient;
   float diffuse;
+
+  VkPipelineColorBlendAttachmentState colorBlendAttachment;
+
+  std::array<VkDynamicState, 2> dynamicStates;
+
+  VkVertexInputBindingDescription vertexBindingDescription;
+  std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
 };
 
 

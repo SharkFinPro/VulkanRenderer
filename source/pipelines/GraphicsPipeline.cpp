@@ -16,8 +16,15 @@ void GraphicsPipeline::createShader(const char *filename, VkShaderStageFlagBits 
   shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice->getDevice(), filename, stage));
 }
 
+void GraphicsPipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
+{
+  descriptorSetLayouts.emplace_back(descriptorSetLayout);
+}
+
 void GraphicsPipeline::createPipelineLayout()
 {
+  loadDescriptorSetLayouts();
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
@@ -29,6 +36,8 @@ void GraphicsPipeline::createPipelineLayout()
   {
     throw std::runtime_error("failed to create pipeline layout!");
   }
+
+  descriptorSetLayouts.clear();
 }
 
 void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)

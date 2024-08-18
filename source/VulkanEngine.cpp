@@ -103,10 +103,7 @@ void VulkanEngine::initVulkan()
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
 
 
-  objectsPipeline = std::make_unique<ObjectsPipeline>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                                        "assets/shaders/vert.spv",
-                                                        "assets/shaders/frag.spv",
-                                                        physicalDevice->getMsaaSamples(), renderPass);
+  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass);
 

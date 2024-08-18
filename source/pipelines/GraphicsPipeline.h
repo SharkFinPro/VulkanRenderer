@@ -20,6 +20,9 @@ protected:
 
   virtual void loadShaders() = 0;
 
+  void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
+  virtual void loadDescriptorSetLayouts() {};
+
   void createPipelineLayout();
 
   void createPipeline(const VkRenderPass& renderPass);
