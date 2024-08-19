@@ -8,11 +8,12 @@ int main()
 {
   try
   {
-    auto vulkanEngineOptions = VulkanEngineOptions{};
-    vulkanEngineOptions.WINDOW_WIDTH = 800;
-    vulkanEngineOptions.WINDOW_HEIGHT = 600;
-    vulkanEngineOptions.WINDOW_TITLE = "Cube";
-    vulkanEngineOptions.cameraPosition = { 0.0f, 0.0f, -5.0f };
+    constexpr VulkanEngineOptions vulkanEngineOptions {
+      .WINDOW_WIDTH = 800,
+      .WINDOW_HEIGHT = 600,
+      .WINDOW_TITLE = "Cube",
+      .cameraPosition = { 0.0f, 0.0f, -5.0f }
+    };
 
     VulkanEngine renderer(vulkanEngineOptions);
 
