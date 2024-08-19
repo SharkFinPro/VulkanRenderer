@@ -72,7 +72,7 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies)
   {
-    VkDeviceQueueCreateInfo queueCreateInfo {
+    const VkDeviceQueueCreateInfo queueCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
       .queueFamilyIndex = queueFamily,
       .queueCount = 1,
@@ -82,11 +82,11 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  VkPhysicalDeviceFeatures deviceFeatures {
+  constexpr VkPhysicalDeviceFeatures deviceFeatures {
     .samplerAnisotropy = VK_TRUE
   };
 
-  VkDeviceCreateInfo createInfo {
+  const VkDeviceCreateInfo createInfo {
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
     .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
     .pQueueCreateInfos = queueCreateInfos.data(),
@@ -115,11 +115,11 @@ void LogicalDevice::createSyncObjects()
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
   computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
-  VkSemaphoreCreateInfo semaphoreInfo {
+  constexpr VkSemaphoreCreateInfo semaphoreInfo {
     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
   };
 
-  VkFenceCreateInfo fenceInfo {
+  constexpr VkFenceCreateInfo fenceInfo {
     .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
     .flags = VK_FENCE_CREATE_SIGNALED_BIT
   };
