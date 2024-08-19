@@ -323,20 +323,17 @@ void ObjectsPipeline::createDescriptorSetLayout()
   transformLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   transformLayout.descriptorCount = 1;
   transformLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-  transformLayout.pImmutableSamplers = nullptr;
 
   VkDescriptorSetLayoutBinding textureLayout{};
   textureLayout.binding = 1;
   textureLayout.descriptorCount = 1;
   textureLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  textureLayout.pImmutableSamplers = nullptr;
   textureLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
   VkDescriptorSetLayoutBinding specularLayout{};
   specularLayout.binding = 4;
   specularLayout.descriptorCount = 1;
   specularLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  specularLayout.pImmutableSamplers = nullptr;
   specularLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 
