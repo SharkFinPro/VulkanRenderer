@@ -174,8 +174,9 @@ void VulkanEngine::createComputeCommandBuffers()
 
 void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const
 {
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  constexpr VkCommandBufferBeginInfo beginInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+  };
 
   if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
   {
