@@ -293,21 +293,18 @@ void ObjectsPipeline::createDescriptorSetLayout()
   lightMetadataLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   lightMetadataLayout.descriptorCount = 1;
   lightMetadataLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  lightMetadataLayout.pImmutableSamplers = nullptr;
 
   VkDescriptorSetLayoutBinding lightsLayout{};
   lightsLayout.binding = 5;
   lightsLayout.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   lightsLayout.descriptorCount = 1;
   lightsLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  lightsLayout.pImmutableSamplers = nullptr;
 
   VkDescriptorSetLayoutBinding cameraLayout{};
   cameraLayout.binding = 3;
   cameraLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   cameraLayout.descriptorCount = 1;
   cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  cameraLayout.pImmutableSamplers = nullptr;
 
   const std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {lightMetadataLayout, lightsLayout, cameraLayout};
 
