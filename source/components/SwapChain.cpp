@@ -60,13 +60,14 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
   int width, height;
   window->getFramebufferSize(&width, &height);
 
-  VkExtent2D actualExtent = {
-    static_cast<uint32_t>(width),
-    static_cast<uint32_t>(height),
+  const VkExtent2D actualExtent {
+    .width = std::clamp(static_cast<uint32_t>(width),
+                        capabilities.minImageExtent.width,
+                        capabilities.maxImageExtent.width),
+    .height = std::clamp(static_cast<uint32_t>(height),
+                         capabilities.minImageExtent.height,
+                         capabilities.maxImageExtent.height)
   };
-
-  actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-  actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
   return actualExtent;
 }
