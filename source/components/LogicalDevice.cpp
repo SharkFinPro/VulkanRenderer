@@ -170,14 +170,13 @@ void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCom
 }
 void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = commandBuffer;
-
-  submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
+  const VkSubmitInfo submitInfo {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .commandBufferCount = 1,
+    .pCommandBuffers = commandBuffer,
+    .signalSemaphoreCount = 1,
+    .pSignalSemaphores = &computeFinishedSemaphores[currentFrame]
+  };
 
   if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS)
   {
