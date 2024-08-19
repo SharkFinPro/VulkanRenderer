@@ -30,8 +30,9 @@ void Model::loadModel(const char* path)
 {
   /* Load model with assimp */
   Assimp::Importer importer;
-  const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                                              aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices);
+  constexpr auto sceneFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
+                              aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices;
+  const aiScene* scene = importer.ReadFile(path, sceneFlags);
 
   // Check for errors
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -44,23 +45,21 @@ void Model::loadModel(const char* path)
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
   {
-    Vertex vertex{};
-
-    vertex.pos = {
-      mesh->mVertices[i].x,
-      mesh->mVertices[i].y,
-      mesh->mVertices[i].z
-    };
-
-    vertex.normal = {
-      mesh->mNormals[i].x,
-      mesh->mNormals[i].y,
-      mesh->mNormals[i].z
-    };
-
-    vertex.texCoord = {
-      mesh->mTextureCoords[0][i].x,
-      mesh->mTextureCoords[0][i].y
+    const Vertex vertex {
+      .pos = {
+        mesh->mVertices[i].x,
+        mesh->mVertices[i].y,
+        mesh->mVertices[i].z
+      },
+      .normal = {
+        mesh->mNormals[i].x,
+        mesh->mNormals[i].y,
+        mesh->mNormals[i].z
+      },
+      .texCoord = {
+        mesh->mTextureCoords[0][i].x,
+        mesh->mTextureCoords[0][i].y
+      }
     };
 
     vertices.push_back(vertex);
@@ -82,14 +81,19 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool)
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingBuffer, stagingBufferMemory);
 
   void* data;
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
   memcpy(data, vertices.data(), bufferSize);
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
-  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
   Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
                       vertexBuffer, bufferSize);
@@ -105,16 +109,22 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingBuffer, stagingBufferMemory);
 
   void* data;
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
   memcpy(data, indices.data(), bufferSize);
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
-  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
-  Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer, indexBuffer, bufferSize);
+  Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
+                      indexBuffer, bufferSize);
 
   vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
   vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
