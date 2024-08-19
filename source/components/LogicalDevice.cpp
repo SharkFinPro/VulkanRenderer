@@ -72,11 +72,13 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies)
   {
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = queueFamily;
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    VkDeviceQueueCreateInfo queueCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .queueFamilyIndex = queueFamily,
+      .queueCount = 1,
+      .pQueuePriorities = &queuePriority
+    };
+
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
