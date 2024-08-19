@@ -22,11 +22,12 @@ void Buffers::createBuffer(const VkDevice& device, const VkPhysicalDevice& physi
                            const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, VkBuffer& buffer,
                            VkDeviceMemory& bufferMemory)
 {
-  VkBufferCreateInfo bufferInfo{};
-  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size = size;
-  bufferInfo.usage = usage;
-  bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  const VkBufferCreateInfo bufferInfo {
+    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+    .size = size,
+    .usage = usage,
+    .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+  };
 
   if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
   {
@@ -36,10 +37,11 @@ void Buffers::createBuffer(const VkDevice& device, const VkPhysicalDevice& physi
   VkMemoryRequirements memoryRequirements;
   vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
 
-  VkMemoryAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocateInfo.allocationSize = memoryRequirements.size;
-  allocateInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties);
+  const VkMemoryAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+    .allocationSize = memoryRequirements.size,
+    .memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties)
+  };
 
   if (vkAllocateMemory(device, &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
   {
