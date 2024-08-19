@@ -41,14 +41,15 @@ VkDescriptorPoolSize Texture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN
 
 VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet) const
 {
-  VkWriteDescriptorSet descriptorSet{};
-  descriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  descriptorSet.dstSet = dstSet;
-  descriptorSet.dstBinding = binding;
-  descriptorSet.dstArrayElement = 0;
-  descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  descriptorSet.descriptorCount = 1;
-  descriptorSet.pImageInfo = &imageInfo;
+  const VkWriteDescriptorSet descriptorSet {
+    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    .dstSet = dstSet,
+    .dstBinding = binding,
+    .dstArrayElement = 0,
+    .descriptorCount = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .pImageInfo = &imageInfo
+  };
 
   return descriptorSet;
 }
