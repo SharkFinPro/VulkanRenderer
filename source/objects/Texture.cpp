@@ -213,32 +213,27 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
 
 void Texture::createTextureSampler()
 {
-  VkSamplerCreateInfo samplerCreateInfo{};
-  samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-  samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-  samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-
-  samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-  samplerCreateInfo.anisotropyEnable = VK_TRUE;
-
   VkPhysicalDeviceProperties deviceProperties{};
   vkGetPhysicalDeviceProperties(physicalDevice->getPhysicalDevice(), &deviceProperties);
 
-  samplerCreateInfo.maxAnisotropy = deviceProperties.limits.maxSamplerAnisotropy;
-
-  samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-  samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-
-  samplerCreateInfo.compareEnable = VK_FALSE;
-  samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-
-  samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-  samplerCreateInfo.mipLodBias = 0.0f;
-  samplerCreateInfo.minLod = 0.0f;
-  samplerCreateInfo.maxLod = VK_LOD_CLAMP_NONE;
+  const VkSamplerCreateInfo samplerCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+    .magFilter = VK_FILTER_LINEAR,
+    .minFilter = VK_FILTER_LINEAR,
+    .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+    .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+    .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+    .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+    .mipLodBias = 0.0f,
+    .anisotropyEnable = VK_TRUE,
+    .maxAnisotropy = deviceProperties.limits.maxSamplerAnisotropy,
+    .compareEnable = VK_FALSE,
+    .compareOp = VK_COMPARE_OP_ALWAYS,
+    .minLod = 0.0f,
+    .maxLod = VK_LOD_CLAMP_NONE,
+    .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+    .unnormalizedCoordinates = VK_FALSE
+  };
 
   if (vkCreateSampler(logicalDevice->getDevice(), &samplerCreateInfo, nullptr, &textureSampler) != VK_SUCCESS)
   {
