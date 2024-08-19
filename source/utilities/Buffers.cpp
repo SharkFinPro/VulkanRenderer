@@ -66,18 +66,20 @@ void Buffers::copyBuffer(const VkDevice& device, const VkCommandPool& commandPoo
 
 VkCommandBuffer Buffers::beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool)
 {
-  VkCommandBufferAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocateInfo.commandPool = commandPool;
-  allocateInfo.commandBufferCount = 1;
+  const VkCommandBufferAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .commandPool = commandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = 1
+  };
 
   VkCommandBuffer commandBuffer;
   vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer);
 
-  VkCommandBufferBeginInfo  beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  constexpr VkCommandBufferBeginInfo beginInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+  };
 
   vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
