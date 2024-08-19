@@ -27,16 +27,6 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   createDescriptorSets();
 
   createPipeline(renderPass->getRenderPass());
-
-  createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
-
-  createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f);
-
-  createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f);
-
-  createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f);
-
-  createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f);
 }
 
 ObjectsPipeline::~ObjectsPipeline()
