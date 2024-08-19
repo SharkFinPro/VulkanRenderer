@@ -137,18 +137,22 @@ VkFormat RenderPass::findDepthFormat() const
 
 void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const VkCommandBuffer& commandBuffer) const
 {
-  VkRenderPassBeginInfo renderPassInfo{};
-  renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-  renderPassInfo.renderPass = renderPass;
-  renderPassInfo.framebuffer = framebuffer;
-  renderPassInfo.renderArea.offset = {0, 0};
-  renderPassInfo.renderArea.extent = extent;
+  constexpr std::array<VkClearValue, 2> clearValues {{
+    {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
+    {.depthStencil = {1.0f, 0}}
+  }};
 
-  std::array<VkClearValue, 2> clearValues{};
-  clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-  clearValues[1].depthStencil = {1.0f, 0};
-  renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-  renderPassInfo.pClearValues = clearValues.data();
+  const VkRenderPassBeginInfo renderPassInfo {
+    .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+    .renderPass = renderPass,
+    .framebuffer = framebuffer,
+    .renderArea = {
+      .offset = {0, 0},
+      .extent = extent,
+    },
+    .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+    .pClearValues = clearValues.data()
+  };
 
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
