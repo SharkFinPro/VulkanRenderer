@@ -78,16 +78,18 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   lightMetadataUniform->update(currentFrame, &lightMetadataUBO, sizeof(lightMetadataUBO));
 
 
-  const auto bufferSize = sizeof(Light) * lights.size();
-  const auto lightsUBO = static_cast<Light*>(malloc(bufferSize));
-
-  for (size_t i = 0; i < lights.size(); i++)
+  if (!lights.empty())
   {
-    lights[i].displayGui(i + 1);
-    lightsUBO[i] = lights[i];
-  }
+    const auto lightsUBO = static_cast<Light*>(malloc(lightsUniformBufferSize));
 
-  lightsUniform->update(currentFrame, lightsUBO, bufferSize);
+    for (size_t i = 0; i < lights.size(); i++)
+    {
+      lights[i].displayGui(i + 1);
+      lightsUBO[i] = lights[i];
+    }
+
+    lightsUniform->update(currentFrame, lightsUBO, lightsUniformBufferSize);
+  }
 
   CameraUniform cameraUBO{};
   cameraUBO.position = camera->getPosition();
@@ -123,8 +125,10 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 
   lightsUniform.reset();
 
+  lightsUniformBufferSize = sizeof(Light) * lights.size();
+
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(Light) * lights.size());
+    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, lightsUniformBufferSize);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {

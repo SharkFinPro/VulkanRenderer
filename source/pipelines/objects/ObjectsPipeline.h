@@ -64,6 +64,8 @@ private:
   std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
 
+  size_t lightsUniformBufferSize;
+
   std::vector<Light> lights;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
