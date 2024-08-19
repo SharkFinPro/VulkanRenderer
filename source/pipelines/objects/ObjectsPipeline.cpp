@@ -299,7 +299,7 @@ void ObjectsPipeline::createDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  const std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {
+  constexpr std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {
     lightMetadataLayout,
     lightsLayout,
     cameraLayout
@@ -315,26 +315,28 @@ void ObjectsPipeline::createDescriptorSetLayout()
     throw std::runtime_error("failed to create descriptor set layout!");
   }
 
-  VkDescriptorSetLayoutBinding transformLayout{};
-  transformLayout.binding = 0;
-  transformLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  transformLayout.descriptorCount = 1;
-  transformLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  constexpr VkDescriptorSetLayoutBinding transformLayout {
+    .binding = 0,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+  };
 
-  VkDescriptorSetLayoutBinding textureLayout{};
-  textureLayout.binding = 1;
-  textureLayout.descriptorCount = 1;
-  textureLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  textureLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  constexpr VkDescriptorSetLayoutBinding textureLayout {
+    .binding = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
 
-  VkDescriptorSetLayoutBinding specularLayout{};
-  specularLayout.binding = 4;
-  specularLayout.descriptorCount = 1;
-  specularLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  specularLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  constexpr VkDescriptorSetLayoutBinding specularLayout {
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
 
-
-  const std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {
+  constexpr std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {
     transformLayout,
     textureLayout,
     specularLayout
