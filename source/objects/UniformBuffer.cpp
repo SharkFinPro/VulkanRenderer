@@ -43,14 +43,15 @@ VkDescriptorPoolSize UniformBuffer::getDescriptorPoolSize() const
 
 VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet, const size_t frame) const
 {
-  VkWriteDescriptorSet uniformDescriptorSet{};
-  uniformDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  uniformDescriptorSet.dstSet = dstSet;
-  uniformDescriptorSet.dstBinding = binding;
-  uniformDescriptorSet.dstArrayElement = 0;
-  uniformDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  uniformDescriptorSet.descriptorCount = 1;
-  uniformDescriptorSet.pBufferInfo = &bufferInfos[frame];
+  const VkWriteDescriptorSet uniformDescriptorSet {
+    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    .dstSet = dstSet,
+    .dstBinding = binding,
+    .dstArrayElement = 0,
+    .descriptorCount = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .pBufferInfo = &bufferInfos[frame]
+  };
 
   return uniformDescriptorSet;
 }
