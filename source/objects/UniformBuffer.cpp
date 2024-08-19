@@ -15,10 +15,11 @@ UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice,
 
     vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformBuffers[i];
-    bufferInfo.offset = 0;
-    bufferInfo.range = bufferSize;
+    const VkDescriptorBufferInfo bufferInfo {
+      .buffer = uniformBuffers[i],
+      .offset = 0,
+      .range = bufferSize
+    };
 
     bufferInfos.push_back(bufferInfo);
   }
