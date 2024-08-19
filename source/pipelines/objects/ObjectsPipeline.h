@@ -28,6 +28,8 @@ public:
   void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
 
 private:
+  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
+
   void loadShaders() override;
 
   void loadDescriptorSetLayouts() override;

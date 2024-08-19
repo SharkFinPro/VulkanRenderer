@@ -28,61 +28,15 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 
   createPipeline(renderPass->getRenderPass());
 
-  Light light{};
-  light.position[0] = 0.0f;
-  light.position[1] = -3.5f;
-  light.position[2] = 0.0f;
-  light.color[0] = 1.0f;
-  light.color[1] = 1.0f;
-  light.color[2] = 1.0f;
-  light.ambient = 0.1f;
-  light.diffuse = 0.5f;
-  light.specular = 1.0f;
-  lights.push_back(light);
+  createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
 
-  light.position[0] = 5.0f;
-  light.position[1] = -3.5f;
-  light.position[2] = 5.0f;
-  light.color[0] = 1.0f;
-  light.color[1] = 1.0f;
-  light.color[2] = 0.0f;
-  light.ambient = 0;
-  light.diffuse = 0.5f;
-  light.specular = 1.0f;
-  lights.push_back(light);
+  createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f);
 
-  light.position[0] = -5.0f;
-  light.position[1] = -3.6f;
-  light.position[2] = -5.0f;
-  light.color[0] = 0.5f;
-  light.color[1] = 0.5f;
-  light.color[2] = 1.0f;
-  light.ambient = 0;
-  light.diffuse = 0.5f;
-  light.specular = 1.0f;
-  lights.push_back(light);
+  createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f);
 
-  light.position[0] = 5.0f;
-  light.position[1] = -3.6f;
-  light.position[2] = -5.0f;
-  light.color[0] = 0.0f;
-  light.color[1] = 1.0f;
-  light.color[2] = 0.0f;
-  light.ambient = 0;
-  light.diffuse = 0.5f;
-  light.specular = 1.0f;
-  lights.push_back(light);
+  createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f);
 
-  light.position[0] = -5.0f;
-  light.position[1] = -3.6f;
-  light.position[2] = 5.0f;
-  light.color[0] = 1.0f;
-  light.color[1] = 0.5f;
-  light.color[2] = 1.0f;
-  light.ambient = 0;
-  light.diffuse = 0.5f;
-  light.specular = 1.0f;
-  lights.push_back(light);
+  createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f);
 }
 
 ObjectsPipeline::~ObjectsPipeline()
@@ -151,6 +105,20 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 void ObjectsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& renderObject)
 {
   renderObjects.push_back(renderObject);
+}
+
+void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
+                                  const float diffuse, const float specular)
+{
+  const Light light {
+    .position = {position.x, position.y, position.z},
+    .color = {color.x, color.y, color.z},
+    .ambient = ambient,
+    .diffuse = diffuse,
+    .specular = specular
+  };
+
+  lights.push_back(light);
 }
 
 void ObjectsPipeline::loadShaders()
