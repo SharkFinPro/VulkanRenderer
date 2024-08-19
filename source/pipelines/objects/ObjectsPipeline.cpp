@@ -305,10 +305,11 @@ void ObjectsPipeline::createDescriptorSetLayout()
     cameraLayout
   };
 
-  VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo{};
-  globalLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  globalLayoutCreateInfo.bindingCount = static_cast<uint32_t>(globalBindings.size());
-  globalLayoutCreateInfo.pBindings = globalBindings.data();
+  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    .bindingCount = static_cast<uint32_t>(globalBindings.size()),
+    .pBindings = globalBindings.data()
+  };
 
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
   {
@@ -342,10 +343,11 @@ void ObjectsPipeline::createDescriptorSetLayout()
     specularLayout
   };
 
-  VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo{};
-  objectLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  objectLayoutCreateInfo.bindingCount = static_cast<uint32_t>(objectBindings.size());
-  objectLayoutCreateInfo.pBindings = objectBindings.data();
+  const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    .bindingCount = static_cast<uint32_t>(objectBindings.size()),
+    .pBindings = objectBindings.data()
+  };
 
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &objectLayoutCreateInfo, nullptr,
                                   &objectDescriptorSetLayout) != VK_SUCCESS)
