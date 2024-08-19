@@ -56,8 +56,9 @@ void Buffers::copyBuffer(const VkDevice& device, const VkCommandPool& commandPoo
 {
   const VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
-  VkBufferCopy copyRegion{};
-  copyRegion.size = size;
+  const VkBufferCopy copyRegion {
+    .size = size
+  };
   vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
   endSingleTimeCommands(device, commandPool, queue, commandBuffer);
