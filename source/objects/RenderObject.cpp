@@ -55,16 +55,18 @@ void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExte
 
 void RenderObject::createDescriptorPool()
 {
-  std::array<VkDescriptorPoolSize, 3> poolSizes{};
-  poolSizes[0] = transformUniform->getDescriptorPoolSize();
-  poolSizes[1] = Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
-  poolSizes[2] = Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
+  const std::array<VkDescriptorPoolSize, 3> poolSizes {
+    transformUniform->getDescriptorPoolSize(),
+    Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT),
+    Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT)
+  };
 
-  VkDescriptorPoolCreateInfo poolCreateInfo{};
-  poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  poolCreateInfo.pPoolSizes = poolSizes.data();
-  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  const VkDescriptorPoolCreateInfo poolCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+    .pPoolSizes = poolSizes.data()
+  };
 
   if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
