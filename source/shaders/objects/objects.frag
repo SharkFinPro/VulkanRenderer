@@ -15,8 +15,11 @@ struct PointLight {
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 layout(set = 1, binding = 4) uniform sampler2D specSampler;
 
-layout(set = 0, binding = 2) uniform PointLights {
+layout(set = 0, binding = 2) uniform PointLightsMetadata {
   int numLights;
+};
+
+layout(set = 0, binding = 5) uniform PointLights {
   PointLight lights[MAX_LIGHTS];
 };
 

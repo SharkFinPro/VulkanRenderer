@@ -34,8 +34,11 @@ struct alignas(16) Light {
   }
 };
 
-struct LightUniform {
+struct LightMetadataUniform {
   alignas(16) int numLights;
+};
+
+struct LightsUniform {
   Light lights[5];  // Fixed-size array, aligned to 16 bytes
 };
 

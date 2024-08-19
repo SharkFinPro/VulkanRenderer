@@ -58,7 +58,8 @@ private:
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
 
-  std::unique_ptr<UniformBuffer> lightUniform;
+  std::unique_ptr<UniformBuffer> lightMetadataUniform;
+  std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
 
   std::vector<Light> lights;

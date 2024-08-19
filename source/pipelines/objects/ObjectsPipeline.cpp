@@ -118,17 +118,21 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+  LightMetadataUniform lightMetadataUBO{};
+  lightMetadataUBO.numLights = static_cast<int>(lights.size());
 
-  LightUniform lightUBO{};
-  lightUBO.numLights = static_cast<int>(lights.size());
+  lightMetadataUniform->update(currentFrame, &lightMetadataUBO, sizeof(lightMetadataUBO));
+
+
+  LightsUniform lightsUBO{};
 
   for (size_t i = 0; i < lights.size(); i++)
   {
     lights[i].displayGui(i + 1);
-    lightUBO.lights[i] = lights[i];
+    lightsUBO.lights[i] = lights[i];
   }
 
-  lightUniform->update(currentFrame, &lightUBO, sizeof(lightUBO));
+  lightsUniform->update(currentFrame, &lightsUBO, sizeof(lightsUBO));
 
   CameraUniform cameraUBO{};
   cameraUBO.position = camera->getPosition();
@@ -284,12 +288,19 @@ std::unique_ptr<VkPipelineViewportStateCreateInfo> ObjectsPipeline::defineViewpo
 
 void ObjectsPipeline::createDescriptorSetLayout()
 {
-  VkDescriptorSetLayoutBinding lightLayout{};
-  lightLayout.binding = 2;
-  lightLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  lightLayout.descriptorCount = 1;
-  lightLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  lightLayout.pImmutableSamplers = nullptr;
+  VkDescriptorSetLayoutBinding lightMetadataLayout{};
+  lightMetadataLayout.binding = 2;
+  lightMetadataLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightMetadataLayout.descriptorCount = 1;
+  lightMetadataLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  lightMetadataLayout.pImmutableSamplers = nullptr;
+
+  VkDescriptorSetLayoutBinding lightsLayout{};
+  lightsLayout.binding = 5;
+  lightsLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightsLayout.descriptorCount = 1;
+  lightsLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  lightsLayout.pImmutableSamplers = nullptr;
 
   VkDescriptorSetLayoutBinding cameraLayout{};
   cameraLayout.binding = 3;
@@ -298,7 +309,7 @@ void ObjectsPipeline::createDescriptorSetLayout()
   cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   cameraLayout.pImmutableSamplers = nullptr;
 
-  const std::array<VkDescriptorSetLayoutBinding, 2> globalBindings = {lightLayout, cameraLayout};
+  const std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {lightMetadataLayout, lightsLayout, cameraLayout};
 
   VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo{};
   globalLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -352,9 +363,10 @@ void ObjectsPipeline::createDescriptorSetLayout()
 
 void ObjectsPipeline::createDescriptorPool()
 {
-  std::array<VkDescriptorPoolSize, 2> poolSizes{};
-  poolSizes[0] = lightUniform->getDescriptorPoolSize();
+  std::array<VkDescriptorPoolSize, 3> poolSizes{};
+  poolSizes[0] = lightMetadataUniform->getDescriptorPoolSize();
   poolSizes[1] = cameraUniform->getDescriptorPoolSize();
+  poolSizes[2] = lightsUniform->getDescriptorPoolSize();
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -387,9 +399,10 @@ void ObjectsPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-    descriptorWrites[0] = lightUniform->getDescriptorSet(2, descriptorSets[i], i);
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+    descriptorWrites[0] = lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i);
     descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
+    descriptorWrites[2] = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
                            descriptorWrites.data(), 0, nullptr);
@@ -398,8 +411,11 @@ void ObjectsPipeline::createDescriptorSets()
 
 void ObjectsPipeline::createUniforms()
 {
-  lightUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(LightUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
+    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(LightMetadataUniform));
+
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
+    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(LightsUniform));
 
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
     physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform));
