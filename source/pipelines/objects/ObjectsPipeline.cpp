@@ -41,6 +41,8 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 
 ObjectsPipeline::~ObjectsPipeline()
 {
+  free(lightsUBO);
+
   vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
@@ -125,6 +127,7 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 
   lightsUniformBufferSize = sizeof(Light) * lights.size();
 
+  free(lightsUBO);
   lightsUBO = static_cast<Light*>(malloc(lightsUniformBufferSize));
 
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
