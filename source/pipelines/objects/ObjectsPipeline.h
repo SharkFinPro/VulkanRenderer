@@ -27,10 +27,10 @@ public:
 
   void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
 
+  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
+
 private:
   void updateLightUniforms(uint32_t currentFrame);
-
-  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
 
   void loadShaders() override;
 

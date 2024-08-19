@@ -95,24 +95,6 @@ void ObjectsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& re
   renderObjects.push_back(renderObject);
 }
 
-void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
-{
-  if (lights.empty())
-  {
-    return;
-  }
-
-  ImGui::Begin("Lights");
-  for (size_t i = 0; i < lights.size(); i++)
-  {
-    lights[i].displayGui(i + 1);
-    lightsUBO[i] = lights[i];
-  }
-  ImGui::End();
-
-  lightsUniform->update(currentFrame, lightsUBO, lightsUniformBufferSize);
-}
-
 void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
                                   const float diffuse, const float specular)
 {
@@ -151,6 +133,24 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 
     vkUpdateDescriptorSets(this->logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
   }
+}
+
+void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
+{
+  if (lights.empty())
+  {
+    return;
+  }
+
+  ImGui::Begin("Lights");
+  for (size_t i = 0; i < lights.size(); i++)
+  {
+    lights[i].displayGui(i + 1);
+    lightsUBO[i] = lights[i];
+  }
+  ImGui::End();
+
+  lightsUniform->update(currentFrame, lightsUBO, lightsUniformBufferSize);
 }
 
 void ObjectsPipeline::loadShaders()
