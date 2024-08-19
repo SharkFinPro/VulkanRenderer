@@ -19,7 +19,7 @@ VkRenderPass& RenderPass::getRenderPass()
   return renderPass;
 }
 
-void RenderPass::createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples)
+void RenderPass::createRenderPass(const VkFormat swapChainImageFormat, const VkSampleCountFlagBits msaaSamples)
 {
   const VkAttachmentDescription depthAttachment {
     .format = findDepthFormat(),
