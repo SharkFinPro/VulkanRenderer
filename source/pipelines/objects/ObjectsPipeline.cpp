@@ -382,8 +382,7 @@ void ObjectsPipeline::createDescriptorPool()
     .pPoolSizes = poolSizes.data()
   };
 
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr,
-                             &descriptorPool) != VK_SUCCESS)
+  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor pool!");
   }
@@ -420,11 +419,14 @@ void ObjectsPipeline::createDescriptorSets()
 void ObjectsPipeline::createUniforms()
 {
   lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(LightMetadataUniform));
+                                                         physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                         sizeof(LightMetadataUniform));
 
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(LightsUniform));
+                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                  sizeof(LightsUniform));
 
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(CameraUniform));
+                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                  sizeof(CameraUniform));
 }
