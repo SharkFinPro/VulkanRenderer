@@ -75,6 +75,12 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
   return renderObject;
 }
 
+void VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
+                               const float diffuse, const float specular) const
+{
+  objectsPipeline->createLight(position, color, ambient, diffuse, specular);
+}
+
 ImGuiContext* VulkanEngine::getImGuiContext()
 {
   return ImGui::GetCurrentContext();

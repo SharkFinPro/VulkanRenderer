@@ -44,6 +44,8 @@ public:
                                                                const std::shared_ptr<Texture>& specularMap,
                                                                const std::shared_ptr<Model>&) const;
 
+  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f) const;
+
   static ImGuiContext* getImGuiContext();
 
 private:
