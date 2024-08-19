@@ -318,9 +318,9 @@ void ComputePipeline::createShaderStorageBuffers(const VkCommandPool& commandPoo
   std::vector<Particle> particles(PARTICLE_COUNT);
   for (auto& particle : particles)
   {
-    const float r = 0.25f * sqrt(distribution(randomEngine));
-    const float theta = distribution(randomEngine) * 2 * 3.14159265358979323846;
-    const float x = r * std::cos(theta) * swapChainExtent.height / swapChainExtent.width;
+    const float r = sqrtf(distribution(randomEngine)) * 0.25f;
+    const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
+    const float x = r * std::cos(theta) * static_cast<float>(swapChainExtent.height) / static_cast<float>(swapChainExtent.width);
     const float y = r * std::sin(theta);
     particle.position = glm::vec2(x, y);
     particle.velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
