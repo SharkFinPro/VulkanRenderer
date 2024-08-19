@@ -164,7 +164,7 @@ std::unique_ptr<VkPipelineColorBlendStateCreateInfo> ObjectsPipeline::defineColo
                       VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
   };
 
-  VkPipelineColorBlendStateCreateInfo colorBlendState = {
+  VkPipelineColorBlendStateCreateInfo colorBlendState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
     .logicOpEnable = VK_FALSE,
     .logicOp = VK_LOGIC_OP_COPY,
@@ -178,7 +178,7 @@ std::unique_ptr<VkPipelineColorBlendStateCreateInfo> ObjectsPipeline::defineColo
 
 std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> ObjectsPipeline::defineDepthStencilState()
 {
-  VkPipelineDepthStencilStateCreateInfo depthStencilState = {
+  VkPipelineDepthStencilStateCreateInfo depthStencilState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
     .depthTestEnable = VK_TRUE,
     .depthWriteEnable = VK_TRUE,
@@ -199,7 +199,7 @@ std::unique_ptr<VkPipelineDynamicStateCreateInfo> ObjectsPipeline::defineDynamic
     VK_DYNAMIC_STATE_SCISSOR
   };
 
-  VkPipelineDynamicStateCreateInfo dynamicState = {
+  VkPipelineDynamicStateCreateInfo dynamicState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
     .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
     .pDynamicStates = dynamicStates.data()
@@ -210,7 +210,7 @@ std::unique_ptr<VkPipelineDynamicStateCreateInfo> ObjectsPipeline::defineDynamic
 
 std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> ObjectsPipeline::defineInputAssemblyState()
 {
-  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {
+  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
     .primitiveRestartEnable = VK_FALSE
@@ -221,7 +221,7 @@ std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> ObjectsPipeline::defineI
 
 std::unique_ptr<VkPipelineMultisampleStateCreateInfo> ObjectsPipeline::defineMultisampleState()
 {
-  VkPipelineMultisampleStateCreateInfo multisampleState = {
+  VkPipelineMultisampleStateCreateInfo multisampleState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
     .rasterizationSamples = physicalDevice->getMsaaSamples(),
     .sampleShadingEnable = VK_FALSE,
@@ -236,7 +236,7 @@ std::unique_ptr<VkPipelineMultisampleStateCreateInfo> ObjectsPipeline::defineMul
 
 std::unique_ptr<VkPipelineRasterizationStateCreateInfo> ObjectsPipeline::defineRasterizationState()
 {
-  VkPipelineRasterizationStateCreateInfo rasterizationState = {
+  VkPipelineRasterizationStateCreateInfo rasterizationState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = VK_FALSE,
     .rasterizerDiscardEnable = VK_FALSE,
@@ -255,7 +255,7 @@ std::unique_ptr<VkPipelineVertexInputStateCreateInfo> ObjectsPipeline::defineVer
   vertexBindingDescription = Vertex::getBindingDescription();
   vertexAttributeDescriptions = Vertex::getAttributeDescriptions();
 
-  VkPipelineVertexInputStateCreateInfo vertexInputState = {
+  VkPipelineVertexInputStateCreateInfo vertexInputState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
     .vertexBindingDescriptionCount = 1,
     .pVertexBindingDescriptions = &vertexBindingDescription,
@@ -268,7 +268,7 @@ std::unique_ptr<VkPipelineVertexInputStateCreateInfo> ObjectsPipeline::defineVer
 
 std::unique_ptr<VkPipelineViewportStateCreateInfo> ObjectsPipeline::defineViewportState()
 {
-  VkPipelineViewportStateCreateInfo viewportState = {
+  VkPipelineViewportStateCreateInfo viewportState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
     .viewportCount = 1,
     .scissorCount = 1
@@ -300,7 +300,7 @@ void ObjectsPipeline::createDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {
+  constexpr std::array<VkDescriptorSetLayoutBinding, 3> globalBindings {
     lightMetadataLayout,
     lightsLayout,
     cameraLayout
@@ -338,7 +338,7 @@ void ObjectsPipeline::createDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> objectBindings = {
+  constexpr std::array<VkDescriptorSetLayoutBinding, 3> objectBindings {
     transformLayout,
     textureLayout,
     specularLayout
