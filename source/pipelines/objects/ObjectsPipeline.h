@@ -32,6 +32,8 @@ public:
 private:
   void updateLightUniforms(uint32_t currentFrame);
 
+  void renderLightsGui();
+
   void loadShaders() override;
 
   void loadDescriptorSetLayouts() override;

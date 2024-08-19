@@ -131,14 +131,19 @@ void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
     return;
   }
 
+  renderLightsGui();
+
+  lightsUniform->update(currentFrame, lights.data(), lightsUniformBufferSize);
+}
+
+void ObjectsPipeline::renderLightsGui()
+{
   ImGui::Begin("Lights");
   for (size_t i = 0; i < lights.size(); i++)
   {
     lights[i].displayGui(i + 1);
   }
   ImGui::End();
-
-  lightsUniform->update(currentFrame, lights.data(), lightsUniformBufferSize);
 }
 
 void ObjectsPipeline::loadShaders()
@@ -317,7 +322,7 @@ void ObjectsPipeline::createGlobalDescriptorSetLayout()
 
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
   {
-    throw std::runtime_error("failed to create descriptor set layout!");
+    throw std::runtime_error("failed to create global descriptor set layout!");
   }
 }
 
@@ -359,7 +364,7 @@ void ObjectsPipeline::createObjectDescriptorSetLayout()
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &objectLayoutCreateInfo, nullptr,
                                   &objectDescriptorSetLayout) != VK_SUCCESS)
   {
-    throw std::runtime_error("failed to create descriptor set layout!");
+    throw std::runtime_error("failed to create object descriptor set layout!");
   }
 }
 
