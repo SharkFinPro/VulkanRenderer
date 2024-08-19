@@ -38,7 +38,6 @@ int main()
 
     while (renderer.isActive())
     {
-
       ImGui::Begin("Object");
       ImGui::Text("Control Position:");
       ImGui::SliderFloat("x", &position.x, -50.0f, 50.0f);
