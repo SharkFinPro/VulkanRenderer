@@ -74,12 +74,6 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  LightMetadataUniform lightMetadataUBO{};
-  lightMetadataUBO.numLights = static_cast<int>(lights.size());
-
-  lightMetadataUniform->update(currentFrame, &lightMetadataUBO, sizeof(lightMetadataUBO));
-
-
   if (!lights.empty())
   {
     for (size_t i = 0; i < lights.size(); i++)
@@ -122,6 +116,14 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
   };
 
   lights.push_back(light);
+
+  LightMetadataUniform lightMetadataUBO{};
+  lightMetadataUBO.numLights = static_cast<int>(lights.size());
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+  }
 
   lightsUniform.reset();
 
