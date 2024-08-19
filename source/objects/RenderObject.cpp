@@ -39,13 +39,17 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
 
 void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const
 {
-  TransformUniform transformUBO{};
+  auto projection = glm::perspective(glm::radians(45.0f),
+                             static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
+                             0.1f, 1000.0f);
+  projection[1][1] *= -1;
 
-  transformUBO.model = glm::translate(glm::mat4(1.0f), position);
+  const TransformUniform transformUBO {
+    .model = glm::translate(glm::mat4(1.0f), position),
+    .view = camera->getViewMatrix(),
+    .proj = projection
+  };
 
-  transformUBO.view = camera->getViewMatrix();
-  transformUBO.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 1000.0f);
-  transformUBO.proj[1][1] *= -1;
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
 }
 
