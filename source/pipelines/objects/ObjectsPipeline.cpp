@@ -47,7 +47,7 @@ VkDescriptorSetLayout& ObjectsPipeline::getLayout()
 }
 
 void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                              const std::shared_ptr<Camera>& camera, const VkExtent2D swapChainExtent)
+                             const std::shared_ptr<Camera>& camera, const VkExtent2D swapChainExtent)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -71,7 +71,8 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   cameraUBO.position = camera->getPosition();
   cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[currentFrame], 0, nullptr);
 
   for (const auto& object : renderObjects)
   {
@@ -398,8 +399,7 @@ void ObjectsPipeline::createDescriptorSets()
   };
 
   descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo,
-                               descriptorSets.data()) != VK_SUCCESS)
+  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
