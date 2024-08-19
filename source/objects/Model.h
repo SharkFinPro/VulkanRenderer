@@ -8,7 +8,7 @@
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
-class Vertex;
+struct Vertex;
 
 class Model {
 public:
