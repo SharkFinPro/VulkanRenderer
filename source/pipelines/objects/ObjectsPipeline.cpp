@@ -102,11 +102,13 @@ void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
     return;
   }
 
+  ImGui::Begin("Lights");
   for (size_t i = 0; i < lights.size(); i++)
   {
     lights[i].displayGui(i + 1);
     lightsUBO[i] = lights[i];
   }
+  ImGui::End();
 
   lightsUniform->update(currentFrame, lightsUBO, lightsUniformBufferSize);
 }

@@ -12,25 +12,27 @@ struct TransformUniform {
 };
 
 struct alignas(16) Light {
-  float position[3];  // 12 bytes
-  float padding1;      // 4 bytes to align the next member to a 16-byte boundary
-  float color[3];     // 12 bytes
-  float padding2;      // 4 bytes, to make the struct size a multiple of 16 bytes
+  float position[3];
+  float padding1;
+  float color[3];
+  float padding2;
 
-  float ambient;       // 4 bytes
-  float diffuse;       // 4 bytes
-  float specular;      // 4 bytes
-  float padding3;      // 4 bytes, to make the struct size a multiple of 16 bytes
+  float ambient;
+  float diffuse;
+  float specular;
+  float padding3;
 
   void displayGui(const size_t lightNum)
   {
-    ImGui::Begin(("Light " + std::to_string(lightNum)).c_str());
-    ImGui::Text("Control Light:");
-    ImGui::ColorEdit3("Color", color);
-    ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
-    ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
-    ImGui::SliderFloat3("Position", position, -50.0f, 50.0f);
-    ImGui::End();
+    if (ImGui::CollapsingHeader(("Light " + std::to_string(lightNum) + ":").c_str()))
+    {
+      ImGui::SeparatorText(("Control Light " + std::to_string(lightNum)).c_str());
+      ImGui::ColorEdit3(("Light " + std::to_string(lightNum) + " Color").c_str(), color);
+      ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Ambient").c_str(), &ambient, 0.0f, 1.0f);
+      ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Diffuse").c_str(), &diffuse, 0.0f, 1.0f);
+      ImGui::SliderFloat3(("Light " + std::to_string(lightNum) + " Position").c_str(), position, -50.0f, 50.0f);
+      ImGui::Separator();
+    }
   }
 };
 
