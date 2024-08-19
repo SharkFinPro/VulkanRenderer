@@ -48,12 +48,13 @@ void ShaderModule::createShaderModule(const char* file)
 {
   const auto code = readFile(file);
 
-  VkShaderModuleCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-  createInfo.codeSize = code.size();
-  createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+  const VkShaderModuleCreateInfo shaderModuleCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+    .codeSize = code.size(),
+    .pCode = reinterpret_cast<const uint32_t*>(code.data())
+  };
 
-  if (vkCreateShaderModule(device, &createInfo, nullptr, &module) != VK_SUCCESS)
+  if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &module) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create shader module!");
   }
