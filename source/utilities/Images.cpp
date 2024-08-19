@@ -34,10 +34,11 @@ void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physica
   VkMemoryRequirements memoryRequirements;
   vkGetImageMemoryRequirements(device, image, &memoryRequirements);
 
-  VkMemoryAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocateInfo.allocationSize = memoryRequirements.size;
-  allocateInfo.memoryTypeIndex = Buffers::findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties);
+  const VkMemoryAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+    .allocationSize = memoryRequirements.size,
+    .memoryTypeIndex = Buffers::findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties)
+  };
 
   if (vkAllocateMemory(device, &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
   {
