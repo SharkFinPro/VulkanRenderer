@@ -206,17 +206,15 @@ void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
 
 VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const
 {
-  VkPresentInfoKHR presentInfo{};
-  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-  presentInfo.waitSemaphoreCount = 1;
-  presentInfo.pWaitSemaphores = &renderFinishedSemaphores[currentFrame];
-
-  presentInfo.swapchainCount = 1;
-  presentInfo.pSwapchains = &swapchain;
-  presentInfo.pImageIndices = imageIndex;
-
-  presentInfo.pResults = nullptr;
+  const VkPresentInfoKHR presentInfo {
+    .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+    .waitSemaphoreCount = 1,
+    .pWaitSemaphores = &renderFinishedSemaphores[currentFrame],
+    .swapchainCount = 1,
+    .pSwapchains = &swapchain,
+    .pImageIndices = imageIndex,
+    .pResults = nullptr
+  };
 
   return vkQueuePresentKHR(presentQueue, &presentInfo);
 }
