@@ -306,7 +306,11 @@ void ObjectsPipeline::createDescriptorSetLayout()
   cameraLayout.descriptorCount = 1;
   cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-  const std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {lightMetadataLayout, lightsLayout, cameraLayout};
+  const std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {
+    lightMetadataLayout,
+    lightsLayout,
+    cameraLayout
+  };
 
   VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo{};
   globalLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
