@@ -1,5 +1,4 @@
 #version 450
-#define MAX_LIGHTS 10
 
 struct PointLight {
   vec3 position;
@@ -19,8 +18,8 @@ layout(set = 0, binding = 2) uniform PointLightsMetadata {
   int numLights;
 };
 
-layout(set = 0, binding = 5) uniform PointLights {
-  PointLight lights[MAX_LIGHTS];
+layout(set = 0, binding = 5) buffer PointLights {
+  PointLight lights[];
 };
 
 layout(set = 0, binding = 3) uniform Camera {

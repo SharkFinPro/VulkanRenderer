@@ -80,13 +80,15 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
   LightsUniform lightsUBO{};
 
+  const auto bufferSize = sizeof(Light) * lights.size();
+
   for (size_t i = 0; i < lights.size(); i++)
   {
     lights[i].displayGui(i + 1);
     lightsUBO.lights[i] = lights[i];
   }
 
-  lightsUniform->update(currentFrame, &lightsUBO, sizeof(lightsUBO));
+  lightsUniform->update(currentFrame, &lightsUBO, bufferSize);
 
   CameraUniform cameraUBO{};
   cameraUBO.position = camera->getPosition();
@@ -119,6 +121,19 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
   };
 
   lights.push_back(light);
+
+  lightsUniform.reset();
+
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
+    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, sizeof(Light) * lights.size());
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
+    descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+    vkUpdateDescriptorSets(this->logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
+  }
 }
 
 void ObjectsPipeline::loadShaders()
@@ -265,7 +280,7 @@ void ObjectsPipeline::createDescriptorSetLayout()
 
   VkDescriptorSetLayoutBinding lightsLayout{};
   lightsLayout.binding = 5;
-  lightsLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  lightsLayout.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
   lightsLayout.descriptorCount = 1;
   lightsLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
   lightsLayout.pImmutableSamplers = nullptr;
@@ -335,6 +350,7 @@ void ObjectsPipeline::createDescriptorPool()
   poolSizes[0] = lightMetadataUniform->getDescriptorPoolSize();
   poolSizes[1] = cameraUniform->getDescriptorPoolSize();
   poolSizes[2] = lightsUniform->getDescriptorPoolSize();
+  poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
   VkDescriptorPoolCreateInfo poolCreateInfo{};
   poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -371,6 +387,7 @@ void ObjectsPipeline::createDescriptorSets()
     descriptorWrites[0] = lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i);
     descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
     descriptorWrites[2] = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
                            descriptorWrites.data(), 0, nullptr);
