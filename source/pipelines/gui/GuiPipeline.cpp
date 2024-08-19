@@ -30,18 +30,20 @@ void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D 
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-  VkViewport viewport{};
-  viewport.x = 0.0f;
-  viewport.y = 0.0f;
-  viewport.width = static_cast<float>(swapChainExtent.width);
-  viewport.height = static_cast<float>(swapChainExtent.height);
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
+  const VkViewport viewport {
+    .x = 0.0f,
+    .y = 0.0f,
+    .width = static_cast<float>(swapChainExtent.width),
+    .height = static_cast<float>(swapChainExtent.height),
+    .minDepth = 0.0f,
+    .maxDepth = 1.0f
+  };
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-  VkRect2D scissor{};
-  scissor.offset = {0, 0};
-  scissor.extent = swapChainExtent;
+  const VkRect2D scissor {
+    .offset = {0, 0},
+    .extent = swapChainExtent
+  };
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   ImGui::Render();
@@ -66,7 +68,7 @@ std::unique_ptr<VkPipelineColorBlendStateCreateInfo> GuiPipeline::defineColorBle
                       VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
   };
 
-  VkPipelineColorBlendStateCreateInfo colorBlendState = {
+  VkPipelineColorBlendStateCreateInfo colorBlendState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
     .logicOpEnable = VK_FALSE,
     .logicOp = VK_LOGIC_OP_COPY,
@@ -80,7 +82,7 @@ std::unique_ptr<VkPipelineColorBlendStateCreateInfo> GuiPipeline::defineColorBle
 
 std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> GuiPipeline::defineDepthStencilState()
 {
-  VkPipelineDepthStencilStateCreateInfo depthStencilState = {
+  VkPipelineDepthStencilStateCreateInfo depthStencilState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
     .depthTestEnable = VK_TRUE,
     .depthWriteEnable = VK_TRUE,
@@ -101,7 +103,7 @@ std::unique_ptr<VkPipelineDynamicStateCreateInfo> GuiPipeline::defineDynamicStat
     VK_DYNAMIC_STATE_SCISSOR
   };
 
-  VkPipelineDynamicStateCreateInfo dynamicState = {
+  VkPipelineDynamicStateCreateInfo dynamicState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
     .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
     .pDynamicStates = dynamicStates.data()
@@ -112,7 +114,7 @@ std::unique_ptr<VkPipelineDynamicStateCreateInfo> GuiPipeline::defineDynamicStat
 
 std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> GuiPipeline::defineInputAssemblyState()
 {
-  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {
+  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
     .primitiveRestartEnable = VK_FALSE
@@ -123,7 +125,7 @@ std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> GuiPipeline::defineInput
 
 std::unique_ptr<VkPipelineMultisampleStateCreateInfo> GuiPipeline::defineMultisampleState()
 {
-  VkPipelineMultisampleStateCreateInfo multisampleState = {
+  VkPipelineMultisampleStateCreateInfo multisampleState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
     .rasterizationSamples = physicalDevice->getMsaaSamples(),
     .sampleShadingEnable = VK_FALSE,
@@ -138,7 +140,7 @@ std::unique_ptr<VkPipelineMultisampleStateCreateInfo> GuiPipeline::defineMultisa
 
 std::unique_ptr<VkPipelineRasterizationStateCreateInfo> GuiPipeline::defineRasterizationState()
 {
-  VkPipelineRasterizationStateCreateInfo rasterizationState = {
+  VkPipelineRasterizationStateCreateInfo rasterizationState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = VK_FALSE,
     .rasterizerDiscardEnable = VK_FALSE,
@@ -157,7 +159,7 @@ std::unique_ptr<VkPipelineVertexInputStateCreateInfo> GuiPipeline::defineVertexI
   vertexBindingDescription = Vertex::getBindingDescription();
   vertexAttributeDescriptions = Vertex::getAttributeDescriptions();
 
-  VkPipelineVertexInputStateCreateInfo vertexInputState = {
+  VkPipelineVertexInputStateCreateInfo vertexInputState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
     .vertexBindingDescriptionCount = 1,
     .pVertexBindingDescriptions = &vertexBindingDescription,
@@ -170,7 +172,7 @@ std::unique_ptr<VkPipelineVertexInputStateCreateInfo> GuiPipeline::defineVertexI
 
 std::unique_ptr<VkPipelineViewportStateCreateInfo> GuiPipeline::defineViewportState()
 {
-  VkPipelineViewportStateCreateInfo viewportState = {
+  VkPipelineViewportStateCreateInfo viewportState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
     .viewportCount = 1,
     .scissorCount = 1
@@ -181,36 +183,28 @@ std::unique_ptr<VkPipelineViewportStateCreateInfo> GuiPipeline::defineViewportSt
 
 void GuiPipeline::createDescriptorPool()
 {
-  std::array<VkDescriptorPoolSize, 11> poolSizes{};
-  poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLER;
-  poolSizes[0].descriptorCount = 1000;
-  poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  poolSizes[1].descriptorCount = 1000;
-  poolSizes[2].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-  poolSizes[2].descriptorCount = 1000;
-  poolSizes[3].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-  poolSizes[3].descriptorCount = 1000;
-  poolSizes[4].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-  poolSizes[4].descriptorCount = 1000;
-  poolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-  poolSizes[5].descriptorCount = 1000;
-  poolSizes[6].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSizes[6].descriptorCount = 1000;
-  poolSizes[7].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  poolSizes[7].descriptorCount = 1000;
-  poolSizes[8].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-  poolSizes[8].descriptorCount = 1000;
-  poolSizes[9].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-  poolSizes[9].descriptorCount = 1000;
-  poolSizes[10].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-  poolSizes[10].descriptorCount = 1000;
+  constexpr std::array<VkDescriptorPoolSize, 11> poolSizes {
+  {
+    {VK_DESCRIPTOR_TYPE_SAMPLER, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, MAX_FRAMES_IN_FLIGHT},
+    {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, MAX_FRAMES_IN_FLIGHT}
+  }};
 
-  VkDescriptorPoolCreateInfo poolCreateInfo{};
-  poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  poolCreateInfo.pPoolSizes = poolSizes.data();
-  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  const VkDescriptorPoolCreateInfo poolCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+    .maxSets = MAX_FRAMES_IN_FLIGHT,
+    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+    .pPoolSizes = poolSizes.data()
+  };
 
   if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {

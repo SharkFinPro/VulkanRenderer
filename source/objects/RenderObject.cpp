@@ -39,28 +39,34 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
 
 void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const
 {
-  TransformUniform transformUBO{};
+  auto projection = glm::perspective(glm::radians(45.0f),
+                             static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
+                             0.1f, 1000.0f);
+  projection[1][1] *= -1;
 
-  transformUBO.model = glm::translate(glm::mat4(1.0f), position);
+  const TransformUniform transformUBO {
+    .model = glm::translate(glm::mat4(1.0f), position),
+    .view = camera->getViewMatrix(),
+    .proj = projection
+  };
 
-  transformUBO.view = camera->getViewMatrix();
-  transformUBO.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height), 0.1f, 1000.0f);
-  transformUBO.proj[1][1] *= -1;
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
 }
 
 void RenderObject::createDescriptorPool()
 {
-  std::array<VkDescriptorPoolSize, 3> poolSizes{};
-  poolSizes[0] = transformUniform->getDescriptorPoolSize();
-  poolSizes[1] = Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
-  poolSizes[2] = Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT);
+  const std::array<VkDescriptorPoolSize, 3> poolSizes {
+    transformUniform->getDescriptorPoolSize(),
+    Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT),
+    Texture::getDescriptorPoolSize(MAX_FRAMES_IN_FLIGHT)
+  };
 
-  VkDescriptorPoolCreateInfo poolCreateInfo{};
-  poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  poolCreateInfo.pPoolSizes = poolSizes.data();
-  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  const VkDescriptorPoolCreateInfo poolCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+    .pPoolSizes = poolSizes.data()
+  };
 
   if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
@@ -71,11 +77,12 @@ void RenderObject::createDescriptorPool()
 void RenderObject::createDescriptorSets()
 {
   const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
-  VkDescriptorSetAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocateInfo.descriptorPool = descriptorPool;
-  allocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-  allocateInfo.pSetLayouts = layouts.data();
+  const VkDescriptorSetAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+    .descriptorPool = descriptorPool,
+    .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .pSetLayouts = layouts.data()
+  };
 
   descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
   if (vkAllocateDescriptorSets(device, &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
@@ -85,10 +92,11 @@ void RenderObject::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
-    descriptorWrites[0] = transformUniform->getDescriptorSet(0, descriptorSets[i], i);
-    descriptorWrites[1] = texture->getDescriptorSet(1, descriptorSets[i]);
-    descriptorWrites[2] = specularMap->getDescriptorSet(4, descriptorSets[i]);
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites {
+      transformUniform->getDescriptorSet(0, descriptorSets[i], i),
+      texture->getDescriptorSet(1, descriptorSets[i]),
+      specularMap->getDescriptorSet(4, descriptorSets[i])
+    };
 
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),
                            0, nullptr);

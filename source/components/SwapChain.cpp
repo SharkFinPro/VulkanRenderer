@@ -60,13 +60,14 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
   int width, height;
   window->getFramebufferSize(&width, &height);
 
-  VkExtent2D actualExtent = {
-    static_cast<uint32_t>(width),
-    static_cast<uint32_t>(height),
+  const VkExtent2D actualExtent {
+    .width = std::clamp(static_cast<uint32_t>(width),
+                        capabilities.minImageExtent.width,
+                        capabilities.maxImageExtent.width),
+    .height = std::clamp(static_cast<uint32_t>(height),
+                         capabilities.minImageExtent.height,
+                         capabilities.maxImageExtent.height)
   };
-
-  actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-  actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
   return actualExtent;
 }
@@ -89,41 +90,30 @@ void SwapChain::createSwapChain()
   const VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
   uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
-  VkSwapchainCreateInfoKHR createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-  createInfo.surface = window->getSurface();
-
-  createInfo.minImageCount = imageCount;
-  createInfo.imageFormat = surfaceFormat.format;
-  createInfo.imageColorSpace = surfaceFormat.colorSpace;
-  createInfo.imageExtent = extent;
-  createInfo.imageArrayLayers = 1;
-  createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
   auto indices = physicalDevice->getQueueFamilies();
-  const uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+  const uint32_t queueFamilyIndices[] = {
+    indices.graphicsFamily.value(),
+    indices.presentFamily.value()
+  };
 
-  if (indices.graphicsFamily != indices.presentFamily)
-  {
-    createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-    createInfo.queueFamilyIndexCount = 2;
-    createInfo.pQueueFamilyIndices = queueFamilyIndices;
-  }
-  else
-  {
-    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    createInfo.queueFamilyIndexCount = 1;
-    createInfo.pQueueFamilyIndices = nullptr;
-  }
-
-  createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-
-  createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-  createInfo.presentMode = presentMode;
-  createInfo.clipped = VK_TRUE;
-
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  const VkSwapchainCreateInfoKHR createInfo {
+    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+    .surface = window->getSurface(),
+    .minImageCount = imageCount,
+    .imageFormat = surfaceFormat.format,
+    .imageColorSpace = surfaceFormat.colorSpace,
+    .imageExtent = extent,
+    .imageArrayLayers = 1,
+    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+    .imageSharingMode = indices.graphicsFamily != indices.presentFamily ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE,
+    .queueFamilyIndexCount = static_cast<uint32_t>(indices.graphicsFamily != indices.presentFamily ? 2 : 1),
+    .pQueueFamilyIndices = indices.graphicsFamily != indices.presentFamily ? queueFamilyIndices : nullptr,
+    .preTransform = swapChainSupport.capabilities.currentTransform,
+    .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+    .presentMode = presentMode,
+    .clipped = VK_TRUE,
+    .oldSwapchain = VK_NULL_HANDLE
+  };
 
   if (vkCreateSwapchainKHR(logicalDevice->getDevice(), &createInfo, nullptr, &swapchain) != VK_SUCCESS)
   {

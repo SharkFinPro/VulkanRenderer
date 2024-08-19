@@ -1,10 +1,11 @@
 #ifndef VULKANPROJECT_INSTANCE_H
 #define VULKANPROJECT_INSTANCE_H
 
+#include <array>
 #include <vulkan/vulkan.h>
 #include <vector>
 
-const std::vector<const char*> validationLayers = {
+constexpr std::array<const char*, 1> validationLayers {
   "VK_LAYER_KHRONOS_validation"
 };
 

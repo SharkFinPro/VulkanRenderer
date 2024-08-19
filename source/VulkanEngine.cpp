@@ -126,10 +126,11 @@ void VulkanEngine::createCommandPool()
 {
   auto queueFamilyIndices = physicalDevice->getQueueFamilies();
 
-  VkCommandPoolCreateInfo poolInfo{};
-  poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+  const VkCommandPoolCreateInfo poolInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+    .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()
+  };
 
   if (vkCreateCommandPool(logicalDevice->getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
   {
@@ -141,14 +142,14 @@ void VulkanEngine::createCommandBuffers()
 {
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.commandPool = commandPool;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+  const VkCommandBufferAllocateInfo allocInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .commandPool = commandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())
+  };
 
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo,
-                               commandBuffers.data()) != VK_SUCCESS)
+  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }
@@ -158,11 +159,12 @@ void VulkanEngine::createComputeCommandBuffers()
 {
   computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = commandPool;
-  allocInfo.commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size());
+  const VkCommandBufferAllocateInfo allocInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .commandPool = commandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size())
+  };
 
   if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS)
   {
@@ -172,8 +174,9 @@ void VulkanEngine::createComputeCommandBuffers()
 
 void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const
 {
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  constexpr VkCommandBufferBeginInfo beginInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+  };
 
   if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
   {
@@ -190,10 +193,9 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
 
 void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = 0;
-  beginInfo.pInheritanceInfo = nullptr;
+  constexpr VkCommandBufferBeginInfo beginInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+  };
 
   if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
   {

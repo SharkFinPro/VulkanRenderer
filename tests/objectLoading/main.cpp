@@ -6,10 +6,11 @@ int main()
 {
   try
   {
-    auto vulkanEngineOptions = VulkanEngineOptions{};
-    vulkanEngineOptions.WINDOW_WIDTH = 800;
-    vulkanEngineOptions.WINDOW_HEIGHT = 600;
-    vulkanEngineOptions.WINDOW_TITLE = "Object Loading";
+    constexpr VulkanEngineOptions vulkanEngineOptions {
+      .WINDOW_WIDTH = 800,
+      .WINDOW_HEIGHT = 600,
+      .WINDOW_TITLE = "Object Loading"
+    };
 
     VulkanEngine renderer(vulkanEngineOptions);
 

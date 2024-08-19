@@ -18,7 +18,7 @@ layout(set = 0, binding = 2) uniform PointLightsMetadata {
   int numLights;
 };
 
-layout(set = 0, binding = 5) buffer PointLights {
+layout(set = 0, binding = 5) readonly buffer PointLights {
   PointLight lights[];
 };
 

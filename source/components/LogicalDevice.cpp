@@ -72,37 +72,30 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies)
   {
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = queueFamily;
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    const VkDeviceQueueCreateInfo queueCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .queueFamilyIndex = queueFamily,
+      .queueCount = 1,
+      .pQueuePriorities = &queuePriority
+    };
+
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  VkPhysicalDeviceFeatures deviceFeatures{};
-  deviceFeatures.samplerAnisotropy = VK_TRUE;
+  constexpr VkPhysicalDeviceFeatures deviceFeatures {
+    .samplerAnisotropy = VK_TRUE
+  };
 
-  VkDeviceCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-  createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-  createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
-  createInfo.pEnabledFeatures = &deviceFeatures;
-
-  createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-  createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
-  if (enableValidationLayers)
-  {
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-  }
-  else
-  {
-    createInfo.enabledLayerCount = 0;
-  }
+  const VkDeviceCreateInfo createInfo {
+    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+    .pQueueCreateInfos = queueCreateInfos.data(),
+    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
+    .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
+    .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+    .ppEnabledExtensionNames = deviceExtensions.data(),
+    .pEnabledFeatures = &deviceFeatures
+  };
 
   if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS)
   {
@@ -122,12 +115,14 @@ void LogicalDevice::createSyncObjects()
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
   computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
-  VkSemaphoreCreateInfo semaphoreInfo{};
-  semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+  constexpr VkSemaphoreCreateInfo semaphoreInfo {
+    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+  };
 
-  VkFenceCreateInfo fenceInfo{};
-  fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-  fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+  constexpr VkFenceCreateInfo fenceInfo {
+    .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+    .flags = VK_FENCE_CREATE_SIGNALED_BIT
+  };
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
@@ -148,9 +143,6 @@ void LogicalDevice::createSyncObjects()
 
 void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
   const std::array<VkSemaphore, 2> waitSemaphores = {
     computeFinishedSemaphores[currentFrame],
     imageAvailableSemaphores[currentFrame]
@@ -159,15 +151,17 @@ void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCom
     VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
     VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
   };
-  submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
-  submitInfo.pWaitSemaphores = waitSemaphores.data();
-  submitInfo.pWaitDstStageMask = waitStages;
 
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = commandBuffer;
-
-  submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
+  const VkSubmitInfo submitInfo {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+    .pWaitSemaphores = waitSemaphores.data(),
+    .pWaitDstStageMask = waitStages,
+    .commandBufferCount = 1,
+    .pCommandBuffers = commandBuffer,
+    .signalSemaphoreCount = 1,
+    .pSignalSemaphores = &renderFinishedSemaphores[currentFrame]
+  };
 
   if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
   {
@@ -176,14 +170,13 @@ void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCom
 }
 void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = commandBuffer;
-
-  submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
+  const VkSubmitInfo submitInfo {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .commandBufferCount = 1,
+    .pCommandBuffers = commandBuffer,
+    .signalSemaphoreCount = 1,
+    .pSignalSemaphores = &computeFinishedSemaphores[currentFrame]
+  };
 
   if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS)
   {
@@ -213,17 +206,15 @@ void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
 
 VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const
 {
-  VkPresentInfoKHR presentInfo{};
-  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-  presentInfo.waitSemaphoreCount = 1;
-  presentInfo.pWaitSemaphores = &renderFinishedSemaphores[currentFrame];
-
-  presentInfo.swapchainCount = 1;
-  presentInfo.pSwapchains = &swapchain;
-  presentInfo.pImageIndices = imageIndex;
-
-  presentInfo.pResults = nullptr;
+  const VkPresentInfoKHR presentInfo {
+    .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+    .waitSemaphoreCount = 1,
+    .pWaitSemaphores = &renderFinishedSemaphores[currentFrame],
+    .swapchainCount = 1,
+    .pSwapchains = &swapchain,
+    .pImageIndices = imageIndex,
+    .pResults = nullptr
+  };
 
   return vkQueuePresentKHR(presentQueue, &presentInfo);
 }

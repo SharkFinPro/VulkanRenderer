@@ -8,21 +8,23 @@ void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physica
                          const VkImageUsageFlags usage, const VkMemoryPropertyFlags properties, VkImage& image,
                          VkDeviceMemory& imageMemory)
 {
-  VkImageCreateInfo imageCreateInfo{};
-  imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-  imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-  imageCreateInfo.extent.width = width;
-  imageCreateInfo.extent.height = height;
-  imageCreateInfo.extent.depth = 1;
-  imageCreateInfo.mipLevels = mipLevels;
-  imageCreateInfo.arrayLayers = 1;
-  imageCreateInfo.format = format;
-  imageCreateInfo.tiling = tiling;
-  imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  imageCreateInfo.usage = usage;
-  imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  imageCreateInfo.samples = numSamples;
-  imageCreateInfo.flags = 0;
+  const VkImageCreateInfo imageCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+    .imageType = VK_IMAGE_TYPE_2D,
+    .format = format,
+    .extent = {
+      .width = width,
+      .height = height,
+      .depth = 1
+    },
+    .mipLevels = mipLevels,
+    .arrayLayers = 1,
+    .samples = numSamples,
+    .tiling = tiling,
+    .usage = usage,
+    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+  };
 
   if (vkCreateImage(device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
   {
@@ -32,10 +34,11 @@ void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physica
   VkMemoryRequirements memoryRequirements;
   vkGetImageMemoryRequirements(device, image, &memoryRequirements);
 
-  VkMemoryAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocateInfo.allocationSize = memoryRequirements.size;
-  allocateInfo.memoryTypeIndex = Buffers::findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties);
+  const VkMemoryAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+    .allocationSize = memoryRequirements.size,
+    .memoryTypeIndex = Buffers::findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties)
+  };
 
   if (vkAllocateMemory(device, &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
   {
@@ -51,17 +54,20 @@ void Images::transitionImageLayout(const std::shared_ptr<LogicalDevice>& logical
 {
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
-  VkImageMemoryBarrier barrier{};
-  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.oldLayout = oldLayout;
-  barrier.newLayout = newLayout;
-  barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.image = image;
-  barrier.subresourceRange.baseMipLevel = 0;
-  barrier.subresourceRange.levelCount = mipLevels;
-  barrier.subresourceRange.baseArrayLayer = 0;
-  barrier.subresourceRange.layerCount = 1;
+  VkImageMemoryBarrier barrier {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .oldLayout = oldLayout,
+    .newLayout = newLayout,
+    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .image = image,
+    .subresourceRange = {
+      .baseMipLevel = 0,
+      .levelCount = mipLevels,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    }
+  };
 
   if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
   {
@@ -126,21 +132,18 @@ void Images::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevi
 {
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
-  VkBufferImageCopy region{};
-  region.bufferOffset = 0;
-  region.bufferRowLength = 0;
-  region.bufferImageHeight = 0;
-
-  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  region.imageSubresource.mipLevel = 0;
-  region.imageSubresource.baseArrayLayer = 0;
-  region.imageSubresource.layerCount = 1;
-
-  region.imageOffset = {0, 0, 0};
-  region.imageExtent = {
-    width,
-    height,
-    1
+  const VkBufferImageCopy region {
+    .bufferOffset = 0,
+    .bufferRowLength = 0,
+    .bufferImageHeight = 0,
+    .imageSubresource = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = 0,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    },
+    .imageOffset = {0, 0, 0},
+    .imageExtent = {width, height, 1}
   };
 
   vkCmdCopyBufferToImage(
@@ -157,24 +160,26 @@ void Images::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevi
 
 VkImageView Images::createImageView(const VkDevice& device, const VkImage image, const VkFormat format, const VkImageAspectFlags aspectFlags, const uint32_t mipLevels)
 {
-  VkImageViewCreateInfo imageViewCreateInfo{};
-  imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-  imageViewCreateInfo.image = image;
+  const VkImageViewCreateInfo imageViewCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+    .image = image,
+    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    .format = format,
 
-  imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-  imageViewCreateInfo.format = format;
-
-  imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-  imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-  imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-  imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-  imageViewCreateInfo.subresourceRange.aspectMask = aspectFlags;
-
-  imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-  imageViewCreateInfo.subresourceRange.levelCount = mipLevels;
-  imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-  imageViewCreateInfo.subresourceRange.layerCount = 1;
+    .components = {
+      .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+      .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+      .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+      .a = VK_COMPONENT_SWIZZLE_IDENTITY
+    },
+    .subresourceRange = {
+      .aspectMask = aspectFlags,
+      .baseMipLevel = 0,
+      .levelCount = mipLevels,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    }
+  };
 
   VkImageView imageView;
   if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
