@@ -109,7 +109,7 @@ void RenderPass::createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFl
 }
 
 VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-                                          VkFormatFeatureFlags features) const
+                                         VkFormatFeatureFlags features) const
 {
   for (const auto format : candidates)
   {
