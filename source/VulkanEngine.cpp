@@ -142,14 +142,14 @@ void VulkanEngine::createCommandBuffers()
 {
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.commandPool = commandPool;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+  VkCommandBufferAllocateInfo allocInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .commandPool = commandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())
+  };
 
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo,
-                               commandBuffers.data()) != VK_SUCCESS)
+  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }
@@ -159,11 +159,12 @@ void VulkanEngine::createComputeCommandBuffers()
 {
   computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = commandPool;
-  allocInfo.commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size());
+  const VkCommandBufferAllocateInfo allocInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .commandPool = commandPool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size())
+  };
 
   if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS)
   {
