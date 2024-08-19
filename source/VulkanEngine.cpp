@@ -142,7 +142,7 @@ void VulkanEngine::createCommandBuffers()
 {
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-  VkCommandBufferAllocateInfo allocInfo {
+  const VkCommandBufferAllocateInfo allocInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
     .commandPool = commandPool,
     .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
