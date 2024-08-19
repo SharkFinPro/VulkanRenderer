@@ -400,9 +400,10 @@ void ObjectsPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-    descriptorWrites[0] = lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i);
-    descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{{
+      lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
+      cameraUniform->getDescriptorSet(3, descriptorSets[i], i)
+    }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
                            descriptorWrites.data(), 0, nullptr);
