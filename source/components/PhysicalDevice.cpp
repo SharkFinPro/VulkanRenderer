@@ -1,4 +1,6 @@
 #include "PhysicalDevice.h"
+
+#include <array>
 #include <stdexcept>
 #include <set>
 
@@ -177,29 +179,21 @@ VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount() const
   const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
                                     physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
-  if (counts & VK_SAMPLE_COUNT_64_BIT)
+  constexpr std::array<VkSampleCountFlagBits, 6> sampleCounts {
+    VK_SAMPLE_COUNT_64_BIT,
+    VK_SAMPLE_COUNT_32_BIT,
+    VK_SAMPLE_COUNT_16_BIT,
+    VK_SAMPLE_COUNT_8_BIT,
+    VK_SAMPLE_COUNT_4_BIT,
+    VK_SAMPLE_COUNT_2_BIT
+  };
+
+  for (const VkSampleCountFlagBits count : sampleCounts)
   {
-    return VK_SAMPLE_COUNT_64_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_32_BIT)
-  {
-    return VK_SAMPLE_COUNT_32_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_16_BIT)
-  {
-    return VK_SAMPLE_COUNT_16_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_8_BIT)
-  {
-    return VK_SAMPLE_COUNT_8_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_4_BIT)
-  {
-    return VK_SAMPLE_COUNT_4_BIT;
-  }
-  if (counts & VK_SAMPLE_COUNT_2_BIT)
-  {
-    return VK_SAMPLE_COUNT_2_BIT;
+    if (counts & count)
+    {
+      return count;
+    }
   }
 
   return VK_SAMPLE_COUNT_1_BIT;
