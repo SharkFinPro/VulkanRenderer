@@ -77,11 +77,12 @@ void RenderObject::createDescriptorPool()
 void RenderObject::createDescriptorSets()
 {
   const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
-  VkDescriptorSetAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocateInfo.descriptorPool = descriptorPool;
-  allocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-  allocateInfo.pSetLayouts = layouts.data();
+  const VkDescriptorSetAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+    .descriptorPool = descriptorPool,
+    .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .pSetLayouts = layouts.data()
+  };
 
   descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
   if (vkAllocateDescriptorSets(device, &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
@@ -91,10 +92,11 @@ void RenderObject::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
-    descriptorWrites[0] = transformUniform->getDescriptorSet(0, descriptorSets[i], i);
-    descriptorWrites[1] = texture->getDescriptorSet(1, descriptorSets[i]);
-    descriptorWrites[2] = specularMap->getDescriptorSet(4, descriptorSets[i]);
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites {
+      transformUniform->getDescriptorSet(0, descriptorSets[i], i),
+      texture->getDescriptorSet(1, descriptorSets[i]),
+      specularMap->getDescriptorSet(4, descriptorSets[i])
+    };
 
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),
                            0, nullptr);
