@@ -74,16 +74,7 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   scissor.extent = swapChainExtent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  if (!lights.empty())
-  {
-    for (size_t i = 0; i < lights.size(); i++)
-    {
-      lights[i].displayGui(i + 1);
-      lightsUBO[i] = lights[i];
-    }
-
-    lightsUniform->update(currentFrame, lightsUBO, lightsUniformBufferSize);
-  }
+  updateLightUniforms(currentFrame);
 
   CameraUniform cameraUBO{};
   cameraUBO.position = camera->getPosition();
@@ -102,6 +93,22 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 void ObjectsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& renderObject)
 {
   renderObjects.push_back(renderObject);
+}
+
+void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
+{
+  if (lights.empty())
+  {
+    return;
+  }
+
+  for (size_t i = 0; i < lights.size(); i++)
+  {
+    lights[i].displayGui(i + 1);
+    lightsUBO[i] = lights[i];
+  }
+
+  lightsUniform->update(currentFrame, lightsUBO, lightsUniformBufferSize);
 }
 
 void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
