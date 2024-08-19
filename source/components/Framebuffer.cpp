@@ -69,20 +69,21 @@ void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass)
 
   for (size_t i = 0; i < swapChainImageViews.size(); i++)
   {
-    std::array<VkImageView, 3> attachments = {
+    std::array<VkImageView, 3> attachments {
       colorImageView,
       depthImageView,
       swapChainImageViews[i]
     };
 
-    VkFramebufferCreateInfo framebufferInfo{};
-    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = renderPass;
-    framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = swapChain->getExtent().width;
-    framebufferInfo.height = swapChain->getExtent().height;
-    framebufferInfo.layers = 1;
+    const VkFramebufferCreateInfo framebufferInfo {
+      .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+      .renderPass = renderPass,
+      .attachmentCount = static_cast<uint32_t>(attachments.size()),
+      .pAttachments = attachments.data(),
+      .width = swapChain->getExtent().width,
+      .height = swapChain->getExtent().height,
+      .layers = 1
+    };
 
     if (vkCreateFramebuffer(logicalDevice->getDevice(), &framebufferInfo, nullptr, &framebuffers[i]) != VK_SUCCESS)
     {
