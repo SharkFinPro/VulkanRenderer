@@ -26,12 +26,11 @@ void GraphicsPipeline::createPipelineLayout()
 {
   loadDescriptorSetLayouts();
 
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-  pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-  pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-  pipelineLayoutInfo.pushConstantRangeCount = 0;
-  pipelineLayoutInfo.pPushConstantRanges = nullptr;
+  const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+    .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+    .pSetLayouts = descriptorSetLayouts.data()
+  };
 
   if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
   {
@@ -63,24 +62,25 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
     shaderStages.push_back(shader->getShaderStageCreateInfo());
   }
 
-  VkGraphicsPipelineCreateInfo pipelineInfo{};
-  pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-  pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-  pipelineInfo.pStages = shaderStages.data();
-  pipelineInfo.pColorBlendState = colorBlendState.get();
-  pipelineInfo.pDepthStencilState = depthStencilState.get();
-  pipelineInfo.pDynamicState = dynamicState.get();
-  pipelineInfo.pInputAssemblyState = inputAssemblyState.get();
-  pipelineInfo.pMultisampleState = multisampleState.get();
-  pipelineInfo.pRasterizationState = rasterizationState.get();
-  pipelineInfo.pTessellationState = tessellationState.get();
-  pipelineInfo.pVertexInputState = vertexInputState.get();
-  pipelineInfo.pViewportState = viewportState.get();
-  pipelineInfo.layout = pipelineLayout;
-  pipelineInfo.renderPass = renderPass;
-  pipelineInfo.subpass = 0;
-  pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-  pipelineInfo.basePipelineIndex = -1;
+  const VkGraphicsPipelineCreateInfo pipelineInfo {
+    .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+    .stageCount = static_cast<uint32_t>(shaderStages.size()),
+    .pStages = shaderStages.data(),
+    .pVertexInputState = vertexInputState.get(),
+    .pInputAssemblyState = inputAssemblyState.get(),
+    .pTessellationState = tessellationState.get(),
+    .pViewportState = viewportState.get(),
+    .pRasterizationState = rasterizationState.get(),
+    .pMultisampleState = multisampleState.get(),
+    .pDepthStencilState = depthStencilState.get(),
+    .pColorBlendState = colorBlendState.get(),
+    .pDynamicState = dynamicState.get(),
+    .layout = pipelineLayout,
+    .renderPass = renderPass,
+    .subpass = 0,
+    .basePipelineHandle = VK_NULL_HANDLE,
+    .basePipelineIndex = -1
+  };
 
   if (vkCreateGraphicsPipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo,
                                 nullptr, &pipeline) != VK_SUCCESS)
