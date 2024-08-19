@@ -25,14 +25,15 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
 
   window->initImGui();
 
-  ImGui_ImplVulkan_InitInfo init_info{};
-  init_info.Instance = instance->getInstance();
-  init_info.PhysicalDevice = physicalDevice->getPhysicalDevice();
-  init_info.Device = logicalDevice->getDevice();
-  init_info.Queue = logicalDevice->getGraphicsQueue();
-  init_info.DescriptorPool = guiPipeline->getPool();
-  init_info.RenderPass = renderPass->getRenderPass();
-  init_info.MSAASamples = physicalDevice->getMsaaSamples();
+  ImGui_ImplVulkan_InitInfo init_info {
+    .Instance = instance->getInstance(),
+    .PhysicalDevice = physicalDevice->getPhysicalDevice(),
+    .Device = logicalDevice->getDevice(),
+    .Queue = logicalDevice->getGraphicsQueue(),
+    .DescriptorPool = guiPipeline->getPool(),
+    .RenderPass = renderPass->getRenderPass(),
+    .MSAASamples = physicalDevice->getMsaaSamples()
+  };
 
   SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
 
