@@ -278,23 +278,26 @@ std::unique_ptr<VkPipelineViewportStateCreateInfo> ObjectsPipeline::defineViewpo
 
 void ObjectsPipeline::createDescriptorSetLayout()
 {
-  VkDescriptorSetLayoutBinding lightMetadataLayout{};
-  lightMetadataLayout.binding = 2;
-  lightMetadataLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  lightMetadataLayout.descriptorCount = 1;
-  lightMetadataLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
+    .binding = 2,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
 
-  VkDescriptorSetLayoutBinding lightsLayout{};
-  lightsLayout.binding = 5;
-  lightsLayout.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  lightsLayout.descriptorCount = 1;
-  lightsLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  constexpr VkDescriptorSetLayoutBinding lightsLayout {
+    .binding = 5,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
 
-  VkDescriptorSetLayoutBinding cameraLayout{};
-  cameraLayout.binding = 3;
-  cameraLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  cameraLayout.descriptorCount = 1;
-  cameraLayout.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  constexpr VkDescriptorSetLayoutBinding cameraLayout {
+    .binding = 3,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
 
   const std::array<VkDescriptorSetLayoutBinding, 3> globalBindings = {
     lightMetadataLayout,
