@@ -78,17 +78,16 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   lightMetadataUniform->update(currentFrame, &lightMetadataUBO, sizeof(lightMetadataUBO));
 
 
-  LightsUniform lightsUBO{};
-
   const auto bufferSize = sizeof(Light) * lights.size();
+  const auto lightsUBO = static_cast<Light*>(malloc(bufferSize));
 
   for (size_t i = 0; i < lights.size(); i++)
   {
     lights[i].displayGui(i + 1);
-    lightsUBO.lights[i] = lights[i];
+    lightsUBO[i] = lights[i];
   }
 
-  lightsUniform->update(currentFrame, &lightsUBO, bufferSize);
+  lightsUniform->update(currentFrame, lightsUBO, bufferSize);
 
   CameraUniform cameraUBO{};
   cameraUBO.position = camera->getPosition();
