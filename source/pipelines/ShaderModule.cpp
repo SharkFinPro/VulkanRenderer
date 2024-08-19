@@ -14,11 +14,12 @@ ShaderModule::~ShaderModule()
 
 VkPipelineShaderStageCreateInfo ShaderModule::getShaderStageCreateInfo() const
 {
-  VkPipelineShaderStageCreateInfo shaderStageCreateInfo{};
-  shaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  shaderStageCreateInfo.stage = stage;
-  shaderStageCreateInfo.module = module;
-  shaderStageCreateInfo.pName = "main";
+  const VkPipelineShaderStageCreateInfo shaderStageCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+    .stage = stage,
+    .module = module,
+    .pName = "main"
+  };
 
   return shaderStageCreateInfo;
 }
