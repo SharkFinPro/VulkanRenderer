@@ -345,17 +345,17 @@ void ObjectsPipeline::createDescriptorSetLayout()
 
 void ObjectsPipeline::createDescriptorPool()
 {
-  std::array<VkDescriptorPoolSize, 3> poolSizes{};
-  poolSizes[0] = lightMetadataUniform->getDescriptorPoolSize();
-  poolSizes[1] = cameraUniform->getDescriptorPoolSize();
-  poolSizes[2] = lightsUniform->getDescriptorPoolSize();
-  poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  constexpr std::array<VkDescriptorPoolSize, 2> poolSizes {{
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 2},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 1}
+  }};
 
-  VkDescriptorPoolCreateInfo poolCreateInfo{};
-  poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  poolCreateInfo.pPoolSizes = poolSizes.data();
-  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  const VkDescriptorPoolCreateInfo poolCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .maxSets = MAX_FRAMES_IN_FLIGHT,
+    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+    .pPoolSizes = poolSizes.data()
+  };
 
   if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr,
                              &descriptorPool) != VK_SUCCESS)
