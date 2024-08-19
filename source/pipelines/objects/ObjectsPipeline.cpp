@@ -116,7 +116,8 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
   lightsUBO = static_cast<Light*>(malloc(lightsUniformBufferSize));
 
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, lightsUniformBufferSize);
+                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                  lightsUniformBufferSize);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
