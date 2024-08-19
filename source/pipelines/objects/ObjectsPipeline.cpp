@@ -98,13 +98,9 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 
   lights.push_back(light);
 
-  LightMetadataUniform lightMetadataUBO{};
-  lightMetadataUBO.numLights = static_cast<int>(lights.size());
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
-  }
+  const LightMetadataUniform lightMetadataUBO {
+    .numLights = static_cast<int>(lights.size())
+  };
 
   lightsUniform.reset();
 
@@ -116,6 +112,8 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
+    lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+
     auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
     descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
