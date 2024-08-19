@@ -145,19 +145,28 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
                          0, nullptr,
                          1, &barrier);
 
-    VkImageBlit blit{};
-    blit.srcOffsets[0] = { 0, 0, 0 };
-    blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
-    blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    blit.srcSubresource.mipLevel = i - 1;
-    blit.srcSubresource.baseArrayLayer = 0;
-    blit.srcSubresource.layerCount = 1;
-    blit.dstOffsets[0] = { 0, 0, 0 };
-    blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
-    blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    blit.dstSubresource.mipLevel = i;
-    blit.dstSubresource.baseArrayLayer = 0;
-    blit.dstSubresource.layerCount = 1;
+    const VkImageBlit blit {
+      .srcSubresource = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = i - 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      },
+      .srcOffsets = {
+        { 0, 0, 0 },
+        { mipWidth, mipHeight, 1 }
+      },
+      .dstSubresource = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = i,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      },
+      .dstOffsets = {
+        { 0, 0, 0 },
+        { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 }
+      }
+    };
 
     vkCmdBlitImage(commandBuffer,
                    image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
