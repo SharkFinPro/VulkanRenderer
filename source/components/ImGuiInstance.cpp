@@ -25,16 +25,6 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
 
   window->initImGui();
 
-  ImGui_ImplVulkan_InitInfo init_info {
-    .Instance = instance->getInstance(),
-    .PhysicalDevice = physicalDevice->getPhysicalDevice(),
-    .Device = logicalDevice->getDevice(),
-    .Queue = logicalDevice->getGraphicsQueue(),
-    .DescriptorPool = guiPipeline->getPool(),
-    .RenderPass = renderPass->getRenderPass(),
-    .MSAASamples = physicalDevice->getMsaaSamples()
-  };
-
   SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
 
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
@@ -42,10 +32,20 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
   {
     imageCount = swapChainSupport.capabilities.maxImageCount;
   }
-  init_info.MinImageCount = imageCount;
-  init_info.ImageCount = imageCount;
 
-  ImGui_ImplVulkan_Init(&init_info);
+  ImGui_ImplVulkan_InitInfo initInfo {
+    .Instance = instance->getInstance(),
+    .PhysicalDevice = physicalDevice->getPhysicalDevice(),
+    .Device = logicalDevice->getDevice(),
+    .Queue = logicalDevice->getGraphicsQueue(),
+    .DescriptorPool = guiPipeline->getPool(),
+    .RenderPass = renderPass->getRenderPass(),
+    .MinImageCount = imageCount,
+    .ImageCount = imageCount,
+    .MSAASamples = physicalDevice->getMsaaSamples()
+  };
+
+  ImGui_ImplVulkan_Init(&initInfo);
 
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
   ImGui_ImplVulkan_CreateFontsTexture();
