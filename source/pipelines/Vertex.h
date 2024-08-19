@@ -12,10 +12,11 @@ struct Vertex {
 
   static VkVertexInputBindingDescription getBindingDescription()
   {
-    VkVertexInputBindingDescription bindingDescription{};
-    bindingDescription.binding = 0;
-    bindingDescription.stride = sizeof(Vertex);
-    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    constexpr VkVertexInputBindingDescription bindingDescription {
+      .binding = 0,
+      .stride = sizeof(Vertex),
+      .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+    };
 
     return bindingDescription;
   }
