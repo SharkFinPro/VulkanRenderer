@@ -32,8 +32,6 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 
 ObjectsPipeline::~ObjectsPipeline()
 {
-  free(lightsUBO);
-
   vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
@@ -112,9 +110,6 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 
   lightsUniformBufferSize = sizeof(Light) * lights.size();
 
-  free(lightsUBO);
-  lightsUBO = static_cast<Light*>(malloc(lightsUniformBufferSize));
-
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                   physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
                                                   lightsUniformBufferSize);
@@ -139,11 +134,10 @@ void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
   for (size_t i = 0; i < lights.size(); i++)
   {
     lights[i].displayGui(i + 1);
-    lightsUBO[i] = lights[i];
   }
   ImGui::End();
 
-  lightsUniform->update(currentFrame, lightsUBO, lightsUniformBufferSize);
+  lightsUniform->update(currentFrame, lights.data(), lightsUniformBufferSize);
 }
 
 void ObjectsPipeline::loadShaders()

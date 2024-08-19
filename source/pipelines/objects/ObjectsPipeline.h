@@ -70,7 +70,6 @@ private:
   std::unique_ptr<UniformBuffer> cameraUniform;
 
   size_t lightsUniformBufferSize;
-  Light* lightsUBO;
 
   std::vector<Light> lights;
 
