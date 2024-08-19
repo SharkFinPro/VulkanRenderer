@@ -14,8 +14,9 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
-ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass)
+ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
+                                 std::shared_ptr<LogicalDevice> logicalDevice,
+                                 const std::shared_ptr<RenderPass>& renderPass)
   : GraphicsPipeline(std::move(physicalDevice), std::move(logicalDevice))
 {
   createUniforms();
