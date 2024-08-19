@@ -91,7 +91,10 @@ void SwapChain::createSwapChain()
   uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
   auto indices = physicalDevice->getQueueFamilies();
-  const uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+  const uint32_t queueFamilyIndices[] = {
+    indices.graphicsFamily.value(),
+    indices.presentFamily.value()
+  };
 
   const VkSwapchainCreateInfoKHR createInfo {
     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
