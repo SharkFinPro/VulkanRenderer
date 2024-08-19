@@ -45,7 +45,10 @@ private:
   std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
   std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
 
-  void createDescriptorSetLayout();
+  void createDescriptorSetLayouts();
+
+  void createGlobalDescriptorSetLayout();
+  void createObjectDescriptorSetLayout();
 
   void createDescriptorPool();
 
@@ -56,7 +59,7 @@ private:
 private:
   std::vector<std::shared_ptr<RenderObject>> renderObjects;
 
-  VkDescriptorSetLayout descriptorSetLayout;
+  VkDescriptorSetLayout globalDescriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
 
   VkDescriptorPool descriptorPool;

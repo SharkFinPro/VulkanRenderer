@@ -21,7 +21,7 @@ ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 {
   createUniforms();
 
-  createDescriptorSetLayout();
+  createDescriptorSetLayouts();
 
   createDescriptorPool();
 
@@ -38,7 +38,7 @@ ObjectsPipeline::~ObjectsPipeline()
 
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), descriptorSetLayout, nullptr);
+  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
 VkDescriptorSetLayout& ObjectsPipeline::getLayout()
@@ -152,7 +152,7 @@ void ObjectsPipeline::loadShaders()
 
 void ObjectsPipeline::loadDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(descriptorSetLayout);
+  loadDescriptorSetLayout(globalDescriptorSetLayout);
   loadDescriptorSetLayout(objectDescriptorSetLayout);
 }
 
@@ -277,7 +277,13 @@ std::unique_ptr<VkPipelineViewportStateCreateInfo> ObjectsPipeline::defineViewpo
   return std::make_unique<VkPipelineViewportStateCreateInfo>(viewportState);
 }
 
-void ObjectsPipeline::createDescriptorSetLayout()
+void ObjectsPipeline::createDescriptorSetLayouts()
+{
+  createGlobalDescriptorSetLayout();
+  createObjectDescriptorSetLayout();
+}
+
+void ObjectsPipeline::createGlobalDescriptorSetLayout()
 {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 2,
@@ -312,11 +318,14 @@ void ObjectsPipeline::createDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor set layout!");
   }
+}
 
+void ObjectsPipeline::createObjectDescriptorSetLayout()
+{
   constexpr VkDescriptorSetLayoutBinding transformLayout {
     .binding = 0,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -380,7 +389,7 @@ void ObjectsPipeline::createDescriptorPool()
 
 void ObjectsPipeline::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
