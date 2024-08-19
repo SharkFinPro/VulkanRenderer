@@ -6,6 +6,7 @@
 #include <memory>
 #include <array>
 
+#include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 
 class RenderPass;
@@ -26,7 +27,13 @@ public:
 
   void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
 
+  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
+
 private:
+  void updateLightUniforms(uint32_t currentFrame);
+
+  void renderLightsGui();
+
   void loadShaders() override;
 
   void loadDescriptorSetLayouts() override;
@@ -40,7 +47,10 @@ private:
   std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
   std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
 
-  void createDescriptorSetLayout();
+  void createDescriptorSetLayouts();
+
+  void createGlobalDescriptorSetLayout();
+  void createObjectDescriptorSetLayout();
 
   void createDescriptorPool();
 
@@ -51,19 +61,19 @@ private:
 private:
   std::vector<std::shared_ptr<RenderObject>> renderObjects;
 
-  VkDescriptorSetLayout descriptorSetLayout;
+  VkDescriptorSetLayout globalDescriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
 
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
 
-  std::unique_ptr<UniformBuffer> lightUniform;
+  std::unique_ptr<UniformBuffer> lightMetadataUniform;
+  std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
 
-  float position[3];
-  float color[3];
-  float ambient;
-  float diffuse;
+  size_t lightsUniformBufferSize;
+
+  std::vector<Light> lights;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 

@@ -20,6 +20,8 @@ int main()
     const auto object = renderer.loadRenderObject(texture, specular, model);
     object->setPosition({ 0, -0.5f, 3.0f });
 
+    renderer.createLight({0, 3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
+
     while (renderer.isActive())
     {
       renderer.render();

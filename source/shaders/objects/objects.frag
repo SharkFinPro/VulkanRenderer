@@ -1,16 +1,26 @@
 #version 450
 
-layout(set = 1, binding = 1) uniform sampler2D texSampler;
-layout(set = 1, binding = 4) uniform sampler2D specSampler;
-
-layout(set = 0, binding = 2) uniform Light {
+struct PointLight {
   vec3 position;
+  float padding1; // Padding to ensure alignment
   vec3 color;
-
+  float padding2; // Padding to ensure alignment
   float ambient;
   float diffuse;
   float specular;
-} light;
+  float padding3; // Padding to ensure alignment
+};
+
+layout(set = 1, binding = 1) uniform sampler2D texSampler;
+layout(set = 1, binding = 4) uniform sampler2D specSampler;
+
+layout(set = 0, binding = 2) uniform PointLightsMetadata {
+  int numLights;
+};
+
+layout(set = 0, binding = 5) buffer PointLights {
+  PointLight lights[];
+};
 
 layout(set = 0, binding = 3) uniform Camera {
   vec3 position;
@@ -22,11 +32,8 @@ layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
 
-void main()
+vec3 PointLightAffect(PointLight light, vec3 texColor, vec3 specColor)
 {
-  vec3 texColor = texture(texSampler, fragTexCoord).rgb;
-  vec3 specColor = texture(specSampler, fragTexCoord).rgb;
-
   // ambient
   vec3 ambient = light.ambient * texColor;
 
@@ -39,11 +46,24 @@ void main()
   // specular
   vec3 viewDir = normalize(camera.position - fragPos);
   vec3 reflectDir = reflect(-lightDir, norm);
-//  float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+  //  float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
   float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
   vec3 specular = light.specular * spec * specColor;
 
   //
-  vec3 result = (ambient + diffuse + specular) * light.color;
+  return (ambient + diffuse + specular) * light.color;
+}
+
+void main()
+{
+  vec3 texColor = texture(texSampler, fragTexCoord).rgb;
+  vec3 specColor = texture(specSampler, fragTexCoord).rgb;
+
+  vec3 result = vec3(0);
+  for (int i = 0; i < numLights; i++)
+  {
+    result += PointLightAffect(lights[i], texColor, specColor);
+  }
+
   outColor = vec4(result, 1.0);
 }
