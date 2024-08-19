@@ -8,21 +8,23 @@ void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physica
                          const VkImageUsageFlags usage, const VkMemoryPropertyFlags properties, VkImage& image,
                          VkDeviceMemory& imageMemory)
 {
-  VkImageCreateInfo imageCreateInfo{};
-  imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-  imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-  imageCreateInfo.extent.width = width;
-  imageCreateInfo.extent.height = height;
-  imageCreateInfo.extent.depth = 1;
-  imageCreateInfo.mipLevels = mipLevels;
-  imageCreateInfo.arrayLayers = 1;
-  imageCreateInfo.format = format;
-  imageCreateInfo.tiling = tiling;
-  imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  imageCreateInfo.usage = usage;
-  imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  imageCreateInfo.samples = numSamples;
-  imageCreateInfo.flags = 0;
+  const VkImageCreateInfo imageCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+    .imageType = VK_IMAGE_TYPE_2D,
+    .format = format,
+    .extent = {
+      .width = width,
+      .height = height,
+      .depth = 1
+    },
+    .mipLevels = mipLevels,
+    .arrayLayers = 1,
+    .samples = numSamples,
+    .tiling = tiling,
+    .usage = usage,
+    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+  };
 
   if (vkCreateImage(device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
   {
