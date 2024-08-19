@@ -143,9 +143,6 @@ void LogicalDevice::createSyncObjects()
 
 void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
-  VkSubmitInfo submitInfo{};
-  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
   const std::array<VkSemaphore, 2> waitSemaphores = {
     computeFinishedSemaphores[currentFrame],
     imageAvailableSemaphores[currentFrame]
@@ -154,15 +151,17 @@ void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCom
     VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
     VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
   };
-  submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
-  submitInfo.pWaitSemaphores = waitSemaphores.data();
-  submitInfo.pWaitDstStageMask = waitStages;
 
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = commandBuffer;
-
-  submitInfo.signalSemaphoreCount = 1;
-  submitInfo.pSignalSemaphores = &renderFinishedSemaphores[currentFrame];
+  const VkSubmitInfo submitInfo {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+    .pWaitSemaphores = waitSemaphores.data(),
+    .pWaitDstStageMask = waitStages,
+    .commandBufferCount = 1,
+    .pCommandBuffers = commandBuffer,
+    .signalSemaphoreCount = 1,
+    .pSignalSemaphores = &renderFinishedSemaphores[currentFrame]
+  };
 
   if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
   {
