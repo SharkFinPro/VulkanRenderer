@@ -382,11 +382,9 @@ void ObjectsPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+    std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
     descriptorWrites[0] = lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i);
     descriptorWrites[1] = cameraUniform->getDescriptorSet(3, descriptorSets[i], i);
-    descriptorWrites[2] = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
-    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
                            descriptorWrites.data(), 0, nullptr);
