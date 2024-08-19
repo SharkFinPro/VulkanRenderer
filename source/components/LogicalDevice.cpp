@@ -82,29 +82,20 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  VkPhysicalDeviceFeatures deviceFeatures{};
-  deviceFeatures.samplerAnisotropy = VK_TRUE;
+  VkPhysicalDeviceFeatures deviceFeatures {
+    .samplerAnisotropy = VK_TRUE
+  };
 
-  VkDeviceCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-  createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-  createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
-  createInfo.pEnabledFeatures = &deviceFeatures;
-
-  createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-  createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
-  if (enableValidationLayers)
-  {
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-  }
-  else
-  {
-    createInfo.enabledLayerCount = 0;
-  }
+  VkDeviceCreateInfo createInfo {
+    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+    .pQueueCreateInfos = queueCreateInfos.data(),
+    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
+    .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
+    .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+    .ppEnabledExtensionNames = deviceExtensions.data(),
+    .pEnabledFeatures = &deviceFeatures
+  };
 
   if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS)
   {
