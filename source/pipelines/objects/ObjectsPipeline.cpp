@@ -80,8 +80,6 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
   if (!lights.empty())
   {
-    const auto lightsUBO = static_cast<Light*>(malloc(lightsUniformBufferSize));
-
     for (size_t i = 0; i < lights.size(); i++)
     {
       lights[i].displayGui(i + 1);
@@ -126,6 +124,8 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
   lightsUniform.reset();
 
   lightsUniformBufferSize = sizeof(Light) * lights.size();
+
+  lightsUBO = static_cast<Light*>(malloc(lightsUniformBufferSize));
 
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
     physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT, lightsUniformBufferSize);
