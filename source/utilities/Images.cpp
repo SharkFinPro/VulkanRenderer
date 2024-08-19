@@ -54,17 +54,20 @@ void Images::transitionImageLayout(const std::shared_ptr<LogicalDevice>& logical
 {
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
-  VkImageMemoryBarrier barrier{};
-  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-  barrier.oldLayout = oldLayout;
-  barrier.newLayout = newLayout;
-  barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-  barrier.image = image;
-  barrier.subresourceRange.baseMipLevel = 0;
-  barrier.subresourceRange.levelCount = mipLevels;
-  barrier.subresourceRange.baseArrayLayer = 0;
-  barrier.subresourceRange.layerCount = 1;
+  VkImageMemoryBarrier barrier {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .oldLayout = oldLayout,
+    .newLayout = newLayout,
+    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .image = image,
+    .subresourceRange = {
+      .baseMipLevel = 0,
+      .levelCount = mipLevels,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    }
+  };
 
   if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
   {
@@ -129,21 +132,18 @@ void Images::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevi
 {
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
-  VkBufferImageCopy region{};
-  region.bufferOffset = 0;
-  region.bufferRowLength = 0;
-  region.bufferImageHeight = 0;
-
-  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  region.imageSubresource.mipLevel = 0;
-  region.imageSubresource.baseArrayLayer = 0;
-  region.imageSubresource.layerCount = 1;
-
-  region.imageOffset = {0, 0, 0};
-  region.imageExtent = {
-    width,
-    height,
-    1
+  const VkBufferImageCopy region {
+    .bufferOffset = 0,
+    .bufferRowLength = 0,
+    .bufferImageHeight = 0,
+    .imageSubresource = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = 0,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    },
+    .imageOffset = {0, 0, 0},
+    .imageExtent = {width, height, 1}
   };
 
   vkCmdCopyBufferToImage(
