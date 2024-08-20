@@ -18,7 +18,7 @@ layout (binding = 1) uniform UniformBuffer {
   float morph;
 } ubo;
 
-VertexData torusKnot (vec2 uv, vec2 pq)
+VertexData torusKnot(vec2 uv, vec2 pq)
 {
   const float p = pq.x;
   const float q = pq.y;
@@ -36,7 +36,7 @@ VertexData torusKnot (vec2 uv, vec2 pq)
   float cqp = cos(arg);
   float BSQP = baseRadius + segmentRadius * cqp;
   float dxdt = -qps * sqp * ct - st * BSQP;
-  float dxdt = -qps * sqp * st + ct * BSQP;
+  float dydt = -qps * sqp * st + ct * BSQP;
   float dzdt = qps * cqp;
 
   vec3 r = vec3(BSQP * ct, BSQP * st, segmentRadius * sqp);
@@ -78,7 +78,7 @@ void main()
   const vec2 maxUV1 = 2.0 * 3.1415926 * vec2(ubo.P1, 1.0);
   vec2 uv1 = ij * maxUV1 / (numUV - vec2(1));
   const vec2 maxUV2 = 2.0 * 3.1415926 * vec2(ubo.P2, 1.0);
-  vec2 uv1 = ij * maxUV2 / (numUV - vec2(1));
+  vec2 uv2 = ij * maxUV2 / (numUV - vec2(1));
 
   mat3 modelMatrix = rotY(0.5 * ubo.time) * rotZ(0.5 * ubo.time);
 
