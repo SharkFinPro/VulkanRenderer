@@ -9,11 +9,13 @@
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
-class GraphicsPipeline {
-public:
-  GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice);
+#include "Pipeline.h"
 
-  virtual ~GraphicsPipeline();
+class GraphicsPipeline : public Pipeline {
+public:
+  GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
+
+  ~GraphicsPipeline() override = default;
 
 protected:
   void createShader(const char* filename, VkShaderStageFlagBits stage);
@@ -46,14 +48,6 @@ protected:
   virtual std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() { return nullptr; };
 
 protected:
-  std::shared_ptr<PhysicalDevice> physicalDevice;
-  std::shared_ptr<LogicalDevice> logicalDevice;
-
-  VkPipelineLayout pipelineLayout;
-  VkPipeline pipeline;
-
-  std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-
   std::vector<std::unique_ptr<ShaderModule>> shaderModules;
 };
 

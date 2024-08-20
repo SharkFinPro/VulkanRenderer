@@ -53,6 +53,8 @@ add_library(${PROJECT_NAME}
   pipelines/GraphicsPipeline.h
   pipelines/ComputePipeline.cpp
   pipelines/ComputePipeline.h
+  pipelines/Pipeline.cpp
+  pipelines/Pipeline.h
 )
 
 # Shaders

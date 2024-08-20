@@ -3,17 +3,18 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
-#include <vector>
 
 #include "ShaderModule.h"
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
-class ComputePipeline {
-public:
-  ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice);
+#include "Pipeline.h"
 
-  virtual ~ComputePipeline();
+class ComputePipeline : public Pipeline {
+public:
+  ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
+
+  ~ComputePipeline() override = default;
 
 protected:
   void createShader(const char* filename);
@@ -29,14 +30,6 @@ protected:
   void createPipeline();
 
 protected:
-  std::shared_ptr<PhysicalDevice> physicalDevice;
-  std::shared_ptr<LogicalDevice> logicalDevice;
-
-  VkPipelineLayout pipelineLayout;
-  VkPipeline pipeline;
-
-  std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-
   std::unique_ptr<ShaderModule> shaderModule;
 };
 

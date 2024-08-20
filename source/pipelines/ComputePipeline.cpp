@@ -2,16 +2,10 @@
 
 #include <utility>
 
-ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                                 std::shared_ptr<LogicalDevice> logicalDevice)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice,
+                                 const std::shared_ptr<LogicalDevice> &logicalDevice)
+  : Pipeline(physicalDevice, logicalDevice)
 {}
-
-ComputePipeline::~ComputePipeline()
-{
-  vkDestroyPipeline(logicalDevice->getDevice(), pipeline, nullptr);
-  vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
-}
 
 void ComputePipeline::createShader(const char* filename)
 {
