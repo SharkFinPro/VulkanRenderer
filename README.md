@@ -1,6 +1,6 @@
 # Vulkan Renderer
 
-This project aims to create a 3D renderer utilizing the Vulkan API.
+This project focuses on developing a high-performance 3D renderer using the Vulkan API, leveraging its advanced features for optimal graphics rendering and resource management.
 
 🚧 This project is currently under construction 🚧
 
