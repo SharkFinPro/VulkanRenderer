@@ -10,6 +10,9 @@
 #include <array>
 #include <glm/glm.hpp>
 
+#include "../ComputePipeline.h"
+#include "../GraphicsPipeline.h"
+
 struct Particle {
   glm::vec2 position;
   glm::vec2 velocity;
@@ -49,38 +52,41 @@ struct UniformBufferObject {
 
 constexpr int PARTICLE_COUNT = 8192;
 
-class DotsPipeline {
+class DotsPipeline : public ComputePipeline, public GraphicsPipeline {
 public:
-  DotsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-                  const VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
-  ~DotsPipeline();
+  DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
+               const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
+  ~DotsPipeline() override;
 
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent) const;
 
 private:
+  void loadComputeShaders() override;
+
+  void loadComputeDescriptorSetLayouts() override;
+
+  void loadGraphicsShaders() override;
+
+  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() override;
+  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() override;
+  std::unique_ptr<VkPipelineDynamicStateCreateInfo> defineDynamicState() override;
+  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> defineInputAssemblyState() override;
+  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> defineMultisampleState() override;
+  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> defineRasterizationState() override;
+  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
+  std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
+
   void updateUniformBuffer(uint32_t currentFrame) const;
-
-  void createComputePipeline();
-
-  void createGraphicsPipeline(VkRenderPass& renderPass);
 
   void createUniformBuffers();
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 
+  void createDescriptorSetLayouts();
   void createDescriptorPool();
   void createDescriptorSets();
 
 private:
-  std::shared_ptr<PhysicalDevice> physicalDevice;
-  std::shared_ptr<LogicalDevice> logicalDevice;
-
-  VkPipelineLayout computePipelineLayout;
-  VkPipeline computePipeline;
-
-  VkPipelineLayout graphicsPipelineLayout;
-  VkPipeline graphicsPipeline;
-
   std::vector<VkBuffer> shaderStorageBuffers;
   std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
 
@@ -93,6 +99,11 @@ private:
   std::vector<VkDescriptorSet> computeDescriptorSets;
 
   float lastFrameTime = 0.25f;
+
+  VkPipelineColorBlendAttachmentState colorBlendAttachment;
+  std::array<VkDynamicState, 2> dynamicStates;
+  VkVertexInputBindingDescription vertexBindingDescription;
+  std::array<VkVertexInputAttributeDescription, 2> vertexAttributeDescriptions;
 };
 
 

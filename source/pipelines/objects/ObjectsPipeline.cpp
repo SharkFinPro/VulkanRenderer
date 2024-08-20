@@ -146,13 +146,13 @@ void ObjectsPipeline::renderLightsGui()
   ImGui::End();
 }
 
-void ObjectsPipeline::loadShaders()
+void ObjectsPipeline::loadGraphicsShaders()
 {
   createShader("assets/shaders/objects.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
   createShader("assets/shaders/objects.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
-void ObjectsPipeline::loadDescriptorSetLayouts()
+void ObjectsPipeline::loadGraphicsDescriptorSetLayouts()
 {
   loadDescriptorSetLayout(globalDescriptorSetLayout);
   loadDescriptorSetLayout(objectDescriptorSetLayout);

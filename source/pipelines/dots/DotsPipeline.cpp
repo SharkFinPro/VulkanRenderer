@@ -9,50 +9,45 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-DotsPipeline::DotsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                                 std::shared_ptr<LogicalDevice> logicalDevice,
-                                 const VkCommandPool& commandPool, VkRenderPass& renderPass,
-                                 const VkExtent2D& swapChainExtent)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                           const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const VkCommandPool& commandPool, const VkRenderPass& renderPass,
+                           const VkExtent2D& swapChainExtent)
+  : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice)
 {
-  createComputePipeline();
-  createGraphicsPipeline(renderPass);
-
   createUniformBuffers();
   createShaderStorageBuffers(commandPool, swapChainExtent);
 
+  createDescriptorSetLayouts();
   createDescriptorPool();
   createDescriptorSets();
+
+  ComputePipeline::createPipeline();
+  GraphicsPipeline::createPipeline(renderPass);
 }
 
 DotsPipeline::~DotsPipeline()
 {
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), computeDescriptorPool, nullptr);
+  vkDestroyDescriptorPool(ComputePipeline::logicalDevice->getDevice(), computeDescriptorPool, nullptr);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), computeDescriptorSetLayout,
+  vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout,
                                nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    vkDestroyBuffer(logicalDevice->getDevice(), shaderStorageBuffers[i], nullptr);
-    vkFreeMemory(logicalDevice->getDevice(), shaderStorageBuffersMemory[i], nullptr);
+    vkDestroyBuffer(ComputePipeline::logicalDevice->getDevice(), shaderStorageBuffers[i], nullptr);
+    vkFreeMemory(ComputePipeline::logicalDevice->getDevice(), shaderStorageBuffersMemory[i], nullptr);
 
-    vkDestroyBuffer(logicalDevice->getDevice(), uniformBuffers[i], nullptr);
-    vkFreeMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], nullptr);
+    vkDestroyBuffer(ComputePipeline::logicalDevice->getDevice(), uniformBuffers[i], nullptr);
+    vkFreeMemory(ComputePipeline::logicalDevice->getDevice(), uniformBuffersMemory[i], nullptr);
   }
-
-  vkDestroyPipeline(logicalDevice->getDevice(), graphicsPipeline, nullptr);
-  vkDestroyPipelineLayout(logicalDevice->getDevice(), graphicsPipelineLayout, nullptr);
-
-  vkDestroyPipeline(logicalDevice->getDevice(), computePipeline, nullptr);
-  vkDestroyPipelineLayout(logicalDevice->getDevice(), computePipelineLayout, nullptr);
 }
 
 void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          computePipelineLayout, 0, 1, &computeDescriptorSets[currentFrame],
+                          ComputePipeline::pipelineLayout, 0, 1, &computeDescriptorSets[currentFrame],
                           0, nullptr);
 
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
@@ -62,7 +57,7 @@ void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t c
 {
   updateUniformBuffer(currentFrame);
 
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::pipeline);
 
   VkViewport viewport{};
   viewport.x = 0.0f;
@@ -84,208 +79,155 @@ void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t c
   vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 }
 
+void DotsPipeline::loadComputeShaders()
+{
+  ComputePipeline::createShader("assets/shaders/dots.comp.spv");
+}
+
+void DotsPipeline::loadComputeDescriptorSetLayouts()
+{
+  ComputePipeline::loadDescriptorSetLayout(computeDescriptorSetLayout);
+}
+
+void DotsPipeline::loadGraphicsShaders()
+{
+  GraphicsPipeline::createShader("assets/shaders/dots.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  GraphicsPipeline::createShader("assets/shaders/dots.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+}
+
+std::unique_ptr<VkPipelineColorBlendStateCreateInfo> DotsPipeline::defineColorBlendState()
+{
+  colorBlendAttachment = {
+    .blendEnable = VK_TRUE,
+    .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+    .colorBlendOp = VK_BLEND_OP_ADD,
+    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+    .alphaBlendOp = VK_BLEND_OP_ADD,
+    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+  };
+
+  VkPipelineColorBlendStateCreateInfo colorBlendState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+    .logicOpEnable = VK_FALSE,
+    .logicOp = VK_LOGIC_OP_COPY,
+    .attachmentCount = 1,
+    .pAttachments = &colorBlendAttachment,
+    .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
+  };
+
+  return std::make_unique<VkPipelineColorBlendStateCreateInfo>(colorBlendState);
+}
+
+std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> DotsPipeline::defineDepthStencilState()
+{
+  VkPipelineDepthStencilStateCreateInfo depthStencilState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+    .depthTestEnable = VK_TRUE,
+    .depthWriteEnable = VK_TRUE,
+    .depthCompareOp = VK_COMPARE_OP_LESS,
+    .depthBoundsTestEnable = VK_FALSE,
+    .stencilTestEnable = VK_FALSE,
+    .minDepthBounds = 0.0f,
+    .maxDepthBounds = 1.0f
+  };
+
+  return std::make_unique<VkPipelineDepthStencilStateCreateInfo>(depthStencilState);
+}
+
+std::unique_ptr<VkPipelineDynamicStateCreateInfo> DotsPipeline::defineDynamicState()
+{
+  dynamicStates = {
+    VK_DYNAMIC_STATE_VIEWPORT,
+    VK_DYNAMIC_STATE_SCISSOR
+  };
+
+  VkPipelineDynamicStateCreateInfo dynamicState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+    .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+    .pDynamicStates = dynamicStates.data()
+  };
+
+  return std::make_unique<VkPipelineDynamicStateCreateInfo>(dynamicState);
+}
+
+std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> DotsPipeline::defineInputAssemblyState()
+{
+  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+    .topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+    .primitiveRestartEnable = VK_FALSE
+  };
+
+  return std::make_unique<VkPipelineInputAssemblyStateCreateInfo>(inputAssemblyState);
+}
+
+std::unique_ptr<VkPipelineMultisampleStateCreateInfo> DotsPipeline::defineMultisampleState()
+{
+  VkPipelineMultisampleStateCreateInfo multisampleState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+    .rasterizationSamples = GraphicsPipeline::physicalDevice->getMsaaSamples(),
+    .sampleShadingEnable = VK_FALSE,
+    .minSampleShading = 1.0f,
+    .pSampleMask = VK_NULL_HANDLE,
+    .alphaToCoverageEnable = VK_FALSE,
+    .alphaToOneEnable = VK_FALSE
+  };
+
+  return std::make_unique<VkPipelineMultisampleStateCreateInfo>(multisampleState);
+}
+
+std::unique_ptr<VkPipelineRasterizationStateCreateInfo> DotsPipeline::defineRasterizationState()
+{
+  VkPipelineRasterizationStateCreateInfo rasterizationState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+    .depthClampEnable = VK_FALSE,
+    .rasterizerDiscardEnable = VK_FALSE,
+    .polygonMode = VK_POLYGON_MODE_FILL,
+    .cullMode = VK_CULL_MODE_BACK_BIT,
+    .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+    .depthBiasEnable = VK_FALSE,
+    .lineWidth = 1.0f
+  };
+
+  return std::make_unique<VkPipelineRasterizationStateCreateInfo>(rasterizationState);
+}
+
+std::unique_ptr<VkPipelineVertexInputStateCreateInfo> DotsPipeline::defineVertexInputState()
+{
+  vertexBindingDescription = Particle::getBindingDescription();
+  vertexAttributeDescriptions = Particle::getAttributeDescriptions();
+
+  VkPipelineVertexInputStateCreateInfo vertexInputState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .vertexBindingDescriptionCount = 1,
+    .pVertexBindingDescriptions = &vertexBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptions.size()),
+    .pVertexAttributeDescriptions = vertexAttributeDescriptions.data()
+  };
+
+  return std::make_unique<VkPipelineVertexInputStateCreateInfo>(vertexInputState);
+}
+
+std::unique_ptr<VkPipelineViewportStateCreateInfo> DotsPipeline::defineViewportState()
+{
+  VkPipelineViewportStateCreateInfo viewportState {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+    .viewportCount = 1,
+    .scissorCount = 1
+  };
+
+  return std::make_unique<VkPipelineViewportStateCreateInfo>(viewportState);
+}
+
 void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame) const
 {
   UniformBufferObject ubo{};
   ubo.deltaTime = lastFrameTime * 2.0f;
 
   memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
-}
-
-void DotsPipeline::createComputePipeline()
-{
-  const ShaderModule computeShaderModule {
-    logicalDevice->getDevice(),
-    "assets/shaders/dots.comp.spv",
-    VK_SHADER_STAGE_COMPUTE_BIT
-  };
-
-  std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
-  layoutBindings[0].binding = 0;
-  layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  layoutBindings[0].descriptorCount = 1;
-  layoutBindings[0].pImmutableSamplers = nullptr;
-  layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-  layoutBindings[1].binding = 1;
-  layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  layoutBindings[1].descriptorCount = 1;
-  layoutBindings[1].pImmutableSamplers = nullptr;
-  layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-  layoutBindings[2].binding = 2;
-  layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  layoutBindings[2].descriptorCount = 1;
-  layoutBindings[2].pImmutableSamplers = nullptr;
-  layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
-  descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
-  descriptorSetLayoutInfo.pBindings = layoutBindings.data();
-
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &descriptorSetLayoutInfo, nullptr,
-                                  &computeDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor set layout!");
-  }
-
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-  pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 1;
-  pipelineLayoutInfo.pSetLayouts = &computeDescriptorSetLayout;
-
-  if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr,
-                             &computePipelineLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create pipeline layout!");
-  }
-
-  VkComputePipelineCreateInfo computePipelineCreateInfo{};
-  computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-  computePipelineCreateInfo.layout = computePipelineLayout;
-  computePipelineCreateInfo.stage = computeShaderModule.getShaderStageCreateInfo();
-
-  if (vkCreateComputePipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1,
-                               &computePipelineCreateInfo, nullptr, &computePipeline) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create compute pipeline!");
-  }
-}
-
-void DotsPipeline::createGraphicsPipeline(VkRenderPass& renderPass)
-{
-  ShaderModule vertexShaderModule {
-    logicalDevice->getDevice(),
-    "assets/shaders/dots.vert.spv",
-    VK_SHADER_STAGE_VERTEX_BIT
-  };
-  ShaderModule fragmentShaderModule {
-    logicalDevice->getDevice(),
-    "assets/shaders/dots.frag.spv",
-    VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {
-    vertexShaderModule.getShaderStageCreateInfo(),
-    fragmentShaderModule.getShaderStageCreateInfo()
-  };
-
-  VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-  vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-  auto bindingDescription = Particle::getBindingDescription();
-  auto attributeDescriptions = Particle::getAttributeDescriptions();
-
-  vertexInputInfo.vertexBindingDescriptionCount = 1;
-  vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-  vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-  vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-  VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-  inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-  inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-  inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-  VkPipelineViewportStateCreateInfo viewportState{};
-  viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  viewportState.viewportCount = 1;
-  viewportState.scissorCount = 1;
-
-  VkPipelineRasterizationStateCreateInfo rasterizationState{};
-  rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-  rasterizationState.depthClampEnable = VK_FALSE;
-  rasterizationState.rasterizerDiscardEnable = VK_FALSE;
-  rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-  rasterizationState.lineWidth = 1.0f;
-  rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
-  rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-  rasterizationState.depthBiasEnable = VK_FALSE;
-
-  VkPipelineMultisampleStateCreateInfo multisampleState{};
-  multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-  multisampleState.sampleShadingEnable = VK_FALSE;
-  multisampleState.rasterizationSamples = physicalDevice->getMsaaSamples();
-  multisampleState.minSampleShading = 1.0f;
-  multisampleState.pSampleMask = nullptr;
-  multisampleState.alphaToCoverageEnable = VK_FALSE;
-  multisampleState.alphaToOneEnable = VK_FALSE;
-
-  VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-  colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-  colorBlendAttachment.blendEnable = VK_TRUE;
-  colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-  colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-  colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-  colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-  colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-  colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-
-  VkPipelineColorBlendStateCreateInfo colorBlendState{};
-  colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-  colorBlendState.logicOpEnable = VK_FALSE;
-  colorBlendState.logicOp = VK_LOGIC_OP_COPY;
-  colorBlendState.attachmentCount = 1;
-  colorBlendState.pAttachments = &colorBlendAttachment;
-  colorBlendState.blendConstants[0] = 0.0f;
-  colorBlendState.blendConstants[1] = 0.0f;
-  colorBlendState.blendConstants[2] = 0.0f;
-  colorBlendState.blendConstants[3] = 0.0f;
-
-  std::vector<VkDynamicState> dynamicStates = {
-    VK_DYNAMIC_STATE_VIEWPORT,
-    VK_DYNAMIC_STATE_SCISSOR
-  };
-  VkPipelineDynamicStateCreateInfo dynamicState{};
-  dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-  dynamicState.pDynamicStates = dynamicStates.data();
-
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-  pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 0;
-  pipelineLayoutInfo.pSetLayouts = nullptr;
-
-  if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr, &graphicsPipelineLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create pipeline layout!");
-  }
-
-  VkPipelineDepthStencilStateCreateInfo depthStencilState{};
-  depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-  depthStencilState.depthTestEnable = VK_TRUE;
-  depthStencilState.depthWriteEnable = VK_TRUE;
-  depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
-  depthStencilState.depthBoundsTestEnable = VK_FALSE;
-  depthStencilState.minDepthBounds = 0.0f;
-  depthStencilState.maxDepthBounds = 1.0f;
-  depthStencilState.stencilTestEnable = VK_FALSE;
-  depthStencilState.front = {};
-  depthStencilState.back = {};
-
-  VkGraphicsPipelineCreateInfo pipelineInfo{};
-  pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-  pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-  pipelineInfo.pStages = shaderStages.data();
-  pipelineInfo.pVertexInputState = &vertexInputInfo;
-  pipelineInfo.pInputAssemblyState = &inputAssembly;
-  pipelineInfo.pViewportState = &viewportState;
-  pipelineInfo.pRasterizationState = &rasterizationState;
-  pipelineInfo.pMultisampleState = &multisampleState;
-  pipelineInfo.pColorBlendState = &colorBlendState;
-  pipelineInfo.pDynamicState = &dynamicState;
-  pipelineInfo.pDepthStencilState = &depthStencilState;
-  pipelineInfo.layout = graphicsPipelineLayout;
-  pipelineInfo.renderPass = renderPass;
-  pipelineInfo.subpass = 0;
-  pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
-  if (vkCreateGraphicsPipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo,
-                                nullptr, &graphicsPipeline) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create graphics pipeline!");
-  }
 }
 
 void DotsPipeline::createUniformBuffers()
@@ -298,12 +240,12 @@ void DotsPipeline::createUniformBuffers()
   {
     constexpr VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    Buffers::createBuffer(logicalDevice->getDevice(),
-                          physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+    Buffers::createBuffer(ComputePipeline::logicalDevice->getDevice(),
+                          ComputePipeline::physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                           uniformBuffers[i], uniformBuffersMemory[i]);
 
-    vkMapMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    vkMapMemory(ComputePipeline::logicalDevice->getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
   }
 }
 
@@ -333,29 +275,62 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(logicalDevice->getDevice(),
-                        physicalDevice->getPhysicalDevice(), bufferSize,
+  Buffers::createBuffer(ComputePipeline::logicalDevice->getDevice(),
+                        ComputePipeline::physicalDevice->getPhysicalDevice(), bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
   void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+  vkMapMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
   memcpy(data, particles.data(), bufferSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  vkUnmapMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize,
+    Buffers::createBuffer(ComputePipeline::logicalDevice->getDevice(), ComputePipeline::physicalDevice->getPhysicalDevice(), bufferSize,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 
-    Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getComputeQueue(),
+    Buffers::copyBuffer(ComputePipeline::logicalDevice->getDevice(), commandPool, ComputePipeline::logicalDevice->getComputeQueue(),
                         stagingBuffer, shaderStorageBuffers[i], bufferSize);
   }
 
-  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
+  vkDestroyBuffer(ComputePipeline::logicalDevice->getDevice(), stagingBuffer, nullptr);
+  vkFreeMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory, nullptr);
+}
+
+void DotsPipeline::createDescriptorSetLayouts()
+{
+  std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
+  layoutBindings[0].binding = 0;
+  layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  layoutBindings[0].descriptorCount = 1;
+  layoutBindings[0].pImmutableSamplers = nullptr;
+  layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+  layoutBindings[1].binding = 1;
+  layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  layoutBindings[1].descriptorCount = 1;
+  layoutBindings[1].pImmutableSamplers = nullptr;
+  layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+  layoutBindings[2].binding = 2;
+  layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  layoutBindings[2].descriptorCount = 1;
+  layoutBindings[2].pImmutableSamplers = nullptr;
+  layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
+  descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
+  descriptorSetLayoutInfo.pBindings = layoutBindings.data();
+
+  if (vkCreateDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), &descriptorSetLayoutInfo, nullptr,
+                                  &computeDescriptorSetLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create descriptor set layout!");
+  }
 }
 
 void DotsPipeline::createDescriptorPool()
@@ -373,7 +348,7 @@ void DotsPipeline::createDescriptorPool()
   poolCreateInfo.pPoolSizes = poolSizes.data();
   poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &computeDescriptorPool) != VK_SUCCESS)
+  if (vkCreateDescriptorPool(ComputePipeline::logicalDevice->getDevice(), &poolCreateInfo, nullptr, &computeDescriptorPool) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor pool!");
   }
@@ -389,7 +364,8 @@ void DotsPipeline::createDescriptorSets()
   allocateInfo.pSetLayouts = layouts.data();
 
   computeDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, computeDescriptorSets.data()) != VK_SUCCESS)
+  if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo,
+                               computeDescriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
@@ -436,7 +412,7 @@ void DotsPipeline::createDescriptorSets()
     writeDescriptorSets[2].descriptorCount = 1;
     writeDescriptorSets[2].pBufferInfo = &storageBufferInfoCurrentFrame;
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), writeDescriptorSets.size(),
+    vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
                            writeDescriptorSets.data(), 0, nullptr);
   }
 }

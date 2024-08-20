@@ -54,7 +54,7 @@ void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D 
   ImGui::NewFrame();
 }
 
-void GuiPipeline::loadShaders()
+void GuiPipeline::loadGraphicsShaders()
 {
   createShader("assets/shaders/ui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
   createShader("assets/shaders/ui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);

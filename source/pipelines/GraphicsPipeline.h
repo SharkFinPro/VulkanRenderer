@@ -18,10 +18,10 @@ public:
 protected:
   void createShader(const char* filename, VkShaderStageFlagBits stage);
 
-  virtual void loadShaders() = 0;
+  virtual void loadGraphicsShaders() = 0;
 
   void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
-  virtual void loadDescriptorSetLayouts() {};
+  virtual void loadGraphicsDescriptorSetLayouts() {};
 
   void createPipelineLayout();
 

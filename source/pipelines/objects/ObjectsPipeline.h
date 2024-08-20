@@ -34,9 +34,9 @@ private:
 
   void renderLightsGui();
 
-  void loadShaders() override;
+  void loadGraphicsShaders() override;
 
-  void loadDescriptorSetLayouts() override;
+  void loadGraphicsDescriptorSetLayouts() override;
 
   std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() override;
   std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() override;

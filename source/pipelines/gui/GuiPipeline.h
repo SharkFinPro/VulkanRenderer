@@ -20,7 +20,7 @@ public:
   VkDescriptorPool& getPool();
 
 private:
-  void loadShaders() override;
+  void loadGraphicsShaders() override;
 
   std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() override;
   std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() override;

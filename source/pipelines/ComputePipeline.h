@@ -18,9 +18,11 @@ public:
 protected:
   void createShader(const char* filename);
 
+  virtual void loadComputeShaders() = 0;
+
   void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
 
-  virtual void loadDescriptorSetLayouts() {};
+  virtual void loadComputeDescriptorSetLayouts() {};
 
   void createPipelineLayout();
 

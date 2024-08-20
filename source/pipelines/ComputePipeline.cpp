@@ -30,6 +30,8 @@ void ComputePipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSe
 
 void ComputePipeline::createPipelineLayout()
 {
+  loadComputeDescriptorSetLayouts();
+
   const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
@@ -44,6 +46,10 @@ void ComputePipeline::createPipelineLayout()
 
 void ComputePipeline::createPipeline()
 {
+  createPipelineLayout();
+
+  loadComputeShaders();
+
   const VkComputePipelineCreateInfo computePipelineCreateInfo {
     .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
     .stage = shaderModule->getShaderStageCreateInfo(),
