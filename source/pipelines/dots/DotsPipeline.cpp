@@ -351,11 +351,12 @@ void DotsPipeline::createDescriptorPool()
     }
   }};
 
-  VkDescriptorPoolCreateInfo poolCreateInfo{};
-  poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  poolCreateInfo.pPoolSizes = poolSizes.data();
-  poolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+  const VkDescriptorPoolCreateInfo poolCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+    .pPoolSizes = poolSizes.data()
+  };
 
   if (vkCreateDescriptorPool(ComputePipeline::logicalDevice->getDevice(), &poolCreateInfo, nullptr, &computeDescriptorPool) != VK_SUCCESS)
   {
