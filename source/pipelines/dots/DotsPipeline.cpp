@@ -388,13 +388,13 @@ void DotsPipeline::createDescriptorSets()
       .range = sizeof(UniformBufferObject)
     };
 
-    VkDescriptorBufferInfo storageBufferInfoLastFrame {
+    const VkDescriptorBufferInfo storageBufferInfoLastFrame {
       .buffer = shaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT],
       .offset = 0,
       .range = sizeof(Particle) * PARTICLE_COUNT
     };
 
-    VkDescriptorBufferInfo storageBufferInfoCurrentFrame {
+    const VkDescriptorBufferInfo storageBufferInfoCurrentFrame {
       .buffer = shaderStorageBuffers[i],
       .offset = 0,
       .range = sizeof(Particle) * PARTICLE_COUNT
