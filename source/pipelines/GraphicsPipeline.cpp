@@ -1,16 +1,10 @@
 #include "GraphicsPipeline.h"
 #include <stdexcept>
 
-GraphicsPipeline::GraphicsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                                   std::shared_ptr<LogicalDevice> logicalDevice)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice,
+                                   const std::shared_ptr<LogicalDevice> &logicalDevice)
+  : Pipeline(physicalDevice, logicalDevice)
 {}
-
-GraphicsPipeline::~GraphicsPipeline()
-{
-  vkDestroyPipeline(logicalDevice->getDevice(), pipeline, nullptr);
-  vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
-}
 
 void GraphicsPipeline::createShader(const char *filename, VkShaderStageFlagBits stage)
 {
@@ -24,7 +18,7 @@ void GraphicsPipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorS
 
 void GraphicsPipeline::createPipelineLayout()
 {
-  loadDescriptorSetLayouts();
+  loadGraphicsDescriptorSetLayouts();
 
   const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -54,7 +48,7 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
   const auto vertexInputState = defineVertexInputState();
   const auto viewportState = defineViewportState();
 
-  loadShaders();
+  loadGraphicsShaders();
 
   std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
   for (const auto& shader : shaderModules)

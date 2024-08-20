@@ -47,10 +47,14 @@ add_library(${PROJECT_NAME}
   components/SwapChain.h
   components/Framebuffer.cpp
   components/Framebuffer.h
-  pipelines/compute/ComputePipeline.cpp
-  pipelines/compute/ComputePipeline.h
+  pipelines/dots/DotsPipeline.cpp
+  pipelines/dots/DotsPipeline.h
   pipelines/GraphicsPipeline.cpp
   pipelines/GraphicsPipeline.h
+  pipelines/ComputePipeline.cpp
+  pipelines/ComputePipeline.h
+  pipelines/Pipeline.cpp
+  pipelines/Pipeline.h
 )
 
 # Shaders
@@ -64,9 +68,9 @@ add_custom_target(Shaders ALL
   COMMAND glslangValidator -V ${shadersSrc}/objects/objects.frag -o ${shadersDst}/objects.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui.vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui.frag.spv
-  COMMAND glslangValidator -V ${shadersSrc}/compute/compute.vert -o ${shadersDst}/compute.vert.spv
-  COMMAND glslangValidator -V ${shadersSrc}/compute/compute.frag -o ${shadersDst}/compute.frag.spv
-  COMMAND glslangValidator -V ${shadersSrc}/compute/compute.comp -o ${shadersDst}/compute.comp.spv
+  COMMAND glslangValidator -V ${shadersSrc}/dots/dots.vert -o ${shadersDst}/dots.vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/dots/dots.frag -o ${shadersDst}/dots.frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/dots/dots.comp -o ${shadersDst}/dots.comp.spv
   COMMENT "Compiling Shaders"
 )
 
