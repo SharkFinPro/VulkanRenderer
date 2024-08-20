@@ -373,8 +373,7 @@ void DotsPipeline::createDescriptorSets()
   };
 
   computeDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-  if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo,
-                               computeDescriptorSets.data()) != VK_SUCCESS)
+  if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo, computeDescriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
