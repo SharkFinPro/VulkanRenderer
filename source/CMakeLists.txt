@@ -55,6 +55,8 @@ add_library(${PROJECT_NAME}
   pipelines/ComputePipeline.h
   pipelines/Pipeline.cpp
   pipelines/Pipeline.h
+  pipelines/torus/TorusPipeline.cpp
+  pipelines/torus/TorusPipeline.h
 )
 
 # Shaders
