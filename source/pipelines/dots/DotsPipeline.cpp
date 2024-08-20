@@ -1,4 +1,4 @@
-#include "ComputePipeline.h"
+#include "DotsPipeline.h"
 #include "../ShaderModule.h"
 #include "../../utilities/Buffers.h"
 
@@ -96,7 +96,7 @@ void ComputePipeline::createComputePipeline()
 {
   const ShaderModule computeShaderModule {
     logicalDevice->getDevice(),
-    "assets/shaders/compute.comp.spv",
+    "assets/shaders/dots.comp.spv",
     VK_SHADER_STAGE_COMPUTE_BIT
   };
 
@@ -157,12 +157,12 @@ void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
 {
   ShaderModule vertexShaderModule {
     logicalDevice->getDevice(),
-    "assets/shaders/compute.vert.spv",
+    "assets/shaders/dots.vert.spv",
     VK_SHADER_STAGE_VERTEX_BIT
   };
   ShaderModule fragmentShaderModule {
     logicalDevice->getDevice(),
-    "assets/shaders/compute.frag.spv",
+    "assets/shaders/dots.frag.spv",
     VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
