@@ -54,9 +54,44 @@ VertexData torusKnot (vec2 uv, vec2 pq)
   return res;
 }
 
+mat3 rotY(float angle)
+{
+  float c = cos(angle), s = sin(angle);
+
+  return mat3(c, 0, -s, 0, 1, 0, s, 0, c);
+}
+
+mat3 rotZ(float angle)
+{
+  float c = cos(angle), s = sin(angle);
+
+  return mat3(c, -s, 0, s, c, 0, 0, 0, 1);
+}
+
 void main()
 {
-  x = r * cos(u);
-  y = r * sin(u);
-  z = -sin(v);
+  uint index = gl_GlobalInvocationID.x;
+
+  vec2 numUV = vec2(ubo.numU, ubo.numV);
+  vec2 ij = vec2(float(index / ubo.numU), float(index % ubo.numU));
+
+  const vec2 maxUV1 = 2.0 * 3.1415926 * vec2(ubo.P1, 1.0);
+  vec2 uv1 = ij * maxUV1 / (numUV - vec2(1));
+  const vec2 maxUV2 = 2.0 * 3.1415926 * vec2(ubo.P2, 1.0);
+  vec2 uv1 = ij * maxUV2 / (numUV - vec2(1));
+
+  mat3 modelMatrix = rotY(0.5 * ubo.time) * rotZ(0.5 * ubo.time);
+
+  VertexData v1 = torusKnot(uv1, vec2(ubo.P1, ubo.Q1));
+  VertexData v2 = torusKnot(uv2, vec2(ubo.P2, ubo.Q2));
+
+  vec3 pos = mix(v1.pos.xyz, v2.pos.xyz, ubo.morph);
+  vec3 norm = mix(v1.norm.xyz, v2.norm.xyz, ubo.morph);
+
+  VertexData vtx;
+  vtx.pos = vec4(modelMatrix * pos, 1);
+  vtx.tc = vec4(ij / numUV, 0, 0);
+  vtx.norm = vec4(modelMatrix * norm, 0);
+
+  vbo.vertices[index] = vtx;
 }
