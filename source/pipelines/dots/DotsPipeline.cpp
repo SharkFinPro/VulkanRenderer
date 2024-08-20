@@ -59,18 +59,20 @@ void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t c
 
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::pipeline);
 
-  VkViewport viewport{};
-  viewport.x = 0.0f;
-  viewport.y = 0.0f;
-  viewport.width = static_cast<float>(swapChainExtent.width);
-  viewport.height = static_cast<float>(swapChainExtent.height);
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
+  const VkViewport viewport {
+    .x = 0.0f,
+    .y = 0.0f,
+    .width = static_cast<float>(swapChainExtent.width),
+    .height = static_cast<float>(swapChainExtent.height),
+    .minDepth = 0.0f,
+    .maxDepth = 1.0f
+  };
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-  VkRect2D scissor{};
-  scissor.offset = {0, 0};
-  scissor.extent = swapChainExtent;
+  const VkRect2D scissor {
+    .offset = {0, 0},
+    .extent = swapChainExtent
+  };
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   constexpr VkDeviceSize offsets[] = {0};
