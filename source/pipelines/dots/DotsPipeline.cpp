@@ -366,11 +366,12 @@ void DotsPipeline::createDescriptorPool()
 void DotsPipeline::createDescriptorSets()
 {
   const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
-  VkDescriptorSetAllocateInfo allocateInfo{};
-  allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocateInfo.descriptorPool = computeDescriptorPool;
-  allocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-  allocateInfo.pSetLayouts = layouts.data();
+  const VkDescriptorSetAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+    .descriptorPool = computeDescriptorPool,
+    .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .pSetLayouts = layouts.data()
+  };
 
   computeDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
   if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo,
@@ -381,45 +382,53 @@ void DotsPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    VkDescriptorBufferInfo uniformBufferInfo{};
-    uniformBufferInfo.buffer = uniformBuffers[i];
-    uniformBufferInfo.offset = 0;
-    uniformBufferInfo.range = sizeof(UniformBufferObject);
+    const VkDescriptorBufferInfo uniformBufferInfo {
+      .buffer = uniformBuffers[i],
+      .offset = 0,
+      .range = sizeof(UniformBufferObject)
+    };
 
-    std::array<VkWriteDescriptorSet, 3> writeDescriptorSets{};
-    writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSets[0].dstSet = computeDescriptorSets[i];
-    writeDescriptorSets[0].dstBinding = 0;
-    writeDescriptorSets[0].dstArrayElement = 0;
-    writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writeDescriptorSets[0].descriptorCount = 1;
-    writeDescriptorSets[0].pBufferInfo = &uniformBufferInfo;
+    VkDescriptorBufferInfo storageBufferInfoLastFrame {
+      .buffer = shaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT],
+      .offset = 0,
+      .range = sizeof(Particle) * PARTICLE_COUNT
+    };
 
-    VkDescriptorBufferInfo storageBufferInfoLastFrame{};
-    storageBufferInfoLastFrame.buffer = shaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT];
-    storageBufferInfoLastFrame.offset = 0;
-    storageBufferInfoLastFrame.range = sizeof(Particle) * PARTICLE_COUNT;
+    VkDescriptorBufferInfo storageBufferInfoCurrentFrame {
+      .buffer = shaderStorageBuffers[i],
+      .offset = 0,
+      .range = sizeof(Particle) * PARTICLE_COUNT
+    };
 
-    writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSets[1].dstSet = computeDescriptorSets[i];
-    writeDescriptorSets[1].dstBinding = 1;
-    writeDescriptorSets[1].dstArrayElement = 0;
-    writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    writeDescriptorSets[1].descriptorCount = 1;
-    writeDescriptorSets[1].pBufferInfo = &storageBufferInfoLastFrame;
-
-    VkDescriptorBufferInfo storageBufferInfoCurrentFrame{};
-    storageBufferInfoCurrentFrame.buffer = shaderStorageBuffers[i];
-    storageBufferInfoCurrentFrame.offset = 0;
-    storageBufferInfoCurrentFrame.range = sizeof(Particle) * PARTICLE_COUNT;
-
-    writeDescriptorSets[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSets[2].dstSet = computeDescriptorSets[i];
-    writeDescriptorSets[2].dstBinding = 2;
-    writeDescriptorSets[2].dstArrayElement = 0;
-    writeDescriptorSets[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    writeDescriptorSets[2].descriptorCount = 1;
-    writeDescriptorSets[2].pBufferInfo = &storageBufferInfoCurrentFrame;
+    std::array<VkWriteDescriptorSet, 3> writeDescriptorSets {{
+      {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = computeDescriptorSets[i],
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .pBufferInfo = &uniformBufferInfo
+      },
+      {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = computeDescriptorSets[i],
+        .dstBinding = 1,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .pBufferInfo = &storageBufferInfoLastFrame
+      },
+      {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .dstSet = computeDescriptorSets[i],
+        .dstBinding = 2,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .pBufferInfo = &storageBufferInfoCurrentFrame
+      }
+    }};
 
     vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
                            writeDescriptorSets.data(), 0, nullptr);
