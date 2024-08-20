@@ -289,8 +289,8 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     Buffers::createBuffer(ComputePipeline::logicalDevice->getDevice(), ComputePipeline::physicalDevice->getPhysicalDevice(), bufferSize,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
+                          VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 
     Buffers::copyBuffer(ComputePipeline::logicalDevice->getDevice(), commandPool, ComputePipeline::logicalDevice->getComputeQueue(),
                         stagingBuffer, shaderStorageBuffers[i], bufferSize);
