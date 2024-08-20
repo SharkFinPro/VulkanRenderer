@@ -1,5 +1,4 @@
 #include "DotsPipeline.h"
-#include "../ShaderModule.h"
 #include "../../utilities/Buffers.h"
 
 #include <cmath>
