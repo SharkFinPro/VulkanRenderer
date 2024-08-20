@@ -1,0 +1,62 @@
+#version 450
+
+struct VertexData {
+  vec4 pos, tc, norm;
+};
+
+layout (local_size_x = 2, local_size_y = 1, local_size_z = 1) in;
+
+layout (binding = 0) buffer VertexBuffer {
+  VertexData vertices[];
+} vbo;
+
+layout (binding = 1) uniform UniformBuffer {
+  float time;
+  uint numU, numV;
+  float minU, maxU, minV, maxV;
+  uint P1, P2, Q1, Q2;
+  float morph;
+} ubo;
+
+VertexData torusKnot (vec2 uv, vec2 pq)
+{
+  const float p = pq.x;
+  const float q = pq.y;
+
+  const float baseRadius = 5.0;
+  const float segmentRadius = 3.0;
+  const float tubeRadius = 0.5;
+
+  float ct = cos(uv.x);
+  float st = sin(uv.x);
+  float qp = q/p;
+  float qps = qp * segmentRadius;
+  float arg = uv.x * qp;
+  float sqp = sin(arg);
+  float cqp = cos(arg);
+  float BSQP = baseRadius + segmentRadius * cqp;
+  float dxdt = -qps * sqp * ct - st * BSQP;
+  float dxdt = -qps * sqp * st + ct * BSQP;
+  float dzdt = qps * cqp;
+
+  vec3 r = vec3(BSQP * ct, BSQP * st, segmentRadius * sqp);
+  vec3 drdt = vec3(dxdt, dydt, dzdt);
+  vec3 v1 = normalize(cross(r, drdt));
+  vec3 v2 = normalize(cross(v1, drdt));
+
+  float cv = cos(uv.y);
+  float sv = sin(uv.y);
+
+  VertexData res;
+  res.pos = vec4(r + tubeRadius * (v1 * sv + v2 * cv), 1);
+  res.norm = vec4(cross(v1 * cv - v2 * sv, drdt), 0);
+
+  return res;
+}
+
+void main()
+{
+  x = r * cos(u);
+  y = r * sin(u);
+  z = -sin(v);
+}
