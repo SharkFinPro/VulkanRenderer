@@ -30,8 +30,7 @@ DotsPipeline::~DotsPipeline()
 {
   vkDestroyDescriptorPool(ComputePipeline::logicalDevice->getDevice(), computeDescriptorPool, nullptr);
 
-  vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout,
-                               nullptr);
+  vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
