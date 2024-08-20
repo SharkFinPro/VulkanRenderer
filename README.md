@@ -12,8 +12,7 @@ Before building the Vulkan Renderer, ensure you have the following dependencies 
 
 1. **CMake** (version 3.27 or higher)
 2. **Vulkan SDK** (latest version recommended)
-3. **glslang** (for shader compilation)
-4. **Git** (for cloning the repository)
+3. **Git** (for cloning the repository)
 
 ### Cloning the Repository and Building the Project
 
