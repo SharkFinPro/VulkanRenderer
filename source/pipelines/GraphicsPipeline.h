@@ -15,8 +15,6 @@ class GraphicsPipeline : public Pipeline {
 public:
   GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
 
-  ~GraphicsPipeline() override = default;
-
 protected:
   void createShader(const char* filename, VkShaderStageFlagBits stage);
 
