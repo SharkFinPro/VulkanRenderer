@@ -339,8 +339,7 @@ void DotsPipeline::createDescriptorSetLayouts()
 
 void DotsPipeline::createDescriptorPool()
 {
-  constexpr std::array<VkDescriptorPoolSize, 2> poolSizes {
-  {
+  constexpr std::array<VkDescriptorPoolSize, 2> poolSizes {{
     {
       .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
       .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
