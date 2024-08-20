@@ -10,7 +10,17 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
 
 ComputePipeline::~ComputePipeline()
 {
+  vkDestroyPipeline(logicalDevice->getDevice(), pipeline, nullptr);
+  vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
+}
 
+void ComputePipeline::createShader(const char* filename)
+{
+  shaderModule = std::make_unique<ShaderModule>(
+    logicalDevice->getDevice(),
+    filename,
+    VK_SHADER_STAGE_COMPUTE_BIT
+  );
 }
 
 
@@ -64,20 +74,13 @@ void ComputePipeline::createPipelineLayout()
   {
     throw std::runtime_error("failed to create pipeline layout!");
   }
-
 }
 
 void ComputePipeline::createPipeline()
 {
-  const ShaderModule computeShaderModule {
-    logicalDevice->getDevice(),
-    "assets/shaders/dots.comp.spv",
-    VK_SHADER_STAGE_COMPUTE_BIT
-  };
-
   const VkComputePipelineCreateInfo computePipelineCreateInfo {
     .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-    .stage = computeShaderModule.getShaderStageCreateInfo(),
+    .stage = shaderModule->getShaderStageCreateInfo(),
     .layout = pipelineLayout
   };
 
@@ -86,4 +89,6 @@ void ComputePipeline::createPipeline()
   {
     throw std::runtime_error("failed to create compute pipeline!");
   }
+
+  shaderModule.reset();
 }

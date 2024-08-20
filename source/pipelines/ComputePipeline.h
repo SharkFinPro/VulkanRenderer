@@ -16,6 +16,8 @@ public:
   virtual ~ComputePipeline();
 
 protected:
+  void createShader(const char* filename);
+
   void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
 
   virtual void loadDescriptorSetLayouts() {};
@@ -32,6 +34,8 @@ protected:
   VkPipeline pipeline;
 
   std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+
+  std::unique_ptr<ShaderModule> shaderModule;
 };
 
 
