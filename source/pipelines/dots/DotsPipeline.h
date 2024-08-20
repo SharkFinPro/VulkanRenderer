@@ -49,11 +49,11 @@ struct UniformBufferObject {
 
 constexpr int PARTICLE_COUNT = 8192;
 
-class ComputePipeline {
+class DotsPipeline {
 public:
-  ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+  DotsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
                   const VkCommandPool& commandPool, VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
-  ~ComputePipeline();
+  ~DotsPipeline();
 
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent) const;

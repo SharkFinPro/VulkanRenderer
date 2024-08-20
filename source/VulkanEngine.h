@@ -72,7 +72,7 @@ private:
   std::shared_ptr<Framebuffer> framebuffer;
   std::unique_ptr<ObjectsPipeline> objectsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
-  std::unique_ptr<ComputePipeline> computePipeline;
+  std::unique_ptr<DotsPipeline> dotsPipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
   std::vector<std::shared_ptr<Texture>> textures;

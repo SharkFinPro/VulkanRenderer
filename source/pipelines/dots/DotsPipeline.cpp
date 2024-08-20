@@ -9,7 +9,7 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
+DotsPipeline::DotsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
                                  std::shared_ptr<LogicalDevice> logicalDevice,
                                  const VkCommandPool& commandPool, VkRenderPass& renderPass,
                                  const VkExtent2D& swapChainExtent)
@@ -25,7 +25,7 @@ ComputePipeline::ComputePipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
   createDescriptorSets();
 }
 
-ComputePipeline::~ComputePipeline()
+DotsPipeline::~DotsPipeline()
 {
   vkDestroyDescriptorPool(logicalDevice->getDevice(), computeDescriptorPool, nullptr);
 
@@ -48,7 +48,7 @@ ComputePipeline::~ComputePipeline()
   vkDestroyPipelineLayout(logicalDevice->getDevice(), computePipelineLayout, nullptr);
 }
 
-void ComputePipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
+void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -58,7 +58,7 @@ void ComputePipeline::compute(const VkCommandBuffer& commandBuffer, const uint32
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
 }
 
-void ComputePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent) const
+void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent) const
 {
   updateUniformBuffer(currentFrame);
 
@@ -84,7 +84,7 @@ void ComputePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 }
 
-void ComputePipeline::updateUniformBuffer(const uint32_t currentFrame) const
+void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame) const
 {
   UniformBufferObject ubo{};
   ubo.deltaTime = lastFrameTime * 2.0f;
@@ -92,7 +92,7 @@ void ComputePipeline::updateUniformBuffer(const uint32_t currentFrame) const
   memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
 }
 
-void ComputePipeline::createComputePipeline()
+void DotsPipeline::createComputePipeline()
 {
   const ShaderModule computeShaderModule {
     logicalDevice->getDevice(),
@@ -153,7 +153,7 @@ void ComputePipeline::createComputePipeline()
   }
 }
 
-void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
+void DotsPipeline::createGraphicsPipeline(VkRenderPass& renderPass)
 {
   ShaderModule vertexShaderModule {
     logicalDevice->getDevice(),
@@ -288,7 +288,7 @@ void ComputePipeline::createGraphicsPipeline(VkRenderPass& renderPass)
   }
 }
 
-void ComputePipeline::createUniformBuffers()
+void DotsPipeline::createUniformBuffers()
 {
   uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -307,7 +307,7 @@ void ComputePipeline::createUniformBuffers()
   }
 }
 
-void ComputePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
+void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
 {
   shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -358,7 +358,7 @@ void ComputePipeline::createShaderStorageBuffers(const VkCommandPool& commandPoo
   vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
 }
 
-void ComputePipeline::createDescriptorPool()
+void DotsPipeline::createDescriptorPool()
 {
   std::array<VkDescriptorPoolSize, 2> poolSizes{};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -379,7 +379,7 @@ void ComputePipeline::createDescriptorPool()
   }
 }
 
-void ComputePipeline::createDescriptorSets()
+void DotsPipeline::createDescriptorSets()
 {
   const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
   VkDescriptorSetAllocateInfo allocateInfo{};
