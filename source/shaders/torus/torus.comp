@@ -29,7 +29,7 @@ VertexData torusKnot(vec2 uv, vec2 pq)
 
   float ct = cos(uv.x);
   float st = sin(uv.x);
-  float qp = q/p;
+  float qp = q / p;
   float qps = qp * segmentRadius;
   float arg = uv.x * qp;
   float sqp = sin(arg);
