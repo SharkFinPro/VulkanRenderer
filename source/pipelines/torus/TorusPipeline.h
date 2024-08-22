@@ -43,16 +43,12 @@ inline void generateIndices(uint32_t* indices)
   }
 }
 
-class TorusPipeline final : public ComputePipeline, public GraphicsPipeline {
+class TorusPipeline {
 public:
   TorusPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
 
 private:
-  void loadComputeShaders() override;
-
-  void loadGraphicsShaders() override;
-
   void initMesh();
 
 private:
