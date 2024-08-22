@@ -119,7 +119,7 @@ void VulkanEngine::initVulkan()
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass);
 
   dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
-                                                      renderPass->getRenderPass(), swapChain->getExtent());
+                                                renderPass->getRenderPass(), swapChain->getExtent());
 }
 
 void VulkanEngine::createCommandPool()
