@@ -20,7 +20,7 @@ struct MeshUniformBuffer {
 class TorusPipeline : public ComputePipeline, public GraphicsPipeline {
 public:
   TorusPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
+                const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
 
 private:
 };
