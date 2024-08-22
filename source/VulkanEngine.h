@@ -20,6 +20,7 @@
 #include "pipelines/objects/ObjectsPipeline.h"
 #include "pipelines/gui/GuiPipeline.h"
 #include "pipelines/dots/DotsPipeline.h"
+#include "pipelines/torus/TorusPipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -73,6 +74,7 @@ private:
   std::unique_ptr<ObjectsPipeline> objectsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
+  std::unique_ptr<TorusPipeline> torusPipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
   std::vector<std::shared_ptr<Texture>> textures;

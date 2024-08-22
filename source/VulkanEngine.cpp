@@ -120,6 +120,9 @@ void VulkanEngine::initVulkan()
 
   dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
                                                 renderPass->getRenderPass(), swapChain->getExtent());
+
+  torusPipeline = std::make_unique<TorusPipeline>(physicalDevice, logicalDevice, commandPool,
+                                                  renderPass->getRenderPass(), swapChain->getExtent());
 }
 
 void VulkanEngine::createCommandPool()

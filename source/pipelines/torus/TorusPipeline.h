@@ -49,10 +49,14 @@ public:
                 const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
 
 private:
+  void loadComputeShaders() override;
+
+  void loadGraphicsShaders() override;
+
   void initMesh();
 
 private:
-  std::deque<std::pair<uint32_t, uint32_t>> morphQueue = { {5, 8 }, {5, 8} }
+  std::deque<std::pair<uint32_t, uint32_t>> morphQueue = { {5, 8 }, {5, 8} };
   float morphCoef = 0.0f;
   float animationSpeed = 1.0f;
 };

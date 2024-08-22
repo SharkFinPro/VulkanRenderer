@@ -7,6 +7,14 @@ TorusPipeline::TorusPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
 {
 }
 
+void TorusPipeline::loadComputeShaders()
+{
+}
+
+void TorusPipeline::loadGraphicsShaders()
+{
+}
+
 void TorusPipeline::initMesh()
 {
   std::vector<uint32_t> indicesGen((numU - 1) * (numV - 1) * 6);
