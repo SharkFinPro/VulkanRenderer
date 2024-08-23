@@ -9,4 +9,6 @@ TorusDisplayColorPipeline::TorusDisplayColorPipeline(const std::shared_ptr<Physi
 
 void TorusDisplayColorPipeline::loadGraphicsShaders()
 {
+  createShader("assets/torus.vert", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/torusColor.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
 }

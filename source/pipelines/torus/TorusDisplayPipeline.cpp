@@ -9,4 +9,6 @@ TorusDisplayPipeline::TorusDisplayPipeline(const std::shared_ptr<PhysicalDevice>
 
 void TorusDisplayPipeline::loadGraphicsShaders()
 {
+  createShader("assets/torus.vert", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/torus.frag", VK_SHADER_STAGE_FRAGMENT_BIT);
 }

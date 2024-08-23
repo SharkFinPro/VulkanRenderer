@@ -8,4 +8,5 @@ TorusMeshPipeline::TorusMeshPipeline(const std::shared_ptr<PhysicalDevice>& phys
 
 void TorusMeshPipeline::loadComputeShaders()
 {
+  createShader("assets/torusMesh.comp");
 }

@@ -81,7 +81,11 @@ add_custom_target(Shaders ALL
   COMMAND glslangValidator -V ${shadersSrc}/dots/dots.vert -o ${shadersDst}/dots.vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/dots/dots.frag -o ${shadersDst}/dots.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/dots/dots.comp -o ${shadersDst}/dots.comp.spv
-  COMMAND glslangValidator -V ${shadersSrc}/torus/torus.comp -o ${shadersDst}/torus.comp.spv
+  COMMAND glslangValidator -V ${shadersSrc}/torus/torus.vert -o ${shadersDst}/torus.vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/torus/torus.frag -o ${shadersDst}/torus.frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/torus/torusColor.frag -o ${shadersDst}/torusColor.frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/torus/torusMesh.comp -o ${shadersDst}/torusMesh.comp.spv
+  COMMAND glslangValidator -V ${shadersSrc}/torus/torusImage.comp -o ${shadersDst}/torusImage.comp.spv
   COMMENT "Compiling Shaders"
 )
 

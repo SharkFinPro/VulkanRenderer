@@ -8,4 +8,5 @@ TorusImagePipeline::TorusImagePipeline(const std::shared_ptr<PhysicalDevice>& ph
 
 void TorusImagePipeline::loadComputeShaders()
 {
+  createShader("assets/torusImage.comp");
 }
