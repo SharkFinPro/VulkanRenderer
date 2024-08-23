@@ -9,8 +9,13 @@
 #include "../ComputePipeline.h"
 
 
-class TorusMeshPipeline {
+class TorusMeshPipeline : public ComputePipeline {
+public:
+  TorusMeshPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                    const std::shared_ptr<LogicalDevice>& logicalDevice);
 
+private:
+  void loadComputeShaders() override;
 };
 
 

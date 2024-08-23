@@ -2,19 +2,21 @@
 
 TorusPipeline::TorusPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
-                             const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent)
+                             const std::shared_ptr<RenderPass>& renderPass, const VkExtent2D& swapChainExtent)
 {
   initMesh();
 
-  initPipelines();
+  initPipelines(physicalDevice, logicalDevice, renderPass);
 }
 
-void TorusPipeline::initPipelines()
+void TorusPipeline::initPipelines(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                  const std::shared_ptr<RenderPass>& renderPass)
 {
-  torusMeshPipeline = std::make_unique<TorusMeshPipeline>();
-  torusImagePipeline = std::make_unique<TorusImagePipeline>();
-  torusDisplayPipeline = std::make_unique<TorusDisplayPipeline>();
-  torusDisplayColorPipeline = std::make_unique<TorusDisplayColorPipeline>();
+  torusMeshPipeline = std::make_unique<TorusMeshPipeline>(physicalDevice, logicalDevice);
+  torusImagePipeline = std::make_unique<TorusImagePipeline>(physicalDevice, logicalDevice);
+  torusDisplayPipeline = std::make_unique<TorusDisplayPipeline>(physicalDevice, logicalDevice, renderPass);
+  torusDisplayColorPipeline = std::make_unique<TorusDisplayColorPipeline>(physicalDevice, logicalDevice, renderPass);
 }
 
 void TorusPipeline::initMesh()

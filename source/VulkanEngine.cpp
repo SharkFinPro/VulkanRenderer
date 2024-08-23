@@ -122,7 +122,7 @@ void VulkanEngine::initVulkan()
                                                 renderPass->getRenderPass(), swapChain->getExtent());
 
   torusPipeline = std::make_unique<TorusPipeline>(physicalDevice, logicalDevice, commandPool,
-                                                  renderPass->getRenderPass(), swapChain->getExtent());
+                                                  renderPass, swapChain->getExtent());
 }
 
 void VulkanEngine::createCommandPool()

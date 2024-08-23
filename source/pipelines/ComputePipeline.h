@@ -12,7 +12,7 @@
 
 class ComputePipeline : public Pipeline {
 public:
-  ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
+  ComputePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice);
 
 protected:
   void createShader(const char* filename);

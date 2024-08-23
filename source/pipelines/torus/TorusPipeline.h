@@ -51,11 +51,16 @@ inline void generateIndices(uint32_t* indices)
 
 class TorusPipeline {
 public:
-  TorusPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
+  TorusPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                const std::shared_ptr<LogicalDevice>& logicalDevice,
+                const VkCommandPool& commandPool,
+                const std::shared_ptr<RenderPass>& renderPass,
+                const VkExtent2D& swapChainExtent);
 
 private:
-  void initPipelines();
+  void initPipelines(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                     const std::shared_ptr<LogicalDevice>& logicalDevice,
+                     const std::shared_ptr<RenderPass>& renderPass);
 
   void initMesh();
 

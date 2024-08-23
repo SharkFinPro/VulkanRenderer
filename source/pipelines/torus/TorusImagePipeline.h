@@ -9,8 +9,13 @@
 #include "../ComputePipeline.h"
 
 
-class TorusImagePipeline {
+class TorusImagePipeline : public ComputePipeline {
+public:
+  TorusImagePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                     const std::shared_ptr<LogicalDevice>& logicalDevice);
 
+private:
+  void loadComputeShaders() override;
 };
 
 

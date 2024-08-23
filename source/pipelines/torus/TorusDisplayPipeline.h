@@ -7,10 +7,17 @@
 #include "../../components/LogicalDevice.h"
 
 #include "../GraphicsPipeline.h"
+#include "../RenderPass.h"
 
 
-class TorusDisplayPipeline {
+class TorusDisplayPipeline : public GraphicsPipeline {
+public:
+  TorusDisplayPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                       const std::shared_ptr<LogicalDevice>& logicalDevice,
+                       const std::shared_ptr<RenderPass>& renderPass);
 
+private:
+  void loadGraphicsShaders() override;
 };
 
 
