@@ -10,7 +10,7 @@
 #include "../RenderPass.h"
 
 
-class TorusDisplayColorPipeline : public GraphicsPipeline {
+class TorusDisplayColorPipeline final : public GraphicsPipeline {
 public:
   TorusDisplayColorPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                             const std::shared_ptr<LogicalDevice>& logicalDevice,

@@ -9,7 +9,7 @@
 #include "../ComputePipeline.h"
 
 
-class TorusMeshPipeline : public ComputePipeline {
+class TorusMeshPipeline final : public ComputePipeline {
 public:
   TorusMeshPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                     const std::shared_ptr<LogicalDevice>& logicalDevice);
