@@ -2,7 +2,12 @@
 
 #version 460
 
-#include <data/shaders/chapter06/mesh_common.inc>
+struct VertexData
+{
+  vec4 pos;
+  vec4 tc;
+  vec4 norm;
+};
 
 layout(location = 0) out VertexData out_Vertex;
 
