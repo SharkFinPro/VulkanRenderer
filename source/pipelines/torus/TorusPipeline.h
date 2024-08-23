@@ -4,8 +4,14 @@
 #include <cstdint>
 #include <deque>
 
-#include "../ComputePipeline.h"
-#include "../GraphicsPipeline.h"
+#include <vulkan/vulkan.h>
+
+#include "TorusDisplayColorPipeline.h"
+#include "TorusDisplayPipeline.h"
+#include "TorusImagePipeline.h"
+#include "TorusMeshPipeline.h"
+#include "../../components/PhysicalDevice.h"
+#include "../../components/LogicalDevice.h"
 
 struct MeshUniformBuffer {
    float time;
@@ -49,12 +55,19 @@ public:
                 const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
 
 private:
+  void initPipelines();
+
   void initMesh();
 
 private:
   std::deque<std::pair<uint32_t, uint32_t>> morphQueue = { {5, 8 }, {5, 8} };
   float morphCoef = 0.0f;
   float animationSpeed = 1.0f;
+
+  std::unique_ptr<TorusMeshPipeline> torusMeshPipeline;
+  std::unique_ptr<TorusImagePipeline> torusImagePipeline;
+  std::unique_ptr<TorusDisplayPipeline> torusDisplayPipeline;
+  std::unique_ptr<TorusDisplayColorPipeline> torusDisplayColorPipeline;
 };
 
 

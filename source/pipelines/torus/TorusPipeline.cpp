@@ -4,6 +4,17 @@ TorusPipeline::TorusPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
                              const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
                              const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent)
 {
+  initMesh();
+
+  initPipelines();
+}
+
+void TorusPipeline::initPipelines()
+{
+  torusMeshPipeline = std::make_unique<TorusMeshPipeline>();
+  torusImagePipeline = std::make_unique<TorusImagePipeline>();
+  torusDisplayPipeline = std::make_unique<TorusDisplayPipeline>();
+  torusDisplayColorPipeline = std::make_unique<TorusDisplayColorPipeline>();
 }
 
 void TorusPipeline::initMesh()

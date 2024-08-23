@@ -61,6 +61,10 @@ add_library(${PROJECT_NAME}
         pipelines/torus/TorusMeshPipeline.h
         pipelines/torus/TorusImagePipeline.cpp
         pipelines/torus/TorusImagePipeline.h
+  pipelines/torus/TorusDisplayPipeline.cpp
+  pipelines/torus/TorusDisplayPipeline.h
+  pipelines/torus/TorusDisplayColorPipeline.cpp
+  pipelines/torus/TorusDisplayColorPipeline.h
 )
 
 # Shaders
