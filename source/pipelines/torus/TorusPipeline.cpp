@@ -14,7 +14,7 @@ void TorusPipeline::initPipelines(const std::shared_ptr<PhysicalDevice>& physica
                                   const std::shared_ptr<RenderPass>& renderPass)
 {
   torusMeshPipeline = std::make_unique<TorusMeshPipeline>(physicalDevice, logicalDevice);
-  torusImagePipeline = std::make_unique<TorusImagePipeline>(physicalDevice, logicalDevice);
+  torusImagePipeline = std::make_unique<TorusTexturePipeline>(physicalDevice, logicalDevice);
   torusDisplayPipeline = std::make_unique<TorusDisplayPipeline>(physicalDevice, logicalDevice, renderPass);
   torusDisplayColorPipeline = std::make_unique<TorusDisplayColorPipeline>(physicalDevice, logicalDevice, renderPass);
 }

@@ -9,9 +9,9 @@
 #include "../ComputePipeline.h"
 
 
-class TorusImagePipeline final : public ComputePipeline {
+class TorusTexturePipeline final : public ComputePipeline {
 public:
-  TorusImagePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+  TorusTexturePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                      const std::shared_ptr<LogicalDevice>& logicalDevice);
 
 private:

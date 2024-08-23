@@ -1,3 +1,5 @@
+// This code comes from the following repository: https://github.com/PacktPublishing/3D-Graphics-Rendering-Cookbook
+
 #version 450
 
 struct VertexData {

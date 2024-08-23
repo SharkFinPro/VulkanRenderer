@@ -8,7 +8,7 @@
 
 #include "TorusDisplayColorPipeline.h"
 #include "TorusDisplayPipeline.h"
-#include "TorusImagePipeline.h"
+#include "TorusTexturePipeline.h"
 #include "TorusMeshPipeline.h"
 #include "../../components/PhysicalDevice.h"
 #include "../../components/LogicalDevice.h"
@@ -70,7 +70,7 @@ private:
   float animationSpeed = 1.0f;
 
   std::unique_ptr<TorusMeshPipeline> torusMeshPipeline;
-  std::unique_ptr<TorusImagePipeline> torusImagePipeline;
+  std::unique_ptr<TorusTexturePipeline> torusImagePipeline;
   std::unique_ptr<TorusDisplayPipeline> torusDisplayPipeline;
   std::unique_ptr<TorusDisplayColorPipeline> torusDisplayColorPipeline;
 };

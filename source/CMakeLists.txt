@@ -59,8 +59,8 @@ add_library(${PROJECT_NAME}
   pipelines/torus/TorusPipeline.h
         pipelines/torus/TorusMeshPipeline.cpp
         pipelines/torus/TorusMeshPipeline.h
-        pipelines/torus/TorusImagePipeline.cpp
-        pipelines/torus/TorusImagePipeline.h
+  pipelines/torus/TorusTexturePipeline.cpp
+  pipelines/torus/TorusTexturePipeline.h
   pipelines/torus/TorusDisplayPipeline.cpp
   pipelines/torus/TorusDisplayPipeline.h
   pipelines/torus/TorusDisplayColorPipeline.cpp
@@ -85,7 +85,7 @@ add_custom_target(Shaders ALL
   COMMAND glslangValidator -V ${shadersSrc}/torus/torus.frag -o ${shadersDst}/torus.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/torus/torusColor.frag -o ${shadersDst}/torusColor.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/torus/torusMesh.comp -o ${shadersDst}/torusMesh.comp.spv
-  COMMAND glslangValidator -V ${shadersSrc}/torus/torusImage.comp -o ${shadersDst}/torusImage.comp.spv
+  COMMAND glslangValidator -V ${shadersSrc}/torus/torusTexture.comp -o ${shadersDst}/torusTexture.comp.spv
   COMMENT "Compiling Shaders"
 )
 
