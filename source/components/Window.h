@@ -4,6 +4,15 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+struct KeysPressed {
+  bool forward = false;
+  bool backward = false;
+  bool left = false;
+  bool right = false;
+  bool up = false;
+  bool down = false;
+};
+
 class Window {
 public:
   Window(int width, int height, const char* title, VkInstance& instance);
@@ -18,6 +27,8 @@ public:
   VkSurfaceKHR& getSurface();
 
   [[nodiscard]] bool keyDown(int key) const;
+
+  [[nodiscard]] bool inputActive(int key) const;
 
   [[nodiscard]] bool buttonDown(int button) const;
 
@@ -36,6 +47,8 @@ public:
 private:
   void createSurface();
 
+  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 private:
   GLFWwindow* window;
 
@@ -48,6 +61,8 @@ private:
   double mouseY;
 
   double scroll;
+
+  KeysPressed keysPressed;
 };
 
 
