@@ -26,6 +26,8 @@ Window::Window(const int width, const int height, const char* title, VkInstance&
   previousMouseY = mouseY;
 
   createSurface();
+
+  glfwSetKeyCallback(window, keyCallback);
 }
 
 Window::~Window()
@@ -79,6 +81,27 @@ bool Window::keyDown(const int key) const
   return glfwGetKey(window, key) == GLFW_PRESS;
 }
 
+bool Window::inputActive(const int key) const
+{
+  switch (key)
+  {
+    case GLFW_KEY_W:
+      return keysPressed.forward;
+    case GLFW_KEY_S:
+      return keysPressed.backward;
+    case GLFW_KEY_A:
+      return keysPressed.left;
+    case GLFW_KEY_D:
+      return keysPressed.right;
+    case GLFW_KEY_SPACE:
+      return keysPressed.up;
+    case GLFW_KEY_LEFT_SHIFT:
+      return keysPressed.down;
+    default:
+      return false;
+  }
+}
+
 bool Window::buttonDown(const int button) const
 {
   return glfwGetMouseButton(window, button) == GLFW_PRESS;
@@ -116,4 +139,32 @@ void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int 
 {
   const auto app = static_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
   app->framebufferResized = true;
+}
+
+void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+  switch (key)
+  {
+    case GLFW_KEY_W:
+      app->keysPressed.forward = action == GLFW_PRESS;
+      break;
+    case GLFW_KEY_S:
+      app->keysPressed.backward = action == GLFW_PRESS;
+      break;
+    case GLFW_KEY_A:
+      app->keysPressed.left = action == GLFW_PRESS;
+      break;
+    case GLFW_KEY_D:
+      app->keysPressed.right = action == GLFW_PRESS;
+      break;
+    case GLFW_KEY_SPACE:
+      app->keysPressed.up = action == GLFW_PRESS;
+      break;
+    case GLFW_KEY_LEFT_SHIFT:
+      app->keysPressed.down = action == GLFW_PRESS;
+      break;
+    default: ;
+  }
 }
