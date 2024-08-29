@@ -76,6 +76,16 @@ add_custom_target(Shaders ALL
 
 add_dependencies(${PROJECT_NAME} Shaders)
 
+# Create Include Headers
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+
+file(COPY
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+  DESTINATION ${CMAKE_BINARY_DIR}/bin/include
+  FILES_MATCHING
+  PATTERN "*.h"
+)
+
 # Vulkan
 find_package(Vulkan REQUIRED)
 
