@@ -79,26 +79,12 @@ add_dependencies(${PROJECT_NAME} Shaders)
 # Create Include Headers
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
-# Ensure the base include directory exists
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/include)
-
-# Copy headers while preserving the directory structure
-foreach(header ${HEADERS})
-    # Calculate the relative path from the source directory
-    file(RELATIVE_PATH rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${header})
-
-    # Construct the destination directory path
-    set(dest_dir ${CMAKE_BINARY_DIR}/bin/include/${rel_path})
-
-    # Get the directory part of the destination path
-    get_filename_component(dest_dir ${dest_dir} DIRECTORY)
-
-    # Ensure the destination directory exists
-    file(MAKE_DIRECTORY ${dest_dir})
-
-    # Copy the file to the destination
-    file(COPY ${header} DESTINATION ${dest_dir})
-endforeach()
+file(COPY
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+  DESTINATION ${CMAKE_BINARY_DIR}/bin/include
+  FILES_MATCHING
+  PATTERN "*.h"
+)
 
 # Vulkan
 find_package(Vulkan REQUIRED)
