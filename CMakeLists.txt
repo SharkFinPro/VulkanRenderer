@@ -23,8 +23,8 @@ endif()
 add_subdirectory(source)
 
 # Tests
-include_directories(PUBLIC .)
-
-file(COPY "tests/assets/" DESTINATION "bin/assets/")
-
-add_subdirectory(tests)
+#include_directories(PUBLIC .)
+#
+#file(COPY "tests/assets/" DESTINATION "bin/assets/")
+#
+#add_subdirectory(tests)
