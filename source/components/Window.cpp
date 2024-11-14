@@ -145,25 +145,27 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
+  const bool pressed = action == GLFW_PRESS || action == GLFW_REPEAT;
+
   switch (key)
   {
     case GLFW_KEY_W:
-      app->keysPressed.forward = action == GLFW_PRESS;
+      app->keysPressed.forward = pressed;
       break;
     case GLFW_KEY_S:
-      app->keysPressed.backward = action == GLFW_PRESS;
+      app->keysPressed.backward = pressed;
       break;
     case GLFW_KEY_A:
-      app->keysPressed.left = action == GLFW_PRESS;
+      app->keysPressed.left = pressed;
       break;
     case GLFW_KEY_D:
-      app->keysPressed.right = action == GLFW_PRESS;
+      app->keysPressed.right = pressed;
       break;
     case GLFW_KEY_SPACE:
-      app->keysPressed.up = action == GLFW_PRESS;
+      app->keysPressed.up = pressed;
       break;
     case GLFW_KEY_LEFT_SHIFT:
-      app->keysPressed.down = action == GLFW_PRESS;
+      app->keysPressed.down = pressed;
       break;
     default: ;
   }
