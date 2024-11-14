@@ -2,8 +2,6 @@
 
 This project focuses on developing a high-performance 3D renderer using the Vulkan API, leveraging its advanced features for optimal graphics rendering and resource management.
 
-🚧 This project is currently under construction 🚧
-
 ## Build Instructions
 
 ### Prerequisites
@@ -57,4 +55,22 @@ After building, all files will have been written to the `bin` directory. You can
 ```bash
 cd bin
 ./Cube
+```
+
+## Linking in another Project?
+
+Utilize CMake's FetchContent to link this library.
+
+```c++
+FetchContent_Declare(
+    VulkanEngine
+    GIT_REPOSITORY https://github.com/SharkFinPro/VulkanRenderer.git
+    GIT_TAG main
+)
+
+FetchContent_MakeAvailable(VulkanEngine)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE VulkanEngine)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${VulkanEngine_SOURCE_DIR})
 ```
