@@ -61,7 +61,7 @@ cd bin
 
 Utilize CMake's FetchContent to link this library.
 
-```c++
+```cmake
 FetchContent_Declare(
     VulkanEngine
     GIT_REPOSITORY https://github.com/SharkFinPro/VulkanRenderer.git
