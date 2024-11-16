@@ -59,7 +59,7 @@ add_library(${PROJECT_NAME}
 
 # Shaders
 set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-set(shadersDst ${CMAKE_BINARY_DIR}/bin/assets/shaders)
+set(shadersDst ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/shaders)
 
 file(MAKE_DIRECTORY ${shadersDst})
 
