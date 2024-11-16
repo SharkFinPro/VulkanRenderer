@@ -12,7 +12,8 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkCommandPool& commandPool, const VkRenderPass& renderPass,
                            const VkExtent2D& swapChainExtent)
-  : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice)
+  : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice), dotSpeed(1000.0f),
+    previousTime(std::chrono::steady_clock::now())
 {
   createUniformBuffers();
   createShaderStorageBuffers(commandPool, swapChainExtent);
@@ -51,7 +52,7 @@ void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t 
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
 }
 
-void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent) const
+void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent)
 {
   updateUniformBuffer(currentFrame);
 
@@ -222,10 +223,14 @@ std::unique_ptr<VkPipelineViewportStateCreateInfo> DotsPipeline::defineViewportS
   return std::make_unique<VkPipelineViewportStateCreateInfo>(viewportState);
 }
 
-void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame) const
+void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame)
 {
+  const auto currentTime = std::chrono::steady_clock::now();
+  const float dt = std::chrono::duration<float>(currentTime - previousTime).count();
+  previousTime = currentTime;
+
   UniformBufferObject ubo{};
-  ubo.deltaTime = lastFrameTime * 2.0f;
+  ubo.deltaTime = dotSpeed * dt;
 
   memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
 }
