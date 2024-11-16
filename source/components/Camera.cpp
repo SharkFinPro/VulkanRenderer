@@ -24,7 +24,7 @@ void Camera::setSpeed(float cameraSpeed_)
 
   cameraSpeed = speed * 0.025f;
   scrollSpeed = speed * 15.0f;
-  swivelSpeed = speed / 5.0f;
+  swivelSpeed = speed / 7.5f;
 }
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
