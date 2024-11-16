@@ -4,6 +4,7 @@
 #include "Window.h"
 #include <glm/glm.hpp>
 #include <memory>
+#include <chrono>
 
 class Camera {
 public:
@@ -30,6 +31,8 @@ private:
 
   float pitch = 0.0f;
   float yaw = 90.0f;
+
+  std::chrono::time_point<std::chrono::steady_clock> previousTime;
 };
 
 #endif //OPENGLPROJECT_CAMERA_H
