@@ -5,7 +5,7 @@
 constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(const glm::vec3 pos)
-  : position(pos), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0)
+  : position(pos), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0), previousTime(std::chrono::steady_clock::now())
 {}
 
 glm::mat4 Camera::getViewMatrix() const
@@ -20,15 +20,19 @@ glm::vec3 Camera::getPosition() const
 
 void Camera::setSpeed(float cameraSpeed_)
 {
-  speed = cameraSpeed_;
+  speed = cameraSpeed_ * 1000.0f;
 
   cameraSpeed = speed * 0.025f;
   scrollSpeed = speed * 15.0f;
-  swivelSpeed = speed / 5.0f;
+  swivelSpeed = speed / 7.5f;
 }
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
 {
+  const auto currentTime = std::chrono::steady_clock::now();
+  const float dt = std::chrono::duration<float>(currentTime - previousTime).count();
+  previousTime = currentTime;
+
   if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
   {
     double mx, my, omx, omy;
@@ -38,8 +42,8 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     const auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
     const auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
 
-    yaw += deltaMX;
-    pitch -= deltaMY;
+    yaw += deltaMX * dt;
+    pitch -= deltaMY * dt;
 
     pitch = std::clamp(pitch, -89.9f, 89.9f);
   }
@@ -56,32 +60,32 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     pDirection.z = std::cos(glm::radians(yaw))
   ));
 
-  position += static_cast<float>(window->getScroll()) * scrollSpeed * direction;
+  position += static_cast<float>(window->getScroll()) * scrollSpeed * direction * dt;
 
   if (window->inputActive(GLFW_KEY_W))
   {
-    position += cameraSpeed * direction;
+    position += cameraSpeed * direction * dt;
   }
   if (window->inputActive(GLFW_KEY_S))
   {
-    position -= cameraSpeed * direction;
+    position -= cameraSpeed * direction * dt;
   }
 
   if (window->inputActive(GLFW_KEY_A))
   {
-    position -= cameraSpeed * pDirection;
+    position -= cameraSpeed * pDirection * dt;
   }
   if (window->inputActive(GLFW_KEY_D))
   {
-    position += cameraSpeed * pDirection;
+    position += cameraSpeed * pDirection * dt;
   }
 
   if (window->inputActive(GLFW_KEY_SPACE))
   {
-    position += cameraSpeed * UP;
+    position += cameraSpeed * UP * dt;
   }
   if (window->inputActive(GLFW_KEY_LEFT_SHIFT))
   {
-    position -= cameraSpeed * UP;
+    position -= cameraSpeed * UP * dt;
   }
 }

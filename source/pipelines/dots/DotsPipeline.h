@@ -3,12 +3,12 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <chrono>
+#include <array>
+#include <glm/glm.hpp>
 
 #include "../../components/LogicalDevice.h"
 #include "../../components/PhysicalDevice.h"
-
-#include <array>
-#include <glm/glm.hpp>
 
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
@@ -59,7 +59,7 @@ public:
   ~DotsPipeline() override;
 
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent) const;
+  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent);
 
 private:
   void loadComputeShaders() override;
@@ -77,7 +77,7 @@ private:
   std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
   std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
 
-  void updateUniformBuffer(uint32_t currentFrame) const;
+  void updateUniformBuffer(uint32_t currentFrame);
 
   void createUniformBuffers();
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
@@ -98,12 +98,13 @@ private:
   VkDescriptorPool computeDescriptorPool;
   std::vector<VkDescriptorSet> computeDescriptorSets;
 
-  float lastFrameTime = 0.25f;
-
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
   std::array<VkDynamicState, 2> dynamicStates;
   VkVertexInputBindingDescription vertexBindingDescription;
   std::array<VkVertexInputAttributeDescription, 2> vertexAttributeDescriptions;
+
+  float dotSpeed;
+  std::chrono::time_point<std::chrono::steady_clock> previousTime;
 };
 
 
