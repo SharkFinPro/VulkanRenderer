@@ -57,20 +57,30 @@ cd bin
 ./Cube
 ```
 
-## Linking in another Project?
+## Linking VulkanEngine in Another Project
 
-Utilize CMake's FetchContent to link this library.
+You can integrate the VulkanEngine library into your project using CMake's FetchContent module. This approach streamlines the process of fetching, building, and linking external dependencies.
+
+### Example `CMakeLists.txt`
+
+Add the following lines to your `CMakeLists.txt` to fetch and link the VulkanEngine library:
 
 ```cmake
+include(FetchContent)
+
+# Declare VulkanEngine as a dependency
 FetchContent_Declare(
-    VulkanEngine
-    GIT_REPOSITORY https://github.com/SharkFinPro/VulkanRenderer.git
-    GIT_TAG main
+  VulkanEngine
+  GIT_REPOSITORY https://github.com/SharkFinPro/VulkanRenderer.git
+  GIT_TAG main
 )
 
+# Make VulkanEngine available to your project
 FetchContent_MakeAvailable(VulkanEngine)
 
+# Link VulkanEngine to your target
 target_link_libraries(${PROJECT_NAME} PRIVATE VulkanEngine)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${VulkanEngine_SOURCE_DIR})
+# Include VulkanEngine headers
+target_include_directories(${PROJECT_NAME} PRIVATE ${VulkanEngine_SOURCE_DIR}/include)
 ```
