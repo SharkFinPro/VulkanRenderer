@@ -6,12 +6,13 @@
 #include <stdexcept>
 
 #include "../pipelines/Vertex.h"
+#include "glm/ext/matrix_transform.hpp"
 
 Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-             const VkCommandPool& commandPool, const char* path)
+             const VkCommandPool& commandPool, const char* path, glm::vec3 rotation)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
-  loadModel(path);
+  loadModel(path, rotation);
 
   createVertexBuffer(commandPool);
   createIndexBuffer(commandPool);
@@ -26,7 +27,7 @@ Model::~Model()
   vkFreeMemory(logicalDevice->getDevice(), vertexBufferMemory, nullptr);
 }
 
-void Model::loadModel(const char* path)
+void Model::loadModel(const char* path, glm::vec3 rotation)
 {
   /* Load model with assimp */
   Assimp::Importer importer;
@@ -43,9 +44,18 @@ void Model::loadModel(const char* path)
   // Read mesh data
   const aiMesh* mesh = scene->mMeshes[0];
 
+  const glm::vec3 rotationRadians = glm::radians(rotation);
+
+  // Create rotation matrices for each axis
+  const glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), rotationRadians.x, glm::vec3(1.0f, 0.0f, 0.0f));
+  const glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), rotationRadians.y, glm::vec3(0.0f, 1.0f, 0.0f));
+  const glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), rotationRadians.z, glm::vec3(0.0f, 0.0f, 1.0f));
+  const glm::mat4 rotationMatrix = rotationZ * rotationY * rotationX;
+
+
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
   {
-    const Vertex vertex {
+    Vertex vertex {
       .pos = {
         mesh->mVertices[i].x,
         mesh->mVertices[i].y,
@@ -61,6 +71,9 @@ void Model::loadModel(const char* path)
         mesh->mTextureCoords[0][i].y
       }
     };
+
+    vertex.pos = rotationMatrix * glm::vec4(vertex.pos, 1.0f);
+    vertex.normal = rotationMatrix * glm::vec4(vertex.normal, 1.0f);
 
     vertices.push_back(vertex);
   }

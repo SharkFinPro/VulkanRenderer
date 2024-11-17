@@ -17,12 +17,11 @@ int main()
 
     const auto texture = renderer.loadTexture("assets/textures/viking_room.png");
     const auto specular = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/viking_room.obj");
+    const auto model = renderer.loadModel("assets/models/viking_room.obj", { -90, 0, 0 });
 
     const auto object = renderer.loadRenderObject(texture, specular, model);
     object->setPosition({ 0, -1.0f, 5.0f });
     object->setScale(2.0f);
-    object->setRotation({ -90.0f, 0, 0 });
 
     renderer.createLight({0, 3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
 
