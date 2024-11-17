@@ -23,6 +23,7 @@ public:
 
   void setPosition(glm::vec3 position);
   void setScale(glm::vec3 scale);
+  void setScale(float scale);
   void setRotation(glm::vec3 rotation);
 
 private:

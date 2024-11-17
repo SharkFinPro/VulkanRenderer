@@ -118,6 +118,11 @@ void RenderObject::setScale(glm::vec3 scale_)
   scale = scale_;
 }
 
+void RenderObject::setScale(float scale_)
+{
+  scale = { scale_, scale_, scale_ };
+}
+
 void RenderObject::setRotation(glm::vec3 rotation_)
 {
   rotation = rotation_;
