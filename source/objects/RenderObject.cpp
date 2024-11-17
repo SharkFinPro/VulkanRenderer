@@ -18,7 +18,8 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
                            const VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)
   : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
-    texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)), position(0, 0, 0),
+    texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
+    position(0, 0, 0), scale(1, 1, 1),
     transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
 {
   createDescriptorPool();
@@ -45,7 +46,8 @@ void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExte
   projection[1][1] *= -1;
 
   const TransformUniform transformUBO {
-    .model = glm::translate(glm::mat4(1.0f), position),
+    .model = glm::translate(glm::mat4(1.0f), position)
+      * glm::scale(glm::mat4(1.0f), scale),
     .view = camera->getViewMatrix(),
     .proj = projection
   };
@@ -106,4 +108,9 @@ void RenderObject::createDescriptorSets()
 void RenderObject::setPosition(glm::vec3 position_)
 {
   position = position_;
+}
+
+void RenderObject::setScale(glm::vec3 scale_)
+{
+  scale = scale_;
 }
