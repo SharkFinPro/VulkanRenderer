@@ -166,3 +166,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   ${glm_SOURCE_DIR}
   ${stb_SOURCE_DIR}
 )
+
+if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL ${CMAKE_SOURCE_DIR}/source)
+  #Create Include Headers
+  file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+
+  file(COPY
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION ${CMAKE_BINARY_DIR}/bin/include/VulkanEngine
+    FILES_MATCHING
+    PATTERN "*.h"
+  )
+endif()
