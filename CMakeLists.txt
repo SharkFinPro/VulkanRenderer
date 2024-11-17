@@ -18,7 +18,7 @@ else()
 
   file(COPY
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION ${CMAKE_BINARY_DIR}/bin/include
+    DESTINATION ${CMAKE_BINARY_DIR}/bin/include/VulkanEngine
     FILES_MATCHING
     PATTERN "*.h"
   )
