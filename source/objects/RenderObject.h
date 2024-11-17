@@ -23,6 +23,7 @@ public:
 
   void setPosition(glm::vec3 position);
   void setScale(glm::vec3 scale);
+  void setRotation(glm::vec3 rotation);
 
 private:
   void createDescriptorPool();
@@ -42,6 +43,7 @@ private:
 
   glm::vec3 position;
   glm::vec3 scale;
+  glm::vec3 rotation;
 
   std::unique_ptr<UniformBuffer> transformUniform;
 };
