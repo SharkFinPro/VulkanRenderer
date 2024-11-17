@@ -55,9 +55,9 @@ std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
   return texture;
 }
 
-std::shared_ptr<Model> VulkanEngine::loadModel(const char* path)
+std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotation)
 {
-  auto model = std::make_shared<Model>(physicalDevice, logicalDevice, commandPool, path);
+  auto model = std::make_shared<Model>(physicalDevice, logicalDevice, commandPool, path, rotation);
   models.push_back(model);
 
   return model;

@@ -22,6 +22,9 @@ public:
   void updateUniformBuffer(uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const;
 
   void setPosition(glm::vec3 position);
+  void setScale(glm::vec3 scale);
+  void setScale(float scale);
+  void setRotation(glm::vec3 rotation);
 
 private:
   void createDescriptorPool();
@@ -40,6 +43,8 @@ private:
   std::shared_ptr<Model> model;
 
   glm::vec3 position;
+  glm::vec3 scale;
+  glm::vec3 rotation;
 
   std::unique_ptr<UniformBuffer> transformUniform;
 };

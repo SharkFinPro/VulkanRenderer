@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <memory>
+#include <glm/vec3.hpp>
 
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
@@ -13,14 +14,14 @@ struct Vertex;
 class Model {
 public:
   Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-        const VkCommandPool& commandPool, const char* path);
+        const VkCommandPool& commandPool, const char* path, glm::vec3 rotation);
   ~Model();
 
   void draw(const VkCommandBuffer& commandBuffer) const;
 
 private:
 
-  void loadModel(const char* path);
+  void loadModel(const char* path, glm::vec3 rotation);
   void createVertexBuffer(const VkCommandPool& commandPool);
   void createIndexBuffer(const VkCommandPool& commandPool);
 
