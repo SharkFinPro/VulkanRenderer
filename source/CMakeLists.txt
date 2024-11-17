@@ -59,7 +59,7 @@ add_library(${PROJECT_NAME}
 
 # Shaders
 set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-set(shadersDst ${CMAKE_BINARY_DIR}/bin/assets/shaders)
+set(shadersDst ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/shaders)
 
 file(MAKE_DIRECTORY ${shadersDst})
 
@@ -166,3 +166,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   ${glm_SOURCE_DIR}
   ${stb_SOURCE_DIR}
 )
+
+if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL ${CMAKE_SOURCE_DIR}/source)
+  #Create Include Headers
+  file(COPY
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/include/VulkanEngine
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "include/*" EXCLUDE
+  )
+endif()
