@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.27)
 
-option(VulkanRenderer_BUILD_TESTS "Enable building tests for VulkanRenderer" OFF)
+option(VulkanProject_BUILD_TESTS "Enable building tests for VulkanProject" OFF)
 
 project(VulkanProject)
 
 set(CMAKE_CXX_STANDARD 23)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set(VulkanRenderer_BUILD_TESTS ON)
+  set(VulkanProject_BUILD_TESTS ON)
 
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin)
@@ -24,7 +24,7 @@ endif()
 
 add_subdirectory(source)
 
-if (VulkanRenderer_BUILD_TESTS)
+if (VulkanProject_BUILD_TESTS)
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests/assets/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/")
