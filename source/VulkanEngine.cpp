@@ -96,7 +96,7 @@ void VulkanEngine::initVulkan()
   }
 
   window = std::make_shared<Window>(vulkanEngineOptions.WINDOW_WIDTH, vulkanEngineOptions.WINDOW_HEIGHT,
-                                    vulkanEngineOptions.WINDOW_TITLE, instance->getInstance());
+                                    vulkanEngineOptions.WINDOW_TITLE, instance->getInstance(), vulkanEngineOptions.fullscreen);
 
   physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
 

@@ -15,7 +15,7 @@ struct KeysPressed {
 
 class Window {
 public:
-  Window(int width, int height, const char* title, VkInstance& instance);
+  Window(int width, int height, const char* title, VkInstance& instance, bool fullscreen);
   ~Window();
 
   [[nodiscard]] bool isOpen() const;
