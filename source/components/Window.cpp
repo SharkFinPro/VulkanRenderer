@@ -3,12 +3,23 @@
 #include <stdexcept>
 #include <backends/imgui_impl_glfw.h>
 
-Window::Window(const int width, const int height, const char* title, VkInstance& instance)
+Window::Window(const int width, const int height, const char* title, VkInstance& instance, const bool fullscreen)
   : instance(instance), scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-  window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+  if (fullscreen)
+  {
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+
+    const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+
+    window = glfwCreateWindow(videoMode->width, videoMode->height, title, primaryMonitor, nullptr);
+  }
+  else
+  {
+    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+  }
 
   if (window == nullptr)
   {

@@ -19,8 +19,8 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
   imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
                                                   renderPass, guiPipeline);
 
-  camera = std::make_shared<Camera>(vulkanEngineOptions.cameraPosition);
-  camera->setSpeed(vulkanEngineOptions.cameraSpeed);
+  camera = std::make_shared<Camera>(vulkanEngineOptions.CAMERA_POSITION);
+  camera->setSpeed(vulkanEngineOptions.CAMERA_SPEED);
 }
 
 VulkanEngine::~VulkanEngine()
@@ -96,7 +96,8 @@ void VulkanEngine::initVulkan()
   }
 
   window = std::make_shared<Window>(vulkanEngineOptions.WINDOW_WIDTH, vulkanEngineOptions.WINDOW_HEIGHT,
-                                    vulkanEngineOptions.WINDOW_TITLE, instance->getInstance());
+                                    vulkanEngineOptions.WINDOW_TITLE, instance->getInstance(),
+                                    vulkanEngineOptions.FULLSCREEN);
 
   physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
 
