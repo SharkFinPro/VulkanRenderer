@@ -10,7 +10,7 @@ int main()
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Object Loading",
-      .cameraSpeed = 0.5f
+      .CAMERA_SPEED = 0.5f
     };
 
     VulkanEngine renderer(vulkanEngineOptions);
