@@ -86,6 +86,11 @@ ImGuiContext* VulkanEngine::getImGuiContext()
   return ImGui::GetCurrentContext();
 }
 
+bool VulkanEngine::keyIsPressed(const int key) const
+{
+  return window->keyIsPressed(key);
+}
+
 void VulkanEngine::initVulkan()
 {
   instance = std::make_unique<Instance>();
