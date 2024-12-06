@@ -124,8 +124,11 @@ void VulkanEngine::initVulkan()
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass);
 
-  dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
-                                                      renderPass->getRenderPass(), swapChain->getExtent());
+  if (vulkanEngineOptions.DO_DOTS)
+  {
+    dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
+                                                  renderPass->getRenderPass(), swapChain->getExtent());
+  }
 }
 
 void VulkanEngine::createCommandPool()
@@ -189,7 +192,10 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  dotsPipeline->compute(commandBuffer, currentFrame);
+  if (vulkanEngineOptions.DO_DOTS)
+  {
+    dotsPipeline->compute(commandBuffer, currentFrame);
+  }
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {
@@ -212,7 +218,10 @@ void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, con
 
   objectsPipeline->render(commandBuffer, currentFrame, camera, swapChain->getExtent());
 
-  dotsPipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
+  if (vulkanEngineOptions.DO_DOTS)
+  {
+    dotsPipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
+  }
 
   guiPipeline->render(commandBuffer, swapChain->getExtent());
 
