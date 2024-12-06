@@ -87,30 +87,14 @@ VkSurfaceKHR& Window::getSurface()
   return surface;
 }
 
-bool Window::keyDown(const int key) const
+bool Window::keyIsPressed(const int key) const
 {
-  return glfwGetKey(window, key) == GLFW_PRESS;
-}
-
-bool Window::inputActive(const int key) const
-{
-  switch (key)
+  if (const auto keyNode = keysPressed.find(key); keyNode != keysPressed.end())
   {
-    case GLFW_KEY_W:
-      return keysPressed.forward;
-    case GLFW_KEY_S:
-      return keysPressed.backward;
-    case GLFW_KEY_A:
-      return keysPressed.left;
-    case GLFW_KEY_D:
-      return keysPressed.right;
-    case GLFW_KEY_SPACE:
-      return keysPressed.up;
-    case GLFW_KEY_LEFT_SHIFT:
-      return keysPressed.down;
-    default:
-      return false;
+    return keyNode->second;
   }
+
+  return false;
 }
 
 bool Window::buttonDown(const int button) const
@@ -156,28 +140,5 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-  const bool pressed = action == GLFW_PRESS || action == GLFW_REPEAT;
-
-  switch (key)
-  {
-    case GLFW_KEY_W:
-      app->keysPressed.forward = pressed;
-      break;
-    case GLFW_KEY_S:
-      app->keysPressed.backward = pressed;
-      break;
-    case GLFW_KEY_A:
-      app->keysPressed.left = pressed;
-      break;
-    case GLFW_KEY_D:
-      app->keysPressed.right = pressed;
-      break;
-    case GLFW_KEY_SPACE:
-      app->keysPressed.up = pressed;
-      break;
-    case GLFW_KEY_LEFT_SHIFT:
-      app->keysPressed.down = pressed;
-      break;
-    default: ;
-  }
+  app->keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
 }

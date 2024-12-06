@@ -62,29 +62,29 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
 
   position += static_cast<float>(window->getScroll()) * scrollSpeed * direction * dt;
 
-  if (window->inputActive(GLFW_KEY_W))
+  if (window->keyIsPressed(GLFW_KEY_W))
   {
     position += cameraSpeed * direction * dt;
   }
-  if (window->inputActive(GLFW_KEY_S))
+  if (window->keyIsPressed(GLFW_KEY_S))
   {
     position -= cameraSpeed * direction * dt;
   }
 
-  if (window->inputActive(GLFW_KEY_A))
+  if (window->keyIsPressed(GLFW_KEY_A))
   {
     position -= cameraSpeed * pDirection * dt;
   }
-  if (window->inputActive(GLFW_KEY_D))
+  if (window->keyIsPressed(GLFW_KEY_D))
   {
     position += cameraSpeed * pDirection * dt;
   }
 
-  if (window->inputActive(GLFW_KEY_SPACE))
+  if (window->keyIsPressed(GLFW_KEY_SPACE))
   {
     position += cameraSpeed * UP * dt;
   }
-  if (window->inputActive(GLFW_KEY_LEFT_SHIFT))
+  if (window->keyIsPressed(GLFW_KEY_LEFT_SHIFT))
   {
     position -= cameraSpeed * UP * dt;
   }
