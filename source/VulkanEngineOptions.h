@@ -12,6 +12,8 @@ struct VulkanEngineOptions {
   float CAMERA_SPEED = 1.0f;
 
   bool FULLSCREEN = false;
+
+  bool DO_DOTS = false;
 };
 
 #endif //VULKANPROJECT_VULKANENGINEOPTIONS_H

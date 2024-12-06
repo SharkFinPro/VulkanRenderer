@@ -48,6 +48,8 @@ public:
 
   static ImGuiContext* getImGuiContext();
 
+  [[nodiscard]] bool keyIsPressed(int key) const;
+
 private:
   void initVulkan();
   void createCommandPool();

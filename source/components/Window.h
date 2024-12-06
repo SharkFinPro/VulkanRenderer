@@ -2,16 +2,8 @@
 #define VULKANPROJECT_WINDOW_H
 
 #define GLFW_INCLUDE_VULKAN
+#include <unordered_map>
 #include <GLFW/glfw3.h>
-
-struct KeysPressed {
-  bool forward = false;
-  bool backward = false;
-  bool left = false;
-  bool right = false;
-  bool up = false;
-  bool down = false;
-};
 
 class Window {
 public:
@@ -26,9 +18,7 @@ public:
 
   VkSurfaceKHR& getSurface();
 
-  [[nodiscard]] bool keyDown(int key) const;
-
-  [[nodiscard]] bool inputActive(int key) const;
+  [[nodiscard]] bool keyIsPressed(int key) const;
 
   [[nodiscard]] bool buttonDown(int button) const;
 
@@ -62,7 +52,7 @@ private:
 
   double scroll;
 
-  KeysPressed keysPressed;
+  std::unordered_map<int, bool> keysPressed;
 };
 
 
