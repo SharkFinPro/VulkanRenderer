@@ -33,6 +33,11 @@ RenderObject::~RenderObject()
 
 void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t currentFrame) const
 {
+  if (!doRendering)
+  {
+    return;
+  }
+
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   model->draw(commandBuffer);
@@ -40,6 +45,11 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
 
 void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const
 {
+  if (!doRendering)
+  {
+    return;
+  }
+
   auto projection = glm::perspective(glm::radians(45.0f),
                              static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
                              0.1f, 1000.0f);
@@ -126,4 +136,14 @@ void RenderObject::setScale(float scale_)
 void RenderObject::setRotation(glm::vec3 rotation_)
 {
   rotation = rotation_;
+}
+
+void RenderObject::enableRendering()
+{
+  doRendering = true;
+}
+
+void RenderObject::disableRendering()
+{
+  doRendering = false;
 }
