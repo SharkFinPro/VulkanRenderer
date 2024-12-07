@@ -25,6 +25,7 @@ int main()
     const auto model = renderer.loadModel("assets/models/square.glb");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
+    object->enableRendering();
     glm::vec3 position = {0, -5, 0};
     object->setPosition(position);
 

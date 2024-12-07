@@ -20,7 +20,8 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
   : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
     position(0, 0, 0), scale(1, 1, 1), rotation(0, 0, 0),
-    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
+    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform))),
+    doRendering(false)
 {
   createDescriptorPool();
   createDescriptorSets();
@@ -118,24 +119,24 @@ void RenderObject::createDescriptorSets()
   }
 }
 
-void RenderObject::setPosition(glm::vec3 position_)
+void RenderObject::setPosition(const glm::vec3 position)
 {
-  position = position_;
+  this->position = position;
 }
 
-void RenderObject::setScale(glm::vec3 scale_)
+void RenderObject::setScale(const glm::vec3 scale)
 {
-  scale = scale_;
+  this->scale = scale;
 }
 
-void RenderObject::setScale(float scale_)
+void RenderObject::setScale(float scale)
 {
-  scale = { scale_, scale_, scale_ };
+  this->scale = { scale, scale, scale };
 }
 
-void RenderObject::setRotation(glm::vec3 rotation_)
+void RenderObject::setRotation(const glm::vec3 rotation)
 {
-  rotation = rotation_;
+  this->rotation = rotation;
 }
 
 void RenderObject::enableRendering()
