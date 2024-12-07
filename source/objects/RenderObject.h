@@ -26,6 +26,9 @@ public:
   void setScale(float scale);
   void setRotation(glm::vec3 rotation);
 
+  void enableRendering();
+  void disableRendering();
+
 private:
   void createDescriptorPool();
   void createDescriptorSets();
@@ -47,6 +50,8 @@ private:
   glm::vec3 rotation;
 
   std::unique_ptr<UniformBuffer> transformUniform;
+
+  bool doRendering;
 };
 
 
