@@ -15,6 +15,8 @@ public:
   ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
 
 protected:
+  std::unique_ptr<ShaderModule> shaderModule;
+
   void createShader(const char* filename);
 
   virtual void loadComputeShaders() = 0;
@@ -26,9 +28,6 @@ protected:
   void createPipelineLayout();
 
   void createPipeline();
-
-protected:
-  std::unique_ptr<ShaderModule> shaderModule;
 };
 
 

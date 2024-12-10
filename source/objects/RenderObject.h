@@ -30,10 +30,6 @@ public:
   void disableRendering();
 
 private:
-  void createDescriptorPool();
-  void createDescriptorSets();
-
-private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
 
@@ -52,6 +48,9 @@ private:
   std::unique_ptr<UniformBuffer> transformUniform;
 
   bool doRendering;
+
+  void createDescriptorPool();
+  void createDescriptorSets();
 };
 
 

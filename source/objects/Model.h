@@ -20,14 +20,6 @@ public:
   void draw(const VkCommandBuffer& commandBuffer) const;
 
 private:
-
-  void loadModel(const char* path, glm::vec3 rotation);
-  void createVertexBuffer(const VkCommandPool& commandPool);
-  void createIndexBuffer(const VkCommandPool& commandPool);
-
-  void bind(const VkCommandBuffer& commandBuffer) const;
-
-private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
 
@@ -37,6 +29,12 @@ private:
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
+
+  void loadModel(const char* path, glm::vec3 rotation);
+  void createVertexBuffer(const VkCommandPool& commandPool);
+  void createIndexBuffer(const VkCommandPool& commandPool);
+
+  void bind(const VkCommandBuffer& commandBuffer) const;
 };
 
 

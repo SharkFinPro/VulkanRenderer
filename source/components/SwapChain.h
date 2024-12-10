@@ -21,14 +21,6 @@ public:
   [[nodiscard]] std::vector<VkImageView>& getImageViews();
 
 private:
-  static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
-  static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
-  [[nodiscard]] VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
-  static uint32_t chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
-  void createSwapChain();
-  void createImageViews();
-
-private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<Window> window;
@@ -38,6 +30,13 @@ private:
   VkFormat swapChainImageFormat;
   VkExtent2D swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
+
+  static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+  static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+  [[nodiscard]] VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
+  static uint32_t chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
+  void createSwapChain();
+  void createImageViews();
 };
 
 

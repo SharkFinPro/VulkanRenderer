@@ -38,6 +38,16 @@ public:
   [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
 
 private:
+  VkPhysicalDevice physicalDevice;
+
+  VkInstance& instance;
+  VkSurfaceKHR& surface;
+
+  VkSampleCountFlagBits msaaSamples;
+
+  QueueFamilyIndices queueFamilyIndices;
+  SwapChainSupportDetails swapChainSupportDetails;
+
   void pickPhysicalDevice();
 
   bool isDeviceSuitable(VkPhysicalDevice device) const;
@@ -49,17 +59,6 @@ private:
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) const;
 
   [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;
-
-private:
-  VkPhysicalDevice physicalDevice;
-
-  VkInstance& instance;
-  VkSurfaceKHR& surface;
-
-  VkSampleCountFlagBits msaaSamples;
-
-  QueueFamilyIndices queueFamilyIndices;
-  SwapChainSupportDetails swapChainSupportDetails;
 };
 
 

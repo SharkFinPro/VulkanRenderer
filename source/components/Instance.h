@@ -17,12 +17,11 @@ public:
   VkInstance& getInstance();
 
 private:
+  VkInstance instance;
+
   static bool checkValidationLayerSupport();
 
   static std::vector<const char*> getRequiredExtensions();
-
-private:
-  VkInstance instance;
 };
 
 

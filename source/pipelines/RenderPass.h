@@ -18,14 +18,14 @@ public:
   static void end(const VkCommandBuffer& commandBuffer);
 
 private:
-  void createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples);
-  [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
-
-private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
 
   VkRenderPass renderPass;
+
+  void createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples);
+
+  [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 };
 
 

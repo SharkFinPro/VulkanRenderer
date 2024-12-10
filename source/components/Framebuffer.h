@@ -22,11 +22,6 @@ public:
   VkFramebuffer& getFramebuffer(uint32_t imageIndex);
 
 private:
-  void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat);
-  void createColorResources();
-  void createFrameBuffers(const VkRenderPass& renderPass);
-
-private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<SwapChain> swapChain;
@@ -38,6 +33,10 @@ private:
   VkImage colorImage;
   VkDeviceMemory colorImageMemory;
   VkImageView colorImageView;
+
+  void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat);
+  void createColorResources();
+  void createFrameBuffers(const VkRenderPass& renderPass);
 };
 
 

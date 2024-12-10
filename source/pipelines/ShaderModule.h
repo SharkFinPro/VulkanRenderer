@@ -12,14 +12,13 @@ public:
   [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
 
 private:
-  static std::vector<char> readFile(const char* filename);
-
-  void createShaderModule(const char* file);
-
-private:
   VkDevice& device;
   VkShaderStageFlagBits stage;
   VkShaderModule module;
+
+  static std::vector<char> readFile(const char* filename);
+
+  void createShaderModule(const char* file);
 };
 
 
