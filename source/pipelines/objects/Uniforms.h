@@ -30,6 +30,7 @@ struct alignas(16) Light {
       ImGui::ColorEdit3(("Light " + std::to_string(lightNum) + " Color").c_str(), color);
       ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Ambient").c_str(), &ambient, 0.0f, 1.0f);
       ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Diffuse").c_str(), &diffuse, 0.0f, 1.0f);
+      ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Specular").c_str(), &specular, 0.0f, 1.0f);
       ImGui::SliderFloat3(("Light " + std::to_string(lightNum) + " Position").c_str(), position, -50.0f, 50.0f);
       ImGui::Separator();
     }
