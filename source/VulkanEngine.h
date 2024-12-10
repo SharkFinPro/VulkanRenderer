@@ -13,9 +13,7 @@
 #include "pipelines/gui/GuiPipeline.h"
 #include "pipelines/dots/DotsPipeline.h"
 
-#include "objects/Texture.h"
-#include "objects/Model.h"
-#include "objects/RenderObject.h"
+#include "objects/Objects.h"
 
 #include "VulkanEngineOptions.h"
 

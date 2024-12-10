@@ -56,6 +56,7 @@ add_library(${PROJECT_NAME}
   pipelines/Pipeline.cpp
   pipelines/Pipeline.h
   components/Components.h
+  objects/Objects.h
 )
 
 # Shaders
