@@ -51,19 +51,6 @@ public:
   [[nodiscard]] bool keyIsPressed(int key) const;
 
 private:
-  void initVulkan();
-  void createCommandPool();
-  void createCommandBuffers();
-  void createComputeCommandBuffers();
-  void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
-  void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
-  void doComputing() const;
-  void doRendering();
-  void recreateSwapChain();
-
-  friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
-
-private:
   std::unique_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
   std::shared_ptr<Window> window;
@@ -89,6 +76,18 @@ private:
   uint32_t currentFrame;
 
   bool framebufferResized;
+
+  void initVulkan();
+  void createCommandPool();
+  void createCommandBuffers();
+  void createComputeCommandBuffers();
+  void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
+  void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
+  void doComputing() const;
+  void doRendering();
+  void recreateSwapChain();
+
+  friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 };
 
 
