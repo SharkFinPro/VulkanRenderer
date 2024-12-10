@@ -39,7 +39,7 @@ public:
   void render();
 
   std::shared_ptr<Texture> loadTexture(const char* path);
-  std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0.0f, 0.0f, 0.0f });
+  std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                                const std::shared_ptr<Texture>& specularMap,
                                                                const std::shared_ptr<Model>&) const;
