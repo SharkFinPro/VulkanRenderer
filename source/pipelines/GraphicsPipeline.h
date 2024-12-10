@@ -16,6 +16,8 @@ public:
   GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
 
 protected:
+  std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+
   void createShader(const char* filename, VkShaderStageFlagBits stage);
 
   virtual void loadGraphicsShaders() = 0;
@@ -44,9 +46,6 @@ protected:
   virtual std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() { return nullptr; };
 
   virtual std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() { return nullptr; };
-
-protected:
-  std::vector<std::unique_ptr<ShaderModule>> shaderModules;
 };
 
 

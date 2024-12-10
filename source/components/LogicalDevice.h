@@ -32,11 +32,6 @@ public:
   VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const;
 
 private:
-  void createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
-
-  void createSyncObjects();
-
-private:
   VkDevice device;
 
   VkQueue graphicsQueue;
@@ -49,6 +44,10 @@ private:
 
   std::vector<VkSemaphore> computeFinishedSemaphores;
   std::vector<VkFence> computeInFlightFences;
+
+  void createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
+
+  void createSyncObjects();
 };
 
 

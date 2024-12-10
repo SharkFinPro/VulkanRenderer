@@ -20,6 +20,15 @@ public:
   VkDescriptorPool& getPool();
 
 private:
+  VkDescriptorPool descriptorPool;
+
+  VkPipelineColorBlendAttachmentState colorBlendAttachment;
+
+  std::array<VkDynamicState, 2> dynamicStates;
+
+  VkVertexInputBindingDescription vertexBindingDescription;
+  std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
+
   void loadGraphicsShaders() override;
 
   std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() override;
@@ -32,16 +41,6 @@ private:
   std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
 
   void createDescriptorPool();
-
-private:
-  VkDescriptorPool descriptorPool;
-
-  VkPipelineColorBlendAttachmentState colorBlendAttachment;
-
-  std::array<VkDynamicState, 2> dynamicStates;
-
-  VkVertexInputBindingDescription vertexBindingDescription;
-  std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
 };
 
 

@@ -35,11 +35,6 @@ public:
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 private:
-  void createSurface();
-
-  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-private:
   GLFWwindow* window;
 
   VkInstance& instance;
@@ -53,6 +48,10 @@ private:
   double scroll;
 
   std::unordered_map<int, bool> keysPressed;
+
+  void createSurface();
+
+  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };
 
 

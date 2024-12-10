@@ -30,6 +30,29 @@ public:
   void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
 
 private:
+  std::vector<std::shared_ptr<RenderObject>> renderObjects;
+
+  VkDescriptorSetLayout globalDescriptorSetLayout;
+  VkDescriptorSetLayout objectDescriptorSetLayout;
+
+  VkDescriptorPool descriptorPool;
+  std::vector<VkDescriptorSet> descriptorSets;
+
+  std::unique_ptr<UniformBuffer> lightMetadataUniform;
+  std::unique_ptr<UniformBuffer> lightsUniform;
+  std::unique_ptr<UniformBuffer> cameraUniform;
+
+  size_t lightsUniformBufferSize;
+
+  std::vector<Light> lights;
+
+  VkPipelineColorBlendAttachmentState colorBlendAttachment;
+
+  std::array<VkDynamicState, 2> dynamicStates;
+
+  VkVertexInputBindingDescription vertexBindingDescription;
+  std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
+
   void updateLightUniforms(uint32_t currentFrame);
 
   void renderLightsGui();
@@ -57,30 +80,6 @@ private:
   void createDescriptorSets();
 
   void createUniforms();
-
-private:
-  std::vector<std::shared_ptr<RenderObject>> renderObjects;
-
-  VkDescriptorSetLayout globalDescriptorSetLayout;
-  VkDescriptorSetLayout objectDescriptorSetLayout;
-
-  VkDescriptorPool descriptorPool;
-  std::vector<VkDescriptorSet> descriptorSets;
-
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
-  std::unique_ptr<UniformBuffer> cameraUniform;
-
-  size_t lightsUniformBufferSize;
-
-  std::vector<Light> lights;
-
-  VkPipelineColorBlendAttachmentState colorBlendAttachment;
-
-  std::array<VkDynamicState, 2> dynamicStates;
-
-  VkVertexInputBindingDescription vertexBindingDescription;
-  std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
 };
 
 

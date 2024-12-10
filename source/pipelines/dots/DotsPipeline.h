@@ -62,6 +62,25 @@ public:
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent);
 
 private:
+  std::vector<VkBuffer> shaderStorageBuffers;
+  std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
+
+  std::vector<VkBuffer> uniformBuffers;
+  std::vector<VkDeviceMemory> uniformBuffersMemory;
+  std::vector<void*> uniformBuffersMapped;
+
+  VkDescriptorSetLayout computeDescriptorSetLayout;
+  VkDescriptorPool computeDescriptorPool;
+  std::vector<VkDescriptorSet> computeDescriptorSets;
+
+  VkPipelineColorBlendAttachmentState colorBlendAttachment;
+  std::array<VkDynamicState, 2> dynamicStates;
+  VkVertexInputBindingDescription vertexBindingDescription;
+  std::array<VkVertexInputAttributeDescription, 2> vertexAttributeDescriptions;
+
+  float dotSpeed;
+  std::chrono::time_point<std::chrono::steady_clock> previousTime;
+
   void loadComputeShaders() override;
 
   void loadComputeDescriptorSetLayouts() override;
@@ -85,26 +104,6 @@ private:
   void createDescriptorSetLayouts();
   void createDescriptorPool();
   void createDescriptorSets();
-
-private:
-  std::vector<VkBuffer> shaderStorageBuffers;
-  std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
-
-  std::vector<VkBuffer> uniformBuffers;
-  std::vector<VkDeviceMemory> uniformBuffersMemory;
-  std::vector<void*> uniformBuffersMapped;
-
-  VkDescriptorSetLayout computeDescriptorSetLayout;
-  VkDescriptorPool computeDescriptorPool;
-  std::vector<VkDescriptorSet> computeDescriptorSets;
-
-  VkPipelineColorBlendAttachmentState colorBlendAttachment;
-  std::array<VkDynamicState, 2> dynamicStates;
-  VkVertexInputBindingDescription vertexBindingDescription;
-  std::array<VkVertexInputAttributeDescription, 2> vertexAttributeDescriptions;
-
-  float dotSpeed;
-  std::chrono::time_point<std::chrono::steady_clock> previousTime;
 };
 
 

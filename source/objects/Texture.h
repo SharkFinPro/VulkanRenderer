@@ -18,14 +18,6 @@ public:
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
 
 private:
-  void createTextureImage(const VkCommandPool& commandPool, const char* path);
-
-  void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
-                       int32_t texHeight, uint32_t mipLevels) const;
-
-  void createTextureSampler();
-
-private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
 
@@ -37,6 +29,13 @@ private:
   VkSampler textureSampler;
 
   VkDescriptorImageInfo imageInfo;
+
+  void createTextureImage(const VkCommandPool& commandPool, const char* path);
+
+  void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
+                       int32_t texHeight, uint32_t mipLevels) const;
+
+  void createTextureSampler();
 };
 
 

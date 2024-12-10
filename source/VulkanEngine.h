@@ -6,24 +6,14 @@
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 
-#include "components/Instance.h"
-#include "components/DebugMessenger.h"
-#include "components/Window.h"
-#include "components/PhysicalDevice.h"
-#include "components/LogicalDevice.h"
-#include "components/SwapChain.h"
-#include "components/ImGuiInstance.h"
-#include "components/Camera.h"
-#include "components/Framebuffer.h"
+#include "components/Components.h"
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/objects/ObjectsPipeline.h"
 #include "pipelines/gui/GuiPipeline.h"
 #include "pipelines/dots/DotsPipeline.h"
 
-#include "objects/Texture.h"
-#include "objects/Model.h"
-#include "objects/RenderObject.h"
+#include "objects/Objects.h"
 
 #include "VulkanEngineOptions.h"
 
@@ -39,7 +29,7 @@ public:
   void render();
 
   std::shared_ptr<Texture> loadTexture(const char* path);
-  std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0.0f, 0.0f, 0.0f });
+  std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                                const std::shared_ptr<Texture>& specularMap,
                                                                const std::shared_ptr<Model>&) const;
@@ -49,19 +39,6 @@ public:
   static ImGuiContext* getImGuiContext();
 
   [[nodiscard]] bool keyIsPressed(int key) const;
-
-private:
-  void initVulkan();
-  void createCommandPool();
-  void createCommandBuffers();
-  void createComputeCommandBuffers();
-  void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
-  void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
-  void doComputing() const;
-  void doRendering();
-  void recreateSwapChain();
-
-  friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 private:
   std::unique_ptr<Instance> instance;
@@ -89,6 +66,18 @@ private:
   uint32_t currentFrame;
 
   bool framebufferResized;
+
+  void initVulkan();
+  void createCommandPool();
+  void createCommandBuffers();
+  void createComputeCommandBuffers();
+  void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
+  void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
+  void doComputing() const;
+  void doRendering();
+  void recreateSwapChain();
+
+  friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 };
 
 
