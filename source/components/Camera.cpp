@@ -18,11 +18,11 @@ glm::vec3 Camera::getPosition() const
   return position;
 }
 
-void Camera::setSpeed(float cameraSpeed_)
+void Camera::setSpeed(const float cameraSpeed)
 {
-  speed = cameraSpeed_ * 50.0f;
+  speed = cameraSpeed * 50.0f;
 
-  cameraSpeed = speed;
+  this->cameraSpeed = speed;
   scrollSpeed = speed * 0.25f;
   swivelSpeed = speed * 0.005f;
 }
