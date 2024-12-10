@@ -10,6 +10,8 @@ Window::Window(const int width, const int height, const char* title, VkInstance&
 
   if (fullscreen)
   {
+    glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
+
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 
     const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
