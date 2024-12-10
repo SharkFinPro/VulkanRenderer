@@ -20,11 +20,11 @@ glm::vec3 Camera::getPosition() const
 
 void Camera::setSpeed(float cameraSpeed_)
 {
-  speed = cameraSpeed_ * 1000.0f;
+  speed = cameraSpeed_ * 50.0f;
 
-  cameraSpeed = speed * 0.025f;
-  scrollSpeed = speed * 15.0f;
-  swivelSpeed = speed / 7.5f;
+  cameraSpeed = speed;
+  scrollSpeed = speed * 0.25f;
+  swivelSpeed = speed * 0.005f;
 }
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
@@ -42,8 +42,8 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     const auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
     const auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
 
-    yaw += deltaMX * dt;
-    pitch -= deltaMY * dt;
+    yaw += deltaMX;
+    pitch -= deltaMY;
 
     pitch = std::clamp(pitch, -89.9f, 89.9f);
   }
@@ -60,7 +60,7 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     pDirection.z = std::cos(glm::radians(yaw))
   ));
 
-  position += static_cast<float>(window->getScroll()) * scrollSpeed * direction * dt;
+  position += static_cast<float>(window->getScroll()) * scrollSpeed * direction;
 
   if (window->keyIsPressed(GLFW_KEY_W))
   {
