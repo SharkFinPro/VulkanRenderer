@@ -6,14 +6,24 @@
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 
-#include "components/Components.h"
+#include "components/Camera.h"
+#include "components/DebugMessenger.h"
+#include "components/Framebuffer.h"
+#include "components/ImGuiInstance.h"
+#include "components/Instance.h"
+#include "components/LogicalDevice.h"
+#include "components/PhysicalDevice.h"
+#include "components/SwapChain.h"
+#include "components/Window.h"
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/objects/ObjectsPipeline.h"
 #include "pipelines/gui/GuiPipeline.h"
 #include "pipelines/dots/DotsPipeline.h"
 
-#include "objects/Objects.h"
+#include "objects/Texture.h"
+#include "objects/Model.h"
+#include "objects/RenderObject.h"
 
 #include "VulkanEngineOptions.h"
 
