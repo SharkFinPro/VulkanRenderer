@@ -6,15 +6,7 @@
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 
-#include "components/Instance.h"
-#include "components/DebugMessenger.h"
-#include "components/Window.h"
-#include "components/PhysicalDevice.h"
-#include "components/LogicalDevice.h"
-#include "components/SwapChain.h"
-#include "components/ImGuiInstance.h"
-#include "components/Camera.h"
-#include "components/Framebuffer.h"
+#include "components/Components.h"
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/objects/ObjectsPipeline.h"
