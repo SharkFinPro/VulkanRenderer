@@ -171,7 +171,7 @@ void VulkanEngine::initVulkan()
   }
 
   // Create Descriptor Pool
-  std::vector<VkDescriptorPoolSize> poolSizes = {
+  const std::vector<VkDescriptorPoolSize> poolSizes {
     {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(offscreenFramebuffer->framebufferImages.size())},
   };
 
