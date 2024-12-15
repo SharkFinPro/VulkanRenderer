@@ -69,7 +69,7 @@ void ImGuiInstance::createNewFrame()
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  constexpr ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar;
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowBgAlpha(1.0f); // Optional transparency
