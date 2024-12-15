@@ -10,6 +10,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
+#include "../../components/ImGuiInstance.h"
+
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 GuiPipeline::GuiPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
@@ -49,21 +51,7 @@ void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D 
   ImGui::Render();
   ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer, nullptr);
 
-  ImGui_ImplVulkan_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-
-  ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-  ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-  ImGui::SetNextWindowBgAlpha(1.0f); // Optional transparency
-
-  // Root window
-  if (ImGui::Begin("MainDockSpace", nullptr, 0)) {
-    ImGuiID dockspaceId = ImGui::GetID("MainDockSpace");
-    ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-  }
-  ImGui::End();
+  ImGuiInstance::createNewFrame();
 }
 
 void GuiPipeline::loadGraphicsShaders()

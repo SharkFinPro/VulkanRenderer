@@ -53,6 +53,18 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
   ImGui_ImplVulkan_CreateFontsTexture();
   Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 
+  createNewFrame();
+}
+
+ImGuiInstance::~ImGuiInstance()
+{
+  ImGui_ImplVulkan_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+}
+
+void ImGuiInstance::createNewFrame()
+{
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
@@ -68,11 +80,4 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
     ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
   }
   ImGui::End();
-}
-
-ImGuiInstance::~ImGuiInstance()
-{
-  ImGui_ImplVulkan_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
 }

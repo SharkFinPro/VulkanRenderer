@@ -129,7 +129,7 @@ void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass)
     std::array<VkImageView, 3> attachments {
       colorImageView,
       depthImageView,
-      (*imageViews)[i]
+      imageViews->at(i)
     };
 
     const VkFramebufferCreateInfo framebufferInfo {
