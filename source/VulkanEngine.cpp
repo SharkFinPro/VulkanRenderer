@@ -1,6 +1,7 @@
 #include "VulkanEngine.h"
 #include <stdexcept>
 #include <cstdint>
+#include <backends/imgui_impl_vulkan.h>
 
 #include "utilities/Images.h"
 
@@ -16,9 +17,6 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
   glfwInit();
   initVulkan();
 
-  imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
-                                                  renderPass, guiPipeline);
-
   camera = std::make_shared<Camera>(vulkanEngineOptions.CAMERA_POSITION);
   camera->setSpeed(vulkanEngineOptions.CAMERA_SPEED);
 }
@@ -26,12 +24,6 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
 VulkanEngine::~VulkanEngine()
 {
   logicalDevice->waitIdle();
-
-  vkDestroySampler(logicalDevice->getDevice(), sampler, nullptr);
-
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), descriptorSetLayout, nullptr);
-
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 
   vkDestroyCommandPool(logicalDevice->getDevice(), commandPool, nullptr);
 
@@ -45,6 +37,18 @@ bool VulkanEngine::isActive() const
 
 void VulkanEngine::render()
 {
+  sceneFocused = false;
+  ImGui::Begin("Scene");
+
+  if (ImGui::IsWindowFocused()) {
+    sceneFocused = true;
+  }
+
+  ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
+               ImGui::GetContentRegionAvail());
+
+  ImGui::End();
+
   window->update();
 
   if (sceneFocused)
@@ -126,12 +130,9 @@ void VulkanEngine::initVulkan()
 
   renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                             swapChain->getImageFormat(), physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
   offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
                                             VK_FORMAT_B8G8R8A8_UNORM, physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
-  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);
-
 
   objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
 
@@ -143,97 +144,13 @@ void VulkanEngine::initVulkan()
                                                   renderPass->getRenderPass(), swapChain->getExtent());
   }
 
+  imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
+                                                  renderPass, guiPipeline);
 
-  // Create Sampler
-  constexpr VkSamplerCreateInfo samplerInfo {
-    .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-    .pNext = nullptr,
-    .flags = 0,
-    .magFilter = VK_FILTER_LINEAR,
-    .minFilter = VK_FILTER_LINEAR,
-    .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .mipLodBias = 0.0f,
-    .anisotropyEnable = VK_FALSE,
-    .maxAnisotropy = 1.0f,
-    .compareEnable = VK_FALSE,
-    .compareOp = VK_COMPARE_OP_ALWAYS,
-    .minLod = 0.0f,
-    .maxLod = 0.0f,
-    .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-    .unnormalizedCoordinates = VK_FALSE
-  };
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
 
-  if (vkCreateSampler(logicalDevice->getDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
-    throw std::runtime_error("Failed to create image sampler!");
-  }
+  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);
 
-  // Create Descriptor Pool
-  const std::vector<VkDescriptorPoolSize> poolSizes {
-    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(offscreenFramebuffer->framebufferImages.size())},
-  };
-
-  VkDescriptorPoolCreateInfo poolInfo = {};
-  poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  poolInfo.pPoolSizes = poolSizes.data();
-  poolInfo.maxSets = static_cast<uint32_t>(offscreenFramebuffer->framebufferImages.size());
-
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-    throw std::runtime_error("Failed to create descriptor pool!");
-  }
-
-  // Create Descriptor Set Layout
-  VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-  samplerLayoutBinding.binding = 0;
-  samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  samplerLayoutBinding.descriptorCount = 1;
-  samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-  VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-  layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  layoutInfo.bindingCount = 1;
-  layoutInfo.pBindings = &samplerLayoutBinding;
-
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-    throw std::runtime_error("Failed to create descriptor set layout!");
-  }
-
-  // Create Descriptor Sets
-  framebufferDescriptorSets.resize(offscreenFramebuffer->framebufferImages.size());
-  std::vector<VkDescriptorSetLayout> layouts(offscreenFramebuffer->framebufferImages.size(), descriptorSetLayout);
-
-  VkDescriptorSetAllocateInfo allocInfo = {};
-  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocInfo.descriptorPool = descriptorPool;
-  allocInfo.descriptorSetCount = static_cast<uint32_t>(offscreenFramebuffer->framebufferImages.size());
-  allocInfo.pSetLayouts = layouts.data();
-
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocInfo, framebufferDescriptorSets.data()) != VK_SUCCESS) {
-    throw std::runtime_error("Failed to allocate descriptor sets!");
-  }
-
-  // Update Descriptor Sets
-  for (size_t i = 0; i < offscreenFramebuffer->framebufferImages.size(); i++) {
-    VkDescriptorImageInfo imageInfo = {};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = offscreenFramebuffer->framebufferImageViews[i];
-    imageInfo.sampler = sampler;
-
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = framebufferDescriptorSets[i];
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
-
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), 1, &descriptorWrite, 0, nullptr);
-  }
 }
 
 void VulkanEngine::createCommandPool()
@@ -390,18 +307,6 @@ void VulkanEngine::doComputing() const
 
 void VulkanEngine::doRendering()
 {
-  sceneFocused = false;
-  ImGui::Begin("Scene");
-
-  if (ImGui::IsWindowFocused()) {
-    sceneFocused = true;
-  }
-
-  // Render the image with the adjusted size
-  ImGui::Image(reinterpret_cast<ImTextureID>(framebufferDescriptorSets[currentFrame]), ImGui::GetContentRegionAvail());
-
-  ImGui::End();
-
   logicalDevice->waitForGraphicsFences(currentFrame);
 
   uint32_t imageIndex;
@@ -421,17 +326,12 @@ void VulkanEngine::doRendering()
 
   logicalDevice->resetGraphicsFences(currentFrame);
 
-  //
-
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
   recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
   logicalDevice->submitOffscreenGraphicsQueue(currentFrame, &offscreenCommandBuffers[currentFrame]);
 
-  //
-
   vkResetCommandBuffer(commandBuffers[currentFrame], 0);
   recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
-
   logicalDevice->submitGraphicsQueue(currentFrame, &commandBuffers[currentFrame]);
 
   result = logicalDevice->queuePresent(currentFrame, swapChain->getSwapChain(), &imageIndex);
@@ -467,23 +367,4 @@ void VulkanEngine::recreateSwapChain()
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
   offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);
-
-  // Update Descriptor Sets
-  for (size_t i = 0; i < offscreenFramebuffer->framebufferImages.size(); i++) {
-    VkDescriptorImageInfo imageInfo = {};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = offscreenFramebuffer->framebufferImageViews[i];
-    imageInfo.sampler = sampler;
-
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = framebufferDescriptorSets[i];
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
-
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), 1, &descriptorWrite, 0, nullptr);
-  }
 }

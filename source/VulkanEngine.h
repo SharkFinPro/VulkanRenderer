@@ -59,13 +59,15 @@ private:
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<RenderPass> offscreenRenderPass;
-  std::shared_ptr<Framebuffer> framebuffer;
-  std::shared_ptr<Framebuffer> offscreenFramebuffer;
   std::unique_ptr<ObjectsPipeline> objectsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
+
+  std::shared_ptr<Framebuffer> framebuffer;
+  std::shared_ptr<Framebuffer> offscreenFramebuffer;
+
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
 
@@ -80,10 +82,6 @@ private:
 
   bool framebufferResized;
 
-  VkSampler sampler;
-  std::vector<VkDescriptorSet> framebufferDescriptorSets;
-  VkDescriptorPool descriptorPool;
-  VkDescriptorSetLayout descriptorSetLayout;
   bool sceneFocused;
 
   void initVulkan();
