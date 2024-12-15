@@ -47,6 +47,8 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
 
   ImGui_ImplVulkan_Init(&initInfo);
 
+  ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
   ImGui_ImplVulkan_CreateFontsTexture();
   Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
@@ -54,6 +56,18 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
+
+  ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+  ImGui::SetNextWindowBgAlpha(1.0f); // Optional transparency
+
+  // Root window
+  if (ImGui::Begin("MainDockSpace", nullptr, windowFlags)) {
+    ImGuiID dockspaceId = ImGui::GetID("MainDockSpace");
+    ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+  }
+  ImGui::End();
 }
 
 ImGuiInstance::~ImGuiInstance()

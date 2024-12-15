@@ -16,12 +16,13 @@ public:
               std::shared_ptr<LogicalDevice> logicalDevice,
               std::shared_ptr<SwapChain> swapChain,
               const VkCommandPool& commandPool,
-              const std::shared_ptr<RenderPass>& renderPass);
+              const std::shared_ptr<RenderPass>& renderPass,
+              bool presentToSwapChain = true);
   ~Framebuffer();
 
   VkFramebuffer& getFramebuffer(uint32_t imageIndex);
 
-private:
+public:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<SwapChain> swapChain;
@@ -33,6 +34,12 @@ private:
   VkImage colorImage;
   VkDeviceMemory colorImageMemory;
   VkImageView colorImageView;
+
+  VkFormat framebufferImageFormat;
+  std::vector<VkImage> framebufferImages;
+  std::vector<VkImageView> framebufferImageViews;
+  std::vector<VkDeviceMemory> framebufferImageMemory;
+  bool presentToSwapChain;
 
   void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat);
   void createColorResources();

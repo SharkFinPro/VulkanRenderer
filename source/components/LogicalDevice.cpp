@@ -27,9 +27,12 @@ LogicalDevice::~LogicalDevice()
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(device, renderFinishedSemaphores2[i], nullptr);
     vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(device, imageAvailableSemaphores2[i], nullptr);
     vkDestroySemaphore(device, computeFinishedSemaphores[i], nullptr);
     vkDestroyFence(device, inFlightFences[i], nullptr);
+    vkDestroyFence(device, inFlightFences2[i], nullptr);
     vkDestroyFence(device, computeInFlightFences[i], nullptr);
   }
 
@@ -110,9 +113,12 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
 void LogicalDevice::createSyncObjects()
 {
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  imageAvailableSemaphores2.resize(MAX_FRAMES_IN_FLIGHT);
   renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  renderFinishedSemaphores2.resize(MAX_FRAMES_IN_FLIGHT);
   computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  inFlightFences2.resize(MAX_FRAMES_IN_FLIGHT);
   computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
   constexpr VkSemaphoreCreateInfo semaphoreInfo {
@@ -127,8 +133,11 @@ void LogicalDevice::createSyncObjects()
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores2[i]) != VK_SUCCESS ||
         vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores2[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences2[i]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create graphics sync objects!");
     }
@@ -141,10 +150,36 @@ void LogicalDevice::createSyncObjects()
   }
 }
 
+void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
+{
+  const std::array<VkSemaphore, 1> waitSemaphores = {
+    computeFinishedSemaphores[currentFrame]
+  };
+  constexpr VkPipelineStageFlags waitStages[] = {
+    VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  };
+
+  const VkSubmitInfo submitInfo {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+    .pWaitSemaphores = waitSemaphores.data(),
+    .pWaitDstStageMask = waitStages,
+    .commandBufferCount = 1,
+    .pCommandBuffers = commandBuffer,
+    .signalSemaphoreCount = 1,
+    .pSignalSemaphores = &renderFinishedSemaphores2[currentFrame]
+  };
+
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences2[currentFrame]) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to submit draw command buffer!");
+  }
+}
+
 void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
-  const std::array<VkSemaphore, 2> waitSemaphores = {
-    computeFinishedSemaphores[currentFrame],
+  const std::array<VkSemaphore, 1> waitSemaphores = {
     imageAvailableSemaphores[currentFrame]
   };
   constexpr VkPipelineStageFlags waitStages[] = {
@@ -186,8 +221,8 @@ void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkComm
 
 void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
 {
-  vkWaitForFences(device, 1, &inFlightFences[currentFrame],
-    VK_TRUE, UINT64_MAX);
+  vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(device, 1, &inFlightFences2[currentFrame], VK_TRUE, UINT64_MAX);
 }
 void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
 {
@@ -198,6 +233,7 @@ void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
 void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
 {
   vkResetFences(device, 1, &inFlightFences[currentFrame]);
+  vkResetFences(device, 1, &inFlightFences2[currentFrame]);
 }
 void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
 {
@@ -206,10 +242,15 @@ void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
 
 VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const
 {
+  const std::array<VkSemaphore, 2> waitSemaphores = {
+    renderFinishedSemaphores[currentFrame],
+    renderFinishedSemaphores2[currentFrame]
+  };
+
   const VkPresentInfoKHR presentInfo {
     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-    .waitSemaphoreCount = 1,
-    .pWaitSemaphores = &renderFinishedSemaphores[currentFrame],
+    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+    .pWaitSemaphores = waitSemaphores.data(),
     .swapchainCount = 1,
     .pSwapchains = &swapchain,
     .pImageIndices = imageIndex,

@@ -8,9 +8,33 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
                          std::shared_ptr<LogicalDevice> logicalDevice,
                          std::shared_ptr<SwapChain> swapChain,
                          const VkCommandPool& commandPool,
-                         const std::shared_ptr<RenderPass>& renderPass)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), swapChain(std::move(swapChain))
+                         const std::shared_ptr<RenderPass>& renderPass,
+                         const bool presentToSwapChain)
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)),
+    swapChain(std::move(swapChain)), presentToSwapChain(presentToSwapChain)
 {
+  if (!presentToSwapChain)
+  {
+    framebufferImageMemory.resize(3);
+    framebufferImageViews.resize(3);
+    framebufferImages.resize(3);
+
+    for (int i = 0; i < 3; i++)
+    {
+      framebufferImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
+      Images::createImage(this->logicalDevice->getDevice(), this->physicalDevice->getPhysicalDevice(), this->swapChain->getExtent().width, this->swapChain->getExtent().height,
+                          1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
+                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          framebufferImages[i], framebufferImageMemory[i]);
+
+      framebufferImageViews[i] = Images::createImageView(this->logicalDevice->getDevice(), framebufferImages[i], framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+
+      Images::transitionImageLayout(this->logicalDevice, commandPool, framebufferImages[i], framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+    }
+  }
+
   createColorResources();
   createDepthResources(commandPool, renderPass->findDepthFormat());
   createFrameBuffers(renderPass->getRenderPass());
@@ -18,6 +42,30 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
 
 Framebuffer::~Framebuffer()
 {
+  // Destroy image views
+  for (auto& imageView : framebufferImageViews) {
+    if (imageView != VK_NULL_HANDLE) {
+      vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
+      imageView = VK_NULL_HANDLE; // Nullify to avoid accidental reuse
+    }
+  }
+
+  // Free image memory
+  for (auto& imageMemory : framebufferImageMemory) {
+    if (imageMemory != VK_NULL_HANDLE) {
+      vkFreeMemory(logicalDevice->getDevice(), imageMemory, nullptr);
+      imageMemory = VK_NULL_HANDLE; // Nullify to avoid accidental reuse
+    }
+  }
+
+  // Destroy images
+  for (auto& image : framebufferImages) {
+    if (image != VK_NULL_HANDLE) {
+      vkDestroyImage(logicalDevice->getDevice(), image, nullptr);
+      image = VK_NULL_HANDLE; // Nullify to avoid accidental reuse
+    }
+  }
+
   vkDestroyImageView(logicalDevice->getDevice(), colorImageView, nullptr);
   vkDestroyImage(logicalDevice->getDevice(), colorImage, nullptr);
   vkFreeMemory(logicalDevice->getDevice(), colorImageMemory, nullptr);
@@ -63,16 +111,25 @@ void Framebuffer::createColorResources()
 
 void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass)
 {
-  const auto swapChainImageViews = swapChain->getImageViews();
+  std::vector<VkImageView>* imageViews;
 
-  framebuffers.resize(swapChainImageViews.size());
+  if (presentToSwapChain)
+  {
+    imageViews = &swapChain->getImageViews();
+  }
+  else
+  {
+    imageViews = &framebufferImageViews;
+  }
 
-  for (size_t i = 0; i < swapChainImageViews.size(); i++)
+  framebuffers.resize(imageViews->size());
+
+  for (size_t i = 0; i < imageViews->size(); i++)
   {
     std::array<VkImageView, 3> attachments {
       colorImageView,
       depthImageView,
-      swapChainImageViews[i]
+      (*imageViews)[i]
     };
 
     const VkFramebufferCreateInfo framebufferInfo {

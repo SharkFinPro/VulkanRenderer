@@ -58,7 +58,9 @@ private:
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
+  std::shared_ptr<RenderPass> offscreenRenderPass;
   std::shared_ptr<Framebuffer> framebuffer;
+  std::shared_ptr<Framebuffer> offscreenFramebuffer;
   std::unique_ptr<ObjectsPipeline> objectsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
@@ -71,17 +73,26 @@ private:
 
   VulkanEngineOptions vulkanEngineOptions;
   VkCommandPool commandPool;
+  std::vector<VkCommandBuffer> offscreenCommandBuffers;
   std::vector<VkCommandBuffer> commandBuffers;
   std::vector<VkCommandBuffer> computeCommandBuffers;
   uint32_t currentFrame;
 
   bool framebufferResized;
 
+  VkSampler sampler;
+  std::vector<VkDescriptorSet> swapChainDescriptorSets;
+  VkDescriptorPool descriptorPool;
+  VkDescriptorSetLayout descriptorSetLayout;
+  bool sceneFocused;
+
   void initVulkan();
   void createCommandPool();
+  void createOffscreenCommandBuffers();
   void createCommandBuffers();
   void createComputeCommandBuffers();
   void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
+  void recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void doComputing() const;
   void doRendering();
