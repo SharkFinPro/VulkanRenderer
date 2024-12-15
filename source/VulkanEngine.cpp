@@ -197,7 +197,7 @@ void VulkanEngine::initVulkan()
   }
 
   // Create Descriptor Sets
-  swapChainDescriptorSets.resize(offscreenFramebuffer->framebufferImages.size());
+  framebufferDescriptorSets.resize(offscreenFramebuffer->framebufferImages.size());
   std::vector<VkDescriptorSetLayout> layouts(offscreenFramebuffer->framebufferImages.size(), descriptorSetLayout);
 
   VkDescriptorSetAllocateInfo allocInfo = {};
@@ -206,7 +206,7 @@ void VulkanEngine::initVulkan()
   allocInfo.descriptorSetCount = static_cast<uint32_t>(offscreenFramebuffer->framebufferImages.size());
   allocInfo.pSetLayouts = layouts.data();
 
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocInfo, swapChainDescriptorSets.data()) != VK_SUCCESS) {
+  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocInfo, framebufferDescriptorSets.data()) != VK_SUCCESS) {
     throw std::runtime_error("Failed to allocate descriptor sets!");
   }
 
@@ -219,7 +219,7 @@ void VulkanEngine::initVulkan()
 
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = swapChainDescriptorSets[i];
+    descriptorWrite.dstSet = framebufferDescriptorSets[i];
     descriptorWrite.dstBinding = 0;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -392,7 +392,7 @@ void VulkanEngine::doRendering()
   }
 
   // Render the image with the adjusted size
-  ImGui::Image(reinterpret_cast<ImTextureID>(swapChainDescriptorSets[currentFrame]), ImGui::GetContentRegionAvail());
+  ImGui::Image(reinterpret_cast<ImTextureID>(framebufferDescriptorSets[currentFrame]), ImGui::GetContentRegionAvail());
 
   ImGui::End();
 
@@ -471,7 +471,7 @@ void VulkanEngine::recreateSwapChain()
 
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = swapChainDescriptorSets[i];
+    descriptorWrite.dstSet = framebufferDescriptorSets[i];
     descriptorWrite.dstBinding = 0;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;

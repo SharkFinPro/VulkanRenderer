@@ -81,7 +81,7 @@ private:
   bool framebufferResized;
 
   VkSampler sampler;
-  std::vector<VkDescriptorSet> swapChainDescriptorSets;
+  std::vector<VkDescriptorSet> framebufferDescriptorSets;
   VkDescriptorPool descriptorPool;
   VkDescriptorSetLayout descriptorSetLayout;
   bool sceneFocused;
