@@ -69,15 +69,13 @@ void ImGuiInstance::createNewFrame()
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  constexpr ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar;
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-  ImGui::SetNextWindowBgAlpha(1.0f); // Optional transparency
+  ImGui::SetNextWindowBgAlpha(1.0f);
 
-  // Root window
-  if (ImGui::Begin("MainDockSpace", nullptr, windowFlags)) {
-    ImGuiID dockspaceId = ImGui::GetID("MainDockSpace");
-    ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-  }
+  ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar);
+
+  ImGui::DockSpace(ImGui::GetID("WindowDockSpace"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
   ImGui::End();
 }
