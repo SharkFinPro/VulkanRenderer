@@ -125,9 +125,9 @@ void VulkanEngine::initVulkan()
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples());
+                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
   offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                            VK_FORMAT_B8G8R8A8_UNORM, physicalDevice->getMsaaSamples());
+                                            VK_FORMAT_B8G8R8A8_UNORM, physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
   offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);

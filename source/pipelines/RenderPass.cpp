@@ -3,10 +3,10 @@
 #include <stdexcept>
 
 RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkFormat swapChainImageFormat,
-                       const VkSampleCountFlagBits msaaSamples)
+                       const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
   : device(device), physicalDevice(physicalDevice)
 {
-  createRenderPass(swapChainImageFormat, msaaSamples);
+  createRenderPass(swapChainImageFormat, msaaSamples, finalLayout);
 }
 
 RenderPass::~RenderPass()
@@ -19,7 +19,7 @@ VkRenderPass& RenderPass::getRenderPass()
   return renderPass;
 }
 
-void RenderPass::createRenderPass(const VkFormat swapChainImageFormat, const VkSampleCountFlagBits msaaSamples)
+void RenderPass::createRenderPass(const VkFormat swapChainImageFormat, const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
 {
   const VkAttachmentDescription depthAttachment {
     .format = findDepthFormat(),
@@ -61,7 +61,7 @@ void RenderPass::createRenderPass(const VkFormat swapChainImageFormat, const VkS
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+    .finalLayout = finalLayout
   };
 
   constexpr VkAttachmentReference colorAttachmentResolveRef {
