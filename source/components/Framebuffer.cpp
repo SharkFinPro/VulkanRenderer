@@ -43,27 +43,21 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
 Framebuffer::~Framebuffer()
 {
   // Destroy image views
-  for (auto& imageView : framebufferImageViews) {
-    if (imageView != VK_NULL_HANDLE) {
-      vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
-      imageView = VK_NULL_HANDLE; // Nullify to avoid accidental reuse
-    }
+  for (const auto& imageView : framebufferImageViews)
+  {
+    vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
   }
 
   // Free image memory
-  for (auto& imageMemory : framebufferImageMemory) {
-    if (imageMemory != VK_NULL_HANDLE) {
-      vkFreeMemory(logicalDevice->getDevice(), imageMemory, nullptr);
-      imageMemory = VK_NULL_HANDLE; // Nullify to avoid accidental reuse
-    }
+  for (const auto& imageMemory : framebufferImageMemory)
+  {
+    vkFreeMemory(logicalDevice->getDevice(), imageMemory, nullptr);
   }
 
   // Destroy images
-  for (auto& image : framebufferImages) {
-    if (image != VK_NULL_HANDLE) {
-      vkDestroyImage(logicalDevice->getDevice(), image, nullptr);
-      image = VK_NULL_HANDLE; // Nullify to avoid accidental reuse
-    }
+  for (const auto& image : framebufferImages)
+  {
+    vkDestroyImage(logicalDevice->getDevice(), image, nullptr);
   }
 
   vkDestroyImageView(logicalDevice->getDevice(), colorImageView, nullptr);
