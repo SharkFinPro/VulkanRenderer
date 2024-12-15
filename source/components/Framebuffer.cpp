@@ -42,19 +42,16 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
 
 Framebuffer::~Framebuffer()
 {
-  // Destroy image views
   for (const auto& imageView : framebufferImageViews)
   {
     vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
   }
 
-  // Free image memory
   for (const auto& imageMemory : framebufferImageMemory)
   {
     vkFreeMemory(logicalDevice->getDevice(), imageMemory, nullptr);
   }
 
-  // Destroy images
   for (const auto& image : framebufferImages)
   {
     vkDestroyImage(logicalDevice->getDevice(), image, nullptr);
