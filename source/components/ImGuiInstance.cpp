@@ -19,7 +19,9 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
                              const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
-                             const std::unique_ptr<GuiPipeline>& guiPipeline)
+                             const std::unique_ptr<GuiPipeline>& guiPipeline,
+                             const bool useDockSpace)
+  : useDockSpace(useDockSpace)
 {
   ImGui::CreateContext();
 
@@ -65,11 +67,16 @@ ImGuiInstance::~ImGuiInstance()
   ImGui::DestroyContext();
 }
 
-void ImGuiInstance::createNewFrame()
+void ImGuiInstance::createNewFrame() const
 {
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
+
+  if (!useDockSpace)
+  {
+    return;
+  }
 
   ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
@@ -77,7 +84,7 @@ void ImGuiInstance::createNewFrame()
 
   ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar);
 
-  ImGui::DockSpace(ImGui::GetID("WindowDockSpace"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+  ImGui::DockSpace(ImGui::GetID("WindowDockSpace"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
   ImGui::End();
 }

@@ -13,12 +13,16 @@ class GuiPipeline;
 
 class ImGuiInstance {
 public:
-  ImGuiInstance(const VkCommandPool& commandPool, const std::shared_ptr<Window>& window, const std::unique_ptr<Instance>& instance,
-                const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<RenderPass>& renderPass, const std::unique_ptr<GuiPipeline>& guiPipeline);
+  ImGuiInstance(const VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
+                const std::unique_ptr<Instance>& instance, const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<RenderPass>& renderPass,
+                const std::unique_ptr<GuiPipeline>& guiPipeline, bool useDockSpace);
   ~ImGuiInstance();
 
-  static void createNewFrame();
+  void createNewFrame() const;
+
+private:
+  bool useDockSpace;
 };
 
 

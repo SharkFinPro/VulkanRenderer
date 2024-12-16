@@ -41,7 +41,7 @@ void VulkanEngine::render()
 
   window->update();
 
-  if (sceneIsFocused)
+  if (!vulkanEngineOptions.USE_DOCKSPACE || sceneIsFocused)
   {
     camera->processInput(window);
   }
@@ -49,6 +49,8 @@ void VulkanEngine::render()
   doComputing();
 
   doRendering();
+
+  imGuiInstance->createNewFrame();
 }
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
@@ -136,7 +138,7 @@ void VulkanEngine::initVulkan()
   }
 
   imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
-                                                  renderPass, guiPipeline);
+                                                  renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
 
@@ -211,6 +213,11 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 {
   recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
+    if (!vulkanEngineOptions.USE_DOCKSPACE)
+    {
+      return;
+    }
+
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
 
     objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
@@ -229,6 +236,11 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
   recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
     renderPass->begin(framebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
+
+    if (!vulkanEngineOptions.USE_DOCKSPACE)
+    {
+      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
+    }
 
     guiPipeline->render(cmdBuffer, swapChain->getExtent());
 
@@ -315,6 +327,11 @@ void VulkanEngine::recreateSwapChain()
 
 void VulkanEngine::renderGuiScene()
 {
+  if (!vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    return;
+  }
+
   ImGui::Begin("Scene");
 
   sceneIsFocused = ImGui::IsWindowFocused();

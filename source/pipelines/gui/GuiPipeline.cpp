@@ -10,8 +10,6 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
-#include "../../components/ImGuiInstance.h"
-
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 GuiPipeline::GuiPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
@@ -50,8 +48,6 @@ void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D 
 
   ImGui::Render();
   ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer, nullptr);
-
-  ImGuiInstance::createNewFrame();
 }
 
 void GuiPipeline::loadGraphicsShaders()

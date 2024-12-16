@@ -14,6 +14,8 @@ struct VulkanEngineOptions {
   bool FULLSCREEN = false;
 
   bool DO_DOTS = false;
+
+  bool USE_DOCKSPACE = true;
 };
 
 #endif //VULKANPROJECT_VULKANENGINEOPTIONS_H
