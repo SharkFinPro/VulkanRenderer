@@ -221,6 +221,11 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
       return;
     }
 
+    if (offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    {
+      return;
+    }
+
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
     objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent);
@@ -327,6 +332,11 @@ void VulkanEngine::recreateSwapChain()
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
+    if (offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    {
+      return;
+    }
+
     offscreenFramebuffer.reset();
 
     offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
@@ -345,10 +355,18 @@ void VulkanEngine::renderGuiScene()
   sceneIsFocused = ImGui::IsWindowFocused();
 
   const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
+
   const VkExtent2D currentOffscreenViewportExtent {
-    .width = static_cast<uint32_t>(contentRegionAvailable.x),
-    .height = static_cast<uint32_t>(contentRegionAvailable.y)
+    .width = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.x)),
+    .height = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.y))
   };
+
+  if (currentOffscreenViewportExtent.width == 0 || currentOffscreenViewportExtent.height == 0)
+  {
+    offscreenViewportExtent = currentOffscreenViewportExtent;
+    ImGui::End();
+    return;
+  }
 
   if (offscreenViewportExtent.width != currentOffscreenViewportExtent.width ||
       offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
