@@ -146,7 +146,15 @@ void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const V
 
 void Framebuffer::createColorResources()
 {
-  const VkFormat colorFormat = swapChain->getImageFormat();
+  VkFormat colorFormat;
+  if (presentToSwapChain)
+  {
+    colorFormat = swapChain->getImageFormat();
+  }
+  else
+  {
+    colorFormat = framebufferImageFormat;
+  }
 
   Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getExtent().width, swapChain->getExtent().height,
                       1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
