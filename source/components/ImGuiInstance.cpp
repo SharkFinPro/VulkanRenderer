@@ -49,7 +49,10 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
 
   ImGui_ImplVulkan_Init(&initInfo);
 
-  ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  if (useDockSpace)
+  {
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  }
 
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
   ImGui_ImplVulkan_CreateFontsTexture();
