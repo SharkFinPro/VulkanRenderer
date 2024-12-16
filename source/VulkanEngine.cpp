@@ -181,8 +181,8 @@ void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandB
   }
 }
 
-void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex,
-                                       std::function<void(const VkCommandBuffer& cmdBuffer, uint32_t imgIndex)> renderFunction)
+void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex,
+                                       const std::function<void(const VkCommandBuffer& cmdBuffer, uint32_t imgIndex)>& renderFunction)
 {
   constexpr VkCommandBufferBeginInfo beginInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
