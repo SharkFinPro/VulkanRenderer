@@ -176,7 +176,8 @@ void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandB
   }
 }
 
-void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const
+void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex,
+                                       std::function<void(const VkCommandBuffer& cmdBuffer, uint32_t imgIndex)> renderFunction)
 {
   constexpr VkCommandBufferBeginInfo beginInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
@@ -187,66 +188,52 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  if (vulkanEngineOptions.DO_DOTS)
-  {
-    dotsPipeline->compute(commandBuffer, currentFrame);
-  }
+  renderFunction(commandBuffer, imageIndex);
 
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to record command buffer!");
   }
+}
+
+void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const
+{
+  recordCommandBuffer(commandBuffer, currentFrame, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
+  {
+    if (vulkanEngineOptions.DO_DOTS)
+    {
+      dotsPipeline->compute(cmdBuffer, imgIndex);
+    }
+  });
 }
 
 void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
-  constexpr VkCommandBufferBeginInfo beginInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-  };
-
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
-    throw std::runtime_error("failed to begin recording command buffer!");
-  }
+    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
 
-  offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
+    objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
 
-  objectsPipeline->render(commandBuffer, currentFrame, camera, swapChain->getExtent());
+    if (vulkanEngineOptions.DO_DOTS)
+    {
+      dotsPipeline->render(cmdBuffer, currentFrame, swapChain->getExtent());
+    }
 
-  if (vulkanEngineOptions.DO_DOTS)
-  {
-    dotsPipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
-  }
-
-  RenderPass::end(commandBuffer);
-
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to record command buffer!");
-  }
+    RenderPass::end(cmdBuffer);
+  });
 }
 
-void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
+void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
-  constexpr VkCommandBufferBeginInfo beginInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-  };
-
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
-    throw std::runtime_error("failed to begin recording command buffer!");
-  }
+    renderPass->begin(framebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
 
-  renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
+    guiPipeline->render(cmdBuffer, swapChain->getExtent());
 
-  guiPipeline->render(commandBuffer, swapChain->getExtent());
-
-  RenderPass::end(commandBuffer);
-
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to record command buffer!");
-  }
+    RenderPass::end(cmdBuffer);
+  });
 }
 
 void VulkanEngine::doComputing() const
@@ -287,7 +274,7 @@ void VulkanEngine::doRendering()
   logicalDevice->submitOffscreenGraphicsQueue(currentFrame, &offscreenCommandBuffers[currentFrame]);
 
   vkResetCommandBuffer(swapchainCommandBuffers[currentFrame], 0);
-  recordCommandBuffer(swapchainCommandBuffers[currentFrame], imageIndex);
+  recordSwapchainCommandBuffer(swapchainCommandBuffers[currentFrame], imageIndex);
   logicalDevice->submitGraphicsQueue(currentFrame, &swapchainCommandBuffers[currentFrame]);
 
   result = logicalDevice->queuePresent(currentFrame, swapChain->getSwapChain(), &imageIndex);

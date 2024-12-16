@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
+#include <functional>
 #include <vector>
 #include <memory>
 #include <vulkan/vulkan.h>
@@ -87,9 +88,11 @@ private:
   void initVulkan();
   void createCommandPool();
   void allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
+  static void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex,
+                           std::function<void(const VkCommandBuffer& cmdBuffer, uint32_t imgIndex)> renderFunction);
   void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
   void recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
-  void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
+  void recordSwapchainCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void doComputing() const;
   void doRendering();
   void recreateSwapChain();
