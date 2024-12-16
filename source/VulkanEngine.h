@@ -82,7 +82,7 @@ private:
 
   bool framebufferResized;
 
-  bool sceneFocused;
+  bool sceneIsFocused;
 
   void initVulkan();
   void createCommandPool();

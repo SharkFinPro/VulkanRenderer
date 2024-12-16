@@ -41,7 +41,7 @@ void VulkanEngine::render()
 
   window->update();
 
-  if (sceneFocused)
+  if (sceneIsFocused)
   {
     camera->processInput(window);
   }
@@ -330,7 +330,7 @@ void VulkanEngine::renderGuiScene()
 {
   ImGui::Begin("Scene");
 
-  sceneFocused = ImGui::IsWindowFocused();
+  sceneIsFocused = ImGui::IsWindowFocused();
 
   ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
                ImGui::GetContentRegionAvail());
