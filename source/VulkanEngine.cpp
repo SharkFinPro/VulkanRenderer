@@ -37,17 +37,7 @@ bool VulkanEngine::isActive() const
 
 void VulkanEngine::render()
 {
-  sceneFocused = false;
-  ImGui::Begin("Scene");
-
-  if (ImGui::IsWindowFocused()) {
-    sceneFocused = true;
-  }
-
-  ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
-               ImGui::GetContentRegionAvail());
-
-  ImGui::End();
+  renderGuiScene();
 
   window->update();
 
@@ -57,6 +47,7 @@ void VulkanEngine::render()
   }
 
   doComputing();
+
   doRendering();
 }
 
@@ -367,4 +358,16 @@ void VulkanEngine::recreateSwapChain()
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
   offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);
+}
+
+void VulkanEngine::renderGuiScene()
+{
+  ImGui::Begin("Scene");
+
+  sceneFocused = ImGui::IsWindowFocused();
+
+  ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
+               ImGui::GetContentRegionAvail());
+
+  ImGui::End();
 }
