@@ -86,7 +86,7 @@ private:
 
   void initVulkan();
   void createCommandPool();
-  void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
+  void allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
   void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
   void recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;

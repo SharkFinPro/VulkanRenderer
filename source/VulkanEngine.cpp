@@ -113,9 +113,9 @@ void VulkanEngine::initVulkan()
   logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
   createCommandPool();
-  createCommandBuffers(computeCommandBuffers);
-  createCommandBuffers(offscreenCommandBuffers);
-  createCommandBuffers(swapchainCommandBuffers);
+  allocateCommandBuffers(computeCommandBuffers);
+  allocateCommandBuffers(offscreenCommandBuffers);
+  allocateCommandBuffers(swapchainCommandBuffers);
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
@@ -159,7 +159,7 @@ void VulkanEngine::createCommandPool()
   }
 }
 
-void VulkanEngine::createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
+void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
 {
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
