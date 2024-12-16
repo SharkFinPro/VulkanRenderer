@@ -16,10 +16,14 @@ public:
               std::shared_ptr<LogicalDevice> logicalDevice,
               std::shared_ptr<SwapChain> swapChain,
               const VkCommandPool& commandPool,
-              const std::shared_ptr<RenderPass>& renderPass);
+              const std::shared_ptr<RenderPass>& renderPass,
+              bool presentToSwapChain,
+              VkExtent2D extent);
   ~Framebuffer();
 
   VkFramebuffer& getFramebuffer(uint32_t imageIndex);
+
+  VkDescriptorSet& getFramebufferImageDescriptorSet(uint32_t imageIndex);
 
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
@@ -34,9 +38,19 @@ private:
   VkDeviceMemory colorImageMemory;
   VkImageView colorImageView;
 
-  void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat);
-  void createColorResources();
-  void createFrameBuffers(const VkRenderPass& renderPass);
+  VkFormat framebufferImageFormat;
+  std::vector<VkImage> framebufferImages;
+  std::vector<VkImageView> framebufferImageViews;
+  std::vector<VkDeviceMemory> framebufferImageMemory;
+  bool presentToSwapChain;
+
+  VkSampler sampler;
+  std::vector<VkDescriptorSet> framebufferImageDescriptorSets;
+
+  void createImageResources(const VkCommandPool& commandPool, VkExtent2D extent);
+  void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat, VkExtent2D extent);
+  void createColorResources(VkExtent2D extent);
+  void createFrameBuffers(const VkRenderPass& renderPass, VkExtent2D extent);
 };
 
 

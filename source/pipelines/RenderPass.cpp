@@ -2,11 +2,11 @@
 #include <array>
 #include <stdexcept>
 
-RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkFormat swapChainImageFormat,
-                       const VkSampleCountFlagBits msaaSamples)
+RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkFormat imageFormat,
+                       const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
   : device(device), physicalDevice(physicalDevice)
 {
-  createRenderPass(swapChainImageFormat, msaaSamples);
+  createRenderPass(imageFormat, msaaSamples, finalLayout);
 }
 
 RenderPass::~RenderPass()
@@ -19,8 +19,24 @@ VkRenderPass& RenderPass::getRenderPass()
   return renderPass;
 }
 
-void RenderPass::createRenderPass(const VkFormat swapChainImageFormat, const VkSampleCountFlagBits msaaSamples)
+void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
 {
+  const VkAttachmentDescription colorAttachment {
+    .format = imageFormat,
+    .samples = msaaSamples,
+    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+  };
+
+  constexpr VkAttachmentReference colorAttachmentRef {
+    .attachment = 0,
+    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+  };
+
   const VkAttachmentDescription depthAttachment {
     .format = findDepthFormat(),
     .samples = msaaSamples,
@@ -37,31 +53,15 @@ void RenderPass::createRenderPass(const VkFormat swapChainImageFormat, const VkS
     .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
   };
 
-  const VkAttachmentDescription colorAttachment {
-    .format = swapChainImageFormat,
-    .samples = msaaSamples,
-    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-  };
-
-  constexpr VkAttachmentReference colorAttachmentRef {
-    .attachment = 0,
-    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-  };
-
   const VkAttachmentDescription colorAttachmentResolve {
-    .format = swapChainImageFormat,
+    .format = imageFormat,
     .samples = VK_SAMPLE_COUNT_1_BIT,
     .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+    .finalLayout = finalLayout
   };
 
   constexpr VkAttachmentReference colorAttachmentResolveRef {

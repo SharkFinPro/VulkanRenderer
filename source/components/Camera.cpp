@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#include <imgui.h>
 
 constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -22,17 +23,13 @@ void Camera::setSpeed(const float cameraSpeed)
 {
   speed = cameraSpeed * 50.0f;
 
-  this->cameraSpeed = speed;
+  this->cameraSpeed = speed * 0.005f;
   scrollSpeed = speed * 0.25f;
   swivelSpeed = speed * 0.005f;
 }
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
 {
-  const auto currentTime = std::chrono::steady_clock::now();
-  const float dt = std::chrono::duration<float>(currentTime - previousTime).count();
-  previousTime = currentTime;
-
   if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
   {
     double mx, my, omx, omy;
@@ -64,28 +61,28 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
 
   if (window->keyIsPressed(GLFW_KEY_W))
   {
-    position += cameraSpeed * direction * dt;
+    position += cameraSpeed * direction;
   }
   if (window->keyIsPressed(GLFW_KEY_S))
   {
-    position -= cameraSpeed * direction * dt;
+    position -= cameraSpeed * direction;
   }
 
   if (window->keyIsPressed(GLFW_KEY_A))
   {
-    position -= cameraSpeed * pDirection * dt;
+    position -= cameraSpeed * pDirection;
   }
   if (window->keyIsPressed(GLFW_KEY_D))
   {
-    position += cameraSpeed * pDirection * dt;
+    position += cameraSpeed * pDirection;
   }
 
   if (window->keyIsPressed(GLFW_KEY_SPACE))
   {
-    position += cameraSpeed * UP * dt;
+    position += cameraSpeed * UP;
   }
   if (window->keyIsPressed(GLFW_KEY_LEFT_SHIFT))
   {
-    position -= cameraSpeed * UP * dt;
+    position -= cameraSpeed * UP;
   }
 }

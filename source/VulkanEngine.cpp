@@ -1,6 +1,7 @@
 #include "VulkanEngine.h"
 #include <stdexcept>
 #include <cstdint>
+#include <backends/imgui_impl_vulkan.h>
 
 #include "utilities/Images.h"
 
@@ -15,9 +16,6 @@ VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
 {
   glfwInit();
   initVulkan();
-
-  imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
-                                                  renderPass, guiPipeline);
 
   camera = std::make_shared<Camera>(vulkanEngineOptions.CAMERA_POSITION);
   camera->setSpeed(vulkanEngineOptions.CAMERA_SPEED);
@@ -39,12 +37,20 @@ bool VulkanEngine::isActive() const
 
 void VulkanEngine::render()
 {
+  renderGuiScene();
+
   window->update();
 
-  camera->processInput(window);
+  if (!vulkanEngineOptions.USE_DOCKSPACE || sceneIsFocused)
+  {
+    camera->processInput(window);
+  }
 
   doComputing();
+
   doRendering();
+
+  imGuiInstance->createNewFrame();
 }
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
@@ -109,16 +115,17 @@ void VulkanEngine::initVulkan()
   logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
   createCommandPool();
-  createCommandBuffers();
-  createComputeCommandBuffers();
+  allocateCommandBuffers(computeCommandBuffers);
+  allocateCommandBuffers(offscreenCommandBuffers);
+  allocateCommandBuffers(swapchainCommandBuffers);
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples());
+                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
-
+  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
+                                            VK_FORMAT_B8G8R8A8_UNORM, physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
 
@@ -128,6 +135,16 @@ void VulkanEngine::initVulkan()
   {
     dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
                                                   renderPass->getRenderPass(), swapChain->getExtent());
+  }
+
+  imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
+                                                  renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
+
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
+
+  if (vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, swapChain->getExtent());
   }
 }
 
@@ -147,7 +164,7 @@ void VulkanEngine::createCommandPool()
   }
 }
 
-void VulkanEngine::createCommandBuffers()
+void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
 {
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -164,73 +181,79 @@ void VulkanEngine::createCommandBuffers()
   }
 }
 
-void VulkanEngine::createComputeCommandBuffers()
+void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex,
+                                       const std::function<void(const VkCommandBuffer& cmdBuffer, uint32_t imgIndex)>& renderFunction)
 {
-  computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-  const VkCommandBufferAllocateInfo allocInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-    .commandPool = commandPool,
-    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-    .commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size())
+  constexpr VkCommandBufferBeginInfo beginInfo {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
   };
 
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS)
+  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
   {
-    throw std::runtime_error("failed to allocate command buffers!");
+    throw std::runtime_error("failed to begin recording command buffer!");
+  }
+
+  renderFunction(commandBuffer, imageIndex);
+
+  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to record command buffer!");
   }
 }
 
 void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const
 {
-  constexpr VkCommandBufferBeginInfo beginInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-  };
-
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  recordCommandBuffer(commandBuffer, currentFrame, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
-    throw std::runtime_error("failed to begin recording command buffer!");
-  }
-
-  if (vulkanEngineOptions.DO_DOTS)
-  {
-    dotsPipeline->compute(commandBuffer, currentFrame);
-  }
-
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to record command buffer!");
-  }
+    if (vulkanEngineOptions.DO_DOTS)
+    {
+      dotsPipeline->compute(cmdBuffer, imgIndex);
+    }
+  });
 }
 
-void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
+void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
-  constexpr VkCommandBufferBeginInfo beginInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-  };
-
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
-    throw std::runtime_error("failed to begin recording command buffer!");
-  }
+    if (!vulkanEngineOptions.USE_DOCKSPACE)
+    {
+      return;
+    }
 
-  renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), commandBuffer);
+    if (offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    {
+      return;
+    }
 
-  objectsPipeline->render(commandBuffer, currentFrame, camera, swapChain->getExtent());
+    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-  if (vulkanEngineOptions.DO_DOTS)
+    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent);
+
+    if (vulkanEngineOptions.DO_DOTS)
+    {
+      dotsPipeline->render(cmdBuffer, currentFrame, offscreenViewportExtent);
+    }
+
+    RenderPass::end(cmdBuffer);
+  });
+}
+
+void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
+{
+  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
-    dotsPipeline->render(commandBuffer, currentFrame, swapChain->getExtent());
-  }
+    renderPass->begin(framebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
 
-  guiPipeline->render(commandBuffer, swapChain->getExtent());
+    if (!vulkanEngineOptions.USE_DOCKSPACE)
+    {
+      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
+    }
 
-  RenderPass::end(commandBuffer);
+    guiPipeline->render(cmdBuffer, swapChain->getExtent());
 
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to record command buffer!");
-  }
+    RenderPass::end(cmdBuffer);
+  });
 }
 
 void VulkanEngine::doComputing() const
@@ -266,10 +289,13 @@ void VulkanEngine::doRendering()
 
   logicalDevice->resetGraphicsFences(currentFrame);
 
-  vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-  recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+  vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
+  recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
+  logicalDevice->submitOffscreenGraphicsQueue(currentFrame, &offscreenCommandBuffers[currentFrame]);
 
-  logicalDevice->submitGraphicsQueue(currentFrame, &commandBuffers[currentFrame]);
+  vkResetCommandBuffer(swapchainCommandBuffers[currentFrame], 0);
+  recordSwapchainCommandBuffer(swapchainCommandBuffers[currentFrame], imageIndex);
+  logicalDevice->submitGraphicsQueue(currentFrame, &swapchainCommandBuffers[currentFrame]);
 
   result = logicalDevice->queuePresent(currentFrame, swapChain->getSwapChain(), &imageIndex);
 
@@ -302,5 +328,61 @@ void VulkanEngine::recreateSwapChain()
   swapChain.reset();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
+
+  if (vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    if (offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    {
+      return;
+    }
+
+    offscreenFramebuffer.reset();
+
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
+  }
+}
+
+void VulkanEngine::renderGuiScene()
+{
+  if (!vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    return;
+  }
+
+  ImGui::Begin("Scene");
+
+  sceneIsFocused = ImGui::IsWindowFocused();
+
+  const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
+
+  const VkExtent2D currentOffscreenViewportExtent {
+    .width = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.x)),
+    .height = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.y))
+  };
+
+  if (currentOffscreenViewportExtent.width == 0 || currentOffscreenViewportExtent.height == 0)
+  {
+    offscreenViewportExtent = currentOffscreenViewportExtent;
+    ImGui::End();
+    return;
+  }
+
+  if (offscreenViewportExtent.width != currentOffscreenViewportExtent.width ||
+      offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
+  {
+    offscreenViewportExtent = currentOffscreenViewportExtent;
+
+    logicalDevice->waitIdle();
+    offscreenFramebuffer.reset();
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
+  }
+  else
+  {
+    ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
+                 contentRegionAvailable);
+  }
+
+
+  ImGui::End();
 }

@@ -103,8 +103,8 @@ std::unique_ptr<VkPipelineColorBlendStateCreateInfo> DotsPipeline::defineColorBl
     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .colorBlendOp = VK_BLEND_OP_ADD,
-    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+    .srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .alphaBlendOp = VK_BLEND_OP_ADD,
     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                       VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
@@ -126,13 +126,8 @@ std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> DotsPipeline::defineDepth
 {
   VkPipelineDepthStencilStateCreateInfo depthStencilState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-    .depthTestEnable = VK_TRUE,
-    .depthWriteEnable = VK_TRUE,
-    .depthCompareOp = VK_COMPARE_OP_LESS,
-    .depthBoundsTestEnable = VK_FALSE,
-    .stencilTestEnable = VK_FALSE,
-    .minDepthBounds = 0.0f,
-    .maxDepthBounds = 1.0f
+    .depthTestEnable = VK_FALSE,
+    .depthWriteEnable = VK_FALSE
   };
 
   return std::make_unique<VkPipelineDepthStencilStateCreateInfo>(depthStencilState);
@@ -261,17 +256,18 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+  std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
 
   std::vector<Particle> particles(PARTICLE_COUNT);
-  for (auto& particle : particles)
+  for (auto&[position, velocity, color] : particles)
   {
     const float r = sqrtf(distribution(randomEngine)) * 0.25f;
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta) * static_cast<float>(swapChainExtent.height) / static_cast<float>(swapChainExtent.width);
     const float y = r * std::sin(theta);
-    particle.position = glm::vec2(x, y);
-    particle.velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
-    particle.color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
+    position = glm::vec2(x * largeDistribution(randomEngine), y * largeDistribution(randomEngine));
+    velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
+    color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
                                distribution(randomEngine), 1.0f);
   }
 
