@@ -119,6 +119,12 @@ void Window::getPreviousCursorPos(double& xpos, double& ypos) const
 void Window::initImGui() const
 {
   ImGui_ImplGlfw_InitForVulkan(window, true);
+
+  float xscale, yscale;
+  glfwGetWindowContentScale(window, &xscale, &yscale);
+
+  ImGui::GetStyle().ScaleAllSizes(xscale);
+  ImGui::GetIO().FontGlobalScale = xscale;
 }
 
 double Window::getScroll() const
