@@ -85,6 +85,8 @@ private:
 
   bool sceneIsFocused;
 
+  VkExtent2D offscreenViewportExtent;
+
   void initVulkan();
   void createCommandPool();
   void allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;

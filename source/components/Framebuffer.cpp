@@ -10,17 +10,18 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
                          std::shared_ptr<SwapChain> swapChain,
                          const VkCommandPool& commandPool,
                          const std::shared_ptr<RenderPass>& renderPass,
-                         const bool presentToSwapChain)
+                         const bool presentToSwapChain,
+                         const VkExtent2D extent)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)),
     swapChain(std::move(swapChain)), presentToSwapChain(presentToSwapChain)
 {
-  createImageResources(commandPool);
+  createImageResources(commandPool, extent);
 
-  createColorResources();
+  createColorResources(extent);
 
-  createDepthResources(commandPool, renderPass->findDepthFormat());
+  createDepthResources(commandPool, renderPass->findDepthFormat(), extent);
 
-  createFrameBuffers(renderPass->getRenderPass());
+  createFrameBuffers(renderPass->getRenderPass(), extent);
 }
 
 Framebuffer::~Framebuffer()
@@ -74,7 +75,7 @@ VkDescriptorSet& Framebuffer::getFramebufferImageDescriptorSet(const uint32_t im
   return framebufferImageDescriptorSets[imageIndex];
 }
 
-void Framebuffer::createImageResources(const VkCommandPool& commandPool)
+void Framebuffer::createImageResources(const VkCommandPool& commandPool, const VkExtent2D extent)
 {
   if (presentToSwapChain)
   {
@@ -117,7 +118,7 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool)
 
   for (int i = 0; i < numImages; i++)
   {
-    Images::createImage(this->logicalDevice->getDevice(), this->physicalDevice->getPhysicalDevice(), this->swapChain->getExtent().width, this->swapChain->getExtent().height,
+    Images::createImage(this->logicalDevice->getDevice(), this->physicalDevice->getPhysicalDevice(), extent.width, extent.height,
                         1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         framebufferImages[i], framebufferImageMemory[i]);
@@ -132,9 +133,9 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool)
   }
 }
 
-void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const VkFormat depthFormat)
+void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const VkFormat depthFormat, const VkExtent2D extent)
 {
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getExtent().width, swapChain->getExtent().height,
+  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), extent.width, extent.height,
                       1, physicalDevice->getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                       depthImage, depthImageMemory);
@@ -144,11 +145,11 @@ void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const V
                                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
 
-void Framebuffer::createColorResources()
+void Framebuffer::createColorResources(const VkExtent2D extent)
 {
   const VkFormat colorFormat = presentToSwapChain ? swapChain->getImageFormat() : framebufferImageFormat;
 
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), swapChain->getExtent().width, swapChain->getExtent().height,
+  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), extent.width, extent.height,
                       1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
@@ -156,7 +157,7 @@ void Framebuffer::createColorResources()
   colorImageView = Images::createImageView(logicalDevice->getDevice(), colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
-void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass)
+void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExtent2D extent)
 {
   std::vector<VkImageView>* imageViews;
 
@@ -184,8 +185,8 @@ void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass)
       .renderPass = renderPass,
       .attachmentCount = static_cast<uint32_t>(attachments.size()),
       .pAttachments = attachments.data(),
-      .width = swapChain->getExtent().width,
-      .height = swapChain->getExtent().height,
+      .width = extent.width,
+      .height = extent.height,
       .layers = 1
     };
 

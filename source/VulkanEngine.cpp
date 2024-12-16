@@ -140,9 +140,9 @@ void VulkanEngine::initVulkan()
   imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
                                                   renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
 
-  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);
+  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, swapChain->getExtent());
 }
 
 void VulkanEngine::createCommandPool()
@@ -218,13 +218,13 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
       return;
     }
 
-    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
+    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
+    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent);
 
     if (vulkanEngineOptions.DO_DOTS)
     {
-      dotsPipeline->render(cmdBuffer, currentFrame, swapChain->getExtent());
+      dotsPipeline->render(cmdBuffer, currentFrame, offscreenViewportExtent);
     }
 
     RenderPass::end(cmdBuffer);
@@ -321,8 +321,8 @@ void VulkanEngine::recreateSwapChain()
   swapChain.reset();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
-  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
+  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
 }
 
 void VulkanEngine::renderGuiScene()
@@ -336,8 +336,26 @@ void VulkanEngine::renderGuiScene()
 
   sceneIsFocused = ImGui::IsWindowFocused();
 
+
+  const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
+  const VkExtent2D currentOffscreenViewportExtent {
+    .width = static_cast<uint32_t>(contentRegionAvailable.x),
+    .height = static_cast<uint32_t>(contentRegionAvailable.y)
+  };
+
+  if (offscreenViewportExtent.width != currentOffscreenViewportExtent.width ||
+      offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
+  {
+    offscreenViewportExtent = currentOffscreenViewportExtent;
+
+    // TODO: Recreate offscreen framebuffer
+    logicalDevice->waitIdle();
+    offscreenFramebuffer.reset();
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
+  }
+
   ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
-               ImGui::GetContentRegionAvail());
+               contentRegionAvailable);
 
   ImGui::End();
 }
