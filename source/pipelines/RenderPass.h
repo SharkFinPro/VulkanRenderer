@@ -6,7 +6,7 @@
 
 class RenderPass {
 public:
-  RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, VkFormat swapChainImageFormat,
+  RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, VkFormat finalImageFormat,
              VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
   ~RenderPass();
 
@@ -23,7 +23,7 @@ private:
 
   VkRenderPass renderPass;
 
-  void createRenderPass(VkFormat swapChainImageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
+  void createRenderPass(VkFormat finalImageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
 
   [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 };
