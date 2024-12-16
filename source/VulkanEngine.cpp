@@ -142,7 +142,10 @@ void VulkanEngine::initVulkan()
 
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
 
-  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, swapChain->getExtent());
+  if (vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, swapChain->getExtent());
+  }
 }
 
 void VulkanEngine::createCommandPool()
@@ -316,13 +319,18 @@ void VulkanEngine::recreateSwapChain()
 
   logicalDevice->waitIdle();
 
-  offscreenFramebuffer.reset();
   framebuffer.reset();
   swapChain.reset();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
-  offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
+
+  if (vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    offscreenFramebuffer.reset();
+
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
+  }
 }
 
 void VulkanEngine::renderGuiScene()
