@@ -125,15 +125,9 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool)
 
     Images::transitionImageLayout(this->logicalDevice, commandPool, framebufferImages[i], framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
-  }
 
-  for (int i = 0; i < numImages; i++)
-  {
-    framebufferImageDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(
-      sampler,
-      framebufferImageViews[i],
-      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-    );
+    framebufferImageDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(sampler, framebufferImageViews[i],
+                                                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
 }
 
