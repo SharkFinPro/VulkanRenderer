@@ -21,22 +21,6 @@ VkRenderPass& RenderPass::getRenderPass()
 
 void RenderPass::createRenderPass(const VkFormat finalImageFormat, const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
 {
-  const VkAttachmentDescription depthAttachment {
-    .format = findDepthFormat(),
-    .samples = msaaSamples,
-    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-    .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-  };
-
-  constexpr VkAttachmentReference depthAttachmentRef {
-    .attachment = 1,
-    .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-  };
-
   const VkAttachmentDescription colorAttachment {
     .format = finalImageFormat,
     .samples = msaaSamples,
@@ -51,6 +35,22 @@ void RenderPass::createRenderPass(const VkFormat finalImageFormat, const VkSampl
   constexpr VkAttachmentReference colorAttachmentRef {
     .attachment = 0,
     .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+  };
+
+  const VkAttachmentDescription depthAttachment {
+    .format = findDepthFormat(),
+    .samples = msaaSamples,
+    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+    .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+  };
+
+  constexpr VkAttachmentReference depthAttachmentRef {
+    .attachment = 1,
+    .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
   };
 
   const VkAttachmentDescription colorAttachmentResolve {
