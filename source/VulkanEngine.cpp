@@ -317,6 +317,7 @@ void VulkanEngine::recreateSwapChain()
 
   logicalDevice->waitIdle();
 
+  offscreenFramebuffer.reset();
   framebuffer.reset();
   swapChain.reset();
 
