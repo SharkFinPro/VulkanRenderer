@@ -256,6 +256,7 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+  std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
 
   std::vector<Particle> particles(PARTICLE_COUNT);
   for (auto& particle : particles)
@@ -264,7 +265,7 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta) * static_cast<float>(swapChainExtent.height) / static_cast<float>(swapChainExtent.width);
     const float y = r * std::sin(theta);
-    particle.position = glm::vec2(x, y);
+    particle.position = glm::vec2(x * largeDistribution(randomEngine), y * largeDistribution(randomEngine));
     particle.velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
     particle.color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
                                distribution(randomEngine), 1.0f);
