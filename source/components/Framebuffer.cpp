@@ -14,65 +14,12 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)),
     swapChain(std::move(swapChain)), presentToSwapChain(presentToSwapChain)
 {
-  if (!presentToSwapChain)
-  {
-    constexpr VkSamplerCreateInfo samplerInfo {
-      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .magFilter = VK_FILTER_LINEAR,
-      .minFilter = VK_FILTER_LINEAR,
-      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-      .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .mipLodBias = 0.0f,
-      .anisotropyEnable = VK_FALSE,
-      .maxAnisotropy = 1.0f,
-      .compareEnable = VK_FALSE,
-      .compareOp = VK_COMPARE_OP_ALWAYS,
-      .minLod = 0.0f,
-      .maxLod = 0.0f,
-      .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-      .unnormalizedCoordinates = VK_FALSE
-    };
-
-    if (vkCreateSampler(this->logicalDevice->getDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
-      throw std::runtime_error("Failed to create image sampler!");
-    }
-
-    framebufferImageMemory.resize(3);
-    framebufferImageViews.resize(3);
-    framebufferImages.resize(3);
-    framebufferImageDescriptorSets.resize(3);
-
-    for (int i = 0; i < 3; i++)
-    {
-      framebufferImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
-
-      Images::createImage(this->logicalDevice->getDevice(), this->physicalDevice->getPhysicalDevice(), this->swapChain->getExtent().width, this->swapChain->getExtent().height,
-                          1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
-                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                          framebufferImages[i], framebufferImageMemory[i]);
-
-      framebufferImageViews[i] = Images::createImageView(this->logicalDevice->getDevice(), framebufferImages[i], framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
-      Images::transitionImageLayout(this->logicalDevice, commandPool, framebufferImages[i], framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
-                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
-    }
-
-    for (int i = 0; i < framebufferImageViews.size(); i++)
-    {
-      framebufferImageDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(
-        sampler,
-        framebufferImageViews[i],
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-      );
-    }
-  }
+  createImageResources(commandPool);
 
   createColorResources();
+
   createDepthResources(commandPool, renderPass->findDepthFormat());
+
   createFrameBuffers(renderPass->getRenderPass());
 }
 
@@ -125,6 +72,69 @@ VkFramebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex)
 VkDescriptorSet& Framebuffer::getFramebufferImageDescriptorSet(const uint32_t imageIndex)
 {
   return framebufferImageDescriptorSets[imageIndex];
+}
+
+void Framebuffer::createImageResources(const VkCommandPool& commandPool)
+{
+  if (presentToSwapChain)
+  {
+    return;
+  }
+
+  constexpr VkSamplerCreateInfo samplerInfo {
+    .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0,
+    .magFilter = VK_FILTER_LINEAR,
+    .minFilter = VK_FILTER_LINEAR,
+    .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+    .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+    .mipLodBias = 0.0f,
+    .anisotropyEnable = VK_FALSE,
+    .maxAnisotropy = 1.0f,
+    .compareEnable = VK_FALSE,
+    .compareOp = VK_COMPARE_OP_ALWAYS,
+    .minLod = 0.0f,
+    .maxLod = 0.0f,
+    .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+    .unnormalizedCoordinates = VK_FALSE
+  };
+
+  if (vkCreateSampler(this->logicalDevice->getDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create image sampler!");
+  }
+
+  constexpr size_t numImages = 3;
+  framebufferImageMemory.resize(numImages);
+  framebufferImageViews.resize(numImages);
+  framebufferImages.resize(numImages);
+  framebufferImageDescriptorSets.resize(numImages);
+
+  for (int i = 0; i < numImages; i++)
+  {
+    framebufferImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
+    Images::createImage(this->logicalDevice->getDevice(), this->physicalDevice->getPhysicalDevice(), this->swapChain->getExtent().width, this->swapChain->getExtent().height,
+                        1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        framebufferImages[i], framebufferImageMemory[i]);
+
+    framebufferImageViews[i] = Images::createImageView(this->logicalDevice->getDevice(), framebufferImages[i], framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+
+    Images::transitionImageLayout(this->logicalDevice, commandPool, framebufferImages[i], framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+  }
+
+  for (int i = 0; i < numImages; i++)
+  {
+    framebufferImageDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(
+      sampler,
+      framebufferImageViews[i],
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    );
+  }
 }
 
 void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const VkFormat depthFormat)

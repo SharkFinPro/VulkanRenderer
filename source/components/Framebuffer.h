@@ -46,6 +46,7 @@ private:
   VkSampler sampler;
   std::vector<VkDescriptorSet> framebufferImageDescriptorSets;
 
+  void createImageResources(const VkCommandPool& commandPool);
   void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat);
   void createColorResources();
   void createFrameBuffers(const VkRenderPass& renderPass);
