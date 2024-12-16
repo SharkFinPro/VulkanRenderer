@@ -81,6 +81,8 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool)
     return;
   }
 
+  framebufferImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
   constexpr VkSamplerCreateInfo samplerInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
     .pNext = nullptr,
@@ -115,8 +117,6 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool)
 
   for (int i = 0; i < numImages; i++)
   {
-    framebufferImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
-
     Images::createImage(this->logicalDevice->getDevice(), this->physicalDevice->getPhysicalDevice(), this->swapChain->getExtent().width, this->swapChain->getExtent().height,
                         1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
