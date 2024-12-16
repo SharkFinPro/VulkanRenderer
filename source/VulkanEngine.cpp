@@ -113,9 +113,9 @@ void VulkanEngine::initVulkan()
   logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
   createCommandPool();
-  createOffscreenCommandBuffers();
-  createCommandBuffers();
-  createComputeCommandBuffers();
+  createCommandBuffers(computeCommandBuffers);
+  createCommandBuffers(offscreenCommandBuffers);
+  createCommandBuffers(swapchainCommandBuffers);
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
@@ -159,24 +159,7 @@ void VulkanEngine::createCommandPool()
   }
 }
 
-void VulkanEngine::createOffscreenCommandBuffers()
-{
-  offscreenCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-  const VkCommandBufferAllocateInfo allocInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-    .commandPool = commandPool,
-    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-    .commandBufferCount = static_cast<uint32_t>(offscreenCommandBuffers.size())
-  };
-
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, offscreenCommandBuffers.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate command buffers!");
-  }
-}
-
-void VulkanEngine::createCommandBuffers()
+void VulkanEngine::createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
 {
   commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -188,23 +171,6 @@ void VulkanEngine::createCommandBuffers()
   };
 
   if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate command buffers!");
-  }
-}
-
-void VulkanEngine::createComputeCommandBuffers()
-{
-  computeCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-  const VkCommandBufferAllocateInfo allocInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-    .commandPool = commandPool,
-    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-    .commandBufferCount = static_cast<uint32_t>(computeCommandBuffers.size())
-  };
-
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, computeCommandBuffers.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }
@@ -320,9 +286,9 @@ void VulkanEngine::doRendering()
   recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
   logicalDevice->submitOffscreenGraphicsQueue(currentFrame, &offscreenCommandBuffers[currentFrame]);
 
-  vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-  recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
-  logicalDevice->submitGraphicsQueue(currentFrame, &commandBuffers[currentFrame]);
+  vkResetCommandBuffer(swapchainCommandBuffers[currentFrame], 0);
+  recordCommandBuffer(swapchainCommandBuffers[currentFrame], imageIndex);
+  logicalDevice->submitGraphicsQueue(currentFrame, &swapchainCommandBuffers[currentFrame]);
 
   result = logicalDevice->queuePresent(currentFrame, swapChain->getSwapChain(), &imageIndex);
 

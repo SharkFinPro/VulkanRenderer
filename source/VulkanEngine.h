@@ -76,7 +76,7 @@ private:
   VulkanEngineOptions vulkanEngineOptions;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> offscreenCommandBuffers;
-  std::vector<VkCommandBuffer> commandBuffers;
+  std::vector<VkCommandBuffer> swapchainCommandBuffers;
   std::vector<VkCommandBuffer> computeCommandBuffers;
   uint32_t currentFrame;
 
@@ -86,9 +86,7 @@ private:
 
   void initVulkan();
   void createCommandPool();
-  void createOffscreenCommandBuffers();
-  void createCommandBuffers();
-  void createComputeCommandBuffers();
+  void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
   void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
   void recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void recordCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
