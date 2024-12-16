@@ -347,14 +347,16 @@ void VulkanEngine::renderGuiScene()
   {
     offscreenViewportExtent = currentOffscreenViewportExtent;
 
-    // TODO: Recreate offscreen framebuffer
     logicalDevice->waitIdle();
     offscreenFramebuffer.reset();
     offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
   }
+  else
+  {
+    ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
+                 contentRegionAvailable);
+  }
 
-  ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
-               contentRegionAvailable);
 
   ImGui::End();
 }
