@@ -141,7 +141,6 @@ void VulkanEngine::initVulkan()
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass);
 
   offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false);
-
 }
 
 void VulkanEngine::createCommandPool()
