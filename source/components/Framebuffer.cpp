@@ -102,7 +102,8 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool)
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  if (vkCreateSampler(this->logicalDevice->getDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+  if (vkCreateSampler(this->logicalDevice->getDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
+  {
     throw std::runtime_error("Failed to create image sampler!");
   }
 
