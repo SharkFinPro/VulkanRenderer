@@ -2,11 +2,11 @@
 #include <array>
 #include <stdexcept>
 
-RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkFormat finalImageFormat,
+RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkFormat imageFormat,
                        const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
   : device(device), physicalDevice(physicalDevice)
 {
-  createRenderPass(finalImageFormat, msaaSamples, finalLayout);
+  createRenderPass(imageFormat, msaaSamples, finalLayout);
 }
 
 RenderPass::~RenderPass()
@@ -19,10 +19,10 @@ VkRenderPass& RenderPass::getRenderPass()
   return renderPass;
 }
 
-void RenderPass::createRenderPass(const VkFormat finalImageFormat, const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
+void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
 {
   const VkAttachmentDescription colorAttachment {
-    .format = finalImageFormat,
+    .format = imageFormat,
     .samples = msaaSamples,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -54,7 +54,7 @@ void RenderPass::createRenderPass(const VkFormat finalImageFormat, const VkSampl
   };
 
   const VkAttachmentDescription colorAttachmentResolve {
-    .format = finalImageFormat,
+    .format = imageFormat,
     .samples = VK_SAMPLE_COUNT_1_BIT,
     .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
