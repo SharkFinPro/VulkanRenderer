@@ -336,7 +336,6 @@ void VulkanEngine::renderGuiScene()
 
   sceneIsFocused = ImGui::IsWindowFocused();
 
-
   const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
   const VkExtent2D currentOffscreenViewportExtent {
     .width = static_cast<uint32_t>(contentRegionAvailable.x),
