@@ -24,16 +24,19 @@ struct alignas(16) Light {
 
   void displayGui(const size_t lightNum)
   {
-    if (ImGui::CollapsingHeader(("Light " + std::to_string(lightNum) + ":").c_str()))
+    ImGui::PushID(static_cast<int>(lightNum));
+
+    if (ImGui::CollapsingHeader(("Light " + std::to_string(lightNum)).c_str()))
     {
-      ImGui::SeparatorText(("Control Light " + std::to_string(lightNum)).c_str());
-      ImGui::ColorEdit3(("Light " + std::to_string(lightNum) + " Color").c_str(), color);
-      ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Ambient").c_str(), &ambient, 0.0f, 1.0f);
-      ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Diffuse").c_str(), &diffuse, 0.0f, 1.0f);
-      ImGui::SliderFloat(("Light " + std::to_string(lightNum) + " Specular").c_str(), &specular, 0.0f, 1.0f);
-      ImGui::SliderFloat3(("Light " + std::to_string(lightNum) + " Position").c_str(), position, -50.0f, 50.0f);
+      ImGui::ColorEdit3("Color", color);
+      ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
+      ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
+      ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
+      ImGui::SliderFloat3("Position", position, -50.0f, 50.0f);
       ImGui::Separator();
     }
+
+    ImGui::PopID();
   }
 };
 

@@ -37,11 +37,9 @@ bool VulkanEngine::isActive() const
 
 void VulkanEngine::render()
 {
-  renderGuiScene();
-
   window->update();
 
-  if (!vulkanEngineOptions.USE_DOCKSPACE || sceneIsFocused)
+  if (sceneIsFocused())
   {
     camera->processInput(window);
   }
@@ -95,6 +93,11 @@ ImGuiContext* VulkanEngine::getImGuiContext()
 bool VulkanEngine::keyIsPressed(const int key) const
 {
   return window->keyIsPressed(key);
+}
+
+bool VulkanEngine::sceneIsFocused() const
+{
+  return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;
 }
 
 void VulkanEngine::initVulkan()
@@ -216,12 +219,8 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 {
   recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
-    if (!vulkanEngineOptions.USE_DOCKSPACE)
-    {
-      return;
-    }
-
-    if (offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    if (!vulkanEngineOptions.USE_DOCKSPACE ||
+        offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
     {
       return;
     }
@@ -248,6 +247,11 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
       objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
+
+      if (vulkanEngineOptions.DO_DOTS)
+      {
+        dotsPipeline->render(cmdBuffer, currentFrame, offscreenViewportExtent);
+      }
     }
 
     guiPipeline->render(cmdBuffer, swapChain->getExtent());
@@ -286,6 +290,8 @@ void VulkanEngine::doRendering()
   {
     throw std::runtime_error("failed to acquire swap chain image!");
   }
+
+  renderGuiScene(imageIndex);
 
   logicalDevice->resetGraphicsFences(currentFrame);
 
@@ -343,7 +349,7 @@ void VulkanEngine::recreateSwapChain()
   }
 }
 
-void VulkanEngine::renderGuiScene()
+void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 {
   if (!vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -352,7 +358,7 @@ void VulkanEngine::renderGuiScene()
 
   ImGui::Begin("Scene");
 
-  sceneIsFocused = ImGui::IsWindowFocused();
+  isSceneFocused = ImGui::IsWindowFocused();
 
   const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
@@ -377,12 +383,9 @@ void VulkanEngine::renderGuiScene()
     offscreenFramebuffer.reset();
     offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
   }
-  else
-  {
-    ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
-                 contentRegionAvailable);
-  }
 
+  ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex)),
+              contentRegionAvailable);
 
   ImGui::End();
 }

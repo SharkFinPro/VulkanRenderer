@@ -51,6 +51,8 @@ public:
 
   [[nodiscard]] bool keyIsPressed(int key) const;
 
+  [[nodiscard]] bool sceneIsFocused() const;
+
 private:
   std::unique_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
@@ -83,7 +85,7 @@ private:
 
   bool framebufferResized;
 
-  bool sceneIsFocused;
+  bool isSceneFocused;
 
   VkExtent2D offscreenViewportExtent;
 
@@ -98,7 +100,7 @@ private:
   void doComputing() const;
   void doRendering();
   void recreateSwapChain();
-  void renderGuiScene();
+  void renderGuiScene(uint32_t imageIndex);
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 };
