@@ -24,17 +24,19 @@ struct alignas(16) Light {
 
   void displayGui(const size_t lightNum)
   {
+    ImGui::PushID(static_cast<int>(lightNum));
+
     if (ImGui::CollapsingHeader(("Light " + std::to_string(lightNum)).c_str()))
     {
-      ImGui::PushID(static_cast<int>(lightNum));
       ImGui::ColorEdit3("Color", color);
       ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
       ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
       ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
       ImGui::SliderFloat3("Position", position, -50.0f, 50.0f);
-      ImGui::PopID();
       ImGui::Separator();
     }
+
+    ImGui::PopID();
   }
 };
 
