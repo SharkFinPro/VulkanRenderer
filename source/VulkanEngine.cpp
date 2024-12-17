@@ -37,8 +37,6 @@ bool VulkanEngine::isActive() const
 
 void VulkanEngine::render()
 {
-  renderGuiScene();
-
   window->update();
 
   if (!vulkanEngineOptions.USE_DOCKSPACE || sceneIsFocused)
@@ -287,6 +285,8 @@ void VulkanEngine::doRendering()
     throw std::runtime_error("failed to acquire swap chain image!");
   }
 
+  renderGuiScene(imageIndex);
+
   logicalDevice->resetGraphicsFences(currentFrame);
 
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
@@ -343,7 +343,7 @@ void VulkanEngine::recreateSwapChain()
   }
 }
 
-void VulkanEngine::renderGuiScene()
+void VulkanEngine::renderGuiScene(uint32_t imageIndex)
 {
   if (!vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -377,12 +377,9 @@ void VulkanEngine::renderGuiScene()
     offscreenFramebuffer.reset();
     offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
   }
-  else
-  {
-    ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(currentFrame)),
-                 contentRegionAvailable);
-  }
 
+  ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex)),
+              contentRegionAvailable);
 
   ImGui::End();
 }

@@ -98,7 +98,7 @@ private:
   void doComputing() const;
   void doRendering();
   void recreateSwapChain();
-  void renderGuiScene();
+  void renderGuiScene(uint32_t imageIndex);
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 };
