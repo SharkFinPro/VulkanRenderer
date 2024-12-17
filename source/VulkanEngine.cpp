@@ -219,12 +219,8 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 {
   recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
   {
-    if (!vulkanEngineOptions.USE_DOCKSPACE)
-    {
-      return;
-    }
-
-    if (offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    if (!vulkanEngineOptions.USE_DOCKSPACE ||
+        offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
     {
       return;
     }
@@ -251,6 +247,11 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
       objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
+
+      if (vulkanEngineOptions.DO_DOTS)
+      {
+        dotsPipeline->render(cmdBuffer, currentFrame, offscreenViewportExtent);
+      }
     }
 
     guiPipeline->render(cmdBuffer, swapChain->getExtent());
