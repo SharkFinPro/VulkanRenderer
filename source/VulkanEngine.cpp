@@ -39,7 +39,7 @@ void VulkanEngine::render()
 {
   window->update();
 
-  if (!vulkanEngineOptions.USE_DOCKSPACE || sceneIsFocused)
+  if (sceneIsFocused())
   {
     camera->processInput(window);
   }
@@ -93,6 +93,11 @@ ImGuiContext* VulkanEngine::getImGuiContext()
 bool VulkanEngine::keyIsPressed(const int key) const
 {
   return window->keyIsPressed(key);
+}
+
+bool VulkanEngine::sceneIsFocused() const
+{
+  return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;
 }
 
 void VulkanEngine::initVulkan()
@@ -343,7 +348,7 @@ void VulkanEngine::recreateSwapChain()
   }
 }
 
-void VulkanEngine::renderGuiScene(uint32_t imageIndex)
+void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 {
   if (!vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -352,7 +357,7 @@ void VulkanEngine::renderGuiScene(uint32_t imageIndex)
 
   ImGui::Begin("Scene");
 
-  sceneIsFocused = ImGui::IsWindowFocused();
+  isSceneFocused = ImGui::IsWindowFocused();
 
   const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
