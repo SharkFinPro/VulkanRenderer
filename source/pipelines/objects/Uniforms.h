@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <string>
+#include <array>
 
 struct TransformUniform {
   alignas(16) glm::mat4 model;
@@ -12,9 +13,9 @@ struct TransformUniform {
 };
 
 struct alignas(16) Light {
-  float position[3];
+  std::array<float, 3> position;
   float padding1;
-  float color[3];
+  std::array<float, 3> color;
   float padding2;
 
   float ambient;
@@ -28,11 +29,11 @@ struct alignas(16) Light {
 
     if (ImGui::CollapsingHeader(("Light " + std::to_string(lightNum)).c_str()))
     {
-      ImGui::ColorEdit3("Color", color);
+      ImGui::ColorEdit3("Color", color.data());
       ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
       ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
       ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
-      ImGui::SliderFloat3("Position", position, -50.0f, 50.0f);
+      ImGui::SliderFloat3("Position", position.data(), -50.0f, 50.0f);
       ImGui::Separator();
     }
 
