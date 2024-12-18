@@ -137,6 +137,21 @@ void RenderObject::setRotation(const glm::vec3 rotation)
   this->rotation = rotation;
 }
 
+glm::vec3 RenderObject::getPosition() const
+{
+  return position;
+}
+
+glm::vec3 RenderObject::getScale() const
+{
+  return scale;
+}
+
+glm::vec3 RenderObject::getRotation() const
+{
+  return rotation;
+}
+
 void RenderObject::enableRendering()
 {
   doRendering = true;

@@ -5,6 +5,7 @@
 #include <string>
 #include "glm/gtc/type_ptr.hpp"
 
+void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
 
 int main()
@@ -29,9 +30,7 @@ int main()
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
     object->enableRendering();
-    glm::vec3 position = {0, -5, 0};
-    object->setPosition(position);
-
+    object->setPosition({ 0, -5, 0 });
 
     std::vector<std::shared_ptr<Light>> lights;
 
@@ -47,11 +46,8 @@ int main()
 
     while (renderer.isActive())
     {
-      ImGui::Begin("Object");
-      ImGui::Text("Control Position:");
-      ImGui::SliderFloat("x", &position.x, -50.0f, 50.0f);
-      ImGui::SliderFloat("y", &position.y, -50.0f, 50.0f);
-      ImGui::SliderFloat("z", &position.z, -50.0f, 50.0f);
+      ImGui::Begin("Objects");
+      displayObjectGui(object, 0);
       ImGui::End();
 
       ImGui::Begin("Lights");
@@ -60,8 +56,6 @@ int main()
         displayLightGui(lights[i], i);
       }
       ImGui::End();
-
-      object->setPosition(position);
 
       renderer.render();
     }
@@ -73,6 +67,22 @@ int main()
   }
 
   return EXIT_SUCCESS;
+}
+
+void displayObjectGui(const std::shared_ptr<RenderObject>& object, const int id)
+{
+  glm::vec3 position = object->getPosition();
+
+  ImGui::PushID(id);
+
+  if (ImGui::CollapsingHeader(("Object " + std::to_string(id)).c_str()))
+  {
+    ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
+  }
+
+  ImGui::PopID();
+
+  object->setPosition(position);
 }
 
 void displayLightGui(const std::shared_ptr<Light>& light, const int id)
