@@ -6,7 +6,6 @@
 #include <memory>
 #include <array>
 
-#include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 
 class RenderPass;
