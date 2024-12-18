@@ -36,9 +36,6 @@ public:
   [[nodiscard]] glm::vec3 getScale() const;
   [[nodiscard]] glm::vec3 getRotation() const;
 
-  void enableRendering();
-  void disableRendering();
-
 private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
@@ -56,8 +53,6 @@ private:
   glm::vec3 rotation;
 
   std::unique_ptr<UniformBuffer> transformUniform;
-
-  bool doRendering;
 
   void createDescriptorPool();
   void createDescriptorSets();

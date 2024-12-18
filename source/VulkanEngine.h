@@ -54,6 +54,9 @@ public:
 
   [[nodiscard]] bool sceneIsFocused() const;
 
+  void renderObject(const std::shared_ptr<RenderObject>& renderObject);
+  void renderLight(const std::shared_ptr<Light>& light);
+
 private:
   std::unique_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
@@ -72,10 +75,14 @@ private:
   std::shared_ptr<Framebuffer> framebuffer;
   std::shared_ptr<Framebuffer> offscreenFramebuffer;
 
-  std::vector<std::shared_ptr<Light>> lights;
-  std::vector<std::shared_ptr<RenderObject>> renderObjects;
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
+  std::vector<std::shared_ptr<RenderObject>> renderObjects;
+  std::vector<std::shared_ptr<Light>> lights;
+
+  std::vector<std::shared_ptr<RenderObject>> renderObjectsToRender;
+  std::vector<std::shared_ptr<Light>> lightsToRender;
+
 
   std::shared_ptr<Camera> camera;
 
@@ -104,6 +111,8 @@ private:
   void doRendering();
   void recreateSwapChain();
   void renderGuiScene(uint32_t imageIndex);
+
+  void createNewFrame();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 };

@@ -29,7 +29,6 @@ int main()
     const auto model = renderer.loadModel("assets/models/square.glb");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
-    object->enableRendering();
     object->setPosition({ 0, -5, 0 });
 
     std::vector<std::shared_ptr<Light>> lights;
@@ -46,6 +45,7 @@ int main()
 
     while (renderer.isActive())
     {
+      // Render GUI
       ImGui::Begin("Objects");
       displayObjectGui(object, 0);
       ImGui::End();
@@ -57,6 +57,16 @@ int main()
       }
       ImGui::End();
 
+
+      // Render Objects
+      renderer.renderObject(object);
+
+      for (const auto& light : lights)
+      {
+        renderer.renderLight(light);
+      }
+
+      // Render Frame
       renderer.render();
     }
   }

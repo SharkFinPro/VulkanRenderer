@@ -48,7 +48,7 @@ void VulkanEngine::render()
 
   doRendering();
 
-  imGuiInstance->createNewFrame();
+  createNewFrame();
 }
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
@@ -103,6 +103,16 @@ bool VulkanEngine::keyIsPressed(const int key) const
 bool VulkanEngine::sceneIsFocused() const
 {
   return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;
+}
+
+void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject)
+{
+  renderObjectsToRender.push_back(renderObject);
+}
+
+void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
+{
+  lightsToRender.push_back(light);
 }
 
 void VulkanEngine::initVulkan()
@@ -232,7 +242,7 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent, lights, renderObjects);
+    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent, lightsToRender, renderObjectsToRender);
 
     if (vulkanEngineOptions.DO_DOTS)
     {
@@ -251,7 +261,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
-      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent(), lights, renderObjects);
+      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent(), lightsToRender, renderObjectsToRender);
 
       if (vulkanEngineOptions.DO_DOTS)
       {
@@ -393,4 +403,12 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
               contentRegionAvailable);
 
   ImGui::End();
+}
+
+void VulkanEngine::createNewFrame()
+{
+  imGuiInstance->createNewFrame();
+
+  renderObjectsToRender.clear();
+  lightsToRender.clear();
 }

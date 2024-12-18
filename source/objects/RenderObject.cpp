@@ -18,8 +18,7 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
   : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
     position(0, 0, 0), scale(1, 1, 1), rotation(0, 0, 0),
-    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform))),
-    doRendering(false)
+    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
 {
   createDescriptorPool();
   createDescriptorSets();
@@ -32,11 +31,6 @@ RenderObject::~RenderObject()
 
 void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t currentFrame) const
 {
-  if (!doRendering)
-  {
-    return;
-  }
-
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   model->draw(commandBuffer);
@@ -44,11 +38,6 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
 
 void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const
 {
-  if (!doRendering)
-  {
-    return;
-  }
-
   auto projection = glm::perspective(glm::radians(45.0f),
                              static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
                              0.1f, 1000.0f);
@@ -150,14 +139,4 @@ glm::vec3 RenderObject::getScale() const
 glm::vec3 RenderObject::getRotation() const
 {
   return rotation;
-}
-
-void RenderObject::enableRendering()
-{
-  doRendering = true;
-}
-
-void RenderObject::disableRendering()
-{
-  doRendering = false;
 }
