@@ -360,7 +360,7 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
     return;
   }
 
-  ImGui::Begin("Scene");
+  ImGui::Begin(vulkanEngineOptions.SCENE_VIEW_NAME);
 
   isSceneFocused = ImGui::IsWindowFocused();
 

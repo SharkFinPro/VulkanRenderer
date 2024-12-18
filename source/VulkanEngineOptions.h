@@ -16,6 +16,8 @@ struct VulkanEngineOptions {
   bool DO_DOTS = false;
 
   bool USE_DOCKSPACE = true;
+
+  const char* SCENE_VIEW_NAME = "SceneView";
 };
 
 #endif //VULKANPROJECT_VULKANENGINEOPTIONS_H
