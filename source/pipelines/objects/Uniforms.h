@@ -25,9 +25,9 @@ struct alignas(16) LightUniform {
   float specular;
   float padding3;
 
-  void displayGui(const size_t lightNum)
+  void displayGui(const int lightNum)
   {
-    ImGui::PushID(static_cast<int>(lightNum));
+    ImGui::PushID(lightNum);
 
     if (ImGui::CollapsingHeader(("Light " + std::to_string(lightNum)).c_str()))
     {

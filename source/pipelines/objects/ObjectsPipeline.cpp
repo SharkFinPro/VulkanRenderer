@@ -139,7 +139,7 @@ void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
 void ObjectsPipeline::renderLightsGui()
 {
   ImGui::Begin("Lights");
-  for (size_t i = 0; i < lights.size(); i++)
+  for (int i = 0; i < lights.size(); i++)
   {
     lights[i].displayGui(i + 1);
   }
