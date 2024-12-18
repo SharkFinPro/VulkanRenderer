@@ -44,7 +44,7 @@ public:
   std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                                const std::shared_ptr<Texture>& specularMap,
-                                                               const std::shared_ptr<Model>&) const;
+                                                               const std::shared_ptr<Model>&);
 
   std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
 
@@ -72,9 +72,10 @@ private:
   std::shared_ptr<Framebuffer> framebuffer;
   std::shared_ptr<Framebuffer> offscreenFramebuffer;
 
+  std::vector<std::shared_ptr<Light>> lights;
+  std::vector<std::shared_ptr<RenderObject>> renderObjects;
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
-  std::vector<std::shared_ptr<Light>> lights;
 
   std::shared_ptr<Camera> camera;
 

@@ -24,13 +24,10 @@ public:
   VkDescriptorSetLayout& getLayout();
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera,
-              VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights);
-
-  void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
+              VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
+              const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
-  std::vector<std::shared_ptr<RenderObject>> renderObjects;
-
   VkDescriptorSetLayout globalDescriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
 

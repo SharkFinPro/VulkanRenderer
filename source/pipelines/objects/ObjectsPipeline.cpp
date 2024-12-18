@@ -46,7 +46,8 @@ VkDescriptorSetLayout& ObjectsPipeline::getLayout()
 
 void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
                              const std::shared_ptr<Camera>& camera, const VkExtent2D swapChainExtent,
-                             const std::vector<std::shared_ptr<Light>>& lights)
+                             const std::vector<std::shared_ptr<Light>>& lights,
+                             const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -76,17 +77,12 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
 
-  for (const auto& object : renderObjects)
+  for (const auto& object : objects)
   {
     object->updateUniformBuffer(currentFrame, swapChainExtent, camera);
 
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }
-}
-
-void ObjectsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& renderObject)
-{
-  renderObjects.push_back(renderObject);
 }
 
 void ObjectsPipeline::loadGraphicsShaders()

@@ -69,12 +69,13 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotat
 
 std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                              const std::shared_ptr<Texture>& specularMap,
-                                                             const std::shared_ptr<Model>& model) const
+                                                             const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
+  auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(),
+                                                     physicalDevice->getPhysicalDevice(),
                                                      objectsPipeline->getLayout(), texture, specularMap, model);
 
-  objectsPipeline->insertRenderObject(renderObject);
+  renderObjects.push_back(renderObject);
 
   return renderObject;
 }
@@ -84,7 +85,7 @@ std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const
 {
   auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
 
-  lights.emplace_back(light);
+  lights.push_back(light);
 
   return light;
 }
@@ -231,7 +232,7 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent, lights);
+    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent, lights, renderObjects);
 
     if (vulkanEngineOptions.DO_DOTS)
     {
@@ -250,7 +251,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
-      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent(), lights);
+      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent(), lights, renderObjects);
 
       if (vulkanEngineOptions.DO_DOTS)
       {
