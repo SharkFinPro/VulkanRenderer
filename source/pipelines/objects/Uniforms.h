@@ -6,6 +6,8 @@
 #include <string>
 #include <array>
 
+#include "glm/gtc/type_ptr.hpp"
+
 struct TransformUniform {
   alignas(16) glm::mat4 model;
   alignas(16) glm::mat4 view;
@@ -13,9 +15,9 @@ struct TransformUniform {
 };
 
 struct alignas(16) LightUniform {
-  std::array<float, 3> position;
+  glm::vec3 position;
   float padding1;
-  std::array<float, 3> color;
+  glm::vec3 color;
   float padding2;
 
   float ambient;
@@ -29,11 +31,11 @@ struct alignas(16) LightUniform {
 
     if (ImGui::CollapsingHeader(("Light " + std::to_string(lightNum)).c_str()))
     {
-      ImGui::ColorEdit3("Color", color.data());
+      ImGui::ColorEdit3("Color", value_ptr(color));
       ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
       ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
       ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
-      ImGui::SliderFloat3("Position", position.data(), -50.0f, 50.0f);
+      ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
       ImGui::Separator();
     }
 
