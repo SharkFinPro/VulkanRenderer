@@ -45,7 +45,7 @@ struct LightMetadataUniform {
   alignas(16) int numLights;
 };
 
-typedef Light* LightsUniform;
+using LightsUniform = Light*;
 
 struct CameraUniform {
   alignas(16) glm::vec3 position;
