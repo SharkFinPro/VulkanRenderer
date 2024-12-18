@@ -19,9 +19,19 @@ class Light {
 public:
   Light(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular);
 
-  void displayGui(int id);
-
   [[nodiscard]] LightUniform getUniform() const;
+
+  [[nodiscard]] glm::vec3 getPosition() const;
+  [[nodiscard]] glm::vec3 getColor() const;
+  [[nodiscard]] float getAmbient() const;
+  [[nodiscard]] float getDiffuse() const;
+  [[nodiscard]] float getSpecular() const;
+
+  void setPosition(glm::vec3 position);
+  void setColor(glm::vec3 color);
+  void setAmbient(float ambient);
+  void setDiffuse(float diffuse);
+  void setSpecular(float specular);
 
 private:
   glm::vec3 position;

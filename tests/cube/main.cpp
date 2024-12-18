@@ -1,8 +1,11 @@
 #include <iostream>
 #include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
-
 #include <imgui.h>
+#include <string>
+#include "glm/gtc/type_ptr.hpp"
+
+void displayLightGui(const std::shared_ptr<Light>& light, int id);
 
 int main()
 {
@@ -29,15 +32,18 @@ int main()
     glm::vec3 position = {0, -5, 0};
     object->setPosition(position);
 
-    renderer.createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
 
-    renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f);
+    std::vector<std::shared_ptr<Light>> lights;
 
-    renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f);
+    lights.push_back(renderer.createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
-    renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f);
+    lights.push_back(renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
 
-    renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f);
+    lights.push_back(renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+
+    lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
+
+    lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
     while (renderer.isActive())
     {
@@ -46,6 +52,13 @@ int main()
       ImGui::SliderFloat("x", &position.x, -50.0f, 50.0f);
       ImGui::SliderFloat("y", &position.y, -50.0f, 50.0f);
       ImGui::SliderFloat("z", &position.z, -50.0f, 50.0f);
+      ImGui::End();
+
+      ImGui::Begin("Lights");
+      for (int i = 0; i < lights.size(); i++)
+      {
+        displayLightGui(lights[i], i);
+      }
       ImGui::End();
 
       object->setPosition(position);
@@ -60,4 +73,33 @@ int main()
   }
 
   return EXIT_SUCCESS;
+}
+
+void displayLightGui(const std::shared_ptr<Light>& light, const int id)
+{
+  glm::vec3 position = light->getPosition();
+  glm::vec3 color = light->getColor();
+  float ambient = light->getAmbient();
+  float diffuse = light->getDiffuse();
+  float specular = light->getSpecular();
+
+  ImGui::PushID(id);
+
+  if (ImGui::CollapsingHeader(("Light " + std::to_string(id)).c_str()))
+  {
+    ImGui::ColorEdit3("Color", value_ptr(color));
+    ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
+    ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
+    ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
+    ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
+    ImGui::Separator();
+  }
+
+  ImGui::PopID();
+
+  light->setPosition(position);
+  light->setColor(color);
+  light->setAmbient(ambient);
+  light->setDiffuse(diffuse);
+  light->setSpecular(specular);
 }

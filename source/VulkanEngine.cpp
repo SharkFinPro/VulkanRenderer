@@ -297,13 +297,6 @@ void VulkanEngine::doRendering()
 
   renderGuiScene(imageIndex);
 
-  ImGui::Begin("Lights");
-  for (int i = 0; i < lights.size(); i++)
-  {
-    lights[i]->displayGui(i);
-  }
-  ImGui::End();
-
   logicalDevice->resetGraphicsFences(currentFrame);
 
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
