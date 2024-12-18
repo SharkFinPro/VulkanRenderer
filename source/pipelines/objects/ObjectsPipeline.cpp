@@ -93,7 +93,7 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 {
   const LightUniform light {
     .position = position,
-    .color = {color.x, color.y, color.z},
+    .color = color,
     .ambient = ambient,
     .diffuse = diffuse,
     .specular = specular
