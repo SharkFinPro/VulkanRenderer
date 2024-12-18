@@ -413,7 +413,7 @@ void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
   std::vector<LightUniform> lightUniforms;
   for (const auto& light : lights)
   {
-    lightUniforms.emplace_back(light->getUniform());
+    lightUniforms.push_back(light->getUniform());
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
