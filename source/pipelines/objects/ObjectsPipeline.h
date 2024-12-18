@@ -6,32 +6,27 @@
 #include <memory>
 #include <array>
 
-#include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 
 class RenderPass;
 class RenderObject;
 class Camera;
 class UniformBuffer;
+class Light;
 
 class ObjectsPipeline final : public GraphicsPipeline {
 public:
-  ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+  ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass);
   ~ObjectsPipeline() override;
 
   VkDescriptorSetLayout& getLayout();
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera,
-              VkExtent2D swapChainExtent);
-
-  void insertRenderObject(const std::shared_ptr<RenderObject>& renderObject);
-
-  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
+              VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
+              const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
-  std::vector<std::shared_ptr<RenderObject>> renderObjects;
-
   VkDescriptorSetLayout globalDescriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
 
@@ -42,9 +37,9 @@ private:
   std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
 
-  size_t lightsUniformBufferSize;
+  int prevNumLights = 0;
 
-  std::vector<Light> lights;
+  size_t lightsUniformBufferSize;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 
@@ -52,10 +47,6 @@ private:
 
   VkVertexInputBindingDescription vertexBindingDescription;
   std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
-
-  void updateLightUniforms(uint32_t currentFrame);
-
-  void renderLightsGui();
 
   void loadGraphicsShaders() override;
 
@@ -80,6 +71,8 @@ private:
   void createDescriptorSets();
 
   void createUniforms();
+
+  void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 };
 
 

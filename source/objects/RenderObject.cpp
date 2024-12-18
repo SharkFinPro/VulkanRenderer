@@ -10,8 +10,6 @@
 #include "Texture.h"
 #include "UniformBuffer.h"
 
-#include "../pipelines/objects/Uniforms.h"
-
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
@@ -20,8 +18,7 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
   : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
     position(0, 0, 0), scale(1, 1, 1), rotation(0, 0, 0),
-    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform))),
-    doRendering(false)
+    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
 {
   createDescriptorPool();
   createDescriptorSets();
@@ -34,11 +31,6 @@ RenderObject::~RenderObject()
 
 void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t currentFrame) const
 {
-  if (!doRendering)
-  {
-    return;
-  }
-
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   model->draw(commandBuffer);
@@ -46,18 +38,13 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
 
 void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const
 {
-  if (!doRendering)
-  {
-    return;
-  }
-
   auto projection = glm::perspective(glm::radians(45.0f),
                              static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
                              0.1f, 1000.0f);
   projection[1][1] *= -1;
 
   const TransformUniform transformUBO {
-    .model = glm::translate(glm::mat4(1.0f), position)
+    .model = translate(glm::mat4(1.0f), position)
       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0, 0, 1))
       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0, 1, 0))
       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x), glm::vec3(1, 0, 0))
@@ -139,12 +126,17 @@ void RenderObject::setRotation(const glm::vec3 rotation)
   this->rotation = rotation;
 }
 
-void RenderObject::enableRendering()
+glm::vec3 RenderObject::getPosition() const
 {
-  doRendering = true;
+  return position;
 }
 
-void RenderObject::disableRendering()
+glm::vec3 RenderObject::getScale() const
 {
-  doRendering = false;
+  return scale;
+}
+
+glm::vec3 RenderObject::getRotation() const
+{
+  return rotation;
 }

@@ -48,7 +48,7 @@ void VulkanEngine::render()
 
   doRendering();
 
-  imGuiInstance->createNewFrame();
+  createNewFrame();
 }
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
@@ -69,20 +69,25 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotat
 
 std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                              const std::shared_ptr<Texture>& specularMap,
-                                                             const std::shared_ptr<Model>& model) const
+                                                             const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
+  auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(),
+                                                     physicalDevice->getPhysicalDevice(),
                                                      objectsPipeline->getLayout(), texture, specularMap, model);
 
-  objectsPipeline->insertRenderObject(renderObject);
+  renderObjects.push_back(renderObject);
 
   return renderObject;
 }
 
-void VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                               const float diffuse, const float specular) const
+std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
+                               const float diffuse, const float specular)
 {
-  objectsPipeline->createLight(position, color, ambient, diffuse, specular);
+  auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
+
+  lights.push_back(light);
+
+  return light;
 }
 
 ImGuiContext* VulkanEngine::getImGuiContext()
@@ -98,6 +103,16 @@ bool VulkanEngine::keyIsPressed(const int key) const
 bool VulkanEngine::sceneIsFocused() const
 {
   return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;
+}
+
+void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject)
+{
+  renderObjectsToRender.push_back(renderObject);
+}
+
+void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
+{
+  lightsToRender.push_back(light);
 }
 
 void VulkanEngine::initVulkan()
@@ -227,7 +242,7 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent);
+    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent, lightsToRender, renderObjectsToRender);
 
     if (vulkanEngineOptions.DO_DOTS)
     {
@@ -246,7 +261,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
-      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
+      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent(), lightsToRender, renderObjectsToRender);
 
       if (vulkanEngineOptions.DO_DOTS)
       {
@@ -356,7 +371,7 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
     return;
   }
 
-  ImGui::Begin("Scene");
+  ImGui::Begin(vulkanEngineOptions.SCENE_VIEW_NAME);
 
   isSceneFocused = ImGui::IsWindowFocused();
 
@@ -388,4 +403,12 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
               contentRegionAvailable);
 
   ImGui::End();
+}
+
+void VulkanEngine::createNewFrame()
+{
+  imGuiInstance->createNewFrame();
+
+  renderObjectsToRender.clear();
+  lightsToRender.clear();
 }

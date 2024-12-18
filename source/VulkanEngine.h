@@ -25,6 +25,7 @@
 #include "objects/Texture.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
+#include "objects/Light.h"
 
 #include "VulkanEngineOptions.h"
 
@@ -43,15 +44,18 @@ public:
   std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                                const std::shared_ptr<Texture>& specularMap,
-                                                               const std::shared_ptr<Model>&) const;
+                                                               const std::shared_ptr<Model>&);
 
-  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f) const;
+  std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
 
   static ImGuiContext* getImGuiContext();
 
   [[nodiscard]] bool keyIsPressed(int key) const;
 
   [[nodiscard]] bool sceneIsFocused() const;
+
+  void renderObject(const std::shared_ptr<RenderObject>& renderObject);
+  void renderLight(const std::shared_ptr<Light>& light);
 
 private:
   std::unique_ptr<Instance> instance;
@@ -73,6 +77,12 @@ private:
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
+  std::vector<std::shared_ptr<RenderObject>> renderObjects;
+  std::vector<std::shared_ptr<Light>> lights;
+
+  std::vector<std::shared_ptr<RenderObject>> renderObjectsToRender;
+  std::vector<std::shared_ptr<Light>> lightsToRender;
+
 
   std::shared_ptr<Camera> camera;
 
@@ -101,6 +111,8 @@ private:
   void doRendering();
   void recreateSwapChain();
   void renderGuiScene(uint32_t imageIndex);
+
+  void createNewFrame();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 };

@@ -23,10 +23,14 @@ int main()
     object->setPosition({ 0, -1.0f, 5.0f });
     object->setScale(2.0f);
 
-    renderer.createLight({0, 3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
+    const auto light = renderer.createLight({0, 3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
 
     while (renderer.isActive())
     {
+      renderer.renderLight(light);
+
+      renderer.renderObject(object);
+
       renderer.render();
     }
   }
