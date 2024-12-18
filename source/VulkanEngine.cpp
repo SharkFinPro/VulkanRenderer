@@ -79,10 +79,14 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
   return renderObject;
 }
 
-void VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                               const float diffuse, const float specular) const
+std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
+                               const float diffuse, const float specular)
 {
-  objectsPipeline->createLight(position, color, ambient, diffuse, specular);
+  auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
+
+  lights.emplace_back(light);
+
+  return light;
 }
 
 ImGuiContext* VulkanEngine::getImGuiContext()
@@ -227,7 +231,7 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent);
+    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent, lights);
 
     if (vulkanEngineOptions.DO_DOTS)
     {
@@ -246,7 +250,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
-      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent());
+      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent(), lights);
 
       if (vulkanEngineOptions.DO_DOTS)
       {
@@ -292,6 +296,13 @@ void VulkanEngine::doRendering()
   }
 
   renderGuiScene(imageIndex);
+
+  ImGui::Begin("Lights");
+  for (int i = 0; i < lights.size(); i++)
+  {
+    lights[i]->displayGui(i);
+  }
+  ImGui::End();
 
   logicalDevice->resetGraphicsFences(currentFrame);
 

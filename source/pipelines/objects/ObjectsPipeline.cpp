@@ -1,6 +1,5 @@
 #include "ObjectsPipeline.h"
 #include <stdexcept>
-#include <utility>
 
 #include "../Vertex.h"
 #include "../RenderPass.h"
@@ -9,15 +8,16 @@
 #include "../../objects/RenderObject.h"
 #include "../../components/Camera.h"
 #include "../../objects/UniformBuffer.h"
+#include "../../objects/Light.h"
 
 #include <imgui.h>
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
-ObjectsPipeline::ObjectsPipeline(std::shared_ptr<PhysicalDevice> physicalDevice,
-                                 std::shared_ptr<LogicalDevice> logicalDevice,
+ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass)
-  : GraphicsPipeline(std::move(physicalDevice), std::move(logicalDevice))
+  : GraphicsPipeline(physicalDevice, logicalDevice)
 {
   createUniforms();
 
@@ -45,7 +45,8 @@ VkDescriptorSetLayout& ObjectsPipeline::getLayout()
 }
 
 void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                             const std::shared_ptr<Camera>& camera, const VkExtent2D swapChainExtent)
+                             const std::shared_ptr<Camera>& camera, const VkExtent2D swapChainExtent,
+                             const std::vector<std::shared_ptr<Light>>& lights)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -65,12 +66,12 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   };
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  updateLightUniforms(currentFrame);
-
   const CameraUniform cameraUBO {
     .position = camera->getPosition()
   };
   cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  updateLightUniforms(lights, currentFrame);
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
@@ -86,64 +87,6 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 void ObjectsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& renderObject)
 {
   renderObjects.push_back(renderObject);
-}
-
-void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                                  const float diffuse, const float specular)
-{
-  const LightUniform light {
-    .position = position,
-    .color = color,
-    .ambient = ambient,
-    .diffuse = diffuse,
-    .specular = specular
-  };
-
-  lights.push_back(light);
-
-  const LightMetadataUniform lightMetadataUBO {
-    .numLights = static_cast<int>(lights.size())
-  };
-
-  lightsUniform.reset();
-
-  lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
-
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
-                                                  lightsUniformBufferSize);
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
-
-    auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
-    descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-
-    vkUpdateDescriptorSets(this->logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
-  }
-}
-
-void ObjectsPipeline::updateLightUniforms(const uint32_t currentFrame)
-{
-  if (lights.empty())
-  {
-    return;
-  }
-
-  renderLightsGui();
-
-  lightsUniform->update(currentFrame, lights.data(), lightsUniformBufferSize);
-}
-
-void ObjectsPipeline::renderLightsGui()
-{
-  ImGui::Begin("Lights");
-  for (int i = 0; i < lights.size(); i++)
-  {
-    lights[i].displayGui(i + 1);
-  }
-  ImGui::End();
 }
 
 void ObjectsPipeline::loadGraphicsShaders()
@@ -429,4 +372,49 @@ void ObjectsPipeline::createUniforms()
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                   physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
+}
+
+void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
+{
+  if (lights.empty())
+  {
+    return;
+  }
+
+  if (prevNumLights != lights.size())
+  {
+    logicalDevice->waitIdle();
+
+    const LightMetadataUniform lightMetadataUBO {
+      .numLights = static_cast<int>(lights.size())
+    };
+
+    lightsUniform.reset();
+
+    lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
+
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
+                                                    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                    lightsUniformBufferSize);
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+
+      auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
+      descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+      vkUpdateDescriptorSets(this->logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
+    }
+
+    prevNumLights = static_cast<int>(lights.size());
+  }
+
+  std::vector<LightUniform> lightUniforms(lights.size());
+  for (const auto& light : lights)
+  {
+    lightUniforms.emplace_back(light->getUniform());
+  }
+
+  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
 }

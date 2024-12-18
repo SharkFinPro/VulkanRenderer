@@ -10,8 +10,6 @@
 #include "Texture.h"
 #include "UniformBuffer.h"
 
-#include "../pipelines/objects/Uniforms.h"
-
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
@@ -57,7 +55,7 @@ void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExte
   projection[1][1] *= -1;
 
   const TransformUniform transformUBO {
-    .model = glm::translate(glm::mat4(1.0f), position)
+    .model = translate(glm::mat4(1.0f), position)
       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0, 0, 1))
       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0, 1, 0))
       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x), glm::vec3(1, 0, 0))

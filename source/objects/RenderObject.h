@@ -11,6 +11,12 @@ class Texture;
 class Camera;
 class UniformBuffer;
 
+struct TransformUniform {
+  alignas(16) glm::mat4 model;
+  alignas(16) glm::mat4 view;
+  alignas(16) glm::mat4 proj;
+};
+
 class RenderObject {
 public:
   RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkDescriptorSetLayout& descriptorSetLayout,

@@ -25,6 +25,7 @@
 #include "objects/Texture.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
+#include "objects/Light.h"
 
 #include "VulkanEngineOptions.h"
 
@@ -45,7 +46,7 @@ public:
                                                                const std::shared_ptr<Texture>& specularMap,
                                                                const std::shared_ptr<Model>&) const;
 
-  void createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f) const;
+  std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
 
   static ImGuiContext* getImGuiContext();
 
@@ -73,6 +74,7 @@ private:
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
+  std::vector<std::shared_ptr<Light>> lights;
 
   std::shared_ptr<Camera> camera;
 
