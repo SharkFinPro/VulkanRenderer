@@ -410,7 +410,7 @@ void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
     prevNumLights = static_cast<int>(lights.size());
   }
 
-  std::vector<LightUniform> lightUniforms(lights.size());
+  std::vector<LightUniform> lightUniforms;
   for (const auto& light : lights)
   {
     lightUniforms.emplace_back(light->getUniform());
