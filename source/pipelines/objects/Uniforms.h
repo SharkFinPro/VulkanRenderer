@@ -12,7 +12,7 @@ struct TransformUniform {
   alignas(16) glm::mat4 proj;
 };
 
-struct alignas(16) Light {
+struct alignas(16) LightUniform {
   std::array<float, 3> position;
   float padding1;
   std::array<float, 3> color;
@@ -44,8 +44,6 @@ struct alignas(16) Light {
 struct LightMetadataUniform {
   alignas(16) int numLights;
 };
-
-using LightsUniform = Light*;
 
 struct CameraUniform {
   alignas(16) glm::vec3 position;

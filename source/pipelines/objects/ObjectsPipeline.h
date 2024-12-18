@@ -44,7 +44,7 @@ private:
 
   size_t lightsUniformBufferSize;
 
-  std::vector<Light> lights;
+  std::vector<LightUniform> lights;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 

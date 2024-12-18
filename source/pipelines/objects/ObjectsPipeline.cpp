@@ -91,7 +91,7 @@ void ObjectsPipeline::insertRenderObject(const std::shared_ptr<RenderObject>& re
 void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
                                   const float diffuse, const float specular)
 {
-  const Light light {
+  const LightUniform light {
     .position = {position.x, position.y, position.z},
     .color = {color.x, color.y, color.z},
     .ambient = ambient,
@@ -107,7 +107,7 @@ void ObjectsPipeline::createLight(const glm::vec3 position, const glm::vec3 colo
 
   lightsUniform.reset();
 
-  lightsUniformBufferSize = sizeof(Light) * lights.size();
+  lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                   physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
@@ -424,7 +424,7 @@ void ObjectsPipeline::createUniforms()
 
   lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                   physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
-                                                  sizeof(LightsUniform));
+                                                  sizeof(LightUniform));
 
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                   physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
