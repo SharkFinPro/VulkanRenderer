@@ -25,7 +25,7 @@ public:
 
   void draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, uint32_t currentFrame) const;
 
-  void updateUniformBuffer(uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const;
+  void updateUniformBuffer(uint32_t currentFrame, const VkExtent2D& swapChainExtent, const glm::mat4& viewMatrix) const;
 
   void setPosition(glm::vec3 position);
   void setScale(glm::vec3 scale);

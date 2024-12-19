@@ -45,8 +45,8 @@ VkDescriptorSetLayout& ObjectsPipeline::getLayout()
 }
 
 void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                             const std::shared_ptr<Camera>& camera, const VkExtent2D swapChainExtent,
-                             const std::vector<std::shared_ptr<Light>>& lights,
+                             const glm::vec3 viewPosition, const glm::mat4& viewMatrix,
+                             const VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
                              const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
@@ -68,7 +68,7 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   const CameraUniform cameraUBO {
-    .position = camera->getPosition()
+    .position = viewPosition
   };
   cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
 
@@ -79,7 +79,7 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
   for (const auto& object : objects)
   {
-    object->updateUniformBuffer(currentFrame, swapChainExtent, camera);
+    object->updateUniformBuffer(currentFrame, swapChainExtent, viewMatrix);
 
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }

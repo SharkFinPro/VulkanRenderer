@@ -36,7 +36,8 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
   model->draw(commandBuffer);
 }
 
-void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent, const std::shared_ptr<Camera>& camera) const
+void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent,
+                                       const glm::mat4& viewMatrix) const
 {
   auto projection = glm::perspective(glm::radians(45.0f),
                              static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
@@ -45,11 +46,11 @@ void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExte
 
   const TransformUniform transformUBO {
     .model = translate(glm::mat4(1.0f), position)
-      * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0, 0, 1))
-      * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0, 1, 0))
-      * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x), glm::vec3(1, 0, 0))
-      * glm::scale(glm::mat4(1.0f), scale),
-    .view = camera->getViewMatrix(),
+                       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0, 0, 1))
+                       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0, 1, 0))
+                       * glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x), glm::vec3(1, 0, 0))
+                       * glm::scale(glm::mat4(1.0f), scale),
+    .view = viewMatrix,
     .proj = projection
   };
 

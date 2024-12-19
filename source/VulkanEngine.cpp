@@ -42,6 +42,7 @@ void VulkanEngine::render()
   if (sceneIsFocused())
   {
     camera->processInput(window);
+    setCameraParameters(camera->getPosition(), camera->getViewMatrix());
   }
 
   doComputing();
@@ -115,6 +116,22 @@ void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
   lightsToRender.push_back(light);
 }
 
+void VulkanEngine::enableCamera()
+{
+  useCamera = true;
+}
+
+void VulkanEngine::disableCamera()
+{
+  useCamera = false;
+}
+
+void VulkanEngine::setCameraParameters(const glm::vec3 position, const glm::mat4& viewMatrix)
+{
+  viewPosition = position;
+  this->viewMatrix = viewMatrix;
+}
+
 void VulkanEngine::initVulkan()
 {
   instance = std::make_unique<Instance>();
@@ -140,10 +157,13 @@ void VulkanEngine::initVulkan()
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples(),
+                                            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                            VK_FORMAT_B8G8R8A8_UNORM, physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(),
+                                                     physicalDevice->getPhysicalDevice(), VK_FORMAT_B8G8R8A8_UNORM,
+                                                     physicalDevice->getMsaaSamples(),
+                                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
 
@@ -158,11 +178,13 @@ void VulkanEngine::initVulkan()
   imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
                                                   renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
+                                              true, swapChain->getExtent());
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, swapChain->getExtent());
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool,
+                                                         renderPass, false, swapChain->getExtent());
   }
 }
 
@@ -221,7 +243,8 @@ void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, con
 
 void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const
 {
-  recordCommandBuffer(commandBuffer, currentFrame, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
+  recordCommandBuffer(commandBuffer, currentFrame, [this](const VkCommandBuffer& cmdBuffer,
+                      const uint32_t imgIndex)
   {
     if (vulkanEngineOptions.DO_DOTS)
     {
@@ -232,7 +255,8 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
 
 void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
-  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
+  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer,
+                      const uint32_t imgIndex)
   {
     if (!vulkanEngineOptions.USE_DOCKSPACE ||
         offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
@@ -242,7 +266,8 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, camera, offscreenViewportExtent, lightsToRender, renderObjectsToRender);
+    objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+                            renderObjectsToRender);
 
     if (vulkanEngineOptions.DO_DOTS)
     {
@@ -255,13 +280,15 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
 void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
-  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer, const uint32_t imgIndex)
+  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer,
+                      const uint32_t imgIndex)
   {
     renderPass->begin(framebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
-      objectsPipeline->render(cmdBuffer, currentFrame, camera, swapChain->getExtent(), lightsToRender, renderObjectsToRender);
+      objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, swapChain->getExtent(), lightsToRender,
+                              renderObjectsToRender);
 
       if (vulkanEngineOptions.DO_DOTS)
       {
@@ -349,7 +376,8 @@ void VulkanEngine::recreateSwapChain()
   swapChain.reset();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, true, swapChain->getExtent());
+  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
+                                              true, swapChain->getExtent());
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -360,7 +388,8 @@ void VulkanEngine::recreateSwapChain()
 
     offscreenFramebuffer.reset();
 
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool,
+                                                         renderPass, false, offscreenViewportExtent);
   }
 }
 
@@ -396,7 +425,8 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
     logicalDevice->waitIdle();
     offscreenFramebuffer.reset();
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass, false, offscreenViewportExtent);
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool,
+                                                         renderPass, false, offscreenViewportExtent);
   }
 
   ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex)),

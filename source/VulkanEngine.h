@@ -57,6 +57,11 @@ public:
   void renderObject(const std::shared_ptr<RenderObject>& renderObject);
   void renderLight(const std::shared_ptr<Light>& light);
 
+  void enableCamera();
+  void disableCamera();
+
+  void setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix);
+
 private:
   std::unique_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
@@ -98,6 +103,10 @@ private:
   bool isSceneFocused;
 
   VkExtent2D offscreenViewportExtent;
+
+  bool useCamera;
+  glm::vec3 viewPosition;
+  glm::mat4 viewMatrix;
 
   void initVulkan();
   void createCommandPool();
