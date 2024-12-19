@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include <array>
-
+#include <glm/glm.hpp>
 #include "../GraphicsPipeline.h"
 
 class RenderPass;
@@ -22,8 +22,9 @@ public:
 
   VkDescriptorSetLayout& getLayout();
 
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, const std::shared_ptr<Camera>& camera,
-              VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
+  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
+              const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
+              const std::vector<std::shared_ptr<Light>>& lights,
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:

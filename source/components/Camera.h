@@ -1,5 +1,5 @@
-#ifndef OPENGLPROJECT_CAMERA_H
-#define OPENGLPROJECT_CAMERA_H
+#ifndef VULKANPROJECT_CAMERA_H
+#define VULKANPROJECT_CAMERA_H
 
 #include "Window.h"
 #include <glm/glm.hpp>
@@ -19,20 +19,26 @@ public:
   void processInput(const std::shared_ptr<Window>& window);
 
 private:
-  glm::vec3 position{};
+  glm::vec3 position;
+  glm::vec3 direction;
 
-  glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f);
-  glm::vec3 pDirection = glm::vec3(0.0f);
+  struct SpeedSettings {
+    float speed;
+    float cameraSpeed;
+    float scrollSpeed;
+    float swivelSpeed;
+  } speedSettings;
 
-  float speed;
-  float cameraSpeed;
-  float scrollSpeed;
-  float swivelSpeed;
-
-  float pitch = 0.0f;
-  float yaw = 90.0f;
+  struct Rotation {
+    float pitch;
+    float yaw;
+  } rotation;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
+
+  void handleMovement(const std::shared_ptr<Window>& window);
+  void handleRotation(const std::shared_ptr<Window>& window);
+  void handleZoom(const std::shared_ptr<Window>& window);
 };
 
-#endif //OPENGLPROJECT_CAMERA_H
+#endif //VULKANPROJECT_CAMERA_H
