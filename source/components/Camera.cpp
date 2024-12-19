@@ -41,28 +41,9 @@ void Camera::setSpeed(const float cameraSpeed)
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
 {
-  if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
-  {
-    double mx, my, omx, omy;
-    window->getCursorPos(mx, my);
-    window->getPreviousCursorPos(omx, omy);
+  handleRotation(window);
 
-    const auto deltaMX = static_cast<float>(mx - omx) * speedSettings.swivelSpeed;
-    const auto deltaMY = static_cast<float>(my - omy) * speedSettings.swivelSpeed;
-
-    rotation.yaw += deltaMX;
-    rotation.pitch -= deltaMY;
-
-    rotation.pitch = std::clamp(rotation.pitch, -89.9f, 89.9f);
-  }
-
-  direction = glm::normalize(glm::vec3(
-    std::cos(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch)),
-    std::sin(glm::radians(rotation.pitch)),
-    std::sin(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch))
-  ));
-
-  position += static_cast<float>(window->getScroll()) * speedSettings.scrollSpeed * direction;
+  handleZoom(window);
 
   handleMovement(window);
 }
@@ -101,4 +82,33 @@ void Camera::handleMovement(const std::shared_ptr<Window>& window)
   {
     position -= speedSettings.cameraSpeed * UP;
   }
+}
+
+void Camera::handleRotation(const std::shared_ptr<Window>& window)
+{
+  if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
+  {
+    double mx, my, omx, omy;
+    window->getCursorPos(mx, my);
+    window->getPreviousCursorPos(omx, omy);
+
+    const auto deltaMX = static_cast<float>(mx - omx) * speedSettings.swivelSpeed;
+    const auto deltaMY = static_cast<float>(my - omy) * speedSettings.swivelSpeed;
+
+    rotation.yaw += deltaMX;
+    rotation.pitch -= deltaMY;
+
+    rotation.pitch = std::clamp(rotation.pitch, -89.9f, 89.9f);
+  }
+
+  direction = glm::normalize(glm::vec3(
+    std::cos(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch)),
+    std::sin(glm::radians(rotation.pitch)),
+    std::sin(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch))
+  ));
+}
+
+void Camera::handleZoom(const std::shared_ptr<Window>& window)
+{
+  position += static_cast<float>(window->getScroll()) * speedSettings.scrollSpeed * direction;
 }

@@ -37,6 +37,8 @@ private:
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 
   void handleMovement(const std::shared_ptr<Window>& window);
+  void handleRotation(const std::shared_ptr<Window>& window);
+  void handleZoom(const std::shared_ptr<Window>& window);
 };
 
 #endif //VULKANPROJECT_CAMERA_H
