@@ -6,8 +6,18 @@
 constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(const glm::vec3 pos)
-  : position(pos), direction(0, 0, -1), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0), pitch(0),
-    yaw(90), previousTime(std::chrono::steady_clock::now())
+  : position(pos), direction(0, 0, -1),
+    speedSettings {
+      .speed = 0,
+      .cameraSpeed = 0,
+      .scrollSpeed = 0,
+      .swivelSpeed = 0
+    },
+    rotation {
+      .pitch = 0,
+      .yaw = 90
+    },
+    previousTime(std::chrono::steady_clock::now())
 {}
 
 glm::mat4 Camera::getViewMatrix() const
@@ -22,11 +32,11 @@ glm::vec3 Camera::getPosition() const
 
 void Camera::setSpeed(const float cameraSpeed)
 {
-  speed = cameraSpeed * 50.0f;
+  speedSettings.speed = cameraSpeed * 50.0f;
 
-  this->cameraSpeed = speed * 0.005f;
-  scrollSpeed = speed * 0.25f;
-  swivelSpeed = speed * 0.005f;
+  speedSettings.cameraSpeed = speedSettings.speed * 0.005f;
+  speedSettings.scrollSpeed = speedSettings.speed * 0.25f;
+  speedSettings.swivelSpeed = speedSettings.speed * 0.005f;
 }
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
@@ -37,53 +47,58 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     window->getCursorPos(mx, my);
     window->getPreviousCursorPos(omx, omy);
 
-    const auto deltaMX = static_cast<float>(mx - omx) * swivelSpeed;
-    const auto deltaMY = static_cast<float>(my - omy) * swivelSpeed;
+    const auto deltaMX = static_cast<float>(mx - omx) * speedSettings.swivelSpeed;
+    const auto deltaMY = static_cast<float>(my - omy) * speedSettings.swivelSpeed;
 
-    yaw += deltaMX;
-    pitch -= deltaMY;
+    rotation.yaw += deltaMX;
+    rotation.pitch -= deltaMY;
 
-    pitch = std::clamp(pitch, -89.9f, 89.9f);
+    rotation.pitch = std::clamp(rotation.pitch, -89.9f, 89.9f);
   }
 
   direction = glm::normalize(glm::vec3(
-    std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
-    std::sin(glm::radians(pitch)),
-    std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch))
+    std::cos(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch)),
+    std::sin(glm::radians(rotation.pitch)),
+    std::sin(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch))
   ));
 
+  position += static_cast<float>(window->getScroll()) * speedSettings.scrollSpeed * direction;
+
+  handleMovement(window);
+}
+
+void Camera::handleMovement(const std::shared_ptr<Window>& window)
+{
   const auto pDirection = normalize(glm::vec3(
-    -std::sin(glm::radians(yaw)),
+    -std::sin(glm::radians(rotation.yaw)),
     0.0f,
-    std::cos(glm::radians(yaw))
+    std::cos(glm::radians(rotation.yaw))
   ));
-
-  position += static_cast<float>(window->getScroll()) * scrollSpeed * direction;
 
   if (window->keyIsPressed(GLFW_KEY_W))
   {
-    position += cameraSpeed * direction;
+    position += speedSettings.cameraSpeed * direction;
   }
   if (window->keyIsPressed(GLFW_KEY_S))
   {
-    position -= cameraSpeed * direction;
+    position -= speedSettings.cameraSpeed * direction;
   }
 
   if (window->keyIsPressed(GLFW_KEY_A))
   {
-    position -= cameraSpeed * pDirection;
+    position -= speedSettings.cameraSpeed * pDirection;
   }
   if (window->keyIsPressed(GLFW_KEY_D))
   {
-    position += cameraSpeed * pDirection;
+    position += speedSettings.cameraSpeed * pDirection;
   }
 
   if (window->keyIsPressed(GLFW_KEY_SPACE))
   {
-    position += cameraSpeed * UP;
+    position += speedSettings.cameraSpeed * UP;
   }
   if (window->keyIsPressed(GLFW_KEY_LEFT_SHIFT))
   {
-    position -= cameraSpeed * UP;
+    position -= speedSettings.cameraSpeed * UP;
   }
 }

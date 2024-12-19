@@ -22,15 +22,21 @@ private:
   glm::vec3 position;
   glm::vec3 direction;
 
-  float speed;
-  float cameraSpeed;
-  float scrollSpeed;
-  float swivelSpeed;
+  struct SpeedSettings {
+    float speed;
+    float cameraSpeed;
+    float scrollSpeed;
+    float swivelSpeed;
+  } speedSettings;
 
-  float pitch;
-  float yaw;
+  struct Rotation {
+    float pitch;
+    float yaw;
+  } rotation;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
+
+  void handleMovement(const std::shared_ptr<Window>& window);
 };
 
 #endif //VULKANPROJECT_CAMERA_H
