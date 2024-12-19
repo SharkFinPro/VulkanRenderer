@@ -101,7 +101,7 @@ void Camera::handleRotation(const std::shared_ptr<Window>& window)
     rotation.pitch = std::clamp(rotation.pitch, -89.9f, 89.9f);
   }
 
-  direction = glm::normalize(glm::vec3(
+  direction = normalize(glm::vec3(
     std::cos(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch)),
     std::sin(glm::radians(rotation.pitch)),
     std::sin(glm::radians(rotation.yaw)) * std::cos(glm::radians(rotation.pitch))
