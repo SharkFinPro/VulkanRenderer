@@ -6,12 +6,13 @@
 constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(const glm::vec3 pos)
-  : position(pos), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0), previousTime(std::chrono::steady_clock::now())
+  : position(pos), direction(0, 0, -1), speed(0), cameraSpeed(0), scrollSpeed(0), swivelSpeed(0), pitch(0),
+    yaw(90), previousTime(std::chrono::steady_clock::now())
 {}
 
 glm::mat4 Camera::getViewMatrix() const
 {
-  return glm::lookAt(position, position + direction, UP);
+  return lookAt(position, position + direction, UP);
 }
 
 glm::vec3 Camera::getPosition() const
@@ -51,10 +52,10 @@ void Camera::processInput(const std::shared_ptr<Window>& window)
     std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch))
   ));
 
-  pDirection = glm::normalize(glm::vec3(
-    pDirection.x = -std::sin(glm::radians(yaw)),
+  const auto pDirection = normalize(glm::vec3(
+    -std::sin(glm::radians(yaw)),
     0.0f,
-    pDirection.z = std::cos(glm::radians(yaw))
+    std::cos(glm::radians(yaw))
   ));
 
   position += static_cast<float>(window->getScroll()) * scrollSpeed * direction;

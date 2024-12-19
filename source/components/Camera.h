@@ -19,18 +19,16 @@ public:
   void processInput(const std::shared_ptr<Window>& window);
 
 private:
-  glm::vec3 position{};
-
-  glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f);
-  glm::vec3 pDirection = glm::vec3(0.0f);
+  glm::vec3 position;
+  glm::vec3 direction;
 
   float speed;
   float cameraSpeed;
   float scrollSpeed;
   float swivelSpeed;
 
-  float pitch = 0.0f;
-  float yaw = 90.0f;
+  float pitch;
+  float yaw;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 };
