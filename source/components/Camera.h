@@ -1,5 +1,5 @@
-#ifndef OPENGLPROJECT_CAMERA_H
-#define OPENGLPROJECT_CAMERA_H
+#ifndef VULKANPROJECT_CAMERA_H
+#define VULKANPROJECT_CAMERA_H
 
 #include "Window.h"
 #include <glm/glm.hpp>
@@ -33,4 +33,4 @@ private:
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 };
 
-#endif //OPENGLPROJECT_CAMERA_H
+#endif //VULKANPROJECT_CAMERA_H
