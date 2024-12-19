@@ -39,7 +39,7 @@ void VulkanEngine::render()
 {
   window->update();
 
-  if (sceneIsFocused())
+  if (sceneIsFocused() && useCamera)
   {
     camera->processInput(window);
     setCameraParameters(camera->getPosition(), camera->getViewMatrix());
