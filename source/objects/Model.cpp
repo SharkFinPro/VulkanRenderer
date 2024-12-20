@@ -9,7 +9,7 @@
 #include "glm/ext/matrix_transform.hpp"
 
 Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-             const VkCommandPool& commandPool, const char* path, glm::vec3 rotation)
+             const VkCommandPool& commandPool, const char* path, const glm::vec3 rotation)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
   loadModel(path, rotation);
