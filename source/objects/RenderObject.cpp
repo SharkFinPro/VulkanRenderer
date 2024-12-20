@@ -46,7 +46,7 @@ void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExte
 
   const TransformUniform transformUBO {
     .model = glm::translate(glm::mat4(1.0f), position)
-             * glm::mat4(glm::normalize(orientation))
+             * glm::mat4(orientation)
              * glm::scale(glm::mat4(1.0f), scale),
     .view = viewMatrix,
     .proj = projection
@@ -127,7 +127,7 @@ void RenderObject::setOrientationEuler(const glm::vec3 orientation)
 
 void RenderObject::setOrientationQuat(const glm::quat orientation)
 {
-  this->orientation = orientation;
+  this->orientation = glm::normalize(orientation);
 }
 
 glm::vec3 RenderObject::getPosition() const
