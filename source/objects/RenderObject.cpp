@@ -17,7 +17,7 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
                            std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)
   : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
-    position(0, 0, 0), scale(1, 1, 1), orientation(0, 0, 0, 1),
+    position(0, 0, 0), scale(1, 1, 1), orientation(1, 0, 0, 0),
     transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
 {
   createDescriptorPool();
