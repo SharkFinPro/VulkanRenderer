@@ -36,23 +36,60 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
   model->draw(commandBuffer);
 }
 
-void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& swapChainExtent,
+void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& extent,
                                        const glm::mat4& viewMatrix) const
 {
-  auto projection = glm::perspective(glm::radians(45.0f),
-                             static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
-                             0.1f, 1000.0f);
-  projection[1][1] *= -1;
-
   const TransformUniform transformUBO {
-    .model = glm::translate(glm::mat4(1.0f), position)
-             * glm::mat4(orientation)
-             * glm::scale(glm::mat4(1.0f), scale),
+    .model = createModelMatrix(),
     .view = viewMatrix,
-    .proj = projection
+    .proj = createProjectionMatrix(extent)
   };
 
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
+}
+
+void RenderObject::setPosition(const glm::vec3 position)
+{
+  this->position = position;
+}
+
+void RenderObject::setScale(const glm::vec3 scale)
+{
+  this->scale = scale;
+}
+
+void RenderObject::setScale(const float scale)
+{
+  this->scale = glm::vec3(scale);
+}
+
+void RenderObject::setOrientationEuler(const glm::vec3 orientation)
+{
+  this->orientation = glm::quat(glm::radians(orientation));
+}
+
+void RenderObject::setOrientationQuat(const glm::quat orientation)
+{
+  this->orientation = glm::normalize(orientation);
+}
+
+glm::vec3 RenderObject::getPosition() const
+{
+  return position;
+}
+
+glm::vec3 RenderObject::getScale() const
+{
+  return scale;
+}
+
+glm::vec3 RenderObject::getOrientationEuler() const
+{
+  return glm::degrees(glm::eulerAngles(orientation));
+}
+glm::quat RenderObject::getOrientationQuat() const
+{
+  return orientation;
 }
 
 void RenderObject::createDescriptorPool()
@@ -105,47 +142,23 @@ void RenderObject::createDescriptorSets()
   }
 }
 
-void RenderObject::setPosition(const glm::vec3 position)
+glm::mat4 RenderObject::createModelMatrix() const
 {
-  this->position = position;
+  const glm::mat4 model = glm::translate(glm::mat4(1.0f), position)
+                          * glm::mat4(orientation)
+                          * glm::scale(glm::mat4(1.0f), scale);
+
+  return model;
 }
 
-void RenderObject::setScale(const glm::vec3 scale)
+glm::mat4 RenderObject::createProjectionMatrix(const VkExtent2D& extent)
 {
-  this->scale = scale;
-}
+  glm::mat4 projection = glm::perspective(glm::radians(45.0f),
+                         static_cast<float>(extent.width) / static_cast<float>(extent.height),
+                         0.1f, 1000.0f);
 
-void RenderObject::setScale(float scale)
-{
-  this->scale = { scale, scale, scale };
-}
+  projection[1][1] *= -1;
 
-void RenderObject::setOrientationEuler(const glm::vec3 orientation)
-{
-  this->orientation = glm::quat(glm::radians(orientation));
-}
-
-void RenderObject::setOrientationQuat(const glm::quat orientation)
-{
-  this->orientation = glm::normalize(orientation);
-}
-
-glm::vec3 RenderObject::getPosition() const
-{
-  return position;
-}
-
-glm::vec3 RenderObject::getScale() const
-{
-  return scale;
-}
-
-glm::vec3 RenderObject::getOrientationEuler() const
-{
-  return glm::degrees(glm::eulerAngles(orientation));
-}
-glm::quat RenderObject::getOrientationQuat() const
-{
-  return orientation;
+  return projection;
 }
 
