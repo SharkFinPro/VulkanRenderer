@@ -27,7 +27,7 @@ Model::~Model()
   vkFreeMemory(logicalDevice->getDevice(), vertexBufferMemory, nullptr);
 }
 
-void Model::loadModel(const char* path, glm::vec3 rotation)
+void Model::loadModel(const char* path, const glm::vec3 rotation)
 {
   /* Load model with assimp */
   Assimp::Importer importer;
