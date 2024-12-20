@@ -87,6 +87,7 @@ glm::vec3 RenderObject::getOrientationEuler() const
 {
   return glm::degrees(glm::eulerAngles(orientation));
 }
+
 glm::quat RenderObject::getOrientationQuat() const
 {
   return orientation;
