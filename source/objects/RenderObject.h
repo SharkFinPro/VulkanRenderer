@@ -2,8 +2,9 @@
 #define VULKANPROJECT_RENDEROBJECT_H
 
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <vector>
 #include <memory>
 
 class Model;
@@ -25,16 +26,18 @@ public:
 
   void draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, uint32_t currentFrame) const;
 
-  void updateUniformBuffer(uint32_t currentFrame, const VkExtent2D& swapChainExtent, const glm::mat4& viewMatrix) const;
+  void updateUniformBuffer(uint32_t currentFrame, const VkExtent2D& extent, const glm::mat4& viewMatrix) const;
 
   void setPosition(glm::vec3 position);
   void setScale(glm::vec3 scale);
   void setScale(float scale);
-  void setRotation(glm::vec3 rotation);
+  void setOrientationEuler(glm::vec3 orientation);
+  void setOrientationQuat(glm::quat orientation);
 
   [[nodiscard]] glm::vec3 getPosition() const;
   [[nodiscard]] glm::vec3 getScale() const;
-  [[nodiscard]] glm::vec3 getRotation() const;
+  [[nodiscard]] glm::vec3 getOrientationEuler() const;
+  [[nodiscard]] glm::quat getOrientationQuat() const;
 
 private:
   VkDevice& device;
@@ -50,12 +53,15 @@ private:
 
   glm::vec3 position;
   glm::vec3 scale;
-  glm::vec3 rotation;
+  glm::quat orientation;
 
   std::unique_ptr<UniformBuffer> transformUniform;
 
   void createDescriptorPool();
   void createDescriptorSets();
+
+  [[nodiscard]] glm::mat4 createModelMatrix() const;
+  [[nodiscard]] static glm::mat4 createProjectionMatrix(const VkExtent2D& extent);
 };
 
 
