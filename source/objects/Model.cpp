@@ -37,23 +37,19 @@ Model::~Model()
 
 void Model::loadModel(const char* path, const glm::quat orientation)
 {
-  /* Load model with assimp */
   Assimp::Importer importer;
   constexpr auto sceneFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
                               aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices;
   const aiScene* scene = importer.ReadFile(path, sceneFlags);
 
-  // Check for errors
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
   {
     throw std::runtime_error("Assimp Error: " + std::string(importer.GetErrorString()));
   }
 
-  // Read mesh data
   const aiMesh* mesh = scene->mMeshes[0];
 
   const auto orientationMatrix = glm::mat4(orientation);
-
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
   {
@@ -83,6 +79,7 @@ void Model::loadModel(const char* path, const glm::quat orientation)
   for (unsigned int i = 0; i < mesh->mNumFaces; i++)
   {
     const aiFace face = mesh->mFaces[i];
+    
     for (unsigned int j = 0; j < face.mNumIndices; j++)
     {
       indices.push_back(face.mIndices[j]);
