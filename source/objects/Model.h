@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
@@ -15,6 +16,8 @@ class Model {
 public:
   Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
         const VkCommandPool& commandPool, const char* path, glm::vec3 rotation);
+  Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+        const VkCommandPool& commandPool, const char* path, glm::quat orientation);
   ~Model();
 
   void draw(const VkCommandBuffer& commandBuffer) const;
@@ -30,7 +33,7 @@ private:
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
 
-  void loadModel(const char* path, glm::vec3 rotation);
+  void loadModel(const char* path, glm::quat orientation);
   void createVertexBuffer(const VkCommandPool& commandPool);
   void createIndexBuffer(const VkCommandPool& commandPool);
 

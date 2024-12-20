@@ -1,18 +1,26 @@
 #include "Model.h"
 #include "../utilities/Buffers.h"
+#include "../pipelines/Vertex.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <stdexcept>
 
-#include "../pipelines/Vertex.h"
-#include "glm/ext/matrix_transform.hpp"
-
 Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
              const VkCommandPool& commandPool, const char* path, const glm::vec3 rotation)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
 {
-  loadModel(path, rotation);
+  loadModel(path, glm::quat(glm::radians(rotation)));
+
+  createVertexBuffer(commandPool);
+  createIndexBuffer(commandPool);
+}
+
+Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+             const VkCommandPool& commandPool, const char* path, const glm::quat orientation)
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+{
+  loadModel(path, glm::normalize(orientation));
 
   createVertexBuffer(commandPool);
   createIndexBuffer(commandPool);
@@ -27,7 +35,7 @@ Model::~Model()
   vkFreeMemory(logicalDevice->getDevice(), vertexBufferMemory, nullptr);
 }
 
-void Model::loadModel(const char* path, const glm::vec3 rotation)
+void Model::loadModel(const char* path, const glm::quat orientation)
 {
   /* Load model with assimp */
   Assimp::Importer importer;
@@ -44,13 +52,7 @@ void Model::loadModel(const char* path, const glm::vec3 rotation)
   // Read mesh data
   const aiMesh* mesh = scene->mMeshes[0];
 
-  const glm::vec3 rotationRadians = glm::radians(rotation);
-
-  // Create rotation matrices for each axis
-  const glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), rotationRadians.x, glm::vec3(1.0f, 0.0f, 0.0f));
-  const glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), rotationRadians.y, glm::vec3(0.0f, 1.0f, 0.0f));
-  const glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), rotationRadians.z, glm::vec3(0.0f, 0.0f, 1.0f));
-  const glm::mat4 rotationMatrix = rotationZ * rotationY * rotationX;
+  const auto orientationMatrix = glm::mat4(orientation);
 
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -72,8 +74,8 @@ void Model::loadModel(const char* path, const glm::vec3 rotation)
       }
     };
 
-    vertex.pos = rotationMatrix * glm::vec4(vertex.pos, 1.0f);
-    vertex.normal = rotationMatrix * glm::vec4(vertex.normal, 1.0f);
+    vertex.pos = orientationMatrix * glm::vec4(vertex.pos, 1.0f);
+    vertex.normal = orientationMatrix * glm::vec4(vertex.normal, 1.0f);
 
     vertices.push_back(vertex);
   }
