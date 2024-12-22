@@ -18,6 +18,8 @@ struct VulkanEngineOptions {
   bool USE_DOCKSPACE = true;
 
   const char* SCENE_VIEW_NAME = "SceneView";
+
+  uint32_t MAX_IMGUI_TEXTURES = 5;
 };
 
 #endif //VULKANPROJECT_VULKANENGINEOPTIONS_H

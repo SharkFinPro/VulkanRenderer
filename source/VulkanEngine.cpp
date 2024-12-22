@@ -167,7 +167,8 @@ void VulkanEngine::initVulkan()
 
   objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
 
-  guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass);
+  guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
+                                              vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
   if (vulkanEngineOptions.DO_DOTS)
   {
