@@ -4,13 +4,14 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <backends/imgui_impl_vulkan.h>
 
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
 Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkCommandPool& commandPool, const char* path)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), imGuiTexture(VK_NULL_HANDLE)
 {
   createTextureImage(commandPool, path);
 
@@ -23,6 +24,8 @@ Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr
 
 Texture::~Texture()
 {
+  ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
+
   vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
   vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
 
@@ -52,6 +55,16 @@ VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkD
   };
 
   return descriptorSet;
+}
+
+ImTextureID Texture::getImGuiTexture()
+{
+  if (imGuiTexture == VK_NULL_HANDLE)
+  {
+    imGuiTexture = ImGui_ImplVulkan_AddTexture(textureSampler, textureImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
+
+  return reinterpret_cast<ImTextureID>(imGuiTexture);
 }
 
 void Texture::createTextureImage(const VkCommandPool& commandPool, const char* path)

@@ -7,6 +7,8 @@
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
+#include <imgui.h>
+
 class Texture {
 public:
   Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
@@ -16,6 +18,8 @@ public:
   [[nodiscard]] static VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT);
 
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
+
+  [[nodiscard]] ImTextureID getImGuiTexture();
 
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
@@ -29,6 +33,8 @@ private:
   VkSampler textureSampler;
 
   VkDescriptorImageInfo imageInfo;
+
+  VkDescriptorSet imGuiTexture;
 
   void createTextureImage(const VkCommandPool& commandPool, const char* path);
 
