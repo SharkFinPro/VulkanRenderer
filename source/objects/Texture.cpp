@@ -11,7 +11,7 @@
 
 Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkCommandPool& commandPool, const char* path)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), imGuiTexture(VK_NULL_HANDLE)
 {
   createTextureImage(commandPool, path);
 
@@ -20,8 +20,6 @@ Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr
   imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   imageInfo.imageView = textureImageView;
   imageInfo.sampler = textureSampler;
-
-  imGuiTexture = ImGui_ImplVulkan_AddTexture(textureSampler, textureImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 Texture::~Texture()
@@ -59,8 +57,13 @@ VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkD
   return descriptorSet;
 }
 
-VkDescriptorSet Texture::getImGuiTexture() const
+VkDescriptorSet Texture::getImGuiTexture()
 {
+  if (imGuiTexture == VK_NULL_HANDLE)
+  {
+    imGuiTexture = ImGui_ImplVulkan_AddTexture(textureSampler, textureImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
+
   return imGuiTexture;
 }
 

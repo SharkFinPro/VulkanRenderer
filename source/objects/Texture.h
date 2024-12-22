@@ -17,7 +17,7 @@ public:
 
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
 
-  [[nodiscard]] VkDescriptorSet getImGuiTexture() const;
+  [[nodiscard]] VkDescriptorSet getImGuiTexture();
 
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
