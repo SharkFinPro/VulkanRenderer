@@ -57,14 +57,14 @@ VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkD
   return descriptorSet;
 }
 
-VkDescriptorSet Texture::getImGuiTexture()
+ImTextureID Texture::getImGuiTexture()
 {
   if (imGuiTexture == VK_NULL_HANDLE)
   {
     imGuiTexture = ImGui_ImplVulkan_AddTexture(textureSampler, textureImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
 
-  return imGuiTexture;
+  return reinterpret_cast<ImTextureID>(imGuiTexture);
 }
 
 void Texture::createTextureImage(const VkCommandPool& commandPool, const char* path)

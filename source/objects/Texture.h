@@ -7,6 +7,8 @@
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
+#include <imgui.h>
+
 class Texture {
 public:
   Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
@@ -17,7 +19,7 @@ public:
 
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
 
-  [[nodiscard]] VkDescriptorSet getImGuiTexture();
+  [[nodiscard]] ImTextureID getImGuiTexture();
 
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
