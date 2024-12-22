@@ -17,6 +17,8 @@ public:
 
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
 
+  [[nodiscard]] VkDescriptorSet getImGuiTexture() const;
+
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
@@ -29,6 +31,8 @@ private:
   VkSampler textureSampler;
 
   VkDescriptorImageInfo imageInfo;
+
+  VkDescriptorSet imGuiTexture;
 
   void createTextureImage(const VkCommandPool& commandPool, const char* path);
 
