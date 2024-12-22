@@ -12,7 +12,7 @@ class RenderPass;
 class GuiPipeline final : public GraphicsPipeline {
 public:
   GuiPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-              const std::shared_ptr<RenderPass>& renderPass);
+              const std::shared_ptr<RenderPass>& renderPass, uint32_t maxImGuiTextures);
   ~GuiPipeline() override;
 
   void render(const VkCommandBuffer& commandBuffer, VkExtent2D swapChainExtent) const;
@@ -40,7 +40,7 @@ private:
   std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
   std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
 
-  void createDescriptorPool();
+  void createDescriptorPool(uint32_t maxImGuiTextures);
 };
 
 
