@@ -374,7 +374,6 @@ void VulkanEngine::recreateSwapChain()
   logicalDevice->waitIdle();
 
   framebuffer.reset();
-  offscreenFramebuffer.reset();
   swapChain.reset();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
@@ -387,6 +386,8 @@ void VulkanEngine::recreateSwapChain()
     {
       return;
     }
+
+    offscreenFramebuffer.reset();
 
     offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool,
                                                          renderPass, false, offscreenViewportExtent);
