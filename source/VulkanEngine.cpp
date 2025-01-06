@@ -180,12 +180,12 @@ void VulkanEngine::initVulkan()
                                                   renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
-                                              true, swapChain->getExtent());
+                                              swapChain->getExtent());
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool,
-                                                         renderPass, false, swapChain->getExtent());
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
+                                                         renderPass, swapChain->getExtent());
   }
 }
 
@@ -378,7 +378,7 @@ void VulkanEngine::recreateSwapChain()
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
-                                              true, swapChain->getExtent());
+                                              swapChain->getExtent());
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -389,8 +389,8 @@ void VulkanEngine::recreateSwapChain()
 
     offscreenFramebuffer.reset();
 
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool,
-                                                         renderPass, false, offscreenViewportExtent);
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
+                                                         renderPass, offscreenViewportExtent);
   }
 }
 
@@ -426,8 +426,8 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
     logicalDevice->waitIdle();
     offscreenFramebuffer.reset();
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool,
-                                                         renderPass, false, offscreenViewportExtent);
+    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
+                                                         renderPass, offscreenViewportExtent);
   }
 
   ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex)),

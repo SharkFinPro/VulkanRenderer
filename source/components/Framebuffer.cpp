@@ -10,10 +10,9 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
                          std::shared_ptr<SwapChain> swapChain,
                          const VkCommandPool& commandPool,
                          const std::shared_ptr<RenderPass>& renderPass,
-                         const bool presentToSwapChain,
                          const VkExtent2D extent)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)),
-    swapChain(std::move(swapChain)), presentToSwapChain(presentToSwapChain)
+    swapChain(std::move(swapChain))
 {
   createImageResources(commandPool, extent);
 
@@ -26,7 +25,7 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
 
 Framebuffer::~Framebuffer()
 {
-  if (!presentToSwapChain)
+  if (!swapChain)
   {
     vkDestroySampler(logicalDevice->getDevice(), sampler, nullptr);
 
@@ -77,7 +76,7 @@ VkDescriptorSet& Framebuffer::getFramebufferImageDescriptorSet(const uint32_t im
 
 void Framebuffer::createImageResources(const VkCommandPool& commandPool, const VkExtent2D extent)
 {
-  if (presentToSwapChain)
+  if (swapChain)
   {
     return;
   }
@@ -147,7 +146,7 @@ void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const V
 
 void Framebuffer::createColorResources(const VkExtent2D extent)
 {
-  const VkFormat colorFormat = presentToSwapChain ? swapChain->getImageFormat() : framebufferImageFormat;
+  const VkFormat colorFormat = swapChain ? swapChain->getImageFormat() : framebufferImageFormat;
 
   Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), extent.width, extent.height,
                       1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
@@ -159,25 +158,16 @@ void Framebuffer::createColorResources(const VkExtent2D extent)
 
 void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExtent2D extent)
 {
-  std::vector<VkImageView>* imageViews;
+  const std::vector<VkImageView>& imageViews = swapChain ? swapChain->getImageViews() : framebufferImageViews;
 
-  if (presentToSwapChain)
-  {
-    imageViews = &swapChain->getImageViews();
-  }
-  else
-  {
-    imageViews = &framebufferImageViews;
-  }
+  framebuffers.resize(imageViews.size());
 
-  framebuffers.resize(imageViews->size());
-
-  for (size_t i = 0; i < imageViews->size(); i++)
+  for (size_t i = 0; i < imageViews.size(); i++)
   {
     std::array<VkImageView, 3> attachments {
       colorImageView,
       depthImageView,
-      imageViews->at(i)
+      imageViews.at(i)
     };
 
     const VkFramebufferCreateInfo framebufferInfo {

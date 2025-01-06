@@ -17,7 +17,6 @@ public:
               std::shared_ptr<SwapChain> swapChain,
               const VkCommandPool& commandPool,
               const std::shared_ptr<RenderPass>& renderPass,
-              bool presentToSwapChain,
               VkExtent2D extent);
   ~Framebuffer();
 
@@ -42,7 +41,6 @@ private:
   std::vector<VkImage> framebufferImages;
   std::vector<VkImageView> framebufferImageViews;
   std::vector<VkDeviceMemory> framebufferImageMemory;
-  bool presentToSwapChain;
 
   VkSampler sampler;
   std::vector<VkDescriptorSet> framebufferImageDescriptorSets;
