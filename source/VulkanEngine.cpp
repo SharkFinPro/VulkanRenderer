@@ -293,7 +293,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
 
       if (vulkanEngineOptions.DO_DOTS)
       {
-        dotsPipeline->render(cmdBuffer, currentFrame, offscreenViewportExtent);
+        dotsPipeline->render(cmdBuffer, currentFrame, swapChain->getExtent());
       }
     }
 
