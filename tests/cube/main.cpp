@@ -17,6 +17,7 @@ int main()
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Cube",
       .CAMERA_POSITION = { 0.0f, 0.0f, 0.0f },
+      .FULLSCREEN = true,
       .DO_DOTS = false
     };
 
@@ -26,7 +27,7 @@ int main()
 
     const auto texture = renderer.loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/cube.obj");
+    const auto model = renderer.loadModel("assets/models/cow.obj");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
     object->setPosition({ 0, 0, 10 });
