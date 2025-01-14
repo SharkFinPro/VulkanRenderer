@@ -74,7 +74,7 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
 {
   auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(),
                                                      physicalDevice->getPhysicalDevice(),
-                                                     objectsPipeline->getLayout(), texture, specularMap, model);
+                                                     ellipticalDotsPipeline->getLayout(), texture, specularMap, model);
 
   renderObjects.push_back(renderObject);
 
@@ -166,6 +166,8 @@ void VulkanEngine::initVulkan()
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
+
+  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -267,8 +269,11 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
-                            renderObjectsToRender);
+    // objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+                            // renderObjectsToRender);
+
+    ellipticalDotsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+                        renderObjectsToRender);
 
     if (vulkanEngineOptions.DO_DOTS)
     {

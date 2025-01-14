@@ -1,10 +1,10 @@
-#ifndef VULKANPROJECT_OBJECTSPIPELINE_H
-#define VULKANPROJECT_OBJECTSPIPELINE_H
+#ifndef ELLIPTICALDOTS_H
+#define ELLIPTICALDOTS_H
 
-#include <vector>
-#include <memory>
 #include <array>
 #include <glm/glm.hpp>
+
+#include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 
 class RenderPass;
@@ -13,11 +13,12 @@ class Camera;
 class UniformBuffer;
 class Light;
 
-class ObjectsPipeline final : public GraphicsPipeline {
+class EllipticalDots final : public GraphicsPipeline {
 public:
-  ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass);
-  ~ObjectsPipeline() override;
+  EllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                 const std::shared_ptr<LogicalDevice>& logicalDevice,
+                 const std::shared_ptr<RenderPass>& renderPass);
+  ~EllipticalDots() override;
 
   VkDescriptorSetLayout& getLayout();
 
@@ -27,6 +28,16 @@ public:
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
+  EllipticalDotsUniform ellipticalDotsUBO {
+    .ambient = 0.4f,
+    .diffuse = 0.6f,
+    .specular = 0.3f,
+    .shininess = 10.0f,
+    .sDiameter = 0.5f,
+    .tDiameter = 0.5f,
+    .blendFactor = 0.0f
+  };
+
   VkDescriptorSetLayout globalDescriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
 
@@ -36,6 +47,7 @@ private:
   std::unique_ptr<UniformBuffer> lightMetadataUniform;
   std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
+  std::unique_ptr<UniformBuffer> ellipticalDotsUniform;
 
   int prevNumLights = 0;
 
@@ -76,4 +88,5 @@ private:
 };
 
 
-#endif //VULKANPROJECT_OBJECTSPIPELINE_H
+
+#endif //ELLIPTICALDOTS_H

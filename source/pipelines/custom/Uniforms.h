@@ -11,4 +11,17 @@ struct CameraUniform {
   alignas(16) glm::vec3 position;
 };
 
+struct EllipticalDotsUniform {
+  float ambient;
+  float diffuse;
+  float specular;
+
+  float shininess;
+
+  float sDiameter;
+  float tDiameter;
+
+  float blendFactor;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H

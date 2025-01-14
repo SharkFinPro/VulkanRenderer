@@ -57,6 +57,8 @@ add_library(${PROJECT_NAME}
   pipelines/Pipeline.h
   objects/Light.cpp
   objects/Light.h
+  pipelines/custom/ellipticalDots.cpp
+  pipelines/custom/ellipticalDots.h
 )
 
 # Shaders
@@ -68,6 +70,8 @@ file(MAKE_DIRECTORY ${shadersDst})
 add_custom_target(Shaders ALL
   COMMAND glslangValidator -V ${shadersSrc}/objects/objects.vert -o ${shadersDst}/objects.vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/objects/objects.frag -o ${shadersDst}/objects.frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/EllipticalDots.vert -o ${shadersDst}/EllipticalDots.vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/EllipticalDots.frag -o ${shadersDst}/EllipticalDots.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui.vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/dots/dots.vert -o ${shadersDst}/dots.vert.spv
