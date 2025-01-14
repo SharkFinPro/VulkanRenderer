@@ -18,9 +18,9 @@
 #include "components/Window.h"
 
 #include "pipelines/RenderPass.h"
-#include "pipelines/objects/ObjectsPipeline.h"
-#include "pipelines/gui/GuiPipeline.h"
-#include "pipelines/dots/DotsPipeline.h"
+#include "pipelines/custom/ObjectsPipeline.h"
+#include "pipelines/custom/GuiPipeline.h"
+#include "pipelines/custom/DotsPipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"

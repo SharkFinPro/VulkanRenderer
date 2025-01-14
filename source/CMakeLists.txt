@@ -24,14 +24,14 @@ add_library(${PROJECT_NAME}
   components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
-  pipelines/objects/ObjectsPipeline.cpp
-  pipelines/objects/ObjectsPipeline.h
+  pipelines/custom/ObjectsPipeline.cpp
+  pipelines/custom/ObjectsPipeline.h
   pipelines/Vertex.h
   pipelines/RenderPass.cpp
   pipelines/RenderPass.h
-  pipelines/objects/Uniforms.h
-  pipelines/gui/GuiPipeline.cpp
-  pipelines/gui/GuiPipeline.h
+  pipelines/custom/Uniforms.h
+  pipelines/custom/GuiPipeline.cpp
+  pipelines/custom/GuiPipeline.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
   components/PhysicalDevice.cpp
@@ -47,8 +47,8 @@ add_library(${PROJECT_NAME}
   components/SwapChain.h
   components/Framebuffer.cpp
   components/Framebuffer.h
-  pipelines/dots/DotsPipeline.cpp
-  pipelines/dots/DotsPipeline.h
+  pipelines/custom/DotsPipeline.cpp
+  pipelines/custom/DotsPipeline.h
   pipelines/GraphicsPipeline.cpp
   pipelines/GraphicsPipeline.h
   pipelines/ComputePipeline.cpp
