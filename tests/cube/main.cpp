@@ -17,7 +17,6 @@ int main()
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Cube",
       .CAMERA_POSITION = { 0.0f, 0.0f, 0.0f },
-      .FULLSCREEN = true,
       .DO_DOTS = false
     };
 
