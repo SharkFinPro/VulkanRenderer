@@ -37,7 +37,7 @@ layout(location = 2) in vec3 fragNormal;
 layout(location = 0) out vec4 outColor;
 
 const vec3 OBJECTCOLOR = vec3(1, 1, 1);
-const vec3 ELLIPSECOLOR = vec3(0, 0, 1);
+const vec3 ELLIPSECOLOR = vec3(0.6235, 0.8863, 0.7490);
 
 vec3 PointLightAffect(PointLight light, vec3 color)
 {
