@@ -49,21 +49,24 @@ vec3 PointLightAffect(PointLight light, vec3 color)
   vec3 ambient = light.ambient * color;
 
   // Diffuse
-  float d = max(dot(Normal,Light), 0.0); // only do diffuse if the light can see the point
+  vec3 norm = normalize(fragNormal);
+  vec3 lightDir = normalize(light.position - fragPos);
+  float d = max(dot(norm, lightDir), 0.0);
   vec3 diffuse = light.diffuse * d * color;
 
   // Specular
-  float s = 0.0;
+  vec3 specular = vec3(0);
   if(d > 0.0) // only do specular if the light can see the point
   {
-    vec3 ref = normalize(reflect(-Light, Normal));
-    float cosphi = dot(Eye, ref);
-    if(cosphi > 0.0)
+    vec3 viewDir = normalize(camera.position - fragPos);
+    vec3 reflectDir = normalize(reflect(-lightDir, norm));
+    float cosphi = dot(viewDir, reflectDir);
+
+    if (cosphi > 0.0)
     {
-      s = pow(max(cosphi, 0.0), ellipticalDots.shininess);
+      specular = pow(cosphi, ellipticalDots.shininess) * light.specular * light.color;
     }
   }
-  vec3 specular = light.specular * s * light.color;
 
   // Combined Output
   return (ambient + diffuse + specular) * light.color;
