@@ -34,7 +34,7 @@ void Camera::setSpeed(const float cameraSpeed)
 {
   speedSettings.speed = cameraSpeed * 50.0f;
 
-  speedSettings.cameraSpeed = speedSettings.speed * 0.005f;
+  speedSettings.cameraSpeed = speedSettings.speed * 0.0005f;
   speedSettings.scrollSpeed = speedSettings.speed * 0.25f;
   speedSettings.swivelSpeed = speedSettings.speed * 0.005f;
 }

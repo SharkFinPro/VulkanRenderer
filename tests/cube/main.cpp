@@ -17,7 +17,7 @@ int main()
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Cube",
       .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
-      .DO_DOTS = true
+      .DO_DOTS = false
     };
 
     VulkanEngine renderer(vulkanEngineOptions);
@@ -43,6 +43,8 @@ int main()
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
+    bool useEllipticalDots = true;
+
     while (renderer.isActive())
     {
       // Render GUI
@@ -57,9 +59,13 @@ int main()
       }
       ImGui::End();
 
+      ImGui::Begin("Rendering");
+      ImGui::Checkbox("Use Elliptical Dots", &useEllipticalDots);
+      ImGui::End();
+
 
       // Render Objects
-      renderer.renderObject(object);
+      renderer.renderObject(object, useEllipticalDots ? PipelineType::ellipticalDots : PipelineType::object);
 
       for (const auto& light : lights)
       {

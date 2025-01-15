@@ -34,23 +34,30 @@ layout(location = 0) out vec4 outColor;
 
 vec3 PointLightAffect(PointLight light, vec3 texColor, vec3 specColor)
 {
-  // ambient
+  // Ambient
   vec3 ambient = light.ambient * texColor;
 
-  // diffuse
+  // Diffuse
   vec3 norm = normalize(fragNormal);
   vec3 lightDir = normalize(light.position - fragPos);
-  float diff = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * diff * texColor;
+  float d = max(dot(norm, lightDir), 0.0);
+  vec3 diffuse = light.diffuse * d * texColor;
 
-  // specular
-  vec3 viewDir = normalize(camera.position - fragPos);
-  vec3 reflectDir = reflect(-lightDir, norm);
-  //  float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-  vec3 specular = light.specular * spec * specColor;
+  // Specular
+  vec3 specular = vec3(0);
+  if(d > 0.0) // only do specular if the light can see the point
+  {
+    vec3 viewDir = normalize(camera.position - fragPos);
+    vec3 reflectDir = normalize(reflect(-lightDir, norm));
+    float cosphi = dot(viewDir, reflectDir);
 
-  //
+    if (cosphi > 0.0)
+    {
+      specular = pow(cosphi, 32.0f) * light.specular * light.color;
+    }
+  }
+
+  // Combined Output
   return (ambient + diffuse + specular) * light.color;
 }
 

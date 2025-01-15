@@ -1,7 +1,6 @@
 #ifndef VULKANPROJECT_OBJECTSPIPELINE_H
 #define VULKANPROJECT_OBJECTSPIPELINE_H
 
-#include <vulkan/vulkan.h>
 #include <vector>
 #include <memory>
 #include <array>

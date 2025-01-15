@@ -106,9 +106,9 @@ bool VulkanEngine::sceneIsFocused() const
   return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;
 }
 
-void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject)
+void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType)
 {
-  renderObjectsToRender.push_back(renderObject);
+  renderObjectsToRender[pipelineType].push_back(renderObject);
 }
 
 void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
@@ -166,6 +166,8 @@ void VulkanEngine::initVulkan()
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
+
+  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -267,8 +269,17 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
-                            renderObjectsToRender);
+    if (renderObjectsToRender.contains(PipelineType::object))
+    {
+      objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+                            renderObjectsToRender.at(PipelineType::object));
+    }
+
+    if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
+    {
+      ellipticalDotsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+                                     renderObjectsToRender.at(PipelineType::ellipticalDots));
+    }
 
     if (vulkanEngineOptions.DO_DOTS)
     {
@@ -288,8 +299,17 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
-      objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, swapChain->getExtent(), lightsToRender,
-                              renderObjectsToRender);
+      if (renderObjectsToRender.contains(PipelineType::object))
+      {
+        objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+                              renderObjectsToRender.at(PipelineType::object));
+      }
+
+      if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
+      {
+        ellipticalDotsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+                                       renderObjectsToRender.at(PipelineType::ellipticalDots));
+      }
 
       if (vulkanEngineOptions.DO_DOTS)
       {

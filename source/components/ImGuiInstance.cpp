@@ -12,7 +12,7 @@
 #include "../components/LogicalDevice.h"
 
 #include "../pipelines/RenderPass.h"
-#include "../pipelines/gui/GuiPipeline.h"
+#include "../pipelines/custom/GuiPipeline.h"
 
 ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
                              const std::unique_ptr<Instance>& instance,

@@ -24,14 +24,14 @@ add_library(${PROJECT_NAME}
   components/Camera.h
   objects/UniformBuffer.cpp
   objects/UniformBuffer.h
-  pipelines/objects/ObjectsPipeline.cpp
-  pipelines/objects/ObjectsPipeline.h
+  pipelines/custom/ObjectsPipeline.cpp
+  pipelines/custom/ObjectsPipeline.h
   pipelines/Vertex.h
   pipelines/RenderPass.cpp
   pipelines/RenderPass.h
-  pipelines/objects/Uniforms.h
-  pipelines/gui/GuiPipeline.cpp
-  pipelines/gui/GuiPipeline.h
+  pipelines/custom/Uniforms.h
+  pipelines/custom/GuiPipeline.cpp
+  pipelines/custom/GuiPipeline.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
   components/PhysicalDevice.cpp
@@ -47,8 +47,8 @@ add_library(${PROJECT_NAME}
   components/SwapChain.h
   components/Framebuffer.cpp
   components/Framebuffer.h
-  pipelines/dots/DotsPipeline.cpp
-  pipelines/dots/DotsPipeline.h
+  pipelines/custom/DotsPipeline.cpp
+  pipelines/custom/DotsPipeline.h
   pipelines/GraphicsPipeline.cpp
   pipelines/GraphicsPipeline.h
   pipelines/ComputePipeline.cpp
@@ -57,6 +57,8 @@ add_library(${PROJECT_NAME}
   pipelines/Pipeline.h
   objects/Light.cpp
   objects/Light.h
+  pipelines/custom/EllipticalDots.cpp
+  pipelines/custom/EllipticalDots.h
 )
 
 # Shaders
@@ -68,6 +70,8 @@ file(MAKE_DIRECTORY ${shadersDst})
 add_custom_target(Shaders ALL
   COMMAND glslangValidator -V ${shadersSrc}/objects/objects.vert -o ${shadersDst}/objects.vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/objects/objects.frag -o ${shadersDst}/objects.frag.spv
+  COMMAND glslangValidator -V ${shadersSrc}/EllipticalDots.vert -o ${shadersDst}/EllipticalDots.vert.spv
+  COMMAND glslangValidator -V ${shadersSrc}/EllipticalDots.frag -o ${shadersDst}/EllipticalDots.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui.vert.spv
   COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui.frag.spv
   COMMAND glslangValidator -V ${shadersSrc}/dots/dots.vert -o ${shadersDst}/dots.vert.spv
