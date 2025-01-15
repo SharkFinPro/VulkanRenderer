@@ -16,7 +16,7 @@ int main()
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Cube",
-      .CAMERA_POSITION = { 0.0f, 0.0f, 0.0f },
+      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
       .DO_DOTS = false
     };
 
@@ -26,10 +26,10 @@ int main()
 
     const auto texture = renderer.loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/cow.obj");
+    const auto model = renderer.loadModel("assets/models/square.glb");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
-    object->setPosition({ 0, 0, 10 });
+    object->setPosition({ 0, -5, 0 });
 
     std::vector<std::shared_ptr<Light>> lights;
 
