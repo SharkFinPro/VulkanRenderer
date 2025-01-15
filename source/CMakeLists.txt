@@ -57,8 +57,8 @@ add_library(${PROJECT_NAME}
   pipelines/Pipeline.h
   objects/Light.cpp
   objects/Light.h
-  pipelines/custom/ellipticalDots.cpp
-  pipelines/custom/ellipticalDots.h
+  pipelines/custom/EllipticalDots.cpp
+  pipelines/custom/EllipticalDots.h
 )
 
 # Shaders
