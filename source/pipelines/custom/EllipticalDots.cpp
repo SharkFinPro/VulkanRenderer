@@ -291,8 +291,24 @@ void EllipticalDots::createObjectDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 1> objectBindings {
-    transformLayout
+  constexpr VkDescriptorSetLayoutBinding textureLayout {
+    .binding = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding specularLayout {
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr std::array<VkDescriptorSetLayoutBinding, 3> objectBindings {
+    transformLayout,
+    textureLayout,
+    specularLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
