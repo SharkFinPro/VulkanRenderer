@@ -75,9 +75,6 @@ void EllipticalDots::render(const VkCommandBuffer &commandBuffer, const uint32_t
 
   ImGui::Begin("Elliptical Dots");
 
-  ImGui::SliderFloat("Ambient", &ellipticalDotsUBO.ambient, 0.1f, 0.5f);
-  ImGui::SliderFloat("Diffuse", &ellipticalDotsUBO.diffuse, 0.1f, 1.0f);
-  ImGui::SliderFloat("Specular", &ellipticalDotsUBO.specular, 0.1f, 1.0f);
   ImGui::SliderFloat("Shininess", &ellipticalDotsUBO.shininess, 1.0f, 25.0f);
   ImGui::SliderFloat("S Diameter", &ellipticalDotsUBO.sDiameter, 0.001f, 0.5f);
   ImGui::SliderFloat("T Diameter", &ellipticalDotsUBO.tDiameter, 0.001f, 0.5f);

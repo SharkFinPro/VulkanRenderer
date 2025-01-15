@@ -24,9 +24,6 @@ layout(set = 0, binding = 3) uniform Camera {
 } camera;
 
 layout(set = 0, binding = 4) uniform EllipticalDots {
-  float ambient;
-  float diffuse;
-  float specular;
   float shininess;
   float sDiameter;
   float tDiameter;
@@ -39,28 +36,42 @@ layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
 
-//vec3 PointLightAffect(PointLight light, vec3 color)
-//{
-//  // ambient
-//  vec3 ambient = light.ambient * color;
-//
-//  // diffuse
-//  vec3 norm = normalize(fragNormal);
-//  vec3 lightDir = normalize(light.position - fragPos);
-//  float diff = max(dot(norm, lightDir), 0.0);
-//  vec3 diffuse = light.diffuse * diff * color;
-//
-//  //
-//  return (ambient + diffuse) * light.color;
-//}
-
 const vec3 OBJECTCOLOR = vec3(1, 1, 1);
 const vec3 ELLIPSECOLOR = vec3(0, 0, 1);
-const vec3 SPECULARCOLOR = vec3(0, 1, 0);
+const vec3 SPECULARCOLOR = vec3(1, 1, 1);
+
+vec3 PointLightAffect(PointLight light, vec3 color)
+{
+  vec3 Normal = normalize(fragNormal);
+  vec3 Light = normalize(light.position);
+  vec3 Eye = normalize(camera.position);
+
+  // Ambient
+  vec3 ambient = light.ambient * color;
+
+  // Diffuse
+  float d = max(dot(Normal,Light), 0.0); // only do diffuse if the light can see the point
+  vec3 diffuse = light.diffuse * d * color;
+
+  // Specular
+  float s = 0.0;
+  if(d > 0.0) // only do specular if the light can see the point
+  {
+    vec3 ref = normalize(reflect(-Light, Normal));
+    float cosphi = dot(Eye, ref);
+    if(cosphi > 0.0)
+    {
+      s = pow(max(cosphi, 0.0), ellipticalDots.shininess);
+    }
+  }
+  vec3 specular = light.specular * s * SPECULARCOLOR.rgb;
+
+  // Combined Output
+  return (ambient + diffuse + specular) * light.color;
+}
 
 void main()
 {
-  vec3 myColor = OBJECTCOLOR;
   vec2 st = fragTexCoord;
 
   // blend OBJECTCOLOR and ELLIPSECOLOR by using the ellipse equation to decide how close
@@ -80,28 +91,14 @@ void main()
 
   // Smooth blending based on ellipse distance
   float t = smoothstep(1.0 - ellipticalDots.blendFactor, 1.0 + ellipticalDots.blendFactor, dist);
-  myColor = mix(ELLIPSECOLOR, OBJECTCOLOR, t);
+  vec3 fragColor = mix(ELLIPSECOLOR, OBJECTCOLOR, t);
 
-  // now use myColor in the per-fragment lighting equations:
-
-  vec3 Normal    = normalize(fragNormal);
-  vec3 Light     = normalize(lights[0].position);
-  vec3 Eye       = normalize(camera.position);
-
-  vec3 ambient = ellipticalDots.ambient * myColor;
-
-  float d = max(dot(Normal,Light), 0.0);       // only do diffuse if the light can see the point
-  vec3 diffuse = ellipticalDots.diffuse * d * myColor;
-
-  float s = 0.;
-  if( d > 0.0)              // only do specular if the light can see the point
+  // now use fragColor in the per-fragment lighting equations:
+  vec3 result = vec3(0);
+  for (int i = 0; i < numLights; i++)
   {
-    vec3 ref = normalize(  reflect( -Light, Normal )  );
-    float cosphi = dot( Eye, ref );
-    if( cosphi > 0. )
-    s = pow( max( cosphi, 0. ), ellipticalDots.shininess );
+    result += PointLightAffect(lights[i], fragColor);
   }
-  vec3 specular = ellipticalDots.specular * s * SPECULARCOLOR.rgb;
 
-  outColor = vec4( ambient + diffuse + specular,  1. );
+  outColor = vec4(result, 1.0);
 }

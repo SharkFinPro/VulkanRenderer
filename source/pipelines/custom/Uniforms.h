@@ -12,10 +12,6 @@ struct CameraUniform {
 };
 
 struct EllipticalDotsUniform {
-  float ambient;
-  float diffuse;
-  float specular;
-
   float shininess;
 
   float sDiameter;

@@ -29,12 +29,9 @@ public:
 
 private:
   EllipticalDotsUniform ellipticalDotsUBO {
-    .ambient = 0.4f,
-    .diffuse = 0.6f,
-    .specular = 0.3f,
     .shininess = 10.0f,
-    .sDiameter = 0.5f,
-    .tDiameter = 0.5f,
+    .sDiameter = 0.025f,
+    .tDiameter = 0.025f,
     .blendFactor = 0.0f
   };
 
