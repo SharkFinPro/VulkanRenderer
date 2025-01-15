@@ -59,7 +59,7 @@ int main()
 
 
       // Render Objects
-      renderer.renderObject(object);
+      renderer.renderObject(object, PipelineType::ellipticalDots);
 
       for (const auto& light : lights)
       {

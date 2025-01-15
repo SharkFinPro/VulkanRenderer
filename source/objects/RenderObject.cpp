@@ -132,10 +132,10 @@ void RenderObject::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 1> descriptorWrites {
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites {
       transformUniform->getDescriptorSet(0, descriptorSets[i], i),
-      // texture->getDescriptorSet(1, descriptorSets[i]),
-      // specularMap->getDescriptorSet(4, descriptorSets[i])
+      texture->getDescriptorSet(1, descriptorSets[i]),
+      specularMap->getDescriptorSet(4, descriptorSets[i])
     };
 
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),

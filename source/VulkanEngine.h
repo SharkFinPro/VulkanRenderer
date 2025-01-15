@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 
@@ -32,6 +33,11 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
+enum class PipelineType {
+  object,
+  ellipticalDots
+};
+
 class VulkanEngine {
 public:
   explicit VulkanEngine(VulkanEngineOptions vulkanEngineOptions);
@@ -55,7 +61,7 @@ public:
 
   [[nodiscard]] bool sceneIsFocused() const;
 
-  void renderObject(const std::shared_ptr<RenderObject>& renderObject);
+  void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType);
   void renderLight(const std::shared_ptr<Light>& light);
 
   void enableCamera();
@@ -87,8 +93,9 @@ private:
   std::vector<std::shared_ptr<RenderObject>> renderObjects;
   std::vector<std::shared_ptr<Light>> lights;
 
-  std::vector<std::shared_ptr<RenderObject>> renderObjectsToRender;
   std::vector<std::shared_ptr<Light>> lightsToRender;
+
+  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
 
 
   std::shared_ptr<Camera> camera;
