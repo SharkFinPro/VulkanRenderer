@@ -38,7 +38,6 @@ layout(location = 0) out vec4 outColor;
 
 const vec3 OBJECTCOLOR = vec3(1, 1, 1);
 const vec3 ELLIPSECOLOR = vec3(0, 0, 1);
-const vec3 SPECULARCOLOR = vec3(1, 1, 1);
 
 vec3 PointLightAffect(PointLight light, vec3 color)
 {
@@ -64,7 +63,7 @@ vec3 PointLightAffect(PointLight light, vec3 color)
       s = pow(max(cosphi, 0.0), ellipticalDots.shininess);
     }
   }
-  vec3 specular = light.specular * s * SPECULARCOLOR.rgb;
+  vec3 specular = light.specular * s * light.color;
 
   // Combined Output
   return (ambient + diffuse + specular) * light.color;
