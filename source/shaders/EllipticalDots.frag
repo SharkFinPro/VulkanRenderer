@@ -41,10 +41,6 @@ const vec3 ELLIPSECOLOR = vec3(0, 0, 1);
 
 vec3 PointLightAffect(PointLight light, vec3 color)
 {
-  vec3 Normal = normalize(fragNormal);
-  vec3 Light = normalize(light.position);
-  vec3 Eye = normalize(camera.position);
-
   // Ambient
   vec3 ambient = light.ambient * color;
 
