@@ -29,7 +29,7 @@ int main()
     {
       renderer.renderLight(light);
 
-      renderer.renderObject(object);
+      renderer.renderObject(object, PipelineType::object);
 
       renderer.render();
     }
