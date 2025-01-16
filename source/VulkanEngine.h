@@ -130,6 +130,8 @@ private:
   void recreateSwapChain();
   void renderGuiScene(uint32_t imageIndex);
 
+  void renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, VkExtent2D extent) const;
+
   void createNewFrame();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);

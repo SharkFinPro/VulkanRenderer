@@ -269,22 +269,7 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
 
     offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
-    if (renderObjectsToRender.contains(PipelineType::object))
-    {
-      objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
-                            renderObjectsToRender.at(PipelineType::object));
-    }
-
-    if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
-    {
-      ellipticalDotsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
-                                     renderObjectsToRender.at(PipelineType::ellipticalDots));
-    }
-
-    if (vulkanEngineOptions.DO_DOTS)
-    {
-      dotsPipeline->render(cmdBuffer, currentFrame, offscreenViewportExtent);
-    }
+    renderGraphicsPipelines(cmdBuffer, offscreenViewportExtent);
 
     RenderPass::end(cmdBuffer);
   });
@@ -299,22 +284,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
-      if (renderObjectsToRender.contains(PipelineType::object))
-      {
-        objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, swapChain->getExtent(), lightsToRender,
-                              renderObjectsToRender.at(PipelineType::object));
-      }
-
-      if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
-      {
-        ellipticalDotsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, swapChain->getExtent(), lightsToRender,
-                                       renderObjectsToRender.at(PipelineType::ellipticalDots));
-      }
-
-      if (vulkanEngineOptions.DO_DOTS)
-      {
-        dotsPipeline->render(cmdBuffer, currentFrame, swapChain->getExtent());
-      }
+      renderGraphicsPipelines(cmdBuffer, swapChain->getExtent());
     }
 
     guiPipeline->render(cmdBuffer, swapChain->getExtent());
@@ -455,6 +425,27 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
   ImGui::End();
 }
+
+void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, const VkExtent2D extent) const
+{
+  if (renderObjectsToRender.contains(PipelineType::object))
+  {
+    objectsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+                          renderObjectsToRender.at(PipelineType::object));
+  }
+
+  if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
+  {
+    ellipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+                                   renderObjectsToRender.at(PipelineType::ellipticalDots));
+  }
+
+  if (vulkanEngineOptions.DO_DOTS)
+  {
+    dotsPipeline->render(commandBuffer, currentFrame, extent);
+  }
+}
+
 
 void VulkanEngine::createNewFrame()
 {
