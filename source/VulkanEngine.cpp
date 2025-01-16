@@ -301,13 +301,13 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
     {
       if (renderObjectsToRender.contains(PipelineType::object))
       {
-        objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+        objectsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, swapChain->getExtent(), lightsToRender,
                               renderObjectsToRender.at(PipelineType::object));
       }
 
       if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
       {
-        ellipticalDotsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, offscreenViewportExtent, lightsToRender,
+        ellipticalDotsPipeline->render(cmdBuffer, currentFrame, viewPosition, viewMatrix, swapChain->getExtent(), lightsToRender,
                                        renderObjectsToRender.at(PipelineType::ellipticalDots));
       }
 
