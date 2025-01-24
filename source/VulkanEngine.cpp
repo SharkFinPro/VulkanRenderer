@@ -3,8 +3,6 @@
 #include <cstdint>
 #include <backends/imgui_impl_vulkan.h>
 
-#include "utilities/Images.h"
-
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
 #else
