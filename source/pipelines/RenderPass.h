@@ -21,7 +21,7 @@ private:
   VkDevice& device;
   VkPhysicalDevice& physicalDevice;
 
-  VkRenderPass renderPass;
+  VkRenderPass renderPass{};
 
   void createRenderPass(VkFormat imageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
 
