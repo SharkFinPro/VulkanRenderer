@@ -3,8 +3,6 @@
 #include <cstdint>
 #include <backends/imgui_impl_vulkan.h>
 
-#include "utilities/Images.h"
-
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
 #else
@@ -12,7 +10,8 @@ constexpr bool enableValidationLayers = true;
 #endif
 
 VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
-  : vulkanEngineOptions(vulkanEngineOptions), currentFrame(0), framebufferResized(false)
+  : vulkanEngineOptions(vulkanEngineOptions), currentFrame(0), framebufferResized(false), isSceneFocused(false),
+    useCamera(true)
 {
   glfwInit();
   initVulkan();

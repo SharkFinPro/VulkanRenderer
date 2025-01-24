@@ -101,7 +101,7 @@ private:
   std::shared_ptr<Camera> camera;
 
   VulkanEngineOptions vulkanEngineOptions;
-  VkCommandPool commandPool;
+  VkCommandPool commandPool{};
   std::vector<VkCommandBuffer> offscreenCommandBuffers;
   std::vector<VkCommandBuffer> swapchainCommandBuffers;
   std::vector<VkCommandBuffer> computeCommandBuffers;
@@ -111,11 +111,11 @@ private:
 
   bool isSceneFocused;
 
-  VkExtent2D offscreenViewportExtent;
+  VkExtent2D offscreenViewportExtent{};
 
   bool useCamera;
-  glm::vec3 viewPosition;
-  glm::mat4 viewMatrix;
+  glm::vec3 viewPosition{};
+  glm::mat4 viewMatrix{};
 
   void initVulkan();
   void createCommandPool();
