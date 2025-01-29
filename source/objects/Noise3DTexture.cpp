@@ -2,9 +2,11 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
-constexpr uint32_t WIDTH = 200;
-constexpr uint32_t HEIGHT = 200;
-constexpr uint32_t DEPTH = 200;
+constexpr uint32_t RESOLUTION = 250;
+
+constexpr uint32_t WIDTH = RESOLUTION;
+constexpr uint32_t HEIGHT = RESOLUTION;
+constexpr uint32_t DEPTH = RESOLUTION;
 
 Noise3DTexture::Noise3DTexture(const std::shared_ptr<PhysicalDevice> &physicalDevice,
                                const std::shared_ptr<LogicalDevice> &logicalDevice, const VkCommandPool& commandPool)
@@ -19,6 +21,8 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
 
   // Generate 3D noise data
   std::vector<uint8_t> noiseData(WIDTH * HEIGHT * DEPTH * 4); // RGBA8 format
+
+#pragma omp parallel for
   for (uint32_t z = 0; z < DEPTH; ++z)
   {
       for (uint32_t y = 0; y < HEIGHT; ++y)
