@@ -80,8 +80,14 @@ void NoisyEllipticalDots::render(const VkCommandBuffer &commandBuffer, const uin
   ImGui::SliderFloat("T Diameter", &ellipticalDotsUBO.tDiameter, 0.001f, 0.5f);
   ImGui::SliderFloat("blendFactor", &ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
 
+  ImGui::Separator();
+
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 1.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 10.0f);
+
   ImGui::End();
   ellipticalDotsUniform->update(currentFrame, &ellipticalDotsUBO, sizeof(EllipticalDotsUniform));
+  noiseOptionsUniform->update(currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
@@ -378,10 +384,11 @@ void NoisyEllipticalDots::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 4> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 5> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
       ellipticalDotsUniform->getDescriptorSet(4, descriptorSets[i], i),
+      noiseOptionsUniform->getDescriptorSet(6, descriptorSets[i], i),
       noiseTexture->getDescriptorSet(7, descriptorSets[i])
     }};
 
@@ -408,7 +415,9 @@ void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
                                                           physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
                                                           sizeof(EllipticalDotsUniform));
 
-  // TODO: Noise Options Uniform
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
+                                                        physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                        sizeof(NoiseOptionsUniform));
 
   noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
 

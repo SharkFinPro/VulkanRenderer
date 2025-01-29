@@ -77,27 +77,29 @@ vec3 PointLightAffect(PointLight light, vec3 color)
 
 void main()
 {
-  vec4 noiseValue = texture(Noise3, vec3(fragTexCoord, 0.5));
-  vec3 fragColor = noiseValue.xyz;  // Correct `fragColor` definition
+  vec4 nv = texture(Noise3, noiseOptions.frequency * fragPos);
 
-//  // blend OBJECTCOLOR and ELLIPSECOLOR by using the ellipse equation to decide how close
-//  // 	this fragment is to the ellipse border:
-//
-//  int numins = int(fragTexCoord.s / ellipticalDots.sDiameter);
-//  int numint = int(fragTexCoord.t / ellipticalDots.tDiameter);
-//
-//  // Calculate ellipse equation
-//  float Ar = ellipticalDots.sDiameter / 2.0;
-//  float Br = ellipticalDots.tDiameter / 2.0;
-//
-//  float sc = numins * ellipticalDots.sDiameter + Ar;
-//  float tc = numint * ellipticalDots.tDiameter + Br;
-//
-//  float dist = pow((fragTexCoord.s - sc) / Ar, 2.0) + pow((fragTexCoord.t - tc) / Br, 2.0);
-//
-//  // Smooth blending based on ellipse distance
-//  float t = smoothstep(1.0 - ellipticalDots.blendFactor, 1.0 + ellipticalDots.blendFactor, dist);
-//  vec3 fragColor = mix(ELLIPSECOLOR, OBJECTCOLOR, t);
+  float n = nv.r + nv.g + nv.b + nv.a;
+  n -= 2.0;
+  n *= noiseOptions.amplitude;
+
+  vec2 st = fragTexCoord * n;
+
+  int numins = int(st.s / ellipticalDots.sDiameter);
+  int numint = int(st.t / ellipticalDots.tDiameter);
+
+  // Calculate ellipse equation
+  float Ar = ellipticalDots.sDiameter / 2.0;
+  float Br = ellipticalDots.tDiameter / 2.0;
+
+  float sc = numins * ellipticalDots.sDiameter + Ar;
+  float tc = numint * ellipticalDots.tDiameter + Br;
+
+  float dist = pow((st.s - sc) / Ar, 2.0) + pow((st.t - tc) / Br, 2.0);
+
+  // Smooth blending based on ellipse distance
+  float t = smoothstep(1.0 - ellipticalDots.blendFactor, 1.0 + ellipticalDots.blendFactor, dist);
+  vec3 fragColor = mix(ELLIPSECOLOR, OBJECTCOLOR, t);
 
   // now use fragColor in the per-fragment lighting equations:
   vec3 result = vec3(0);

@@ -37,6 +37,11 @@ private:
     .blendFactor = 0.0f
   };
 
+  NoiseOptionsUniform noiseOptionsUBO {
+    .amplitude = 0.5f,
+    .frequency = 1.0f
+  };
+
   VkDescriptorSetLayout globalDescriptorSetLayout;
   VkDescriptorSetLayout objectDescriptorSetLayout;
 

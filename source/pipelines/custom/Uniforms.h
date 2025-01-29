@@ -20,4 +20,9 @@ struct EllipticalDotsUniform {
   float blendFactor;
 };
 
+struct NoiseOptionsUniform {
+  float amplitude;
+  float frequency;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H
