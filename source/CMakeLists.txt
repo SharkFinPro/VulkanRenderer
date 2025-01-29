@@ -59,6 +59,8 @@ add_library(${PROJECT_NAME}
   objects/Light.h
   pipelines/custom/EllipticalDots.cpp
   pipelines/custom/EllipticalDots.h
+  pipelines/custom/NoisyEllipticalDots.cpp
+  pipelines/custom/NoisyEllipticalDots.h
 )
 
 # Shaders
