@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <glm/glm.hpp>
 
 class UniformBuffer {
 public:
