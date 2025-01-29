@@ -61,6 +61,8 @@ add_library(${PROJECT_NAME}
   pipelines/custom/EllipticalDots.h
   pipelines/custom/NoisyEllipticalDots.cpp
   pipelines/custom/NoisyEllipticalDots.h
+  objects/Noise3DTexture.cpp
+  objects/Noise3DTexture.h
 )
 
 # Shaders

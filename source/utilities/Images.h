@@ -9,19 +9,19 @@
 class Images {
 public:
   static void createImage(const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t width, uint32_t height,
-                          uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
-                          VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-                          VkDeviceMemory& imageMemory);
+                          uint32_t depth, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format,
+                          VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+                          VkDeviceMemory& imageMemory, VkImageType imageType);
 
   static void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
                                     VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
                                     uint32_t mipLevels);
 
   static void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
-                                VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+                                VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth);
 
   static VkImageView createImageView(const VkDevice& device, VkImage image, VkFormat format,
-                                     VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+                                     VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageViewType viewType);
 
 private:
   static bool hasStencilComponent(VkFormat format);
