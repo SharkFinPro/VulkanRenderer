@@ -77,7 +77,7 @@ vec3 PointLightAffect(PointLight light, vec3 color)
 
 void main()
 {
-  vec4 nv = texture(Noise3, noiseOptions.frequency * fragPos);
+  vec4 nv = texture(Noise3, noiseOptions.frequency * vec3(fragTexCoord, 0.0));
 
   float n = nv.r + nv.g + nv.b + nv.a;
   n -= 2.0;
