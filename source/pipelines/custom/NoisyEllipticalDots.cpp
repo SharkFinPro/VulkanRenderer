@@ -378,10 +378,11 @@ void NoisyEllipticalDots::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 4> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
-      ellipticalDotsUniform->getDescriptorSet(4, descriptorSets[i], i)
+      ellipticalDotsUniform->getDescriptorSet(4, descriptorSets[i], i),
+      noiseTexture->getDescriptorSet(7, descriptorSets[i])
     }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
