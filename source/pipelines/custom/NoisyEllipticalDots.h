@@ -45,6 +45,8 @@ private:
   std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
   std::unique_ptr<UniformBuffer> ellipticalDotsUniform;
+  std::unique_ptr<UniformBuffer> noiseOptionsUniform;
+  std::unique_ptr<UniformBuffer> noiseSamplerUniform;
 
   int prevNumLights = 0;
 

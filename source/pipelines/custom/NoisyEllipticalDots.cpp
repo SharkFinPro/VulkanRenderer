@@ -263,11 +263,27 @@ void NoisyEllipticalDots::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 4> globalBindings {
+  constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
+    .binding = 6,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+    .binding = 7,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr std::array<VkDescriptorSetLayoutBinding, 6> globalBindings {
     lightMetadataLayout,
     lightsLayout,
     cameraLayout,
-    ellipticalDotsLayout
+    ellipticalDotsLayout,
+    noiseOptionsLayout,
+    noiseSamplerLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
