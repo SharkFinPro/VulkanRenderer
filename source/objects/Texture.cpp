@@ -9,9 +9,25 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
-Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-                 const VkCommandPool& commandPool, const char* path)
+Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), imGuiTexture(VK_NULL_HANDLE)
+{}
+
+Texture::~Texture()
+{
+  if (imGuiTexture != VK_NULL_HANDLE)
+  {
+    ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
+  }
+
+  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
+  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
+
+  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
+  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
+}
+
+void Texture::init(const VkCommandPool& commandPool, const char* path)
 {
   createTextureImage(commandPool, path);
 
@@ -20,17 +36,6 @@ Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr
   imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   imageInfo.imageView = textureImageView;
   imageInfo.sampler = textureSampler;
-}
-
-Texture::~Texture()
-{
-  ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
-
-  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
-  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
-
-  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
 }
 
 VkDescriptorPoolSize Texture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)

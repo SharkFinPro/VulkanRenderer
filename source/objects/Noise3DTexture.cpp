@@ -8,8 +8,10 @@ constexpr uint32_t DEPTH = 200;
 
 Noise3DTexture::Noise3DTexture(const std::shared_ptr<PhysicalDevice> &physicalDevice,
                                const std::shared_ptr<LogicalDevice> &logicalDevice, const VkCommandPool& commandPool)
-  : Texture(physicalDevice, logicalDevice, commandPool, "")
-{}
+  : Texture(physicalDevice, logicalDevice)
+{
+  init(commandPool, nullptr);
+}
 
 void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const char *path)
 {
