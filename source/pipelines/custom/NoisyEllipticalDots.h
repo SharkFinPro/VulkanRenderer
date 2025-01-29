@@ -7,6 +7,8 @@
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 
+#include "../../objects/Noise3DTexture.h"
+
 class RenderPass;
 class RenderObject;
 class Camera;
@@ -16,8 +18,8 @@ class Light;
 class NoisyEllipticalDots final : public GraphicsPipeline {
 public:
   NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                 const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 const std::shared_ptr<RenderPass>& renderPass);
+                      const std::shared_ptr<LogicalDevice>& logicalDevice,
+                      const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool);
   ~NoisyEllipticalDots() override;
 
   VkDescriptorSetLayout& getLayout();
@@ -46,7 +48,7 @@ private:
   std::unique_ptr<UniformBuffer> cameraUniform;
   std::unique_ptr<UniformBuffer> ellipticalDotsUniform;
   std::unique_ptr<UniformBuffer> noiseOptionsUniform;
-  std::unique_ptr<UniformBuffer> noiseSamplerUniform;
+  std::unique_ptr<Noise3DTexture> noiseTexture;
 
   int prevNumLights = 0;
 
@@ -81,7 +83,7 @@ private:
 
   void createDescriptorSets();
 
-  void createUniforms();
+  void createUniforms(const VkCommandPool& commandPool);
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 };

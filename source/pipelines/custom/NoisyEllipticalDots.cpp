@@ -15,10 +15,10 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                          const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                         const std::shared_ptr<RenderPass>& renderPass)
+                                         const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool)
   : GraphicsPipeline(physicalDevice, logicalDevice)
 {
-  createUniforms();
+  createUniforms(commandPool);
 
   createDescriptorSetLayouts();
 
@@ -389,7 +389,7 @@ void NoisyEllipticalDots::createDescriptorSets()
   }
 }
 
-void NoisyEllipticalDots::createUniforms()
+void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
 {
   lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                          physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
@@ -406,6 +406,11 @@ void NoisyEllipticalDots::createUniforms()
   ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                           physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
                                                           sizeof(EllipticalDotsUniform));
+
+  // TODO: Noise Options Uniform
+
+  noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
+
 }
 
 void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)

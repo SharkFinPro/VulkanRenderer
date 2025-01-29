@@ -168,7 +168,7 @@ void VulkanEngine::initVulkan()
 
   ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass);
 
-  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass);
+  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass, commandPool);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
