@@ -6,6 +6,11 @@ constexpr uint32_t WIDTH = 200;
 constexpr uint32_t HEIGHT = 200;
 constexpr uint32_t DEPTH = 200;
 
+Noise3DTexture::Noise3DTexture(const std::shared_ptr<PhysicalDevice> &physicalDevice,
+                               const std::shared_ptr<LogicalDevice> &logicalDevice, const VkCommandPool& commandPool)
+  : Texture(physicalDevice, logicalDevice, commandPool, "")
+{}
+
 void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const char *path)
 {
   mipLevels = 1;  // No mipmaps for noise
