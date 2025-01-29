@@ -1,28 +1,26 @@
 #include "Noise3DTexture.h"
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
-#include <iostream>
+#include <stdexcept>
 
 unsigned char* ReadTexture3D(const char* filename, int* width, int* height, int* depth)
 {
   FILE *fp = fopen(filename, "rb");
-  if( fp == NULL )
+  if( fp == nullptr )
   {
-    fprintf( stderr, "Cannot find the file '%s'\n", filename );
-    return NULL;
+    throw std::runtime_error("Cannot find the file " + std::string(filename));
   }
 
   int nums, numt, nump;
   fread(&nums, 4, 1, fp);
   fread(&numt,  4, 1, fp);
   fread(&nump, 4, 1, fp);
-  fprintf( stderr, "Texture size = %d x %d x %d\n", nums, numt, nump );
 
   *width  = nums;
   *height = numt;
   *depth  = nump;
 
-  unsigned char * texture = new unsigned char[ 4 * nums * numt * nump ];
+  auto* texture = new unsigned char[ 4 * nums * numt * nump ];
   fread(texture, 4 * nums * numt * nump, 1, fp);
   fclose(fp);
 
@@ -56,6 +54,8 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
   memcpy(data, noiseData, imageSize);
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+
+  delete noiseData;
 
   // Create a 3D texture
   Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), width, height, depth, mipLevels,
