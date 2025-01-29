@@ -168,6 +168,8 @@ void VulkanEngine::initVulkan()
 
   ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass);
 
+  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass);
+
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
@@ -437,6 +439,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   {
     ellipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
                                    renderObjectsToRender.at(PipelineType::ellipticalDots));
+  }
+
+  if (renderObjectsToRender.contains(PipelineType::noisyEllipticalDots))
+  {
+    noisyEllipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+                                   renderObjectsToRender.at(PipelineType::noisyEllipticalDots));
   }
 
   if (vulkanEngineOptions.DO_DOTS)
