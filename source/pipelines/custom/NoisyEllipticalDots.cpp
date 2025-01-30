@@ -348,9 +348,10 @@ void NoisyEllipticalDots::createObjectDescriptorSetLayout()
 
 void NoisyEllipticalDots::createDescriptorPool()
 {
-  constexpr std::array<VkDescriptorPoolSize, 2> poolSizes {{
-    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 3},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 1}
+  constexpr std::array<VkDescriptorPoolSize, 3> poolSizes {{
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 4},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 1},
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT}
   }};
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
