@@ -27,8 +27,9 @@ unsigned char* ReadTexture3D(const char* filename, int* width, int* height, int*
   return texture;
 }
 
-Noise3DTexture::Noise3DTexture(const std::shared_ptr<PhysicalDevice> &physicalDevice,
-                               const std::shared_ptr<LogicalDevice> &logicalDevice, const VkCommandPool& commandPool)
+Noise3DTexture::Noise3DTexture(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                               const std::shared_ptr<LogicalDevice>& logicalDevice,
+                               const VkCommandPool& commandPool)
   : Texture(physicalDevice, logicalDevice)
 {
   init(commandPool, nullptr);
