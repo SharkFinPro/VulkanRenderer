@@ -63,6 +63,8 @@ add_library(${PROJECT_NAME}
   pipelines/custom/NoisyEllipticalDots.h
   objects/Noise3DTexture.cpp
   objects/Noise3DTexture.h
+  pipelines/custom/CurtainPipeline.cpp
+  pipelines/custom/CurtainPipeline.h
 )
 
 # Noise
