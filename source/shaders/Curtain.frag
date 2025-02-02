@@ -66,7 +66,7 @@ vec3 PointLightAffect(PointLight light, vec3 color)
 
 void main()
 {
-  vec3 fragColor = vec3(1, 0, 1);
+  vec3 fragColor = vec3(0.2, 0.2, 1);
 
   // now use fragColor in the per-fragment lighting equations:
   vec3 result = vec3(0);

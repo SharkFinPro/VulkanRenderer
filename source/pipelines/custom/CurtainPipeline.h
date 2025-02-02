@@ -29,7 +29,7 @@ public:
 
 private:
   CurtainUniform curtainUBO {
-    .amplitude = 1,
+    .amplitude = 0.1,
     .period = 1,
     .shininess = 1
   };

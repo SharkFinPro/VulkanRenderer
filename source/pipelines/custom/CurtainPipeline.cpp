@@ -73,10 +73,10 @@ void CurtainPipeline::render(const VkCommandBuffer &commandBuffer, const uint32_
 
   updateLightUniforms(lights, currentFrame);
 
-  ImGui::Begin("Elliptical Dots");
+  ImGui::Begin("Curtain");
 
-  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 1.0f, 25.0f);
-  ImGui::SliderFloat("Period", &curtainUBO.period, 0.001f, 0.5f);
+  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
+  ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
   ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 0.001f, 0.5f);
 
   ImGui::End();
@@ -255,18 +255,18 @@ void CurtainPipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
+  constexpr VkDescriptorSetLayoutBinding curtainLayout {
     .binding = 4,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
   constexpr std::array<VkDescriptorSetLayoutBinding, 4> globalBindings {
     lightMetadataLayout,
     lightsLayout,
     cameraLayout,
-    ellipticalDotsLayout
+    curtainLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
