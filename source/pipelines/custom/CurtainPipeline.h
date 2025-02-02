@@ -31,7 +31,7 @@ private:
   CurtainUniform curtainUBO {
     .amplitude = 0.1,
     .period = 1,
-    .shininess = 1
+    .shininess = 10
   };
 
   VkDescriptorSetLayout globalDescriptorSetLayout;

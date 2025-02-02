@@ -77,7 +77,7 @@ void CurtainPipeline::render(const VkCommandBuffer &commandBuffer, const uint32_
 
   ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
   ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
-  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 0.001f, 0.5f);
+  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
 
   ImGui::End();
   curtainUniform->update(currentFrame, &curtainUBO, sizeof(CurtainUniform));

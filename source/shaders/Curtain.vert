@@ -21,21 +21,44 @@ layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out vec3 fragNormal;
 
 const float PI = 3.14;
+const float Y0 = 5;
 
 void main()
 {
-  fragPos = vec3(transform.model * vec4(inPosition, 1.0));
-  fragTexCoord = inTexCoord;
-//  fragNormal = mat3(transpose(inverse(transform.model))) * inNormal;
-
-  float dzdx = curtain.amplitude * (5-inPosition.y) * (2.*PI/curtain.period) * cos( 2.*PI*inPosition.x/curtain.period );
-  float dzdy = -curtain.amplitude * sin( 2.*PI*inPosition.x/curtain.period );
-  vec3 Tx = vec3(1., 0., dzdx );
-  vec3 Ty = vec3(0., 1., dzdy );
-  fragNormal = normalize( cross( Tx, Ty ) );
-
   vec3 pos = inPosition;
-  pos.z = sin(2 * PI * pos.x * curtain.period) * (5 - pos.y) * curtain.amplitude;
-
+  pos.z = curtain.amplitude * (Y0 - pos.y) * sin ( 2. * PI * pos.x * curtain.period);
   gl_Position = transform.proj * transform.view * transform.model * vec4(pos, 1.0);
+
+  float dzdx = curtain.amplitude * (Y0 - pos.y) * (2.0 * PI / curtain.period) * cos(2.0 * PI * pos.x / curtain.period);
+  float dzdy = -curtain.amplitude * sin(2.0 * PI * pos.x / curtain.period);
+  vec3 Tx = vec3(1.0, 0.0, dzdx);
+  vec3 Ty = vec3(0.0, 1.0, dzdy);
+  fragNormal = normalize(cross(Tx, Ty));
+
+  fragPos = vec3(transform.model * vec4(pos, 1.0));
+  fragTexCoord = inTexCoord;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
