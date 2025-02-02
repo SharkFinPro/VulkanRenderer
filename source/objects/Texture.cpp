@@ -9,9 +9,25 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
-Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-                 const VkCommandPool& commandPool, const char* path)
+Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), imGuiTexture(VK_NULL_HANDLE)
+{}
+
+Texture::~Texture()
+{
+  if (imGuiTexture != VK_NULL_HANDLE)
+  {
+    ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
+  }
+
+  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
+  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
+
+  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
+  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
+}
+
+void Texture::init(const VkCommandPool& commandPool, const char* path)
 {
   createTextureImage(commandPool, path);
 
@@ -20,17 +36,6 @@ Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr
   imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   imageInfo.imageView = textureImageView;
   imageInfo.sampler = textureSampler;
-}
-
-Texture::~Texture()
-{
-  ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
-
-  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
-  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
-
-  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
 }
 
 VkDescriptorPoolSize Texture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
@@ -95,15 +100,15 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
 
   stbi_image_free(pixels);
 
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), texWidth, texHeight, mipLevels,
-                      VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), texWidth, texHeight,
+                      1, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, VK_IMAGE_TYPE_2D);
 
   Images::transitionImageLayout(logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
   Images::copyBufferToImage(logicalDevice, commandPool, stagingBuffer, textureImage, static_cast<uint32_t>(texWidth),
-                            static_cast<uint32_t>(texHeight));
+                            static_cast<uint32_t>(texHeight), 1);
   // Transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
   vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
@@ -112,7 +117,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
   generateMipmaps(commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
 
   textureImageView = Images::createImageView(logicalDevice->getDevice(), textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                             VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+                                             VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_VIEW_TYPE_2D);
 }
 
 void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, VkFormat imageFormat,

@@ -59,7 +59,14 @@ add_library(${PROJECT_NAME}
   objects/Light.h
   pipelines/custom/EllipticalDots.cpp
   pipelines/custom/EllipticalDots.h
+  pipelines/custom/NoisyEllipticalDots.cpp
+  pipelines/custom/NoisyEllipticalDots.h
+  objects/Noise3DTexture.cpp
+  objects/Noise3DTexture.h
 )
+
+# Noise
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/noise/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/noise/")
 
 # Shaders
 set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
@@ -67,18 +74,39 @@ set(shadersDst ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/shaders)
 
 file(MAKE_DIRECTORY ${shadersDst})
 
-add_custom_target(Shaders ALL
-  COMMAND glslangValidator -V ${shadersSrc}/objects/objects.vert -o ${shadersDst}/objects.vert.spv
-  COMMAND glslangValidator -V ${shadersSrc}/objects/objects.frag -o ${shadersDst}/objects.frag.spv
-  COMMAND glslangValidator -V ${shadersSrc}/EllipticalDots.vert -o ${shadersDst}/EllipticalDots.vert.spv
-  COMMAND glslangValidator -V ${shadersSrc}/EllipticalDots.frag -o ${shadersDst}/EllipticalDots.frag.spv
-  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.vert -o ${shadersDst}/ui.vert.spv
-  COMMAND glslangValidator -V ${shadersSrc}/ui/ui.frag -o ${shadersDst}/ui.frag.spv
-  COMMAND glslangValidator -V ${shadersSrc}/dots/dots.vert -o ${shadersDst}/dots.vert.spv
-  COMMAND glslangValidator -V ${shadersSrc}/dots/dots.frag -o ${shadersDst}/dots.frag.spv
-  COMMAND glslangValidator -V ${shadersSrc}/dots/dots.comp -o ${shadersDst}/dots.comp.spv
-  COMMENT "Compiling Shaders"
+# Find all shader files recursively
+file(GLOB_RECURSE SHADER_FILES
+  "${shadersSrc}/*.vert"
+  "${shadersSrc}/*.frag"
+  "${shadersSrc}/*.comp"
 )
+
+# List to store compiled SPIR-V shader files
+set(SPV_FILES "")
+
+foreach(SHADER ${SHADER_FILES})
+  # Get the relative path of the shader file
+  file(RELATIVE_PATH REL_PATH ${shadersSrc} ${SHADER})
+  get_filename_component(DIR_PATH ${REL_PATH} DIRECTORY)
+  get_filename_component(FILENAME ${SHADER} NAME)
+
+  # Set the output SPIR-V file path
+  set(SPV_FILE "${shadersDst}/${FILENAME}.spv")
+
+  # Append to the list of SPIR-V files
+  list(APPEND SPV_FILES ${SPV_FILE})
+
+  # Add compilation command
+  add_custom_command(
+    OUTPUT ${SPV_FILE}
+    COMMAND glslangValidator -V ${SHADER} -o ${SPV_FILE}
+    DEPENDS ${SHADER}
+    COMMENT "Compiling shader: ${REL_PATH}"
+  )
+endforeach()
+
+# Define a custom target for shaders
+add_custom_target(Shaders ALL DEPENDS ${SPV_FILES})
 
 add_dependencies(${PROJECT_NAME} Shaders)
 

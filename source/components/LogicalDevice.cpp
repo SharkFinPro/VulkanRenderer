@@ -203,6 +203,7 @@ void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCom
     throw std::runtime_error("failed to submit draw command buffer!");
   }
 }
+
 void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
   const VkSubmitInfo submitInfo {
@@ -235,6 +236,7 @@ void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
   vkResetFences(device, 1, &inFlightFences[currentFrame]);
   vkResetFences(device, 1, &inFlightFences2[currentFrame]);
 }
+
 void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
 {
   vkResetFences(device, 1, &computeInFlightFences[currentFrame]);

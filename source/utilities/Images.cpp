@@ -3,19 +3,20 @@
 
 #include "Buffers.h"
 
-void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physicalDevice, const uint32_t width, const uint32_t height,
-                         const uint32_t mipLevels, const VkSampleCountFlagBits numSamples, const VkFormat format, const VkImageTiling tiling,
+void Images::createImage(const VkDevice& device, const VkPhysicalDevice& physicalDevice, const uint32_t width,
+                         const uint32_t height, const uint32_t depth, const uint32_t mipLevels,
+                         const VkSampleCountFlagBits numSamples, const VkFormat format, const VkImageTiling tiling,
                          const VkImageUsageFlags usage, const VkMemoryPropertyFlags properties, VkImage& image,
-                         VkDeviceMemory& imageMemory)
+                         VkDeviceMemory& imageMemory, const VkImageType imageType)
 {
   const VkImageCreateInfo imageCreateInfo {
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-    .imageType = VK_IMAGE_TYPE_2D,
+    .imageType = imageType,
     .format = format,
     .extent = {
       .width = width,
       .height = height,
-      .depth = 1
+      .depth = depth
     },
     .mipLevels = mipLevels,
     .arrayLayers = 1,
@@ -136,7 +137,8 @@ void Images::transitionImageLayout(const std::shared_ptr<LogicalDevice>& logical
 }
 
 void Images::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
-                               const VkBuffer buffer, const VkImage image, const uint32_t width, const uint32_t height)
+                               const VkBuffer buffer, const VkImage image, const uint32_t width, const uint32_t height,
+                               const uint32_t depth)
 {
   const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
@@ -151,7 +153,7 @@ void Images::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevi
       .layerCount = 1
     },
     .imageOffset = {0, 0, 0},
-    .imageExtent = {width, height, 1}
+    .imageExtent = {width, height, depth}
   };
 
   vkCmdCopyBufferToImage(
@@ -166,12 +168,14 @@ void Images::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevi
   Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 }
 
-VkImageView Images::createImageView(const VkDevice& device, const VkImage image, const VkFormat format, const VkImageAspectFlags aspectFlags, const uint32_t mipLevels)
+VkImageView Images::createImageView(const VkDevice& device, const VkImage image, const VkFormat format,
+                                    const VkImageAspectFlags aspectFlags, const uint32_t mipLevels,
+                                    const VkImageViewType viewType)
 {
   const VkImageViewCreateInfo imageViewCreateInfo {
     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
     .image = image,
-    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    .viewType = viewType,
     .format = format,
 
     .components = {

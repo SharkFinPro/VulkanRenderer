@@ -53,7 +53,8 @@ void VulkanEngine::render()
 
 std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
 {
-  auto texture = std::make_shared<Texture>(physicalDevice, logicalDevice, commandPool, path);
+  auto texture = std::make_shared<Texture>(physicalDevice, logicalDevice);
+  texture->init(commandPool, path);
   textures.push_back(texture);
 
   return texture;
@@ -167,6 +168,8 @@ void VulkanEngine::initVulkan()
   objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
 
   ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass);
+
+  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass, commandPool);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -437,6 +440,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   {
     ellipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
                                    renderObjectsToRender.at(PipelineType::ellipticalDots));
+  }
+
+  if (renderObjectsToRender.contains(PipelineType::noisyEllipticalDots))
+  {
+    noisyEllipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+                                   renderObjectsToRender.at(PipelineType::noisyEllipticalDots));
   }
 
   if (vulkanEngineOptions.DO_DOTS)

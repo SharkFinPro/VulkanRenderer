@@ -11,9 +11,11 @@
 
 class Texture {
 public:
-  Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-          const VkCommandPool& commandPool, const char* path);
-  ~Texture();
+  Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice);
+
+  virtual ~Texture();
+
+  void init(const VkCommandPool& commandPool, const char* path);
 
   [[nodiscard]] static VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT);
 
@@ -21,7 +23,7 @@ public:
 
   [[nodiscard]] ImTextureID getImGuiTexture();
 
-private:
+protected:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
 
@@ -36,7 +38,7 @@ private:
 
   VkDescriptorSet imGuiTexture;
 
-  void createTextureImage(const VkCommandPool& commandPool, const char* path);
+  virtual void createTextureImage(const VkCommandPool& commandPool, const char* path);
 
   void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
                        int32_t texHeight, uint32_t mipLevels) const;

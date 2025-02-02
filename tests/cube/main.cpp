@@ -60,12 +60,12 @@ int main()
       ImGui::End();
 
       ImGui::Begin("Rendering");
-      ImGui::Checkbox("Use Elliptical Dots", &useEllipticalDots);
+      ImGui::Checkbox("Use Noisy Elliptical Dots", &useEllipticalDots);
       ImGui::End();
 
 
       // Render Objects
-      renderer.renderObject(object, useEllipticalDots ? PipelineType::ellipticalDots : PipelineType::object);
+      renderer.renderObject(object, useEllipticalDots ? PipelineType::noisyEllipticalDots : PipelineType::object);
 
       for (const auto& light : lights)
       {
