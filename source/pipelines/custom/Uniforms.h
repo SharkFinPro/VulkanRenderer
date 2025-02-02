@@ -25,4 +25,10 @@ struct NoiseOptionsUniform {
   float frequency;
 };
 
+struct CurtainUniform {
+  float amplitude;
+  float period;
+  float shininess;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H
