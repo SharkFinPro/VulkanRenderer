@@ -31,13 +31,15 @@
 #include "objects/Light.h"
 
 #include "VulkanEngineOptions.h"
+#include "pipelines/custom/CurtainPipeline.h"
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 enum class PipelineType {
   object,
   ellipticalDots,
-  noisyEllipticalDots
+  noisyEllipticalDots,
+  curtain
 };
 
 class VulkanEngine {
@@ -85,6 +87,7 @@ private:
   std::unique_ptr<DotsPipeline> dotsPipeline;
   std::unique_ptr<EllipticalDots> ellipticalDotsPipeline;
   std::unique_ptr<NoisyEllipticalDots> noisyEllipticalDotsPipeline;
+  std::unique_ptr<CurtainPipeline> curtainPipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
 
