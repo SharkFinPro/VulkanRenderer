@@ -16,7 +16,7 @@ int main()
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Cube",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -15.0f },
+      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
       .DO_DOTS = false
     };
 
@@ -26,10 +26,10 @@ int main()
 
     const auto texture = renderer.loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/curtain.glb");
+    const auto model = renderer.loadModel("assets/models/square.glb");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
-    // object->setPosition({ 0, 0, 0 });
+    object->setPosition({ 0, -5, 0 });
 
     std::vector<std::shared_ptr<Light>> lights;
 
@@ -42,8 +42,6 @@ int main()
     lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
-
-    bool useEllipticalDots = true;
 
     while (renderer.isActive())
     {
@@ -59,13 +57,8 @@ int main()
       }
       ImGui::End();
 
-      ImGui::Begin("Rendering");
-      ImGui::Checkbox("Use Noisy Elliptical Dots", &useEllipticalDots);
-      ImGui::End();
-
-
       // Render Objects
-      renderer.renderObject(object, useEllipticalDots ? PipelineType::curtain : PipelineType::object);
+      renderer.renderObject(object, PipelineType::object);
 
       for (const auto& light : lights)
       {
