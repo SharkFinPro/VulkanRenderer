@@ -29,7 +29,6 @@ int main()
     const auto model = renderer.loadModel("assets/models/curtain.glb");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
-    // object->setPosition({ 0, 0, 0 });
 
     std::vector<std::shared_ptr<Light>> lights;
 
