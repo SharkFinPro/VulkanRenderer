@@ -63,7 +63,6 @@ int main()
       ImGui::Checkbox("Use Elliptical Dots", &useEllipticalDots);
       ImGui::End();
 
-
       // Render Objects
       renderer.renderObject(object, useEllipticalDots ? PipelineType::ellipticalDots : PipelineType::object);
 
