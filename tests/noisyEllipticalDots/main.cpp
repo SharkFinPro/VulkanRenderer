@@ -15,7 +15,7 @@ int main()
     constexpr VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Cube",
+      .WINDOW_TITLE = "Noisy Elliptical Dots",
       .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
       .DO_DOTS = false
     };
