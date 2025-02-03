@@ -63,7 +63,6 @@ int main()
       ImGui::Checkbox("Use Noisy Elliptical Dots", &useNoisyEllipticalDots);
       ImGui::End();
 
-
       // Render Objects
       renderer.renderObject(object, useNoisyEllipticalDots ? PipelineType::noisyEllipticalDots : PipelineType::object);
 
