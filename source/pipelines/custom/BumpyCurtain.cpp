@@ -94,7 +94,7 @@ void BumpyCurtain::render(const VkCommandBuffer& commandBuffer, uint32_t current
 void BumpyCurtain::loadGraphicsShaders()
 {
   createShader("assets/shaders/Curtain.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/Curtain.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  createShader("assets/shaders/BumpyCurtain.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 void BumpyCurtain::loadGraphicsDescriptorSetLayouts()
