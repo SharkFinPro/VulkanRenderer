@@ -120,7 +120,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
                                              VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_VIEW_TYPE_2D);
 }
 
-void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, VkFormat imageFormat,
+void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, const VkFormat imageFormat,
                               const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
   VkFormatProperties formatProperties;
