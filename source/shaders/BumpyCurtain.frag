@@ -42,13 +42,13 @@ layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 PointLightAffect(PointLight light, vec3 color)
+vec3 PointLightAffect(PointLight light, vec3 color, vec3 normal)
 {
   // Ambient
   vec3 ambient = light.ambient * color;
 
   // Diffuse
-  vec3 norm = normalize(fragNormal);
+  vec3 norm = normalize(normal);
   vec3 lightDir = normalize(light.position - fragPos);
   float d = max(dot(norm, lightDir), 0.0);
   vec3 diffuse = light.diffuse * d * color;
@@ -71,15 +71,48 @@ vec3 PointLightAffect(PointLight light, vec3 color)
   return (ambient + diffuse + specular) * light.color;
 }
 
+vec3 PerturbNormal2(float angx, float angy, vec3 n)
+{
+  float cx = cos(angx);
+  float sx = sin(angx);
+  float cy = cos(angy);
+  float sy = sin(angy);
+
+  // rotate about x:
+  float yp =  n.y * cx - n.z * sx;    // y'
+  n.z      =  n.y * sx + n.z * cx;    // z'
+  n.y      =  yp;
+  // n.x      =  n.x;
+
+  // rotate about y:
+  float xp =  n.x * cy + n.z * sy;    // x'
+  n.z      = -n.x * sy + n.z * cy;    // z'
+  n.x      =  xp;
+  // n.y      =  n.y;
+
+  return normalize( n );
+}
+
 void main()
 {
+  vec4 nvx = texture(Noise3, noiseOptions.frequency * fragPos);
+  float angx = nvx.r + nvx.g + nvx.b + nvx.a  -  2.;	// -1. to +1.
+  angx *= noiseOptions.amplitude;
+
+  vec4 nvy = texture(Noise3, noiseOptions.frequency * vec3(fragPos.xy, fragPos.z + 0.5));
+  float angy = nvy.r + nvy.g + nvy.b + nvy.a  -  2.;	// -1. to +1.
+  angy *= noiseOptions.amplitude;
+
+  vec3 n = PerturbNormal2(angx, angy, fragNormal);
+  n = normalize(gl_NormalMatrix * n);
+
   vec3 fragColor = vec3(0.855, 0.647, 0.125);
 
   // now use fragColor in the per-fragment lighting equations:
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], fragColor);
+    result += PointLightAffect(lights[i], fragColor, n);
   }
 
   outColor = vec4(result, 1.0);
