@@ -1,5 +1,6 @@
 add_subdirectory("objectLoading")
 add_subdirectory("cube")
+add_subdirectory("bumpyCurtain")
 add_subdirectory("curtain")
 add_subdirectory("ellipticalDots")
 add_subdirectory("noisyEllipticalDots")

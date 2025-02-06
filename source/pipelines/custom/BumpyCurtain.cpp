@@ -1,25 +1,22 @@
-#include "ObjectsPipeline.h"
-#include <stdexcept>
-
-#include "../Vertex.h"
+#include "BumpyCurtain.h"
 #include "../RenderPass.h"
-#include "Uniforms.h"
-
-#include "../../objects/RenderObject.h"
-#include "../../components/Camera.h"
-#include "../../objects/UniformBuffer.h"
+#include "../Vertex.h"
 #include "../../objects/Light.h"
-
+#include "../../objects/Noise3DTexture.h"
+#include "../../objects/RenderObject.h"
+#include "../../objects/UniformBuffer.h"
 #include <imgui.h>
+#include <stdexcept>
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
-ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                                 const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass)
+BumpyCurtain::BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                           const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const std::shared_ptr<RenderPass>& renderPass,
+                           const VkCommandPool& commandPool)
   : GraphicsPipeline(physicalDevice, logicalDevice)
 {
-  createUniforms();
+  createUniforms(commandPool);
 
   createDescriptorSetLayouts();
 
@@ -30,7 +27,7 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physical
   createPipeline(renderPass->getRenderPass());
 }
 
-ObjectsPipeline::~ObjectsPipeline()
+BumpyCurtain::~BumpyCurtain()
 {
   vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 
@@ -39,15 +36,15 @@ ObjectsPipeline::~ObjectsPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-VkDescriptorSetLayout& ObjectsPipeline::getLayout()
+VkDescriptorSetLayout& BumpyCurtain::getLayout()
 {
   return objectDescriptorSetLayout;
 }
 
-void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                             const glm::vec3 viewPosition, const glm::mat4& viewMatrix,
-                             const VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
-                             const std::vector<std::shared_ptr<RenderObject>>& objects)
+void BumpyCurtain::render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
+                          const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
+                          const std::vector<std::shared_ptr<Light>>& lights,
+                          const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -74,6 +71,21 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
   updateLightUniforms(lights, currentFrame);
 
+  ImGui::Begin("Curtain");
+
+  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
+  ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
+  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
+
+  ImGui::Separator();
+
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 10.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.1f, 10.0f);
+
+  ImGui::End();
+  curtainUniform->update(currentFrame, &curtainUBO, sizeof(CurtainUniform));
+  noiseOptionsUniform->update(currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
+
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
 
@@ -85,19 +97,19 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   }
 }
 
-void ObjectsPipeline::loadGraphicsShaders()
+void BumpyCurtain::loadGraphicsShaders()
 {
-  createShader("assets/shaders/objects.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/objects.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  createShader("assets/shaders/Curtain.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/BumpyCurtain.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
-void ObjectsPipeline::loadGraphicsDescriptorSetLayouts()
+void BumpyCurtain::loadGraphicsDescriptorSetLayouts()
 {
   loadDescriptorSetLayout(globalDescriptorSetLayout);
   loadDescriptorSetLayout(objectDescriptorSetLayout);
 }
 
-std::unique_ptr<VkPipelineColorBlendStateCreateInfo> ObjectsPipeline::defineColorBlendState()
+std::unique_ptr<VkPipelineColorBlendStateCreateInfo> BumpyCurtain::defineColorBlendState()
 {
   colorBlendAttachment = {
     .blendEnable = VK_FALSE,
@@ -117,7 +129,7 @@ std::unique_ptr<VkPipelineColorBlendStateCreateInfo> ObjectsPipeline::defineColo
   return std::make_unique<VkPipelineColorBlendStateCreateInfo>(colorBlendState);
 }
 
-std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> ObjectsPipeline::defineDepthStencilState()
+std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> BumpyCurtain::defineDepthStencilState()
 {
   VkPipelineDepthStencilStateCreateInfo depthStencilState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
@@ -133,7 +145,7 @@ std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> ObjectsPipeline::defineDe
   return std::make_unique<VkPipelineDepthStencilStateCreateInfo>(depthStencilState);
 }
 
-std::unique_ptr<VkPipelineDynamicStateCreateInfo> ObjectsPipeline::defineDynamicState()
+std::unique_ptr<VkPipelineDynamicStateCreateInfo> BumpyCurtain::defineDynamicState()
 {
   dynamicStates = {
     VK_DYNAMIC_STATE_VIEWPORT,
@@ -149,7 +161,7 @@ std::unique_ptr<VkPipelineDynamicStateCreateInfo> ObjectsPipeline::defineDynamic
   return std::make_unique<VkPipelineDynamicStateCreateInfo>(dynamicState);
 }
 
-std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> ObjectsPipeline::defineInputAssemblyState()
+std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> BumpyCurtain::defineInputAssemblyState()
 {
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
@@ -160,7 +172,7 @@ std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> ObjectsPipeline::defineI
   return std::make_unique<VkPipelineInputAssemblyStateCreateInfo>(inputAssemblyState);
 }
 
-std::unique_ptr<VkPipelineMultisampleStateCreateInfo> ObjectsPipeline::defineMultisampleState()
+std::unique_ptr<VkPipelineMultisampleStateCreateInfo> BumpyCurtain::defineMultisampleState()
 {
   VkPipelineMultisampleStateCreateInfo multisampleState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
@@ -175,14 +187,14 @@ std::unique_ptr<VkPipelineMultisampleStateCreateInfo> ObjectsPipeline::defineMul
   return std::make_unique<VkPipelineMultisampleStateCreateInfo>(multisampleState);
 }
 
-std::unique_ptr<VkPipelineRasterizationStateCreateInfo> ObjectsPipeline::defineRasterizationState()
+std::unique_ptr<VkPipelineRasterizationStateCreateInfo> BumpyCurtain::defineRasterizationState()
 {
   VkPipelineRasterizationStateCreateInfo rasterizationState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = VK_FALSE,
     .rasterizerDiscardEnable = VK_FALSE,
     .polygonMode = VK_POLYGON_MODE_FILL,
-    .cullMode = VK_CULL_MODE_BACK_BIT,
+    .cullMode = VK_CULL_MODE_NONE,
     .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
     .depthBiasEnable = VK_FALSE,
     .lineWidth = 1.0f
@@ -191,7 +203,7 @@ std::unique_ptr<VkPipelineRasterizationStateCreateInfo> ObjectsPipeline::defineR
   return std::make_unique<VkPipelineRasterizationStateCreateInfo>(rasterizationState);
 }
 
-std::unique_ptr<VkPipelineVertexInputStateCreateInfo> ObjectsPipeline::defineVertexInputState()
+std::unique_ptr<VkPipelineVertexInputStateCreateInfo> BumpyCurtain::defineVertexInputState()
 {
   vertexBindingDescription = Vertex::getBindingDescription();
   vertexAttributeDescriptions = Vertex::getAttributeDescriptions();
@@ -207,7 +219,7 @@ std::unique_ptr<VkPipelineVertexInputStateCreateInfo> ObjectsPipeline::defineVer
   return std::make_unique<VkPipelineVertexInputStateCreateInfo>(vertexInputState);
 }
 
-std::unique_ptr<VkPipelineViewportStateCreateInfo> ObjectsPipeline::defineViewportState()
+std::unique_ptr<VkPipelineViewportStateCreateInfo> BumpyCurtain::defineViewportState()
 {
   VkPipelineViewportStateCreateInfo viewportState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -218,13 +230,13 @@ std::unique_ptr<VkPipelineViewportStateCreateInfo> ObjectsPipeline::defineViewpo
   return std::make_unique<VkPipelineViewportStateCreateInfo>(viewportState);
 }
 
-void ObjectsPipeline::createDescriptorSetLayouts()
+void BumpyCurtain::createDescriptorSetLayouts()
 {
   createGlobalDescriptorSetLayout();
   createObjectDescriptorSetLayout();
 }
 
-void ObjectsPipeline::createGlobalDescriptorSetLayout()
+void BumpyCurtain::createGlobalDescriptorSetLayout()
 {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 2,
@@ -247,10 +259,34 @@ void ObjectsPipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> globalBindings {
+  constexpr VkDescriptorSetLayoutBinding curtainLayout {
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
+    .binding = 6,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+    .binding = 7,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr std::array<VkDescriptorSetLayoutBinding, 6> globalBindings {
     lightMetadataLayout,
     lightsLayout,
-    cameraLayout
+    cameraLayout,
+    curtainLayout,
+    noiseOptionsLayout,
+    noiseSamplerLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
@@ -265,7 +301,7 @@ void ObjectsPipeline::createGlobalDescriptorSetLayout()
   }
 }
 
-void ObjectsPipeline::createObjectDescriptorSetLayout()
+void BumpyCurtain::createObjectDescriptorSetLayout()
 {
   constexpr VkDescriptorSetLayoutBinding transformLayout {
     .binding = 0,
@@ -307,11 +343,12 @@ void ObjectsPipeline::createObjectDescriptorSetLayout()
   }
 }
 
-void ObjectsPipeline::createDescriptorPool()
+void BumpyCurtain::createDescriptorPool()
 {
-  constexpr std::array<VkDescriptorPoolSize, 2> poolSizes {{
-    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 2},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 1}
+  constexpr std::array<VkDescriptorPoolSize, 3> poolSizes {{
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 4},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 1},
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT}
   }};
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
@@ -327,7 +364,7 @@ void ObjectsPipeline::createDescriptorPool()
   }
 }
 
-void ObjectsPipeline::createDescriptorSets()
+void BumpyCurtain::createDescriptorSets()
 {
   const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
@@ -345,9 +382,12 @@ void ObjectsPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 5> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
-      cameraUniform->getDescriptorSet(3, descriptorSets[i], i)
+      cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
+      curtainUniform->getDescriptorSet(4, descriptorSets[i], i),
+      noiseOptionsUniform->getDescriptorSet(6, descriptorSets[i], i),
+      noiseTexture->getDescriptorSet(7, descriptorSets[i])
     }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
@@ -355,7 +395,7 @@ void ObjectsPipeline::createDescriptorSets()
   }
 }
 
-void ObjectsPipeline::createUniforms()
+void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
 {
   lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                          physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
@@ -368,9 +408,20 @@ void ObjectsPipeline::createUniforms()
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
                                                   physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
+
+  curtainUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
+                                                   physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                   sizeof(CurtainUniform));
+
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
+                                                        physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+                                                        sizeof(NoiseOptionsUniform));
+
+  noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
+
 }
 
-void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
+void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
 {
   if (lights.empty())
   {
