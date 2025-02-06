@@ -1,6 +1,4 @@
 #include "ComputePipeline.h"
-
-#include <utility>
 #include <stdexcept>
 
 ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice,
