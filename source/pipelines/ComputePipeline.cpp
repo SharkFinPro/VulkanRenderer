@@ -11,7 +11,6 @@ void ComputePipeline::createShader(const char* filename)
   shaderModule = std::make_unique<ShaderModule>(logicalDevice->getDevice(), filename, VK_SHADER_STAGE_COMPUTE_BIT);
 }
 
-
 void ComputePipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
 {
   descriptorSetLayouts.emplace_back(descriptorSetLayout);
