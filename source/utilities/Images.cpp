@@ -4,7 +4,6 @@
 #include "../components/PhysicalDevice.h"
 #include <stdexcept>
 
-
 namespace Images {
   void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
                    const std::shared_ptr<PhysicalDevice>& physicalDevice, const uint32_t width, const uint32_t height,
