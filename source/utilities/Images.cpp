@@ -1,9 +1,9 @@
 #include "Images.h"
 #include "Buffers.h"
 #include "../components/LogicalDevice.h"
+#include "../components/PhysicalDevice.h"
 #include <stdexcept>
 
-#include "../components/PhysicalDevice.h"
 
 namespace Images {
   void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
