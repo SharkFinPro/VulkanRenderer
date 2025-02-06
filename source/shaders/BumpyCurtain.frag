@@ -11,6 +11,12 @@ struct PointLight {
   float padding3; // Padding to ensure alignment
 };
 
+layout(set = 1, binding = 0) uniform UniformBufferObject {
+  mat4 model;
+  mat4 view;
+  mat4 proj;
+} transform;
+
 layout(set = 0, binding = 2) uniform PointLightsMetadata {
   int numLights;
 };
@@ -104,7 +110,7 @@ void main()
   angy *= noiseOptions.amplitude;
 
   vec3 n = PerturbNormal2(angx, angy, fragNormal);
-  n = normalize(gl_NormalMatrix * n);
+  n = normalize(transpose(inverse(mat3(transform.model))) * n);
 
   vec3 fragColor = vec3(0.855, 0.647, 0.125);
 
