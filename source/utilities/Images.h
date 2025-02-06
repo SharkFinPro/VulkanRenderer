@@ -6,8 +6,7 @@
 
 class LogicalDevice;
 
-namespace Images
-{
+namespace Images {
   void createImage(const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t width, uint32_t height,
                    uint32_t depth, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format,
                    VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,

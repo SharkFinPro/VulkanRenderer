@@ -3,8 +3,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Buffers
-{
+namespace Buffers {
   uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
   void createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, VkDeviceSize size,
