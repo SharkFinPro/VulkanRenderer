@@ -77,8 +77,14 @@ void BumpyCurtain::render(const VkCommandBuffer& commandBuffer, uint32_t current
   ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
   ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
 
+  ImGui::Separator();
+
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 1.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 10.0f);
+
   ImGui::End();
   curtainUniform->update(currentFrame, &curtainUBO, sizeof(CurtainUniform));
+  noiseOptionsUniform->update(currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
