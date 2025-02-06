@@ -79,8 +79,8 @@ void BumpyCurtain::render(const VkCommandBuffer& commandBuffer, uint32_t current
 
   ImGui::Separator();
 
-  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 1.0f);
-  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 10.0f);
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 10.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 1.0f, 10.0f);
 
   ImGui::End();
   curtainUniform->update(currentFrame, &curtainUBO, sizeof(CurtainUniform));
