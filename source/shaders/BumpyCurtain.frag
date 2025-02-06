@@ -54,9 +54,8 @@ vec3 PointLightAffect(PointLight light, vec3 color, vec3 normal)
   vec3 ambient = light.ambient * color;
 
   // Diffuse
-  vec3 norm = normalize(normal);
   vec3 lightDir = normalize(light.position - fragPos);
-  float d = max(dot(norm, lightDir), 0.0);
+  float d = max(dot(normal, lightDir), 0.0);
   vec3 diffuse = light.diffuse * d * color;
 
   // Specular
@@ -64,7 +63,7 @@ vec3 PointLightAffect(PointLight light, vec3 color, vec3 normal)
   if(d > 0.0) // only do specular if the light can see the point
   {
     vec3 viewDir = normalize(camera.position - fragPos);
-    vec3 reflectDir = normalize(reflect(-lightDir, norm));
+    vec3 reflectDir = normalize(reflect(-lightDir, normal));
     float cosphi = dot(viewDir, reflectDir);
 
     if (cosphi > 0.0)
@@ -112,7 +111,7 @@ void main()
   vec3 n = PerturbNormal2(angx, angy, fragNormal);
   n = normalize(transpose(inverse(mat3(transform.model))) * n);
 
-  vec3 fragColor = vec3(0.855, 0.647, 0.125);
+  vec3 fragColor = vec3(1, 1, 1);
 
   // now use fragColor in the per-fragment lighting equations:
   vec3 result = vec3(0);
