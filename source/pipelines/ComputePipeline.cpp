@@ -1,8 +1,8 @@
 #include "ComputePipeline.h"
 #include <stdexcept>
 
-ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice,
-                                 const std::shared_ptr<LogicalDevice> &logicalDevice)
+ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                                 const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(physicalDevice, logicalDevice)
 {}
 
