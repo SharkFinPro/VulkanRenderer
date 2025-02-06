@@ -5,9 +5,11 @@
 #include <memory>
 
 class LogicalDevice;
+class PhysicalDevice;
 
 namespace Images {
-  void createImage(const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t width, uint32_t height,
+  void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                   const std::shared_ptr<PhysicalDevice>& physicalDevice, uint32_t width, uint32_t height,
                    uint32_t depth, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format,
                    VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
                    VkDeviceMemory& imageMemory, VkImageType imageType);
@@ -19,8 +21,8 @@ namespace Images {
   void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
                          VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth);
 
-  VkImageView createImageView(const VkDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                              uint32_t mipLevels, VkImageViewType viewType);
+  VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice, VkImage image, VkFormat format,
+                              VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageViewType viewType);
 
   bool hasStencilComponent(VkFormat format);
 };

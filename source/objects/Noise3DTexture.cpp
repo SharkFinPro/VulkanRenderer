@@ -59,8 +59,8 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
   delete noiseData;
 
   // Create a 3D texture
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), width, height, depth, mipLevels,
-                      VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+  Images::createImage(logicalDevice, physicalDevice, width, height, depth, mipLevels, VK_SAMPLE_COUNT_1_BIT,
+                      VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, VK_IMAGE_TYPE_3D);
 
@@ -75,6 +75,6 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
   vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
   vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
 
-  textureImageView = Images::createImageView(logicalDevice->getDevice(), textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+  textureImageView = Images::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                              VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_VIEW_TYPE_3D);
 }

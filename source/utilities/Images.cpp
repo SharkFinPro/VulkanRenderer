@@ -3,12 +3,15 @@
 #include "../components/LogicalDevice.h"
 #include <stdexcept>
 
+#include "../components/PhysicalDevice.h"
+
 namespace Images {
-  void createImage(const VkDevice& device, const VkPhysicalDevice& physicalDevice, const uint32_t width,
-                   const uint32_t height, const uint32_t depth, const uint32_t mipLevels,
-                   const VkSampleCountFlagBits numSamples, const VkFormat format, const VkImageTiling tiling,
-                   const VkImageUsageFlags usage, const VkMemoryPropertyFlags properties, VkImage& image,
-                   VkDeviceMemory& imageMemory, const VkImageType imageType)
+  void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                   const std::shared_ptr<PhysicalDevice>& physicalDevice, const uint32_t width, const uint32_t height,
+                   const uint32_t depth, const uint32_t mipLevels, const VkSampleCountFlagBits numSamples,
+                   const VkFormat format, const VkImageTiling tiling, const VkImageUsageFlags usage,
+                   const VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory,
+                   const VkImageType imageType)
   {
     const VkImageCreateInfo imageCreateInfo {
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -28,26 +31,26 @@ namespace Images {
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    if (vkCreateImage(device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
+    if (vkCreateImage(logicalDevice->getDevice(), &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create image!");
     }
 
     VkMemoryRequirements memoryRequirements;
-    vkGetImageMemoryRequirements(device, image, &memoryRequirements);
+    vkGetImageMemoryRequirements(logicalDevice->getDevice(), image, &memoryRequirements);
 
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
-      .memoryTypeIndex = Buffers::findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties)
+      .memoryTypeIndex = Buffers::findMemoryType(physicalDevice->getPhysicalDevice(), memoryRequirements.memoryTypeBits, properties)
     };
 
-    if (vkAllocateMemory(device, &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
+    if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to allocate image memory!");
     }
 
-    vkBindImageMemory(device, image, imageMemory, 0);
+    vkBindImageMemory(logicalDevice->getDevice(), image, imageMemory, 0);
   }
 
   void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
@@ -169,8 +172,8 @@ namespace Images {
     Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
   }
 
-  VkImageView createImageView(const VkDevice& device, const VkImage image, const VkFormat format,
-                              const VkImageAspectFlags aspectFlags, const uint32_t mipLevels,
+  VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkImage image,
+                              const VkFormat format, const VkImageAspectFlags aspectFlags, const uint32_t mipLevels,
                               const VkImageViewType viewType)
   {
     const VkImageViewCreateInfo imageViewCreateInfo {
@@ -195,7 +198,7 @@ namespace Images {
     };
 
     VkImageView imageView;
-    if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
+    if (vkCreateImageView(logicalDevice->getDevice(), &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create image views!");
     }

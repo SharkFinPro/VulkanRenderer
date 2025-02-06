@@ -134,7 +134,7 @@ void SwapChain::createImageViews()
 
   for (size_t i = 0; i < swapChainImages.size(); i++)
   {
-    swapChainImageViews[i] = Images::createImageView(logicalDevice->getDevice(), swapChainImages[i], swapChainImageFormat,
+    swapChainImageViews[i] = Images::createImageView(logicalDevice, swapChainImages[i], swapChainImageFormat,
                                                      VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
   }
 }
