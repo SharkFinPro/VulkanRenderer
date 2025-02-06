@@ -90,7 +90,7 @@ void SwapChain::createSwapChain()
   const VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
   uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
-  auto indices = physicalDevice->getQueueFamilies();
+  const auto indices = physicalDevice->getQueueFamilies();
   const uint32_t queueFamilyIndices[] = {
     indices.graphicsFamily.value(),
     indices.presentFamily.value()

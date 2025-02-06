@@ -40,9 +40,9 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
   mipLevels = 1;  // No mipmaps for noise
 
   int width, height, depth;
-  auto noiseData = ReadTexture3D("assets/noise/noise3d.064.tex", &width, &height, &depth);
+  const auto noiseData = ReadTexture3D("assets/noise/noise3d.064.tex", &width, &height, &depth);
 
-  VkDeviceSize imageSize = width * height * depth * 4;
+  const VkDeviceSize imageSize = width * height * depth * 4;
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;

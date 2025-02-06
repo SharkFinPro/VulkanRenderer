@@ -199,7 +199,7 @@ void VulkanEngine::initVulkan()
 
 void VulkanEngine::createCommandPool()
 {
-  auto queueFamilyIndices = physicalDevice->getQueueFamilies();
+  const auto queueFamilyIndices = physicalDevice->getQueueFamilies();
 
   const VkCommandPoolCreateInfo poolInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
