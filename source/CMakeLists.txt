@@ -65,6 +65,8 @@ add_library(${PROJECT_NAME}
   objects/Noise3DTexture.h
   pipelines/custom/CurtainPipeline.cpp
   pipelines/custom/CurtainPipeline.h
+  pipelines/custom/BumpyCurtain.cpp
+  pipelines/custom/BumpyCurtain.h
 )
 
 # Noise
