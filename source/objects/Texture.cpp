@@ -111,8 +111,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
                             static_cast<uint32_t>(texHeight), 1);
   // Transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
-  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
+  Buffers::destroyBuffer(logicalDevice->getDevice(), stagingBuffer, stagingBufferMemory);
 
   generateMipmaps(commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
 

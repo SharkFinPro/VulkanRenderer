@@ -28,11 +28,9 @@ Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<Log
 
 Model::~Model()
 {
-  vkDestroyBuffer(logicalDevice->getDevice(), indexBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), indexBufferMemory, nullptr);
+  Buffers::destroyBuffer(logicalDevice->getDevice(), indexBuffer, indexBufferMemory);
 
-  vkDestroyBuffer(logicalDevice->getDevice(), vertexBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), vertexBufferMemory, nullptr);
+  Buffers::destroyBuffer(logicalDevice->getDevice(), vertexBuffer, vertexBufferMemory);
 }
 
 void Model::loadModel(const char* path, const glm::quat orientation)
@@ -110,8 +108,7 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool)
   Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
                       vertexBuffer, bufferSize);
 
-  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
+  Buffers::destroyBuffer(logicalDevice->getDevice(), stagingBuffer, stagingBufferMemory);
 }
 
 void Model::createIndexBuffer(const VkCommandPool& commandPool)
@@ -138,8 +135,7 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
   Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
                       indexBuffer, bufferSize);
 
-  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
+  Buffers::destroyBuffer(logicalDevice->getDevice(), stagingBuffer, stagingBufferMemory);
 }
 
 void Model::bind(const VkCommandBuffer& commandBuffer) const

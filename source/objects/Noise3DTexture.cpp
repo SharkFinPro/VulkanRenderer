@@ -72,8 +72,7 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
   Images::transitionImageLayout(logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);
 
-  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
+  Buffers::destroyBuffer(logicalDevice->getDevice(), stagingBuffer, stagingBufferMemory);
 
   textureImageView = Images::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                              VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_VIEW_TYPE_3D);
