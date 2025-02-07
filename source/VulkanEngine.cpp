@@ -72,9 +72,8 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Texture>& specularMap,
                                                              const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(),
-                                                     physicalDevice->getPhysicalDevice(),
-                                                     objectsPipeline->getLayout(), texture, specularMap, model);
+  auto renderObject = std::make_shared<RenderObject>(logicalDevice, physicalDevice, objectsPipeline->getLayout(),
+                                                     texture, specularMap, model);
 
   renderObjects.push_back(renderObject);
 

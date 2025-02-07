@@ -357,16 +357,13 @@ void ObjectsPipeline::createDescriptorSets()
 
 void ObjectsPipeline::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                         physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                          sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
 }
 
@@ -389,8 +386,7 @@ void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                     lightsUniformBufferSize);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
