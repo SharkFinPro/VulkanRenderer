@@ -66,10 +66,10 @@ namespace Buffers {
     endSingleTimeCommands(device, commandPool, queue, commandBuffer);
   }
 
-  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const Buffer& buffer)
+  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer buffer, VkDeviceMemory bufferMemory)
   {
-    vkDestroyBuffer(logicalDevice->getDevice(), buffer.buffer, nullptr);
-    vkFreeMemory(logicalDevice->getDevice(), buffer.memory, nullptr);
+    vkDestroyBuffer(logicalDevice->getDevice(), buffer, nullptr);
+    vkFreeMemory(logicalDevice->getDevice(), bufferMemory, nullptr);
   }
 
   VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool)
