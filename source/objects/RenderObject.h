@@ -29,7 +29,7 @@ public:
 
   void draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, uint32_t currentFrame) const;
 
-  void updateUniformBuffer(uint32_t currentFrame, const VkExtent2D& extent, const glm::mat4& viewMatrix) const;
+  void updateUniformBuffer(uint32_t currentFrame, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) const;
 
   void setPosition(glm::vec3 position);
   void setScale(glm::vec3 scale);
@@ -64,7 +64,6 @@ private:
   void createDescriptorSets();
 
   [[nodiscard]] glm::mat4 createModelMatrix() const;
-  [[nodiscard]] static glm::mat4 createProjectionMatrix(const VkExtent2D& extent);
 };
 
 

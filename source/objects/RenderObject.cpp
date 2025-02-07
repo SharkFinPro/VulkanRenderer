@@ -37,13 +37,13 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
   model->draw(commandBuffer);
 }
 
-void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& extent,
-                                       const glm::mat4& viewMatrix) const
+void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const glm::mat4& viewMatrix,
+                                       const glm::mat4& projectionMatrix) const
 {
   const TransformUniform transformUBO {
     .model = createModelMatrix(),
     .view = viewMatrix,
-    .proj = createProjectionMatrix(extent)
+    .proj = projectionMatrix
   };
 
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
@@ -152,15 +152,3 @@ glm::mat4 RenderObject::createModelMatrix() const
 
   return model;
 }
-
-glm::mat4 RenderObject::createProjectionMatrix(const VkExtent2D& extent)
-{
-  glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-                         static_cast<float>(extent.width) / static_cast<float>(extent.height),
-                         0.1f, 1000.0f);
-
-  projection[1][1] *= -1;
-
-  return projection;
-}
-

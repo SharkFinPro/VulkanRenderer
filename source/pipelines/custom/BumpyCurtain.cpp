@@ -89,9 +89,18 @@ void BumpyCurtain::render(const VkCommandBuffer& commandBuffer, uint32_t current
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
 
+  glm::mat4 projectionMatrix = glm::perspective(
+    glm::radians(45.0f),
+    static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
+    0.1f,
+    1000.0f
+  );
+
+  projectionMatrix[1][1] *= -1;
+
   for (const auto& object : objects)
   {
-    object->updateUniformBuffer(currentFrame, swapChainExtent, viewMatrix);
+    object->updateUniformBuffer(currentFrame, viewMatrix, projectionMatrix);
 
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }
