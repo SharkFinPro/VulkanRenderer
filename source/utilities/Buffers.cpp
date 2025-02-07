@@ -1,4 +1,5 @@
 #include "Buffers.h"
+#include "../components/LogicalDevice.h"
 #include <stdexcept>
 
 namespace Buffers {
@@ -63,6 +64,12 @@ namespace Buffers {
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
     endSingleTimeCommands(device, commandPool, queue, commandBuffer);
+  }
+
+  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer buffer, VkDeviceMemory bufferMemory)
+  {
+    vkDestroyBuffer(logicalDevice->getDevice(), buffer, nullptr);
+    vkFreeMemory(logicalDevice->getDevice(), bufferMemory, nullptr);
   }
 
   VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool)

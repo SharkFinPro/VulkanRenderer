@@ -2,6 +2,9 @@
 #define VULKANPROJECT_BUFFERS_H
 
 #include <vulkan/vulkan.h>
+#include <memory>
+
+class LogicalDevice;
 
 namespace Buffers {
   uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -12,6 +15,8 @@ namespace Buffers {
 
   void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue, VkBuffer srcBuffer,
                   VkBuffer dstBuffer, VkDeviceSize size);
+
+  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer buffer, VkDeviceMemory bufferMemory);
 
   VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool);
 
