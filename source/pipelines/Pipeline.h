@@ -5,12 +5,12 @@
 #include <memory>
 #include <vector>
 
-#include "../components/PhysicalDevice.h"
-#include "../components/LogicalDevice.h"
+class LogicalDevice;
+class PhysicalDevice;
 
 class Pipeline {
 public:
-  Pipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice);
+  Pipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice);
 
   virtual ~Pipeline();
 
