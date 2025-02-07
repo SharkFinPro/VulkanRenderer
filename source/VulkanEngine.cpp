@@ -470,7 +470,6 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   }
 }
 
-
 void VulkanEngine::createNewFrame()
 {
   imGuiInstance->createNewFrame();
