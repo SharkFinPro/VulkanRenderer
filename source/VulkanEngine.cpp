@@ -81,7 +81,7 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
 }
 
 std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                               const float diffuse, const float specular)
+                                                 const float diffuse, const float specular)
 {
   auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
 
