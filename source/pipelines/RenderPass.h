@@ -3,10 +3,15 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <memory>
+
+class LogicalDevice;
+class PhysicalDevice;
 
 class RenderPass {
 public:
-  RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, VkFormat imageFormat,
+  RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
+             const std::shared_ptr<PhysicalDevice>& physicalDevice, VkFormat imageFormat,
              VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
   ~RenderPass();
 
@@ -18,8 +23,8 @@ public:
   static void end(const VkCommandBuffer& commandBuffer);
 
 private:
-  VkDevice& device;
-  VkPhysicalDevice& physicalDevice;
+  std::shared_ptr<LogicalDevice> logicalDevice;
+  std::shared_ptr<PhysicalDevice> physicalDevice;
 
   VkRenderPass renderPass{};
 
