@@ -81,7 +81,7 @@ namespace Buffers {
     }
   }
 
-  VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool)
+  VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool)
   {
     const VkCommandBufferAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -90,7 +90,7 @@ namespace Buffers {
       .commandBufferCount = 1
     };
 
-    VkCommandBuffer commandBuffer;
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
     if (vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to allocate command buffer!");
@@ -101,15 +101,20 @@ namespace Buffers {
       .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
     };
 
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to begin command buffer!");
+    }
 
     return commandBuffer;
   }
 
-  void endSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
-                             const VkCommandBuffer commandBuffer)
+  void endSingleTimeCommands(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkCommandBuffer commandBuffer)
   {
-    vkEndCommandBuffer(commandBuffer);
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to end command buffer!");
+    }
 
     const VkSubmitInfo submitInfo {
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -117,7 +122,11 @@ namespace Buffers {
       .pCommandBuffers = &commandBuffer
     };
 
-    vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+    if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to submit command buffer!");
+    }
+
     vkQueueWaitIdle(queue);
 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);

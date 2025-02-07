@@ -18,10 +18,9 @@ namespace Buffers {
 
   void destroyBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
-  VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool);
+  VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool);
 
-  void endSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
-                             VkCommandBuffer commandBuffer);
+  void endSingleTimeCommands(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkCommandBuffer commandBuffer);
 };
 
 
