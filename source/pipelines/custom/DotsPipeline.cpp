@@ -34,9 +34,9 @@ DotsPipeline::~DotsPipeline()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    Buffers::destroyBuffer(ComputePipeline::logicalDevice->getDevice(), shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
+    Buffers::destroyBuffer(ComputePipeline::logicalDevice, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 
-    Buffers::destroyBuffer(ComputePipeline::logicalDevice->getDevice(), uniformBuffers[i], uniformBuffersMemory[i]);
+    Buffers::destroyBuffer(ComputePipeline::logicalDevice, uniformBuffers[i], uniformBuffersMemory[i]);
   }
 }
 
@@ -295,7 +295,7 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
                         stagingBuffer, shaderStorageBuffers[i], bufferSize);
   }
 
-  Buffers::destroyBuffer(ComputePipeline::logicalDevice->getDevice(), stagingBuffer, stagingBufferMemory);
+  Buffers::destroyBuffer(ComputePipeline::logicalDevice, stagingBuffer, stagingBufferMemory);
 }
 
 void DotsPipeline::createDescriptorSetLayouts()

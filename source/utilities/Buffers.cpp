@@ -66,17 +66,17 @@ namespace Buffers {
     endSingleTimeCommands(device, commandPool, queue, commandBuffer);
   }
 
-  void destroyBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
   {
     if (bufferMemory != VK_NULL_HANDLE)
     {
-      vkFreeMemory(device, bufferMemory, nullptr);
+      vkFreeMemory(logicalDevice->getDevice(), bufferMemory, nullptr);
       bufferMemory = VK_NULL_HANDLE;
     }
 
     if (buffer != VK_NULL_HANDLE)
     {
-      vkDestroyBuffer(device, buffer, nullptr);
+      vkDestroyBuffer(logicalDevice->getDevice(), buffer, nullptr);
       buffer = VK_NULL_HANDLE;
     }
   }
