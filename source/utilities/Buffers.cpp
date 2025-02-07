@@ -75,7 +75,10 @@ namespace Buffers {
     };
 
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer);
+    if (vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to allocate command buffer!");
+    }
 
     constexpr VkCommandBufferBeginInfo beginInfo {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
