@@ -3,16 +3,19 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <memory>
+
+class LogicalDevice;
 
 class ShaderModule {
 public:
-  ShaderModule(VkDevice& device, const char* filename, VkShaderStageFlagBits stage);
+  ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename, VkShaderStageFlagBits stage);
   ~ShaderModule();
 
   [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
 
 private:
-  VkDevice& device;
+  std::shared_ptr<LogicalDevice> logicalDevice;
   VkShaderStageFlagBits stage;
   VkShaderModule module;
 

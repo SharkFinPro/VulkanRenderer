@@ -8,7 +8,7 @@ GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physic
 
 void GraphicsPipeline::createShader(const char *filename, VkShaderStageFlagBits stage)
 {
-  shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice->getDevice(), filename, stage));
+  shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice, filename, stage));
 }
 
 void GraphicsPipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
