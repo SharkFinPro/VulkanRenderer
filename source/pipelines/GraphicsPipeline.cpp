@@ -1,8 +1,8 @@
 #include "GraphicsPipeline.h"
 #include <stdexcept>
 
-GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice,
-                                   const std::shared_ptr<LogicalDevice> &logicalDevice)
+GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                                   const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(physicalDevice, logicalDevice)
 {}
 
