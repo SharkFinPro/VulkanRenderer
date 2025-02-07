@@ -7,6 +7,12 @@
 class LogicalDevice;
 
 namespace Buffers {
+
+  struct Buffer {
+    VkBuffer buffer;
+    VkDeviceMemory memory;
+  };
+
   uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
   void createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, VkDeviceSize size,
@@ -16,7 +22,7 @@ namespace Buffers {
   void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue, VkBuffer srcBuffer,
                   VkBuffer dstBuffer, VkDeviceSize size);
 
-  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer buffer, VkDeviceMemory bufferMemory);
+  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const Buffer& buffer);
 
   VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool);
 
