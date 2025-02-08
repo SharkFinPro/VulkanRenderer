@@ -1,15 +1,17 @@
 #include "ShaderModule.h"
+#include "../components/LogicalDevice.h"
 #include <fstream>
 
-ShaderModule::ShaderModule(VkDevice& device, const char* filename, const VkShaderStageFlagBits stage)
-  : device(device), stage(stage), module{}
+ShaderModule::ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename,
+                           const VkShaderStageFlagBits stage)
+  : logicalDevice(logicalDevice), stage(stage), module{}
 {
   createShaderModule(filename);
 }
 
 ShaderModule::~ShaderModule()
 {
-  vkDestroyShaderModule(device, module, nullptr);
+  vkDestroyShaderModule(logicalDevice->getDevice(), module, nullptr);
 }
 
 VkPipelineShaderStageCreateInfo ShaderModule::getShaderStageCreateInfo() const
@@ -54,7 +56,7 @@ void ShaderModule::createShaderModule(const char* file)
     .pCode = reinterpret_cast<const uint32_t*>(code.data())
   };
 
-  if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &module) != VK_SUCCESS)
+  if (vkCreateShaderModule(logicalDevice->getDevice(), &shaderModuleCreateInfo, nullptr, &module) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create shader module!");
   }

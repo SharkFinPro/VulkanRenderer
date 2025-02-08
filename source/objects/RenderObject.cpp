@@ -12,13 +12,14 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
-RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
+RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
                            std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)
-  : device(device), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
+  : logicalDevice(logicalDevice), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
     position(0, 0, 0), scale(1, 1, 1), orientation(1, 0, 0, 0),
-    transformUniform(std::make_unique<UniformBuffer>(device, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
+    transformUniform(std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT, sizeof(TransformUniform)))
 {
   createDescriptorPool();
   createDescriptorSets();
@@ -26,7 +27,7 @@ RenderObject::RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice,
 
 RenderObject::~RenderObject()
 {
-  vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 }
 
 void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t currentFrame) const
@@ -36,13 +37,13 @@ void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLa
   model->draw(commandBuffer);
 }
 
-void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const VkExtent2D& extent,
-                                       const glm::mat4& viewMatrix) const
+void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const glm::mat4& viewMatrix,
+                                       const glm::mat4& projectionMatrix) const
 {
   const TransformUniform transformUBO {
     .model = createModelMatrix(),
     .view = viewMatrix,
-    .proj = createProjectionMatrix(extent)
+    .proj = projectionMatrix
   };
 
   transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
@@ -108,7 +109,7 @@ void RenderObject::createDescriptorPool()
     .pPoolSizes = poolSizes.data()
   };
 
-  if (vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor pool!");
   }
@@ -125,7 +126,7 @@ void RenderObject::createDescriptorSets()
   };
 
   descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-  if (vkAllocateDescriptorSets(device, &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
+  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
@@ -138,7 +139,7 @@ void RenderObject::createDescriptorSets()
       specularMap->getDescriptorSet(4, descriptorSets[i])
     };
 
-    vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(),
+    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(), descriptorWrites.data(),
                            0, nullptr);
   }
 }
@@ -151,15 +152,3 @@ glm::mat4 RenderObject::createModelMatrix() const
 
   return model;
 }
-
-glm::mat4 RenderObject::createProjectionMatrix(const VkExtent2D& extent)
-{
-  glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-                         static_cast<float>(extent.width) / static_cast<float>(extent.height),
-                         0.1f, 1000.0f);
-
-  projection[1][1] *= -1;
-
-  return projection;
-}
-

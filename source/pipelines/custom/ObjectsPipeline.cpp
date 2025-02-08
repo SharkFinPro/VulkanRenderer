@@ -77,9 +77,18 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
 
+  glm::mat4 projectionMatrix = glm::perspective(
+    glm::radians(45.0f),
+    static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
+    0.1f,
+    1000.0f
+  );
+
+  projectionMatrix[1][1] *= -1;
+
   for (const auto& object : objects)
   {
-    object->updateUniformBuffer(currentFrame, swapChainExtent, viewMatrix);
+    object->updateUniformBuffer(currentFrame, viewMatrix, projectionMatrix);
 
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }
@@ -357,16 +366,13 @@ void ObjectsPipeline::createDescriptorSets()
 
 void ObjectsPipeline::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                         physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                          sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
 }
 
@@ -389,8 +395,7 @@ void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                     lightsUniformBufferSize);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)

@@ -11,6 +11,8 @@ class Model;
 class Texture;
 class Camera;
 class UniformBuffer;
+class LogicalDevice;
+class PhysicalDevice;
 
 struct TransformUniform {
   alignas(16) glm::mat4 model;
@@ -20,13 +22,14 @@ struct TransformUniform {
 
 class RenderObject {
 public:
-  RenderObject(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkDescriptorSetLayout& descriptorSetLayout,
+  RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
+               const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDescriptorSetLayout& descriptorSetLayout,
                std::shared_ptr<Texture> texture, std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model);
   ~RenderObject();
 
   void draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, uint32_t currentFrame) const;
 
-  void updateUniformBuffer(uint32_t currentFrame, const VkExtent2D& extent, const glm::mat4& viewMatrix) const;
+  void updateUniformBuffer(uint32_t currentFrame, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) const;
 
   void setPosition(glm::vec3 position);
   void setScale(glm::vec3 scale);
@@ -40,8 +43,8 @@ public:
   [[nodiscard]] glm::quat getOrientationQuat() const;
 
 private:
-  VkDevice& device;
-  VkPhysicalDevice& physicalDevice;
+  std::shared_ptr<LogicalDevice> logicalDevice;
+  std::shared_ptr<PhysicalDevice> physicalDevice;
 
   VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorPool descriptorPool;
@@ -61,7 +64,6 @@ private:
   void createDescriptorSets();
 
   [[nodiscard]] glm::mat4 createModelMatrix() const;
-  [[nodiscard]] static glm::mat4 createProjectionMatrix(const VkExtent2D& extent);
 };
 
 

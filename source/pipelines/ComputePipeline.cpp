@@ -1,22 +1,15 @@
 #include "ComputePipeline.h"
-
-#include <utility>
 #include <stdexcept>
 
-ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice,
-                                 const std::shared_ptr<LogicalDevice> &logicalDevice)
+ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                                 const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(physicalDevice, logicalDevice)
 {}
 
 void ComputePipeline::createShader(const char* filename)
 {
-  shaderModule = std::make_unique<ShaderModule>(
-    logicalDevice->getDevice(),
-    filename,
-    VK_SHADER_STAGE_COMPUTE_BIT
-  );
+  shaderModule = std::make_unique<ShaderModule>(logicalDevice, filename, VK_SHADER_STAGE_COMPUTE_BIT);
 }
-
 
 void ComputePipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
 {

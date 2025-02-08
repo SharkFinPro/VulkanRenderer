@@ -3,10 +3,16 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <memory>
+
+class LogicalDevice;
+class PhysicalDevice;
 
 class UniformBuffer {
 public:
-  UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, uint32_t MAX_FRAMES_IN_FLIGHT, VkDeviceSize bufferSize);
+  UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                uint32_t MAX_FRAMES_IN_FLIGHT, VkDeviceSize bufferSize);
   ~UniformBuffer();
 
   [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
@@ -16,8 +22,7 @@ public:
   void update(uint32_t frame, const void* data, size_t size) const;
 
 protected:
-  VkDevice& device;
-  VkPhysicalDevice& physicalDevice;
+  std::shared_ptr<LogicalDevice> logicalDevice;
 
   uint32_t MAX_FRAMES_IN_FLIGHT;
 
@@ -26,7 +31,7 @@ protected:
   std::vector<void*> uniformBuffersMapped;
 
   std::vector<VkDescriptorBufferInfo> bufferInfos;
-  VkDescriptorPoolSize poolSize;
+  VkDescriptorPoolSize poolSize{};
 };
 
 

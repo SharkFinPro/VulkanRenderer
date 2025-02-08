@@ -117,12 +117,12 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool, const V
 
   for (int i = 0; i < numImages; i++)
   {
-    Images::createImage(this->logicalDevice->getDevice(), this->physicalDevice->getPhysicalDevice(), extent.width, extent.height, 1,
+    Images::createImage(logicalDevice, physicalDevice, extent.width, extent.height, 1,
                         1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         framebufferImages[i], framebufferImageMemory[i], VK_IMAGE_TYPE_2D);
 
-    framebufferImageViews[i] = Images::createImageView(this->logicalDevice->getDevice(), framebufferImages[i],
+    framebufferImageViews[i] = Images::createImageView(logicalDevice, framebufferImages[i],
                                                        framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
 
     Images::transitionImageLayout(this->logicalDevice, commandPool, framebufferImages[i], framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
@@ -135,11 +135,11 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool, const V
 
 void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const VkFormat depthFormat, const VkExtent2D extent)
 {
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), extent.width, extent.height, 1,
+  Images::createImage(logicalDevice, physicalDevice, extent.width, extent.height, 1,
                       1, physicalDevice->getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                       depthImage, depthImageMemory, VK_IMAGE_TYPE_2D);
-  depthImageView = Images::createImageView(logicalDevice->getDevice(), depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
+  depthImageView = Images::createImageView(logicalDevice, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
 
   Images::transitionImageLayout(logicalDevice, commandPool, depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
@@ -149,12 +149,12 @@ void Framebuffer::createColorResources(const VkExtent2D extent)
 {
   const VkFormat colorFormat = swapChain ? swapChain->getImageFormat() : framebufferImageFormat;
 
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), extent.width, extent.height, 1,
+  Images::createImage(logicalDevice, physicalDevice, extent.width, extent.height, 1,
                       1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory, VK_IMAGE_TYPE_2D);
 
-  colorImageView = Images::createImageView(logicalDevice->getDevice(), colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
+  colorImageView = Images::createImageView(logicalDevice, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
 }
 
 void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExtent2D extent)

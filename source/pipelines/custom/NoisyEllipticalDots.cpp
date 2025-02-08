@@ -43,7 +43,7 @@ VkDescriptorSetLayout& NoisyEllipticalDots::getLayout()
   return objectDescriptorSetLayout;
 }
 
-void NoisyEllipticalDots::render(const VkCommandBuffer &commandBuffer, const uint32_t currentFrame,
+void NoisyEllipticalDots::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
                                  const glm::vec3 viewPosition, const glm::mat4& viewMatrix, const VkExtent2D swapChainExtent,
                                  const std::vector<std::shared_ptr<Light>>& lights,
                                  const std::vector<std::shared_ptr<RenderObject>>& objects)
@@ -92,9 +92,18 @@ void NoisyEllipticalDots::render(const VkCommandBuffer &commandBuffer, const uin
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
 
+  glm::mat4 projectionMatrix = glm::perspective(
+    glm::radians(45.0f),
+    static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
+    0.1f,
+    1000.0f
+  );
+
+  projectionMatrix[1][1] *= -1;
+
   for (const auto& object : objects)
   {
-    object->updateUniformBuffer(currentFrame, swapChainExtent, viewMatrix);
+    object->updateUniformBuffer(currentFrame, viewMatrix, projectionMatrix);
 
     object->draw(commandBuffer, pipelineLayout, currentFrame);
   }
@@ -310,7 +319,7 @@ void NoisyEllipticalDots::createObjectDescriptorSetLayout()
     .binding = 0,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
   constexpr VkDescriptorSetLayoutBinding textureLayout {
@@ -400,24 +409,19 @@ void NoisyEllipticalDots::createDescriptorSets()
 
 void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                         physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                          sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                  physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
 
-  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                          physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                           sizeof(EllipticalDotsUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                        physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                         sizeof(NoiseOptionsUniform));
 
   noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
@@ -443,8 +447,7 @@ void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice->getDevice(),
-                                                    physicalDevice->getPhysicalDevice(), MAX_FRAMES_IN_FLIGHT,
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                     lightsUniformBufferSize);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)

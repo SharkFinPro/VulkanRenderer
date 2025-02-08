@@ -1,14 +1,14 @@
 #include "GraphicsPipeline.h"
 #include <stdexcept>
 
-GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice,
-                                   const std::shared_ptr<LogicalDevice> &logicalDevice)
+GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                                   const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(physicalDevice, logicalDevice)
 {}
 
 void GraphicsPipeline::createShader(const char *filename, VkShaderStageFlagBits stage)
 {
-  shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice->getDevice(), filename, stage));
+  shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice, filename, stage));
 }
 
 void GraphicsPipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)

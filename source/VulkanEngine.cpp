@@ -72,9 +72,8 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Texture>& specularMap,
                                                              const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(logicalDevice->getDevice(),
-                                                     physicalDevice->getPhysicalDevice(),
-                                                     objectsPipeline->getLayout(), texture, specularMap, model);
+  auto renderObject = std::make_shared<RenderObject>(logicalDevice, physicalDevice, objectsPipeline->getLayout(),
+                                                     texture, specularMap, model);
 
   renderObjects.push_back(renderObject);
 
@@ -82,7 +81,7 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
 }
 
 std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                               const float diffuse, const float specular)
+                                                 const float diffuse, const float specular)
 {
   auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
 
@@ -156,12 +155,10 @@ void VulkanEngine::initVulkan()
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
-  renderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(),
-                                            swapChain->getImageFormat(), physicalDevice->getMsaaSamples(),
-                                            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  renderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, swapChain->getImageFormat(),
+                                            physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice->getDevice(),
-                                                     physicalDevice->getPhysicalDevice(), VK_FORMAT_B8G8R8A8_UNORM,
+  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -199,7 +196,7 @@ void VulkanEngine::initVulkan()
 
 void VulkanEngine::createCommandPool()
 {
-  auto queueFamilyIndices = physicalDevice->getQueueFamilies();
+  const auto queueFamilyIndices = physicalDevice->getQueueFamilies();
 
   const VkCommandPoolCreateInfo poolInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -469,7 +466,6 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     dotsPipeline->render(commandBuffer, currentFrame, extent);
   }
 }
-
 
 void VulkanEngine::createNewFrame()
 {

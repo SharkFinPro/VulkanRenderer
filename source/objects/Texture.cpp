@@ -100,7 +100,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
 
   stbi_image_free(pixels);
 
-  Images::createImage(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), texWidth, texHeight,
+  Images::createImage(logicalDevice, physicalDevice, texWidth, texHeight,
                       1, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, VK_IMAGE_TYPE_2D);
@@ -111,16 +111,15 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
                             static_cast<uint32_t>(texHeight), 1);
   // Transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
-  vkDestroyBuffer(logicalDevice->getDevice(), stagingBuffer, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), stagingBufferMemory, nullptr);
+  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 
   generateMipmaps(commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
 
-  textureImageView = Images::createImageView(logicalDevice->getDevice(), textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+  textureImageView = Images::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                              VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_VIEW_TYPE_2D);
 }
 
-void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, VkFormat imageFormat,
+void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, const VkFormat imageFormat,
                               const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
   VkFormatProperties formatProperties;

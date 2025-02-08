@@ -2,23 +2,25 @@
 #define VULKANPROJECT_BUFFERS_H
 
 #include <vulkan/vulkan.h>
+#include <memory>
 
-class Buffers {
-public:
-  static uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter,
-                                 VkMemoryPropertyFlags properties);
+class LogicalDevice;
 
-  static void createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, VkDeviceSize size,
-                           VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-                           VkDeviceMemory& bufferMemory);
+namespace Buffers {
+  uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-  static void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue, VkBuffer srcBuffer,
-                         VkBuffer dstBuffer, VkDeviceSize size);
+  void createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, VkDeviceSize size,
+                    VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                    VkDeviceMemory& bufferMemory);
 
-  static VkCommandBuffer beginSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool);
+  void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue, VkBuffer srcBuffer,
+                  VkBuffer dstBuffer, VkDeviceSize size);
 
-  static void endSingleTimeCommands(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
-                                    VkCommandBuffer commandBuffer);
+  void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+
+  VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool);
+
+  void endSingleTimeCommands(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkCommandBuffer commandBuffer);
 };
 
 

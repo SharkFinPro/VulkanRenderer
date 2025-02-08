@@ -1,17 +1,20 @@
 #include "RenderPass.h"
 #include <array>
 #include <stdexcept>
+#include "../components/LogicalDevice.h"
+#include "../components/PhysicalDevice.h"
 
-RenderPass::RenderPass(VkDevice& device, VkPhysicalDevice& physicalDevice, const VkFormat imageFormat,
+RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                       const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkFormat imageFormat,
                        const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
-  : device(device), physicalDevice(physicalDevice)
+  : logicalDevice(logicalDevice), physicalDevice(physicalDevice)
 {
   createRenderPass(imageFormat, msaaSamples, finalLayout);
 }
 
 RenderPass::~RenderPass()
 {
-  vkDestroyRenderPass(device, renderPass, nullptr);
+  vkDestroyRenderPass(logicalDevice->getDevice(), renderPass, nullptr);
 }
 
 VkRenderPass& RenderPass::getRenderPass()
@@ -102,7 +105,7 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
     .pDependencies = &dependency
   };
 
-  if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
+  if (vkCreateRenderPass(logicalDevice->getDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create render pass!");
   }
@@ -114,7 +117,7 @@ VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates
   for (const auto format : candidates)
   {
     VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+    vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), format, &props);
 
     if ((tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) ||
         (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features))

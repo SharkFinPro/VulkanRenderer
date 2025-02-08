@@ -11,7 +11,7 @@ struct PointLight {
   float padding3; // Padding to ensure alignment
 };
 
-layout(set = 1, binding = 0) uniform UniformBufferObject {
+layout(set = 1, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;

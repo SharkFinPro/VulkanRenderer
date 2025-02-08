@@ -27,7 +27,7 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
 
   window->initImGui();
 
-  SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
+  const SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
 
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
   if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)

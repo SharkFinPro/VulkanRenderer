@@ -1,9 +1,13 @@
 #include "UniformBuffer.h"
-#include <cstring>
 #include "../utilities/Buffers.h"
+#include "../components/LogicalDevice.h"
+#include "../components/PhysicalDevice.h"
+#include <cstring>
 
-UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice, const uint32_t MAX_FRAMES_IN_FLIGHT, const VkDeviceSize bufferSize)
-  : device(device), physicalDevice(physicalDevice), MAX_FRAMES_IN_FLIGHT(MAX_FRAMES_IN_FLIGHT)
+UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                             const uint32_t MAX_FRAMES_IN_FLIGHT, const VkDeviceSize bufferSize)
+  : logicalDevice(logicalDevice), MAX_FRAMES_IN_FLIGHT(MAX_FRAMES_IN_FLIGHT)
 {
   uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
   uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -11,9 +15,12 @@ UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice,
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    Buffers::createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+    Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), bufferSize,
+                          VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                          uniformBuffers[i], uniformBuffersMemory[i]);
 
-    vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    vkMapMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 
     const VkDescriptorBufferInfo bufferInfo {
       .buffer = uniformBuffers[i],
@@ -31,8 +38,7 @@ UniformBuffer::UniformBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice,
 UniformBuffer::~UniformBuffer() {
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-    vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+    Buffers::destroyBuffer(logicalDevice, uniformBuffers[i], uniformBuffersMemory[i]);
   }
 }
 

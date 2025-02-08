@@ -22,8 +22,8 @@ class Noise3DTexture;
 class BumpyCurtain final : public GraphicsPipeline {
 public:
   BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                      const std::shared_ptr<LogicalDevice>& logicalDevice,
-                      const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool);
+               const std::shared_ptr<LogicalDevice>& logicalDevice,
+               const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool);
   ~BumpyCurtain() override;
 
   VkDescriptorSetLayout& getLayout();
