@@ -4,23 +4,6 @@
 #include <stdexcept>
 
 namespace Buffers {
-  uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, const uint32_t typeFilter,
-                          const VkMemoryPropertyFlags properties)
-  {
-    VkPhysicalDeviceMemoryProperties memoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
-
-    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
-    {
-      if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-      {
-        return i;
-      }
-    }
-
-    throw std::runtime_error("failed to find suitable memory type!");
-  }
-
   void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                     const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDeviceSize size,
                     const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, VkBuffer& buffer,
@@ -44,7 +27,7 @@ namespace Buffers {
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
-      .memoryTypeIndex = findMemoryType(physicalDevice->getPhysicalDevice(), memoryRequirements.memoryTypeBits, properties)
+      .memoryTypeIndex = physicalDevice->findMemoryType(memoryRequirements.memoryTypeBits, properties)
     };
 
     if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)

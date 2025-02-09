@@ -8,8 +8,6 @@ class LogicalDevice;
 class PhysicalDevice;
 
 namespace Buffers {
-  uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
   void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                     const std::shared_ptr<PhysicalDevice>& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage,
                     VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);

@@ -41,7 +41,7 @@ namespace Images {
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
-      .memoryTypeIndex = Buffers::findMemoryType(physicalDevice->getPhysicalDevice(), memoryRequirements.memoryTypeBits, properties)
+      .memoryTypeIndex = physicalDevice->findMemoryType(memoryRequirements.memoryTypeBits, properties)
     };
 
     if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
