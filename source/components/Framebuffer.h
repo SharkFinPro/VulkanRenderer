@@ -37,7 +37,7 @@ private:
   VkDeviceMemory colorImageMemory = VK_NULL_HANDLE;
   VkImageView colorImageView = VK_NULL_HANDLE;
 
-  VkFormat framebufferImageFormat;
+  VkFormat framebufferImageFormat{};
   std::vector<VkImage> framebufferImages;
   std::vector<VkImageView> framebufferImageViews;
   std::vector<VkDeviceMemory> framebufferImageMemory;
