@@ -3,7 +3,6 @@
 #include <array>
 #include <stdexcept>
 #include <set>
-#include <utility>
 
 PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface)
   : surface(surface), msaaSamples(VK_SAMPLE_COUNT_1_BIT)
