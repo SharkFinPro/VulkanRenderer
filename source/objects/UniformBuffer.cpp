@@ -38,6 +38,11 @@ UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice
 UniformBuffer::~UniformBuffer() {
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
+    if (uniformBuffersMapped[i] != VK_NULL_HANDLE)
+    {
+      vkUnmapMemory(logicalDevice->getDevice(), uniformBuffersMemory[i]);
+    }
+
     Buffers::destroyBuffer(logicalDevice, uniformBuffers[i], uniformBuffersMemory[i]);
   }
 }
