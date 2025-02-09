@@ -22,7 +22,8 @@ VkRenderPass& RenderPass::getRenderPass()
   return renderPass;
 }
 
-void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
+void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCountFlagBits msaaSamples,
+                                  const VkImageLayout finalLayout)
 {
   const VkAttachmentDescription colorAttachment {
     .format = imageFormat,
