@@ -369,6 +369,8 @@ void VulkanEngine::recreateSwapChain()
   framebuffer.reset();
   swapChain.reset();
 
+  physicalDevice->updateSwapChainSupportDetails();
+
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
                                               swapChain->getExtent());

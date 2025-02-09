@@ -11,7 +11,7 @@ PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurf
 
   queueFamilyIndices = findQueueFamilies(physicalDevice);
 
-  swapChainSupportDetails = querySwapChainSupport(physicalDevice);
+  updateSwapChainSupportDetails();
 }
 
 VkPhysicalDevice PhysicalDevice::getPhysicalDevice() const
@@ -48,6 +48,11 @@ uint32_t PhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemor
   }
 
   throw std::runtime_error("failed to find suitable memory type!");
+}
+
+void PhysicalDevice::updateSwapChainSupportDetails()
+{
+  swapChainSupportDetails = querySwapChainSupport(physicalDevice);
 }
 
 void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
