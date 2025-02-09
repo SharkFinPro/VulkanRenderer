@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <fstream>
 
-std::unique_ptr<unsigned char[]> ReadTexture3D(const char* filename, uint32_t* width, uint32_t* height, uint32_t* depth)
+std::unique_ptr<unsigned char[]> readTexture3D(const char* filename, uint32_t* width, uint32_t* height, uint32_t* depth)
 {
   std::ifstream file(filename, std::ios::binary);
   if (!file)
@@ -46,7 +46,7 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
   mipLevels = 1;  // No mipmaps for noise
 
   uint32_t width, height, depth;
-  const auto noiseData = ReadTexture3D("assets/noise/noise3d.064.tex", &width, &height, &depth);
+  const auto noiseData = readTexture3D("assets/noise/noise3d.064.tex", &width, &height, &depth);
 
   const VkDeviceSize imageSize = width * height * depth * 4;
 
