@@ -1,5 +1,6 @@
 #include "Buffers.h"
 #include "../components/LogicalDevice.h"
+#include "../components/PhysicalDevice.h"
 #include <stdexcept>
 
 namespace Buffers {
@@ -20,7 +21,8 @@ namespace Buffers {
     throw std::runtime_error("failed to find suitable memory type!");
   }
 
-  void createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, const VkDeviceSize size,
+  void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                    const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDeviceSize size,
                     const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, VkBuffer& buffer,
                     VkDeviceMemory& bufferMemory)
   {
@@ -31,26 +33,26 @@ namespace Buffers {
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE
     };
 
-    if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+    if (vkCreateBuffer(logicalDevice->getDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create vertex buffer!");
     }
 
     VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+    vkGetBufferMemoryRequirements(logicalDevice->getDevice(), buffer, &memoryRequirements);
 
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
-      .memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties)
+      .memoryTypeIndex = findMemoryType(physicalDevice->getPhysicalDevice(), memoryRequirements.memoryTypeBits, properties)
     };
 
-    if (vkAllocateMemory(device, &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+    if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to allocate vertex buffer memory!");
     }
 
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+    vkBindBufferMemory(logicalDevice->getDevice(), buffer, bufferMemory, 0);
   }
 
   void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
