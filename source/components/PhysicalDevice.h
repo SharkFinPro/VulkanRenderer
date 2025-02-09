@@ -40,7 +40,7 @@ public:
   SwapChainSupportDetails& getSwapChainSupport();
   [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
 
-  uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
+  [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
 
 private:
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
