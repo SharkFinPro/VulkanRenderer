@@ -5,10 +5,10 @@
 #include <vector>
 #include <memory>
 
-#include "PhysicalDevice.h"
-#include "LogicalDevice.h"
-#include "SwapChain.h"
-#include "../pipelines/RenderPass.h"
+class LogicalDevice;
+class PhysicalDevice;
+class RenderPass;
+class SwapChain;
 
 class Framebuffer {
 public:

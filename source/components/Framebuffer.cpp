@@ -1,4 +1,8 @@
 #include "Framebuffer.h"
+#include "PhysicalDevice.h"
+#include "LogicalDevice.h"
+#include "SwapChain.h"
+#include "../pipelines/RenderPass.h"
 #include "../utilities/Images.h"
 #include <array>
 #include <utility>
