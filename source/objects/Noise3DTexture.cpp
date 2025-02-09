@@ -12,16 +12,21 @@ std::unique_ptr<unsigned char[]> readTexture3D(const char* filename, uint32_t* w
     throw std::runtime_error("Could not open file " + std::string(filename));
   }
 
-  file.read(reinterpret_cast<char*>(width), sizeof(uint32_t));
-  file.read(reinterpret_cast<char*>(height), sizeof(uint32_t));
-  file.read(reinterpret_cast<char*>(depth), sizeof(uint32_t));
+  uint32_t nums, numt, nump;
+  file.read(reinterpret_cast<char*>(&nums), sizeof(uint32_t));
+  file.read(reinterpret_cast<char*>(&numt), sizeof(uint32_t));
+  file.read(reinterpret_cast<char*>(&nump), sizeof(uint32_t));
 
   if (!file)
   {
     throw std::runtime_error("Failed to read texture dimensions from file: " + std::string(filename));
   }
 
-  const std::streamsize dataSize = 4 * *width * *height * *depth;
+  *width = nums;
+  *height = numt;
+  *depth = nump;
+
+  const std::streamsize dataSize = 4 * nums * numt * nump;
   auto texture = std::make_unique<unsigned char[]>(dataSize);
 
   file.read(reinterpret_cast<char*>(texture.get()), dataSize);
