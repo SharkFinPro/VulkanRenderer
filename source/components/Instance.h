@@ -14,7 +14,7 @@ public:
   Instance();
   ~Instance();
 
-  VkInstance& getInstance();
+  VkInstance getInstance() const;
 
 private:
   VkInstance instance;

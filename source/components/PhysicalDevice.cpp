@@ -1,13 +1,14 @@
 #include "PhysicalDevice.h"
-
+#include "Instance.h"
 #include <array>
 #include <stdexcept>
 #include <set>
+#include <utility>
 
-PhysicalDevice::PhysicalDevice(VkInstance& instance, VkSurfaceKHR& surface)
-  : instance(instance), surface(surface), msaaSamples(VK_SAMPLE_COUNT_1_BIT)
+PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface)
+  : surface(surface), msaaSamples(VK_SAMPLE_COUNT_1_BIT)
 {
-  pickPhysicalDevice();
+  pickPhysicalDevice(instance);
 
   queueFamilyIndices = findQueueFamilies(physicalDevice);
 
@@ -36,10 +37,10 @@ VkSampleCountFlagBits PhysicalDevice::getMsaaSamples() const
   return msaaSamples;
 }
 
-void PhysicalDevice::pickPhysicalDevice()
+void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
 {
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, nullptr);
 
   if (deviceCount == 0)
   {
@@ -47,7 +48,7 @@ void PhysicalDevice::pickPhysicalDevice()
   }
 
   std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+  vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, devices.data());
 
   for (const auto& device : devices)
   {

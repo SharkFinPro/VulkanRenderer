@@ -133,18 +133,18 @@ void VulkanEngine::setCameraParameters(const glm::vec3 position, const glm::mat4
 
 void VulkanEngine::initVulkan()
 {
-  instance = std::make_unique<Instance>();
+  instance = std::make_shared<Instance>();
 
   if (enableValidationLayers)
   {
-    debugMessenger = std::make_unique<DebugMessenger>(instance->getInstance());
+    debugMessenger = std::make_unique<DebugMessenger>(instance);
   }
 
   window = std::make_shared<Window>(vulkanEngineOptions.WINDOW_WIDTH, vulkanEngineOptions.WINDOW_HEIGHT,
-                                    vulkanEngineOptions.WINDOW_TITLE, instance->getInstance(),
+                                    vulkanEngineOptions.WINDOW_TITLE, instance,
                                     vulkanEngineOptions.FULLSCREEN);
 
-  physicalDevice = std::make_shared<PhysicalDevice>(instance->getInstance(), window->getSurface());
+  physicalDevice = std::make_shared<PhysicalDevice>(instance, window->getSurface());
 
   logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
