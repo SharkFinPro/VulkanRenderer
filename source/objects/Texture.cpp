@@ -129,7 +129,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
     throw std::runtime_error("texture image format does not support linear blitting!");
   }
 
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
 
   VkImageMemoryBarrier barrier {
     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -224,7 +224,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
                        0, nullptr,
                        1, &barrier);
 
-  Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+  Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 }
 
 void Texture::createTextureSampler()

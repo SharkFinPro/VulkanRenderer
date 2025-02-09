@@ -58,14 +58,14 @@ namespace Buffers {
   void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
                   const VkQueue& queue, const VkBuffer srcBuffer, const VkBuffer dstBuffer, const VkDeviceSize size)
   {
-    const VkCommandBuffer commandBuffer = beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
+    const VkCommandBuffer commandBuffer = beginSingleTimeCommands(logicalDevice, commandPool);
 
     const VkBufferCopy copyRegion {
       .size = size
     };
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    endSingleTimeCommands(logicalDevice->getDevice(), commandPool, queue, commandBuffer);
+    endSingleTimeCommands(logicalDevice, commandPool, queue, commandBuffer);
   }
 
   void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -83,7 +83,7 @@ namespace Buffers {
     }
   }
 
-  VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool)
+  VkCommandBuffer beginSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
   {
     const VkCommandBufferAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -93,7 +93,7 @@ namespace Buffers {
     };
 
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-    if (vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocateInfo, &commandBuffer) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to allocate command buffer!");
     }
@@ -111,7 +111,8 @@ namespace Buffers {
     return commandBuffer;
   }
 
-  void endSingleTimeCommands(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkCommandBuffer commandBuffer)
+  void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool,
+                             VkQueue queue, VkCommandBuffer commandBuffer)
   {
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     {
@@ -131,6 +132,6 @@ namespace Buffers {
 
     vkQueueWaitIdle(queue);
 
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(logicalDevice->getDevice(), commandPool, 1, &commandBuffer);
   }
 }
