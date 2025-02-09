@@ -49,17 +49,17 @@ void LogicalDevice::waitIdle() const
   vkDeviceWaitIdle(device);
 }
 
-VkQueue& LogicalDevice::getGraphicsQueue()
+VkQueue LogicalDevice::getGraphicsQueue() const
 {
   return graphicsQueue;
 }
 
-VkQueue& LogicalDevice::getPresentQueue()
+VkQueue LogicalDevice::getPresentQueue() const
 {
   return presentQueue;
 }
 
-VkQueue& LogicalDevice::getComputeQueue()
+VkQueue LogicalDevice::getComputeQueue() const
 {
   return computeQueue;
 }
