@@ -145,7 +145,8 @@ void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int 
   app->framebufferResized = true;
 }
 
-void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,
+                         [[maybe_unused]] int mods)
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
