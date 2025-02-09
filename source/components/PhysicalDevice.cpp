@@ -1,33 +1,31 @@
 #include "PhysicalDevice.h"
-
+#include "Instance.h"
 #include <array>
 #include <stdexcept>
 #include <set>
 
-PhysicalDevice::PhysicalDevice(VkInstance& instance, VkSurfaceKHR& surface)
-  : instance(instance), surface(surface), msaaSamples(VK_SAMPLE_COUNT_1_BIT)
+PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface)
+  : surface(surface), msaaSamples(VK_SAMPLE_COUNT_1_BIT)
 {
-  pickPhysicalDevice();
+  pickPhysicalDevice(instance);
 
   queueFamilyIndices = findQueueFamilies(physicalDevice);
 
-  swapChainSupportDetails = querySwapChainSupport(physicalDevice);
+  updateSwapChainSupportDetails();
 }
 
-VkPhysicalDevice& PhysicalDevice::getPhysicalDevice()
+VkPhysicalDevice PhysicalDevice::getPhysicalDevice() const
 {
   return physicalDevice;
 }
 
-QueueFamilyIndices& PhysicalDevice::getQueueFamilies()
+QueueFamilyIndices PhysicalDevice::getQueueFamilies() const
 {
   return queueFamilyIndices;
 }
 
-SwapChainSupportDetails& PhysicalDevice::getSwapChainSupport()
+SwapChainSupportDetails PhysicalDevice::getSwapChainSupport() const
 {
-  swapChainSupportDetails = querySwapChainSupport(physicalDevice);
-
   return swapChainSupportDetails;
 }
 
@@ -36,10 +34,31 @@ VkSampleCountFlagBits PhysicalDevice::getMsaaSamples() const
   return msaaSamples;
 }
 
-void PhysicalDevice::pickPhysicalDevice()
+uint32_t PhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const
+{
+  VkPhysicalDeviceMemoryProperties memoryProperties;
+  vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+  for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+  {
+    if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+    {
+      return i;
+    }
+  }
+
+  throw std::runtime_error("failed to find suitable memory type!");
+}
+
+void PhysicalDevice::updateSwapChainSupportDetails()
+{
+  swapChainSupportDetails = querySwapChainSupport(physicalDevice);
+}
+
+void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
 {
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, nullptr);
 
   if (deviceCount == 0)
   {
@@ -47,7 +66,7 @@ void PhysicalDevice::pickPhysicalDevice()
   }
 
   std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+  vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, devices.data());
 
   for (const auto& device : devices)
   {

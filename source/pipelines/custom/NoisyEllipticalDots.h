@@ -1,19 +1,17 @@
 #ifndef NOISYELLIPTICALDOTS_H
 #define NOISYELLIPTICALDOTS_H
 
-#include <array>
-#include <glm/glm.hpp>
-
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
-
-#include "../../objects/Noise3DTexture.h"
+#include <array>
+#include <glm/glm.hpp>
 
 class RenderPass;
 class RenderObject;
 class Camera;
 class UniformBuffer;
 class Light;
+class Noise3DTexture;
 
 class NoisyEllipticalDots final : public GraphicsPipeline {
 public:
@@ -42,10 +40,10 @@ private:
     .frequency = 1.0f
   };
 
-  VkDescriptorSetLayout globalDescriptorSetLayout;
-  VkDescriptorSetLayout objectDescriptorSetLayout;
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  VkDescriptorPool descriptorPool;
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;

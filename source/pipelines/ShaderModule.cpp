@@ -4,7 +4,7 @@
 
 ShaderModule::ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename,
                            const VkShaderStageFlagBits stage)
-  : logicalDevice(logicalDevice), stage(stage), module{}
+  : logicalDevice(logicalDevice), stage(stage)
 {
   createShaderModule(filename);
 }

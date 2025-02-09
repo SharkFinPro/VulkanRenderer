@@ -28,10 +28,12 @@ private:
 
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
+
+  VkBuffer vertexBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
+
+  VkBuffer indexBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
 
   void loadModel(const char* path, glm::quat orientation);
   void createVertexBuffer(const VkCommandPool& commandPool);

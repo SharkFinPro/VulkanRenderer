@@ -4,10 +4,13 @@
 #define GLFW_INCLUDE_VULKAN
 #include <unordered_map>
 #include <GLFW/glfw3.h>
+#include <memory>
+
+class Instance;
 
 class Window {
 public:
-  Window(int width, int height, const char* title, VkInstance& instance, bool fullscreen);
+  Window(int width, int height, const char* title, const std::shared_ptr<Instance>& instance, bool fullscreen);
   ~Window();
 
   [[nodiscard]] bool isOpen() const;
@@ -37,8 +40,8 @@ public:
 private:
   GLFWwindow* window;
 
-  VkInstance& instance;
-  VkSurfaceKHR surface;
+  std::shared_ptr<Instance> instance;
+  VkSurfaceKHR surface = VK_NULL_HANDLE;
 
   double previousMouseX;
   double previousMouseY;

@@ -14,10 +14,10 @@ public:
   Instance();
   ~Instance();
 
-  VkInstance& getInstance();
+  [[nodiscard]] VkInstance getInstance() const;
 
 private:
-  VkInstance instance;
+  VkInstance instance = VK_NULL_HANDLE;
 
   static bool checkValidationLayerSupport();
 

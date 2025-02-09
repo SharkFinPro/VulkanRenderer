@@ -26,7 +26,7 @@ private:
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<PhysicalDevice> physicalDevice;
 
-  VkRenderPass renderPass{};
+  VkRenderPass renderPass = VK_NULL_HANDLE;
 
   void createRenderPass(VkFormat imageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
 

@@ -41,27 +41,27 @@ float Light::getSpecular() const
   return specular;
 }
 
-void Light::setPosition(glm::vec3 position)
+void Light::setPosition(const glm::vec3 position)
 {
   this->position = position;
 }
 
-void Light::setColor(glm::vec3 color)
+void Light::setColor(const glm::vec3 color)
 {
   this->color = color;
 }
 
-void Light::setAmbient(float ambient)
+void Light::setAmbient(const float ambient)
 {
   this->ambient = ambient;
 }
 
-void Light::setDiffuse(float diffuse)
+void Light::setDiffuse(const float diffuse)
 {
   this->diffuse = diffuse;
 }
 
-void Light::setSpecular(float specular)
+void Light::setSpecular(const float specular)
 {
   this->specular = specular;
 }

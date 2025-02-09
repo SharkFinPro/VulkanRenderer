@@ -10,7 +10,7 @@
 #include "../utilities/Images.h"
 
 Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), imGuiTexture(VK_NULL_HANDLE)
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), mipLevels(1)
 {}
 
 Texture::~Texture()
@@ -88,8 +88,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(logicalDevice->getDevice(), physicalDevice->getPhysicalDevice(), imageSize,
-                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(logicalDevice, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
@@ -130,7 +129,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
     throw std::runtime_error("texture image format does not support linear blitting!");
   }
 
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
+  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
 
   VkImageMemoryBarrier barrier {
     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -225,7 +224,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
                        0, nullptr,
                        1, &barrier);
 
-  Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+  Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 }
 
 void Texture::createTextureSampler()

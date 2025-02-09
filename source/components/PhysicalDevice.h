@@ -3,9 +3,13 @@
 
 #include <vulkan/vulkan.h>
 #include <optional>
+#include <array>
 #include <vector>
+#include <memory>
 
-const std::vector<const char*> deviceExtensions = {
+class Instance;
+
+constexpr std::array deviceExtensions {
   VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
@@ -30,25 +34,32 @@ struct SwapChainSupportDetails {
 
 class PhysicalDevice {
 public:
-  PhysicalDevice(VkInstance& instance, VkSurfaceKHR& surface);
+  PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface);
 
-  VkPhysicalDevice& getPhysicalDevice();
-  QueueFamilyIndices& getQueueFamilies();
-  SwapChainSupportDetails& getSwapChainSupport();
+  [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const;
+
+  [[nodiscard]] QueueFamilyIndices getQueueFamilies() const;
+
+  [[nodiscard]] SwapChainSupportDetails getSwapChainSupport() const;
+
   [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
 
-private:
-  VkPhysicalDevice physicalDevice;
+  [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
 
-  VkInstance& instance;
+  void updateSwapChainSupportDetails();
+
+private:
+  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
   VkSurfaceKHR& surface;
 
   VkSampleCountFlagBits msaaSamples;
 
   QueueFamilyIndices queueFamilyIndices;
+
   SwapChainSupportDetails swapChainSupportDetails;
 
-  void pickPhysicalDevice();
+  void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
 
   bool isDeviceSuitable(VkPhysicalDevice device) const;
 

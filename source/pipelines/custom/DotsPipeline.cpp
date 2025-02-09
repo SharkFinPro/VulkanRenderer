@@ -1,6 +1,8 @@
 #include "DotsPipeline.h"
+#include "../../components/LogicalDevice.h"
+#include "../../components/PhysicalDevice.h"
+#include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
-
 #include <cmath>
 #include <stdexcept>
 #include <random>
@@ -15,7 +17,7 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
   : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice), dotSpeed(1000.0f),
     previousTime(std::chrono::steady_clock::now())
 {
-  createUniformBuffers();
+  createUniforms();
   createShaderStorageBuffers(commandPool, swapChainExtent);
 
   createDescriptorSetLayouts();
@@ -35,8 +37,6 @@ DotsPipeline::~DotsPipeline()
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
     Buffers::destroyBuffer(ComputePipeline::logicalDevice, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
-
-    Buffers::destroyBuffer(ComputePipeline::logicalDevice, uniformBuffers[i], uniformBuffersMemory[i]);
   }
 }
 
@@ -222,29 +222,15 @@ void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame)
   const float dt = std::chrono::duration<float>(currentTime - previousTime).count();
   previousTime = currentTime;
 
-  UniformBufferObject ubo{};
-  ubo.deltaTime = dotSpeed * dt;
+  const DeltaTimeUniform deltaTimeUBO{dotSpeed * dt};
 
-  memcpy(uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
+  deltaTimeUniform->update(currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
 }
 
-void DotsPipeline::createUniformBuffers()
+void DotsPipeline::createUniforms()
 {
-  uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    constexpr VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-    Buffers::createBuffer(ComputePipeline::logicalDevice->getDevice(),
-                          ComputePipeline::physicalDevice->getPhysicalDevice(), bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          uniformBuffers[i], uniformBuffersMemory[i]);
-
-    vkMapMemory(ComputePipeline::logicalDevice->getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
-  }
+  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
+                                                     MAX_FRAMES_IN_FLIGHT, sizeof(DeltaTimeUniform));
 }
 
 void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
@@ -274,8 +260,7 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(ComputePipeline::logicalDevice->getDevice(),
-                        ComputePipeline::physicalDevice->getPhysicalDevice(), bufferSize,
+  Buffers::createBuffer(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
@@ -287,11 +272,11 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    Buffers::createBuffer(ComputePipeline::logicalDevice->getDevice(), ComputePipeline::physicalDevice->getPhysicalDevice(), bufferSize,
+    Buffers::createBuffer(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, bufferSize,
                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 
-    Buffers::copyBuffer(ComputePipeline::logicalDevice->getDevice(), commandPool, ComputePipeline::logicalDevice->getComputeQueue(),
+    Buffers::copyBuffer(ComputePipeline::logicalDevice, commandPool, ComputePipeline::logicalDevice->getComputeQueue(),
                         stagingBuffer, shaderStorageBuffers[i], bufferSize);
   }
 
@@ -378,12 +363,6 @@ void DotsPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    const VkDescriptorBufferInfo uniformBufferInfo {
-      .buffer = uniformBuffers[i],
-      .offset = 0,
-      .range = sizeof(UniformBufferObject)
-    };
-
     const VkDescriptorBufferInfo storageBufferInfoLastFrame {
       .buffer = shaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT],
       .offset = 0,
@@ -397,15 +376,7 @@ void DotsPipeline::createDescriptorSets()
     };
 
     std::array<VkWriteDescriptorSet, 3> writeDescriptorSets {{
-      {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstSet = computeDescriptorSets[i],
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .pBufferInfo = &uniformBufferInfo
-      },
+      deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[i], i),
       {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
         .dstSet = computeDescriptorSets[i],

@@ -4,8 +4,11 @@
 #include "../Vertex.h"
 #include "../RenderPass.h"
 
-#include "../../objects/RenderObject.h"
 #include "../../components/Camera.h"
+#include "../../components/LogicalDevice.h"
+#include "../../components/PhysicalDevice.h"
+
+#include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 

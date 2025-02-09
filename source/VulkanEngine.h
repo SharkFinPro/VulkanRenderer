@@ -76,7 +76,7 @@ public:
   void setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix);
 
 private:
-  std::unique_ptr<Instance> instance;
+  std::shared_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
   std::shared_ptr<Window> window;
   std::shared_ptr<PhysicalDevice> physicalDevice;
@@ -110,7 +110,7 @@ private:
   std::shared_ptr<Camera> camera;
 
   VulkanEngineOptions vulkanEngineOptions;
-  VkCommandPool commandPool{};
+  VkCommandPool commandPool = VK_NULL_HANDLE;
   std::vector<VkCommandBuffer> offscreenCommandBuffers;
   std::vector<VkCommandBuffer> swapchainCommandBuffers;
   std::vector<VkCommandBuffer> computeCommandBuffers;

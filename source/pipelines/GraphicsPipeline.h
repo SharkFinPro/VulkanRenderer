@@ -1,15 +1,11 @@
 #ifndef GRAPHICSPIPELINE_H
 #define GRAPHICSPIPELINE_H
 
+#include "Pipeline.h"
+#include "ShaderModule.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <vector>
-
-#include "ShaderModule.h"
-#include "../components/PhysicalDevice.h"
-#include "../components/LogicalDevice.h"
-
-#include "Pipeline.h"
 
 class GraphicsPipeline : public Pipeline {
 public:

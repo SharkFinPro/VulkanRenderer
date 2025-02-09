@@ -1,26 +1,11 @@
 #include "Buffers.h"
 #include "../components/LogicalDevice.h"
+#include "../components/PhysicalDevice.h"
 #include <stdexcept>
 
 namespace Buffers {
-  uint32_t findMemoryType(const VkPhysicalDevice& physicalDevice, const uint32_t typeFilter,
-                          const VkMemoryPropertyFlags properties)
-  {
-    VkPhysicalDeviceMemoryProperties memoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
-
-    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
-    {
-      if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-      {
-        return i;
-      }
-    }
-
-    throw std::runtime_error("failed to find suitable memory type!");
-  }
-
-  void createBuffer(const VkDevice& device, const VkPhysicalDevice& physicalDevice, const VkDeviceSize size,
+  void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                    const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDeviceSize size,
                     const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, VkBuffer& buffer,
                     VkDeviceMemory& bufferMemory)
   {
@@ -31,39 +16,39 @@ namespace Buffers {
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE
     };
 
-    if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+    if (vkCreateBuffer(logicalDevice->getDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create vertex buffer!");
     }
 
     VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+    vkGetBufferMemoryRequirements(logicalDevice->getDevice(), buffer, &memoryRequirements);
 
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
-      .memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties)
+      .memoryTypeIndex = physicalDevice->findMemoryType(memoryRequirements.memoryTypeBits, properties)
     };
 
-    if (vkAllocateMemory(device, &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+    if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to allocate vertex buffer memory!");
     }
 
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+    vkBindBufferMemory(logicalDevice->getDevice(), buffer, bufferMemory, 0);
   }
 
-  void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
-                  const VkBuffer srcBuffer, const VkBuffer dstBuffer, const VkDeviceSize size)
+  void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
+                  const VkQueue& queue, const VkBuffer srcBuffer, const VkBuffer dstBuffer, const VkDeviceSize size)
   {
-    const VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+    const VkCommandBuffer commandBuffer = beginSingleTimeCommands(logicalDevice, commandPool);
 
     const VkBufferCopy copyRegion {
       .size = size
     };
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    endSingleTimeCommands(device, commandPool, queue, commandBuffer);
+    endSingleTimeCommands(logicalDevice, commandPool, queue, commandBuffer);
   }
 
   void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -81,7 +66,8 @@ namespace Buffers {
     }
   }
 
-  VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool)
+  VkCommandBuffer beginSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                          const VkCommandPool commandPool)
   {
     const VkCommandBufferAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -91,7 +77,7 @@ namespace Buffers {
     };
 
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-    if (vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocateInfo, &commandBuffer) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to allocate command buffer!");
     }
@@ -109,7 +95,8 @@ namespace Buffers {
     return commandBuffer;
   }
 
-  void endSingleTimeCommands(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkCommandBuffer commandBuffer)
+  void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool commandPool,
+                             const VkQueue queue, VkCommandBuffer commandBuffer)
   {
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     {
@@ -129,6 +116,6 @@ namespace Buffers {
 
     vkQueueWaitIdle(queue);
 
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(logicalDevice->getDevice(), commandPool, 1, &commandBuffer);
   }
 }

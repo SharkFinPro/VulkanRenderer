@@ -1,14 +1,11 @@
 #ifndef COMPUTEPIPELINE_H
 #define COMPUTEPIPELINE_H
 
+#include "Pipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 
-#include "ShaderModule.h"
-#include "../components/PhysicalDevice.h"
-#include "../components/LogicalDevice.h"
-
-#include "Pipeline.h"
+class ShaderModule;
 
 class ComputePipeline : public Pipeline {
 public:

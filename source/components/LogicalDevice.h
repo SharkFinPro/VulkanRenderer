@@ -12,12 +12,12 @@ public:
   explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
   ~LogicalDevice();
 
-  VkDevice& getDevice();
+  [[nodiscard]] VkDevice getDevice() const;
   void waitIdle() const;
 
-  VkQueue& getGraphicsQueue();
-  VkQueue& getPresentQueue();
-  VkQueue& getComputeQueue();
+  [[nodiscard]] VkQueue getGraphicsQueue() const;
+  [[nodiscard]] VkQueue getPresentQueue() const;
+  [[nodiscard]] VkQueue getComputeQueue() const;
 
   void submitOffscreenGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
   void submitGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
@@ -33,11 +33,11 @@ public:
   VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const;
 
 private:
-  VkDevice device;
+  VkDevice device = VK_NULL_HANDLE;
 
-  VkQueue graphicsQueue;
-  VkQueue presentQueue;
-  VkQueue computeQueue;
+  VkQueue graphicsQueue = VK_NULL_HANDLE;
+  VkQueue presentQueue = VK_NULL_HANDLE;
+  VkQueue computeQueue = VK_NULL_HANDLE;
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> imageAvailableSemaphores2;

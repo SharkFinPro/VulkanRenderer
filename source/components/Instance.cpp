@@ -1,9 +1,9 @@
 #include "Instance.h"
+#include "DebugMessenger.h"
+#include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <cstring>
-#include "DebugMessenger.h"
 
-#include <GLFW/glfw3.h>
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
@@ -56,7 +56,7 @@ Instance::~Instance()
   vkDestroyInstance(instance, nullptr);
 }
 
-VkInstance& Instance::getInstance()
+VkInstance Instance::getInstance() const
 {
   return instance;
 }

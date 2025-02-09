@@ -1,12 +1,16 @@
 #include "ObjectsPipeline.h"
 #include <stdexcept>
 
-#include "../Vertex.h"
-#include "../RenderPass.h"
 #include "Uniforms.h"
 
-#include "../../objects/RenderObject.h"
+#include "../Vertex.h"
+#include "../RenderPass.h"
+
 #include "../../components/Camera.h"
+#include "../../components/LogicalDevice.h"
+#include "../../components/PhysicalDevice.h"
+
+#include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 

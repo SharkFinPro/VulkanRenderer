@@ -1,17 +1,15 @@
 #ifndef VULKANPROJECT_COMPUTEPIPELINE_H
 #define VULKANPROJECT_COMPUTEPIPELINE_H
 
+#include "../ComputePipeline.h"
+#include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <chrono>
 #include <array>
 #include <glm/glm.hpp>
 
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
-
-#include "../ComputePipeline.h"
-#include "../GraphicsPipeline.h"
+class UniformBuffer;
 
 struct Particle {
   glm::vec2 position;
@@ -46,7 +44,7 @@ struct Particle {
   }
 };
 
-struct UniformBufferObject {
+struct DeltaTimeUniform {
   float deltaTime = 1.0f;
 };
 
@@ -65,12 +63,10 @@ private:
   std::vector<VkBuffer> shaderStorageBuffers;
   std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
 
-  std::vector<VkBuffer> uniformBuffers;
-  std::vector<VkDeviceMemory> uniformBuffersMemory;
-  std::vector<void*> uniformBuffersMapped;
+  std::unique_ptr<UniformBuffer> deltaTimeUniform;
 
-  VkDescriptorSetLayout computeDescriptorSetLayout;
-  VkDescriptorPool computeDescriptorPool;
+  VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorPool computeDescriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> computeDescriptorSets;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
@@ -98,7 +94,7 @@ private:
 
   void updateUniformBuffer(uint32_t currentFrame);
 
-  void createUniformBuffers();
+  void createUniforms();
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 
   void createDescriptorSetLayouts();

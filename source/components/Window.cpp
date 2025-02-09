@@ -3,8 +3,9 @@
 #include <stdexcept>
 #include <backends/imgui_impl_glfw.h>
 
-Window::Window(const int width, const int height, const char* title, VkInstance& instance, const bool fullscreen)
-  : instance(instance), scroll(0)
+Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
+               const bool fullscreen)
+  : instance(instance), mouseX(0), mouseY(0), scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -45,7 +46,7 @@ Window::Window(const int width, const int height, const char* title, VkInstance&
 
 Window::~Window()
 {
-  vkDestroySurfaceKHR(instance, surface, nullptr);
+  vkDestroySurfaceKHR(instance->getInstance(), surface, nullptr);
 
   glfwDestroyWindow(window);
 }
@@ -78,7 +79,7 @@ void Window::getFramebufferSize(int* width, int* height) const
 
 void Window::createSurface()
 {
-  if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(instance->getInstance(), window, nullptr, &surface) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create window surface!");
   }
@@ -144,7 +145,8 @@ void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int 
   app->framebufferResized = true;
 }
 
-void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,
+                         [[maybe_unused]] int mods)
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 

@@ -25,7 +25,7 @@ private:
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<Window> window;
 
-  VkSwapchainKHR swapchain;
+  VkSwapchainKHR swapchain = VK_NULL_HANDLE;
   std::vector<VkImage> swapChainImages;
   VkFormat swapChainImageFormat;
   VkExtent2D swapChainExtent;

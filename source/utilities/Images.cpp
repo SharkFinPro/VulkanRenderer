@@ -41,7 +41,7 @@ namespace Images {
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
-      .memoryTypeIndex = Buffers::findMemoryType(physicalDevice->getPhysicalDevice(), memoryRequirements.memoryTypeBits, properties)
+      .memoryTypeIndex = physicalDevice->findMemoryType(memoryRequirements.memoryTypeBits, properties)
     };
 
     if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
@@ -56,7 +56,7 @@ namespace Images {
                              const VkImage image, const VkFormat format, const VkImageLayout oldLayout,
                              const VkImageLayout newLayout, const uint32_t mipLevels)
   {
-    const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
+    const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
 
     VkImageMemoryBarrier barrier {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -136,14 +136,14 @@ namespace Images {
       1, &barrier
     );
 
-    Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+    Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
   }
 
   void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
                          const VkBuffer buffer, const VkImage image, const uint32_t width, const uint32_t height,
                          const uint32_t depth)
   {
-    const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
+    const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
 
     const VkBufferImageCopy region {
       .bufferOffset = 0,
@@ -168,7 +168,7 @@ namespace Images {
       &region
     );
 
-    Buffers::endSingleTimeCommands(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+    Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
   }
 
   VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkImage image,

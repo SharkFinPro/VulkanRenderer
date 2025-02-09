@@ -29,14 +29,14 @@ protected:
 
   uint32_t mipLevels;
 
-  VkImage textureImage;
-  VkDeviceMemory textureImageMemory;
-  VkImageView textureImageView;
-  VkSampler textureSampler;
+  VkImage textureImage = VK_NULL_HANDLE;
+  VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+  VkImageView textureImageView = VK_NULL_HANDLE;
+  VkSampler textureSampler = VK_NULL_HANDLE;
 
-  VkDescriptorImageInfo imageInfo;
+  VkDescriptorImageInfo imageInfo{};
 
-  VkDescriptorSet imGuiTexture;
+  VkDescriptorSet imGuiTexture = VK_NULL_HANDLE;
 
   virtual void createTextureImage(const VkCommandPool& commandPool, const char* path);
 

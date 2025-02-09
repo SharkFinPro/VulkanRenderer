@@ -16,8 +16,9 @@ public:
 
 private:
   std::shared_ptr<LogicalDevice> logicalDevice;
-  VkShaderStageFlagBits stage;
-  VkShaderModule module;
+
+  VkShaderStageFlagBits stage{};
+  VkShaderModule module = VK_NULL_HANDLE;
 
   static std::vector<char> readFile(const char* filename);
 
