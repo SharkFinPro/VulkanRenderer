@@ -2,33 +2,27 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 #include <stdexcept>
-#include <fstream>
 
-std::unique_ptr<unsigned char[]> ReadTexture3D(const char* filename, uint32_t* width, uint32_t* height, uint32_t* depth)
+unsigned char* ReadTexture3D(const char* filename, int* width, int* height, int* depth)
 {
-  std::ifstream file(filename, std::ios::binary);
-  if (!file)
+  FILE *fp = fopen(filename, "rb");
+  if( fp == nullptr )
   {
-    throw std::runtime_error("Could not open file " + std::string(filename));
+    throw std::runtime_error("Cannot find the file " + std::string(filename));
   }
 
-  file.read(reinterpret_cast<char*>(width), sizeof(uint32_t));
-  file.read(reinterpret_cast<char*>(height), sizeof(uint32_t));
-  file.read(reinterpret_cast<char*>(depth), sizeof(uint32_t));
+  int nums, numt, nump;
+  fread(&nums, 4, 1, fp);
+  fread(&numt,  4, 1, fp);
+  fread(&nump, 4, 1, fp);
 
-  if (!file)
-  {
-    throw std::runtime_error("Failed to read texture dimensions from file: " + std::string(filename));
-  }
+  *width  = nums;
+  *height = numt;
+  *depth  = nump;
 
-  const std::streamsize dataSize = 4 * *width * *height * *depth;
-  auto texture = std::make_unique<unsigned char[]>(dataSize);
-
-  file.read(reinterpret_cast<char*>(texture.get()), dataSize);
-  if (!file)
-  {
-    throw std::runtime_error("Failed to read texture data from file: " + std::string(filename));
-  }
+  auto* texture = new unsigned char[ 4 * nums * numt * nump ];
+  fread(texture, 4 * nums * numt * nump, 1, fp);
+  fclose(fp);
 
   return texture;
 }
@@ -45,7 +39,7 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
 {
   mipLevels = 1;  // No mipmaps for noise
 
-  uint32_t width, height, depth;
+  int width, height, depth;
   const auto noiseData = ReadTexture3D("assets/noise/noise3d.064.tex", &width, &height, &depth);
 
   const VkDeviceSize imageSize = width * height * depth * 4;
@@ -58,8 +52,10 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
 
   void* data;
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
-  memcpy(data, noiseData.get(), imageSize);
+  memcpy(data, noiseData, imageSize);
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+
+  delete noiseData;
 
   // Create a 3D texture
   Images::createImage(logicalDevice, physicalDevice, width, height, depth, mipLevels, VK_SAMPLE_COUNT_1_BIT,
