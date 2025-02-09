@@ -12,7 +12,7 @@ public:
   explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
   ~LogicalDevice();
 
-  VkDevice& getDevice();
+  VkDevice getDevice() const;
   void waitIdle() const;
 
   VkQueue& getGraphicsQueue();
