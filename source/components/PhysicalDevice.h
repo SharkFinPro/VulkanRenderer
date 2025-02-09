@@ -3,12 +3,13 @@
 
 #include <vulkan/vulkan.h>
 #include <optional>
+#include <array>
 #include <vector>
 #include <memory>
 
 class Instance;
 
-const std::vector<const char*> deviceExtensions = {
+constexpr std::array deviceExtensions {
   VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
