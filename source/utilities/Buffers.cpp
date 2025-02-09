@@ -66,7 +66,8 @@ namespace Buffers {
     }
   }
 
-  VkCommandBuffer beginSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
+  VkCommandBuffer beginSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                          const VkCommandPool commandPool)
   {
     const VkCommandBufferAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -94,8 +95,8 @@ namespace Buffers {
     return commandBuffer;
   }
 
-  void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool,
-                             VkQueue queue, VkCommandBuffer commandBuffer)
+  void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool commandPool,
+                             const VkQueue queue, VkCommandBuffer commandBuffer)
   {
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     {
