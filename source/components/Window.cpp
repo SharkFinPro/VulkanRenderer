@@ -5,7 +5,7 @@
 
 Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
                const bool fullscreen)
-  : instance(instance), scroll(0)
+  : instance(instance), mouseX(0), mouseY(0), scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
