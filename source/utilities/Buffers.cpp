@@ -55,17 +55,17 @@ namespace Buffers {
     vkBindBufferMemory(logicalDevice->getDevice(), buffer, bufferMemory, 0);
   }
 
-  void copyBuffer(const VkDevice& device, const VkCommandPool& commandPool, const VkQueue& queue,
-                  const VkBuffer srcBuffer, const VkBuffer dstBuffer, const VkDeviceSize size)
+  void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
+                  const VkQueue& queue, const VkBuffer srcBuffer, const VkBuffer dstBuffer, const VkDeviceSize size)
   {
-    const VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+    const VkCommandBuffer commandBuffer = beginSingleTimeCommands(logicalDevice->getDevice(), commandPool);
 
     const VkBufferCopy copyRegion {
       .size = size
     };
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    endSingleTimeCommands(device, commandPool, queue, commandBuffer);
+    endSingleTimeCommands(logicalDevice->getDevice(), commandPool, queue, commandBuffer);
   }
 
   void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory)

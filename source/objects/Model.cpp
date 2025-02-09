@@ -104,7 +104,7 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool)
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
-  Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
+  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
                       vertexBuffer, bufferSize);
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
@@ -130,7 +130,7 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
-  Buffers::copyBuffer(logicalDevice->getDevice(), commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
+  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
                       indexBuffer, bufferSize);
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
