@@ -35,7 +35,7 @@ class PhysicalDevice {
 public:
   PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface);
 
-  VkPhysicalDevice getPhysicalDevice() const;
+  [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const;
   QueueFamilyIndices& getQueueFamilies();
   SwapChainSupportDetails& getSwapChainSupport();
   [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
