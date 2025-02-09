@@ -19,15 +19,13 @@ VkPhysicalDevice PhysicalDevice::getPhysicalDevice() const
   return physicalDevice;
 }
 
-QueueFamilyIndices& PhysicalDevice::getQueueFamilies()
+QueueFamilyIndices PhysicalDevice::getQueueFamilies() const
 {
   return queueFamilyIndices;
 }
 
-SwapChainSupportDetails& PhysicalDevice::getSwapChainSupport()
+SwapChainSupportDetails PhysicalDevice::getSwapChainSupport() const
 {
-  swapChainSupportDetails = querySwapChainSupport(physicalDevice);
-
   return swapChainSupportDetails;
 }
 

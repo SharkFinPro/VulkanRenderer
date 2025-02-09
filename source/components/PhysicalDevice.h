@@ -37,8 +37,11 @@ public:
   PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface);
 
   [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const;
-  QueueFamilyIndices& getQueueFamilies();
-  SwapChainSupportDetails& getSwapChainSupport();
+
+  [[nodiscard]] QueueFamilyIndices getQueueFamilies() const;
+
+  [[nodiscard]] SwapChainSupportDetails getSwapChainSupport() const;
+
   [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
 
   [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
@@ -51,6 +54,7 @@ private:
   VkSampleCountFlagBits msaaSamples;
 
   QueueFamilyIndices queueFamilyIndices;
+
   SwapChainSupportDetails swapChainSupportDetails;
 
   void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
