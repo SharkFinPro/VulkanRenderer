@@ -139,7 +139,8 @@ VkFormat RenderPass::findDepthFormat() const
   );
 }
 
-void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const VkCommandBuffer& commandBuffer) const
+void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent,
+                       const VkCommandBuffer& commandBuffer) const
 {
   constexpr std::array<VkClearValue, 2> clearValues {{
     {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
