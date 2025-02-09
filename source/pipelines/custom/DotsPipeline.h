@@ -9,6 +9,8 @@
 #include <array>
 #include <glm/glm.hpp>
 
+class UniformBuffer;
+
 struct Particle {
   glm::vec2 position;
   glm::vec2 velocity;
@@ -42,7 +44,7 @@ struct Particle {
   }
 };
 
-struct UniformBufferObject {
+struct DeltaTimeUniform {
   float deltaTime = 1.0f;
 };
 
@@ -61,9 +63,7 @@ private:
   std::vector<VkBuffer> shaderStorageBuffers;
   std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
 
-  std::vector<VkBuffer> uniformBuffers;
-  std::vector<VkDeviceMemory> uniformBuffersMemory;
-  std::vector<void*> uniformBuffersMapped;
+  std::unique_ptr<UniformBuffer> deltaTimeUniform;
 
   VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorPool computeDescriptorPool = VK_NULL_HANDLE;
@@ -94,7 +94,7 @@ private:
 
   void updateUniformBuffer(uint32_t currentFrame);
 
-  void createUniformBuffers();
+  void createUniforms();
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 
   void createDescriptorSetLayouts();
