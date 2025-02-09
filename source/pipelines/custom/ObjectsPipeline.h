@@ -27,10 +27,10 @@ public:
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
-  VkDescriptorSetLayout globalDescriptorSetLayout;
-  VkDescriptorSetLayout objectDescriptorSetLayout;
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  VkDescriptorPool descriptorPool;
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;

@@ -10,7 +10,7 @@
 #include "../utilities/Images.h"
 
 Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), imGuiTexture(VK_NULL_HANDLE)
+  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), mipLevels(1)
 {}
 
 Texture::~Texture()

@@ -1,11 +1,10 @@
 #ifndef VULKANPROJECT_GUIPIPELINE_H
 #define VULKANPROJECT_GUIPIPELINE_H
 
+#include "../GraphicsPipeline.h"
 #include <array>
 #include <vulkan/vulkan.h>
 #include <memory>
-
-#include "../GraphicsPipeline.h"
 
 class RenderPass;
 
@@ -20,7 +19,7 @@ public:
   VkDescriptorPool& getPool();
 
 private:
-  VkDescriptorPool descriptorPool;
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 

@@ -1,11 +1,10 @@
 #ifndef CURTAINPIPELINE_H
 #define CURTAINPIPELINE_H
 
-#include <array>
-#include <glm/glm.hpp>
-
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
+#include <array>
+#include <glm/glm.hpp>
 
 class RenderPass;
 class RenderObject;
@@ -34,10 +33,10 @@ private:
     .shininess = 10
   };
 
-  VkDescriptorSetLayout globalDescriptorSetLayout;
-  VkDescriptorSetLayout objectDescriptorSetLayout;
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  VkDescriptorPool descriptorPool;
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;

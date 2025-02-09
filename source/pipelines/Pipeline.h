@@ -18,8 +18,8 @@ protected:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
 
-  VkPipelineLayout pipelineLayout{};
-  VkPipeline pipeline{};
+  VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+  VkPipeline pipeline = VK_NULL_HANDLE;
 
   std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 };

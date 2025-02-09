@@ -46,8 +46,8 @@ private:
   std::shared_ptr<LogicalDevice> logicalDevice;
   std::shared_ptr<PhysicalDevice> physicalDevice;
 
-  VkDescriptorSetLayout descriptorSetLayout;
-  VkDescriptorPool descriptorPool;
+  VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
   std::shared_ptr<Texture> texture;

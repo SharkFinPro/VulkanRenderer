@@ -110,7 +110,7 @@ private:
   std::shared_ptr<Camera> camera;
 
   VulkanEngineOptions vulkanEngineOptions;
-  VkCommandPool commandPool{};
+  VkCommandPool commandPool = VK_NULL_HANDLE;
   std::vector<VkCommandBuffer> offscreenCommandBuffers;
   std::vector<VkCommandBuffer> swapchainCommandBuffers;
   std::vector<VkCommandBuffer> computeCommandBuffers;

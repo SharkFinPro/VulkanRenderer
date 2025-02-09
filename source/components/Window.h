@@ -41,7 +41,7 @@ private:
   GLFWwindow* window;
 
   std::shared_ptr<Instance> instance;
-  VkSurfaceKHR surface;
+  VkSurfaceKHR surface = VK_NULL_HANDLE;
 
   double previousMouseX;
   double previousMouseY;

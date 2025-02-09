@@ -1,17 +1,13 @@
 #ifndef VULKANPROJECT_COMPUTEPIPELINE_H
 #define VULKANPROJECT_COMPUTEPIPELINE_H
 
+#include "../ComputePipeline.h"
+#include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <chrono>
 #include <array>
 #include <glm/glm.hpp>
-
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
-
-#include "../ComputePipeline.h"
-#include "../GraphicsPipeline.h"
 
 struct Particle {
   glm::vec2 position;
@@ -69,8 +65,8 @@ private:
   std::vector<VkDeviceMemory> uniformBuffersMemory;
   std::vector<void*> uniformBuffersMapped;
 
-  VkDescriptorSetLayout computeDescriptorSetLayout;
-  VkDescriptorPool computeDescriptorPool;
+  VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorPool computeDescriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> computeDescriptorSets;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;

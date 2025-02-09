@@ -1,4 +1,6 @@
 #include "GraphicsPipeline.h"
+#include "ShaderModule.h"
+#include "../components/LogicalDevice.h"
 #include <stdexcept>
 
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
@@ -6,7 +8,7 @@ GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physic
   : Pipeline(physicalDevice, logicalDevice)
 {}
 
-void GraphicsPipeline::createShader(const char *filename, VkShaderStageFlagBits stage)
+void GraphicsPipeline::createShader(const char* filename, VkShaderStageFlagBits stage)
 {
   shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice, filename, stage));
 }

@@ -1,6 +1,7 @@
 #include "DotsPipeline.h"
+#include "../../components/LogicalDevice.h"
+#include "../../components/PhysicalDevice.h"
 #include "../../utilities/Buffers.h"
-
 #include <cmath>
 #include <stdexcept>
 #include <random>

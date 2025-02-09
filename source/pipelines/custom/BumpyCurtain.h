@@ -1,14 +1,13 @@
 #ifndef BUMPYCURTAIN_H
 #define BUMPYCURTAIN_H
 
+#include "Uniforms.h"
+#include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 #include <array>
-
-#include "Uniforms.h"
-#include "../GraphicsPipeline.h"
 
 class PhysicalDevice;
 class LogicalDevice;
@@ -45,10 +44,10 @@ private:
     .frequency = 1.0f
   };
 
-  VkDescriptorSetLayout globalDescriptorSetLayout;
-  VkDescriptorSetLayout objectDescriptorSetLayout;
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  VkDescriptorPool descriptorPool;
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;

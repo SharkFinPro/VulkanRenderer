@@ -30,19 +30,19 @@ private:
   std::shared_ptr<SwapChain> swapChain;
 
   std::vector<VkFramebuffer> framebuffers;
-  VkImage depthImage;
-  VkDeviceMemory depthImageMemory;
-  VkImageView depthImageView;
-  VkImage colorImage;
-  VkDeviceMemory colorImageMemory;
-  VkImageView colorImageView;
+  VkImage depthImage = VK_NULL_HANDLE;
+  VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
+  VkImageView depthImageView = VK_NULL_HANDLE;
+  VkImage colorImage = VK_NULL_HANDLE;
+  VkDeviceMemory colorImageMemory = VK_NULL_HANDLE;
+  VkImageView colorImageView = VK_NULL_HANDLE;
 
   VkFormat framebufferImageFormat;
   std::vector<VkImage> framebufferImages;
   std::vector<VkImageView> framebufferImageViews;
   std::vector<VkDeviceMemory> framebufferImageMemory;
 
-  VkSampler sampler;
+  VkSampler sampler = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> framebufferImageDescriptorSets;
 
   void createImageResources(const VkCommandPool& commandPool, VkExtent2D extent);
