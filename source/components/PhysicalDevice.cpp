@@ -14,7 +14,7 @@ PhysicalDevice::PhysicalDevice(VkInstance& instance, VkSurfaceKHR& surface)
   swapChainSupportDetails = querySwapChainSupport(physicalDevice);
 }
 
-VkPhysicalDevice& PhysicalDevice::getPhysicalDevice()
+VkPhysicalDevice PhysicalDevice::getPhysicalDevice() const
 {
   return physicalDevice;
 }

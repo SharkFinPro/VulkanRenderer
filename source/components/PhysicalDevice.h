@@ -32,7 +32,7 @@ class PhysicalDevice {
 public:
   PhysicalDevice(VkInstance& instance, VkSurfaceKHR& surface);
 
-  VkPhysicalDevice& getPhysicalDevice();
+  VkPhysicalDevice getPhysicalDevice() const;
   QueueFamilyIndices& getQueueFamilies();
   SwapChainSupportDetails& getSwapChainSupport();
   [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
