@@ -67,6 +67,8 @@ add_library(${PROJECT_NAME}
   pipelines/custom/CurtainPipeline.h
   pipelines/custom/BumpyCurtain.cpp
   pipelines/custom/BumpyCurtain.h
+  pipelines/custom/CubeMapPipeline.cpp
+  pipelines/custom/CubeMapPipeline.h
 )
 
 # Noise
