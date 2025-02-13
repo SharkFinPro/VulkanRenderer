@@ -6,7 +6,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
-void displayLightGui(const std::shared_ptr<Light>& light, int id);
 
 int main()
 {
@@ -31,8 +30,6 @@ int main()
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
     object->setPosition({ 0, -5, 0 });
 
-    bool useNoisyEllipticalDots = true;
-
     while (renderer.isActive())
     {
       // Render GUI
@@ -40,12 +37,8 @@ int main()
       displayObjectGui(object, 0);
       ImGui::End();
 
-      ImGui::Begin("Rendering");
-      ImGui::Checkbox("Use Cube Map", &useNoisyEllipticalDots);
-      ImGui::End();
-
       // Render Objects
-      renderer.renderObject(object, useNoisyEllipticalDots ? PipelineType::cubeMap : PipelineType::object);
+      renderer.renderObject(object, PipelineType::cubeMap);
 
       // Render Frame
       renderer.render();
