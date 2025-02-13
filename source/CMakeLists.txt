@@ -69,6 +69,8 @@ add_library(${PROJECT_NAME}
   pipelines/custom/BumpyCurtain.h
   pipelines/custom/CubeMapPipeline.cpp
   pipelines/custom/CubeMapPipeline.h
+  objects/CubeMapTexture.cpp
+  objects/CubeMapTexture.h
 )
 
 # Noise
