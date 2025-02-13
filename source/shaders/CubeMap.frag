@@ -10,6 +10,13 @@ layout(set = 0, binding = 4) uniform CubeMap {
   float whiteMix;
 } cubeMap;
 
+layout(set = 0, binding = 6) uniform NoiseOptions {
+  float amplitude;
+  float frequency;
+} noiseOptions;
+
+layout(set = 0, binding = 7) uniform sampler3D Noise3;
+
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
