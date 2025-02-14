@@ -3,7 +3,6 @@
 #include "../components/PhysicalDevice.h"
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <stdexcept>
 #include <cmath>
@@ -32,7 +31,7 @@ CubeMapTexture::~CubeMapTexture()
   vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
 }
 
-VkDescriptorPoolSize CubeMapTexture::getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT)
+VkDescriptorPoolSize CubeMapTexture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
 {
   VkDescriptorPoolSize poolSize{};
   poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -41,7 +40,7 @@ VkDescriptorPoolSize CubeMapTexture::getDescriptorPoolSize(uint32_t MAX_FRAMES_I
   return poolSize;
 }
 
-VkWriteDescriptorSet CubeMapTexture::getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const
+VkWriteDescriptorSet CubeMapTexture::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet) const
 {
   const VkWriteDescriptorSet descriptorSet {
     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -90,13 +89,19 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
 {
   int texWidth, texHeight, texChannels;
 
-  stbi_uc* pixels = stbi_load(paths[0].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-  if (!pixels)
+  std::array<stbi_uc*, 6> pixels{};
+
+  for (size_t i = 0; i < pixels.size(); ++i)
   {
-    throw std::runtime_error("failed to load texture image!");
+    pixels[i] = stbi_load(paths[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    if (!pixels[i])
+    {
+      throw std::runtime_error("failed to load texture image: " + paths[i]);
+    }
   }
 
   const VkDeviceSize imageSize = texWidth * texHeight * 4;
+  const VkDeviceSize totalSize = imageSize * paths.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -104,28 +109,57 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
+
   void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
-  memcpy(data, pixels, imageSize);
+  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, totalSize, 0, &data);
+  for (size_t i = 0; i < pixels.size(); ++i)
+  {
+    const uint8_t offset = i * imageSize;
+    memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
+    stbi_image_free(pixels[i]);
+  }
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
-  stbi_image_free(pixels);
-
-  Images::createImage(logicalDevice, physicalDevice, texWidth, texHeight,
-                      1, 1, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+  Images::createImage(logicalDevice, physicalDevice, 0, texWidth, texHeight, 1, 1,
+                      VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, VK_IMAGE_TYPE_2D);
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory,
+                      VK_IMAGE_TYPE_2D, paths.size());
 
   Images::transitionImageLayout(logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
-  Images::copyBufferToImage(logicalDevice, commandPool, stagingBuffer, textureImage, static_cast<uint32_t>(texWidth),
-                            static_cast<uint32_t>(texHeight), 1);
+                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                1, 6);
+
+  // copy buffer to image
+
+  std::vector<VkBufferImageCopy> bufferCopyRegions(6);
+  for (uint32_t i = 0; i < 6; i++)
+  {
+    bufferCopyRegions[i].bufferOffset = i * imageSize;
+    bufferCopyRegions[i].bufferRowLength = 0;
+    bufferCopyRegions[i].bufferImageHeight = 0;
+    bufferCopyRegions[i].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    bufferCopyRegions[i].imageSubresource.mipLevel = 0;
+    bufferCopyRegions[i].imageSubresource.baseArrayLayer = i;
+    bufferCopyRegions[i].imageSubresource.layerCount = 1;
+    bufferCopyRegions[i].imageOffset = {0, 0, 0};
+    bufferCopyRegions[i].imageExtent = {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1};
+  }
+
+  const auto commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
+  vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         static_cast<uint32_t>(bufferCopyRegions.size()), bufferCopyRegions.data());
+  Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+
+  // end copy buffer to image
 
   Images::transitionImageLayout(logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 6);
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 
   textureImageView = Images::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                             VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_CUBE);
+                                             VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_CUBE,
+                                             paths.size());
 }
