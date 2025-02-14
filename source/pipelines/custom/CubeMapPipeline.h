@@ -49,7 +49,8 @@ private:
   std::unique_ptr<UniformBuffer> noiseOptionsUniform;
   std::unique_ptr<Noise3DTexture> noiseTexture;
 
-  std::unique_ptr<CubeMapTexture> cubeMapTexture;
+  std::unique_ptr<CubeMapTexture> reflectUnit;
+  std::unique_ptr<CubeMapTexture> refractUnit;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 

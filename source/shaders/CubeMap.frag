@@ -23,8 +23,8 @@ layout(set = 0, binding = 6) uniform NoiseOptions {
 
 layout(set = 0, binding = 7) uniform sampler3D Noise3;
 
-//layout(set = 0, binding = 8) uniform samplerCube ReflectUnit;
-layout(set = 0, binding = 8) uniform samplerCube RefractUnit;
+layout(set = 0, binding = 8) uniform samplerCube ReflectUnit;
+layout(set = 0, binding = 9) uniform samplerCube RefractUnit;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
@@ -90,7 +90,7 @@ void main()
   Normal = normalize(transpose(inverse(mat3(transform.model))) * Normal);
 
   vec3 reflectVector = reflect(Eye, Normal); // TODO: ?????
-  vec3 reflectColor = vec3(0.8); // TODO: ?????.rgb
+  vec3 reflectColor = texture(ReflectUnit, reflectVector).rgb; // TODO: ?????.rgb
 
   vec3 refractVector = refract(Eye, Normal, cubeMap.refractionIndex); //TODO: ?????
 

@@ -273,8 +273,15 @@ void CubeMapPipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr VkDescriptorSetLayoutBinding cubeMapSamplerLayout {
+  constexpr VkDescriptorSetLayoutBinding reflectUnitLayout {
     .binding = 8,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding refractUnitLayout {
+    .binding = 9,
     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
     .descriptorCount = 1,
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
@@ -285,7 +292,8 @@ void CubeMapPipeline::createGlobalDescriptorSetLayout()
     cubeMapLayout,
     noiseOptionsLayout,
     noiseSamplerLayout,
-    cubeMapSamplerLayout
+    reflectUnitLayout,
+    refractUnitLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
@@ -381,12 +389,13 @@ void CubeMapPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 5> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 6> descriptorWrites{{
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
       cubeMapUniform->getDescriptorSet(4, descriptorSets[i], i),
       noiseOptionsUniform->getDescriptorSet(6, descriptorSets[i], i),
       noiseTexture->getDescriptorSet(7, descriptorSets[i]),
-      cubeMapTexture->getDescriptorSet(8, descriptorSets[i])
+      reflectUnit->getDescriptorSet(8, descriptorSets[i]),
+      refractUnit->getDescriptorSet(9, descriptorSets[i])
     }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
@@ -415,5 +424,7 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
     "assets/cubeMap/nvposz.bmp",
     "assets/cubeMap/nvnegz.bmp"
   };
-  cubeMapTexture = std::make_unique<CubeMapTexture>(logicalDevice, physicalDevice, commandPool, paths);
+  reflectUnit = std::make_unique<CubeMapTexture>(logicalDevice, physicalDevice, commandPool, paths);
+
+  refractUnit = std::make_unique<CubeMapTexture>(logicalDevice, physicalDevice, commandPool, paths);
 }
