@@ -19,9 +19,9 @@ CubeMapTexture::CubeMapTexture(std::shared_ptr<LogicalDevice> logicalDevice,
   createTextureSampler();
 
   imageInfo = {
-    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+    .sampler = textureSampler,
     .imageView = textureImageView,
-    .sampler = textureSampler
+    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
   };
 }
 
