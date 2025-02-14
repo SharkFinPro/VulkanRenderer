@@ -34,8 +34,7 @@ layout(location = 0) out vec4 outColor;
 
 const vec3 WHITE = vec3(1.0, 1.0, 1.0);
 
-vec3
-PerturbNormal3( float angx, float angy, float angz, vec3 n )
+vec3 PerturbNormal3(float angx, float angy, float angz, vec3 n)
 {
   float cx = cos( angx );
   float sx = sin( angx );
