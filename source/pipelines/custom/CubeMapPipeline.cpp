@@ -77,8 +77,8 @@ void CubeMapPipeline::render(const VkCommandBuffer& commandBuffer, uint32_t curr
 
   ImGui::Separator();
 
-  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 1.0f);
-  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 10.0f);
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 5.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 2.0f);
 
   ImGui::End();
   cubeMapUniform->update(currentFrame, &cubeMapUBO, sizeof(CubeMapUniform));
@@ -355,7 +355,7 @@ void CubeMapPipeline::createDescriptorPool()
   constexpr std::array<VkDescriptorPoolSize, 3> poolSizes {{
     {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 4},
     {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 1},
-    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT}
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT * 3}
   }};
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {

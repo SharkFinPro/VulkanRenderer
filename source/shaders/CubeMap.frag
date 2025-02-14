@@ -68,7 +68,7 @@ PerturbNormal3( float angx, float angy, float angz, vec3 n )
 void main()
 {
   vec3 Normal = normalize(fragNormal);
-  vec3 Eye = normalize(camera.position - fragPos);
+  vec3 Eye = normalize(fragPos - camera.position);
 
   vec4 nvx = texture(Noise3, noiseOptions.frequency * fragPos);
   vec4 nvy = texture(Noise3, noiseOptions.frequency * vec3(fragPos.xy, fragPos.z + 0.33));
@@ -105,8 +105,5 @@ void main()
     refractColor = mix( refractColor, WHITE, cubeMap.whiteMix );
   }
 
-  vec3 color = mix(refractColor, reflectColor, cubeMap.mix);
-  color = mix(color, WHITE, cubeMap.whiteMix);
-
-  outColor = vec4(color, 1);
+  outColor = vec4(mix(refractColor, reflectColor, cubeMap.mix), 1);
 }
