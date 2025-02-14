@@ -6,6 +6,7 @@
 #include <stb_image.h>
 #include <stdexcept>
 #include <cmath>
+#include <cstring>
 
 CubeMapTexture::CubeMapTexture(std::shared_ptr<LogicalDevice> logicalDevice,
                                std::shared_ptr<PhysicalDevice> physicalDevice,
