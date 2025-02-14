@@ -27,6 +27,7 @@
 #include "pipelines/custom/DotsPipeline.h"
 #include "pipelines/custom/EllipticalDots.h"
 #include "pipelines/custom/NoisyEllipticalDots.h"
+#include "pipelines/custom/TexturedPlane.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -43,7 +44,8 @@ enum class PipelineType {
   noisyEllipticalDots,
   bumpyCurtain,
   curtain,
-  cubeMap
+  cubeMap,
+  texturedPlane
 };
 
 class VulkanEngine {
@@ -94,6 +96,7 @@ private:
   std::unique_ptr<CurtainPipeline> curtainPipeline;
   std::unique_ptr<BumpyCurtain> bumpyCurtainPipeline;
   std::unique_ptr<CubeMapPipeline> cubeMapPipeline;
+  std::unique_ptr<TexturedPlane> texturedPlanePipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
 

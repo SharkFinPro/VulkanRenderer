@@ -28,7 +28,45 @@ int main()
     const auto model = renderer.loadModel("assets/models/cow.obj");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
-    object->setPosition({ 0, 0, 0 });
+    object->setPosition({ 0, 0, -5 });
+
+
+    const auto planeModel = renderer.loadModel("assets/models/curtain.glb");
+
+    constexpr float scale = 4.0f;
+    constexpr float d = 5 * scale;
+    constexpr float offset = -5.0f;
+
+    const auto px = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposx.bmp"), specularMap, planeModel);
+    px->setScale(scale);
+    px->setPosition({ d, 0, offset });
+    px->setOrientationEuler({0, 90, 0});
+
+    const auto nx = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegx.bmp"), specularMap, planeModel);
+    nx->setScale(scale);
+    nx->setPosition({ -d, 0, offset });
+    nx->setOrientationEuler({0, -90, 0});
+
+    const auto py = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposy.bmp"), specularMap, planeModel);
+    py->setScale(scale);
+    py->setPosition({ 0, d, offset });
+    py->setOrientationEuler({-90, 0, 0});
+
+    const auto ny = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegy.bmp"), specularMap, planeModel);
+    ny->setScale(scale);
+    ny->setPosition({ 0, -d, offset });
+    ny->setOrientationEuler({90, 0, 0});
+
+    const auto pz = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposz.bmp"), specularMap, planeModel);
+    pz->setScale(scale);
+    pz->setPosition({ 0, 0, d + offset });
+    pz->setOrientationEuler({0, 0, 0});
+
+    const auto nz = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegz.bmp"), specularMap, planeModel);
+    nz->setScale(scale);
+    nz->setPosition({ 0, 0, -d + offset });
+    nz->setOrientationEuler({0, 180, 0});
+
 
     while (renderer.isActive())
     {
@@ -39,6 +77,13 @@ int main()
 
       // Render Objects
       renderer.renderObject(object, PipelineType::cubeMap);
+
+      renderer.renderObject(px, PipelineType::texturedPlane);
+      renderer.renderObject(nx, PipelineType::texturedPlane);
+      renderer.renderObject(py, PipelineType::texturedPlane);
+      renderer.renderObject(ny, PipelineType::texturedPlane);
+      renderer.renderObject(pz, PipelineType::texturedPlane);
+      renderer.renderObject(nz, PipelineType::texturedPlane);
 
       // Render Frame
       renderer.render();

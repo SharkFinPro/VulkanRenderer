@@ -174,6 +174,8 @@ void VulkanEngine::initVulkan()
 
   cubeMapPipeline = std::make_unique<CubeMapPipeline>(physicalDevice, logicalDevice, renderPass, commandPool);
 
+  texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass);
+
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
@@ -469,6 +471,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   {
     cubeMapPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
                             renderObjectsToRender.at(PipelineType::cubeMap));
+  }
+
+  if (renderObjectsToRender.contains(PipelineType::texturedPlane))
+  {
+    texturedPlanePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
+                                  renderObjectsToRender.at(PipelineType::texturedPlane));
   }
 
   if (vulkanEngineOptions.DO_DOTS)
