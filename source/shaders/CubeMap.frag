@@ -24,7 +24,7 @@ layout(set = 0, binding = 6) uniform NoiseOptions {
 layout(set = 0, binding = 7) uniform sampler3D Noise3;
 
 //layout(set = 0, binding = 8) uniform samplerCube ReflectUnit;
-//layout(set = 0, binding = 9) uniform samplerCube RefractUnit;
+layout(set = 0, binding = 8) uniform samplerCube RefractUnit;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
@@ -101,8 +101,8 @@ void main()
   }
   else
   {
-//    refractColor = texture( uRefractUnit, refractVector ).rgb;
-//    refractColor = mix( refractColor, WHITE, uWhiteMix );
+    refractColor = texture( RefractUnit, refractVector ).rgb;
+    refractColor = mix( refractColor, WHITE, cubeMap.whiteMix );
   }
 
   outColor = vec4(mix( refractColor, reflectColor, cubeMap.mix ), 1);

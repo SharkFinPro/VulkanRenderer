@@ -273,11 +273,19 @@ void CubeMapPipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 6> globalBindings {
+  constexpr VkDescriptorSetLayoutBinding cubeMapSamplerLayout {
+    .binding = 8,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr std::array globalBindings {
     cameraLayout,
     cubeMapLayout,
     noiseOptionsLayout,
-    noiseSamplerLayout
+    noiseSamplerLayout,
+    cubeMapSamplerLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
@@ -373,11 +381,12 @@ void CubeMapPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 4> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 5> descriptorWrites{{
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
       cubeMapUniform->getDescriptorSet(4, descriptorSets[i], i),
       noiseOptionsUniform->getDescriptorSet(6, descriptorSets[i], i),
-      noiseTexture->getDescriptorSet(7, descriptorSets[i])
+      noiseTexture->getDescriptorSet(7, descriptorSets[i]),
+      cubeMapTexture->getDescriptorSet(8, descriptorSets[i])
     }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
