@@ -71,14 +71,14 @@ void CubeMapPipeline::render(const VkCommandBuffer& commandBuffer, uint32_t curr
 
   ImGui::Begin("Cube Map");
 
-  ImGui::SliderFloat("Reflect & Refract Blend", &cubeMapUBO.mix, 0.0f, 1.0f);
+  ImGui::SliderFloat("Refract | Reflect -> Blend", &cubeMapUBO.mix, 0.0f, 1.0f);
   ImGui::SliderFloat("Index of Refraction", &cubeMapUBO.refractionIndex, 0.0f, 5.0f);
   ImGui::SliderFloat("White Mix", &cubeMapUBO.whiteMix, 0.0f, 1.0f);
 
   ImGui::Separator();
 
   ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 5.0f);
-  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 2.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 0.5f);
 
   ImGui::End();
   cubeMapUniform->update(currentFrame, &cubeMapUBO, sizeof(CubeMapUniform));

@@ -25,10 +25,11 @@ int main()
 
     const auto texture = renderer.loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/cow.obj");
+    const auto model = renderer.loadModel("assets/models/catH.obj");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
     object->setPosition({ 0, 0, -5 });
+    object->setScale(2.0f);
 
 
     const auto planeModel = renderer.loadModel("assets/models/curtain.glb");
