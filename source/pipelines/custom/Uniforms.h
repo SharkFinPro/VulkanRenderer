@@ -31,4 +31,10 @@ struct CurtainUniform {
   float shininess;
 };
 
+struct CubeMapUniform {
+  float mix;
+  float refractionIndex;
+  float whiteMix;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H

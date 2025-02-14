@@ -39,7 +39,7 @@ private:
 
   int prevNumLights = 0;
 
-  size_t lightsUniformBufferSize;
+  size_t lightsUniformBufferSize = 0;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 

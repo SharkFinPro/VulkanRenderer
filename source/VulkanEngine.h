@@ -20,12 +20,14 @@
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/custom/BumpyCurtain.h"
+#include "pipelines/custom/CubeMapPipeline.h"
 #include "pipelines/custom/CurtainPipeline.h"
 #include "pipelines/custom/ObjectsPipeline.h"
 #include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/DotsPipeline.h"
 #include "pipelines/custom/EllipticalDots.h"
 #include "pipelines/custom/NoisyEllipticalDots.h"
+#include "pipelines/custom/TexturedPlane.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -41,7 +43,9 @@ enum class PipelineType {
   ellipticalDots,
   noisyEllipticalDots,
   bumpyCurtain,
-  curtain
+  curtain,
+  cubeMap,
+  texturedPlane
 };
 
 class VulkanEngine {
@@ -91,6 +95,8 @@ private:
   std::unique_ptr<NoisyEllipticalDots> noisyEllipticalDotsPipeline;
   std::unique_ptr<CurtainPipeline> curtainPipeline;
   std::unique_ptr<BumpyCurtain> bumpyCurtainPipeline;
+  std::unique_ptr<CubeMapPipeline> cubeMapPipeline;
+  std::unique_ptr<TexturedPlane> texturedPlanePipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
 

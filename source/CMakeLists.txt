@@ -67,10 +67,19 @@ add_library(${PROJECT_NAME}
   pipelines/custom/CurtainPipeline.h
   pipelines/custom/BumpyCurtain.cpp
   pipelines/custom/BumpyCurtain.h
+  pipelines/custom/CubeMapPipeline.cpp
+  pipelines/custom/CubeMapPipeline.h
+  objects/CubeMapTexture.cpp
+  objects/CubeMapTexture.h
+  pipelines/custom/TexturedPlane.cpp
+  pipelines/custom/TexturedPlane.h
 )
 
 # Noise
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/noise/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/noise/")
+
+# Cube Map
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/cubeMap/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/cubeMap/")
 
 # Shaders
 set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
