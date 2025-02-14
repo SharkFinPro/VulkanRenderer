@@ -18,9 +18,11 @@ CubeMapTexture::CubeMapTexture(std::shared_ptr<LogicalDevice> logicalDevice,
 
   createTextureSampler();
 
-  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  imageInfo.imageView = textureImageView;
-  imageInfo.sampler = textureSampler;
+  imageInfo = {
+    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+    .imageView = textureImageView,
+    .sampler = textureSampler
+  };
 }
 
 CubeMapTexture::~CubeMapTexture()
@@ -34,16 +36,15 @@ CubeMapTexture::~CubeMapTexture()
 
 VkDescriptorPoolSize CubeMapTexture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
 {
-  VkDescriptorPoolSize poolSize{};
-  poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-
-  return poolSize;
+  return {
+    .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = MAX_FRAMES_IN_FLIGHT,
+  };
 }
 
 VkWriteDescriptorSet CubeMapTexture::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet) const
 {
-  const VkWriteDescriptorSet descriptorSet {
+  return {
     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
     .dstSet = dstSet,
     .dstBinding = binding,
@@ -52,8 +53,6 @@ VkWriteDescriptorSet CubeMapTexture::getDescriptorSet(const uint32_t binding, co
     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
     .pImageInfo = &imageInfo
   };
-
-  return descriptorSet;
 }
 
 void CubeMapTexture::createTextureSampler()
@@ -89,7 +88,6 @@ void CubeMapTexture::createTextureSampler()
 void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)
 {
   int texWidth, texHeight, texChannels;
-
   std::array<stbi_uc*, 6> pixels{};
 
   for (size_t i = 0; i < pixels.size(); ++i)
