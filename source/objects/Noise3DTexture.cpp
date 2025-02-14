@@ -2,6 +2,7 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 #include <stdexcept>
+#include <cstdio>
 
 unsigned char* ReadTexture3D(const char* filename, int* width, int* height, int* depth)
 {
