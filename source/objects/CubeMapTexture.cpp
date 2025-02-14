@@ -133,7 +133,7 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
   // copy buffer to image
 
   std::vector<VkBufferImageCopy> bufferCopyRegions(6);
-  for (uint32_t i = 0; i < 6; i++)
+  for (uint32_t i = 0; i < 6; ++i)
   {
     bufferCopyRegions[i].bufferOffset = i * imageSize;
     bufferCopyRegions[i].bufferRowLength = 0;
