@@ -105,7 +105,7 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(logicalDevice, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(logicalDevice, physicalDevice, totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
@@ -114,17 +114,17 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, totalSize, 0, &data);
   for (size_t i = 0; i < pixels.size(); ++i)
   {
-    const uint8_t offset = i * imageSize;
+    const VkDeviceSize offset = i * imageSize;
     memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
     stbi_image_free(pixels[i]);
   }
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
-  Images::createImage(logicalDevice, physicalDevice, 0, texWidth, texHeight, 1, 1,
+  Images::createImage(logicalDevice, physicalDevice, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, texWidth, texHeight, 1, 1,
                       VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory,
-                      VK_IMAGE_TYPE_2D, paths.size());
+                      VK_IMAGE_TYPE_2D, 6);
 
   Images::transitionImageLayout(logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -160,6 +160,5 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 
   textureImageView = Images::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                             VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_CUBE,
-                                             paths.size());
+                                             VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_CUBE, 6);
 }

@@ -76,6 +76,9 @@ add_library(${PROJECT_NAME}
 # Noise
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/noise/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/noise/")
 
+# Cube Map
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/cubeMap/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/cubeMap/")
+
 # Shaders
 set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 set(shadersDst ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/shaders)

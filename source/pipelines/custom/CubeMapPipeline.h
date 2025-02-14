@@ -11,6 +11,7 @@ class RenderObject;
 class Camera;
 class UniformBuffer;
 class Noise3DTexture;
+class CubeMapTexture;
 
 class CubeMapPipeline final : public GraphicsPipeline {
 public:
@@ -47,6 +48,8 @@ private:
   std::unique_ptr<UniformBuffer> cubeMapUniform;
   std::unique_ptr<UniformBuffer> noiseOptionsUniform;
   std::unique_ptr<Noise3DTexture> noiseTexture;
+
+  std::unique_ptr<CubeMapTexture> cubeMapTexture;
 
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
 
