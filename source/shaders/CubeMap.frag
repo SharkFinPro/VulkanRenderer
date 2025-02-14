@@ -89,10 +89,10 @@ void main()
   Normal = PerturbNormal3( angx, angy, angz, Normal );
   Normal = normalize(transpose(inverse(mat3(transform.model))) * Normal);
 
-  vec3 reflectVector = reflect(Eye, Normal); // TODO: ?????
-  vec3 reflectColor = texture(ReflectUnit, reflectVector).rgb; // TODO: ?????.rgb
+  vec3 reflectVector = reflect(Eye, Normal);
+  vec3 reflectColor = texture(ReflectUnit, reflectVector).rgb;
 
-  vec3 refractVector = refract(Eye, Normal, cubeMap.refractionIndex); //TODO: ?????
+  vec3 refractVector = refract(Eye, Normal, cubeMap.refractionIndex);
 
   vec3 refractColor;
   if( all( equal( refractVector, vec3(0.,0.,0.) ) ) )
@@ -105,5 +105,8 @@ void main()
     refractColor = mix( refractColor, WHITE, cubeMap.whiteMix );
   }
 
-  outColor = vec4(mix( refractColor, reflectColor, cubeMap.mix ), 1);
+  vec3 color = mix(refractColor, reflectColor, cubeMap.mix);
+  color = mix(color, WHITE, cubeMap.whiteMix);
+
+  outColor = vec4(color, 1);
 }
