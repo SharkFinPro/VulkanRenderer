@@ -29,11 +29,11 @@ Texture::~Texture()
   vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
 }
 
-void Texture::init(const VkCommandPool& commandPool, const char* path)
+void Texture::init(const VkCommandPool& commandPool, const char* path, const VkSamplerAddressMode addressMode)
 {
   createTextureImage(commandPool, path);
 
-  createTextureSampler();
+  createTextureSampler(addressMode);
 
   imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   imageInfo.imageView = textureImageView;
@@ -229,7 +229,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
   Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 }
 
-void Texture::createTextureSampler()
+void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
 {
   VkPhysicalDeviceProperties deviceProperties{};
   vkGetPhysicalDeviceProperties(physicalDevice->getPhysicalDevice(), &deviceProperties);
@@ -239,9 +239,9 @@ void Texture::createTextureSampler()
     .magFilter = VK_FILTER_LINEAR,
     .minFilter = VK_FILTER_LINEAR,
     .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+    .addressModeU = addressMode,
+    .addressModeV = addressMode,
+    .addressModeW = addressMode,
     .mipLodBias = 0.0f,
     .anisotropyEnable = VK_TRUE,
     .maxAnisotropy = deviceProperties.limits.maxSamplerAnisotropy,

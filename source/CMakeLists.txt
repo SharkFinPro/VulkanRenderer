@@ -73,6 +73,8 @@ add_library(${PROJECT_NAME}
   objects/CubeMapTexture.h
   pipelines/custom/TexturedPlane.cpp
   pipelines/custom/TexturedPlane.h
+  pipelines/custom/GraphicsPipelineStates.h
+  pipelines/Particle.h
 )
 
 # Noise

@@ -2,7 +2,6 @@
 #define VULKANPROJECT_GUIPIPELINE_H
 
 #include "../GraphicsPipeline.h"
-#include <array>
 #include <vulkan/vulkan.h>
 #include <memory>
 
@@ -21,23 +20,9 @@ public:
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
-  VkPipelineColorBlendAttachmentState colorBlendAttachment;
-
-  std::array<VkDynamicState, 2> dynamicStates;
-
-  VkVertexInputBindingDescription vertexBindingDescription;
-  std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
-
   void loadGraphicsShaders() override;
 
-  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() override;
-  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() override;
-  std::unique_ptr<VkPipelineDynamicStateCreateInfo> defineDynamicState() override;
-  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> defineInputAssemblyState() override;
-  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> defineMultisampleState() override;
-  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> defineRasterizationState() override;
-  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
-  std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
+  void defineStates() override;
 
   void createDescriptorPool(uint32_t maxImGuiTextures);
 };

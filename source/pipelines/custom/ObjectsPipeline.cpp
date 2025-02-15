@@ -1,31 +1,27 @@
 #include "ObjectsPipeline.h"
-#include <stdexcept>
-
+#include "GraphicsPipelineStates.h"
 #include "Uniforms.h"
-
-#include "../Vertex.h"
 #include "../RenderPass.h"
-
 #include "../../components/Camera.h"
 #include "../../components/LogicalDevice.h"
 #include "../../components/PhysicalDevice.h"
-
 #include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
-
 #include <imgui.h>
+#include <stdexcept>
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass)
-  : GraphicsPipeline(physicalDevice, logicalDevice)
+                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 const VkDescriptorSetLayout objectDescriptorSetLayout)
+  : GraphicsPipeline(physicalDevice, logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
-  createDescriptorSetLayouts();
+  createGlobalDescriptorSetLayout();
 
   createDescriptorPool();
 
@@ -38,14 +34,7 @@ ObjectsPipeline::~ObjectsPipeline()
 {
   vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
-
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
-}
-
-VkDescriptorSetLayout& ObjectsPipeline::getLayout()
-{
-  return objectDescriptorSetLayout;
 }
 
 void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
@@ -110,131 +99,16 @@ void ObjectsPipeline::loadGraphicsDescriptorSetLayouts()
   loadDescriptorSetLayout(objectDescriptorSetLayout);
 }
 
-std::unique_ptr<VkPipelineColorBlendStateCreateInfo> ObjectsPipeline::defineColorBlendState()
+void ObjectsPipeline::defineStates()
 {
-  colorBlendAttachment = {
-    .blendEnable = VK_FALSE,
-    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
-  };
-
-  VkPipelineColorBlendStateCreateInfo colorBlendState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-    .logicOpEnable = VK_FALSE,
-    .logicOp = VK_LOGIC_OP_COPY,
-    .attachmentCount = 1,
-    .pAttachments = &colorBlendAttachment,
-    .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
-  };
-
-  return std::make_unique<VkPipelineColorBlendStateCreateInfo>(colorBlendState);
-}
-
-std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> ObjectsPipeline::defineDepthStencilState()
-{
-  VkPipelineDepthStencilStateCreateInfo depthStencilState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-    .depthTestEnable = VK_TRUE,
-    .depthWriteEnable = VK_TRUE,
-    .depthCompareOp = VK_COMPARE_OP_LESS,
-    .depthBoundsTestEnable = VK_FALSE,
-    .stencilTestEnable = VK_FALSE,
-    .minDepthBounds = 0.0f,
-    .maxDepthBounds = 1.0f
-  };
-
-  return std::make_unique<VkPipelineDepthStencilStateCreateInfo>(depthStencilState);
-}
-
-std::unique_ptr<VkPipelineDynamicStateCreateInfo> ObjectsPipeline::defineDynamicState()
-{
-  dynamicStates = {
-    VK_DYNAMIC_STATE_VIEWPORT,
-    VK_DYNAMIC_STATE_SCISSOR
-  };
-
-  VkPipelineDynamicStateCreateInfo dynamicState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-    .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
-    .pDynamicStates = dynamicStates.data()
-  };
-
-  return std::make_unique<VkPipelineDynamicStateCreateInfo>(dynamicState);
-}
-
-std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> ObjectsPipeline::defineInputAssemblyState()
-{
-  VkPipelineInputAssemblyStateCreateInfo inputAssemblyState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-    .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-    .primitiveRestartEnable = VK_FALSE
-  };
-
-  return std::make_unique<VkPipelineInputAssemblyStateCreateInfo>(inputAssemblyState);
-}
-
-std::unique_ptr<VkPipelineMultisampleStateCreateInfo> ObjectsPipeline::defineMultisampleState()
-{
-  VkPipelineMultisampleStateCreateInfo multisampleState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-    .rasterizationSamples = physicalDevice->getMsaaSamples(),
-    .sampleShadingEnable = VK_FALSE,
-    .minSampleShading = 1.0f,
-    .pSampleMask = VK_NULL_HANDLE,
-    .alphaToCoverageEnable = VK_FALSE,
-    .alphaToOneEnable = VK_FALSE
-  };
-
-  return std::make_unique<VkPipelineMultisampleStateCreateInfo>(multisampleState);
-}
-
-std::unique_ptr<VkPipelineRasterizationStateCreateInfo> ObjectsPipeline::defineRasterizationState()
-{
-  VkPipelineRasterizationStateCreateInfo rasterizationState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-    .depthClampEnable = VK_FALSE,
-    .rasterizerDiscardEnable = VK_FALSE,
-    .polygonMode = VK_POLYGON_MODE_FILL,
-    .cullMode = VK_CULL_MODE_BACK_BIT,
-    .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
-    .depthBiasEnable = VK_FALSE,
-    .lineWidth = 1.0f
-  };
-
-  return std::make_unique<VkPipelineRasterizationStateCreateInfo>(rasterizationState);
-}
-
-std::unique_ptr<VkPipelineVertexInputStateCreateInfo> ObjectsPipeline::defineVertexInputState()
-{
-  vertexBindingDescription = Vertex::getBindingDescription();
-  vertexAttributeDescriptions = Vertex::getAttributeDescriptions();
-
-  VkPipelineVertexInputStateCreateInfo vertexInputState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-    .vertexBindingDescriptionCount = 1,
-    .pVertexBindingDescriptions = &vertexBindingDescription,
-    .vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptions.size()),
-    .pVertexAttributeDescriptions = vertexAttributeDescriptions.data()
-  };
-
-  return std::make_unique<VkPipelineVertexInputStateCreateInfo>(vertexInputState);
-}
-
-std::unique_ptr<VkPipelineViewportStateCreateInfo> ObjectsPipeline::defineViewportState()
-{
-  VkPipelineViewportStateCreateInfo viewportState {
-    .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-    .viewportCount = 1,
-    .scissorCount = 1
-  };
-
-  return std::make_unique<VkPipelineViewportStateCreateInfo>(viewportState);
-}
-
-void ObjectsPipeline::createDescriptorSetLayouts()
-{
-  createGlobalDescriptorSetLayout();
-  createObjectDescriptorSetLayout();
+  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
+  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
+  defineDynamicState(GraphicsPipelineStates::dynamicState);
+  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
+  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
+  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
+  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void ObjectsPipeline::createGlobalDescriptorSetLayout()
@@ -275,48 +149,6 @@ void ObjectsPipeline::createGlobalDescriptorSetLayout()
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create global descriptor set layout!");
-  }
-}
-
-void ObjectsPipeline::createObjectDescriptorSetLayout()
-{
-  constexpr VkDescriptorSetLayoutBinding transformLayout {
-    .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding textureLayout {
-    .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding specularLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> objectBindings {
-    transformLayout,
-    textureLayout,
-    specularLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(objectBindings.size()),
-    .pBindings = objectBindings.data()
-  };
-
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &objectLayoutCreateInfo, nullptr,
-                                  &objectDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create object descriptor set layout!");
   }
 }
 

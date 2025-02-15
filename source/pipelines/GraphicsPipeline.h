@@ -25,23 +25,38 @@ protected:
 
   void createPipeline(const VkRenderPass& renderPass);
 
-  virtual std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() { return nullptr; };
+  void defineColorBlendState(const VkPipelineColorBlendStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() { return nullptr; };
+  void defineDepthStencilState(const VkPipelineDepthStencilStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineDynamicStateCreateInfo> defineDynamicState() { return nullptr; };
+  void defineDynamicState(const VkPipelineDynamicStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> defineInputAssemblyState() { return nullptr; };
+  void defineInputAssemblyState(const VkPipelineInputAssemblyStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineMultisampleStateCreateInfo> defineMultisampleState() { return nullptr; };
+  void defineMultisampleState(const VkPipelineMultisampleStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineRasterizationStateCreateInfo> defineRasterizationState() { return nullptr; };
+  void defineRasterizationState(const VkPipelineRasterizationStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineTessellationStateCreateInfo> defineTessellationState() { return nullptr; };
+  void defineTessellationState(const VkPipelineTessellationStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() { return nullptr; };
+  void defineVertexInputState(const VkPipelineVertexInputStateCreateInfo& state);
 
-  virtual std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() { return nullptr; };
+  void defineViewportState(const VkPipelineViewportStateCreateInfo& state);
+
+  virtual void defineStates() = 0;
+
+private:
+  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> colorBlendState{};
+  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> depthStencilState{};
+  std::unique_ptr<VkPipelineDynamicStateCreateInfo> dynamicState{};
+  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyState{};
+  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> multisampleState{};
+  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> rasterizationState{};
+  std::unique_ptr<VkPipelineTessellationStateCreateInfo> tessellationState{};
+  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> vertexInputState{};
+  std::unique_ptr<VkPipelineViewportStateCreateInfo> viewportState{};
+
+  void destroyStates();
 };
 
 
