@@ -15,7 +15,7 @@ public:
 
   virtual ~Texture();
 
-  void init(const VkCommandPool& commandPool, const char* path);
+  void init(const VkCommandPool& commandPool, const char* path, VkSamplerAddressMode addressMode);
 
   [[nodiscard]] static VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT);
 
@@ -43,7 +43,7 @@ protected:
   void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
                        int32_t texHeight, uint32_t mipLevels) const;
 
-  void createTextureSampler();
+  void createTextureSampler(VkSamplerAddressMode addressMode);
 };
 
 
