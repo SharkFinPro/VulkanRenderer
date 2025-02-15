@@ -13,47 +13,47 @@ void GraphicsPipeline::createShader(const char* filename, VkShaderStageFlagBits 
   shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice, filename, stage));
 }
 
-void GraphicsPipeline::defineColorBlendState(VkPipelineColorBlendStateCreateInfo state)
+void GraphicsPipeline::defineColorBlendState(const VkPipelineColorBlendStateCreateInfo& state)
 {
   colorBlendState = std::make_unique<VkPipelineColorBlendStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineDepthStencilState(VkPipelineDepthStencilStateCreateInfo state)
+void GraphicsPipeline::defineDepthStencilState(const VkPipelineDepthStencilStateCreateInfo& state)
 {
   depthStencilState = std::make_unique<VkPipelineDepthStencilStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineDynamicState(VkPipelineDynamicStateCreateInfo state)
+void GraphicsPipeline::defineDynamicState(const VkPipelineDynamicStateCreateInfo& state)
 {
   dynamicState = std::make_unique<VkPipelineDynamicStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineInputAssemblyState(VkPipelineInputAssemblyStateCreateInfo state)
+void GraphicsPipeline::defineInputAssemblyState(const VkPipelineInputAssemblyStateCreateInfo& state)
 {
   inputAssemblyState = std::make_unique<VkPipelineInputAssemblyStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineMultisampleState(VkPipelineMultisampleStateCreateInfo state)
+void GraphicsPipeline::defineMultisampleState(const VkPipelineMultisampleStateCreateInfo& state)
 {
   multisampleState = std::make_unique<VkPipelineMultisampleStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineRasterizationState(VkPipelineRasterizationStateCreateInfo state)
+void GraphicsPipeline::defineRasterizationState(const VkPipelineRasterizationStateCreateInfo& state)
 {
   rasterizationState = std::make_unique<VkPipelineRasterizationStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineTessellationState(VkPipelineTessellationStateCreateInfo state)
+void GraphicsPipeline::defineTessellationState(const VkPipelineTessellationStateCreateInfo& state)
 {
   tessellationState = std::make_unique<VkPipelineTessellationStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineVertexInputState(VkPipelineVertexInputStateCreateInfo state)
+void GraphicsPipeline::defineVertexInputState(const VkPipelineVertexInputStateCreateInfo& state)
 {
   vertexInputState = std::make_unique<VkPipelineVertexInputStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::defineViewportState(VkPipelineViewportStateCreateInfo state)
+void GraphicsPipeline::defineViewportState(const VkPipelineViewportStateCreateInfo& state)
 {
   viewportState = std::make_unique<VkPipelineViewportStateCreateInfo>(state);
 }

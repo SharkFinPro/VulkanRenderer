@@ -25,23 +25,23 @@ protected:
 
   void createPipeline(const VkRenderPass& renderPass);
 
-  void defineColorBlendState(VkPipelineColorBlendStateCreateInfo state);
+  void defineColorBlendState(const VkPipelineColorBlendStateCreateInfo& state);
 
-  void defineDepthStencilState(VkPipelineDepthStencilStateCreateInfo state);
+  void defineDepthStencilState(const VkPipelineDepthStencilStateCreateInfo& state);
 
-  void defineDynamicState(VkPipelineDynamicStateCreateInfo state);
+  void defineDynamicState(const VkPipelineDynamicStateCreateInfo& state);
 
-  void defineInputAssemblyState(VkPipelineInputAssemblyStateCreateInfo state);
+  void defineInputAssemblyState(const VkPipelineInputAssemblyStateCreateInfo& state);
 
-  void defineMultisampleState(VkPipelineMultisampleStateCreateInfo state);
+  void defineMultisampleState(const VkPipelineMultisampleStateCreateInfo& state);
 
-  void defineRasterizationState(VkPipelineRasterizationStateCreateInfo state);
+  void defineRasterizationState(const VkPipelineRasterizationStateCreateInfo& state);
 
-  void defineTessellationState(VkPipelineTessellationStateCreateInfo state);
+  void defineTessellationState(const VkPipelineTessellationStateCreateInfo& state);
 
-  void defineVertexInputState(VkPipelineVertexInputStateCreateInfo state);
+  void defineVertexInputState(const VkPipelineVertexInputStateCreateInfo& state);
 
-  void defineViewportState(VkPipelineViewportStateCreateInfo state);
+  void defineViewportState(const VkPipelineViewportStateCreateInfo& state);
 
   virtual void defineStates() = 0;
 
