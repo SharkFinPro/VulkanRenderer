@@ -13,6 +13,51 @@ void GraphicsPipeline::createShader(const char* filename, VkShaderStageFlagBits 
   shaderModules.emplace_back(std::make_unique<ShaderModule>(logicalDevice, filename, stage));
 }
 
+void GraphicsPipeline::defineColorBlendState(VkPipelineColorBlendStateCreateInfo state)
+{
+  colorBlendState = std::make_unique<VkPipelineColorBlendStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineDepthStencilState(VkPipelineDepthStencilStateCreateInfo state)
+{
+  depthStencilState = std::make_unique<VkPipelineDepthStencilStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineDynamicState(VkPipelineDynamicStateCreateInfo state)
+{
+  dynamicState = std::make_unique<VkPipelineDynamicStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineInputAssemblyState(VkPipelineInputAssemblyStateCreateInfo state)
+{
+  inputAssemblyState = std::make_unique<VkPipelineInputAssemblyStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineMultisampleState(VkPipelineMultisampleStateCreateInfo state)
+{
+  multisampleState = std::make_unique<VkPipelineMultisampleStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineRasterizationState(VkPipelineRasterizationStateCreateInfo state)
+{
+  rasterizationState = std::make_unique<VkPipelineRasterizationStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineTessellationState(VkPipelineTessellationStateCreateInfo state)
+{
+  tessellationState = std::make_unique<VkPipelineTessellationStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineVertexInputState(VkPipelineVertexInputStateCreateInfo state)
+{
+  vertexInputState = std::make_unique<VkPipelineVertexInputStateCreateInfo>(state);
+}
+
+void GraphicsPipeline::defineViewportState(VkPipelineViewportStateCreateInfo state)
+{
+  viewportState = std::make_unique<VkPipelineViewportStateCreateInfo>(state);
+}
+
 void GraphicsPipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
 {
   descriptorSetLayouts.emplace_back(descriptorSetLayout);
@@ -40,15 +85,7 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
 {
   createPipelineLayout();
 
-  const auto colorBlendState = defineColorBlendState();
-  const auto depthStencilState = defineDepthStencilState();
-  const auto dynamicState = defineDynamicState();
-  const auto inputAssemblyState = defineInputAssemblyState();
-  const auto multisampleState = defineMultisampleState();
-  const auto rasterizationState = defineRasterizationState();
-  const auto tessellationState = defineTessellationState();
-  const auto vertexInputState = defineVertexInputState();
-  const auto viewportState = defineViewportState();
+  defineStates();
 
   loadGraphicsShaders();
 

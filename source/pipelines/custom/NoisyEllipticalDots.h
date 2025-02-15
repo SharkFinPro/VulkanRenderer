@@ -3,7 +3,6 @@
 
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
-#include <array>
 #include <glm/glm.hpp>
 
 class RenderPass;
@@ -57,25 +56,11 @@ private:
 
   size_t lightsUniformBufferSize = 0;
 
-  VkPipelineColorBlendAttachmentState colorBlendAttachment;
-
-  std::array<VkDynamicState, 2> dynamicStates;
-
-  VkVertexInputBindingDescription vertexBindingDescription;
-  std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDescriptions;
-
   void loadGraphicsShaders() override;
 
   void loadGraphicsDescriptorSetLayouts() override;
 
-  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> defineColorBlendState() override;
-  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> defineDepthStencilState() override;
-  std::unique_ptr<VkPipelineDynamicStateCreateInfo> defineDynamicState() override;
-  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> defineInputAssemblyState() override;
-  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> defineMultisampleState() override;
-  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> defineRasterizationState() override;
-  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> defineVertexInputState() override;
-  std::unique_ptr<VkPipelineViewportStateCreateInfo> defineViewportState() override;
+  void defineStates() override;
 
   void createDescriptorSetLayouts();
 

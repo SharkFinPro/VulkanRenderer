@@ -10,20 +10,18 @@ struct Vertex {
   glm::vec3 normal;
   glm::vec2 texCoord;
 
-  static VkVertexInputBindingDescription getBindingDescription()
+  static constexpr VkVertexInputBindingDescription getBindingDescription()
   {
-    constexpr VkVertexInputBindingDescription bindingDescription {
+    return {
       .binding = 0,
       .stride = sizeof(Vertex),
       .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
     };
-
-    return bindingDescription;
   }
 
-  static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+  static constexpr std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
   {
-    constexpr std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions {{
+    return {{
       {
         .location = 0,
         .binding = 0,
@@ -43,8 +41,6 @@ struct Vertex {
         .offset = offsetof(Vertex, texCoord)
       }
     }};
-
-    return attributeDescriptions;
   }
 };
 
