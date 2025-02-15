@@ -1,10 +1,10 @@
 #ifndef VULKANPROJECT_OBJECTSPIPELINE_H
 #define VULKANPROJECT_OBJECTSPIPELINE_H
 
+#include "../GraphicsPipeline.h"
+#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
-#include <glm/glm.hpp>
-#include "../GraphicsPipeline.h"
 
 class RenderPass;
 class RenderObject;
@@ -14,11 +14,12 @@ class Light;
 
 class ObjectsPipeline final : public GraphicsPipeline {
 public:
-  ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass);
-  ~ObjectsPipeline() override;
+  ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                  const std::shared_ptr<LogicalDevice>& logicalDevice,
+                  const std::shared_ptr<RenderPass>& renderPass,
+                  VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  VkDescriptorSetLayout& getLayout();
+  ~ObjectsPipeline() override;
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
               const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
@@ -46,10 +47,7 @@ private:
 
   void defineStates() override;
 
-  void createDescriptorSetLayouts();
-
   void createGlobalDescriptorSetLayout();
-  void createObjectDescriptorSetLayout();
 
   void createDescriptorPool();
 

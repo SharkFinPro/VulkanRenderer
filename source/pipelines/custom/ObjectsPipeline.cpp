@@ -15,12 +15,13 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
 ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass)
-  : GraphicsPipeline(physicalDevice, logicalDevice)
+                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 const VkDescriptorSetLayout objectDescriptorSetLayout)
+  : GraphicsPipeline(physicalDevice, logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
-  createDescriptorSetLayouts();
+  createGlobalDescriptorSetLayout();
 
   createDescriptorPool();
 
@@ -33,14 +34,7 @@ ObjectsPipeline::~ObjectsPipeline()
 {
   vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
-
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
-}
-
-VkDescriptorSetLayout& ObjectsPipeline::getLayout()
-{
-  return objectDescriptorSetLayout;
 }
 
 void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
@@ -117,12 +111,6 @@ void ObjectsPipeline::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void ObjectsPipeline::createDescriptorSetLayouts()
-{
-  createGlobalDescriptorSetLayout();
-  createObjectDescriptorSetLayout();
-}
-
 void ObjectsPipeline::createGlobalDescriptorSetLayout()
 {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
@@ -161,48 +149,6 @@ void ObjectsPipeline::createGlobalDescriptorSetLayout()
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create global descriptor set layout!");
-  }
-}
-
-void ObjectsPipeline::createObjectDescriptorSetLayout()
-{
-  constexpr VkDescriptorSetLayoutBinding transformLayout {
-    .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding textureLayout {
-    .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding specularLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> objectBindings {
-    transformLayout,
-    textureLayout,
-    specularLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(objectBindings.size()),
-    .pBindings = objectBindings.data()
-  };
-
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &objectLayoutCreateInfo, nullptr,
-                                  &objectDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create object descriptor set layout!");
   }
 }
 

@@ -24,6 +24,8 @@ VulkanEngine::~VulkanEngine()
 {
   logicalDevice->waitIdle();
 
+  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
+
   vkDestroyCommandPool(logicalDevice->getDevice(), commandPool, nullptr);
 
   glfwTerminate();
@@ -72,7 +74,7 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Texture>& specularMap,
                                                              const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(logicalDevice, physicalDevice, objectsPipeline->getLayout(),
+  auto renderObject = std::make_shared<RenderObject>(logicalDevice, physicalDevice, objectDescriptorSetLayout,
                                                      texture, specularMap, model);
 
   renderObjects.push_back(renderObject);
@@ -153,6 +155,8 @@ void VulkanEngine::initVulkan()
   allocateCommandBuffers(offscreenCommandBuffers);
   allocateCommandBuffers(swapchainCommandBuffers);
 
+  createObjectDescriptorSetLayout();
+
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, swapChain->getImageFormat(),
@@ -162,19 +166,19 @@ void VulkanEngine::initVulkan()
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass);
+  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
 
-  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass);
+  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
 
-  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass, commandPool);
+  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass, commandPool, objectDescriptorSetLayout);
 
-  bumpyCurtainPipeline = std::make_unique<BumpyCurtain>(physicalDevice, logicalDevice, renderPass, commandPool);
+  bumpyCurtainPipeline = std::make_unique<BumpyCurtain>(physicalDevice, logicalDevice, renderPass, commandPool, objectDescriptorSetLayout);
 
-  curtainPipeline = std::make_unique<CurtainPipeline>(physicalDevice, logicalDevice, renderPass);
+  curtainPipeline = std::make_unique<CurtainPipeline>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
 
-  cubeMapPipeline = std::make_unique<CubeMapPipeline>(physicalDevice, logicalDevice, renderPass, commandPool);
+  cubeMapPipeline = std::make_unique<CubeMapPipeline>(physicalDevice, logicalDevice, renderPass, commandPool, objectDescriptorSetLayout);
 
-  texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass);
+  texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -491,4 +495,46 @@ void VulkanEngine::createNewFrame()
 
   renderObjectsToRender.clear();
   lightsToRender.clear();
+}
+
+void VulkanEngine::createObjectDescriptorSetLayout()
+{
+  constexpr VkDescriptorSetLayoutBinding transformLayout {
+    .binding = 0,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding textureLayout {
+    .binding = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding specularLayout {
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr std::array objectBindings {
+    transformLayout,
+    textureLayout,
+    specularLayout
+  };
+
+  const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    .bindingCount = static_cast<uint32_t>(objectBindings.size()),
+    .pBindings = objectBindings.data()
+  };
+
+  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &objectLayoutCreateInfo, nullptr,
+                                  &objectDescriptorSetLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create object descriptor set layout!");
+  }
 }

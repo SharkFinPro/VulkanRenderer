@@ -13,11 +13,10 @@ class UniformBuffer;
 
 class TexturedPlane final : public GraphicsPipeline {
 public:
-  TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<RenderPass>& renderPass);
+  TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                const std::shared_ptr<LogicalDevice>& logicalDevice,
+                const std::shared_ptr<RenderPass>& renderPass, VkDescriptorSetLayout objectDescriptorSetLayout);
   ~TexturedPlane() override;
-
-  [[nodiscard]] VkDescriptorSetLayout getLayout() const;
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
               const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
@@ -38,10 +37,7 @@ private:
 
   void defineStates() override;
 
-  void createDescriptorSetLayouts();
-
   void createGlobalDescriptorSetLayout();
-  void createObjectDescriptorSetLayout();
 
   void createDescriptorPool();
 

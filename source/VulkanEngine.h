@@ -132,6 +132,8 @@ private:
   glm::vec3 viewPosition{};
   glm::mat4 viewMatrix{};
 
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+
   void initVulkan();
   void createCommandPool();
   void allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
@@ -150,6 +152,8 @@ private:
   void createNewFrame();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
+  void createObjectDescriptorSetLayout();
 };
 
 
