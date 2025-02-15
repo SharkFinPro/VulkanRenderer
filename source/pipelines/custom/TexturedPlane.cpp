@@ -84,7 +84,7 @@ void TexturedPlane::render(const VkCommandBuffer& commandBuffer, const uint32_t 
 
 void TexturedPlane::loadGraphicsShaders()
 {
-  createShader("assets/shaders/TexturedPlane.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
   createShader("assets/shaders/TexturedPlane.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
