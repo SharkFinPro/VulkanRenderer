@@ -16,12 +16,9 @@ layout(location = 2) out vec3 fragNormal;
 
 void main()
 {
-  vec3 pos = inPosition;
-  pos.z -= sin(pos.x);
-
-  fragPos = vec3(transform.model * vec4(pos, 1.0));
+  fragPos = vec3(transform.model * vec4(inPosition, 1.0));
   fragTexCoord = inTexCoord;
   fragNormal = mat3(transpose(inverse(transform.model))) * inNormal;
 
-  gl_Position = transform.proj * transform.view * transform.model * vec4(pos, 1.0);
+  gl_Position = transform.proj * transform.view * transform.model * vec4(inPosition, 1.0);
 }
