@@ -89,7 +89,7 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
 void ObjectsPipeline::loadGraphicsShaders()
 {
-  createShader("assets/shaders/objects.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
   createShader("assets/shaders/objects.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 

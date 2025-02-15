@@ -99,7 +99,7 @@ void CubeMapPipeline::render(const VkCommandBuffer& commandBuffer, uint32_t curr
 
 void CubeMapPipeline::loadGraphicsShaders()
 {
-  createShader("assets/shaders/CubeMap.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
   createShader("assets/shaders/CubeMap.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
