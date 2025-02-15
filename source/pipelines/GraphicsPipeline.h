@@ -55,6 +55,8 @@ private:
   std::unique_ptr<VkPipelineTessellationStateCreateInfo> tessellationState{};
   std::unique_ptr<VkPipelineVertexInputStateCreateInfo> vertexInputState{};
   std::unique_ptr<VkPipelineViewportStateCreateInfo> viewportState{};
+
+  void destroyStates();
 };
 
 

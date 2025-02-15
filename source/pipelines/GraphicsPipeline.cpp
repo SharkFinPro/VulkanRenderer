@@ -122,4 +122,19 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
   }
 
   shaderModules.clear();
+
+  destroyStates();
+}
+
+void GraphicsPipeline::destroyStates()
+{
+  colorBlendState.reset();
+  depthStencilState.reset();
+  dynamicState.reset();
+  inputAssemblyState.reset();
+  multisampleState.reset();
+  rasterizationState.reset();
+  tessellationState.reset();
+  vertexInputState.reset();
+  viewportState.reset();
 }
