@@ -14,8 +14,10 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const VkCommandPool& commandPool, const VkRenderPass& renderPass,
-                           const VkExtent2D& swapChainExtent, const VkDescriptorPool descriptorPool)
+                           const VkCommandPool& commandPool,
+                           const VkRenderPass& renderPass,
+                           const VkExtent2D& swapChainExtent,
+                           const VkDescriptorPool descriptorPool)
   : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
     descriptorPool(descriptorPool), dotSpeed(1000.0f), previousTime(std::chrono::steady_clock::now())
 {

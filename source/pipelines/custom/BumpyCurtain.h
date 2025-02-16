@@ -21,8 +21,11 @@ class BumpyCurtain final : public GraphicsPipeline {
 public:
   BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool,
-               VkDescriptorPool descriptorPool, VkDescriptorSetLayout objectDescriptorSetLayout);
+               const std::shared_ptr<RenderPass>& renderPass,
+               const VkCommandPool& commandPool,
+               VkDescriptorPool descriptorPool,
+               VkDescriptorSetLayout objectDescriptorSetLayout);
+
   ~BumpyCurtain() override;
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,

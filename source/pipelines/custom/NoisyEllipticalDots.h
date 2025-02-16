@@ -20,6 +20,7 @@ public:
                       const VkCommandPool& commandPool,
                       VkDescriptorPool descriptorPool,
                       VkDescriptorSetLayout objectDescriptorSetLayout);
+
   ~NoisyEllipticalDots() override;
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
