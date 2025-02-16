@@ -55,10 +55,10 @@ void VulkanEngine::render()
   createNewFrame();
 }
 
-std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
+std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path, const bool repeat)
 {
   auto texture = std::make_shared<Texture>(physicalDevice, logicalDevice);
-  texture->init(commandPool, path, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+  texture->init(commandPool, path, repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
   textures.push_back(texture);
 
   return texture;

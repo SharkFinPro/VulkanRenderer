@@ -65,7 +65,7 @@ void MagnifyWhirlMosaicPipeline::render(const VkCommandBuffer& commandBuffer, ui
 
   ImGui::SliderFloat("Lens S Center", &magnifyWhirlMosaicUBO.lensS, 0.0f, 1.0f);
   ImGui::SliderFloat("Lens T Center", &magnifyWhirlMosaicUBO.lensT, 0.0f, 1.0f);
-  ImGui::SliderFloat("Lens Radius", &magnifyWhirlMosaicUBO.lensRadius, 0.01f, 10.0f); // max ?
+  ImGui::SliderFloat("Lens Radius", &magnifyWhirlMosaicUBO.lensRadius, 0.01f, 0.75f);
 
   ImGui::Separator();
 
