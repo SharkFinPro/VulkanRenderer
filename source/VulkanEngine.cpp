@@ -55,10 +55,10 @@ void VulkanEngine::render()
   createNewFrame();
 }
 
-std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path)
+std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path, const bool repeat)
 {
   auto texture = std::make_shared<Texture>(physicalDevice, logicalDevice);
-  texture->init(commandPool, path, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+  texture->init(commandPool, path, repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
   textures.push_back(texture);
 
   return texture;
@@ -191,6 +191,9 @@ void VulkanEngine::initVulkan()
 
   texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass, descriptorPool,
                                                           objectDescriptorSetLayout);
+
+  magnifyWhirlMosaicPipeline = std::make_unique<MagnifyWhirlMosaicPipeline>(physicalDevice, logicalDevice, renderPass,
+                                                                            descriptorPool, objectDescriptorSetLayout);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -494,6 +497,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   {
     texturedPlanePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
                                   renderObjectsToRender.at(PipelineType::texturedPlane));
+  }
+
+  if (renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic))
+  {
+    magnifyWhirlMosaicPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
+                                       renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
   }
 
   if (vulkanEngineOptions.DO_DOTS)

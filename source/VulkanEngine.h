@@ -28,6 +28,7 @@
 #include "pipelines/custom/EllipticalDots.h"
 #include "pipelines/custom/NoisyEllipticalDots.h"
 #include "pipelines/custom/TexturedPlane.h"
+#include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -39,12 +40,13 @@
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 enum class PipelineType {
-  object,
-  ellipticalDots,
-  noisyEllipticalDots,
   bumpyCurtain,
   curtain,
   cubeMap,
+  ellipticalDots,
+  magnifyWhirlMosaic,
+  noisyEllipticalDots,
+  object,
   texturedPlane
 };
 
@@ -57,7 +59,7 @@ public:
 
   void render();
 
-  std::shared_ptr<Texture> loadTexture(const char* path);
+  std::shared_ptr<Texture> loadTexture(const char* path, bool repeat = true);
   std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
                                                                const std::shared_ptr<Texture>& specularMap,
@@ -97,6 +99,7 @@ private:
   std::unique_ptr<BumpyCurtain> bumpyCurtainPipeline;
   std::unique_ptr<CubeMapPipeline> cubeMapPipeline;
   std::unique_ptr<TexturedPlane> texturedPlanePipeline;
+  std::unique_ptr<MagnifyWhirlMosaicPipeline> magnifyWhirlMosaicPipeline;
 
   std::unique_ptr<ImGuiInstance> imGuiInstance;
 

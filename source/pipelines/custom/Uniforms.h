@@ -37,4 +37,13 @@ struct CubeMapUniform {
   float whiteMix;
 };
 
+struct MagnifyWhirlMosaicUniform {
+  float lensS;
+  float lensT;
+  float lensRadius;
+  float magnification;
+  float whirl;
+  float mosaic;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H
