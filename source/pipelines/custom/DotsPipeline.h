@@ -18,7 +18,8 @@ constexpr int PARTICLE_COUNT = 8192;
 class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
 public:
   DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent);
+               const VkCommandPool& commandPool, const VkRenderPass& renderPass, const VkExtent2D& swapChainExtent,
+               VkDescriptorPool descriptorPool);
   ~DotsPipeline() override;
 
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
@@ -30,9 +31,10 @@ private:
 
   std::unique_ptr<UniformBuffer> deltaTimeUniform;
 
-  VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorPool computeDescriptorPool = VK_NULL_HANDLE;
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> computeDescriptorSets;
+
+  VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
 
   float dotSpeed;
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
@@ -51,7 +53,7 @@ private:
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 
   void createDescriptorSetLayouts();
-  void createDescriptorPool();
+
   void createDescriptorSets();
 };
 

@@ -22,7 +22,7 @@ public:
   BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                const std::shared_ptr<LogicalDevice>& logicalDevice,
                const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool,
-               VkDescriptorSetLayout objectDescriptorSetLayout);
+               VkDescriptorPool descriptorPool, VkDescriptorSetLayout objectDescriptorSetLayout);
   ~BumpyCurtain() override;
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
@@ -42,11 +42,11 @@ private:
     .frequency = 1.0f
   };
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
+
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;
   std::unique_ptr<UniformBuffer> lightsUniform;
@@ -66,8 +66,6 @@ private:
   void defineStates() override;
 
   void createGlobalDescriptorSetLayout();
-
-  void createDescriptorPool();
 
   void createDescriptorSets();
 

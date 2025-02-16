@@ -16,7 +16,9 @@ class NoisyEllipticalDots final : public GraphicsPipeline {
 public:
   NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                       const std::shared_ptr<LogicalDevice>& logicalDevice,
-                      const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool,
+                      const std::shared_ptr<RenderPass>& renderPass,
+                      const VkCommandPool& commandPool,
+                      VkDescriptorPool descriptorPool,
                       VkDescriptorSetLayout objectDescriptorSetLayout);
   ~NoisyEllipticalDots() override;
 
@@ -38,11 +40,11 @@ private:
     .frequency = 1.0f
   };
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
+
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;
   std::unique_ptr<UniformBuffer> lightsUniform;
@@ -62,8 +64,6 @@ private:
   void defineStates() override;
 
   void createGlobalDescriptorSetLayout();
-
-  void createDescriptorPool();
 
   void createDescriptorSets();
 

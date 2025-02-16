@@ -15,7 +15,9 @@ class CurtainPipeline final : public GraphicsPipeline {
 public:
   CurtainPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                  const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 const std::shared_ptr<RenderPass>& renderPass, VkDescriptorSetLayout objectDescriptorSetLayout);
+                 const std::shared_ptr<RenderPass>& renderPass,
+                 VkDescriptorPool descriptorPool,
+                 VkDescriptorSetLayout objectDescriptorSetLayout);
   ~CurtainPipeline() override;
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
@@ -30,11 +32,11 @@ private:
     .shininess = 10
   };
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
+
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;
   std::unique_ptr<UniformBuffer> lightsUniform;
@@ -52,8 +54,6 @@ private:
   void defineStates() override;
 
   void createGlobalDescriptorSetLayout();
-
-  void createDescriptorPool();
 
   void createDescriptorSets();
 

@@ -15,15 +15,15 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkCommandPool& commandPool, const VkRenderPass& renderPass,
-                           const VkExtent2D& swapChainExtent)
-  : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice), dotSpeed(1000.0f),
-    previousTime(std::chrono::steady_clock::now())
+                           const VkExtent2D& swapChainExtent, const VkDescriptorPool descriptorPool)
+  : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
+    descriptorPool(descriptorPool), dotSpeed(1000.0f), previousTime(std::chrono::steady_clock::now())
 {
   createUniforms();
   createShaderStorageBuffers(commandPool, swapChainExtent);
 
   createDescriptorSetLayouts();
-  createDescriptorPool();
+
   createDescriptorSets();
 
   ComputePipeline::createPipeline();
@@ -32,8 +32,6 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
 
 DotsPipeline::~DotsPipeline()
 {
-  vkDestroyDescriptorPool(ComputePipeline::logicalDevice->getDevice(), computeDescriptorPool, nullptr);
-
   vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout, nullptr);
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -211,38 +209,12 @@ void DotsPipeline::createDescriptorSetLayouts()
   }
 }
 
-void DotsPipeline::createDescriptorPool()
-{
-  constexpr std::array<VkDescriptorPoolSize, 2> poolSizes {{
-    {
-      .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
-    },
-    {
-      .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2
-    }
-  }};
-
-  const VkDescriptorPoolCreateInfo poolCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
-    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-    .pPoolSizes = poolSizes.data()
-  };
-
-  if (vkCreateDescriptorPool(ComputePipeline::logicalDevice->getDevice(), &poolCreateInfo, nullptr, &computeDescriptorPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor pool!");
-  }
-}
-
 void DotsPipeline::createDescriptorSets()
 {
   const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = computeDescriptorPool,
+    .descriptorPool = descriptorPool,
     .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
     .pSetLayouts = layouts.data()
   };
