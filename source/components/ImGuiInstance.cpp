@@ -1,6 +1,7 @@
 #include "ImGuiInstance.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
@@ -68,7 +69,7 @@ ImGuiInstance::~ImGuiInstance()
   ImGui::DestroyContext();
 }
 
-void ImGuiInstance::createNewFrame() const
+void ImGuiInstance::createNewFrame()
 {
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
@@ -83,9 +84,84 @@ void ImGuiInstance::createNewFrame() const
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowBgAlpha(1.0f);
 
-  ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar);
+  if (ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+  {
+    ImGuiID dockspaceID = ImGui::GetID("WindowDockSpace");
+    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
-  ImGui::DockSpace(ImGui::GetID("WindowDockSpace"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+    static bool dockspaceInitialized = false;
+    if (!dockspaceInitialized)
+    {
+      dockspaceInitialized = true;
+      ImGui::DockBuilderRemoveNode(dockspaceID); // Reset any previous layouts
+      ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
+      ImGui::DockBuilderSetNodeSize(dockspaceID, ImGui::GetWindowSize());
 
+      // Create docked regions
+      mainDock = dockspaceID;
+
+      // Split into left and right (vertical split)
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Left, 0.3f, &leftDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Right, 0.3f, &rightDock, &mainDock);
+
+      // Split into top and bottom (horizontal split)
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Up, 0.15f, &topDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Down, 0.2f, &bottomDock, &mainDock);
+
+      centerDock = mainDock; // Remaining space is the center
+
+      ImGui::DockBuilderFinish(dockspaceID);
+    }
+  }
   ImGui::End();
+}
+
+void ImGuiInstance::dockTop(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, topDock);
+}
+
+void ImGuiInstance::dockBottom(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, bottomDock);
+}
+
+void ImGuiInstance::dockLeft(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, leftDock);
+}
+
+void ImGuiInstance::dockRight(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, rightDock);
+}
+
+void ImGuiInstance::dockCenter(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, centerDock);
 }

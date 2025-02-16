@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vulkan/vulkan.h>
+#include <imgui.h>
 
 class Window;
 class Instance;
@@ -19,10 +20,27 @@ public:
                 const std::unique_ptr<GuiPipeline>& guiPipeline, bool useDockSpace);
   ~ImGuiInstance();
 
-  void createNewFrame() const;
+  void createNewFrame();
+
+  void dockTop(const char* widget) const;
+
+  void dockBottom(const char* widget) const;
+
+  void dockLeft(const char* widget) const;
+
+  void dockRight(const char* widget) const;
+
+  void dockCenter(const char* widget) const;
 
 private:
   bool useDockSpace;
+
+  ImGuiID mainDock = 0;
+  ImGuiID topDock = 0;
+  ImGuiID bottomDock = 0;
+  ImGuiID leftDock = 0;
+  ImGuiID rightDock = 0;
+  ImGuiID centerDock = 0;
 };
 
 
