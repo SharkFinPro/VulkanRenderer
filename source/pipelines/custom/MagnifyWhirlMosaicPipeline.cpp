@@ -70,7 +70,7 @@ void MagnifyWhirlMosaicPipeline::render(const VkCommandBuffer& commandBuffer, co
 
   ImGui::Separator();
 
-  ImGui::SliderFloat("Magnification", &magnifyWhirlMosaicUBO.magnification, 0.1f, 10.0f); // max ?
+  ImGui::SliderFloat("Magnification", &magnifyWhirlMosaicUBO.magnification, 0.1f, 7.5f);
   ImGui::SliderFloat("Whirl", &magnifyWhirlMosaicUBO.whirl, -30.0f, 30.0f);
   ImGui::SliderFloat("Mosaic", &magnifyWhirlMosaicUBO.mosaic, 0.001f, 0.1f);
 
