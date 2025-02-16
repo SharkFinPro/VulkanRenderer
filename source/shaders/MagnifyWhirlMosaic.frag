@@ -38,7 +38,7 @@ void main()
   }
 
   // Magnify
-  float rp = r * magnifyWhirlMosaic.magnification;
+  float rp = r / magnifyWhirlMosaic.magnification;
 
   // Whirl
   float theta = atan(st.t, st.s);

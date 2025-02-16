@@ -33,7 +33,7 @@ private:
     .lensS = 0.5f,
     .lensT = 0.5f,
     .lensRadius = 0.25f,
-    .magnification = 0.025f,
+    .magnification = 1.0f,
     .whirl = 0.0f,
     .mosaic = 0.001f
   };
