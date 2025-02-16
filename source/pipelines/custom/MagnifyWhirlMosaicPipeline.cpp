@@ -104,7 +104,7 @@ void MagnifyWhirlMosaicPipeline::defineStates()
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
   defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
+  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
