@@ -101,12 +101,12 @@ void ImGuiInstance::createNewFrame()
       mainDock = dockspaceID;
 
       // Split into left and right (vertical split)
-      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Left, 0.3f, &leftDock, &mainDock);
-      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Right, 0.3f, &rightDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Left, leftDockPercent, &leftDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Right, rightDockPercent, &rightDock, &mainDock);
 
       // Split into top and bottom (horizontal split)
-      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Up, 0.15f, &topDock, &mainDock);
-      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Down, 0.2f, &bottomDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Up, topDockPercent, &topDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Down, bottomDockPercent, &bottomDock, &mainDock);
 
       centerDock = mainDock; // Remaining space is the center
 
@@ -164,4 +164,24 @@ void ImGuiInstance::dockCenter(const char* widget) const
   }
 
   ImGui::DockBuilderDockWindow(widget, centerDock);
+}
+
+void ImGuiInstance::setTopDockPercent(const float percent)
+{
+  topDockPercent = percent;
+}
+
+void ImGuiInstance::setBottomDockPercent(const float percent)
+{
+  bottomDockPercent = percent;
+}
+
+void ImGuiInstance::setLeftDockPercent(const float percent)
+{
+  leftDockPercent = percent;
+}
+
+void ImGuiInstance::setRightDockPercent(const float percent)
+{
+  rightDockPercent = percent;
 }

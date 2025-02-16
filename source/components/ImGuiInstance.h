@@ -32,8 +32,21 @@ public:
 
   void dockCenter(const char* widget) const;
 
+  void setTopDockPercent(float percent);
+
+  void setBottomDockPercent(float percent);
+
+  void setLeftDockPercent(float percent);
+
+  void setRightDockPercent(float percent);
+
 private:
   bool useDockSpace;
+
+  float topDockPercent = 0.15f;
+  float bottomDockPercent = 0.2f;
+  float leftDockPercent = 0.3f;
+  float rightDockPercent = 0.3f;
 
   ImGuiID mainDock = 0;
   ImGuiID topDock = 0;

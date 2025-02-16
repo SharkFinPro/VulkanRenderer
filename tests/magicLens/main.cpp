@@ -54,6 +54,8 @@ int main()
       gui->dockBottom("Rendering");
       gui->dockBottom("Magnify Whirl Mosaic");
 
+      gui->setBottomDockPercent(0.5);
+
       // Render GUI
       ImGui::Begin("Objects");
       displayObjectGui(object, 0);
