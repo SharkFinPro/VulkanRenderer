@@ -2,7 +2,7 @@
 #define MAGNIFYWHIRLMOSAIC_H
 
 #include "../GraphicsPipeline.h"
-#include <vulkan/vulkan.h>>
+#include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 #include <vector>
 #include <memory>
@@ -12,7 +12,6 @@ class PhysicalDevice;
 class RenderPass;
 class RenderObject;
 class UniformBuffer;
-class Light;
 
 class MagnifyWhirlMosaicPipeline final : public GraphicsPipeline {
 public:
@@ -26,7 +25,6 @@ public:
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
               const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-              const std::vector<std::shared_ptr<Light>>& lights,
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
@@ -36,13 +34,7 @@ private:
   VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
-
-  int prevNumLights = 0;
-
-  size_t lightsUniformBufferSize = 0;
 
   void loadGraphicsShaders() override;
 
@@ -55,8 +47,6 @@ private:
   void createDescriptorSets();
 
   void createUniforms();
-
-  void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 };
 
 

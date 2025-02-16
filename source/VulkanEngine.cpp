@@ -501,7 +501,7 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
 
   if (renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic))
   {
-    magnifyWhirlMosaicPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+    magnifyWhirlMosaicPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
                                        renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
   }
 

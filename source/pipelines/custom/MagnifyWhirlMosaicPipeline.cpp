@@ -7,7 +7,6 @@
 #include "../../components/PhysicalDevice.h"
 #include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
-#include "../../objects/Light.h"
 #include <imgui.h>
 #include <stdexcept>
 
@@ -37,7 +36,6 @@ MagnifyWhirlMosaicPipeline::~MagnifyWhirlMosaicPipeline()
 
 void MagnifyWhirlMosaicPipeline::render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame,
                                         glm::vec3 viewPosition, const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-                                        const std::vector<std::shared_ptr<Light>>& lights,
                                         const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
@@ -63,8 +61,6 @@ void MagnifyWhirlMosaicPipeline::render(const VkCommandBuffer& commandBuffer, ui
   };
   cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
 
-  updateLightUniforms(lights, currentFrame);
-
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
 
@@ -88,7 +84,7 @@ void MagnifyWhirlMosaicPipeline::render(const VkCommandBuffer& commandBuffer, ui
 void MagnifyWhirlMosaicPipeline::loadGraphicsShaders()
 {
   createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/objects.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  createShader("assets/shaders/MagnifyWhirlMosaic.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 void MagnifyWhirlMosaicPipeline::loadGraphicsDescriptorSetLayouts()
@@ -111,20 +107,6 @@ void MagnifyWhirlMosaicPipeline::defineStates()
 
 void MagnifyWhirlMosaicPipeline::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-    .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding lightsLayout {
-    .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr VkDescriptorSetLayoutBinding cameraLayout {
     .binding = 3,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -132,9 +114,7 @@ void MagnifyWhirlMosaicPipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> globalBindings {
-    lightMetadataLayout,
-    lightsLayout,
+  constexpr std::array<VkDescriptorSetLayoutBinding, 1> globalBindings {
     cameraLayout
   };
 
@@ -168,8 +148,7 @@ void MagnifyWhirlMosaicPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{{
-      lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
+    std::array<VkWriteDescriptorSet, 1> descriptorWrites{{
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i)
     }};
 
@@ -180,58 +159,6 @@ void MagnifyWhirlMosaicPipeline::createDescriptorSets()
 
 void MagnifyWhirlMosaicPipeline::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                           sizeof(LightMetadataUniform));
-
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                  sizeof(LightUniform));
-
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
-}
-
-void MagnifyWhirlMosaicPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights,
-                                                     uint32_t currentFrame)
-{
-  if (lights.empty())
-  {
-    return;
-  }
-
-  if (prevNumLights != lights.size())
-  {
-    logicalDevice->waitIdle();
-
-    const LightMetadataUniform lightMetadataUBO {
-      .numLights = static_cast<int>(lights.size())
-    };
-
-    lightsUniform.reset();
-
-    lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
-
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                    lightsUniformBufferSize);
-
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    {
-      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
-
-      auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
-      descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-
-      vkUpdateDescriptorSets(this->logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
-    }
-
-    prevNumLights = static_cast<int>(lights.size());
-  }
-
-  std::vector<LightUniform> lightUniforms;
-  lightUniforms.resize(lights.size());
-  for (int i = 0; i < lights.size(); i++)
-  {
-    lightUniforms[i] = lights[i]->getUniform();
-  }
-
-  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
 }
