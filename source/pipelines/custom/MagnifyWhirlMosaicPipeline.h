@@ -1,6 +1,7 @@
 #ifndef MAGNIFYWHIRLMOSAIC_H
 #define MAGNIFYWHIRLMOSAIC_H
 
+#include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
@@ -28,6 +29,15 @@ public:
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
+  MagnifyWhirlMosaicUniform magnifyWhirlMosaicUBO {
+    .lensS = 0.5f,
+    .lensT = 0.5f,
+    .lensRadius = 0.25f,
+    .magnification = 0.025f,
+    .whirl = 0.0f,
+    .mosaic = 0.001f
+  };
+
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
@@ -35,6 +45,7 @@ private:
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<UniformBuffer> cameraUniform;
+  std::unique_ptr<UniformBuffer> magnifyWhirlMosaicUniform;
 
   void loadGraphicsShaders() override;
 
