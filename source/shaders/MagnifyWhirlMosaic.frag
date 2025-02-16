@@ -24,9 +24,12 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-  vec2 st = fragTexCoord - vec2(magnifyWhirlMosaic.lensS, magnifyWhirlMosaic.lensT);
+  vec2 lensST = vec2(magnifyWhirlMosaic.lensS, magnifyWhirlMosaic.lensT);
 
-  if (st.x * st.x + st.y * st.y > magnifyWhirlMosaic.lensRadius * magnifyWhirlMosaic.lensRadius)
+  vec2 st = fragTexCoord - lensST;
+  float r = length(st);
+
+  if (r > magnifyWhirlMosaic.lensRadius)
   {
     vec3 texColor = texture(texSampler, fragTexCoord).rgb;
 
@@ -34,7 +37,31 @@ void main()
     return;
   }
 
-  vec3 texColor = texture(texSampler, st).rgb;
+  // Magnify
+  float rp = r * magnifyWhirlMosaic.magnification;
 
+  // Whirl
+  float theta = atan(st.t, st.s);
+  float thetap = theta - magnifyWhirlMosaic.whirl * rp;
+
+  // Magnify + Whirl
+  st = rp * vec2(cos(thetap), sin(thetap));
+
+  // Restore Coordinates
+  st += lensST;
+
+  // Mosaic
+  int numins = int(st.s / magnifyWhirlMosaic.mosaic);
+  int numint = int(st.t / magnifyWhirlMosaic.mosaic);
+
+  float m = magnifyWhirlMosaic.mosaic;
+  float sc = numins * m;
+  float tc = numint * m;
+
+  st.s = sc;
+  st.t = tc;
+
+  // Sample final texture
+  vec3 texColor = texture(texSampler, st).rgb;
   outColor = vec4(texColor, 1.0);
 }
