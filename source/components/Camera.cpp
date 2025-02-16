@@ -41,6 +41,10 @@ void Camera::setSpeed(const float cameraSpeed)
 
 void Camera::processInput(const std::shared_ptr<Window>& window)
 {
+  const auto currentTime = std::chrono::steady_clock::now();
+  dt = std::chrono::duration<float>(currentTime - previousTime).count() * 1000.0f;
+  previousTime = currentTime;
+
   handleRotation(window);
 
   handleZoom(window);
@@ -58,29 +62,29 @@ void Camera::handleMovement(const std::shared_ptr<Window>& window)
 
   if (window->keyIsPressed(GLFW_KEY_W))
   {
-    position += speedSettings.cameraSpeed * direction;
+    position += speedSettings.cameraSpeed * direction * dt;
   }
   if (window->keyIsPressed(GLFW_KEY_S))
   {
-    position -= speedSettings.cameraSpeed * direction;
+    position -= speedSettings.cameraSpeed * direction * dt;
   }
 
   if (window->keyIsPressed(GLFW_KEY_A))
   {
-    position -= speedSettings.cameraSpeed * pDirection;
+    position -= speedSettings.cameraSpeed * pDirection * dt;
   }
   if (window->keyIsPressed(GLFW_KEY_D))
   {
-    position += speedSettings.cameraSpeed * pDirection;
+    position += speedSettings.cameraSpeed * pDirection * dt;
   }
 
   if (window->keyIsPressed(GLFW_KEY_SPACE))
   {
-    position += speedSettings.cameraSpeed * UP;
+    position += speedSettings.cameraSpeed * UP * dt;
   }
   if (window->keyIsPressed(GLFW_KEY_LEFT_SHIFT))
   {
-    position -= speedSettings.cameraSpeed * UP;
+    position -= speedSettings.cameraSpeed * UP * dt;
   }
 }
 

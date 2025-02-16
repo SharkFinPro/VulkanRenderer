@@ -17,6 +17,7 @@ public:
   ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                   const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
+                  VkDescriptorPool descriptorPool,
                   VkDescriptorSetLayout objectDescriptorSetLayout);
 
   ~ObjectsPipeline() override;
@@ -27,11 +28,11 @@ public:
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
+
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<UniformBuffer> lightMetadataUniform;
   std::unique_ptr<UniformBuffer> lightsUniform;
@@ -48,8 +49,6 @@ private:
   void defineStates() override;
 
   void createGlobalDescriptorSetLayout();
-
-  void createDescriptorPool();
 
   void createDescriptorSets();
 

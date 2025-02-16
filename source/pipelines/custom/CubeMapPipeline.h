@@ -16,8 +16,11 @@ class CubeMapPipeline final : public GraphicsPipeline {
 public:
   CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                   const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass, const VkCommandPool& commandPool,
+                  const std::shared_ptr<RenderPass>& renderPass,
+                  const VkCommandPool& commandPool,
+                  VkDescriptorPool descriptorPool,
                   VkDescriptorSetLayout objectDescriptorSetLayout);
+
   ~CubeMapPipeline() override;
 
   void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
@@ -36,11 +39,11 @@ private:
     .frequency = 0.1f
   };
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
+
+  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<UniformBuffer> cameraUniform;
   std::unique_ptr<UniformBuffer> cubeMapUniform;
@@ -57,8 +60,6 @@ private:
   void defineStates() override;
 
   void createGlobalDescriptorSetLayout();
-
-  void createDescriptorPool();
 
   void createDescriptorSets();
 

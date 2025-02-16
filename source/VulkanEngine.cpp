@@ -24,6 +24,8 @@ VulkanEngine::~VulkanEngine()
 {
   logicalDevice->waitIdle();
 
+  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
+
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
 
   vkDestroyCommandPool(logicalDevice->getDevice(), commandPool, nullptr);
@@ -155,6 +157,8 @@ void VulkanEngine::initVulkan()
   allocateCommandBuffers(offscreenCommandBuffers);
   allocateCommandBuffers(swapchainCommandBuffers);
 
+  createDescriptorPool();
+
   createObjectDescriptorSetLayout();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
@@ -166,19 +170,27 @@ void VulkanEngine::initVulkan()
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
+  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass,
+                                                      descriptorPool, objectDescriptorSetLayout);
 
-  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
+  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass, descriptorPool,
+                                                            objectDescriptorSetLayout);
 
-  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass, commandPool, objectDescriptorSetLayout);
+  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass,
+                                                                      commandPool, descriptorPool,
+                                                                      objectDescriptorSetLayout);
 
-  bumpyCurtainPipeline = std::make_unique<BumpyCurtain>(physicalDevice, logicalDevice, renderPass, commandPool, objectDescriptorSetLayout);
+  bumpyCurtainPipeline = std::make_unique<BumpyCurtain>(physicalDevice, logicalDevice, renderPass, commandPool,
+                                                        descriptorPool, objectDescriptorSetLayout);
 
-  curtainPipeline = std::make_unique<CurtainPipeline>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
+  curtainPipeline = std::make_unique<CurtainPipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
+                                                      objectDescriptorSetLayout);
 
-  cubeMapPipeline = std::make_unique<CubeMapPipeline>(physicalDevice, logicalDevice, renderPass, commandPool, objectDescriptorSetLayout);
+  cubeMapPipeline = std::make_unique<CubeMapPipeline>(physicalDevice, logicalDevice, renderPass, commandPool,
+                                                      descriptorPool, objectDescriptorSetLayout);
 
-  texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
+  texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass, descriptorPool,
+                                                          objectDescriptorSetLayout);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -186,7 +198,8 @@ void VulkanEngine::initVulkan()
   if (vulkanEngineOptions.DO_DOTS)
   {
     dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
-                                                  renderPass->getRenderPass(), swapChain->getExtent());
+                                                  renderPass->getRenderPass(), swapChain->getExtent(),
+                                                  descriptorPool);
   }
 
   imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
@@ -495,6 +508,27 @@ void VulkanEngine::createNewFrame()
 
   renderObjectsToRender.clear();
   lightsToRender.clear();
+}
+
+void VulkanEngine::createDescriptorPool()
+{
+  constexpr std::array<VkDescriptorPoolSize, 3> poolSizes {{
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 30},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 10},
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT * 10}
+  }};
+
+  const VkDescriptorPoolCreateInfo poolCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .maxSets = MAX_FRAMES_IN_FLIGHT * 10,
+    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+    .pPoolSizes = poolSizes.data()
+  };
+
+  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create descriptor pool!");
+  }
 }
 
 void VulkanEngine::createObjectDescriptorSetLayout()

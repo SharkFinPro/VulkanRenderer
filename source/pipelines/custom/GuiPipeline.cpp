@@ -10,9 +10,10 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
-GuiPipeline::GuiPipeline(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
+GuiPipeline::GuiPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                         const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<RenderPass>& renderPass, const uint32_t maxImGuiTextures)
-  : GraphicsPipeline(std::move(physicalDevice), std::move(logicalDevice))
+  : GraphicsPipeline(physicalDevice, logicalDevice)
 {
   createPipeline(renderPass->getRenderPass());
 

@@ -16,14 +16,14 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
+                                 const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool),
+    objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
   createGlobalDescriptorSetLayout();
-
-  createDescriptorPool();
 
   createDescriptorSets();
 
@@ -32,8 +32,6 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physical
 
 ObjectsPipeline::~ObjectsPipeline()
 {
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
-
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
@@ -149,26 +147,6 @@ void ObjectsPipeline::createGlobalDescriptorSetLayout()
   if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create global descriptor set layout!");
-  }
-}
-
-void ObjectsPipeline::createDescriptorPool()
-{
-  constexpr std::array<VkDescriptorPoolSize, 2> poolSizes {{
-    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 2},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 1}
-  }};
-
-  const VkDescriptorPoolCreateInfo poolCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = MAX_FRAMES_IN_FLIGHT,
-    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-    .pPoolSizes = poolSizes.data()
-  };
-
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor pool!");
   }
 }
 

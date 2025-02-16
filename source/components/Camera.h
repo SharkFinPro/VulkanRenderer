@@ -35,6 +35,7 @@ private:
   } rotation;
 
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
+  float dt = 0;
 
   void handleMovement(const std::shared_ptr<Window>& window);
   void handleRotation(const std::shared_ptr<Window>& window);
