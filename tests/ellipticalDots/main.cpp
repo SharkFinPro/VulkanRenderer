@@ -21,6 +21,7 @@ int main()
     };
 
     VulkanEngine renderer(vulkanEngineOptions);
+    const auto gui = renderer.getImGuiInstance();
 
     ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
 
@@ -47,6 +48,14 @@ int main()
 
     while (renderer.isActive())
     {
+      gui->dockCenter("SceneView");
+      gui->dockBottom("Objects");
+      gui->dockBottom("Lights");
+      gui->dockBottom("Rendering");
+      gui->dockBottom("Elliptical Dots");
+
+      gui->setBottomDockPercent(0.3);
+
       // Render GUI
       ImGui::Begin("Objects");
       displayObjectGui(object, 0);

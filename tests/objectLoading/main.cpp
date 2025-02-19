@@ -14,6 +14,7 @@ int main()
     };
 
     VulkanEngine renderer(vulkanEngineOptions);
+    const auto gui = renderer.getImGuiInstance();
 
     const auto texture = renderer.loadTexture("assets/textures/viking_room.png");
     const auto specular = renderer.loadTexture("assets/textures/blank_specular.png");
@@ -27,6 +28,8 @@ int main()
 
     while (renderer.isActive())
     {
+      gui->dockCenter("SceneView");
+
       renderer.renderLight(light);
 
       renderer.renderObject(object, PipelineType::object);
