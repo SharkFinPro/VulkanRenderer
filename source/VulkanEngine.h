@@ -81,6 +81,8 @@ public:
 
   void setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix);
 
+  [[nodiscard]] std::shared_ptr<ImGuiInstance> getImGuiInstance() const;
+
 private:
   std::shared_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
@@ -101,7 +103,7 @@ private:
   std::unique_ptr<TexturedPlane> texturedPlanePipeline;
   std::unique_ptr<MagnifyWhirlMosaicPipeline> magnifyWhirlMosaicPipeline;
 
-  std::unique_ptr<ImGuiInstance> imGuiInstance;
+  std::shared_ptr<ImGuiInstance> imGuiInstance;
 
   std::shared_ptr<Framebuffer> framebuffer;
   std::shared_ptr<Framebuffer> offscreenFramebuffer;

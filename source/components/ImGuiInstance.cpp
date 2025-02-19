@@ -1,6 +1,7 @@
 #include "ImGuiInstance.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
@@ -68,7 +69,7 @@ ImGuiInstance::~ImGuiInstance()
   ImGui::DestroyContext();
 }
 
-void ImGuiInstance::createNewFrame() const
+void ImGuiInstance::createNewFrame()
 {
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
@@ -83,9 +84,133 @@ void ImGuiInstance::createNewFrame() const
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowBgAlpha(1.0f);
 
-  ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar);
+  ImGuiID id = ImGui::GetID("WindowDockSpace");
+  ImGui::DockBuilderRemoveNode(id); // Clear previous layout if any
+  ImGui::DockBuilderAddNode(id);    // Create new dock node
 
-  ImGui::DockSpace(ImGui::GetID("WindowDockSpace"), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+  if (ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+  {
+    const ImGuiID dockspaceID = ImGui::GetID("WindowDockSpace");
+    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
+    if (dockNeedsUpdate)
+    {
+      // Rebuild the dock layout with current percentages
+      ImGui::DockBuilderRemoveNode(dockspaceID);
+      ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
+      ImGui::DockBuilderSetNodeSize(dockspaceID, ImGui::GetWindowSize());
+
+      mainDock = dockspaceID;
+
+      // Split nodes using current percentages
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Left, leftDockPercent, &leftDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Right, rightDockPercent, &rightDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Up, topDockPercent, &topDock, &mainDock);
+      ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Down, bottomDockPercent, &bottomDock, &mainDock);
+
+      centerDock = mainDock;
+
+      ImGui::DockBuilderFinish(dockspaceID);
+      dockNeedsUpdate = false;
+    }
+  }
   ImGui::End();
+}
+
+void ImGuiInstance::dockTop(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, topDock);
+}
+
+void ImGuiInstance::dockBottom(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, bottomDock);
+}
+
+void ImGuiInstance::dockLeft(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, leftDock);
+}
+
+void ImGuiInstance::dockRight(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, rightDock);
+}
+
+void ImGuiInstance::dockCenter(const char* widget) const
+{
+  if (!mainDock)
+  {
+    return;
+  }
+
+  ImGui::DockBuilderDockWindow(widget, centerDock);
+}
+
+void ImGuiInstance::setTopDockPercent(const float percent)
+{
+  if (topDockPercent == percent)
+  {
+    return;
+  }
+
+  topDockPercent = percent;
+
+  dockNeedsUpdate = true;
+}
+
+void ImGuiInstance::setBottomDockPercent(const float percent)
+{
+  if (bottomDockPercent == percent)
+  {
+    return;
+  }
+
+  bottomDockPercent = percent;
+
+  dockNeedsUpdate = true;
+}
+
+void ImGuiInstance::setLeftDockPercent(const float percent)
+{
+  if (leftDockPercent == percent)
+  {
+    return;
+  }
+
+  leftDockPercent = percent;
+
+  dockNeedsUpdate = true;
+}
+
+void ImGuiInstance::setRightDockPercent(const float percent)
+{
+  if (rightDockPercent == percent)
+  {
+    return;
+  }
+
+  rightDockPercent = percent;
+
+  dockNeedsUpdate = true;
 }

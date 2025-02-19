@@ -135,6 +135,11 @@ void VulkanEngine::setCameraParameters(const glm::vec3 position, const glm::mat4
   this->viewMatrix = viewMatrix;
 }
 
+std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
+{
+  return imGuiInstance;
+}
+
 void VulkanEngine::initVulkan()
 {
   instance = std::make_shared<Instance>();
@@ -205,7 +210,7 @@ void VulkanEngine::initVulkan()
                                                   descriptorPool);
   }
 
-  imGuiInstance = std::make_unique<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
+  imGuiInstance = std::make_shared<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
                                                   renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
