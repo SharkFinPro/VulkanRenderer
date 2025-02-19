@@ -84,33 +84,34 @@ void ImGuiInstance::createNewFrame()
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowBgAlpha(1.0f);
 
+  ImGuiID id = ImGui::GetID("WindowDockSpace");
+  ImGui::DockBuilderRemoveNode(id); // Clear previous layout if any
+  ImGui::DockBuilderAddNode(id);    // Create new dock node
+
   if (ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
   {
-    ImGuiID dockspaceID = ImGui::GetID("WindowDockSpace");
+    const ImGuiID dockspaceID = ImGui::GetID("WindowDockSpace");
     ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
-    static bool dockspaceInitialized = false;
-    if (!dockspaceInitialized)
+    if (dockNeedsUpdate)
     {
-      dockspaceInitialized = true;
-      ImGui::DockBuilderRemoveNode(dockspaceID); // Reset any previous layouts
+      // Rebuild the dock layout with current percentages
+      ImGui::DockBuilderRemoveNode(dockspaceID);
       ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
       ImGui::DockBuilderSetNodeSize(dockspaceID, ImGui::GetWindowSize());
 
-      // Create docked regions
       mainDock = dockspaceID;
 
-      // Split into left and right (vertical split)
+      // Split nodes using current percentages
       ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Left, leftDockPercent, &leftDock, &mainDock);
       ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Right, rightDockPercent, &rightDock, &mainDock);
-
-      // Split into top and bottom (horizontal split)
       ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Up, topDockPercent, &topDock, &mainDock);
       ImGui::DockBuilderSplitNode(mainDock, ImGuiDir_Down, bottomDockPercent, &bottomDock, &mainDock);
 
-      centerDock = mainDock; // Remaining space is the center
+      centerDock = mainDock;
 
       ImGui::DockBuilderFinish(dockspaceID);
+      dockNeedsUpdate = false;
     }
   }
   ImGui::End();
@@ -168,20 +169,48 @@ void ImGuiInstance::dockCenter(const char* widget) const
 
 void ImGuiInstance::setTopDockPercent(const float percent)
 {
+  if (topDockPercent == percent)
+  {
+    return;
+  }
+
   topDockPercent = percent;
+
+  dockNeedsUpdate = true;
 }
 
 void ImGuiInstance::setBottomDockPercent(const float percent)
 {
+  if (bottomDockPercent == percent)
+  {
+    return;
+  }
+
   bottomDockPercent = percent;
+
+  dockNeedsUpdate = true;
 }
 
 void ImGuiInstance::setLeftDockPercent(const float percent)
 {
+  if (leftDockPercent == percent)
+  {
+    return;
+  }
+
   leftDockPercent = percent;
+
+  dockNeedsUpdate = true;
 }
 
 void ImGuiInstance::setRightDockPercent(const float percent)
 {
+  if (rightDockPercent == percent)
+  {
+    return;
+  }
+
   rightDockPercent = percent;
+
+  dockNeedsUpdate = true;
 }

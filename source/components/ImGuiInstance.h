@@ -41,6 +41,8 @@ public:
   void setRightDockPercent(float percent);
 
 private:
+  bool dockNeedsUpdate = true;
+
   bool useDockSpace;
 
   float topDockPercent = 0.15f;
