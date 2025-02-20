@@ -85,7 +85,7 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
 
 void SnakePipeline::loadGraphicsShaders()
 {
-  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/Snake.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
   createShader("assets/shaders/objects.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
