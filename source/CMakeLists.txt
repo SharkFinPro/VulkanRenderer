@@ -77,6 +77,8 @@ add_library(${PROJECT_NAME}
   pipelines/Particle.h
   pipelines/custom/MagnifyWhirlMosaicPipeline.cpp
   pipelines/custom/MagnifyWhirlMosaicPipeline.h
+  pipelines/custom/SnakePipeline.cpp
+  pipelines/custom/SnakePipeline.h
 )
 
 # Noise
