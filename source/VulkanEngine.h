@@ -29,6 +29,7 @@
 #include "pipelines/custom/NoisyEllipticalDots.h"
 #include "pipelines/custom/TexturedPlane.h"
 #include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
+#include "pipelines/custom/SnakePipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -47,7 +48,8 @@ enum class PipelineType {
   magnifyWhirlMosaic,
   noisyEllipticalDots,
   object,
-  texturedPlane
+  texturedPlane,
+  snake
 };
 
 class VulkanEngine {
@@ -102,6 +104,7 @@ private:
   std::unique_ptr<CubeMapPipeline> cubeMapPipeline;
   std::unique_ptr<TexturedPlane> texturedPlanePipeline;
   std::unique_ptr<MagnifyWhirlMosaicPipeline> magnifyWhirlMosaicPipeline;
+  std::unique_ptr<SnakePipeline> snakePipeline;
 
   std::shared_ptr<ImGuiInstance> imGuiInstance;
 

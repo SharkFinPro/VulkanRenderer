@@ -200,6 +200,9 @@ void VulkanEngine::initVulkan()
   magnifyWhirlMosaicPipeline = std::make_unique<MagnifyWhirlMosaicPipeline>(physicalDevice, logicalDevice, renderPass,
                                                                             descriptorPool, objectDescriptorSetLayout);
 
+  snakePipeline = std::make_unique<SnakePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
+                                                  objectDescriptorSetLayout);
+
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
@@ -508,6 +511,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   {
     magnifyWhirlMosaicPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
                                        renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
+  }
+
+  if (renderObjectsToRender.contains(PipelineType::snake))
+  {
+    snakePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+                          renderObjectsToRender.at(PipelineType::snake));
   }
 
   if (vulkanEngineOptions.DO_DOTS)
