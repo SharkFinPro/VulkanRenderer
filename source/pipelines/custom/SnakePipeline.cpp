@@ -93,7 +93,7 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
 void SnakePipeline::loadGraphicsShaders()
 {
   createShader("assets/shaders/Snake.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/objects.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  createShader("assets/shaders/Snake.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 void SnakePipeline::loadGraphicsDescriptorSetLayouts()
@@ -141,7 +141,7 @@ void SnakePipeline::createGlobalDescriptorSetLayout()
     .binding = 4,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
   constexpr std::array globalBindings {
