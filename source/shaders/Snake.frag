@@ -23,6 +23,10 @@ layout(set = 0, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
+layout(set = 0, binding = 4) uniform Snake {
+  float wiggle;
+} snake;
+
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
@@ -60,7 +64,11 @@ vec3 PointLightAffect(PointLight light, vec3 color)
 
 void main()
 {
-  vec3 color = vec3(0.7, 0.7, 0.7);
+  vec3 color = vec3(1, 1, 1);
+
+  float tension = abs(sin(fragPos.x * 0.5) * snake.wiggle);
+  color.g -= tension;
+  color.b -= tension;
 
   outColor = vec4(color, 1.0);
 }
