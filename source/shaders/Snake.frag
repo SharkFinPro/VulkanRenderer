@@ -11,9 +11,6 @@ struct PointLight {
   float padding3; // Padding to ensure alignment
 };
 
-layout(set = 1, binding = 1) uniform sampler2D texSampler;
-layout(set = 1, binding = 4) uniform sampler2D specSampler;
-
 layout(set = 0, binding = 2) uniform PointLightsMetadata {
   int numLights;
 };
@@ -32,16 +29,16 @@ layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 PointLightAffect(PointLight light, vec3 texColor, vec3 specColor)
+vec3 PointLightAffect(PointLight light, vec3 color)
 {
   // Ambient
-  vec3 ambient = light.ambient * texColor;
+  vec3 ambient = light.ambient * color;
 
   // Diffuse
   vec3 norm = normalize(fragNormal);
   vec3 lightDir = normalize(light.position - fragPos);
   float d = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * texColor;
+  vec3 diffuse = light.diffuse * d * color;
 
   // Specular
   vec3 specular = vec3(0);
@@ -53,7 +50,7 @@ vec3 PointLightAffect(PointLight light, vec3 texColor, vec3 specColor)
 
     if (cosphi > 0.0)
     {
-      specular = pow(cosphi, 32.0f) * light.specular * light.color;
+      specular = pow(cosphi, 10) * light.specular * light.color; // 10 = shininess
     }
   }
 
@@ -63,13 +60,12 @@ vec3 PointLightAffect(PointLight light, vec3 texColor, vec3 specColor)
 
 void main()
 {
-  vec3 texColor = texture(texSampler, fragTexCoord).rgb;
-  vec3 specColor = texture(specSampler, fragTexCoord).rgb;
+  vec3 color = vec3(0.7, 0.7, 0.7);
 
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], texColor, specColor);
+    result += PointLightAffect(lights[i], color);
   }
 
   outColor = vec4(result, 1.0);
