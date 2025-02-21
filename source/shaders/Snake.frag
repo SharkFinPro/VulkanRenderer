@@ -64,7 +64,10 @@ vec3 PointLightAffect(PointLight light, vec3 color)
 
 void main()
 {
-  vec3 color = vec3(1, 1, 1);
+  float pos = (fragPos.x + 11.2);
+  float p = pos / 18.0;
+
+  vec3 color = vec3(p);
 
   float tension = abs(sin(fragPos.x * 0.5) * snake.wiggle);
   color.g -= tension;
