@@ -49,6 +49,7 @@ int main()
       gui->dockCenter("SceneView");
       gui->dockBottom("Objects");
       gui->dockBottom("Lights");
+      gui->dockBottom("Snake");
 
       gui->setBottomDockPercent(0.3);
 

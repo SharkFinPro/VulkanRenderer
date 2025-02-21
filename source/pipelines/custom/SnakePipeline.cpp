@@ -1,12 +1,12 @@
 #include "SnakePipeline.h"
 #include "GraphicsPipelineStates.h"
-#include "Uniforms.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../components/LogicalDevice.h"
 #include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
+#include <imgui.h>
 #include <stdexcept>
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
@@ -62,6 +62,13 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
   cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
 
   updateLightUniforms(lights, currentFrame);
+
+  ImGui::Begin("Snake");
+
+  ImGui::SliderFloat("Wiggle", &snakeUBO.wiggle, -1.0f, 1.0f);
+
+  ImGui::End();
+  snakeUniform->update(currentFrame, &snakeUBO, sizeof(EllipticalDotsUniform));
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
@@ -130,10 +137,18 @@ void SnakePipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> globalBindings {
+  constexpr VkDescriptorSetLayoutBinding snakeLayout {
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+  };
+
+  constexpr std::array globalBindings {
     lightMetadataLayout,
     lightsLayout,
-    cameraLayout
+    cameraLayout,
+    snakeLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
@@ -166,9 +181,10 @@ void SnakePipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
-      cameraUniform->getDescriptorSet(3, descriptorSets[i], i)
+      cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
+      snakeUniform->getDescriptorSet(4, descriptorSets[i], i)
     }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
@@ -186,6 +202,9 @@ void SnakePipeline::createUniforms()
 
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
+
+  snakeUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+                                                 sizeof(SnakeUniform));
 }
 
 void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)

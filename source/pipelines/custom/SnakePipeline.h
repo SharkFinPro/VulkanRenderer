@@ -1,6 +1,7 @@
 #ifndef SNAKEPIPELINE_H
 #define SNAKEPIPELINE_H
 
+#include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
@@ -31,6 +32,10 @@ public:
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
 private:
+  SnakeUniform snakeUBO {
+    .wiggle = 0
+  };
+
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
@@ -40,6 +45,8 @@ private:
   std::unique_ptr<UniformBuffer> lightMetadataUniform;
   std::unique_ptr<UniformBuffer> lightsUniform;
   std::unique_ptr<UniformBuffer> cameraUniform;
+
+  std::unique_ptr<UniformBuffer> snakeUniform;
 
   int prevNumLights = 0;
 
