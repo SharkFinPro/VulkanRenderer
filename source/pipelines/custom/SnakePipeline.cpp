@@ -67,6 +67,11 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
 
   ImGui::SliderFloat("Wiggle", &snakeUBO.wiggle, -1.0f, 1.0f);
 
+  static float w = 0.0f;
+  w += 0.025f;
+
+  snakeUBO.wiggle = sin(w);
+
   ImGui::End();
   snakeUniform->update(currentFrame, &snakeUBO, sizeof(EllipticalDotsUniform));
 
@@ -93,6 +98,7 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
 void SnakePipeline::loadGraphicsShaders()
 {
   createShader("assets/shaders/Snake.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/Snake.geom.spv", VK_SHADER_STAGE_GEOMETRY_BIT);
   createShader("assets/shaders/Snake.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
@@ -141,7 +147,7 @@ void SnakePipeline::createGlobalDescriptorSetLayout()
     .binding = 4,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
   constexpr std::array globalBindings {

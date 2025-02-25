@@ -86,6 +86,7 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
   }
 
   constexpr VkPhysicalDeviceFeatures deviceFeatures {
+    .geometryShader = VK_TRUE,
     .samplerAnisotropy = VK_TRUE
   };
 

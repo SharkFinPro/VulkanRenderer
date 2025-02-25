@@ -96,6 +96,7 @@ file(MAKE_DIRECTORY ${shadersDst})
 # Find all shader files recursively
 file(GLOB_RECURSE SHADER_FILES
   "${shadersSrc}/*.vert"
+  "${shadersSrc}/*.geom"
   "${shadersSrc}/*.frag"
   "${shadersSrc}/*.comp"
 )

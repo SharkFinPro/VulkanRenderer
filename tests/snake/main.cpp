@@ -27,10 +27,11 @@ int main()
 
     const auto texture = renderer.loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/snake.obj");
+    const auto model = renderer.loadModel("assets/models/snakeH.obj");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
     object->setPosition({ 0, 0, 0 });
+    float x = 0.0f;
 
     std::vector<std::shared_ptr<Light>> lights;
 
@@ -46,6 +47,9 @@ int main()
 
     while (renderer.isActive())
     {
+      x += 0.025f;
+      object->setPosition({x, 0, 0});
+
       gui->dockCenter("SceneView");
       gui->dockBottom("Objects");
       gui->dockBottom("Lights");
