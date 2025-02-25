@@ -62,16 +62,35 @@ vec3 PointLightAffect(PointLight light, vec3 color)
   return (ambient + diffuse + specular) * light.color;
 }
 
+vec3 hsvToRgb(float h, float s, float v)
+{
+  float c = v * s;
+  float x = c * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
+  float m = v - c;
+
+  vec3 rgb;
+
+  if (h < 1.0 / 6.0)      rgb = vec3(c, x, 0.0);
+  else if (h < 2.0 / 6.0) rgb = vec3(x, c, 0.0);
+  else if (h < 3.0 / 6.0) rgb = vec3(0.0, c, x);
+  else if (h < 4.0 / 6.0) rgb = vec3(0.0, x, c);
+  else if (h < 5.0 / 6.0) rgb = vec3(x, 0.0, c);
+  else                    rgb = vec3(c, 0.0, x);
+
+  return rgb + m;
+}
+
 void main()
 {
   float pos = (fragPos.x + 11.2);
   float p = pos / 18.0;
 
-  vec3 color = vec3(p);
+  vec3 color = hsvToRgb(mix(1.0 / 6.0, 5.0 / 6.0, p), 1, 1);
 
   float tension = abs(sin(fragPos.x * 0.5) * snake.wiggle);
   color.g -= tension;
   color.b -= tension;
+  color.r += tension;
 
   outColor = vec4(color, 1.0);
 }
