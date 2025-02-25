@@ -92,5 +92,11 @@ void main()
   color.b -= tension;
   color.r += tension;
 
-  outColor = vec4(color, 1.0);
+  vec3 result = vec3(0);
+  for (int i = 0; i < numLights; i++)
+  {
+    result += PointLightAffect(lights[i], color);
+  }
+
+  outColor = vec4(result, 1.0);
 }
