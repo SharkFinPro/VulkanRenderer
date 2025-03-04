@@ -7,22 +7,22 @@
 
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
+void populateLights(VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights);
+
+constexpr VulkanEngineOptions vulkanEngineOptions {
+  .WINDOW_WIDTH = 800,
+  .WINDOW_HEIGHT = 600,
+  .WINDOW_TITLE = "Snake",
+  .CAMERA_POSITION = { 0.0f, 0.0f, -15.0f },
+  .DO_DOTS = false
+};
 
 int main()
 {
   try
   {
-    constexpr VulkanEngineOptions vulkanEngineOptions {
-      .WINDOW_WIDTH = 800,
-      .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Snake",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -15.0f },
-      .DO_DOTS = false
-    };
-
     VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
-
     ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
 
     const auto texture = renderer.loadTexture("assets/textures/white.png");
@@ -34,16 +34,7 @@ int main()
     float x = 0.0f;
 
     std::vector<std::shared_ptr<Light>> lights;
-
-    lights.push_back(renderer.createLight({0, 15.0f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+    populateLights(renderer, lights);
 
     while (renderer.isActive())
     {
@@ -133,4 +124,17 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
+}
+
+void populateLights(VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights)
+{
+  lights.push_back(renderer.createLight({0, 15.0f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
