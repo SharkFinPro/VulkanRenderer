@@ -62,10 +62,10 @@ jobs:
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
-      uses: humbletim/install-vulkan-sdk@v1.1.1
-      with:
-        version: 1.3.283.0
-        cache: false
+      run: |
+        choco install vulkan-sdk -y --no-progress
+        # Add Vulkan SDK to PATH
+        echo "C:\VulkanSDK\$(choco list vulkan-sdk --local-only --limitoutput | cut -d '|' -f 2)\Bin" >> $env:GITHUB_PATH
 
 
     - name: Configure CMake
