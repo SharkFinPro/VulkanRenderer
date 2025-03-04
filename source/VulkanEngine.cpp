@@ -200,6 +200,9 @@ void VulkanEngine::initVulkan()
   magnifyWhirlMosaicPipeline = std::make_unique<MagnifyWhirlMosaicPipeline>(physicalDevice, logicalDevice, renderPass,
                                                                             descriptorPool, objectDescriptorSetLayout);
 
+  snakePipeline = std::make_unique<SnakePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
+                                                  objectDescriptorSetLayout);
+
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
@@ -510,6 +513,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
                                        renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
   }
 
+  if (renderObjectsToRender.contains(PipelineType::snake))
+  {
+    snakePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+                          renderObjectsToRender.at(PipelineType::snake));
+  }
+
   if (vulkanEngineOptions.DO_DOTS)
   {
     dotsPipeline->render(commandBuffer, currentFrame, extent);
@@ -551,7 +560,7 @@ void VulkanEngine::createObjectDescriptorSetLayout()
     .binding = 0,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
   constexpr VkDescriptorSetLayoutBinding textureLayout {

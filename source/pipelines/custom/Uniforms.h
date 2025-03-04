@@ -46,4 +46,8 @@ struct MagnifyWhirlMosaicUniform {
   float mosaic;
 };
 
+struct SnakeUniform {
+  float wiggle;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H
