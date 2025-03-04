@@ -62,11 +62,11 @@ jobs:
 
     - name: Prepare Vulkan SDK (Windows)
       if: ${{ matrix.os == 'windows-latest' }}
-      uses: SpargatTeam/setup-vulkan-sdk@v1.0.0
+      uses: johnnynunez/setup-vulkan-sdk@v1
       with:
-        version: '1.3.296.0'  # Vulkan SDK version you want
-        components: 'Vulkan-Headers,Vulkan-Loader,Glslang'  # Vulkan components you need
-        cache: 'true'  # Vulkan Cache
+        vulkan-query-version: 1.4.304.1
+        vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang
+        vulkan-use-cache: true
 
 
     - name: Configure CMake
