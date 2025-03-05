@@ -92,7 +92,27 @@ jobs:
     - name: Prepare Binaries
       shell: bash
       run: |
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+        # Function to copy file if not exists
+        copy_if_not_exists() {
+          if [ ! -f "$2" ]; then
+            cp "$1" "$2"
+          fi
+        }
+
+        # Linux
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          # Copy system libraries only if they don't exist
+          copy_if_not_exists /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/libstdc++.so.6
+          copy_if_not_exists /lib/x86_64-linux-gnu/libc.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/libc.so.6
+          copy_if_not_exists /lib/x86_64-linux-gnu/libm.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/libm.so.6
+
+          # Find and copy additional libraries not already in the bin directory
+          ldd ${{ steps.strings.outputs.build-output-dir }}/bin/cube | grep "=> /" | awk '{print $3}' | while read -r lib; do
+            libname=$(basename "$lib")
+            copy_if_not_exists "$lib" "${{ steps.strings.outputs.build-output-dir }}/bin/$libname"
+          done
+
+        elif [ "${{ matrix.os }}" == "windows-latest" ]; then
           # Copy necessary Windows runtime libraries
           cp "C:/Windows/System32/msvcp140.dll" ${{ steps.strings.outputs.build-output-dir }}/bin/
           cp "C:/Windows/System32/vcruntime140.dll" ${{ steps.strings.outputs.build-output-dir }}/bin/
@@ -102,13 +122,6 @@ jobs:
           # This might require additional investigation
           echo "Preparing macOS libraries"
 
-        elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-          # Copy necessary Linux system libraries directly to bin
-          cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
-          cp /lib/x86_64-linux-gnu/libc.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
-          cp /lib/x86_64-linux-gnu/libm.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
-
-          ldd ${{ steps.strings.outputs.build-output-dir }}/bin/cube | grep "=> /" | awk '{print $3}' | xargs -I {} cp {} ${{ steps.strings.outputs.build-output-dir }}/bin/
         fi
 
     - name: Upload Artifacts
