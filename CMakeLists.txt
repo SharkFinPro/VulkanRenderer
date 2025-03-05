@@ -31,6 +31,15 @@ if (NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
+if(UNIX)
+  # Set the install RPATH to find libraries relative to the installed executable
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
+
+  # Ensure that the build executable works like the installed one
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+endif()
+
+
 if (MSVC)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 1)
 endif()
