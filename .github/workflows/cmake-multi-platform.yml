@@ -89,39 +89,6 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
-    - name: Prepare Binaries
-      shell: bash
-      run: |
-        # Function to copy file if not exists
-        copy_if_not_exists() {
-          if [ ! -f "$2" ]; then
-            cp "$1" "$2"
-          fi
-        }
-
-        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-          # Copy system libraries only if they don't exist
-          copy_if_not_exists /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/libstdc++.so.6
-          copy_if_not_exists /lib/x86_64-linux-gnu/libc.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/libc.so.6
-          copy_if_not_exists /lib/x86_64-linux-gnu/libm.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/libm.so.6
-
-          # Find and copy additional libraries not already in the bin directory
-          ldd ${{ steps.strings.outputs.build-output-dir }}/bin/cube | grep "=> /" | awk '{print $3}' | while read -r lib; do
-            libname=$(basename "$lib")
-            copy_if_not_exists "$lib" "${{ steps.strings.outputs.build-output-dir }}/bin/$libname"
-          done
-
-        elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-          # Copy necessary Windows runtime libraries
-          powershell -Command "& {
-            $binPath = '${{ steps.strings.outputs.build-output-dir }}/bin'
-            New-Item -ItemType Directory -Force -Path $binPath
-            Copy-Item 'C:/Windows/System32/msvcp140.dll' $binPath
-            Copy-Item 'C:/Windows/System32/vcruntime140.dll' $binPath
-          }"
-
-        fi
-
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
