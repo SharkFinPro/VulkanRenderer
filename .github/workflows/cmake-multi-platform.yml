@@ -99,7 +99,6 @@ jobs:
           fi
         }
 
-        # Linux
         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
           # Copy system libraries only if they don't exist
           copy_if_not_exists /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/libstdc++.so.6
@@ -114,13 +113,12 @@ jobs:
 
         elif [ "${{ matrix.os }}" == "windows-latest" ]; then
           # Copy necessary Windows runtime libraries
-          cp "C:/Windows/System32/msvcp140.dll" ${{ steps.strings.outputs.build-output-dir }}/bin/
-          cp "C:/Windows/System32/vcruntime140.dll" ${{ steps.strings.outputs.build-output-dir }}/bin/
-
-        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-          # If you need to copy specific macOS system libraries
-          # This might require additional investigation
-          echo "Preparing macOS libraries"
+          powershell -Command "& {
+            $binPath = '${{ steps.strings.outputs.build-output-dir }}/bin'
+            New-Item -ItemType Directory -Force -Path $binPath
+            Copy-Item 'C:/Windows/System32/msvcp140.dll' $binPath
+            Copy-Item 'C:/Windows/System32/vcruntime140.dll' $binPath
+          }"
 
         fi
 
