@@ -89,6 +89,28 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
+    - name: Prepare Binaries
+      shell: bash
+      run: |
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Copy necessary Windows runtime libraries
+          cp "C:/Windows/System32/msvcp140.dll" ${{ steps.strings.outputs.build-output-dir }}/bin/
+          cp "C:/Windows/System32/vcruntime140.dll" ${{ steps.strings.outputs.build-output-dir }}/bin/
+
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          # If you need to copy specific macOS system libraries
+          # This might require additional investigation
+          echo "Preparing macOS libraries"
+
+        elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          # Copy necessary Linux system libraries directly to bin
+          cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
+          cp /lib/x86_64-linux-gnu/libc.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
+          cp /lib/x86_64-linux-gnu/libm.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
+
+          ldd ${{ steps.strings.outputs.build-output-dir }}/bin/cube | grep "=> /" | awk '{print $3}' | xargs -I {} cp {} ${{ steps.strings.outputs.build-output-dir }}/bin/
+        fi
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
