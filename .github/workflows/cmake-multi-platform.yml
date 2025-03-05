@@ -89,6 +89,18 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
+    - name: Copy Vulkan shared libraries to build/bin
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          cp -L $VULKAN_SDK/lib/libvulkan* ${{ steps.strings.outputs.build-output-dir }}/bin/
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          cp $VULKAN_SDK/Bin/vulkan-1.dll ${{ steps.strings.outputs.build-output-dir }}/bin/
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          cp $VULKAN_SDK/lib/libMoltenVK.dylib ${{ steps.strings.outputs.build-output-dir }}/bin/
+          cp $VULKAN_SDK/lib/libvulkan.* ${{ steps.strings.outputs.build-output-dir }}/bin/
+        fi
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
