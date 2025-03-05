@@ -131,6 +131,7 @@ add_custom_target(Shaders ALL DEPENDS ${SPV_FILES})
 add_dependencies(${PROJECT_NAME} Shaders)
 
 # Vulkan
+set(VULKAN_STATIC ON CACHE BOOL "Force static linking of Vulkan")
 find_package(Vulkan REQUIRED)
 
 # GLFW
