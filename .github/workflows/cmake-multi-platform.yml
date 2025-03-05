@@ -95,7 +95,4 @@ jobs:
         name: ${{ matrix.os }}-${{ matrix.c_compiler }}-binaries
         path: |
           ${{ steps.strings.outputs.build-output-dir }}/bin
-          ${{ steps.strings.outputs.build-output-dir }}/lib
-          ${{ steps.strings.outputs.build-output-dir }}/**/*.so
-          ${{ steps.strings.outputs.build-output-dir }}/**/*.dylib
         retention-days: 5
