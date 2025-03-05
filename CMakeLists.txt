@@ -33,7 +33,11 @@ endif()
 
 if(UNIX)
   # Set the install RPATH to find libraries relative to the installed executable
-  set(CMAKE_INSTALL_RPATH "$ORIGIN")
+  if(APPLE)
+    set(CMAKE_INSTALL_RPATH "@executable_path")
+  else()
+    set(CMAKE_INSTALL_RPATH "$ORIGIN")
+  endif()
 
   # Ensure that the build executable works like the installed one
   set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
