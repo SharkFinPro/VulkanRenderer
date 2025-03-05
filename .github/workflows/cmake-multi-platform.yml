@@ -92,6 +92,10 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.os }}-${{ matrix.c_compiler }}-bin
-        path: ${{ steps.strings.outputs.build-output-dir }}/bin
+        name: ${{ matrix.os }}-${{ matrix.c_compiler }}-binaries
+        path: |
+          ${{ steps.strings.outputs.build-output-dir }}/bin
+          ${{ steps.strings.outputs.build-output-dir }}/lib
+          ${{ steps.strings.outputs.build-output-dir }}/**/*.so
+          ${{ steps.strings.outputs.build-output-dir }}/**/*.dylib
         retention-days: 5
