@@ -94,8 +94,6 @@ jobs:
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
           cp -L $VULKAN_SDK/lib/libvulkan* ${{ steps.strings.outputs.build-output-dir }}/bin/
-        elif [ "$RUNNER_OS" == "Windows" ]; then
-          cp $VULKAN_SDK/Bin/vulkan-1.dll ${{ steps.strings.outputs.build-output-dir }}/bin/
         elif [ "$RUNNER_OS" == "macOS" ]; then
           cp $VULKAN_SDK/lib/libMoltenVK.dylib ${{ steps.strings.outputs.build-output-dir }}/bin/
           cp $VULKAN_SDK/lib/libvulkan.* ${{ steps.strings.outputs.build-output-dir }}/bin/
