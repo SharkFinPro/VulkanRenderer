@@ -103,12 +103,16 @@ jobs:
           cp $VULKAN_SDK/lib/libvulkan.* ${{ steps.strings.outputs.build-output-dir }}/bin/
         fi
 
+    - name: Zip Artifacts
+      run: |
+        zip -r ${{ steps.strings.outputs.build-output-dir }}/bin/${{ steps.strings.outputs.build-output-dir }}-artifacts.zip ${{ steps.strings.outputs.build-output-dir }}/bin/
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.os }}-${{ matrix.c_compiler }}-binaries
         path: |
-          ${{ steps.strings.outputs.build-output-dir }}/bin
+          ${{ steps.strings.outputs.build-output-dir }}/bin/*.zip
         retention-days: 5
 
   release:
