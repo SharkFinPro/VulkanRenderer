@@ -11,6 +11,12 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
+#ifdef __APPLE__
+#define IS_MAC 1
+#else
+#define IS_MAC 0
+#endif
+
 Instance::Instance()
 {
   if (enableValidationLayers && !checkValidationLayerSupport())
@@ -24,7 +30,7 @@ Instance::Instance()
     .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
     .pEngineName = "No Engine",
     .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-    .apiVersion = VK_API_VERSION_1_0
+    .apiVersion = VK_API_VERSION_1_1
   };
 
   const auto extensions = getRequiredExtensions();
@@ -38,6 +44,7 @@ Instance::Instance()
   const VkInstanceCreateInfo createInfo {
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
     .pNext = enableValidationLayers ? &debugCreateInfo : nullptr,
+    .flags = IS_MAC ? VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR : 0,
     .pApplicationInfo = &appInfo,
     .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
     .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
@@ -101,6 +108,11 @@ std::vector<const char*> Instance::getRequiredExtensions()
   if (enableValidationLayers)
   {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  }
+
+  if constexpr (IS_MAC)
+  {
+    extensions.push_back("VK_KHR_portability_enumeration");
   }
 
   return extensions;

@@ -11,6 +11,9 @@ class Instance;
 
 constexpr std::array deviceExtensions {
   VK_KHR_SWAPCHAIN_EXTENSION_NAME
+#ifdef __APPLE__
+, "VK_KHR_portability_subset"
+#endif
 };
 
 struct QueueFamilyIndices {
