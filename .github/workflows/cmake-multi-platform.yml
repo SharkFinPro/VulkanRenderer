@@ -103,19 +103,20 @@ jobs:
           cp $VULKAN_SDK/lib/libvulkan.* ${{ steps.strings.outputs.build-output-dir }}/bin/
         fi
 
-    - name: Zip Artifacts (Windows)
-      if: runner.os == 'Windows'
+    - name: Zip Artifacts
       shell: pwsh
       run: |
-        cd ${{ steps.strings.outputs.build-output-dir }}/bin
-        7z a -tzip ${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip ./*
-
-    - name: Zip Artifacts (macOS/Linux)
-      if: runner.os != 'Windows'
-      shell: bash
-      run: |
-        cd ${{ steps.strings.outputs.build-output-dir }}/bin
-        zip -r ${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip .
+        $buildDir = "${{ steps.strings.outputs.build-output-dir }}/bin"
+        $zipName = "${{ matrix.os }}-${{ matrix.c_compiler }}-release.zip"
+        
+        cd $buildDir
+        if ($IsWindows) {
+            # Use 7-zip on Windows
+            7z a -tzip $zipName ./*
+        } else {
+            # Use native zip on Linux/macOS
+            zip -r $zipName ./*
+        }
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
