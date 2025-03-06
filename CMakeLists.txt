@@ -4,6 +4,10 @@ option(VulkanProject_BUILD_TESTS "Enable building tests for VulkanProject" OFF)
 
 project(VulkanProject)
 
+if(APPLE)
+  enable_language(OBJC)
+endif()
+
 set(CMAKE_CXX_STANDARD 23)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -38,7 +42,6 @@ if(UNIX)
   # Ensure that the build executable works like the installed one
   set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 endif()
-
 
 if (MSVC)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 1)
