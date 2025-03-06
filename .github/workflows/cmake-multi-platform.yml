@@ -104,7 +104,9 @@ jobs:
         fi
 
     - name: Zip Artifacts
+      shell: bash
       run: |
+        cd ${{ steps.strings.outputs.build-output-dir }}/bin
         zip -r ${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip .
 
     - name: Upload Artifacts
