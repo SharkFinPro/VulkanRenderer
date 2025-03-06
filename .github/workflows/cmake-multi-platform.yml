@@ -104,22 +104,18 @@ jobs:
         fi
 
     - name: Zip Artifacts (Windows)
-      shell: powershell
+      if: runner.os == 'Windows'
+      shell: pwsh
       run: |
-        $BUILD_DIR = "${{ steps.strings.outputs.build-output-dir }}\bin"
-        Write-Host "Using build directory: $BUILD_DIR"
-        
-        Compress-Archive -Path "$BUILD_DIR\*" -DestinationPath "${{ steps.strings.outputs.build-output-dir }}\${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip"
+        cd ${{ steps.strings.outputs.build-output-dir }}/bin
+        7z a -tzip ${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip ./*
 
     - name: Zip Artifacts (macOS/Linux)
+      if: runner.os != 'Windows'
       shell: bash
       run: |
-        BUILD_DIR="${{ steps.strings.outputs.build-output-dir }}/bin"
-        
-        echo "Using build directory: $BUILD_DIR"
-        
-        cd "$BUILD_DIR"
-        zip -r "${{ steps.strings.outputs.build-output-dir }}/${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip" .
+        cd ${{ steps.strings.outputs.build-output-dir }}/bin
+        zip -r ${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip .
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
