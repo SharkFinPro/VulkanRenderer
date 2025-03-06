@@ -105,7 +105,7 @@ jobs:
 
     - name: Zip Artifacts
       run: |
-        zip -r ${{ steps.strings.outputs.build-output-dir }}/bin/${{ steps.strings.outputs.build-output-dir }}-artifacts.zip ${{ steps.strings.outputs.build-output-dir }}/bin/
+        zip -r ${{ steps.strings.outputs.build-output-dir }}/bin/${{ matrix.os }}-${{ matrix.c_compiler }}-artifacts.zip ${{ steps.strings.outputs.build-output-dir }}/bin/
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
