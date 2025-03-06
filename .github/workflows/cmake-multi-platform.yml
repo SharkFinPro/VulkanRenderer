@@ -89,11 +89,21 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
-    - name: Copy Vulkan shared libraries to build/bin
+    - name: Copy Shared Libraries
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
+          # Copy the Vulkan library
           cp -L $VULKAN_SDK/lib/libvulkan* ${{ steps.strings.outputs.build-output-dir }}/bin/
+          # Copy the C++ standard library
+          cp -L /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
+          # Copy the math library
+          cp -L /lib/x86_64-linux-gnu/libm.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
+          # Copy the C library
+          cp -L /lib/x86_64-linux-gnu/libc.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
+          # Copy other potentially needed libraries
+          cp -L /lib/x86_64-linux-gnu/libgcc_s.so.1 ${{ steps.strings.outputs.build-output-dir }}/bin/
+          cp -L /lib/x86_64-linux-gnu/libpthread.so.0 ${{ steps.strings.outputs.build-output-dir }}/bin/ || true
         elif [ "$RUNNER_OS" == "macOS" ]; then
           cp $VULKAN_SDK/lib/libMoltenVK.dylib ${{ steps.strings.outputs.build-output-dir }}/bin/
           cp $VULKAN_SDK/lib/libvulkan.* ${{ steps.strings.outputs.build-output-dir }}/bin/
