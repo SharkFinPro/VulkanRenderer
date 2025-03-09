@@ -80,7 +80,7 @@ void CrossesPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
   ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
 
-  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 100.0f);
+  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 50.0f);
 
   ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
 
