@@ -74,7 +74,7 @@ void main()
 void ProduceCrosses(float s, float t)
 {
   // Interpolate vertex position using barycentric coordinates
-  vec3 v = (1.0 - s - t) * V0 + s * V1 + t * V2;
+  vec3 v = V0 + s * (V1 - V0) + t * (V2 - V0);
   v = Quantize(v);
 
   // Interpolate normal vectors using the same barycentric interpolation
