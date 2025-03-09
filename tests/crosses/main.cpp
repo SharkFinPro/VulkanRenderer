@@ -57,7 +57,7 @@ int main()
       ImGui::End();
 
       // Render Objects
-      renderer.renderObject(object, PipelineType::snake);
+      renderer.renderObject(object, PipelineType::crosses);
 
       for (const auto& light : lights)
       {

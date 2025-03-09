@@ -30,6 +30,7 @@
 #include "pipelines/custom/TexturedPlane.h"
 #include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
 #include "pipelines/custom/SnakePipeline.h"
+#include "pipelines/custom/CrossesPipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -42,6 +43,7 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 enum class PipelineType {
   bumpyCurtain,
+  crosses,
   curtain,
   cubeMap,
   ellipticalDots,
@@ -105,6 +107,7 @@ private:
   std::unique_ptr<TexturedPlane> texturedPlanePipeline;
   std::unique_ptr<MagnifyWhirlMosaicPipeline> magnifyWhirlMosaicPipeline;
   std::unique_ptr<SnakePipeline> snakePipeline;
+  std::unique_ptr<CrossesPipeline> crossesPipeline;
 
   std::shared_ptr<ImGuiInstance> imGuiInstance;
 

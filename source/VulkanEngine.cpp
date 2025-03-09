@@ -203,6 +203,9 @@ void VulkanEngine::initVulkan()
   snakePipeline = std::make_unique<SnakePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
                                                   objectDescriptorSetLayout);
 
+  crossesPipeline = std::make_unique<CrossesPipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
+                                                      objectDescriptorSetLayout);
+
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
@@ -517,6 +520,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   {
     snakePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
                           renderObjectsToRender.at(PipelineType::snake));
+  }
+
+  if (renderObjectsToRender.contains(PipelineType::crosses))
+  {
+    crossesPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
+                            renderObjectsToRender.at(PipelineType::crosses));
   }
 
   if (vulkanEngineOptions.DO_DOTS)
