@@ -73,7 +73,7 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
   snakeUBO.wiggle = sin(w);
 
   ImGui::End();
-  snakeUniform->update(currentFrame, &snakeUBO, sizeof(EllipticalDotsUniform));
+  snakeUniform->update(currentFrame, &snakeUBO, sizeof(SnakeUniform));
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
