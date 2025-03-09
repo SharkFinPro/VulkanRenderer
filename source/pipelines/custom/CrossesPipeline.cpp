@@ -33,9 +33,10 @@ CrossesPipeline::~CrossesPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void CrossesPipeline::render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
-  const glm::mat4& viewMatrix, VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
-  const std::vector<std::shared_ptr<RenderObject>>& objects)
+void CrossesPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
+                             const glm::vec3 viewPosition, const glm::mat4& viewMatrix,
+                             const VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
+                             const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -147,7 +148,7 @@ void CrossesPipeline::createGlobalDescriptorSetLayout()
     .binding = 4,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
   constexpr std::array globalBindings {
