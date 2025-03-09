@@ -57,4 +57,11 @@ struct CrossesUniform {
   float shininess;
 };
 
+struct ChromaDepthUniform {
+  alignas(16) bool use;
+  char padding[3];
+  float blueDepth;
+  float redDepth;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H

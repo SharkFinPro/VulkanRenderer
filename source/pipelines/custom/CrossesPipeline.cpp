@@ -76,6 +76,17 @@ void CrossesPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
   ImGui::End();
   crossesUniform->update(currentFrame, &crossesUBO, sizeof(CrossesUniform));
 
+  ImGui::Begin("Chroma Depth");
+
+  ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
+
+  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 100.0f);
+
+  ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
+
+  ImGui::End();
+  chromaDepthUniform->update(currentFrame, &chromaDepthUBO, sizeof(ChromaDepthUniform));
+
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
 
@@ -151,11 +162,19 @@ void CrossesPipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
+  constexpr VkDescriptorSetLayoutBinding chromaDepthLayout {
+    .binding = 6,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
   constexpr std::array globalBindings {
     lightMetadataLayout,
     lightsLayout,
     cameraLayout,
-    crossesLayout
+    crossesLayout,
+    chromaDepthLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
@@ -188,10 +207,11 @@ void CrossesPipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 4> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
-      crossesUniform->getDescriptorSet(4, descriptorSets[i], i)
+      crossesUniform->getDescriptorSet(4, descriptorSets[i], i),
+      chromaDepthUniform->getDescriptorSet(6, descriptorSets[i], i)
     }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
@@ -212,6 +232,9 @@ void CrossesPipeline::createUniforms()
 
   crossesUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                    sizeof(CrossesUniform));
+
+  chromaDepthUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+                                                       sizeof(ChromaDepthUniform));
 }
 
 void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame)

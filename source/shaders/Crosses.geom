@@ -21,6 +21,7 @@ layout(location = 1) in vec3 gsNormal[];
 
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNormal;
+layout(location = 2) out float fragZ;
 
 void ProduceCrosses(float s, float t);
 
@@ -83,17 +84,23 @@ void ProduceCrosses(float s, float t)
   // Cross size
   vec3 sizeVec = vec3(crosses.size);
 
+  // Eye Space
+  vec4 ECposition = transform.view * transform.model * vec4(v, 1.0);
+  float z = -ECposition.z;
+
   // X-line cross
   vec3 leftX = v - vec3(sizeVec.x, 0.0, 0.0);
   vec3 rightX = v + vec3(sizeVec.x, 0.0, 0.0);
   gl_Position = transform.proj * transform.view * transform.model * vec4(leftX, 1.0);
   fragPos = leftX;
   fragNormal = nv;
+  fragZ = z;
   EmitVertex();
 
   gl_Position = transform.proj * transform.view * transform.model * vec4(rightX, 1.0);
   fragPos = rightX;
   fragNormal = nv;
+  fragZ = z;
   EmitVertex();
   EndPrimitive();
 
@@ -103,11 +110,13 @@ void ProduceCrosses(float s, float t)
   gl_Position = transform.proj * transform.view * transform.model * vec4(downY, 1.0);
   fragPos = downY;
   fragNormal = nv;
+  fragZ = z;
   EmitVertex();
 
   gl_Position = transform.proj * transform.view * transform.model * vec4(upY, 1.0);
   fragPos = upY;
   fragNormal = nv;
+  fragZ = z;
   EmitVertex();
   EndPrimitive();
 
@@ -117,11 +126,13 @@ void ProduceCrosses(float s, float t)
   gl_Position = transform.proj * transform.view * transform.model * vec4(backZ, 1.0);
   fragPos = backZ;
   fragNormal = nv;
+  fragZ = z;
   EmitVertex();
 
   gl_Position = transform.proj * transform.view * transform.model * vec4(forwardZ, 1.0);
   fragPos = forwardZ;
   fragNormal = nv;
+  fragZ = z;
   EmitVertex();
   EndPrimitive();
 }

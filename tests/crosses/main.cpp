@@ -41,6 +41,7 @@ int main()
       gui->dockBottom("Objects");
       gui->dockBottom("Lights");
       gui->dockBottom("Crosses");
+      gui->dockBottom("Chroma Depth");
 
       gui->setBottomDockPercent(0.3);
 

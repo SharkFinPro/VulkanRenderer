@@ -39,6 +39,12 @@ private:
     .shininess = 10.0f
   };
 
+  ChromaDepthUniform chromaDepthUBO {
+    .use = false,
+    .blueDepth = 4.4f,
+    .redDepth = 1.0f,
+  };
+
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
@@ -50,6 +56,8 @@ private:
   std::unique_ptr<UniformBuffer> cameraUniform;
 
   std::unique_ptr<UniformBuffer> crossesUniform;
+
+  std::unique_ptr<UniformBuffer> chromaDepthUniform;
 
   int prevNumLights = 0;
 
