@@ -1,4 +1,4 @@
-#include "SnakePipeline.h"
+#include "CrossesPipeline.h"
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
@@ -11,13 +11,13 @@
 
 constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
 
-SnakePipeline::SnakePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                             const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<RenderPass>& renderPass,
-                             const VkDescriptorPool descriptorPool,
-                             const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool),
-    objectDescriptorSetLayout(objectDescriptorSetLayout)
+CrossesPipeline::CrossesPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                                 const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 const VkDescriptorPool descriptorPool,
+                                 const VkDescriptorSetLayout objectDescriptorSetLayout)
+: GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool),
+  objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
@@ -28,16 +28,22 @@ SnakePipeline::SnakePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
   createPipeline(renderPass->getRenderPass());
 }
 
-SnakePipeline::~SnakePipeline()
+CrossesPipeline::~CrossesPipeline()
 {
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                           const glm::vec3 viewPosition, const glm::mat4& viewMatrix, const VkExtent2D swapChainExtent,
-                           const std::vector<std::shared_ptr<Light>>& lights,
-                           const std::vector<std::shared_ptr<RenderObject>>& objects)
+void CrossesPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
+                             const glm::vec3 viewPosition, const glm::mat4& viewMatrix,
+                             const VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
+                             const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
+  displayGui();
+
+  cameraUBO.position = viewPosition;
+
+  updateUniforms(currentFrame, lights);
+
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   const VkViewport viewport {
@@ -55,25 +61,6 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
     .extent = swapChainExtent
   };
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-  const CameraUniform cameraUBO {
-    .position = viewPosition
-  };
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  updateLightUniforms(lights, currentFrame);
-
-  ImGui::Begin("Snake");
-
-  ImGui::SliderFloat("Wiggle", &snakeUBO.wiggle, -1.0f, 1.0f);
-
-  static float w = 0.0f;
-  w += 0.025f;
-
-  snakeUBO.wiggle = sin(w);
-
-  ImGui::End();
-  snakeUniform->update(currentFrame, &snakeUBO, sizeof(SnakeUniform));
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
@@ -95,20 +82,20 @@ void SnakePipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t 
   }
 }
 
-void SnakePipeline::loadGraphicsShaders()
+void CrossesPipeline::loadGraphicsShaders()
 {
-  createShader("assets/shaders/Snake.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/Snake.geom.spv", VK_SHADER_STAGE_GEOMETRY_BIT);
-  createShader("assets/shaders/Snake.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  createShader("assets/shaders/Crosses.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  createShader("assets/shaders/Crosses.geom.spv", VK_SHADER_STAGE_GEOMETRY_BIT);
+  createShader("assets/shaders/Crosses.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
-void SnakePipeline::loadGraphicsDescriptorSetLayouts()
+void CrossesPipeline::loadGraphicsDescriptorSetLayouts()
 {
   loadDescriptorSetLayout(globalDescriptorSetLayout);
   loadDescriptorSetLayout(objectDescriptorSetLayout);
 }
 
-void SnakePipeline::defineStates()
+void CrossesPipeline::defineStates()
 {
   defineColorBlendState(GraphicsPipelineStates::colorBlendState);
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
@@ -120,7 +107,7 @@ void SnakePipeline::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void SnakePipeline::createGlobalDescriptorSetLayout()
+void CrossesPipeline::createGlobalDescriptorSetLayout()
 {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 2,
@@ -143,18 +130,26 @@ void SnakePipeline::createGlobalDescriptorSetLayout()
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr VkDescriptorSetLayoutBinding snakeLayout {
+  constexpr VkDescriptorSetLayoutBinding crossesLayout {
     .binding = 4,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding chromaDepthLayout {
+    .binding = 6,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
   constexpr std::array globalBindings {
     lightMetadataLayout,
     lightsLayout,
     cameraLayout,
-    snakeLayout
+    crossesLayout,
+    chromaDepthLayout
   };
 
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
@@ -169,7 +164,7 @@ void SnakePipeline::createGlobalDescriptorSetLayout()
   }
 }
 
-void SnakePipeline::createDescriptorSets()
+void CrossesPipeline::createDescriptorSets()
 {
   const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
@@ -187,10 +182,11 @@ void SnakePipeline::createDescriptorSets()
 
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
   {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
+    std::array<VkWriteDescriptorSet, 4> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
-      snakeUniform->getDescriptorSet(4, descriptorSets[i], i)
+      crossesUniform->getDescriptorSet(4, descriptorSets[i], i),
+      chromaDepthUniform->getDescriptorSet(6, descriptorSets[i], i)
     }};
 
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
@@ -198,7 +194,7 @@ void SnakePipeline::createDescriptorSets()
   }
 }
 
-void SnakePipeline::createUniforms()
+void CrossesPipeline::createUniforms()
 {
   lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                          sizeof(LightMetadataUniform));
@@ -209,11 +205,14 @@ void SnakePipeline::createUniforms()
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
                                                   sizeof(CameraUniform));
 
-  snakeUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                 sizeof(SnakeUniform));
+  crossesUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+                                                   sizeof(CrossesUniform));
+
+  chromaDepthUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+                                                       sizeof(ChromaDepthUniform));
 }
 
-void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
+void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame)
 {
   if (lights.empty())
   {
@@ -256,4 +255,40 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+}
+
+void CrossesPipeline::displayGui()
+{
+  ImGui::Begin("Crosses");
+
+  ImGui::SliderInt("Level", &crossesUBO.level, 0, 3);
+
+  ImGui::SliderFloat("Quantize", &crossesUBO.quantize, 2.0f, 50.0f);
+
+  ImGui::SliderFloat("Size", &crossesUBO.size, 0.0001f, 0.1f);
+
+  ImGui::SliderFloat("Shininess", &crossesUBO.shininess, 2.0f, 50.0f);
+
+  ImGui::End();
+
+  ImGui::Begin("Chroma Depth");
+
+  ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
+
+  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 50.0f);
+
+  ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
+
+  ImGui::End();
+}
+
+void CrossesPipeline::updateUniforms(const uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights)
+{
+  updateLightUniforms(lights, currentFrame);
+
+  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  chromaDepthUniform->update(currentFrame, &chromaDepthUBO, sizeof(ChromaDepthUniform));
+
+  crossesUniform->update(currentFrame, &crossesUBO, sizeof(CrossesUniform));
 }

@@ -1,4 +1,5 @@
 add_subdirectory(bumpyCurtain)
+add_subdirectory(crosses)
 add_subdirectory(cube)
 add_subdirectory(cubeMap)
 add_subdirectory(curtain)

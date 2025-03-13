@@ -50,4 +50,18 @@ struct SnakeUniform {
   float wiggle;
 };
 
+struct CrossesUniform {
+  int level;
+  float quantize;
+  float size;
+  float shininess;
+};
+
+struct ChromaDepthUniform {
+  alignas(16) bool use;
+  char padding[3];
+  float blueDepth;
+  float redDepth;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H
