@@ -45,6 +45,10 @@ private:
     .redDepth = 1.0f,
   };
 
+  CameraUniform cameraUBO {
+    .position = glm::vec3(0)
+  };
+
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
 
@@ -76,6 +80,10 @@ private:
   void createUniforms();
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
+
+  void displayGui();
+
+  void updateUniforms(uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights);
 };
 
 

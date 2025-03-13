@@ -38,6 +38,12 @@ void CrossesPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
                              const VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
                              const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
+  displayGui();
+
+  cameraUBO.position = viewPosition;
+
+  updateUniforms(currentFrame, lights);
+
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   const VkViewport viewport {
@@ -55,37 +61,6 @@ void CrossesPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
     .extent = swapChainExtent
   };
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-  const CameraUniform cameraUBO {
-    .position = viewPosition
-  };
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  updateLightUniforms(lights, currentFrame);
-
-  ImGui::Begin("Crosses");
-
-  ImGui::SliderInt("Level", &crossesUBO.level, 0, 3);
-
-  ImGui::SliderFloat("Quantize", &crossesUBO.quantize, 2.0f, 50.0f);
-
-  ImGui::SliderFloat("Size", &crossesUBO.size, 0.0001f, 0.1f);
-
-  ImGui::SliderFloat("Shininess", &crossesUBO.shininess, 2.0f, 50.0f);
-
-  ImGui::End();
-  crossesUniform->update(currentFrame, &crossesUBO, sizeof(CrossesUniform));
-
-  ImGui::Begin("Chroma Depth");
-
-  ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
-
-  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 50.0f);
-
-  ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
-
-  ImGui::End();
-  chromaDepthUniform->update(currentFrame, &chromaDepthUBO, sizeof(ChromaDepthUniform));
 
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[currentFrame], 0, nullptr);
@@ -280,4 +255,40 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+}
+
+void CrossesPipeline::displayGui()
+{
+  ImGui::Begin("Crosses");
+
+  ImGui::SliderInt("Level", &crossesUBO.level, 0, 3);
+
+  ImGui::SliderFloat("Quantize", &crossesUBO.quantize, 2.0f, 50.0f);
+
+  ImGui::SliderFloat("Size", &crossesUBO.size, 0.0001f, 0.1f);
+
+  ImGui::SliderFloat("Shininess", &crossesUBO.shininess, 2.0f, 50.0f);
+
+  ImGui::End();
+
+  ImGui::Begin("Chroma Depth");
+
+  ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
+
+  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 50.0f);
+
+  ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
+
+  ImGui::End();
+}
+
+void CrossesPipeline::updateUniforms(const uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights)
+{
+  updateLightUniforms(lights, currentFrame);
+
+  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  chromaDepthUniform->update(currentFrame, &chromaDepthUBO, sizeof(ChromaDepthUniform));
+
+  crossesUniform->update(currentFrame, &crossesUBO, sizeof(CrossesUniform));
 }
