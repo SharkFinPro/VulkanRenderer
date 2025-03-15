@@ -17,9 +17,7 @@ RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
   : logicalDevice(logicalDevice), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
     texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
     position(0, 0, 0), scale(1, 1, 1), orientation(1, 0, 0, 0),
-    transformUniform(std::make_unique<UniformBuffer>(logicalDevice, physicalDevice,
-                                                     logicalDevice->getMaxFramesInFlight(),
-                                                     sizeof(TransformUniform)))
+    transformUniform(std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(TransformUniform)))
 {
   createDescriptorPool();
   createDescriptorSets();

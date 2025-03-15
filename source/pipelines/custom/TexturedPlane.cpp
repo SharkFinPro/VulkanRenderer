@@ -155,6 +155,5 @@ void TexturedPlane::createDescriptorSets()
 
 void TexturedPlane::createUniforms()
 {
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, logicalDevice->getMaxFramesInFlight(),
-                                                  sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
 }

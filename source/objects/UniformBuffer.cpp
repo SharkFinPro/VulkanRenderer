@@ -5,15 +5,14 @@
 #include <cstring>
 
 UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                             const uint32_t MAX_FRAMES_IN_FLIGHT, const VkDeviceSize bufferSize)
-  : logicalDevice(logicalDevice), MAX_FRAMES_IN_FLIGHT(MAX_FRAMES_IN_FLIGHT)
+                             const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDeviceSize bufferSize)
+  : logicalDevice(logicalDevice)
 {
-  uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-  uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+  uniformBuffers.resize(logicalDevice->getMaxFramesInFlight());
+  uniformBuffersMemory.resize(logicalDevice->getMaxFramesInFlight());
+  uniformBuffersMapped.resize(logicalDevice->getMaxFramesInFlight());
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
     Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
                           VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
@@ -32,11 +31,11 @@ UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice
   }
 
   poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  poolSize.descriptorCount = logicalDevice->getMaxFramesInFlight();
 }
 
 UniformBuffer::~UniformBuffer() {
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
     if (uniformBuffersMapped[i] != VK_NULL_HANDLE)
     {

@@ -120,7 +120,6 @@ void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame)
 void DotsPipeline::createUniforms()
 {
   deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                     ComputePipeline::logicalDevice->getMaxFramesInFlight(),
                                                      sizeof(DeltaTimeUniform));
 }
 
