@@ -503,6 +503,7 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     {
       if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get()))
       {
+        graphicsPipeline->displayGui();
         graphicsPipeline->render(&renderInfo, &objects);
         continue;
       }

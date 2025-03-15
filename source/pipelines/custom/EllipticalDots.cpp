@@ -61,14 +61,6 @@ void EllipticalDots::render(const RenderInfo* renderInfo, const std::vector<std:
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  ImGui::Begin("Elliptical Dots");
-
-  ImGui::SliderFloat("Shininess", &ellipticalDotsUBO.shininess, 1.0f, 25.0f);
-  ImGui::SliderFloat("S Diameter", &ellipticalDotsUBO.sDiameter, 0.001f, 0.5f);
-  ImGui::SliderFloat("T Diameter", &ellipticalDotsUBO.tDiameter, 0.001f, 0.5f);
-  ImGui::SliderFloat("blendFactor", &ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
-
-  ImGui::End();
   ellipticalDotsUniform->update(renderInfo->currentFrame, &ellipticalDotsUBO, sizeof(EllipticalDotsUniform));
 
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
@@ -89,6 +81,18 @@ void EllipticalDots::render(const RenderInfo* renderInfo, const std::vector<std:
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void EllipticalDots::displayGui()
+{
+  ImGui::Begin("Elliptical Dots");
+
+  ImGui::SliderFloat("Shininess", &ellipticalDotsUBO.shininess, 1.0f, 25.0f);
+  ImGui::SliderFloat("S Diameter", &ellipticalDotsUBO.sDiameter, 0.001f, 0.5f);
+  ImGui::SliderFloat("T Diameter", &ellipticalDotsUBO.tDiameter, 0.001f, 0.5f);
+  ImGui::SliderFloat("blendFactor", &ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
+
+  ImGui::End();
 }
 
 void EllipticalDots::loadGraphicsShaders()

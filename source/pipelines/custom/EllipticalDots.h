@@ -25,6 +25,8 @@ public:
 
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
+  void displayGui() override;
+
 private:
   EllipticalDotsUniform ellipticalDotsUBO {
     .shininess = 10.0f,
