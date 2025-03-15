@@ -27,7 +27,8 @@ public:
   ~DotsPipeline() override;
 
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, VkExtent2D swapChainExtent);
+
+  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
 private:
   std::vector<VkBuffer> shaderStorageBuffers;
@@ -59,6 +60,8 @@ private:
   void createDescriptorSetLayouts();
 
   void createDescriptorSets();
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
 };
 
 

@@ -11,8 +11,7 @@ class PhysicalDevice;
 class UniformBuffer {
 public:
   UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                uint32_t MAX_FRAMES_IN_FLIGHT, VkDeviceSize bufferSize);
+                const std::shared_ptr<PhysicalDevice>& physicalDevice, VkDeviceSize bufferSize);
   ~UniformBuffer();
 
   [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
@@ -23,8 +22,6 @@ public:
 
 protected:
   std::shared_ptr<LogicalDevice> logicalDevice;
-
-  uint32_t MAX_FRAMES_IN_FLIGHT;
 
   std::vector<VkBuffer> uniformBuffers;
   std::vector<VkDeviceMemory> uniformBuffersMemory;

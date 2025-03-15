@@ -4,7 +4,6 @@
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 
@@ -24,9 +23,7 @@ public:
 
   ~MagnifyWhirlMosaicPipeline() override;
 
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
-              const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-              const std::vector<std::shared_ptr<RenderObject>>& objects);
+  void displayGui() override;
 
 private:
   MagnifyWhirlMosaicUniform magnifyWhirlMosaicUBO {
@@ -58,6 +55,10 @@ private:
   void createDescriptorSets();
 
   void createUniforms();
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 

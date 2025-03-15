@@ -6,10 +6,47 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <vector>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+class Light;
+class RenderObject;
+
+struct RenderInfo {
+  const VkCommandBuffer& commandBuffer;
+  uint32_t currentFrame;
+  glm::vec3 viewPosition;
+  const glm::mat4& viewMatrix;
+  VkExtent2D extent;
+  const std::vector<std::shared_ptr<Light>>& lights;
+
+  mutable glm::mat4 projectionMatrix;
+  mutable bool shouldCreateProjectionMatrix = true;
+
+  [[nodiscard]] glm::mat4& getProjectionMatrix() const
+  {
+    if (shouldCreateProjectionMatrix)
+    {
+      projectionMatrix = glm::perspective(
+        glm::radians(45.0f),
+        static_cast<float>(extent.width) / static_cast<float>(extent.height),
+        0.1f,
+        1000.0f
+      );
+
+      projectionMatrix[1][1] *= -1;
+    }
+
+    return projectionMatrix;
+  }
+};
 
 class GraphicsPipeline : public Pipeline {
 public:
   GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
+
+  virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects);
 
 protected:
   std::vector<std::unique_ptr<ShaderModule>> shaderModules;
@@ -57,6 +94,10 @@ private:
   std::unique_ptr<VkPipelineViewportStateCreateInfo> viewportState{};
 
   void destroyStates();
+
+  virtual void updateUniformVariables(const RenderInfo* renderInfo) {};
+
+  virtual void bindDescriptorSet(const RenderInfo* renderInfo) {};
 };
 
 

@@ -69,7 +69,7 @@ jobs:
     - name: Prepare Vulkan SDK
       uses: humbletim/install-vulkan-sdk@main
       with:
-        version: 1.3.250.1
+        version: 1.4.309.0
         cache: true
 
     - name: Configure CMake

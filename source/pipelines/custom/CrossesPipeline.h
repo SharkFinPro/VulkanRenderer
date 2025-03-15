@@ -4,7 +4,6 @@
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 
@@ -26,10 +25,7 @@ public:
 
   ~CrossesPipeline() override;
 
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
-              const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-              const std::vector<std::shared_ptr<Light>>& lights,
-              const std::vector<std::shared_ptr<RenderObject>>& objects);
+  void displayGui() override;
 
 private:
   CrossesUniform crossesUBO {
@@ -81,9 +77,9 @@ private:
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 
-  void displayGui();
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
 
-  void updateUniforms(uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights);
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 

@@ -1,7 +1,15 @@
 #include "VulkanEngine.h"
+#include "pipelines/custom/CubeMapPipeline.h"
+#include "pipelines/custom/CurtainPipeline.h"
+#include "pipelines/custom/ObjectsPipeline.h"
+#include "pipelines/custom/EllipticalDots.h"
+#include "pipelines/custom/NoisyEllipticalDots.h"
+#include "pipelines/custom/TexturedPlane.h"
+#include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
+#include "pipelines/custom/SnakePipeline.h"
+#include "pipelines/custom/CrossesPipeline.h"
 #include <stdexcept>
 #include <cstdint>
-#include <backends/imgui_impl_vulkan.h>
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
@@ -175,36 +183,35 @@ void VulkanEngine::initVulkan()
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass,
-                                                      descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                            objectDescriptorSetLayout);
+  pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass,
-                                                                      commandPool, descriptorPool,
-                                                                      objectDescriptorSetLayout);
+  pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
+    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
-  bumpyCurtainPipeline = std::make_unique<BumpyCurtain>(physicalDevice, logicalDevice, renderPass, commandPool,
-                                                        descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
+    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
-  curtainPipeline = std::make_unique<CurtainPipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                      objectDescriptorSetLayout);
+  pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  cubeMapPipeline = std::make_unique<CubeMapPipeline>(physicalDevice, logicalDevice, renderPass, commandPool,
-                                                      descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
+    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
-  texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                          objectDescriptorSetLayout);
+  pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  magnifyWhirlMosaicPipeline = std::make_unique<MagnifyWhirlMosaicPipeline>(physicalDevice, logicalDevice, renderPass,
-                                                                            descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  snakePipeline = std::make_unique<SnakePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                  objectDescriptorSetLayout);
+  pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  crossesPipeline = std::make_unique<CrossesPipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                      objectDescriptorSetLayout);
+  pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -212,8 +219,7 @@ void VulkanEngine::initVulkan()
   if (vulkanEngineOptions.DO_DOTS)
   {
     dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
-                                                  renderPass->getRenderPass(), swapChain->getExtent(),
-                                                  descriptorPool);
+                                                  renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
   }
 
   imGuiInstance = std::make_shared<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
@@ -247,7 +253,7 @@ void VulkanEngine::createCommandPool()
 
 void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
 {
-  commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  commandBuffers.resize(logicalDevice->getMaxFramesInFlight());
 
   const VkCommandBufferAllocateInfo allocInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -325,7 +331,32 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
       renderGraphicsPipelines(cmdBuffer, swapChain->getExtent());
     }
 
-    guiPipeline->render(cmdBuffer, swapChain->getExtent());
+    const RenderInfo renderInfo {
+      .commandBuffer = cmdBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = viewPosition,
+      .viewMatrix = viewMatrix,
+      .extent = swapChain->getExtent(),
+      .lights = lightsToRender
+    };
+
+    const VkViewport viewport = {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(renderInfo.extent.width),
+      .height = static_cast<float>(renderInfo.extent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+
+    const VkRect2D scissor = {
+      .offset = {0, 0},
+      .extent = renderInfo.extent
+    };
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+
+    guiPipeline->render(&renderInfo, nullptr);
 
     RenderPass::end(cmdBuffer);
   });
@@ -386,7 +417,7 @@ void VulkanEngine::doRendering()
     throw std::runtime_error("failed to present swap chain image!");
   }
 
-  currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+  currentFrame = (currentFrame + 1) % logicalDevice->getMaxFramesInFlight();
 }
 
 void VulkanEngine::recreateSwapChain()
@@ -468,69 +499,56 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
 void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, const VkExtent2D extent) const
 {
-  if (renderObjectsToRender.contains(PipelineType::object))
-  {
-    objectsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                          renderObjectsToRender.at(PipelineType::object));
-  }
+  const RenderInfo renderInfo {
+    .commandBuffer = commandBuffer,
+    .currentFrame = currentFrame,
+    .viewPosition = viewPosition,
+    .viewMatrix = viewMatrix,
+    .extent = extent,
+    .lights = lightsToRender
+  };
 
-  if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
-  {
-    ellipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                   renderObjectsToRender.at(PipelineType::ellipticalDots));
-  }
+  const VkViewport viewport = {
+    .x = 0.0f,
+    .y = 0.0f,
+    .width = static_cast<float>(extent.width),
+    .height = static_cast<float>(extent.height),
+    .minDepth = 0.0f,
+    .maxDepth = 1.0f
+  };
+  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-  if (renderObjectsToRender.contains(PipelineType::noisyEllipticalDots))
-  {
-    noisyEllipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                   renderObjectsToRender.at(PipelineType::noisyEllipticalDots));
-  }
+  const VkRect2D scissor = {
+    .offset = {0, 0},
+    .extent = extent
+  };
+  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-  if (renderObjectsToRender.contains(PipelineType::bumpyCurtain))
+  for (const auto& [type, objects] : renderObjectsToRender)
   {
-    bumpyCurtainPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                 renderObjectsToRender.at(PipelineType::bumpyCurtain));
-  }
+    if (objects.empty())
+    {
+      continue;
+    }
 
-  if (renderObjectsToRender.contains(PipelineType::curtain))
-  {
-    curtainPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                   renderObjectsToRender.at(PipelineType::curtain));
-  }
+    if (auto it = pipelines.find(type); it != pipelines.end())
+    {
+      if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get()))
+      {
+        graphicsPipeline->displayGui();
+        graphicsPipeline->render(&renderInfo, &objects);
+        continue;
+      }
 
-  if (renderObjectsToRender.contains(PipelineType::cubeMap))
-  {
-    cubeMapPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
-                            renderObjectsToRender.at(PipelineType::cubeMap));
-  }
+      throw std::runtime_error("Pipeline for object type is not a GraphicsPipeline");
+    }
 
-  if (renderObjectsToRender.contains(PipelineType::texturedPlane))
-  {
-    texturedPlanePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
-                                  renderObjectsToRender.at(PipelineType::texturedPlane));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic))
-  {
-    magnifyWhirlMosaicPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
-                                       renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::snake))
-  {
-    snakePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                          renderObjectsToRender.at(PipelineType::snake));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::crosses))
-  {
-    crossesPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                            renderObjectsToRender.at(PipelineType::crosses));
+    throw std::runtime_error("Pipeline for object type does not exist");
   }
 
   if (vulkanEngineOptions.DO_DOTS)
   {
-    dotsPipeline->render(commandBuffer, currentFrame, extent);
+    dotsPipeline->render(&renderInfo, nullptr);
   }
 }
 
@@ -544,15 +562,15 @@ void VulkanEngine::createNewFrame()
 
 void VulkanEngine::createDescriptorPool()
 {
-  constexpr std::array<VkDescriptorPoolSize, 3> poolSizes {{
-    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 30},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 10},
-    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT * 10}
+  const std::array<VkDescriptorPoolSize, 3> poolSizes {{
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, logicalDevice->getMaxFramesInFlight() * 30},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, logicalDevice->getMaxFramesInFlight() * 10},
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, logicalDevice->getMaxFramesInFlight() * 10}
   }};
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = MAX_FRAMES_IN_FLIGHT * 10,
+    .maxSets = logicalDevice->getMaxFramesInFlight() * 15,
     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
     .pPoolSizes = poolSizes.data()
   };

@@ -10,8 +10,6 @@
 #include <imgui.h>
 #include <stdexcept>
 
-constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
-
 EllipticalDots::EllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
@@ -34,36 +32,8 @@ EllipticalDots::~EllipticalDots()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void EllipticalDots::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                            const glm::vec3 viewPosition, const glm::mat4& viewMatrix, const VkExtent2D swapChainExtent,
-                            const std::vector<std::shared_ptr<Light>>& lights,
-                            const std::vector<std::shared_ptr<RenderObject>>& objects)
+void EllipticalDots::displayGui()
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  const VkViewport viewport {
-    .x = 0.0f,
-    .y = 0.0f,
-    .width = static_cast<float>(swapChainExtent.width),
-    .height = static_cast<float>(swapChainExtent.height),
-    .minDepth = 0.0f,
-    .maxDepth = 1.0f
-  };
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-  const VkRect2D scissor {
-    .offset = {0, 0},
-    .extent = swapChainExtent
-  };
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-  const CameraUniform cameraUBO {
-    .position = viewPosition
-  };
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  updateLightUniforms(lights, currentFrame);
-
   ImGui::Begin("Elliptical Dots");
 
   ImGui::SliderFloat("Shininess", &ellipticalDotsUBO.shininess, 1.0f, 25.0f);
@@ -72,26 +42,6 @@ void EllipticalDots::render(const VkCommandBuffer& commandBuffer, const uint32_t
   ImGui::SliderFloat("blendFactor", &ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
 
   ImGui::End();
-  ellipticalDotsUniform->update(currentFrame, &ellipticalDotsUBO, sizeof(EllipticalDotsUniform));
-
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[currentFrame], 0, nullptr);
-
-  glm::mat4 projectionMatrix = glm::perspective(
-    glm::radians(45.0f),
-    static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
-    0.1f,
-    1000.0f
-  );
-
-  projectionMatrix[1][1] *= -1;
-
-  for (const auto& object : objects)
-  {
-    object->updateUniformBuffer(currentFrame, viewMatrix, projectionMatrix);
-
-    object->draw(commandBuffer, pipelineLayout, currentFrame);
-  }
 }
 
 void EllipticalDots::loadGraphicsShaders()
@@ -169,21 +119,21 @@ void EllipticalDots::createGlobalDescriptorSetLayout()
 
 void EllipticalDots::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, globalDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
   if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
@@ -198,17 +148,13 @@ void EllipticalDots::createDescriptorSets()
 
 void EllipticalDots::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                         sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                  sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                  sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
 
-  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                          sizeof(EllipticalDotsUniform));
+  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(EllipticalDotsUniform));
 }
 
 void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -230,10 +176,9 @@ void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                    lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, lightsUniformBufferSize);
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
       lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
 
@@ -254,4 +199,22 @@ void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+}
+
+void EllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
+{
+  const CameraUniform cameraUBO {
+    .position = renderInfo->viewPosition
+  };
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
+
+  ellipticalDotsUniform->update(renderInfo->currentFrame, &ellipticalDotsUBO, sizeof(EllipticalDotsUniform));
+}
+
+void EllipticalDots::bindDescriptorSet(const RenderInfo *renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

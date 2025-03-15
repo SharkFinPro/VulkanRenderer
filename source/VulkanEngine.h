@@ -1,13 +1,6 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
-#include <functional>
-#include <vector>
-#include <memory>
-#include <unordered_map>
-#include <vulkan/vulkan.h>
-#include <imgui.h>
-
 #include "components/Camera.h"
 #include "components/DebugMessenger.h"
 #include "components/Framebuffer.h"
@@ -20,17 +13,8 @@
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/custom/BumpyCurtain.h"
-#include "pipelines/custom/CubeMapPipeline.h"
-#include "pipelines/custom/CurtainPipeline.h"
-#include "pipelines/custom/ObjectsPipeline.h"
 #include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/DotsPipeline.h"
-#include "pipelines/custom/EllipticalDots.h"
-#include "pipelines/custom/NoisyEllipticalDots.h"
-#include "pipelines/custom/TexturedPlane.h"
-#include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
-#include "pipelines/custom/SnakePipeline.h"
-#include "pipelines/custom/CrossesPipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -39,7 +23,13 @@
 
 #include "VulkanEngineOptions.h"
 
-constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+#include <vulkan/vulkan.h>
+#include <imgui.h>
+
+#include <functional>
+#include <vector>
+#include <memory>
+#include <unordered_map>
 
 enum class PipelineType {
   bumpyCurtain,
@@ -96,18 +86,11 @@ private:
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<RenderPass> offscreenRenderPass;
-  std::unique_ptr<ObjectsPipeline> objectsPipeline;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
-  std::unique_ptr<EllipticalDots> ellipticalDotsPipeline;
-  std::unique_ptr<NoisyEllipticalDots> noisyEllipticalDotsPipeline;
-  std::unique_ptr<CurtainPipeline> curtainPipeline;
-  std::unique_ptr<BumpyCurtain> bumpyCurtainPipeline;
-  std::unique_ptr<CubeMapPipeline> cubeMapPipeline;
-  std::unique_ptr<TexturedPlane> texturedPlanePipeline;
-  std::unique_ptr<MagnifyWhirlMosaicPipeline> magnifyWhirlMosaicPipeline;
-  std::unique_ptr<SnakePipeline> snakePipeline;
-  std::unique_ptr<CrossesPipeline> crossesPipeline;
+
+  std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> pipelines;
+  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
 
   std::shared_ptr<ImGuiInstance> imGuiInstance;
 
@@ -120,9 +103,6 @@ private:
   std::vector<std::shared_ptr<Light>> lights;
 
   std::vector<std::shared_ptr<Light>> lightsToRender;
-
-  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
-
 
   std::shared_ptr<Camera> camera;
 

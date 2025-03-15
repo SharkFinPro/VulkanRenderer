@@ -3,7 +3,6 @@
 
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
-#include <glm/glm.hpp>
 
 class RenderPass;
 class RenderObject;
@@ -21,10 +20,7 @@ public:
 
   ~CurtainPipeline() override;
 
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
-              const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-              const std::vector<std::shared_ptr<Light>>& lights,
-              const std::vector<std::shared_ptr<RenderObject>>& objects);
+  void displayGui() override;
 
 private:
   CurtainUniform curtainUBO {
@@ -61,6 +57,10 @@ private:
   void createUniforms();
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 #endif //CURTAINPIPELINE_H

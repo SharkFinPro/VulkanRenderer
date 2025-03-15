@@ -2,7 +2,6 @@
 #define TEXTUREDPLANE_H
 
 #include "../GraphicsPipeline.h"
-#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 
@@ -20,10 +19,6 @@ public:
                 VkDescriptorSetLayout objectDescriptorSetLayout);
 
   ~TexturedPlane() override;
-
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
-              const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-              const std::vector<std::shared_ptr<RenderObject>>& objects) const;
 
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
@@ -45,6 +40,10 @@ private:
   void createDescriptorSets();
 
   void createUniforms();
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 

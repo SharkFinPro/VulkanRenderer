@@ -9,8 +9,6 @@
 #include <imgui.h>
 #include <stdexcept>
 
-constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
-
 CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
@@ -34,33 +32,8 @@ CubeMapPipeline::~CubeMapPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void CubeMapPipeline::render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
-                             const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-                             const std::vector<std::shared_ptr<RenderObject>>& objects)
+void CubeMapPipeline::displayGui()
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  const VkViewport viewport {
-    .x = 0.0f,
-    .y = 0.0f,
-    .width = static_cast<float>(swapChainExtent.width),
-    .height = static_cast<float>(swapChainExtent.height),
-    .minDepth = 0.0f,
-    .maxDepth = 1.0f
-  };
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-  const VkRect2D scissor {
-    .offset = {0, 0},
-    .extent = swapChainExtent
-  };
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-  const CameraUniform cameraUBO {
-    .position = viewPosition
-  };
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
-
   ImGui::Begin("Cube Map");
 
   ImGui::SliderFloat("Refract | Reflect -> Blend", &cubeMapUBO.mix, 0.0f, 1.0f);
@@ -73,27 +46,6 @@ void CubeMapPipeline::render(const VkCommandBuffer& commandBuffer, uint32_t curr
   ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 0.5f);
 
   ImGui::End();
-  cubeMapUniform->update(currentFrame, &cubeMapUBO, sizeof(CubeMapUniform));
-  noiseOptionsUniform->update(currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
-
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[currentFrame], 0, nullptr);
-
-  glm::mat4 projectionMatrix = glm::perspective(
-    glm::radians(45.0f),
-    static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
-    0.1f,
-    1000.0f
-  );
-
-  projectionMatrix[1][1] *= -1;
-
-  for (const auto& object : objects)
-  {
-    object->updateUniformBuffer(currentFrame, viewMatrix, projectionMatrix);
-
-    object->draw(commandBuffer, pipelineLayout, currentFrame);
-  }
 }
 
 void CubeMapPipeline::loadGraphicsShaders()
@@ -187,21 +139,21 @@ void CubeMapPipeline::createGlobalDescriptorSetLayout()
 
 void CubeMapPipeline::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, globalDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
   if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 6> descriptorWrites{{
       cameraUniform->getDescriptorSet(0, descriptorSets[i], i),
@@ -219,14 +171,11 @@ void CubeMapPipeline::createDescriptorSets()
 
 void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
 {
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                  sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
 
-  cubeMapUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                   sizeof(CubeMapUniform));
+  cubeMapUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CubeMapUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
-                                                        sizeof(NoiseOptionsUniform));
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
 
   noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
 
@@ -241,4 +190,22 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
   reflectUnit = std::make_unique<CubeMapTexture>(logicalDevice, physicalDevice, commandPool, paths);
 
   refractUnit = std::make_unique<CubeMapTexture>(logicalDevice, physicalDevice, commandPool, paths);
+}
+
+void CubeMapPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+{
+  const CameraUniform cameraUBO {
+    .position = renderInfo->viewPosition
+  };
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  cubeMapUniform->update(renderInfo->currentFrame, &cubeMapUBO, sizeof(CubeMapUniform));
+
+  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
+}
+
+void CubeMapPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }
