@@ -9,8 +9,6 @@
 #include <imgui.h>
 #include <stdexcept>
 
-constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
-
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                          const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          const std::shared_ptr<RenderPass>& renderPass,
@@ -193,21 +191,21 @@ void NoisyEllipticalDots::createGlobalDescriptorSetLayout()
 
 void NoisyEllipticalDots::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, globalDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
   if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 5> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
@@ -224,19 +222,22 @@ void NoisyEllipticalDots::createDescriptorSets()
 
 void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice,
+                                                         logicalDevice->getMaxFramesInFlight(),
                                                          sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, logicalDevice->getMaxFramesInFlight(),
                                                   sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, logicalDevice->getMaxFramesInFlight(),
                                                   sizeof(CameraUniform));
 
-  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice,
+                                                          logicalDevice->getMaxFramesInFlight(),
                                                           sizeof(EllipticalDotsUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice,
+                                                        logicalDevice->getMaxFramesInFlight(),
                                                         sizeof(NoiseOptionsUniform));
 
   noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
@@ -262,10 +263,10 @@ void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, MAX_FRAMES_IN_FLIGHT,
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, logicalDevice->getMaxFramesInFlight(),
                                                     lightsUniformBufferSize);
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
       lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
 

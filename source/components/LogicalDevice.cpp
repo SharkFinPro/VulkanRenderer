@@ -13,8 +13,6 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
-constexpr int MAX_FRAMES_IN_FLIGHT = 2; // TODO: link this better
-
 LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
 {
   createDevice(physicalDevice);
@@ -24,7 +22,7 @@ LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevi
 
 LogicalDevice::~LogicalDevice()
 {
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < maxFramesInFlight; i++)
   {
     vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
     vkDestroySemaphore(device, renderFinishedSemaphores2[i], nullptr);
@@ -62,93 +60,6 @@ VkQueue LogicalDevice::getPresentQueue() const
 VkQueue LogicalDevice::getComputeQueue() const
 {
   return computeQueue;
-}
-
-void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
-{
-  auto queueFamilyIndices = physicalDevice->getQueueFamilies();
-
-  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.graphicsFamily.value(),
-                                            queueFamilyIndices.presentFamily.value()};
-
-  float queuePriority = 1.0f;
-  for (uint32_t queueFamily : uniqueQueueFamilies)
-  {
-    const VkDeviceQueueCreateInfo queueCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      .queueFamilyIndex = queueFamily,
-      .queueCount = 1,
-      .pQueuePriorities = &queuePriority
-    };
-
-    queueCreateInfos.push_back(queueCreateInfo);
-  }
-
-  constexpr VkPhysicalDeviceFeatures deviceFeatures {
-    .geometryShader = VK_TRUE,
-    .samplerAnisotropy = VK_TRUE
-  };
-
-  const VkDeviceCreateInfo createInfo {
-    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-    .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
-    .pQueueCreateInfos = queueCreateInfos.data(),
-    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
-    .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
-    .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
-    .ppEnabledExtensionNames = deviceExtensions.data(),
-    .pEnabledFeatures = &deviceFeatures
-  };
-
-  if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create logical device!");
-  }
-
-  vkGetDeviceQueue(device, queueFamilyIndices.computeFamily.value(), 0, &computeQueue);
-  vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);
-  vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
-}
-
-void LogicalDevice::createSyncObjects()
-{
-  imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  imageAvailableSemaphores2.resize(MAX_FRAMES_IN_FLIGHT);
-  renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  renderFinishedSemaphores2.resize(MAX_FRAMES_IN_FLIGHT);
-  computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-  inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-  inFlightFences2.resize(MAX_FRAMES_IN_FLIGHT);
-  computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-  constexpr VkSemaphoreCreateInfo semaphoreInfo {
-    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-  };
-
-  constexpr VkFenceCreateInfo fenceInfo {
-    .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-    .flags = VK_FENCE_CREATE_SIGNALED_BIT
-  };
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores2[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores2[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences2[i]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create graphics sync objects!");
-    }
-
-    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create compute sync objects!");
-    }
-  }
 }
 
 void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
@@ -267,4 +178,96 @@ VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame, const VkSw
 {
   return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
                                imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);
+}
+
+uint32_t LogicalDevice::getMaxFramesInFlight() const
+{
+  return maxFramesInFlight;
+}
+
+void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
+{
+  auto queueFamilyIndices = physicalDevice->getQueueFamilies();
+
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+  std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.graphicsFamily.value(),
+                                            queueFamilyIndices.presentFamily.value()};
+
+  float queuePriority = 1.0f;
+  for (uint32_t queueFamily : uniqueQueueFamilies)
+  {
+    const VkDeviceQueueCreateInfo queueCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .queueFamilyIndex = queueFamily,
+      .queueCount = 1,
+      .pQueuePriorities = &queuePriority
+    };
+
+    queueCreateInfos.push_back(queueCreateInfo);
+  }
+
+  constexpr VkPhysicalDeviceFeatures deviceFeatures {
+    .geometryShader = VK_TRUE,
+    .samplerAnisotropy = VK_TRUE
+  };
+
+  const VkDeviceCreateInfo createInfo {
+    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+    .pQueueCreateInfos = queueCreateInfos.data(),
+    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
+    .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
+    .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+    .ppEnabledExtensionNames = deviceExtensions.data(),
+    .pEnabledFeatures = &deviceFeatures
+  };
+
+  if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create logical device!");
+  }
+
+  vkGetDeviceQueue(device, queueFamilyIndices.computeFamily.value(), 0, &computeQueue);
+  vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);
+  vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
+}
+
+void LogicalDevice::createSyncObjects()
+{
+  imageAvailableSemaphores.resize(maxFramesInFlight);
+  imageAvailableSemaphores2.resize(maxFramesInFlight);
+  renderFinishedSemaphores.resize(maxFramesInFlight);
+  renderFinishedSemaphores2.resize(maxFramesInFlight);
+  computeFinishedSemaphores.resize(maxFramesInFlight);
+  inFlightFences.resize(maxFramesInFlight);
+  inFlightFences2.resize(maxFramesInFlight);
+  computeInFlightFences.resize(maxFramesInFlight);
+
+  constexpr VkSemaphoreCreateInfo semaphoreInfo {
+    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+  };
+
+  constexpr VkFenceCreateInfo fenceInfo {
+    .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+    .flags = VK_FENCE_CREATE_SIGNALED_BIT
+  };
+
+  for (size_t i = 0; i < maxFramesInFlight; i++)
+  {
+    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores2[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores2[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences2[i]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create graphics sync objects!");
+    }
+
+    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create compute sync objects!");
+    }
+  }
 }

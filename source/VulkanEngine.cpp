@@ -253,7 +253,7 @@ void VulkanEngine::createCommandPool()
 
 void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
 {
-  commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  commandBuffers.resize(logicalDevice->getMaxFramesInFlight());
 
   const VkCommandBufferAllocateInfo allocInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -401,7 +401,7 @@ void VulkanEngine::doRendering()
     throw std::runtime_error("failed to present swap chain image!");
   }
 
-  currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+  currentFrame = (currentFrame + 1) % logicalDevice->getMaxFramesInFlight();
 }
 
 void VulkanEngine::recreateSwapChain()
@@ -530,15 +530,15 @@ void VulkanEngine::createNewFrame()
 
 void VulkanEngine::createDescriptorPool()
 {
-  constexpr std::array<VkDescriptorPoolSize, 3> poolSizes {{
-    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT * 30},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT * 10},
-    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT * 10}
+  const std::array<VkDescriptorPoolSize, 3> poolSizes {{
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, logicalDevice->getMaxFramesInFlight() * 30},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, logicalDevice->getMaxFramesInFlight() * 10},
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, logicalDevice->getMaxFramesInFlight() * 10}
   }};
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = MAX_FRAMES_IN_FLIGHT * 10,
+    .maxSets = logicalDevice->getMaxFramesInFlight() * 10,
     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
     .pPoolSizes = poolSizes.data()
   };

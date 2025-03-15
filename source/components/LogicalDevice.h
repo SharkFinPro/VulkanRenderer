@@ -32,6 +32,8 @@ public:
 
   VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const;
 
+  [[nodiscard]] uint32_t getMaxFramesInFlight() const;
+
 private:
   VkDevice device = VK_NULL_HANDLE;
 
@@ -48,6 +50,8 @@ private:
 
   std::vector<VkSemaphore> computeFinishedSemaphores;
   std::vector<VkFence> computeInFlightFences;
+
+  uint8_t maxFramesInFlight = 2;
 
   void createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
 

@@ -10,8 +10,6 @@
 #include <random>
 #include <cstring>
 
-constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
 DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkCommandPool& commandPool,
@@ -36,7 +34,7 @@ DotsPipeline::~DotsPipeline()
 {
   vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout, nullptr);
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
     Buffers::destroyBuffer(ComputePipeline::logicalDevice, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
   }
@@ -122,13 +120,14 @@ void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame)
 void DotsPipeline::createUniforms()
 {
   deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                     MAX_FRAMES_IN_FLIGHT, sizeof(DeltaTimeUniform));
+                                                     ComputePipeline::logicalDevice->getMaxFramesInFlight(),
+                                                     sizeof(DeltaTimeUniform));
 }
 
 void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
 {
-  shaderStorageBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-  shaderStorageBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+  shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
+  shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
@@ -162,7 +161,7 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
   memcpy(data, particles.data(), bufferSize);
   vkUnmapMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory);
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
     Buffers::createBuffer(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, bufferSize,
                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -213,24 +212,24 @@ void DotsPipeline::createDescriptorSetLayouts()
 
 void DotsPipeline::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, computeDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(ComputePipeline::logicalDevice->getMaxFramesInFlight(), computeDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+    .descriptorSetCount = ComputePipeline::logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  computeDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+  computeDescriptorSets.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
   if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo, computeDescriptorSets.data()) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
 
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
     const VkDescriptorBufferInfo storageBufferInfoLastFrame {
-      .buffer = shaderStorageBuffers[(i - 1) % MAX_FRAMES_IN_FLIGHT],
+      .buffer = shaderStorageBuffers[(i - 1) % ComputePipeline::logicalDevice->getMaxFramesInFlight()],
       .offset = 0,
       .range = sizeof(Particle) * PARTICLE_COUNT
     };
