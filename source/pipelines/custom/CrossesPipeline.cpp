@@ -31,25 +31,6 @@ CrossesPipeline::~CrossesPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void CrossesPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
-{
-  cameraUBO.position = renderInfo->viewPosition;
-
-  updateUniforms(renderInfo->currentFrame, renderInfo->lights);
-
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
-
-  for (const auto& object : *objects)
-  {
-    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-    object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
-  }
-}
-
 void CrossesPipeline::displayGui()
 {
   ImGui::Begin("Crosses");
@@ -244,13 +225,21 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
 }
 
-void CrossesPipeline::updateUniforms(const uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights)
+void CrossesPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
-  updateLightUniforms(lights, currentFrame);
+  cameraUBO.position = renderInfo->viewPosition;
 
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
+  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  chromaDepthUniform->update(currentFrame, &chromaDepthUBO, sizeof(ChromaDepthUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
 
-  crossesUniform->update(currentFrame, &crossesUBO, sizeof(CrossesUniform));
+  chromaDepthUniform->update(renderInfo->currentFrame, &chromaDepthUBO, sizeof(ChromaDepthUniform));
+
+  crossesUniform->update(renderInfo->currentFrame, &crossesUBO, sizeof(CrossesUniform));
+}
+
+void CrossesPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

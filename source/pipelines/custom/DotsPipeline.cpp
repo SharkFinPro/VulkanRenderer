@@ -52,9 +52,7 @@ void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t 
 
 void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
 {
-  updateUniformBuffer(renderInfo->currentFrame);
-
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::pipeline);
+  GraphicsPipeline::render(renderInfo, objects);
 
   constexpr VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
@@ -248,4 +246,9 @@ void DotsPipeline::createDescriptorSets()
     vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
                            writeDescriptorSets.data(), 0, nullptr);
   }
+}
+
+void DotsPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+{
+  updateUniformBuffer(renderInfo->currentFrame);
 }

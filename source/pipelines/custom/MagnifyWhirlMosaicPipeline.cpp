@@ -32,29 +32,6 @@ MagnifyWhirlMosaicPipeline::~MagnifyWhirlMosaicPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void MagnifyWhirlMosaicPipeline::render(const RenderInfo* renderInfo,
-                                        const std::vector<std::shared_ptr<RenderObject>>* objects)
-{
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  const CameraUniform cameraUBO {
-    .position = renderInfo->viewPosition
-  };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &magnifyWhirlMosaicUBO, sizeof(MagnifyWhirlMosaicUniform));
-
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
-
-  for (const auto& object : *objects)
-  {
-    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-    object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
-  }
-}
-
 void MagnifyWhirlMosaicPipeline::displayGui()
 {
   ImGui::Begin("Magnify Whirl Mosaic");
@@ -162,4 +139,20 @@ void MagnifyWhirlMosaicPipeline::createUniforms()
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
 
   magnifyWhirlMosaicUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(MagnifyWhirlMosaicUniform));
+}
+
+void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+{
+  const CameraUniform cameraUBO {
+    .position = renderInfo->viewPosition
+  };
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &magnifyWhirlMosaicUBO, sizeof(MagnifyWhirlMosaicUniform));
+}
+
+void MagnifyWhirlMosaicPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

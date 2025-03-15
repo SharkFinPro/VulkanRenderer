@@ -60,6 +60,8 @@ private:
   void createDescriptorSetLayouts();
 
   void createDescriptorSets();
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
 };
 
 

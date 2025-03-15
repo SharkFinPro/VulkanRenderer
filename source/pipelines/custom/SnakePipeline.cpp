@@ -31,30 +31,6 @@ SnakePipeline::~SnakePipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void SnakePipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
-{
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  const CameraUniform cameraUBO {
-    .position = renderInfo->viewPosition
-  };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
-
-  snakeUniform->update(renderInfo->currentFrame, &snakeUBO, sizeof(SnakeUniform));
-
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
-
-  for (const auto& object : *objects)
-  {
-    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-    object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
-  }
-}
-
 void SnakePipeline::displayGui()
 {
   ImGui::Begin("Snake");
@@ -225,4 +201,22 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+}
+
+void SnakePipeline::updateUniformVariables(const RenderInfo *renderInfo)
+{
+  const CameraUniform cameraUBO {
+    .position = renderInfo->viewPosition
+  };
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
+
+  snakeUniform->update(renderInfo->currentFrame, &snakeUBO, sizeof(SnakeUniform));
+}
+
+void SnakePipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

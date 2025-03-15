@@ -570,7 +570,7 @@ void VulkanEngine::createDescriptorPool()
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = logicalDevice->getMaxFramesInFlight() * 10,
+    .maxSets = logicalDevice->getMaxFramesInFlight() * 15,
     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
     .pPoolSizes = poolSizes.data()
   };

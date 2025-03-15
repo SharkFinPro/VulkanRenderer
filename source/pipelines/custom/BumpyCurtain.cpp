@@ -31,32 +31,6 @@ BumpyCurtain::~BumpyCurtain()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void BumpyCurtain::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
-{
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  const CameraUniform cameraUBO {
-    .position = renderInfo->viewPosition
-  };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
-
-  curtainUniform->update(renderInfo->currentFrame, &curtainUBO, sizeof(CurtainUniform));
-
-  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
-
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
-
-  for (const auto& object : *objects)
-  {
-    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-    object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
-  }
-}
-
 void BumpyCurtain::displayGui()
 {
   ImGui::Begin("Bumpy Curtain");
@@ -251,4 +225,24 @@ void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+}
+
+void BumpyCurtain::updateUniformVariables(const RenderInfo* renderInfo)
+{
+  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
+
+  const CameraUniform cameraUBO {
+    .position = renderInfo->viewPosition
+  };
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  curtainUniform->update(renderInfo->currentFrame, &curtainUBO, sizeof(CurtainUniform));
+
+  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
+}
+
+void BumpyCurtain::bindDescriptorSet(const RenderInfo* renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

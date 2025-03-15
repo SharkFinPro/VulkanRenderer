@@ -22,8 +22,6 @@ public:
 
   ~NoisyEllipticalDots() override;
 
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
-
   void displayGui() override;
 
 private:
@@ -69,6 +67,10 @@ private:
   void createUniforms(const VkCommandPool& commandPool);
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 #endif //NOISYELLIPTICALDOTS_H

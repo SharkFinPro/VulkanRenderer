@@ -21,8 +21,6 @@ public:
 
   ~ObjectsPipeline() override;
 
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
-
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
@@ -51,6 +49,10 @@ private:
   void createUniforms();
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 

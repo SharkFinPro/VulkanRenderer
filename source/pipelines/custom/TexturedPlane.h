@@ -20,8 +20,6 @@ public:
 
   ~TexturedPlane() override;
 
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
-
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;
@@ -42,6 +40,10 @@ private:
   void createDescriptorSets();
 
   void createUniforms();
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 

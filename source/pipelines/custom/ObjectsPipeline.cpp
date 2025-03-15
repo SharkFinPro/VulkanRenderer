@@ -33,28 +33,6 @@ ObjectsPipeline::~ObjectsPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void ObjectsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
-{
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  const CameraUniform cameraUBO {
-    .position = renderInfo->viewPosition
-  };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
-
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
-
-  for (const auto& object : *objects)
-  {
-    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-    object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
-  }
-}
-
 void ObjectsPipeline::loadGraphicsShaders()
 {
   createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -199,4 +177,20 @@ void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+}
+
+void ObjectsPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+{
+  const CameraUniform cameraUBO {
+    .position = renderInfo->viewPosition
+  };
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
+}
+
+void ObjectsPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

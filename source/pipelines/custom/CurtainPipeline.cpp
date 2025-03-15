@@ -32,30 +32,6 @@ CurtainPipeline::~CurtainPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void CurtainPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
-{
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  const CameraUniform cameraUBO {
-    .position = renderInfo->viewPosition
-  };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
-
-  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
-
-  curtainUniform->update(renderInfo->currentFrame, &curtainUBO, sizeof(CurtainUniform));
-
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
-
-  for (const auto& object : *objects)
-  {
-    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-    object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
-  }
-}
-
 void CurtainPipeline::displayGui()
 {
   ImGui::Begin("Curtain");
@@ -222,4 +198,22 @@ void CurtainPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+}
+
+void CurtainPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+{
+  const CameraUniform cameraUBO {
+    .position = renderInfo->viewPosition
+  };
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+
+  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
+
+  curtainUniform->update(renderInfo->currentFrame, &curtainUBO, sizeof(CurtainUniform));
+}
+
+void CurtainPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

@@ -46,7 +46,7 @@ class GraphicsPipeline : public Pipeline {
 public:
   GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
 
-  virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) = 0;
+  virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects);
 
 protected:
   std::vector<std::unique_ptr<ShaderModule>> shaderModules;
@@ -94,6 +94,10 @@ private:
   std::unique_ptr<VkPipelineViewportStateCreateInfo> viewportState{};
 
   void destroyStates();
+
+  virtual void updateUniformVariables(const RenderInfo* renderInfo) {};
+
+  virtual void bindDescriptorSet(const RenderInfo* renderInfo) {};
 };
 
 

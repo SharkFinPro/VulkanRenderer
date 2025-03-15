@@ -24,6 +24,8 @@ GuiPipeline::~GuiPipeline()
 
 void GuiPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
 {
+  GraphicsPipeline::render(renderInfo, objects);
+
   vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   ImGui::Render();

@@ -22,8 +22,6 @@ public:
 
   ~CubeMapPipeline() override;
 
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
-
   void displayGui() override;
 
 private:
@@ -63,6 +61,10 @@ private:
   void createDescriptorSets();
 
   void createUniforms(const VkCommandPool& commandPool);
+
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 

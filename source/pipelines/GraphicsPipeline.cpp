@@ -1,12 +1,32 @@
 #include "GraphicsPipeline.h"
 #include "ShaderModule.h"
 #include "../components/LogicalDevice.h"
+#include "../objects/RenderObject.h"
 #include <stdexcept>
 
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                    const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(physicalDevice, logicalDevice)
 {}
+
+void GraphicsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+{
+  updateUniformVariables(renderInfo);
+
+  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+  bindDescriptorSet(renderInfo);
+
+  if (objects)
+  {
+    for (const auto& object : *objects)
+    {
+      object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+
+      object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
+    }
+  }
+}
 
 void GraphicsPipeline::createShader(const char* filename, VkShaderStageFlagBits stage)
 {

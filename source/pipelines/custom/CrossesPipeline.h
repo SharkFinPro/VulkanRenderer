@@ -4,7 +4,6 @@
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 
@@ -25,8 +24,6 @@ public:
                   VkDescriptorSetLayout objectDescriptorSetLayout);
 
   ~CrossesPipeline() override;
-
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
   void displayGui() override;
 
@@ -80,7 +77,9 @@ private:
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 
-  void updateUniforms(uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights);
+  void updateUniformVariables(const RenderInfo *renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo *renderInfo) override;
 };
 
 
