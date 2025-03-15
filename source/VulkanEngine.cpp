@@ -494,13 +494,23 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
 
   for (const auto& [type, objects] : renderObjectsToRender)
   {
-    if (pipelines.contains(type))
+    if (objects.empty())
     {
-      if (const auto graphicsPipeline = dynamic_cast<GraphicsPipeline*>(pipelines.at(type).get()))
+      continue;
+    }
+
+    if (auto it = pipelines.find(type); it != pipelines.end())
+    {
+      if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get()))
       {
         graphicsPipeline->render(&renderInfo, &objects);
+        continue;
       }
+
+      throw std::runtime_error("Pipeline for object type is not a GraphicsPipeline");
     }
+
+    throw std::runtime_error("Pipeline for object type does not exist");
   }
 
   if (vulkanEngineOptions.DO_DOTS)
