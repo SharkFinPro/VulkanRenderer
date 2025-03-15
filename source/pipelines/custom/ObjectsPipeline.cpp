@@ -37,22 +37,6 @@ void ObjectsPipeline::render(const RenderInfo* renderInfo, const std::vector<std
 {
   vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-  const VkViewport viewport {
-    .x = 0.0f,
-    .y = 0.0f,
-    .width = static_cast<float>(renderInfo->extent.width),
-    .height = static_cast<float>(renderInfo->extent.height),
-    .minDepth = 0.0f,
-    .maxDepth = 1.0f
-  };
-  vkCmdSetViewport(renderInfo->commandBuffer, 0, 1, &viewport);
-
-  const VkRect2D scissor {
-    .offset = {0, 0},
-    .extent = renderInfo->extent
-  };
-  vkCmdSetScissor(renderInfo->commandBuffer, 0, 1, &scissor);
-
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
@@ -63,18 +47,9 @@ void ObjectsPipeline::render(const RenderInfo* renderInfo, const std::vector<std
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,1,
                           &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 
-  glm::mat4 projectionMatrix = glm::perspective(
-    glm::radians(45.0f),
-    static_cast<float>(renderInfo->extent.width) / static_cast<float>(renderInfo->extent.height),
-    0.1f,
-    1000.0f
-  );
-
-  projectionMatrix[1][1] *= -1;
-
   for (const auto& object : *objects)
   {
-    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, projectionMatrix);
+    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }

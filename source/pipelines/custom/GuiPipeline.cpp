@@ -26,22 +26,6 @@ void GuiPipeline::render(const RenderInfo* renderInfo, const std::vector<std::sh
 {
   vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-  const VkViewport viewport {
-    .x = 0.0f,
-    .y = 0.0f,
-    .width = static_cast<float>(renderInfo->extent.width),
-    .height = static_cast<float>(renderInfo->extent.height),
-    .minDepth = 0.0f,
-    .maxDepth = 1.0f
-  };
-  vkCmdSetViewport(renderInfo->commandBuffer, 0, 1, &viewport);
-
-  const VkRect2D scissor {
-    .offset = {0, 0},
-    .extent = renderInfo->extent
-  };
-  vkCmdSetScissor(renderInfo->commandBuffer, 0, 1, &scissor);
-
   ImGui::Render();
   ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderInfo->commandBuffer, nullptr);
 }

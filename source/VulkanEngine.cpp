@@ -340,6 +340,22 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
       .lights = lightsToRender
     };
 
+    const VkViewport viewport = {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(renderInfo.extent.width),
+      .height = static_cast<float>(renderInfo.extent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+
+    const VkRect2D scissor = {
+      .offset = {0, 0},
+      .extent = renderInfo.extent
+    };
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+
     guiPipeline->render(&renderInfo, nullptr);
 
     RenderPass::end(cmdBuffer);
@@ -491,6 +507,22 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     .extent = extent,
     .lights = lightsToRender
   };
+
+  const VkViewport viewport = {
+    .x = 0.0f,
+    .y = 0.0f,
+    .width = static_cast<float>(extent.width),
+    .height = static_cast<float>(extent.height),
+    .minDepth = 0.0f,
+    .maxDepth = 1.0f
+  };
+  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+  const VkRect2D scissor = {
+    .offset = {0, 0},
+    .extent = extent
+  };
+  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   for (const auto& [type, objects] : renderObjectsToRender)
   {

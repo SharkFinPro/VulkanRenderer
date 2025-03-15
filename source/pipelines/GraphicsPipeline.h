@@ -8,6 +8,7 @@
 #include <vector>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Light;
 class RenderObject;
@@ -19,6 +20,26 @@ struct RenderInfo {
   const glm::mat4& viewMatrix;
   VkExtent2D extent;
   const std::vector<std::shared_ptr<Light>>& lights;
+
+  mutable glm::mat4 projectionMatrix;
+  mutable bool shouldCreateProjectionMatrix = true;
+
+  [[nodiscard]] glm::mat4& getProjectionMatrix() const
+  {
+    if (shouldCreateProjectionMatrix)
+    {
+      projectionMatrix = glm::perspective(
+        glm::radians(45.0f),
+        static_cast<float>(extent.width) / static_cast<float>(extent.height),
+        0.1f,
+        1000.0f
+      );
+
+      projectionMatrix[1][1] *= -1;
+    }
+
+    return projectionMatrix;
+  }
 };
 
 class GraphicsPipeline : public Pipeline {
