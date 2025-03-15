@@ -1,7 +1,7 @@
 #include "SmokePipeline.h"
 #include "GraphicsPipelineStates.h"
 #include "Uniforms.h"
-#include "../Particle.h"
+#include "../SmokeParticle.h"
 #include "../../components/LogicalDevice.h"
 #include "../../components/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
@@ -63,7 +63,7 @@ void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
 
 void SmokePipeline::loadComputeShaders()
 {
-  ComputePipeline::createShader("assets/shaders/dots.comp.spv");
+  ComputePipeline::createShader("assets/shaders/Smoke.comp.spv");
 }
 
 void SmokePipeline::loadComputeDescriptorSetLayouts()
@@ -71,10 +71,15 @@ void SmokePipeline::loadComputeDescriptorSetLayouts()
   ComputePipeline::loadDescriptorSetLayout(computeDescriptorSetLayout);
 }
 
+void SmokePipeline::loadGraphicsDescriptorSetLayouts()
+{
+  GraphicsPipeline::loadDescriptorSetLayout(computeDescriptorSetLayout);
+}
+
 void SmokePipeline::loadGraphicsShaders()
 {
-  GraphicsPipeline::createShader("assets/shaders/dots.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  GraphicsPipeline::createShader("assets/shaders/dots.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  GraphicsPipeline::createShader("assets/shaders/Smoke.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  GraphicsPipeline::createShader("assets/shaders/Smoke.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 }
 
 void SmokePipeline::defineStates()
@@ -85,7 +90,7 @@ void SmokePipeline::defineStates()
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStatePointList);
   defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::physicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateParticle);
+  defineVertexInputState(GraphicsPipelineStates::vertexInputStateSmokeParticle);
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
@@ -93,6 +98,9 @@ void SmokePipeline::createUniforms()
 {
   deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
                                                        sizeof(DeltaTimeUniform));
+
+  transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
+                                                     sizeof(TransformUniform));
 }
 
 void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
@@ -104,20 +112,20 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
   std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
 
-  std::vector<Particle> particles(numParticles);
+  std::vector<SmokeParticle> particles(numParticles);
   for (auto&[position, velocity, color] : particles)
   {
     const float r = sqrtf(distribution(randomEngine)) * 0.25f;
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta) * static_cast<float>(swapChainExtent.height) / static_cast<float>(swapChainExtent.width);
     const float y = r * std::sin(theta);
-    position = glm::vec2(x * largeDistribution(randomEngine), y * largeDistribution(randomEngine));
-    velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;
+    position = glm::vec3(x * largeDistribution(randomEngine), 0, y * largeDistribution(randomEngine));
+    velocity = glm::normalize(glm::vec3(x, 0.25f, y)) * 0.00025f;
     color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
                                distribution(randomEngine), 1.0f);
   }
 
-  const VkDeviceSize bufferSize = sizeof(Particle) * numParticles;
+  const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
@@ -147,7 +155,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
 
 void SmokePipeline::createDescriptorSetLayouts()
 {
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings {{
+  constexpr std::array<VkDescriptorSetLayoutBinding, 4> layoutBindings {{
     {
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -165,6 +173,12 @@ void SmokePipeline::createDescriptorSetLayouts()
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+    },
+    {
+      .binding = 3,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
     }
   }};
 
@@ -202,16 +216,16 @@ void SmokePipeline::createDescriptorSets()
     const VkDescriptorBufferInfo storageBufferInfoLastFrame {
       .buffer = shaderStorageBuffers[(i - 1) % ComputePipeline::logicalDevice->getMaxFramesInFlight()],
       .offset = 0,
-      .range = sizeof(Particle) * numParticles
+      .range = sizeof(SmokeParticle) * numParticles
     };
 
     const VkDescriptorBufferInfo storageBufferInfoCurrentFrame {
       .buffer = shaderStorageBuffers[i],
       .offset = 0,
-      .range = sizeof(Particle) * numParticles
+      .range = sizeof(SmokeParticle) * numParticles
     };
 
-    std::array<VkWriteDescriptorSet, 3> writeDescriptorSets {{
+    std::array<VkWriteDescriptorSet, 4> writeDescriptorSets {{
       deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[i], i),
       {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -230,7 +244,8 @@ void SmokePipeline::createDescriptorSets()
         .descriptorCount = 1,
         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
         .pBufferInfo = &storageBufferInfoCurrentFrame
-      }
+      },
+      transformUniform->getDescriptorSet(3, computeDescriptorSets[i], i)
     }};
 
     vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
@@ -247,4 +262,25 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
   const DeltaTimeUniform deltaTimeUBO{dotSpeed * dt};
 
   deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
+
+  constexpr glm::vec3 position{0, 0, 0};
+  constexpr glm::vec3 scale{1};
+  constexpr glm::quat orientation{1, 0, 0, 0};
+
+  const TransformUniform transformUBO {
+    .model = glm::translate(glm::mat4(1.0f), position)
+                            * glm::mat4(orientation)
+                            * glm::scale(glm::mat4(1.0f), scale),
+    .view = renderInfo->viewMatrix,
+    .proj = renderInfo->getProjectionMatrix()
+  };
+
+  transformUniform->update(renderInfo->currentFrame, &transformUBO, sizeof(TransformUniform));
+}
+
+void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
+{
+  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        ComputePipeline::pipelineLayout, 0, 1,
+                        &computeDescriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

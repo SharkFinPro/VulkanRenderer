@@ -30,6 +30,8 @@ private:
 
   std::unique_ptr<UniformBuffer> deltaTimeUniform;
 
+  std::unique_ptr<UniformBuffer> transformUniform;
+
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> computeDescriptorSets;
 
@@ -44,6 +46,8 @@ private:
 
   void loadComputeDescriptorSetLayouts() override;
 
+  void loadGraphicsDescriptorSetLayouts() override;
+
   void loadGraphicsShaders() override;
 
   void defineStates() override;
@@ -55,7 +59,9 @@ private:
 
   void createDescriptorSets();
 
-  void updateUniformVariables(const RenderInfo *renderInfo) override;
+  void updateUniformVariables(const RenderInfo* renderInfo) override;
+
+  void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };
 
 

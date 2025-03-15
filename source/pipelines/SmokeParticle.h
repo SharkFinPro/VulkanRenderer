@@ -3,9 +3,10 @@
 
 #include <vulkan/vulkan.h>
 #include <array>
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
-struct Particle {
+struct SmokeParticle {
   glm::vec3 position;
   glm::vec3 velocity;
   glm::vec4 color;

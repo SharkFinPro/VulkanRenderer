@@ -2,6 +2,7 @@
 #define VULKANPROJECT_UNIFORMS_H
 
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 struct LightMetadataUniform {
   alignas(16) int numLights;
@@ -66,6 +67,12 @@ struct ChromaDepthUniform {
 
 struct DeltaTimeUniform {
   float deltaTime = 1.0f;
+};
+
+struct TransformUniform {
+  alignas(16) glm::mat4 model;
+  alignas(16) glm::mat4 view;
+  alignas(16) glm::mat4 proj;
 };
 
 #endif //VULKANPROJECT_UNIFORMS_H

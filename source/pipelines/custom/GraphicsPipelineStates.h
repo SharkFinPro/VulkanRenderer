@@ -3,6 +3,7 @@
 
 #include "../Particle.h"
 #include "../Vertex.h"
+#include "../SmokeParticle.h"
 #include "../../components/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
 #include <array>
@@ -140,6 +141,17 @@ namespace GraphicsPipelineStates {
     .pVertexBindingDescriptions = &particleBindingDescription,
     .vertexAttributeDescriptionCount = static_cast<uint32_t>(particleAttributeDescriptions.size()),
     .pVertexAttributeDescriptions = particleAttributeDescriptions.data()
+  };
+
+  inline VkVertexInputBindingDescription smokeParticleBindingDescription = SmokeParticle::getBindingDescription();
+  inline std::array smokeParticleAttributeDescriptions = SmokeParticle::getAttributeDescriptions();
+
+  inline VkPipelineVertexInputStateCreateInfo vertexInputStateSmokeParticle {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .vertexBindingDescriptionCount = 1,
+    .pVertexBindingDescriptions = &smokeParticleBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(smokeParticleAttributeDescriptions.size()),
+    .pVertexAttributeDescriptions = smokeParticleAttributeDescriptions.data()
   };
 
   inline VkPipelineViewportStateCreateInfo viewportState {
