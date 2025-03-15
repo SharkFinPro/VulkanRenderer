@@ -1,5 +1,6 @@
 #include "DotsPipeline.h"
 #include "GraphicsPipelineStates.h"
+#include "Uniforms.h"
 #include "../Particle.h"
 #include "../../components/LogicalDevice.h"
 #include "../../components/PhysicalDevice.h"
@@ -86,17 +87,6 @@ void DotsPipeline::defineStates()
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateParticle);
   defineViewportState(GraphicsPipelineStates::viewportState);
-}
-
-void DotsPipeline::updateUniformBuffer(const uint32_t currentFrame)
-{
-  const auto currentTime = std::chrono::steady_clock::now();
-  const float dt = std::chrono::duration<float>(currentTime - previousTime).count();
-  previousTime = currentTime;
-
-  const DeltaTimeUniform deltaTimeUBO{dotSpeed * dt};
-
-  deltaTimeUniform->update(currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
 }
 
 void DotsPipeline::createUniforms()
@@ -248,7 +238,13 @@ void DotsPipeline::createDescriptorSets()
   }
 }
 
-void DotsPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+void DotsPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
-  updateUniformBuffer(renderInfo->currentFrame);
+  const auto currentTime = std::chrono::steady_clock::now();
+  const float dt = std::chrono::duration<float>(currentTime - previousTime).count();
+  previousTime = currentTime;
+
+  const DeltaTimeUniform deltaTimeUBO{dotSpeed * dt};
+
+  deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
 }

@@ -64,4 +64,8 @@ struct ChromaDepthUniform {
   float redDepth;
 };
 
+struct DeltaTimeUniform {
+  float deltaTime = 1.0f;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H

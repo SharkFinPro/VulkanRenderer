@@ -148,6 +148,26 @@ std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
   return imGuiInstance;
 }
 
+std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem()
+{
+  auto system = std::make_shared<SmokePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(),
+                                                swapChain->getExtent(), descriptorPool);
+
+  smokeSystems.push_back(system);
+
+  return system;
+}
+
+void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem)
+{
+  auto system = std::ranges::find(smokeSystems, smokeSystem);
+
+  if (system != smokeSystems.end())
+  {
+    smokeSystems.erase(system);
+  }
+}
+
 void VulkanEngine::initVulkan()
 {
   instance = std::make_shared<Instance>();
@@ -296,6 +316,11 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
     if (vulkanEngineOptions.DO_DOTS)
     {
       dotsPipeline->compute(cmdBuffer, imgIndex);
+    }
+
+    for (const auto& system : smokeSystems)
+    {
+      system->compute(cmdBuffer, imgIndex);
     }
   });
 }
@@ -549,6 +574,11 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   if (vulkanEngineOptions.DO_DOTS)
   {
     dotsPipeline->render(&renderInfo, nullptr);
+  }
+
+  for (const auto& system : smokeSystems)
+  {
+    system->render(&renderInfo, nullptr);
   }
 }
 

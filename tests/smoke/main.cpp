@@ -44,6 +44,8 @@ int main()
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
+    const auto smokeSystem = renderer.createSmokeSystem();
+
     while (renderer.isActive())
     {
       gui->dockCenter("SceneView");
@@ -75,6 +77,8 @@ int main()
       // Render Frame
       renderer.render();
     }
+
+    renderer.destroySmokeSystem(smokeSystem);
   }
   catch (const std::exception& e)
   {

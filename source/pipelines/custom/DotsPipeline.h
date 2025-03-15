@@ -9,10 +9,6 @@
 
 class UniformBuffer;
 
-struct DeltaTimeUniform {
-  float deltaTime = 1.0f;
-};
-
 constexpr int PARTICLE_COUNT = 8192;
 
 class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
@@ -51,8 +47,6 @@ private:
   void loadGraphicsShaders() override;
 
   void defineStates() override;
-
-  void updateUniformBuffer(uint32_t currentFrame);
 
   void createUniforms();
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
