@@ -81,6 +81,8 @@ add_library(${PROJECT_NAME}
   pipelines/custom/SnakePipeline.h
   pipelines/custom/CrossesPipeline.cpp
   pipelines/custom/CrossesPipeline.h
+  pipelines/custom/SmokePipeline.cpp
+  pipelines/custom/SmokePipeline.h
 )
 
 # Noise
