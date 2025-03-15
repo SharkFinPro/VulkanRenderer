@@ -219,8 +219,7 @@ void VulkanEngine::initVulkan()
   if (vulkanEngineOptions.DO_DOTS)
   {
     dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
-                                                  renderPass->getRenderPass(), swapChain->getExtent(),
-                                                  descriptorPool);
+                                                  renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
   }
 
   imGuiInstance = std::make_shared<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
