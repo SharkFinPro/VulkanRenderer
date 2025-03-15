@@ -60,16 +60,6 @@ void SnakePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  ImGui::Begin("Snake");
-
-  ImGui::SliderFloat("Wiggle", &snakeUBO.wiggle, -1.0f, 1.0f);
-
-  static float w = 0.0f;
-  w += 0.025f;
-
-  snakeUBO.wiggle = sin(w);
-
-  ImGui::End();
   snakeUniform->update(renderInfo->currentFrame, &snakeUBO, sizeof(SnakeUniform));
 
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
@@ -90,6 +80,20 @@ void SnakePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void SnakePipeline::displayGui()
+{
+  ImGui::Begin("Snake");
+
+  ImGui::SliderFloat("Wiggle", &snakeUBO.wiggle, -1.0f, 1.0f);
+
+  ImGui::End();
+
+  static float w = 0.0f;
+  w += 0.025f;
+
+  snakeUBO.wiggle = sin(w);
 }
 
 void SnakePipeline::loadGraphicsShaders()

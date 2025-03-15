@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_UNIFORMS_H
 #define VULKANPROJECT_UNIFORMS_H
 
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 
 struct LightMetadataUniform {
   alignas(16) int numLights;

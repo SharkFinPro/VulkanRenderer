@@ -59,19 +59,8 @@ void CubeMapPipeline::render(const RenderInfo* renderInfo, const std::vector<std
   };
   cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
 
-  ImGui::Begin("Cube Map");
-
-  ImGui::SliderFloat("Refract | Reflect -> Blend", &cubeMapUBO.mix, 0.0f, 1.0f);
-  ImGui::SliderFloat("Index of Refraction", &cubeMapUBO.refractionIndex, 0.0f, 5.0f);
-  ImGui::SliderFloat("White Mix", &cubeMapUBO.whiteMix, 0.0f, 1.0f);
-
-  ImGui::Separator();
-
-  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 5.0f);
-  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 0.5f);
-
-  ImGui::End();
   cubeMapUniform->update(renderInfo->currentFrame, &cubeMapUBO, sizeof(CubeMapUniform));
+
   noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
 
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
@@ -92,6 +81,22 @@ void CubeMapPipeline::render(const RenderInfo* renderInfo, const std::vector<std
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void CubeMapPipeline::displayGui()
+{
+  ImGui::Begin("Cube Map");
+
+  ImGui::SliderFloat("Refract | Reflect -> Blend", &cubeMapUBO.mix, 0.0f, 1.0f);
+  ImGui::SliderFloat("Index of Refraction", &cubeMapUBO.refractionIndex, 0.0f, 5.0f);
+  ImGui::SliderFloat("White Mix", &cubeMapUBO.whiteMix, 0.0f, 1.0f);
+
+  ImGui::Separator();
+
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 5.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 0.5f);
+
+  ImGui::End();
 }
 
 void CubeMapPipeline::loadGraphicsShaders()

@@ -61,20 +61,8 @@ void NoisyEllipticalDots::render(const RenderInfo* renderInfo, const std::vector
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  ImGui::Begin("Elliptical Dots");
-
-  ImGui::SliderFloat("Shininess", &ellipticalDotsUBO.shininess, 1.0f, 25.0f);
-  ImGui::SliderFloat("S Diameter", &ellipticalDotsUBO.sDiameter, 0.001f, 0.5f);
-  ImGui::SliderFloat("T Diameter", &ellipticalDotsUBO.tDiameter, 0.001f, 0.5f);
-  ImGui::SliderFloat("blendFactor", &ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
-
-  ImGui::Separator();
-
-  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 1.0f);
-  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 10.0f);
-
-  ImGui::End();
   ellipticalDotsUniform->update(renderInfo->currentFrame, &ellipticalDotsUBO, sizeof(EllipticalDotsUniform));
+
   noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
 
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
@@ -95,6 +83,23 @@ void NoisyEllipticalDots::render(const RenderInfo* renderInfo, const std::vector
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void NoisyEllipticalDots::displayGui()
+{
+  ImGui::Begin("Noisy Elliptical Dots");
+
+  ImGui::SliderFloat("Shininess", &ellipticalDotsUBO.shininess, 1.0f, 25.0f);
+  ImGui::SliderFloat("S Diameter", &ellipticalDotsUBO.sDiameter, 0.001f, 0.5f);
+  ImGui::SliderFloat("T Diameter", &ellipticalDotsUBO.tDiameter, 0.001f, 0.5f);
+  ImGui::SliderFloat("blendFactor", &ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
+
+  ImGui::Separator();
+
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 1.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.0f, 10.0f);
+
+  ImGui::End();
 }
 
 void NoisyEllipticalDots::loadGraphicsShaders()

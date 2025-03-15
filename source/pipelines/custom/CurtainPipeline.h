@@ -3,7 +3,6 @@
 
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
-#include <glm/glm.hpp>
 
 class RenderPass;
 class RenderObject;
@@ -22,6 +21,8 @@ public:
   ~CurtainPipeline() override;
 
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+
+  void displayGui() override;
 
 private:
   CurtainUniform curtainUBO {

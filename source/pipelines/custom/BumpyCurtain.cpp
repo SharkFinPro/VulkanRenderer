@@ -60,19 +60,8 @@ void BumpyCurtain::render(const RenderInfo* renderInfo, const std::vector<std::s
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  ImGui::Begin("Curtain");
-
-  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
-  ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
-  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
-
-  ImGui::Separator();
-
-  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 10.0f);
-  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.1f, 10.0f);
-
-  ImGui::End();
   curtainUniform->update(renderInfo->currentFrame, &curtainUBO, sizeof(CurtainUniform));
+
   noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
 
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
@@ -93,6 +82,22 @@ void BumpyCurtain::render(const RenderInfo* renderInfo, const std::vector<std::s
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void BumpyCurtain::displayGui()
+{
+  ImGui::Begin("Bumpy Curtain");
+
+  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
+  ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
+  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
+
+  ImGui::Separator();
+
+  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 10.0f);
+  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.1f, 10.0f);
+
+  ImGui::End();
 }
 
 void BumpyCurtain::loadGraphicsShaders()

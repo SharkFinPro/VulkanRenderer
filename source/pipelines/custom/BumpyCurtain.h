@@ -4,7 +4,6 @@
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
@@ -29,6 +28,8 @@ public:
   ~BumpyCurtain() override;
 
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+
+  void displayGui() override;
 
 private:
   CurtainUniform curtainUBO {

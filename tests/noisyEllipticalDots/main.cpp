@@ -52,7 +52,7 @@ int main()
       gui->dockBottom("Objects");
       gui->dockBottom("Lights");
       gui->dockBottom("Rendering");
-      gui->dockBottom("Elliptical Dots");
+      gui->dockBottom("Noisy Elliptical Dots");
 
       gui->setBottomDockPercent(0.42);
 

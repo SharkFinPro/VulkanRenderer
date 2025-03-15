@@ -2,7 +2,6 @@
 #define VULKANPROJECT_OBJECTSPIPELINE_H
 
 #include "../GraphicsPipeline.h"
-#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 

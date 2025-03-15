@@ -60,19 +60,6 @@ void MagnifyWhirlMosaicPipeline::render(const RenderInfo* renderInfo,
   };
   cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
 
-  ImGui::Begin("Magnify Whirl Mosaic");
-
-  ImGui::SliderFloat("Lens S Center", &magnifyWhirlMosaicUBO.lensS, 0.0f, 1.0f);
-  ImGui::SliderFloat("Lens T Center", &magnifyWhirlMosaicUBO.lensT, 0.0f, 1.0f);
-  ImGui::SliderFloat("Lens Radius", &magnifyWhirlMosaicUBO.lensRadius, 0.01f, 0.75f);
-
-  ImGui::Separator();
-
-  ImGui::SliderFloat("Magnification", &magnifyWhirlMosaicUBO.magnification, 0.1f, 7.5f);
-  ImGui::SliderFloat("Whirl", &magnifyWhirlMosaicUBO.whirl, -30.0f, 30.0f);
-  ImGui::SliderFloat("Mosaic", &magnifyWhirlMosaicUBO.mosaic, 0.001f, 0.1f);
-
-  ImGui::End();
   magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &magnifyWhirlMosaicUBO, sizeof(MagnifyWhirlMosaicUniform));
 
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
@@ -93,6 +80,23 @@ void MagnifyWhirlMosaicPipeline::render(const RenderInfo* renderInfo,
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void MagnifyWhirlMosaicPipeline::displayGui()
+{
+  ImGui::Begin("Magnify Whirl Mosaic");
+
+  ImGui::SliderFloat("Lens S Center", &magnifyWhirlMosaicUBO.lensS, 0.0f, 1.0f);
+  ImGui::SliderFloat("Lens T Center", &magnifyWhirlMosaicUBO.lensT, 0.0f, 1.0f);
+  ImGui::SliderFloat("Lens Radius", &magnifyWhirlMosaicUBO.lensRadius, 0.01f, 0.75f);
+
+  ImGui::Separator();
+
+  ImGui::SliderFloat("Magnification", &magnifyWhirlMosaicUBO.magnification, 0.1f, 7.5f);
+  ImGui::SliderFloat("Whirl", &magnifyWhirlMosaicUBO.whirl, -30.0f, 30.0f);
+  ImGui::SliderFloat("Mosaic", &magnifyWhirlMosaicUBO.mosaic, 0.001f, 0.1f);
+
+  ImGui::End();
 }
 
 void MagnifyWhirlMosaicPipeline::loadGraphicsShaders()

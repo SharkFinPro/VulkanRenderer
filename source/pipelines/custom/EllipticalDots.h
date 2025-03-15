@@ -3,7 +3,6 @@
 
 #include "Uniforms.h"
 #include "../GraphicsPipeline.h"
-#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 

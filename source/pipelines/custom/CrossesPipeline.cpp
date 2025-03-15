@@ -35,8 +35,6 @@ CrossesPipeline::~CrossesPipeline()
 
 void CrossesPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
 {
-  displayGui();
-
   cameraUBO.position = renderInfo->viewPosition;
 
   updateUniforms(renderInfo->currentFrame, renderInfo->lights);
@@ -77,6 +75,31 @@ void CrossesPipeline::render(const RenderInfo* renderInfo, const std::vector<std
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void CrossesPipeline::displayGui()
+{
+  ImGui::Begin("Crosses");
+
+  ImGui::SliderInt("Level", &crossesUBO.level, 0, 3);
+
+  ImGui::SliderFloat("Quantize", &crossesUBO.quantize, 2.0f, 50.0f);
+
+  ImGui::SliderFloat("Size", &crossesUBO.size, 0.0001f, 0.1f);
+
+  ImGui::SliderFloat("Shininess", &crossesUBO.shininess, 2.0f, 50.0f);
+
+  ImGui::End();
+
+  ImGui::Begin("Chroma Depth");
+
+  ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
+
+  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 50.0f);
+
+  ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
+
+  ImGui::End();
 }
 
 void CrossesPipeline::loadGraphicsShaders()
@@ -252,31 +275,6 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
   }
 
   lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
-}
-
-void CrossesPipeline::displayGui()
-{
-  ImGui::Begin("Crosses");
-
-  ImGui::SliderInt("Level", &crossesUBO.level, 0, 3);
-
-  ImGui::SliderFloat("Quantize", &crossesUBO.quantize, 2.0f, 50.0f);
-
-  ImGui::SliderFloat("Size", &crossesUBO.size, 0.0001f, 0.1f);
-
-  ImGui::SliderFloat("Shininess", &crossesUBO.shininess, 2.0f, 50.0f);
-
-  ImGui::End();
-
-  ImGui::Begin("Chroma Depth");
-
-  ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
-
-  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 50.0f);
-
-  ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
-
-  ImGui::End();
 }
 
 void CrossesPipeline::updateUniforms(const uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights)

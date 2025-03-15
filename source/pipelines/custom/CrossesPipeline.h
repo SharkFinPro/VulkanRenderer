@@ -28,6 +28,8 @@ public:
 
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
+  void displayGui() override;
+
 private:
   CrossesUniform crossesUBO {
     .level = 1,
@@ -77,8 +79,6 @@ private:
   void createUniforms();
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
-
-  void displayGui();
 
   void updateUniforms(uint32_t currentFrame, const std::vector<std::shared_ptr<Light>>& lights);
 };

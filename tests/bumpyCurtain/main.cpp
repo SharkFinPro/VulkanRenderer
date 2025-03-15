@@ -51,7 +51,7 @@ int main()
       gui->dockBottom("Objects");
       gui->dockBottom("Lights");
       gui->dockBottom("Rendering");
-      gui->dockBottom("Curtain");
+      gui->dockBottom("Bumpy Curtain");
 
       gui->setBottomDockPercent(0.42);
 

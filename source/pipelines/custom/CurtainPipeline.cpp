@@ -61,13 +61,6 @@ void CurtainPipeline::render(const RenderInfo* renderInfo, const std::vector<std
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  ImGui::Begin("Curtain");
-
-  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
-  ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
-  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
-
-  ImGui::End();
   curtainUniform->update(renderInfo->currentFrame, &curtainUBO, sizeof(CurtainUniform));
 
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
@@ -88,6 +81,17 @@ void CurtainPipeline::render(const RenderInfo* renderInfo, const std::vector<std
 
     object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame);
   }
+}
+
+void CurtainPipeline::displayGui()
+{
+  ImGui::Begin("Curtain");
+
+  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
+  ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
+  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
+
+  ImGui::End();
 }
 
 void CurtainPipeline::loadGraphicsShaders()
