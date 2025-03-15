@@ -27,6 +27,8 @@ public:
               const std::vector<std::shared_ptr<Light>>& lights,
               const std::vector<std::shared_ptr<RenderObject>>& objects);
 
+  void render(RenderInfo& renderInfo, const std::vector<std::shared_ptr<RenderObject>>& objects) override;
+
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> descriptorSets;

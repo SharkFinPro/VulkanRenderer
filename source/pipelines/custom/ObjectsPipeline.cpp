@@ -35,42 +35,39 @@ ObjectsPipeline::~ObjectsPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
-void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                             const glm::vec3 viewPosition, const glm::mat4& viewMatrix,
-                             const VkExtent2D swapChainExtent, const std::vector<std::shared_ptr<Light>>& lights,
-                             const std::vector<std::shared_ptr<RenderObject>>& objects)
+void ObjectsPipeline::render(RenderInfo& renderInfo, const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  vkCmdBindPipeline(renderInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   const VkViewport viewport {
     .x = 0.0f,
     .y = 0.0f,
-    .width = static_cast<float>(swapChainExtent.width),
-    .height = static_cast<float>(swapChainExtent.height),
+    .width = static_cast<float>(renderInfo.extent.width),
+    .height = static_cast<float>(renderInfo.extent.height),
     .minDepth = 0.0f,
     .maxDepth = 1.0f
   };
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+  vkCmdSetViewport(renderInfo.commandBuffer, 0, 1, &viewport);
 
   const VkRect2D scissor {
     .offset = {0, 0},
-    .extent = swapChainExtent
+    .extent = renderInfo.extent
   };
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+  vkCmdSetScissor(renderInfo.commandBuffer, 0, 1, &scissor);
 
   const CameraUniform cameraUBO {
-    .position = viewPosition
+    .position = renderInfo.viewPosition
   };
-  cameraUniform->update(currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo.currentFrame, &cameraUBO, sizeof(CameraUniform));
 
-  updateLightUniforms(lights, currentFrame);
+  updateLightUniforms(renderInfo.lights, renderInfo.currentFrame);
 
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[currentFrame], 0, nullptr);
+  vkCmdBindDescriptorSets(renderInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,1,
+                          &descriptorSets[renderInfo.currentFrame], 0, nullptr);
 
   glm::mat4 projectionMatrix = glm::perspective(
     glm::radians(45.0f),
-    static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height),
+    static_cast<float>(renderInfo.extent.width) / static_cast<float>(renderInfo.extent.height),
     0.1f,
     1000.0f
   );
@@ -79,9 +76,9 @@ void ObjectsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_
 
   for (const auto& object : objects)
   {
-    object->updateUniformBuffer(currentFrame, viewMatrix, projectionMatrix);
+    object->updateUniformBuffer(renderInfo.currentFrame, renderInfo.viewMatrix, projectionMatrix);
 
-    object->draw(commandBuffer, pipelineLayout, currentFrame);
+    object->draw(renderInfo.commandBuffer, pipelineLayout, renderInfo.currentFrame);
   }
 }
 

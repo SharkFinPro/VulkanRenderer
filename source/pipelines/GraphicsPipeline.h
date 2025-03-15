@@ -6,10 +6,26 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <vector>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+
+class Light;
+class RenderObject;
+
+struct RenderInfo {
+  const VkCommandBuffer& commandBuffer;
+  uint32_t currentFrame;
+  glm::vec3 viewPosition;
+  const glm::mat4& viewMatrix;
+  VkExtent2D extent;
+  const std::vector<std::shared_ptr<Light>>& lights;
+};
 
 class GraphicsPipeline : public Pipeline {
 public:
   GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
+
+  virtual void render(RenderInfo& renderInfo, const std::vector<std::shared_ptr<RenderObject>>& objects) {};
 
 protected:
   std::vector<std::unique_ptr<ShaderModule>> shaderModules;

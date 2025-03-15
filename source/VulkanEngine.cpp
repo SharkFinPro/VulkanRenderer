@@ -468,10 +468,18 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
 void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, const VkExtent2D extent) const
 {
+  RenderInfo renderInfo {
+    .commandBuffer = commandBuffer,
+    .currentFrame = currentFrame,
+    .viewPosition = viewPosition,
+    .viewMatrix = viewMatrix,
+    .extent = extent,
+    .lights = lightsToRender
+  };
+
   if (renderObjectsToRender.contains(PipelineType::object))
   {
-    objectsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                          renderObjectsToRender.at(PipelineType::object));
+    objectsPipeline->render(renderInfo, renderObjectsToRender.at(PipelineType::object));
   }
 
   if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
