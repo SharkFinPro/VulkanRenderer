@@ -1,4 +1,13 @@
 #include "VulkanEngine.h"
+#include "pipelines/custom/CubeMapPipeline.h"
+#include "pipelines/custom/CurtainPipeline.h"
+#include "pipelines/custom/ObjectsPipeline.h"
+#include "pipelines/custom/EllipticalDots.h"
+#include "pipelines/custom/NoisyEllipticalDots.h"
+#include "pipelines/custom/TexturedPlane.h"
+#include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
+#include "pipelines/custom/SnakePipeline.h"
+#include "pipelines/custom/CrossesPipeline.h"
 #include <stdexcept>
 #include <cstdint>
 #include <backends/imgui_impl_vulkan.h>
@@ -175,36 +184,35 @@ void VulkanEngine::initVulkan()
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  objectsPipeline = std::make_unique<ObjectsPipeline>(physicalDevice, logicalDevice, renderPass,
-                                                      descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  ellipticalDotsPipeline = std::make_unique<EllipticalDots>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                            objectDescriptorSetLayout);
+  pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  noisyEllipticalDotsPipeline = std::make_unique<NoisyEllipticalDots>(physicalDevice, logicalDevice, renderPass,
-                                                                      commandPool, descriptorPool,
-                                                                      objectDescriptorSetLayout);
+  pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
+    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
-  bumpyCurtainPipeline = std::make_unique<BumpyCurtain>(physicalDevice, logicalDevice, renderPass, commandPool,
-                                                        descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
+    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
-  curtainPipeline = std::make_unique<CurtainPipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                      objectDescriptorSetLayout);
+  pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  cubeMapPipeline = std::make_unique<CubeMapPipeline>(physicalDevice, logicalDevice, renderPass, commandPool,
-                                                      descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
+    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
-  texturedPlanePipeline = std::make_unique<TexturedPlane>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                          objectDescriptorSetLayout);
+  pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  magnifyWhirlMosaicPipeline = std::make_unique<MagnifyWhirlMosaicPipeline>(physicalDevice, logicalDevice, renderPass,
-                                                                            descriptorPool, objectDescriptorSetLayout);
+  pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  snakePipeline = std::make_unique<SnakePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                  objectDescriptorSetLayout);
+  pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  crossesPipeline = std::make_unique<CrossesPipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool,
-                                                      objectDescriptorSetLayout);
+  pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
+    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
@@ -486,54 +494,15 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     .lights = lightsToRender
   };
 
-  if (renderObjectsToRender.contains(PipelineType::object))
+  for (const auto& [type, objects] : renderObjectsToRender)
   {
-    objectsPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::object));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
-  {
-    ellipticalDotsPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::ellipticalDots));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::noisyEllipticalDots))
-  {
-    noisyEllipticalDotsPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::noisyEllipticalDots));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::bumpyCurtain))
-  {
-    bumpyCurtainPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::bumpyCurtain));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::curtain))
-  {
-    curtainPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::curtain));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::cubeMap))
-  {
-    cubeMapPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::cubeMap));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::texturedPlane))
-  {
-    texturedPlanePipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::texturedPlane));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic))
-  {
-    magnifyWhirlMosaicPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::snake))
-  {
-    snakePipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::snake));
-  }
-
-  if (renderObjectsToRender.contains(PipelineType::crosses))
-  {
-    crossesPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::crosses));
+    if (pipelines.contains(type))
+    {
+      if (const auto graphicsPipeline = dynamic_cast<GraphicsPipeline*>(pipelines.at(type).get()))
+      {
+        graphicsPipeline->render(&renderInfo, &objects);
+      }
+    }
   }
 
   if (vulkanEngineOptions.DO_DOTS)
