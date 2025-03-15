@@ -190,8 +190,10 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
   auto queueFamilyIndices = physicalDevice->getQueueFamilies();
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t> uniqueQueueFamilies = {queueFamilyIndices.graphicsFamily.value(),
-                                            queueFamilyIndices.presentFamily.value()};
+  std::set uniqueQueueFamilies = {
+    queueFamilyIndices.graphicsFamily.value(),
+    queueFamilyIndices.presentFamily.value()
+  };
 
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies)
