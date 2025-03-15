@@ -10,7 +10,6 @@
 #include "pipelines/custom/CrossesPipeline.h"
 #include <stdexcept>
 #include <cstdint>
-#include <backends/imgui_impl_vulkan.h>
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
