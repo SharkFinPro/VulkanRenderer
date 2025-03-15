@@ -34,6 +34,12 @@ MagnifyWhirlMosaicPipeline::~MagnifyWhirlMosaicPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
+void MagnifyWhirlMosaicPipeline::render(RenderInfo &renderInfo,
+  const std::vector<std::shared_ptr<RenderObject>> &objects)
+{
+  GraphicsPipeline::render(renderInfo, objects);
+}
+
 void MagnifyWhirlMosaicPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
                                         const glm::vec3 viewPosition, const glm::mat4& viewMatrix,
                                         const VkExtent2D swapChainExtent,

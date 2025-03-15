@@ -21,10 +21,7 @@ public:
 
   ~CurtainPipeline() override;
 
-  void render(const VkCommandBuffer& commandBuffer, uint32_t currentFrame, glm::vec3 viewPosition,
-              const glm::mat4& viewMatrix, VkExtent2D swapChainExtent,
-              const std::vector<std::shared_ptr<Light>>& lights,
-              const std::vector<std::shared_ptr<RenderObject>>& objects);
+  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
 private:
   CurtainUniform curtainUBO {

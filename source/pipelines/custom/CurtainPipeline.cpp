@@ -34,10 +34,15 @@ CurtainPipeline::~CurtainPipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
 }
 
+void CurtainPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+{
+  GraphicsPipeline::render(renderInfo, objects);
+}
+
 void CurtainPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame,
-                            const glm::vec3 viewPosition, const glm::mat4& viewMatrix, const VkExtent2D swapChainExtent,
-                            const std::vector<std::shared_ptr<Light>>& lights,
-                            const std::vector<std::shared_ptr<RenderObject>>& objects)
+                             const glm::vec3 viewPosition, const glm::mat4& viewMatrix, const VkExtent2D swapChainExtent,
+                             const std::vector<std::shared_ptr<Light>>& lights,
+                             const std::vector<std::shared_ptr<RenderObject>>& objects)
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 

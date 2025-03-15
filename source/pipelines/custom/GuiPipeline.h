@@ -16,7 +16,7 @@ public:
 
   ~GuiPipeline() override;
 
-  void render(const VkCommandBuffer& commandBuffer, VkExtent2D swapChainExtent) const;
+  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
   VkDescriptorPool& getPool();
 

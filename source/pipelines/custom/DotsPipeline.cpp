@@ -52,6 +52,11 @@ void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t 
   vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
 }
 
+void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+{
+  GraphicsPipeline::render(renderInfo, objects);
+}
+
 void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent)
 {
   updateUniformBuffer(currentFrame);

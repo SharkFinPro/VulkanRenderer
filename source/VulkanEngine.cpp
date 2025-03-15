@@ -325,7 +325,16 @@ void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBu
       renderGraphicsPipelines(cmdBuffer, swapChain->getExtent());
     }
 
-    guiPipeline->render(cmdBuffer, swapChain->getExtent());
+    const RenderInfo renderInfo {
+      .commandBuffer = cmdBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = viewPosition,
+      .viewMatrix = viewMatrix,
+      .extent = swapChain->getExtent(),
+      .lights = lightsToRender
+    };
+
+    guiPipeline->render(&renderInfo, nullptr);
 
     RenderPass::end(cmdBuffer);
   });
@@ -468,7 +477,7 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
 void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, const VkExtent2D extent) const
 {
-  RenderInfo renderInfo {
+  const RenderInfo renderInfo {
     .commandBuffer = commandBuffer,
     .currentFrame = currentFrame,
     .viewPosition = viewPosition,
@@ -479,66 +488,57 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
 
   if (renderObjectsToRender.contains(PipelineType::object))
   {
-    objectsPipeline->render(renderInfo, renderObjectsToRender.at(PipelineType::object));
+    objectsPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::object));
   }
 
   if (renderObjectsToRender.contains(PipelineType::ellipticalDots))
   {
-    ellipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                   renderObjectsToRender.at(PipelineType::ellipticalDots));
+    ellipticalDotsPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::ellipticalDots));
   }
 
   if (renderObjectsToRender.contains(PipelineType::noisyEllipticalDots))
   {
-    noisyEllipticalDotsPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                   renderObjectsToRender.at(PipelineType::noisyEllipticalDots));
+    noisyEllipticalDotsPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::noisyEllipticalDots));
   }
 
   if (renderObjectsToRender.contains(PipelineType::bumpyCurtain))
   {
-    bumpyCurtainPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                 renderObjectsToRender.at(PipelineType::bumpyCurtain));
+    bumpyCurtainPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::bumpyCurtain));
   }
 
   if (renderObjectsToRender.contains(PipelineType::curtain))
   {
-    curtainPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                                   renderObjectsToRender.at(PipelineType::curtain));
+    curtainPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::curtain));
   }
 
   if (renderObjectsToRender.contains(PipelineType::cubeMap))
   {
-    cubeMapPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
-                            renderObjectsToRender.at(PipelineType::cubeMap));
+    cubeMapPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::cubeMap));
   }
 
   if (renderObjectsToRender.contains(PipelineType::texturedPlane))
   {
-    texturedPlanePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
-                                  renderObjectsToRender.at(PipelineType::texturedPlane));
+    texturedPlanePipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::texturedPlane));
   }
 
   if (renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic))
   {
-    magnifyWhirlMosaicPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent,
-                                       renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
+    magnifyWhirlMosaicPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic));
   }
 
   if (renderObjectsToRender.contains(PipelineType::snake))
   {
-    snakePipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                          renderObjectsToRender.at(PipelineType::snake));
+    snakePipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::snake));
   }
 
   if (renderObjectsToRender.contains(PipelineType::crosses))
   {
-    crossesPipeline->render(commandBuffer, currentFrame, viewPosition, viewMatrix, extent, lightsToRender,
-                            renderObjectsToRender.at(PipelineType::crosses));
+    crossesPipeline->render(&renderInfo, &renderObjectsToRender.at(PipelineType::crosses));
   }
 
   if (vulkanEngineOptions.DO_DOTS)
   {
-    dotsPipeline->render(commandBuffer, currentFrame, extent);
+    dotsPipeline->render(&renderInfo, nullptr);
   }
 }
 

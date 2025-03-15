@@ -25,7 +25,7 @@ class GraphicsPipeline : public Pipeline {
 public:
   GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
 
-  virtual void render(RenderInfo& renderInfo, const std::vector<std::shared_ptr<RenderObject>>& objects) {};
+  virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) = 0;
 
 protected:
   std::vector<std::unique_ptr<ShaderModule>> shaderModules;
