@@ -27,31 +27,26 @@ GuiPipeline::~GuiPipeline()
 
 void GuiPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
 {
-  GraphicsPipeline::render(renderInfo, objects);
-}
-
-void GuiPipeline::render(const VkCommandBuffer& commandBuffer, const VkExtent2D swapChainExtent) const
-{
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   const VkViewport viewport {
     .x = 0.0f,
     .y = 0.0f,
-    .width = static_cast<float>(swapChainExtent.width),
-    .height = static_cast<float>(swapChainExtent.height),
+    .width = static_cast<float>(renderInfo->extent.width),
+    .height = static_cast<float>(renderInfo->extent.height),
     .minDepth = 0.0f,
     .maxDepth = 1.0f
   };
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+  vkCmdSetViewport(renderInfo->commandBuffer, 0, 1, &viewport);
 
   const VkRect2D scissor {
     .offset = {0, 0},
-    .extent = swapChainExtent
+    .extent = renderInfo->extent
   };
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+  vkCmdSetScissor(renderInfo->commandBuffer, 0, 1, &scissor);
 
   ImGui::Render();
-  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer, nullptr);
+  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderInfo->commandBuffer, nullptr);
 }
 
 void GuiPipeline::loadGraphicsShaders()

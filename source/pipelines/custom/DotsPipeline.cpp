@@ -54,35 +54,30 @@ void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t 
 
 void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
 {
-  GraphicsPipeline::render(renderInfo, objects);
-}
+  updateUniformBuffer(renderInfo->currentFrame);
 
-void DotsPipeline::render(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame, const VkExtent2D swapChainExtent)
-{
-  updateUniformBuffer(currentFrame);
-
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::pipeline);
+  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::pipeline);
 
   const VkViewport viewport {
     .x = 0.0f,
     .y = 0.0f,
-    .width = static_cast<float>(swapChainExtent.width),
-    .height = static_cast<float>(swapChainExtent.height),
+    .width = static_cast<float>(renderInfo->extent.width),
+    .height = static_cast<float>(renderInfo->extent.height),
     .minDepth = 0.0f,
     .maxDepth = 1.0f
   };
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+  vkCmdSetViewport(renderInfo->commandBuffer, 0, 1, &viewport);
 
   const VkRect2D scissor {
     .offset = {0, 0},
-    .extent = swapChainExtent
+    .extent = renderInfo->extent
   };
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+  vkCmdSetScissor(renderInfo->commandBuffer, 0, 1, &scissor);
 
   constexpr VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
+  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
 
-  vkCmdDraw(commandBuffer, PARTICLE_COUNT, 1, 0, 0);
+  vkCmdDraw(renderInfo->commandBuffer, PARTICLE_COUNT, 1, 0, 0);
 }
 
 void DotsPipeline::loadComputeShaders()
