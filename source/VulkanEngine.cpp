@@ -164,6 +164,7 @@ void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smok
 
   if (system != smokeSystems.end())
   {
+    logicalDevice->waitIdle();
     smokeSystems.erase(system);
   }
 }

@@ -8,14 +8,16 @@
 
 struct SmokeParticle {
   glm::vec3 position;
+  float padding1;
   glm::vec3 velocity;
+  float padding2;
   glm::vec4 color;
 
   static constexpr VkVertexInputBindingDescription getBindingDescription()
   {
     return {
       .binding = 0,
-      .stride = sizeof(Particle),
+      .stride = sizeof(SmokeParticle),
       .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
     };
   }
@@ -26,14 +28,14 @@ struct SmokeParticle {
       {
         .location = 0,
         .binding = 0,
-        .format = VK_FORMAT_R32G32_SFLOAT,
-        .offset = offsetof(Particle, position)
+        .format = VK_FORMAT_R32G32B32_SFLOAT,
+        .offset = offsetof(SmokeParticle, position)
       },
       {
         .location = 1,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-        .offset = offsetof(Particle, color)
+        .offset = offsetof(SmokeParticle, color)
       }
     }};
   }

@@ -29,11 +29,11 @@ void main()
   particlesOut[index].position = particleIn.position + particleIn.velocity * ubo.deltaTime;
   particlesOut[index].velocity = particleIn.velocity;
 
-  // Flip movement at window border
-  if ((particlesOut[index].position.x <= -1.0) || (particlesOut[index].position.x >= 1.0)) {
-    particlesOut[index].velocity.x = -particlesOut[index].velocity.x;
-  }
-  if ((particlesOut[index].position.y <= -1.0) || (particlesOut[index].position.y >= 1.0)) {
-    particlesOut[index].velocity.y = -particlesOut[index].velocity.y;
-  }
+//  // Flip movement at window border
+//  if ((particlesOut[index].position.x <= -1.0) || (particlesOut[index].position.x >= 1.0)) {
+//    particlesOut[index].velocity.x = -particlesOut[index].velocity.x;
+//  }
+//  if ((particlesOut[index].position.y <= -1.0) || (particlesOut[index].position.y >= 1.0)) {
+//    particlesOut[index].velocity.y = -particlesOut[index].velocity.y;
+//  }
 }

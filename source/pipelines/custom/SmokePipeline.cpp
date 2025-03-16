@@ -18,10 +18,10 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
                              const VkExtent2D& swapChainExtent,
                              const VkDescriptorPool descriptorPool)
   : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
-    descriptorPool(descriptorPool), dotSpeed(1000.0f), previousTime(std::chrono::steady_clock::now())
+    descriptorPool(descriptorPool), dotSpeed(0.25f), previousTime(std::chrono::steady_clock::now())
 {
   createUniforms();
-  createShaderStorageBuffers(commandPool, swapChainExtent);
+  createShaderStorageBuffers(commandPool);
 
   createDescriptorSetLayouts();
 
@@ -103,7 +103,7 @@ void SmokePipeline::createUniforms()
                                                      sizeof(TransformUniform));
 }
 
-void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
+void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 {
   shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
   shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
@@ -113,16 +113,16 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
   std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
-  for (auto&[position, velocity, color] : particles)
+  for (auto&[position, _1, velocity, _2, color] : particles)
   {
-    const float r = sqrtf(distribution(randomEngine)) * 0.25f;
+    const float r = sqrtf(distribution(randomEngine)) * 1.25f;
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
-    const float x = r * std::cos(theta) * static_cast<float>(swapChainExtent.height) / static_cast<float>(swapChainExtent.width);
-    const float y = r * std::sin(theta);
-    position = glm::vec3(x * largeDistribution(randomEngine), 0, y * largeDistribution(randomEngine));
-    velocity = glm::normalize(glm::vec3(x, 0.25f, y)) * 0.00025f;
+    const float x = r * std::cos(theta);
+    const float z = r * std::sin(theta);
+    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine));
+    velocity = glm::vec3(0, distribution(randomEngine) + 0.025f, 0);
     color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
-                               distribution(randomEngine), 1.0f);
+                      distribution(randomEngine), 1.0f);
   }
 
   const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;

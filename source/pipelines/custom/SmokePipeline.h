@@ -53,7 +53,7 @@ private:
   void defineStates() override;
 
   void createUniforms();
-  void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
+  void createShaderStorageBuffers(const VkCommandPool& commandPool);
 
   void createDescriptorSetLayouts();
 
