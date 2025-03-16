@@ -133,7 +133,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
   std::vector<SmokeParticle> particles(numParticles);
 
   float currentTTL = 0;
-  const float ttlSpan = 8.0f / static_cast<float>(numParticles);
+  const float ttlSpan = 8.0f / static_cast<float>(numParticles) * 1.5f;
 
   for (auto&[position, ttl, velocity, _p1, color, initialPosition, _p2, initialVelocity, _p3] : particles)
   {
@@ -150,7 +150,14 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
     ttl = currentTTL;
 
-    currentTTL -= ttlSpan;
+    if (currentTTL < 4.0f)
+    {
+      currentTTL -= ttlSpan * 4.0f;
+    }
+    else
+    {
+      currentTTL -= ttlSpan;
+    }
   }
 
   const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;
