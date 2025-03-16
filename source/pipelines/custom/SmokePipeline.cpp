@@ -85,11 +85,11 @@ void SmokePipeline::loadGraphicsShaders()
 void SmokePipeline::defineStates()
 {
   defineColorBlendState(GraphicsPipelineStates::colorBlendStateDots);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilStateNone);
+  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStatePointList);
   defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::physicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
+  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateSmokeParticle);
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
@@ -124,7 +124,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta);
     const float z = r * std::sin(theta);
-    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine));
+    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine)) + glm::vec3(0, -4.25, 0);
     velocity = glm::vec3(0, smallDistribution(randomEngine), 0);
     color = glm::vec4(distribution(randomEngine));
 
