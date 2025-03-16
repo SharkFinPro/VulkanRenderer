@@ -24,8 +24,8 @@ layout(std140, binding = 2) buffer ParticleSSBOOut {
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 const float TTL = 8.0;
-const float SPREAD_FACTOR = 0.3; // Controls how quickly particles spread
-const float MAX_SPREAD_DISTANCE = 7.0; // Maximum spread distance
+const float SPREAD_FACTOR = 0.3;
+const float MAX_SPREAD_DISTANCE = 7.0;
 
 vec3 applyWind(vec3 position, float time)
 {
