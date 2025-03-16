@@ -110,19 +110,31 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+  std::uniform_real_distribution<float> smallDistribution(0.9f, 1.1f);
   std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
-  for (auto&[position, _1, velocity, _2, color] : particles)
+
+  float currentTTL = 0;
+  const float ttlSpan = 5.0f / static_cast<float>(numParticles);
+
+  for (auto&[position, ttl, velocity, _p1, color, initialPosition, _p2, initialVelocity, _p3] : particles)
   {
-    const float r = sqrtf(distribution(randomEngine)) * 1.25f;
+    const float r = sqrtf(distribution(randomEngine)) * 0.75f;
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta);
     const float z = r * std::sin(theta);
     position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine));
-    velocity = glm::vec3(0, distribution(randomEngine) + 0.025f, 0);
+    velocity = glm::vec3(0, smallDistribution(randomEngine), 0);
     color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
                       distribution(randomEngine), 1.0f);
+
+    initialPosition = position;
+    initialVelocity = velocity;
+
+    ttl = currentTTL;
+
+    currentTTL -= ttlSpan;
   }
 
   const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;

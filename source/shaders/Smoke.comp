@@ -2,8 +2,11 @@
 
 struct Particle {
   vec3 position;
+  float ttl;
   vec3 velocity;
   vec4 color;
+  vec3 initialPosition;
+  vec3 initialVelocity;
 };
 
 layout (binding = 0) uniform ParameterUBO {
@@ -24,10 +27,26 @@ void main()
 {
   uint index = gl_GlobalInvocationID.x;
 
-  Particle particleIn = particlesIn[index];
+  Particle particle = particlesIn[index];
 
-  particlesOut[index].position = particleIn.position + particleIn.velocity * ubo.deltaTime;
-  particlesOut[index].velocity = particleIn.velocity;
+  particlesOut[index].ttl = particle.ttl += ubo.deltaTime;
+
+  if (particle.ttl > 5)
+  {
+    particlesOut[index].position = particle.initialPosition;
+    particlesOut[index].velocity = particle.initialVelocity;
+    particlesOut[index].ttl = 0;
+  }
+  else if (particle.ttl > 0)
+  {
+    particlesOut[index].position = particle.position + particle.velocity * ubo.deltaTime;
+    particlesOut[index].velocity = particle.velocity;
+    particlesOut[index].color = vec4(particle.color.xyz, (5.0 - particle.ttl) / 5.0);
+  }
+  else
+  {
+    particlesOut[index].color = vec4(particle.color.xyz, 0);
+  }
 
 //  // Flip movement at window border
 //  if ((particlesOut[index].position.x <= -1.0) || (particlesOut[index].position.x >= 1.0)) {

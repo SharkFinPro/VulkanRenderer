@@ -8,10 +8,14 @@
 
 struct SmokeParticle {
   glm::vec3 position;
-  float padding1;
+  float ttl;
   glm::vec3 velocity;
-  float padding2;
+  float padding;
   glm::vec4 color;
+  glm::vec3 initialPosition;
+  float padding2;
+  glm::vec3 initialVelocity;
+  float padding3;
 
   static constexpr VkVertexInputBindingDescription getBindingDescription()
   {
