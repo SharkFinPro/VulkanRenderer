@@ -18,7 +18,7 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
                              const VkExtent2D& swapChainExtent,
                              const VkDescriptorPool descriptorPool)
   : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
-    descriptorPool(descriptorPool), dotSpeed(0.25f), previousTime(std::chrono::steady_clock::now())
+    descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now())
 {
   createUniforms();
   createShaderStorageBuffers(commandPool);
@@ -110,13 +110,14 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-  std::uniform_real_distribution<float> smallDistribution(0.9f, 1.1f);
+  std::uniform_real_distribution<float> velocityDistribution(0.75f, 2.5f);
+  std::uniform_real_distribution<float> velocityDistributionXZ(-0.25f, 0.25f);
   std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
 
   float currentTTL = 0;
-  const float ttlSpan = 5.0f / static_cast<float>(numParticles);
+  const float ttlSpan = 8.0f / static_cast<float>(numParticles);
 
   for (auto&[position, ttl, velocity, _p1, color, initialPosition, _p2, initialVelocity, _p3] : particles)
   {
@@ -124,8 +125,8 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta);
     const float z = r * std::sin(theta);
-    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine)) + glm::vec3(0, -4.25, 0);
-    velocity = glm::vec3(0, smallDistribution(randomEngine), 0);
+    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine));
+    velocity = glm::vec3(velocityDistributionXZ(randomEngine), velocityDistribution(randomEngine), velocityDistributionXZ(randomEngine));
     color = glm::vec4(distribution(randomEngine));
 
     initialPosition = position;
@@ -266,6 +267,12 @@ void SmokePipeline::createDescriptorSets()
 
 void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
+  if (!ran)
+  {
+    previousTime = std::chrono::steady_clock::now();
+    ran = true;
+  }
+
   const auto currentTime = std::chrono::steady_clock::now();
   const float dt = std::chrono::duration<float>(currentTime - previousTime).count();
   previousTime = currentTime;
@@ -292,6 +299,6 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                        ComputePipeline::pipelineLayout, 0, 1,
-                        &computeDescriptorSets[renderInfo->currentFrame], 0, nullptr);
+                          ComputePipeline::pipelineLayout, 0, 1,
+                          &computeDescriptorSets[renderInfo->currentFrame], 0, nullptr);
 }

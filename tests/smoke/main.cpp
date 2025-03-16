@@ -16,7 +16,7 @@ int main()
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Smoke",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
+      .CAMERA_POSITION = { 0.0f, 5.0f, -15.0f },
       .DO_DOTS = false
     };
 
@@ -30,19 +30,19 @@ int main()
     const auto model = renderer.loadModel("assets/models/square.glb");
 
     const auto object = renderer.loadRenderObject(texture, specularMap, model);
-    object->setPosition({ 0, -5, 0 });
+    object->setPosition({ 0, 0, 0 });
 
     std::vector<std::shared_ptr<Light>> lights;
 
-    lights.push_back(renderer.createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
+    lights.push_back(renderer.createLight({0, 1.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.createLight({5.0f, 1.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.createLight({-5.0f, 1.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.createLight({5.0f, 1.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.createLight({-5.0f, 1.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
     const auto smokeSystem = renderer.createSmokeSystem();
 

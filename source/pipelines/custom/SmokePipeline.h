@@ -40,7 +40,9 @@ private:
   float dotSpeed;
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 
-  uint32_t numParticles = 8192 * 4;
+  uint32_t numParticles = 8192 * 500;
+
+  bool ran = false;
 
   void loadComputeShaders() override;
 
