@@ -23,7 +23,10 @@ void main()
   vec2 coord = gl_PointCoord - vec2(0.5);
   float r = length(coord);
 
-  float baseMask = smoothstep(0.5, 0.35, r);
+  if (r > 0.5)
+  {
+    discard;
+  }
 
   vec2 noiseCoord = gl_PointCoord * 2.0;
   float noise = noise2D(noiseCoord);
@@ -31,7 +34,7 @@ void main()
 
   float swirl = noise2D(vec2(r * 4.0, atan(coord.y, coord.x) * 2.0));
 
-  float finalMask = baseMask * (0.7 + 0.3 * noise) * (0.8 + 0.2 * swirl);
+  float finalMask = (0.7 + 0.3 * noise) * (0.8 + 0.2 * swirl);
   finalMask *= 0.9 + 0.1 * secondNoise;
 
   outColor = vec4(fragColor.rgb, finalMask * fragColor.a);
