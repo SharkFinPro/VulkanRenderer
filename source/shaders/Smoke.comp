@@ -63,7 +63,8 @@ vec3 calcSpreadForce(Particle particle)
   vec3 spreadForce = spreadDirection * spreadStrength;
 
   float distFromOrigin = length(particle.position);
-  if (distFromOrigin > smoke.maxSpreadDistance) {
+  if (distFromOrigin > smoke.maxSpreadDistance)
+  {
     spreadForce -= normalize(particle.position) * 0.05 * (distFromOrigin - smoke.maxSpreadDistance);
   }
 
