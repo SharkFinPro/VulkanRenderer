@@ -97,7 +97,7 @@ void SmokePipeline::loadGraphicsShaders()
 
 void SmokePipeline::defineStates()
 {
-  defineColorBlendState(GraphicsPipelineStates::colorBlendStateDots);
+  defineColorBlendState(GraphicsPipelineStates::colorBlendStateSmoke);
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStatePointList);

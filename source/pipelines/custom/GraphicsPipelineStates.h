@@ -46,6 +46,27 @@ namespace GraphicsPipelineStates {
     .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
   };
 
+  inline VkPipelineColorBlendAttachmentState colorBlendAttachmentSmoke {
+    .blendEnable = VK_TRUE,
+    .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
+    .colorBlendOp = VK_BLEND_OP_ADD,
+    .srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+    .alphaBlendOp = VK_BLEND_OP_ADD,
+    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+  };
+
+  inline VkPipelineColorBlendStateCreateInfo colorBlendStateSmoke {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+    .logicOpEnable = VK_FALSE,
+    .logicOp = VK_LOGIC_OP_COPY,
+    .attachmentCount = 1,
+    .pAttachments = &colorBlendAttachmentSmoke,
+    .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
+  };
+
   inline VkPipelineDepthStencilStateCreateInfo depthStencilState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
     .depthTestEnable = VK_TRUE,
