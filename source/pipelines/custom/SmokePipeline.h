@@ -40,7 +40,7 @@ private:
   float dotSpeed;
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 
-  uint32_t numParticles = 8192 * 500;
+  uint32_t numParticles = 5'000'000;
 
   bool ran = false;
 
