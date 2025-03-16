@@ -6,6 +6,7 @@
 #include "../../components/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
+#include <imgui.h>
 #include <cmath>
 #include <stdexcept>
 #include <random>
@@ -15,7 +16,6 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const VkCommandPool& commandPool,
                              const VkRenderPass& renderPass,
-                             const VkExtent2D& swapChainExtent,
                              const VkDescriptorPool descriptorPool)
   : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
     descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now())
@@ -59,6 +59,13 @@ void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
   vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
 
   vkCmdDraw(renderInfo->commandBuffer, numParticles, 1, 0, 0);
+}
+
+void SmokePipeline::displayGui()
+{
+  ImGui::Begin("Smoke");
+
+  ImGui::End();
 }
 
 void SmokePipeline::loadComputeShaders()

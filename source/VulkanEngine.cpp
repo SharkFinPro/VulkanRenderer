@@ -151,7 +151,7 @@ std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
 std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem()
 {
   auto system = std::make_shared<SmokePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(),
-                                                swapChain->getExtent(), descriptorPool);
+                                                descriptorPool);
 
   smokeSystems.push_back(system);
 
@@ -579,6 +579,7 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
 
   for (const auto& system : smokeSystems)
   {
+    system->displayGui();
     system->render(&renderInfo, nullptr);
   }
 }

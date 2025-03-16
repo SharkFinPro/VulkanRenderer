@@ -15,7 +15,6 @@ public:
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const VkCommandPool& commandPool,
                 const VkRenderPass& renderPass,
-                const VkExtent2D& swapChainExtent,
                 VkDescriptorPool descriptorPool);
 
   ~SmokePipeline() override;
@@ -23,6 +22,8 @@ public:
   void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
 
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+
+  void displayGui() override;
 
 private:
   std::vector<VkBuffer> shaderStorageBuffers;
