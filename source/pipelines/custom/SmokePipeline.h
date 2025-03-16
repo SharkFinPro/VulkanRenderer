@@ -1,6 +1,7 @@
 #ifndef SMOKEPIPELINE_H
 #define SMOKEPIPELINE_H
 
+#include "Uniforms.h"
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
@@ -26,12 +27,18 @@ public:
   void displayGui() override;
 
 private:
+  SmokeUniform smokeUBO {
+    .spreadFactor = 0.3f,
+    .maxSpreadDistance = 7.0f,
+    .windStrength = 0.4f
+  };
+
   std::vector<VkBuffer> shaderStorageBuffers;
   std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
 
   std::unique_ptr<UniformBuffer> deltaTimeUniform;
-
   std::unique_ptr<UniformBuffer> transformUniform;
+  std::unique_ptr<UniformBuffer> smokeUniform;
 
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> computeDescriptorSets;

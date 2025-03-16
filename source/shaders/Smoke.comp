@@ -9,9 +9,15 @@ struct Particle {
   vec3 initialVelocity;
 };
 
-layout (binding = 0) uniform ParameterUBO {
+layout(binding = 0) uniform ParameterUBO {
   float deltaTime;
 } ubo;
+
+layout(set = 0, binding = 4) uniform Smoke {
+  float spreadFactor;
+  float maxSpreadDistance;
+  float windStrength;
+} smoke;
 
 layout(std140, binding = 1) readonly buffer ParticleSSBOIn {
   Particle particlesIn[ ];
@@ -24,18 +30,15 @@ layout(std140, binding = 2) buffer ParticleSSBOOut {
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 const float TTL = 8.0;
-const float SPREAD_FACTOR = 0.3;
-const float MAX_SPREAD_DISTANCE = 7.0;
 
 vec3 applyWind(vec3 position, float time)
 {
-  float windStrength = 0.4;
   vec3 windDir = vec3(sin(time * 0.1), 0.0, cos(time * 0.3));
 
   float turbulence = sin(position.y * 0.5 + time) * 0.15 +
   cos(position.x * 0.3 + time * 0.7) * 0.1;
 
-  return windDir * windStrength + vec3(turbulence, 0.0, turbulence);
+  return windDir * smoke.windStrength + vec3(turbulence, 0.0, turbulence);
 }
 
 vec3 generateSpreadDirection(vec3 position, float ttl)
@@ -53,15 +56,15 @@ vec3 generateSpreadDirection(vec3 position, float ttl)
 vec3 calcSpreadForce(Particle particle)
 {
   float normalizedTime = particle.ttl / TTL; // Value from 0 to 1
-  float spreadStrength = min(SPREAD_FACTOR * log(1 + 20 * normalizedTime), 0.5);
+  float spreadStrength = min(smoke.spreadFactor * log(1 + 20 * normalizedTime), 0.5);
 
   vec3 spreadDirection = generateSpreadDirection(particle.position, particle.ttl);
 
   vec3 spreadForce = spreadDirection * spreadStrength;
 
   float distFromOrigin = length(particle.position);
-  if (distFromOrigin > MAX_SPREAD_DISTANCE) {
-    spreadForce -= normalize(particle.position) * 0.05 * (distFromOrigin - MAX_SPREAD_DISTANCE);
+  if (distFromOrigin > smoke.maxSpreadDistance) {
+    spreadForce -= normalize(particle.position) * 0.05 * (distFromOrigin - smoke.maxSpreadDistance);
   }
 
   return spreadForce;

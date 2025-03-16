@@ -41,7 +41,7 @@ SmokePipeline::~SmokePipeline()
   }
 }
 
-void SmokePipeline::compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const
+void SmokePipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
 {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -64,6 +64,12 @@ void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
 void SmokePipeline::displayGui()
 {
   ImGui::Begin("Smoke");
+
+  ImGui::SliderFloat("Spread Factor", &smokeUBO.spreadFactor, 0.0f, 3.0f);
+
+  ImGui::SliderFloat("Max Spread Distance", &smokeUBO.maxSpreadDistance, 0.0f, 20.0f);
+
+  ImGui::SliderFloat("Wind Strength", &smokeUBO.windStrength, 0.0f, 3.0f);
 
   ImGui::End();
 }
@@ -108,6 +114,9 @@ void SmokePipeline::createUniforms()
 
   transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
                                                      sizeof(TransformUniform));
+
+  smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
+                                                 sizeof(SmokeUniform));
 }
 
 void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
@@ -174,7 +183,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
 void SmokePipeline::createDescriptorSetLayouts()
 {
-  constexpr std::array<VkDescriptorSetLayoutBinding, 4> layoutBindings {{
+  constexpr std::array<VkDescriptorSetLayoutBinding, 5> layoutBindings {{
     {
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -198,6 +207,12 @@ void SmokePipeline::createDescriptorSetLayouts()
       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    },
+    {
+      .binding = 4,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
     }
   }};
 
@@ -244,7 +259,7 @@ void SmokePipeline::createDescriptorSets()
       .range = sizeof(SmokeParticle) * numParticles
     };
 
-    std::array<VkWriteDescriptorSet, 4> writeDescriptorSets {{
+    std::array<VkWriteDescriptorSet, 5> writeDescriptorSets {{
       deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[i], i),
       {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -264,7 +279,8 @@ void SmokePipeline::createDescriptorSets()
         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
         .pBufferInfo = &storageBufferInfoCurrentFrame
       },
-      transformUniform->getDescriptorSet(3, computeDescriptorSets[i], i)
+      transformUniform->getDescriptorSet(3, computeDescriptorSets[i], i),
+      smokeUniform->getDescriptorSet(4, computeDescriptorSets[i], i)
     }};
 
     vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
@@ -301,6 +317,8 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
   };
 
   transformUniform->update(renderInfo->currentFrame, &transformUBO, sizeof(TransformUniform));
+
+  smokeUniform->update(renderInfo->currentFrame, &smokeUBO, sizeof(SmokeUniform));
 }
 
 void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)

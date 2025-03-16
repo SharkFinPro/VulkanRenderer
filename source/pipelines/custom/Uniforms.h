@@ -75,4 +75,10 @@ struct TransformUniform {
   alignas(16) glm::mat4 proj;
 };
 
+struct SmokeUniform {
+  float spreadFactor;
+  float maxSpreadDistance;
+  float windStrength;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H
