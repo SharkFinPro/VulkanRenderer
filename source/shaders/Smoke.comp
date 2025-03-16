@@ -77,26 +77,35 @@ void main()
 
   Particle particle = particlesIn[index];
 
-  particlesOut[index].ttl = particle.ttl += ubo.deltaTime;
+  particle.ttl += ubo.deltaTime;
+
+  particlesOut[index].ttl = particle.ttl;
 
   if (particle.ttl > TTL)
   {
-    particlesOut[index].position = particle.initialPosition;
-    particlesOut[index].velocity = particle.initialVelocity;
-    particlesOut[index].ttl = 0;
+    particle.position = particle.initialPosition;
+    particle.velocity = particle.initialVelocity;
+    particle.ttl = TTL - particle.ttl;
+
+    particlesOut[index] = particle;
+
+    return;
   }
-  else if (particle.ttl > 0)
+
+  if (particle.ttl > 0.0)
   {
     vec3 wind = applyWind(particle.position, particle.ttl);
 
     vec3 spreadForce = calcSpreadForce(particle);
 
-    particlesOut[index].velocity = particle.velocity + (wind + spreadForce) * ubo.deltaTime;
-    particlesOut[index].position = particle.position + particlesOut[index].velocity * ubo.deltaTime;
-    particlesOut[index].color = vec4(particle.color.xyz, (TTL - particle.ttl) / TTL);
+    particle.velocity += (wind + spreadForce) * ubo.deltaTime;
+    particle.position += particle.velocity * ubo.deltaTime;
+    particle.color.a = (TTL - particle.ttl) / TTL;
   }
   else
   {
-    particlesOut[index].color = vec4(particle.color.xyz, 0);
+    particle.color.a = 0.0;
   }
+
+  particlesOut[index] = particle;
 }
