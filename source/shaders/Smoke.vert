@@ -14,7 +14,7 @@ layout(location = 1) out vec4 fragColor;
 
 void main()
 {
-  gl_PointSize = 14.0;
+  gl_PointSize = 7.0;
 
   fragPos = vec3(transform.model * vec4(inPosition, 1.0));
   gl_Position = transform.proj * transform.view * transform.model * vec4(inPosition, 1.0);

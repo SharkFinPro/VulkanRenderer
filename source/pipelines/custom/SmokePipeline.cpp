@@ -120,14 +120,13 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
   for (auto&[position, ttl, velocity, _p1, color, initialPosition, _p2, initialVelocity, _p3] : particles)
   {
-    const float r = sqrtf(distribution(randomEngine)) * 0.75f;
+    const float r = sqrtf(distribution(randomEngine)) * 0.25f;
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta);
     const float z = r * std::sin(theta);
     position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine));
     velocity = glm::vec3(0, smallDistribution(randomEngine), 0);
-    color = glm::vec4(distribution(randomEngine), distribution(randomEngine),
-                      distribution(randomEngine), 1.0f);
+    color = glm::vec4(distribution(randomEngine));
 
     initialPosition = position;
     initialVelocity = velocity;
