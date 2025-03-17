@@ -7,6 +7,11 @@
 
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
+void createLights(VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights);
+void createSmokeSystems(VulkanEngine& renderer);
+void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui);
+void displayGui(const std::shared_ptr<ImGuiInstance>& gui, const std::vector<std::shared_ptr<Light>>& lights,
+                const std::shared_ptr<RenderObject>& object);
 
 int main()
 {
@@ -33,45 +38,14 @@ int main()
     object->setPosition({ 0, 0, 0 });
 
     std::vector<std::shared_ptr<Light>> lights;
+    createLights(renderer, lights);
 
-    lights.push_back(renderer.createLight({0, 1.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({5.0f, 1.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({-5.0f, 1.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({5.0f, 1.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.createLight({-5.0f, 1.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
-
-    renderer.createSmokeSystem({0, 0.95f, 0});
-    renderer.createSmokeSystem({-5, 0.95f, -5});
-    renderer.createSmokeSystem({-5, 0.95f, 5});
-    renderer.createSmokeSystem({5, .95f, 5});
-    renderer.createSmokeSystem({5, 0.95f, -5});
+    createSmokeSystems(renderer);
 
     while (renderer.isActive())
     {
-      gui->dockCenter("SceneView");
-      gui->dockBottom("Objects");
-      gui->dockBottom("Lights");
-      gui->dockBottom("Smoke");
+      displayGui(gui, lights, object);
 
-      gui->setBottomDockPercent(0.3);
-
-      // Render GUI
-      ImGui::Begin("Objects");
-      displayObjectGui(object, 0);
-      ImGui::End();
-
-      ImGui::Begin("Lights");
-      for (int i = 0; i < lights.size(); i++)
-      {
-        displayLightGui(lights[i], i);
-      }
-      ImGui::End();
-
-      // Render Objects
       renderer.renderObject(object, PipelineType::object);
 
       for (const auto& light : lights)
@@ -79,7 +53,6 @@ int main()
         renderer.renderLight(light);
       }
 
-      // Render Frame
       renderer.render();
     }
   }
@@ -135,4 +108,54 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
+}
+
+void createLights(VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights)
+{
+  lights.push_back(renderer.createLight({0, 1.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({5.0f, 1.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({-5.0f, 1.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({5.0f, 1.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
+
+  lights.push_back(renderer.createLight({-5.0f, 1.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+}
+
+void createSmokeSystems(VulkanEngine &renderer)
+{
+  renderer.createSmokeSystem({0, 0.95f, 0});
+  renderer.createSmokeSystem({-5, 0.95f, -5});
+  renderer.createSmokeSystem({-5, 0.95f, 5});
+  renderer.createSmokeSystem({5, .95f, 5});
+  renderer.createSmokeSystem({5, 0.95f, -5});
+}
+
+void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui)
+{
+  gui->dockCenter("SceneView");
+  gui->dockBottom("Objects");
+  gui->dockBottom("Lights");
+  gui->dockBottom("Smoke");
+
+  gui->setBottomDockPercent(0.3);
+}
+
+void displayGui(const std::shared_ptr<ImGuiInstance>& gui, const std::vector<std::shared_ptr<Light>>& lights,
+                const std::shared_ptr<RenderObject>& object)
+{
+  setDockOptions(gui);
+
+  // Render GUI
+  ImGui::Begin("Objects");
+  displayObjectGui(object, 0);
+  ImGui::End();
+
+  ImGui::Begin("Lights");
+  for (int i = 0; i < lights.size(); i++)
+  {
+    displayLightGui(lights[i], i);
+  }
+  ImGui::End();
 }
