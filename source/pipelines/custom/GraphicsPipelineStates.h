@@ -49,7 +49,7 @@ namespace GraphicsPipelineStates {
   inline VkPipelineColorBlendAttachmentState colorBlendAttachmentSmoke {
     .blendEnable = VK_TRUE,
     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
+    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .colorBlendOp = VK_BLEND_OP_ADD,
     .srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
