@@ -67,6 +67,8 @@ void SmokePipeline::displayGui()
 {
   ImGui::Begin("Smoke");
 
+  ImGui::SliderFloat("Speed", &dotSpeed, 0.001f, 10.0f);
+
   ImGui::SliderFloat("Spread Factor", &smokeUBO.spreadFactor, 0.0f, 3.0f);
 
   ImGui::SliderFloat("Max Spread Distance", &smokeUBO.maxSpreadDistance, 0.0f, 20.0f);
