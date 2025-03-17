@@ -9,7 +9,8 @@ layout(set = 0, binding = 3) uniform Transform {
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec4 inColor;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) out vec3 fragPos;
+layout(location = 1) out vec4 fragColor;
 
 void main()
 {
@@ -22,4 +23,5 @@ void main()
   gl_Position = transform.proj * viewPos;
 
   fragColor = inColor;
+  fragPos = vec3(transform.model * vec4(inPosition, 1.0));
 }

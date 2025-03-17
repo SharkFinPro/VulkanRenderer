@@ -41,6 +41,12 @@ private:
   std::unique_ptr<UniformBuffer> transformUniform;
   std::unique_ptr<UniformBuffer> smokeUniform;
 
+  std::unique_ptr<UniformBuffer> lightMetadataUniform;
+  std::unique_ptr<UniformBuffer> lightsUniform;
+
+  int prevNumLights = 0;
+  size_t lightsUniformBufferSize = 0;
+
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> computeDescriptorSets;
 
@@ -73,6 +79,8 @@ private:
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
+
+  void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 };
 
 

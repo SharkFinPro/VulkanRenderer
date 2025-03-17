@@ -5,6 +5,7 @@
 #include "../../components/LogicalDevice.h"
 #include "../../components/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
+#include "../../objects/Light.h"
 #include "../../utilities/Buffers.h"
 #include <imgui.h>
 #include <cmath>
@@ -118,6 +119,10 @@ void SmokePipeline::createUniforms()
 
   smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
                                                  sizeof(SmokeUniform));
+
+  lightMetadataUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, sizeof(LightMetadataUniform));
+
+  lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, sizeof(LightUniform));
 }
 
 void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const glm::vec3 systemPosition)
@@ -191,36 +196,48 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
 
 void SmokePipeline::createDescriptorSetLayouts()
 {
-  constexpr std::array<VkDescriptorSetLayoutBinding, 5> layoutBindings {{
-    {
+  constexpr std::array<VkDescriptorSetLayoutBinding, 7> layoutBindings {{
+    { // DT
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
     },
-    {
+    { // Last Frame SB
       .binding = 1,
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
     },
-    {
+    { // Current Frame SB
       .binding = 2,
       .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
     },
-    {
+    { // Transform
       .binding = 3,
       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
     },
-    {
+    { // Smoke
       .binding = 4,
       .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
       .descriptorCount = 1,
       .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+    },
+    { // Light Metadata
+      .binding = 5,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    },
+    { // Lights
+      .binding = 6,
+      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
     }
   }};
 
@@ -267,7 +284,7 @@ void SmokePipeline::createDescriptorSets()
       .range = sizeof(SmokeParticle) * numParticles
     };
 
-    std::array<VkWriteDescriptorSet, 5> writeDescriptorSets {{
+    std::array<VkWriteDescriptorSet, 6> writeDescriptorSets {{
       deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[i], i),
       {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -288,7 +305,8 @@ void SmokePipeline::createDescriptorSets()
         .pBufferInfo = &storageBufferInfoCurrentFrame
       },
       transformUniform->getDescriptorSet(3, computeDescriptorSets[i], i),
-      smokeUniform->getDescriptorSet(4, computeDescriptorSets[i], i)
+      smokeUniform->getDescriptorSet(4, computeDescriptorSets[i], i),
+      lightMetadataUniform->getDescriptorSet(5, computeDescriptorSets[i], i)
     }};
 
     vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
@@ -327,6 +345,8 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
   transformUniform->update(renderInfo->currentFrame, &transformUBO, sizeof(TransformUniform));
 
   smokeUniform->update(renderInfo->currentFrame, &smokeUBO, sizeof(SmokeUniform));
+
+  updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 }
 
 void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
@@ -334,4 +354,48 @@ void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                           ComputePipeline::pipelineLayout, 0, 1,
                           &computeDescriptorSets[renderInfo->currentFrame], 0, nullptr);
+}
+
+void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame)
+{
+  if (lights.empty())
+  {
+    return;
+  }
+
+  if (prevNumLights != lights.size())
+  {
+    ComputePipeline::logicalDevice->waitIdle();
+
+    const LightMetadataUniform lightMetadataUBO {
+      .numLights = static_cast<int>(lights.size())
+    };
+
+    lightsUniform.reset();
+
+    lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
+
+    lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, lightsUniformBufferSize);
+
+    for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+    {
+      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+
+      auto descriptorSet = lightsUniform->getDescriptorSet(6, computeDescriptorSets[i], i);
+      descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+      vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
+    }
+
+    prevNumLights = static_cast<int>(lights.size());
+  }
+
+  std::vector<LightUniform> lightUniforms;
+  lightUniforms.resize(lights.size());
+  for (int i = 0; i < lights.size(); i++)
+  {
+    lightUniforms[i] = lights[i]->getUniform();
+  }
+
+  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
 }
