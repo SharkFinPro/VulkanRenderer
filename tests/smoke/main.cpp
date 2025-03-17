@@ -44,11 +44,11 @@ int main()
 
     lights.push_back(renderer.createLight({-5.0f, 1.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
-    const auto smokeSystem = renderer.createSmokeSystem({0, 0, 0});
-    renderer.createSmokeSystem({-5, 0, -5});
-    renderer.createSmokeSystem({-5, 0, 5});
-    renderer.createSmokeSystem({5, 0, 5});
-    renderer.createSmokeSystem({5, 0, -5});
+    renderer.createSmokeSystem({0, 0.95f, 0});
+    renderer.createSmokeSystem({-5, 0.95f, -5});
+    renderer.createSmokeSystem({-5, 0.95f, 5});
+    renderer.createSmokeSystem({5, .95f, 5});
+    renderer.createSmokeSystem({5, 0.95f, -5});
 
     while (renderer.isActive())
     {
@@ -82,8 +82,6 @@ int main()
       // Render Frame
       renderer.render();
     }
-
-    renderer.destroySmokeSystem(smokeSystem);
   }
   catch (const std::exception& e)
   {
