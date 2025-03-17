@@ -135,7 +135,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
   std::uniform_real_distribution<float> velocityDistribution(0.75f, 2.5f);
   std::uniform_real_distribution<float> velocityDistributionXZ(-0.25f, 0.25f);
   std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
-  std::uniform_real_distribution<float> colorDistribution(0.8f, 1.0f);
+  std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
 
