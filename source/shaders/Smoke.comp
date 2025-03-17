@@ -100,7 +100,7 @@ void main()
 
     particle.velocity += (wind + spreadForce) * ubo.deltaTime;
     particle.position += particle.velocity * ubo.deltaTime;
-    particle.color.a = (TTL - particle.ttl) / TTL;
+    particle.color.a = sqrt((TTL - particle.ttl) / TTL);
   }
   else
   {
