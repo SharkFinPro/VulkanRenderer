@@ -148,10 +148,10 @@ std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
   return imGuiInstance;
 }
 
-std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem()
+std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 position)
 {
   auto system = std::make_shared<SmokePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(),
-                                                descriptorPool);
+                                                descriptorPool, position);
 
   smokeSystems.push_back(system);
 
@@ -602,7 +602,7 @@ void VulkanEngine::createDescriptorPool()
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = logicalDevice->getMaxFramesInFlight() * 15,
+    .maxSets = logicalDevice->getMaxFramesInFlight() * 20,
     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
     .pPoolSizes = poolSizes.data()
   };

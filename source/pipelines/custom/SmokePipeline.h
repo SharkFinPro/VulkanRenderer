@@ -16,7 +16,8 @@ public:
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const VkCommandPool& commandPool,
                 const VkRenderPass& renderPass,
-                VkDescriptorPool descriptorPool);
+                VkDescriptorPool descriptorPool,
+                glm::vec3 position);
 
   ~SmokePipeline() override;
 
@@ -63,7 +64,7 @@ private:
   void defineStates() override;
 
   void createUniforms();
-  void createShaderStorageBuffers(const VkCommandPool& commandPool);
+  void createShaderStorageBuffers(const VkCommandPool& commandPool, glm::vec3 systemPosition);
 
   void createDescriptorSetLayouts();
 

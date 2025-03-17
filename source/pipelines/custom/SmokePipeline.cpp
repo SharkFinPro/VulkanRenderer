@@ -16,12 +16,13 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const VkCommandPool& commandPool,
                              const VkRenderPass& renderPass,
-                             const VkDescriptorPool descriptorPool)
+                             const VkDescriptorPool descriptorPool,
+                             const glm::vec3 position)
   : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
     descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now())
 {
   createUniforms();
-  createShaderStorageBuffers(commandPool);
+  createShaderStorageBuffers(commandPool, position);
 
   createDescriptorSetLayouts();
 
@@ -119,7 +120,7 @@ void SmokePipeline::createUniforms()
                                                  sizeof(SmokeUniform));
 }
 
-void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
+void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const glm::vec3 systemPosition)
 {
   shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
   shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
@@ -141,7 +142,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta);
     const float z = r * std::sin(theta);
-    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine));
+    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine)) + systemPosition;
     velocity = glm::vec3(velocityDistributionXZ(randomEngine), velocityDistribution(randomEngine), velocityDistributionXZ(randomEngine));
     color = glm::vec4(distribution(randomEngine));
 
