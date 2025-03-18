@@ -13,6 +13,51 @@
 #include <random>
 #include <cstring>
 
+constexpr std::array<VkDescriptorSetLayoutBinding, 7> layoutBindings {{
+  { // DT
+    .binding = 0,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+  },
+  { // Last Frame SB
+    .binding = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+  },
+  { // Current Frame SB
+    .binding = 2,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+  },
+  { // Transform
+    .binding = 3,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+  },
+  { // Smoke
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+  },
+  { // Light Metadata
+    .binding = 5,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  },
+  { // Lights
+    .binding = 6,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  }
+}};
+
 SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const VkCommandPool& commandPool,
@@ -201,51 +246,6 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
 
 void SmokePipeline::createDescriptorSetLayouts()
 {
-  constexpr std::array<VkDescriptorSetLayoutBinding, 7> layoutBindings {{
-    { // DT
-      .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-    },
-    { // Last Frame SB
-      .binding = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-    },
-    { // Current Frame SB
-      .binding = 2,
-      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-    },
-    { // Transform
-      .binding = 3,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-    },
-    { // Smoke
-      .binding = 4,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-    },
-    { // Light Metadata
-      .binding = 5,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-    },
-    { // Lights
-      .binding = 6,
-      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-    }
-  }};
-
   const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
     .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
