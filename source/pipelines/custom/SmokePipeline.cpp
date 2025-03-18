@@ -216,6 +216,12 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
     }
   }
 
+  uploadShaderStorageBuffers(commandPool, particles);
+}
+
+void SmokePipeline::uploadShaderStorageBuffers(const VkCommandPool& commandPool,
+                                               const std::vector<SmokeParticle>& particles)
+{
   const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;
 
   VkBuffer stagingBuffer;

@@ -9,6 +9,7 @@
 #include <chrono>
 
 class UniformBuffer;
+struct SmokeParticle;
 
 class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
 public:
@@ -71,7 +72,10 @@ private:
   void defineStates() override;
 
   void createUniforms();
+
   void createShaderStorageBuffers(const VkCommandPool& commandPool, glm::vec3 systemPosition);
+
+  void uploadShaderStorageBuffers(const VkCommandPool& commandPool, const std::vector<SmokeParticle>& particles);
 
   void createDescriptorSetLayouts();
 
