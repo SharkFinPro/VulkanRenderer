@@ -10,6 +10,7 @@
 #include "pipelines/custom/CrossesPipeline.h"
 #include <stdexcept>
 #include <cstdint>
+#include <ranges>
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
