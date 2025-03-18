@@ -5,7 +5,6 @@
 #include "../../components/Camera.h"
 #include "../../components/LogicalDevice.h"
 #include "../../components/PhysicalDevice.h"
-#include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include <imgui.h>

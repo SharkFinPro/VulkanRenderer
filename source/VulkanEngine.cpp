@@ -10,6 +10,7 @@
 #include "pipelines/custom/CrossesPipeline.h"
 #include <stdexcept>
 #include <cstdint>
+#include <ranges>
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
@@ -146,6 +147,27 @@ void VulkanEngine::setCameraParameters(const glm::vec3 position, const glm::mat4
 std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
 {
   return imGuiInstance;
+}
+
+std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 position, const uint32_t numParticles)
+{
+  auto system = std::make_shared<SmokePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(),
+                                                descriptorPool, position, numParticles);
+
+  smokeSystems.push_back(system);
+
+  return system;
+}
+
+void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem)
+{
+  auto system = std::ranges::find(smokeSystems, smokeSystem);
+
+  if (system != smokeSystems.end())
+  {
+    logicalDevice->waitIdle();
+    smokeSystems.erase(system);
+  }
 }
 
 void VulkanEngine::initVulkan()
@@ -296,6 +318,11 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
     if (vulkanEngineOptions.DO_DOTS)
     {
       dotsPipeline->compute(cmdBuffer, imgIndex);
+    }
+
+    for (const auto& system : smokeSystems)
+    {
+      system->compute(cmdBuffer, imgIndex);
     }
   });
 }
@@ -550,6 +577,12 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   {
     dotsPipeline->render(&renderInfo, nullptr);
   }
+
+  for (const auto& system : smokeSystems)
+  {
+    system->displayGui();
+    system->render(&renderInfo, nullptr);
+  }
 }
 
 void VulkanEngine::createNewFrame()
@@ -564,13 +597,13 @@ void VulkanEngine::createDescriptorPool()
 {
   const std::array<VkDescriptorPoolSize, 3> poolSizes {{
     {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, logicalDevice->getMaxFramesInFlight() * 30},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, logicalDevice->getMaxFramesInFlight() * 10},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, logicalDevice->getMaxFramesInFlight() * 20},
     {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, logicalDevice->getMaxFramesInFlight() * 10}
   }};
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = logicalDevice->getMaxFramesInFlight() * 15,
+    .maxSets = logicalDevice->getMaxFramesInFlight() * 20,
     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
     .pPoolSizes = poolSizes.data()
   };

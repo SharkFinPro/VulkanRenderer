@@ -14,12 +14,6 @@ class UniformBuffer;
 class LogicalDevice;
 class PhysicalDevice;
 
-struct TransformUniform {
-  alignas(16) glm::mat4 model;
-  alignas(16) glm::mat4 view;
-  alignas(16) glm::mat4 proj;
-};
-
 class RenderObject {
 public:
   RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,

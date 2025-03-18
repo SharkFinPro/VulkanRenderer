@@ -15,6 +15,7 @@
 #include "pipelines/custom/BumpyCurtain.h"
 #include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/DotsPipeline.h"
+#include "pipelines/custom/SmokePipeline.h"
 
 #include "objects/Texture.h"
 #include "objects/Model.h"
@@ -77,6 +78,11 @@ public:
 
   [[nodiscard]] std::shared_ptr<ImGuiInstance> getImGuiInstance() const;
 
+  std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
+                                                   uint32_t numParticles = 5'000'000);
+
+  void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
+
 private:
   std::shared_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
@@ -91,6 +97,8 @@ private:
 
   std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> pipelines;
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
+
+  std::vector<std::shared_ptr<SmokePipeline>> smokeSystems;
 
   std::shared_ptr<ImGuiInstance> imGuiInstance;
 

@@ -18,7 +18,7 @@ namespace Buffers {
 
     if (vkCreateBuffer(logicalDevice->getDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create vertex buffer!");
+      throw std::runtime_error("failed to create buffer!");
     }
 
     VkMemoryRequirements memoryRequirements;
@@ -32,7 +32,7 @@ namespace Buffers {
 
     if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to allocate vertex buffer memory!");
+      throw std::runtime_error("failed to allocate buffer memory!");
     }
 
     vkBindBufferMemory(logicalDevice->getDevice(), buffer, bufferMemory, 0);
