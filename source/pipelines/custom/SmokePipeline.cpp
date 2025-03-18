@@ -277,46 +277,51 @@ void SmokePipeline::createDescriptorSets()
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
-    const VkDescriptorBufferInfo storageBufferInfoLastFrame {
-      .buffer = shaderStorageBuffers[(i - 1) % ComputePipeline::logicalDevice->getMaxFramesInFlight()],
-      .offset = 0,
-      .range = sizeof(SmokeParticle) * numParticles
-    };
-
-    const VkDescriptorBufferInfo storageBufferInfoCurrentFrame {
-      .buffer = shaderStorageBuffers[i],
-      .offset = 0,
-      .range = sizeof(SmokeParticle) * numParticles
-    };
-
-    std::array<VkWriteDescriptorSet, 6> writeDescriptorSets {{
-      deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[i], i),
-      {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstSet = computeDescriptorSets[i],
-        .dstBinding = 1,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .pBufferInfo = &storageBufferInfoLastFrame
-      },
-      {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstSet = computeDescriptorSets[i],
-        .dstBinding = 2,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .pBufferInfo = &storageBufferInfoCurrentFrame
-      },
-      transformUniform->getDescriptorSet(3, computeDescriptorSets[i], i),
-      smokeUniform->getDescriptorSet(4, computeDescriptorSets[i], i),
-      lightMetadataUniform->getDescriptorSet(5, computeDescriptorSets[i], i)
-    }};
-
-    vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
-                           writeDescriptorSets.data(), 0, nullptr);
+    createDescriptorSet(i);
   }
+}
+
+void SmokePipeline::createDescriptorSet(const uint32_t set) const
+{
+  const VkDescriptorBufferInfo storageBufferInfoLastFrame {
+    .buffer = shaderStorageBuffers[(set - 1) % ComputePipeline::logicalDevice->getMaxFramesInFlight()],
+    .offset = 0,
+    .range = sizeof(SmokeParticle) * numParticles
+  };
+
+  const VkDescriptorBufferInfo storageBufferInfoCurrentFrame {
+    .buffer = shaderStorageBuffers[set],
+    .offset = 0,
+    .range = sizeof(SmokeParticle) * numParticles
+  };
+
+  std::array<VkWriteDescriptorSet, 6> writeDescriptorSets {{
+    deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[set], set),
+    {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .dstSet = computeDescriptorSets[set],
+      .dstBinding = 1,
+      .dstArrayElement = 0,
+      .descriptorCount = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+      .pBufferInfo = &storageBufferInfoLastFrame
+    },
+    {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .dstSet = computeDescriptorSets[set],
+      .dstBinding = 2,
+      .dstArrayElement = 0,
+      .descriptorCount = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+      .pBufferInfo = &storageBufferInfoCurrentFrame
+    },
+    transformUniform->getDescriptorSet(3, computeDescriptorSets[set], set),
+    smokeUniform->getDescriptorSet(4, computeDescriptorSets[set], set),
+    lightMetadataUniform->getDescriptorSet(5, computeDescriptorSets[set], set)
+  }};
+
+  vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
+                         writeDescriptorSets.data(), 0, nullptr);
 }
 
 void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)

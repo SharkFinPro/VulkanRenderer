@@ -77,6 +77,8 @@ private:
 
   void createDescriptorSets();
 
+  void createDescriptorSet(uint32_t set) const;
+
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
