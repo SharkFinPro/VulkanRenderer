@@ -125,11 +125,13 @@ void createLights(VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& l
 
 void createSmokeSystems(VulkanEngine &renderer)
 {
-  renderer.createSmokeSystem({0, 0.95f, 0});
-  renderer.createSmokeSystem({-5, 0.95f, -5});
-  renderer.createSmokeSystem({-5, 0.95f, 5});
-  renderer.createSmokeSystem({5, .95f, 5});
-  renderer.createSmokeSystem({5, 0.95f, -5});
+  constexpr uint32_t numParticles = 5'000'000;
+
+  renderer.createSmokeSystem({0, 0.95f, 0}, numParticles);
+  renderer.createSmokeSystem({-5, 0.95f, -5}, numParticles * 2);
+  renderer.createSmokeSystem({-5, 0.95f, 5}, numParticles / 2);
+  renderer.createSmokeSystem({5, .95f, 5}, numParticles * 2);
+  renderer.createSmokeSystem({5, 0.95f, -5}, numParticles / 2);
 }
 
 void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui)

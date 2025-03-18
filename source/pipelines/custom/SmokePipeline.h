@@ -17,7 +17,8 @@ public:
                 const VkCommandPool& commandPool,
                 const VkRenderPass& renderPass,
                 VkDescriptorPool descriptorPool,
-                glm::vec3 position);
+                glm::vec3 position,
+                uint32_t numParticles);
 
   ~SmokePipeline() override;
 
@@ -55,7 +56,7 @@ private:
   float dotSpeed;
   std::chrono::time_point<std::chrono::steady_clock> previousTime;
 
-  uint32_t numParticles = 5'000'000;
+  uint32_t numParticles;
 
   bool ran = false;
 

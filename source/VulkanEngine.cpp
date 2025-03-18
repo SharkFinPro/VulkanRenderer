@@ -148,10 +148,10 @@ std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
   return imGuiInstance;
 }
 
-std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 position)
+std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 position, const uint32_t numParticles)
 {
   auto system = std::make_shared<SmokePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(),
-                                                descriptorPool, position);
+                                                descriptorPool, position, numParticles);
 
   smokeSystems.push_back(system);
 

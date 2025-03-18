@@ -78,7 +78,8 @@ public:
 
   [[nodiscard]] std::shared_ptr<ImGuiInstance> getImGuiInstance() const;
 
-  std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f));
+  std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
+                                                   uint32_t numParticles = 5'000'000);
 
   void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
 

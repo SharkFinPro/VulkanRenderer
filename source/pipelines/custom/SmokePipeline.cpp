@@ -18,9 +18,11 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
                              const VkCommandPool& commandPool,
                              const VkRenderPass& renderPass,
                              const VkDescriptorPool descriptorPool,
-                             const glm::vec3 position)
+                             const glm::vec3 position,
+                             const uint32_t numParticles)
   : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
-    descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now())
+    descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now()),
+    numParticles(numParticles)
 {
   createUniforms();
   createShaderStorageBuffers(commandPool, position);
