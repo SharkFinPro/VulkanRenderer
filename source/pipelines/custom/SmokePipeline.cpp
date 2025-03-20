@@ -176,9 +176,6 @@ void SmokePipeline::createUniforms()
 
 void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 {
-  shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
 
@@ -202,6 +199,9 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 void SmokePipeline::uploadShaderStorageBuffers(const VkCommandPool& commandPool,
                                                const std::vector<SmokeParticle>& particles)
 {
+  shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
+  shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
+
   const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;
 
   VkBuffer stagingBuffer;
