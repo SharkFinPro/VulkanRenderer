@@ -182,26 +182,23 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
   shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
-  std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-  std::uniform_real_distribution<float> velocityDistribution(0.75f, 2.5f);
-  std::uniform_real_distribution<float> velocityDistributionXZ(-0.25f, 0.25f);
-  std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
   std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
+  std::uniform_real_distribution<float> randomStart(-1000.0f, 1000.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
 
   float currentTTL = 0;
   const float ttlSpan = 8.0f / static_cast<float>(numParticles) * 1.5f;
 
-  for (auto&[positionTtl, velocity, _, color] : particles)
+  for (auto&[positionTtl, _1, _2, color] : particles)
   {
-    const float r = sqrtf(distribution(randomEngine)) * 0.25f;
-    const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
-    const float x = r * std::cos(theta);
-    const float z = r * std::sin(theta);
-    const auto position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine)) + smokeUBO.systemPosition;
-    positionTtl = glm::vec4(position, currentTTL);
-    velocity = glm::vec3(velocityDistributionXZ(randomEngine), velocityDistribution(randomEngine), velocityDistributionXZ(randomEngine));
+    positionTtl = glm::vec4(
+      randomStart(randomEngine),
+      randomStart(randomEngine),
+      randomStart(randomEngine),
+      currentTTL
+    );
+
     color = glm::vec4(colorDistribution(randomEngine));
 
     if (currentTTL < 4.0f)

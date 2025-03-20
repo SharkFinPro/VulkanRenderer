@@ -110,16 +110,11 @@ void main()
   Particle particle = particlesIn[index];
 
   vec3 position = particle.positionTtl.xyz;
-  float ttl = particle.positionTtl.w + ubo.deltaTime;
+  float previousTtl = particle.positionTtl.w;
+  float ttl = previousTtl + ubo.deltaTime;
 
   if (ttl > TTL)
   {
-    float seed = (position.x + position.y + position.z) / 3.0;
-
-    particle.velocity = regenerateInitialVelocity(seed);
-
-    position = regenerateInitialPosition(seed);
-
     particle.positionTtl = vec4(position, TTL - ttl);
 
     particlesOut[index] = particle;
@@ -129,6 +124,15 @@ void main()
 
   if (ttl > 0.0)
   {
+    if (previousTtl < 0)
+    {
+      float seed = (position.x + position.y + position.z) / 3.0;
+
+      particle.velocity = regenerateInitialVelocity(seed);
+
+      position = regenerateInitialPosition(seed);
+    }
+
     vec3 wind = applyWind(position, ttl);
 
     vec3 spreadForce = calcSpreadForce(position, ttl);
