@@ -8,9 +8,7 @@
 
 struct SmokeParticle {
   glm::vec4 positionTtl;
-  glm::vec3 velocity;
-  float padding;
-  glm::vec4 color;
+  glm::vec4 velocityColor;
 
   static constexpr VkVertexInputBindingDescription getBindingDescription()
   {
@@ -34,7 +32,7 @@ struct SmokeParticle {
         .location = 1,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-        .offset = offsetof(SmokeParticle, color)
+        .offset = offsetof(SmokeParticle, velocityColor)
       }
     }};
   }

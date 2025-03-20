@@ -2,8 +2,7 @@
 
 struct Particle {
   vec4 positionTtl;
-  vec3 velocity;
-  vec4 color;
+  vec4 velocityColor;
 };
 
 layout(binding = 0) uniform ParameterUBO {
@@ -52,8 +51,10 @@ void main()
   Particle particle = particlesIn[index];
 
   vec3 position = particle.positionTtl.xyz;
-  float previousTtl = particle.positionTtl.w;
-  float ttl = previousTtl + ubo.deltaTime;
+
+  vec3 velocity = particle.velocityColor.xyz;
+  float color = particle.velocityColor.w;
+  float ttl = particle.positionTtl.w + ubo.deltaTime;
 
   if (ttl < 0)
   {
@@ -63,17 +64,16 @@ void main()
 
   if (ttl > TTL)
   {
-    particle.positionTtl.w = TTL - ttl;
-    particle.color.a = 0;
-    particlesOut[index] = particle;
+    particlesOut[index].positionTtl.w = TTL - ttl;
+    particlesOut[index].velocityColor.w = 0.0;
     return;
   }
 
-  if (previousTtl < 0)
+  if (ttl - ubo.deltaTime < 0)
   {
     float seed = (position.x + position.y + position.z) / 3.0;
 
-    particle.velocity = regenerateInitialVelocity(seed);
+    velocity = regenerateInitialVelocity(seed);
 
     position = regenerateInitialPosition(seed);
   }
@@ -82,13 +82,13 @@ void main()
 
   vec3 spreadForce = calcSpreadForce(position, ttl);
 
-  particle.velocity += (wind + spreadForce) * ubo.deltaTime;
+  velocity += (wind + spreadForce) * ubo.deltaTime;
 
-  position += particle.velocity * ubo.deltaTime;
-
-  particle.color.a = sqrt((TTL - particle.positionTtl.w) / TTL);
+  position += velocity * ubo.deltaTime;
 
   particle.positionTtl = vec4(position, ttl);
+
+  particle.velocityColor = vec4(velocity, color);
 
   particlesOut[index] = particle;
 }

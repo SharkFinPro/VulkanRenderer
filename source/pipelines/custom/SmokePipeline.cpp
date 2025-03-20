@@ -187,11 +187,11 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
   float currentTTL = 0;
   const float ttlSpan = 8.0f / static_cast<float>(numParticles) * 1.5f;
 
-  for (auto& [positionTtl, _1, _2, color] : particles)
+  for (auto& [positionTtl, velocityColor] : particles)
   {
-    color = glm::vec4(glm::vec3(colorDistribution(randomEngine)), 0);
+    velocityColor = glm::vec4(0, 0, 0, colorDistribution(randomEngine));
 
-    positionTtl = glm::vec4(color.x * 1000.0f, 0, 0, currentTTL);
+    positionTtl = glm::vec4(velocityColor.w * 1000.0f, 0, 0, currentTTL);
 
     currentTTL -= currentTTL < 4.0f ? ttlSpan * 4.0f : ttlSpan;
   }
