@@ -34,7 +34,8 @@ UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice
   poolSize.descriptorCount = logicalDevice->getMaxFramesInFlight();
 }
 
-UniformBuffer::~UniformBuffer() {
+UniformBuffer::~UniformBuffer()
+{
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
     if (uniformBuffersMapped[i] != VK_NULL_HANDLE)
