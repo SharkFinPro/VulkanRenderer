@@ -105,7 +105,6 @@ void TexturedPlane::createDescriptorSets()
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
                            descriptorWrites.data(), 0, nullptr);
   }
-
 }
 
 void TexturedPlane::createUniforms()
