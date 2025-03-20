@@ -75,6 +75,11 @@ struct TransformUniform {
   alignas(16) glm::mat4 proj;
 };
 
+struct ViewProjTransformUniform {
+  alignas(16) glm::mat4 view;
+  alignas(16) glm::mat4 proj;
+};
+
 struct SmokeUniform {
   glm::vec3 systemPosition;
   float spreadFactor;

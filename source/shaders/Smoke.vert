@@ -1,7 +1,6 @@
 #version 450
 
 layout(set = 0, binding = 3) uniform Transform {
-  mat4 model;
   mat4 view;
   mat4 proj;
 } transform;
@@ -22,9 +21,7 @@ void main()
     return;
   }
 
-  vec4 modelTransform = transform.model * vec4(inPositionTtl.xyz, 1.0);
-
-  vec4 viewPos = transform.view * modelTransform;
+  vec4 viewPos = transform.view * vec4(inPositionTtl.xyz, 1.0);
 
   float basePointSize = 7.0;
   float distanceScale = 1.0 / -viewPos.z;
@@ -32,8 +29,7 @@ void main()
   gl_PointSize = clamp(basePointSize * distanceScale, 1.0, 20.0);
   gl_Position = transform.proj * viewPos;
 
-
   fragColor = vec4(inVelocityColor.w, inVelocityColor.w, inVelocityColor.w, sqrt((TTL - inPositionTtl.w) / TTL));
 
-  fragPos = vec3(modelTransform);
+  fragPos = inPositionTtl.xyz;
 }

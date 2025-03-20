@@ -164,7 +164,7 @@ void SmokePipeline::createUniforms()
                                                        sizeof(DeltaTimeUniform));
 
   transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                     sizeof(TransformUniform));
+                                                     sizeof(ViewProjTransformUniform));
 
   smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
                                                  sizeof(SmokeUniform));
@@ -326,19 +326,12 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
   deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
 
-  constexpr glm::vec3 position{0, 0, 0};
-  constexpr glm::vec3 scale{1};
-  constexpr glm::quat orientation{1, 0, 0, 0};
-
-  const TransformUniform transformUBO {
-    .model = glm::translate(glm::mat4(1.0f), position)
-                            * glm::mat4(orientation)
-                            * glm::scale(glm::mat4(1.0f), scale),
+  const ViewProjTransformUniform transformUBO {
     .view = renderInfo->viewMatrix,
     .proj = renderInfo->getProjectionMatrix()
   };
 
-  transformUniform->update(renderInfo->currentFrame, &transformUBO, sizeof(TransformUniform));
+  transformUniform->update(renderInfo->currentFrame, &transformUBO, sizeof(ViewProjTransformUniform));
 
   smokeUniform->update(renderInfo->currentFrame, &smokeUBO, sizeof(SmokeUniform));
 
