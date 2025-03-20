@@ -352,7 +352,7 @@ void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
                           &computeDescriptorSets[renderInfo->currentFrame], 0, nullptr);
 }
 
-void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame)
+void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
 {
   if (lights.empty())
   {
