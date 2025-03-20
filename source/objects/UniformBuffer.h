@@ -18,7 +18,7 @@ public:
 
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet, size_t frame) const;
 
-  void update(uint32_t frame, const void* data, size_t size) const;
+  void update(uint32_t frame, const void* data) const;
 
 protected:
   std::shared_ptr<LogicalDevice> logicalDevice;
@@ -29,6 +29,8 @@ protected:
 
   std::vector<VkDescriptorBufferInfo> bufferInfos;
   VkDescriptorPoolSize poolSize{};
+
+  VkDeviceSize bufferSize;
 };
 
 

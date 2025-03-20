@@ -46,7 +46,7 @@ void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const glm::m
     .proj = projectionMatrix
   };
 
-  transformUniform->update(currentFrame, &transformUBO, sizeof(TransformUniform));
+  transformUniform->update(currentFrame, &transformUBO);
 }
 
 void RenderObject::setPosition(const glm::vec3 position)

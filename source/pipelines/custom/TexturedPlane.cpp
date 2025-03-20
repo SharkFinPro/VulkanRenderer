@@ -118,7 +118,7 @@ void TexturedPlane::updateUniformVariables(const RenderInfo *renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 }
 
 void TexturedPlane::bindDescriptorSet(const RenderInfo *renderInfo)

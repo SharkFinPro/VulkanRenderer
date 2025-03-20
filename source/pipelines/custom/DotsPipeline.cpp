@@ -246,5 +246,5 @@ void DotsPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
   const DeltaTimeUniform deltaTimeUBO{dotSpeed * dt};
 
-  deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
+  deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO);
 }

@@ -208,7 +208,7 @@ void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+      lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -226,7 +226,7 @@ void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+  lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
 void NoisyEllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
@@ -234,13 +234,13 @@ void NoisyEllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  ellipticalDotsUniform->update(renderInfo->currentFrame, &ellipticalDotsUBO, sizeof(EllipticalDotsUniform));
+  ellipticalDotsUniform->update(renderInfo->currentFrame, &ellipticalDotsUBO);
 
-  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
+  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO);
 }
 
 void NoisyEllipticalDots::bindDescriptorSet(const RenderInfo *renderInfo)

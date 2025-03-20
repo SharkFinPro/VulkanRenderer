@@ -197,11 +197,11 @@ void CubeMapPipeline::updateUniformVariables(const RenderInfo *renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
-  cubeMapUniform->update(renderInfo->currentFrame, &cubeMapUBO, sizeof(CubeMapUniform));
+  cubeMapUniform->update(renderInfo->currentFrame, &cubeMapUBO);
 
-  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO, sizeof(NoiseOptionsUniform));
+  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO);
 }
 
 void CubeMapPipeline::bindDescriptorSet(const RenderInfo *renderInfo)

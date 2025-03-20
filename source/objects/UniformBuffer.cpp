@@ -6,7 +6,7 @@
 
 UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDeviceSize bufferSize)
-  : logicalDevice(logicalDevice)
+  : logicalDevice(logicalDevice), bufferSize(bufferSize)
 {
   uniformBuffers.resize(logicalDevice->getMaxFramesInFlight());
   uniformBuffersMemory.resize(logicalDevice->getMaxFramesInFlight());
@@ -66,7 +66,7 @@ VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, con
   return uniformDescriptorSet;
 }
 
-void UniformBuffer::update(const uint32_t frame, const void* data, const size_t size) const
+void UniformBuffer::update(const uint32_t frame, const void* data) const
 {
-  memcpy(uniformBuffersMapped[frame], data, size);
+  memcpy(uniformBuffersMapped[frame], data, bufferSize);
 }

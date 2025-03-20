@@ -324,16 +324,16 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
   const DeltaTimeUniform deltaTimeUBO{dotSpeed * dt};
 
-  deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
+  deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO);
 
   const ViewProjTransformUniform transformUBO {
     .view = renderInfo->viewMatrix,
     .proj = renderInfo->getProjectionMatrix()
   };
 
-  transformUniform->update(renderInfo->currentFrame, &transformUBO, sizeof(ViewProjTransformUniform));
+  transformUniform->update(renderInfo->currentFrame, &transformUBO);
 
-  smokeUniform->update(renderInfo->currentFrame, &smokeUBO, sizeof(SmokeUniform));
+  smokeUniform->update(renderInfo->currentFrame, &smokeUBO);
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 }
@@ -368,7 +368,7 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
     for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+      lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(6, computeDescriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -386,5 +386,5 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+  lightsUniform->update(currentFrame, lightUniforms.data());
 }
