@@ -281,7 +281,7 @@ void SmokePipeline::createDescriptorSet(const uint32_t set) const
     .range = sizeof(SmokeParticle) * numParticles
   };
 
-  std::array<VkWriteDescriptorSet, 6> writeDescriptorSets {{
+  const std::array<VkWriteDescriptorSet, 6> writeDescriptorSets {{
     deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[set], set),
     {
       .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
