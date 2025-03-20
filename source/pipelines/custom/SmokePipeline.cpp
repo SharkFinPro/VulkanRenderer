@@ -177,6 +177,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 {
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
+  std::uniform_real_distribution<float> largeDistribution(-1000.0f, 1000.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
 
@@ -187,7 +188,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
   {
     velocityColor.w = colorDistribution(randomEngine);
 
-    positionTtl = glm::vec4(velocityColor.w * 1000.0f, 0, 0, currentTTL);
+    positionTtl = glm::vec4(largeDistribution(randomEngine), 0, 0, currentTTL);
 
     currentTTL -= currentTTL > -4.0f ? ttlSpan * 4.0f : ttlSpan;
   }
