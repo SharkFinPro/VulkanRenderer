@@ -8,7 +8,6 @@
 #include "../../objects/Light.h"
 #include "../../utilities/Buffers.h"
 #include <imgui.h>
-#include <cmath>
 #include <stdexcept>
 #include <random>
 #include <cstring>
@@ -181,8 +180,8 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
   std::vector<SmokeParticle> particles(numParticles);
 
-  float currentTTL = 0;
-  const float ttlSpan = 8.0f / static_cast<float>(numParticles) * 1.5f;
+  double currentTTL = 0;
+  const double ttlSpan = 8.0 / static_cast<double>(numParticles) * 1.5;
 
   for (auto& [positionTtl, velocityColor] : particles)
   {
@@ -190,7 +189,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
     positionTtl = glm::vec4(velocityColor.w * 1000.0f, 0, 0, currentTTL);
 
-    currentTTL -= currentTTL < 4.0f ? ttlSpan * 4.0f : ttlSpan;
+    currentTTL -= currentTTL > -4.0f ? ttlSpan * 4.0f : ttlSpan;
   }
 
   uploadShaderStorageBuffers(commandPool, particles);
