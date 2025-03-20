@@ -51,7 +51,6 @@ void main()
   Particle particle = particlesIn[index];
 
   vec3 position = particle.positionTtl.xyz;
-
   vec3 velocity = particle.velocityColor.xyz;
   float color = particle.velocityColor.w;
   float ttl = particle.positionTtl.w + ubo.deltaTime;
