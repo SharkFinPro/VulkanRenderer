@@ -55,40 +55,38 @@ void main()
   float previousTtl = particle.positionTtl.w;
   float ttl = previousTtl + ubo.deltaTime;
 
-  if (ttl > TTL)
+  if (ttl < 0)
   {
-    particle.positionTtl = vec4(position, TTL - ttl);
-
-    particlesOut[index] = particle;
-
+    particlesOut[index].positionTtl.w = ttl;
     return;
   }
 
-  if (ttl > 0.0)
+  if (ttl > TTL)
   {
-    if (previousTtl < 0)
-    {
-      float seed = (position.x + position.y + position.z) / 3.0;
-
-      particle.velocity = regenerateInitialVelocity(seed);
-
-      position = regenerateInitialPosition(seed);
-    }
-
-    vec3 wind = applyWind(position, ttl);
-
-    vec3 spreadForce = calcSpreadForce(position, ttl);
-
-    particle.velocity += (wind + spreadForce) * ubo.deltaTime;
-
-    position += particle.velocity * ubo.deltaTime;
-
-    particle.color.a = sqrt((TTL - particle.positionTtl.w) / TTL);
+    particle.positionTtl.w = TTL - ttl;
+    particle.color.a = 0;
+    particlesOut[index] = particle;
+    return;
   }
-  else
+
+  if (previousTtl < 0)
   {
-    particle.color.a = 0.0;
+    float seed = (position.x + position.y + position.z) / 3.0;
+
+    particle.velocity = regenerateInitialVelocity(seed);
+
+    position = regenerateInitialPosition(seed);
   }
+
+  vec3 wind = applyWind(position, ttl);
+
+  vec3 spreadForce = calcSpreadForce(position, ttl);
+
+  particle.velocity += (wind + spreadForce) * ubo.deltaTime;
+
+  position += particle.velocity * ubo.deltaTime;
+
+  particle.color.a = sqrt((TTL - particle.positionTtl.w) / TTL);
 
   particle.positionTtl = vec4(position, ttl);
 

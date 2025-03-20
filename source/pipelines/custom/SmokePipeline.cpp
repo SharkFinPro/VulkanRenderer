@@ -194,7 +194,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
   {
     positionTtl = glm::vec4(randomStart(randomEngine), 0, 0, currentTTL);
 
-    color = glm::vec4(colorDistribution(randomEngine));
+    color = glm::vec4(glm::vec3(colorDistribution(randomEngine)), 0);
 
     if (currentTTL < 4.0f)
     {
