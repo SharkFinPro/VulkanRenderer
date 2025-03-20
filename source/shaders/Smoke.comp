@@ -29,6 +29,70 @@ layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 const float TTL = 8.0;
 
+vec3 applyWind(vec3 position, float ttl);
+
+vec3 generateSpreadDirection(vec3 position, float ttl);
+
+vec3 calcSpreadForce(vec3 position, float ttl);
+
+float rand(float seed);
+
+float randRange(float seed, float minVal, float maxVal);
+
+vec3 regenerateInitialPosition(float seed);
+
+vec3 regenerateInitialVelocity(float seed);
+
+void main()
+{
+  uint index = gl_GlobalInvocationID.x;
+
+  Particle particle = particlesIn[index];
+
+  vec3 position = particle.positionTtl.xyz;
+  float previousTtl = particle.positionTtl.w;
+  float ttl = previousTtl + ubo.deltaTime;
+
+  if (ttl > TTL)
+  {
+    particle.positionTtl = vec4(position, TTL - ttl);
+
+    particlesOut[index] = particle;
+
+    return;
+  }
+
+  if (ttl > 0.0)
+  {
+    if (previousTtl < 0)
+    {
+      float seed = (position.x + position.y + position.z) / 3.0;
+
+      particle.velocity = regenerateInitialVelocity(seed);
+
+      position = regenerateInitialPosition(seed);
+    }
+
+    vec3 wind = applyWind(position, ttl);
+
+    vec3 spreadForce = calcSpreadForce(position, ttl);
+
+    particle.velocity += (wind + spreadForce) * ubo.deltaTime;
+
+    position += particle.velocity * ubo.deltaTime;
+
+    particle.color.a = sqrt((TTL - particle.positionTtl.w) / TTL);
+  }
+  else
+  {
+    particle.color.a = 0.0;
+  }
+
+  particle.positionTtl = vec4(position, ttl);
+
+  particlesOut[index] = particle;
+}
+
 vec3 applyWind(vec3 position, float ttl)
 {
   vec3 windDir = vec3(sin(ttl * 0.1), 0.0, cos(ttl * 0.3));
@@ -101,54 +165,4 @@ vec3 regenerateInitialVelocity(float seed)
   float vy = randRange(seed + 6.0, 0.75, 2.5);
 
   return vec3(vx, vy, vz);
-}
-
-void main()
-{
-  uint index = gl_GlobalInvocationID.x;
-
-  Particle particle = particlesIn[index];
-
-  vec3 position = particle.positionTtl.xyz;
-  float previousTtl = particle.positionTtl.w;
-  float ttl = previousTtl + ubo.deltaTime;
-
-  if (ttl > TTL)
-  {
-    particle.positionTtl = vec4(position, TTL - ttl);
-
-    particlesOut[index] = particle;
-
-    return;
-  }
-
-  if (ttl > 0.0)
-  {
-    if (previousTtl < 0)
-    {
-      float seed = (position.x + position.y + position.z) / 3.0;
-
-      particle.velocity = regenerateInitialVelocity(seed);
-
-      position = regenerateInitialPosition(seed);
-    }
-
-    vec3 wind = applyWind(position, ttl);
-
-    vec3 spreadForce = calcSpreadForce(position, ttl);
-
-    particle.velocity += (wind + spreadForce) * ubo.deltaTime;
-
-    position += particle.velocity * ubo.deltaTime;
-
-    particle.color.a = sqrt((TTL - particle.positionTtl.w) / TTL);
-  }
-  else
-  {
-    particle.color.a = 0.0;
-  }
-
-  particle.positionTtl = vec4(position, ttl);
-
-  particlesOut[index] = particle;
 }
