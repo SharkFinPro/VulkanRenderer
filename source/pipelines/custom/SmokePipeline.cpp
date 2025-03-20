@@ -183,7 +183,7 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
-  std::uniform_real_distribution<float> randomStart(-5000.0f, 5000.0f);
+  std::uniform_real_distribution<float> randomStart(-1000.0f, 1000.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
 
