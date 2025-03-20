@@ -579,11 +579,14 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
   }
 
   ImGui::Begin("Smoke");
+  ImGui::Separator();
   for (const auto& system : smokeSystems)
   {
     ImGui::PushID(&system);
     system->displayGui();
     ImGui::PopID();
+
+    ImGui::Separator();
 
     system->render(&renderInfo, nullptr);
   }
