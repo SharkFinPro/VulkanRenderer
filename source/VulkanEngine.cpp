@@ -578,11 +578,16 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     dotsPipeline->render(&renderInfo, nullptr);
   }
 
+  ImGui::Begin("Smoke");
   for (const auto& system : smokeSystems)
   {
+    ImGui::PushID(&system);
     system->displayGui();
+    ImGui::PopID();
+
     system->render(&renderInfo, nullptr);
   }
+  ImGui::End();
 }
 
 void VulkanEngine::createNewFrame()

@@ -114,7 +114,7 @@ void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
 
 void SmokePipeline::displayGui()
 {
-  ImGui::Begin("Smoke");
+  ImGui::SliderFloat3("Position", &smokeUBO.systemPosition[0], -20, 20);
 
   ImGui::SliderFloat("Speed", &dotSpeed, 0.001f, 10.0f);
 
@@ -123,8 +123,6 @@ void SmokePipeline::displayGui()
   ImGui::SliderFloat("Max Spread Distance", &smokeUBO.maxSpreadDistance, 0.0f, 20.0f);
 
   ImGui::SliderFloat("Wind Strength", &smokeUBO.windStrength, 0.0f, 3.0f);
-
-  ImGui::End();
 }
 
 void SmokePipeline::loadComputeShaders()
