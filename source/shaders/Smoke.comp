@@ -1,12 +1,9 @@
 #version 450
 
 struct Particle {
-  vec3 position;
-  float ttl;
+  vec4 positionTtl;
   vec3 velocity;
   vec4 color;
-  vec3 initialPosition;
-  vec3 initialVelocity;
 };
 
 layout(binding = 0) uniform ParameterUBO {
@@ -14,6 +11,7 @@ layout(binding = 0) uniform ParameterUBO {
 } ubo;
 
 layout(set = 0, binding = 4) uniform Smoke {
+  vec3 systemPosition;
   float spreadFactor;
   float maxSpreadDistance;
   float windStrength;
@@ -31,12 +29,12 @@ layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 const float TTL = 8.0;
 
-vec3 applyWind(vec3 position, float time)
+vec3 applyWind(vec3 position, float ttl)
 {
-  vec3 windDir = vec3(sin(time * 0.1), 0.0, cos(time * 0.3));
+  vec3 windDir = vec3(sin(ttl * 0.1), 0.0, cos(ttl * 0.3));
 
-  float turbulence = sin(position.y * 0.5 + time) * 0.15 +
-  cos(position.x * 0.3 + time * 0.7) * 0.1;
+  float turbulence = sin(position.y * 0.5 + ttl) * 0.15 +
+  cos(position.x * 0.3 + ttl * 0.7) * 0.1;
 
   return windDir * smoke.windStrength + vec3(turbulence, 0.0, turbulence);
 }
@@ -53,22 +51,56 @@ vec3 generateSpreadDirection(vec3 position, float ttl)
   return direction;
 }
 
-vec3 calcSpreadForce(Particle particle)
+vec3 calcSpreadForce(vec3 position, float ttl)
 {
-  float normalizedTime = particle.ttl / TTL; // Value from 0 to 1
+  float normalizedTime = ttl / TTL; // Value from 0 to 1
   float spreadStrength = min(smoke.spreadFactor * log(1 + 20 * normalizedTime), 0.5);
 
-  vec3 spreadDirection = generateSpreadDirection(particle.position, particle.ttl);
+  vec3 spreadDirection = generateSpreadDirection(position, ttl);
 
   vec3 spreadForce = spreadDirection * spreadStrength;
 
-  float distFromOrigin = length(particle.position);
+  float distFromOrigin = length(position);
   if (distFromOrigin > smoke.maxSpreadDistance)
   {
-    spreadForce -= normalize(particle.position) * 0.05 * (distFromOrigin - smoke.maxSpreadDistance);
+    spreadForce -= normalize(position) * 0.05 * (distFromOrigin - smoke.maxSpreadDistance);
   }
 
   return spreadForce;
+}
+
+float rand(float seed)
+{
+  return fract(sin(seed * 91.3458) * 47453.5453);
+}
+
+float randRange(float seed, float minVal, float maxVal)
+{
+  return minVal + (maxVal - minVal) * rand(seed);
+}
+
+vec3 regenerateInitialPosition(float seed)
+{
+  float r = sqrt(rand(seed)) * 0.25;
+  float theta = rand(seed + 1.0) * 6.28318530718; // 2π
+
+  float x = r * cos(theta);
+  float z = r * sin(theta);
+
+  float scaleX = randRange(seed + 2.0, -4.0, 4.0); // Match largeDistribution
+  float scaleZ = randRange(seed + 3.0, -4.0, 4.0);
+
+  return vec3(x * scaleX, 0.0, z * scaleZ) + smoke.systemPosition;
+}
+
+vec3 regenerateInitialVelocity(float seed)
+{
+  float vx = randRange(seed + 4.0, -0.25, 0.25);
+  float vz = randRange(seed + 5.0, -0.25, 0.25);
+
+  float vy = randRange(seed + 6.0, 0.75, 2.5);
+
+  return vec3(vx, vy, vz);
 }
 
 void main()
@@ -77,35 +109,42 @@ void main()
 
   Particle particle = particlesIn[index];
 
-  particle.ttl += ubo.deltaTime;
+  vec3 position = particle.positionTtl.xyz;
+  float ttl = particle.positionTtl.w + ubo.deltaTime;
 
-  particlesOut[index].ttl = particle.ttl;
-
-  if (particle.ttl > TTL)
+  if (ttl > TTL)
   {
-    particle.position = particle.initialPosition;
-    particle.velocity = particle.initialVelocity;
-    particle.ttl = TTL - particle.ttl;
+    float seed = (position.x + position.y + position.z) / 3.0;
+
+    particle.velocity = regenerateInitialVelocity(seed);
+
+    position = regenerateInitialPosition(seed);
+
+    particle.positionTtl = vec4(position, TTL - ttl);
 
     particlesOut[index] = particle;
 
     return;
   }
 
-  if (particle.ttl > 0.0)
+  if (ttl > 0.0)
   {
-    vec3 wind = applyWind(particle.position, particle.ttl);
+    vec3 wind = applyWind(position, ttl);
 
-    vec3 spreadForce = calcSpreadForce(particle);
+    vec3 spreadForce = calcSpreadForce(position, ttl);
 
     particle.velocity += (wind + spreadForce) * ubo.deltaTime;
-    particle.position += particle.velocity * ubo.deltaTime;
-    particle.color.a = sqrt((TTL - particle.ttl) / TTL);
+
+    position += particle.velocity * ubo.deltaTime;
+
+    particle.color.a = sqrt((TTL - particle.positionTtl.w) / TTL);
   }
   else
   {
     particle.color.a = 0.0;
   }
+
+  particle.positionTtl = vec4(position, ttl);
 
   particlesOut[index] = particle;
 }

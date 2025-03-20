@@ -76,6 +76,7 @@ struct TransformUniform {
 };
 
 struct SmokeUniform {
+  glm::vec3 systemPosition;
   float spreadFactor;
   float maxSpreadDistance;
   float windStrength;

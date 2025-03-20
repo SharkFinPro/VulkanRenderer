@@ -73,7 +73,7 @@ private:
 
   void createUniforms();
 
-  void createShaderStorageBuffers(const VkCommandPool& commandPool, glm::vec3 systemPosition);
+  void createShaderStorageBuffers(const VkCommandPool& commandPool);
 
   void uploadShaderStorageBuffers(const VkCommandPool& commandPool, const std::vector<SmokeParticle>& particles);
 

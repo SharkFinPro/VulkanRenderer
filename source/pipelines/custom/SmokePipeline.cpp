@@ -69,8 +69,10 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
     descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now()),
     numParticles(numParticles)
 {
+  smokeUBO.systemPosition = position;
+
   createUniforms();
-  createShaderStorageBuffers(commandPool, position);
+  createShaderStorageBuffers(commandPool);
 
   createDescriptorSetLayouts();
 
@@ -174,7 +176,7 @@ void SmokePipeline::createUniforms()
   lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, sizeof(LightUniform));
 }
 
-void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const glm::vec3 systemPosition)
+void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 {
   shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
   shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
@@ -191,20 +193,16 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
   float currentTTL = 0;
   const float ttlSpan = 8.0f / static_cast<float>(numParticles) * 1.5f;
 
-  for (auto&[position, ttl, velocity, _p1, color, initialPosition, _p2, initialVelocity, _p3] : particles)
+  for (auto&[positionTtl, velocity, _, color] : particles)
   {
     const float r = sqrtf(distribution(randomEngine)) * 0.25f;
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
     const float x = r * std::cos(theta);
     const float z = r * std::sin(theta);
-    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine)) + systemPosition;
+    const auto position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine)) + smokeUBO.systemPosition;
+    positionTtl = glm::vec4(position, currentTTL);
     velocity = glm::vec3(velocityDistributionXZ(randomEngine), velocityDistribution(randomEngine), velocityDistributionXZ(randomEngine));
     color = glm::vec4(colorDistribution(randomEngine));
-
-    initialPosition = position;
-    initialVelocity = velocity;
-
-    ttl = currentTTL;
 
     if (currentTTL < 4.0f)
     {
