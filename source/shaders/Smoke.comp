@@ -28,6 +28,8 @@ layout(std140, binding = 2) buffer ParticleSSBOOut {
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 const float TTL = 8.0;
+const float PI = 3.14159265359;
+const float TWO_PI = 6.28318530718;
 
 vec3 applyWind(vec3 position, float ttl);
 
@@ -109,7 +111,7 @@ vec3 generateSpreadDirection(vec3 position, float ttl)
 
   if(length(direction) < 0.01)
   {
-    direction = normalize(vec3(sin(ttl * 3.14159 * 7.0), cos(ttl * 3.14159 * 11.0), sin(ttl * 3.14159 * 13.0)));
+    direction = normalize(vec3(sin(ttl * PI * 7.0), cos(ttl * PI * 11.0), sin(ttl * PI * 13.0)));
   }
 
   return direction;
@@ -146,7 +148,7 @@ float randRange(float seed, float minVal, float maxVal)
 vec3 regenerateInitialPosition(float seed)
 {
   float r = sqrt(rand(seed)) * 0.25;
-  float theta = rand(seed + 1.0) * 6.28318530718; // 2π
+  float theta = rand(seed + 1.0) * TWO_PI;
 
   float x = r * cos(theta);
   float z = r * sin(theta);
