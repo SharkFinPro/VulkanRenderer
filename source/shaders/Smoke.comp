@@ -153,7 +153,7 @@ vec3 regenerateInitialPosition(float seed)
   float x = r * cos(theta);
   float z = r * sin(theta);
 
-  float scaleX = randRange(seed + 2.0, -4.0, 4.0); // Match largeDistribution
+  float scaleX = randRange(seed + 2.0, -4.0, 4.0);
   float scaleZ = randRange(seed + 3.0, -4.0, 4.0);
 
   return vec3(x * scaleX, 0.0, z * scaleZ) + smoke.systemPosition;
