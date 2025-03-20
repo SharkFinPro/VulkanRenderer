@@ -86,11 +86,9 @@ void main()
 
   position += velocity * ubo.deltaTime;
 
-  particle.positionTtl = vec4(position, ttl);
+  particlesOut[index].positionTtl = vec4(position, ttl);
 
-  particle.velocityColor = vec4(velocity, color);
-
-  particlesOut[index] = particle;
+  particlesOut[index].velocityColor = vec4(velocity, color);
 }
 
 vec3 applyWind(vec3 position, float ttl)
