@@ -179,7 +179,7 @@ void CurtainPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+      lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -197,7 +197,7 @@ void CurtainPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+  lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
 void CurtainPipeline::updateUniformVariables(const RenderInfo *renderInfo)
@@ -205,11 +205,11 @@ void CurtainPipeline::updateUniformVariables(const RenderInfo *renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  curtainUniform->update(renderInfo->currentFrame, &curtainUBO, sizeof(CurtainUniform));
+  curtainUniform->update(renderInfo->currentFrame, &curtainUBO);
 }
 
 void CurtainPipeline::bindDescriptorSet(const RenderInfo *renderInfo)

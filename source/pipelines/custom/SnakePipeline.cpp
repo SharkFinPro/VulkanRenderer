@@ -182,7 +182,7 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+      lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -200,7 +200,7 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+  lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
 void SnakePipeline::updateUniformVariables(const RenderInfo *renderInfo)
@@ -208,11 +208,11 @@ void SnakePipeline::updateUniformVariables(const RenderInfo *renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  snakeUniform->update(renderInfo->currentFrame, &snakeUBO, sizeof(SnakeUniform));
+  snakeUniform->update(renderInfo->currentFrame, &snakeUBO);
 }
 
 void SnakePipeline::bindDescriptorSet(const RenderInfo *renderInfo)

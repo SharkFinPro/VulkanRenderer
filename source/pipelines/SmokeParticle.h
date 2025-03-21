@@ -7,15 +7,8 @@
 #include <glm/vec4.hpp>
 
 struct SmokeParticle {
-  glm::vec3 position;
-  float ttl;
-  glm::vec3 velocity;
-  float padding;
-  glm::vec4 color;
-  glm::vec3 initialPosition;
-  float padding2;
-  glm::vec3 initialVelocity;
-  float padding3;
+  glm::vec4 positionTtl;
+  glm::vec4 velocityColor;
 
   static constexpr VkVertexInputBindingDescription getBindingDescription()
   {
@@ -32,14 +25,14 @@ struct SmokeParticle {
       {
         .location = 0,
         .binding = 0,
-        .format = VK_FORMAT_R32G32B32_SFLOAT,
-        .offset = offsetof(SmokeParticle, position)
+        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+        .offset = offsetof(SmokeParticle, positionTtl)
       },
       {
         .location = 1,
         .binding = 0,
         .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-        .offset = offsetof(SmokeParticle, color)
+        .offset = offsetof(SmokeParticle, velocityColor)
       }
     }};
   }

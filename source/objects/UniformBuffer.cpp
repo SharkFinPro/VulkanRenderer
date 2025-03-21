@@ -6,7 +6,7 @@
 
 UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDeviceSize bufferSize)
-  : logicalDevice(logicalDevice)
+  : logicalDevice(logicalDevice), bufferSize(bufferSize)
 {
   uniformBuffers.resize(logicalDevice->getMaxFramesInFlight());
   uniformBuffersMemory.resize(logicalDevice->getMaxFramesInFlight());
@@ -34,7 +34,8 @@ UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice
   poolSize.descriptorCount = logicalDevice->getMaxFramesInFlight();
 }
 
-UniformBuffer::~UniformBuffer() {
+UniformBuffer::~UniformBuffer()
+{
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
     if (uniformBuffersMapped[i] != VK_NULL_HANDLE)
@@ -51,7 +52,8 @@ VkDescriptorPoolSize UniformBuffer::getDescriptorPoolSize() const
   return poolSize;
 }
 
-VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet, const size_t frame) const
+VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet,
+                                                     const size_t frame) const
 {
   const VkWriteDescriptorSet uniformDescriptorSet {
     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -66,7 +68,7 @@ VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, con
   return uniformDescriptorSet;
 }
 
-void UniformBuffer::update(const uint32_t frame, const void* data, const size_t size) const
+void UniformBuffer::update(const uint32_t frame, const void* data) const
 {
-  memcpy(uniformBuffersMapped[frame], data, size);
+  memcpy(uniformBuffersMapped[frame], data, bufferSize);
 }

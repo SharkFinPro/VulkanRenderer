@@ -105,7 +105,6 @@ void TexturedPlane::createDescriptorSets()
     vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
                            descriptorWrites.data(), 0, nullptr);
   }
-
 }
 
 void TexturedPlane::createUniforms()
@@ -118,7 +117,7 @@ void TexturedPlane::updateUniformVariables(const RenderInfo *renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 }
 
 void TexturedPlane::bindDescriptorSet(const RenderInfo *renderInfo)

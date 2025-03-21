@@ -8,7 +8,6 @@
 #include "../../objects/Light.h"
 #include "../../utilities/Buffers.h"
 #include <imgui.h>
-#include <cmath>
 #include <stdexcept>
 #include <random>
 #include <cstring>
@@ -69,8 +68,10 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
     descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now()),
     numParticles(numParticles)
 {
+  smokeUBO.systemPosition = position;
+
   createUniforms();
-  createShaderStorageBuffers(commandPool, position);
+  createShaderStorageBuffers(commandPool);
 
   createDescriptorSetLayouts();
 
@@ -112,7 +113,7 @@ void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
 
 void SmokePipeline::displayGui()
 {
-  ImGui::Begin("Smoke");
+  ImGui::SliderFloat3("Position", &smokeUBO.systemPosition[0], -20, 20);
 
   ImGui::SliderFloat("Speed", &dotSpeed, 0.001f, 10.0f);
 
@@ -121,8 +122,6 @@ void SmokePipeline::displayGui()
   ImGui::SliderFloat("Max Spread Distance", &smokeUBO.maxSpreadDistance, 0.0f, 20.0f);
 
   ImGui::SliderFloat("Wind Strength", &smokeUBO.windStrength, 0.0f, 3.0f);
-
-  ImGui::End();
 }
 
 void SmokePipeline::loadComputeShaders()
@@ -164,7 +163,7 @@ void SmokePipeline::createUniforms()
                                                        sizeof(DeltaTimeUniform));
 
   transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                     sizeof(TransformUniform));
+                                                     sizeof(ViewProjTransformUniform));
 
   smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
                                                  sizeof(SmokeUniform));
@@ -174,46 +173,24 @@ void SmokePipeline::createUniforms()
   lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, sizeof(LightUniform));
 }
 
-void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const glm::vec3 systemPosition)
+void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 {
-  shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
-  std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-  std::uniform_real_distribution<float> velocityDistribution(0.75f, 2.5f);
-  std::uniform_real_distribution<float> velocityDistributionXZ(-0.25f, 0.25f);
-  std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
   std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
+  std::uniform_real_distribution<float> largeDistribution(-1000.0f, 1000.0f);
 
   std::vector<SmokeParticle> particles(numParticles);
 
-  float currentTTL = 0;
-  const float ttlSpan = 8.0f / static_cast<float>(numParticles) * 1.5f;
+  double currentTTL = 0;
+  const double ttlSpan = 8.0 / static_cast<double>(numParticles) * 1.5;
 
-  for (auto&[position, ttl, velocity, _p1, color, initialPosition, _p2, initialVelocity, _p3] : particles)
+  for (auto& [positionTtl, velocityColor] : particles)
   {
-    const float r = sqrtf(distribution(randomEngine)) * 0.25f;
-    const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
-    const float x = r * std::cos(theta);
-    const float z = r * std::sin(theta);
-    position = glm::vec3(x * largeDistribution(randomEngine), 0, z * largeDistribution(randomEngine)) + systemPosition;
-    velocity = glm::vec3(velocityDistributionXZ(randomEngine), velocityDistribution(randomEngine), velocityDistributionXZ(randomEngine));
-    color = glm::vec4(colorDistribution(randomEngine));
+    velocityColor.w = colorDistribution(randomEngine);
 
-    initialPosition = position;
-    initialVelocity = velocity;
+    positionTtl = glm::vec4(largeDistribution(randomEngine), 0, 0, currentTTL);
 
-    ttl = currentTTL;
-
-    if (currentTTL < 4.0f)
-    {
-      currentTTL -= ttlSpan * 4.0f;
-    }
-    else
-    {
-      currentTTL -= ttlSpan;
-    }
+    currentTTL -= currentTTL > -4.0f ? ttlSpan * 4.0f : ttlSpan;
   }
 
   uploadShaderStorageBuffers(commandPool, particles);
@@ -222,6 +199,9 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool,
 void SmokePipeline::uploadShaderStorageBuffers(const VkCommandPool& commandPool,
                                                const std::vector<SmokeParticle>& particles)
 {
+  shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
+  shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
+
   const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;
 
   VkBuffer stagingBuffer;
@@ -301,7 +281,7 @@ void SmokePipeline::createDescriptorSet(const uint32_t set) const
     .range = sizeof(SmokeParticle) * numParticles
   };
 
-  std::array<VkWriteDescriptorSet, 6> writeDescriptorSets {{
+  const std::array<VkWriteDescriptorSet, 6> writeDescriptorSets {{
     deltaTimeUniform->getDescriptorSet(0, computeDescriptorSets[set], set),
     {
       .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -344,23 +324,16 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
   const DeltaTimeUniform deltaTimeUBO{dotSpeed * dt};
 
-  deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO, sizeof(DeltaTimeUniform));
+  deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO);
 
-  constexpr glm::vec3 position{0, 0, 0};
-  constexpr glm::vec3 scale{1};
-  constexpr glm::quat orientation{1, 0, 0, 0};
-
-  const TransformUniform transformUBO {
-    .model = glm::translate(glm::mat4(1.0f), position)
-                            * glm::mat4(orientation)
-                            * glm::scale(glm::mat4(1.0f), scale),
+  const ViewProjTransformUniform transformUBO {
     .view = renderInfo->viewMatrix,
     .proj = renderInfo->getProjectionMatrix()
   };
 
-  transformUniform->update(renderInfo->currentFrame, &transformUBO, sizeof(TransformUniform));
+  transformUniform->update(renderInfo->currentFrame, &transformUBO);
 
-  smokeUniform->update(renderInfo->currentFrame, &smokeUBO, sizeof(SmokeUniform));
+  smokeUniform->update(renderInfo->currentFrame, &smokeUBO);
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 }
@@ -372,7 +345,7 @@ void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
                           &computeDescriptorSets[renderInfo->currentFrame], 0, nullptr);
 }
 
-void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame)
+void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
 {
   if (lights.empty())
   {
@@ -395,7 +368,7 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
     for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+      lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(6, computeDescriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -413,5 +386,5 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+  lightsUniform->update(currentFrame, lightUniforms.data());
 }

@@ -204,7 +204,7 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO, sizeof(lightMetadataUBO));
+      lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -222,7 +222,7 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data(), lightsUniformBufferSize);
+  lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
 void CrossesPipeline::updateUniformVariables(const RenderInfo* renderInfo)
@@ -231,11 +231,11 @@ void CrossesPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
-  chromaDepthUniform->update(renderInfo->currentFrame, &chromaDepthUBO, sizeof(ChromaDepthUniform));
+  chromaDepthUniform->update(renderInfo->currentFrame, &chromaDepthUBO);
 
-  crossesUniform->update(renderInfo->currentFrame, &crossesUBO, sizeof(CrossesUniform));
+  crossesUniform->update(renderInfo->currentFrame, &crossesUBO);
 }
 
 void CrossesPipeline::bindDescriptorSet(const RenderInfo* renderInfo)

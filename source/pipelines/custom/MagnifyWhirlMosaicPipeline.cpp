@@ -146,9 +146,9 @@ void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo *render
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO, sizeof(CameraUniform));
+  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
-  magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &magnifyWhirlMosaicUBO, sizeof(MagnifyWhirlMosaicUniform));
+  magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &magnifyWhirlMosaicUBO);
 }
 
 void MagnifyWhirlMosaicPipeline::bindDescriptorSet(const RenderInfo *renderInfo)

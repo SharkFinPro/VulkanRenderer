@@ -578,11 +578,19 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     dotsPipeline->render(&renderInfo, nullptr);
   }
 
+  ImGui::Begin("Smoke");
+  ImGui::Separator();
   for (const auto& system : smokeSystems)
   {
+    ImGui::PushID(&system);
     system->displayGui();
+    ImGui::PopID();
+
+    ImGui::Separator();
+
     system->render(&renderInfo, nullptr);
   }
+  ImGui::End();
 }
 
 void VulkanEngine::createNewFrame()
@@ -597,7 +605,7 @@ void VulkanEngine::createDescriptorPool()
 {
   const std::array<VkDescriptorPoolSize, 3> poolSizes {{
     {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, logicalDevice->getMaxFramesInFlight() * 30},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, logicalDevice->getMaxFramesInFlight() * 20},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, logicalDevice->getMaxFramesInFlight() * 50},
     {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, logicalDevice->getMaxFramesInFlight() * 10}
   }};
 
