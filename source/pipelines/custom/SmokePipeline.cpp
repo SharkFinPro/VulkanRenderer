@@ -264,6 +264,11 @@ void SmokePipeline::createDescriptorSets()
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
     createDescriptorSet(i);
+
+    constexpr DeltaTimeUniform deltaTimeUBO{0};
+
+    deltaTimeUniform->update(i, &deltaTimeUBO);
+    smokeUniform->update(i, &smokeUBO);
   }
 }
 
