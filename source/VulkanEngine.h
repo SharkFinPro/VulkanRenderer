@@ -12,7 +12,6 @@
 #include "components/Window.h"
 
 #include "pipelines/RenderPass.h"
-#include "pipelines/custom/BumpyCurtain.h"
 #include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/DotsPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
