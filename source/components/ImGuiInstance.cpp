@@ -55,10 +55,6 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   }
 
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
-  ImGui_ImplVulkan_CreateFontsTexture();
-  Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
-
   createNewFrame();
 }
 
