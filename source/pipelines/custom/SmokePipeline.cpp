@@ -10,6 +10,7 @@
 #include <imgui.h>
 #include <stdexcept>
 #include <random>
+#include <cstring>
 
 constexpr std::array<VkDescriptorSetLayoutBinding, 7> layoutBindings {{
   { // DT
