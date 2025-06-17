@@ -3,7 +3,6 @@
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../components/LogicalDevice.h"
-#include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include <imgui.h>
@@ -144,7 +143,7 @@ void CrossesPipeline::createDescriptorSets()
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = static_cast<uint32_t>(logicalDevice->getMaxFramesInFlight()),
+    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
@@ -181,7 +180,7 @@ void CrossesPipeline::createUniforms()
   chromaDepthUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(ChromaDepthUniform));
 }
 
-void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame)
+void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
 {
   if (lights.empty())
   {

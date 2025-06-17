@@ -21,7 +21,7 @@ namespace Buffers {
 
   void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool,
                              VkQueue queue, VkCommandBuffer commandBuffer);
-};
+}
 
 
 #endif //VULKANPROJECT_BUFFERS_H

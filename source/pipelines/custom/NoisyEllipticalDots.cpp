@@ -2,7 +2,6 @@
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
-#include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include "../../objects/Noise3DTexture.h"

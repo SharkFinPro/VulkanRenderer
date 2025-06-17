@@ -39,7 +39,7 @@ std::vector<char> ShaderModule::readFile(const char* filename)
   std::vector<char> buffer(fileSize);
 
   file.seekg(0);
-  file.read(buffer.data(), fileSize);
+  file.read(buffer.data(), static_cast<std::streamsize>(fileSize));
 
   file.close();
 

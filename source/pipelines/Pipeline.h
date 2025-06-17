@@ -14,7 +14,7 @@ public:
 
   virtual ~Pipeline();
 
-  virtual void displayGui() {};
+  virtual void displayGui() {}
 
 protected:
   std::shared_ptr<PhysicalDevice> physicalDevice;

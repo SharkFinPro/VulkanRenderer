@@ -15,7 +15,7 @@
 #include "../pipelines/RenderPass.h"
 #include "../pipelines/custom/GuiPipeline.h"
 
-ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared_ptr<Window>& window,
+ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                              const std::shared_ptr<Instance>& instance,
                              const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -55,10 +55,6 @@ ImGuiInstance::ImGuiInstance(const VkCommandPool& commandPool, const std::shared
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   }
 
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
-  ImGui_ImplVulkan_CreateFontsTexture();
-  Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
-
   createNewFrame();
 }
 
@@ -84,7 +80,7 @@ void ImGuiInstance::createNewFrame()
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowBgAlpha(1.0f);
 
-  ImGuiID id = ImGui::GetID("WindowDockSpace");
+  const ImGuiID id = ImGui::GetID("WindowDockSpace");
   ImGui::DockBuilderRemoveNode(id); // Clear previous layout if any
   ImGui::DockBuilderAddNode(id);    // Create new dock node
 

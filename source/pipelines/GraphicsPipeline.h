@@ -56,7 +56,7 @@ protected:
   virtual void loadGraphicsShaders() = 0;
 
   void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
-  virtual void loadGraphicsDescriptorSetLayouts() {};
+  virtual void loadGraphicsDescriptorSetLayouts() {}
 
   void createPipelineLayout();
 
@@ -95,9 +95,9 @@ private:
 
   void destroyStates();
 
-  virtual void updateUniformVariables(const RenderInfo* renderInfo) {};
+  virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
 
-  virtual void bindDescriptorSet(const RenderInfo* renderInfo) {};
+  virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
 };
 
 

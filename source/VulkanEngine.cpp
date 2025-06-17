@@ -1,4 +1,5 @@
 #include "VulkanEngine.h"
+#include "pipelines/custom/BumpyCurtain.h"
 #include "pipelines/custom/CubeMapPipeline.h"
 #include "pipelines/custom/CurtainPipeline.h"
 #include "pipelines/custom/ObjectsPipeline.h"
@@ -9,7 +10,6 @@
 #include "pipelines/custom/SnakePipeline.h"
 #include "pipelines/custom/CrossesPipeline.h"
 #include <stdexcept>
-#include <cstdint>
 #include <ranges>
 
 #ifdef NDEBUG
@@ -161,13 +161,15 @@ std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 p
 
 void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem)
 {
-  auto system = std::ranges::find(smokeSystems, smokeSystem);
+  const auto system = std::ranges::find(smokeSystems, smokeSystem);
 
-  if (system != smokeSystems.end())
+  if (system == smokeSystems.end())
   {
-    logicalDevice->waitIdle();
-    smokeSystems.erase(system);
+    return;
   }
+
+  logicalDevice->waitIdle();
+  smokeSystems.erase(system);
 }
 
 void VulkanEngine::initVulkan()
@@ -244,8 +246,8 @@ void VulkanEngine::initVulkan()
                                                   renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
   }
 
-  imGuiInstance = std::make_shared<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
-                                                  renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
+  imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
+                                                  guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
                                               swapChain->getExtent());
