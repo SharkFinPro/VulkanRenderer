@@ -3,7 +3,7 @@
 #include <iostream>
 
 DebugMessenger::DebugMessenger(const std::shared_ptr<Instance>& instance)
-  : debugMessenger{}, instance(instance)
+  : instance(instance)
 {
   VkResult result;
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
