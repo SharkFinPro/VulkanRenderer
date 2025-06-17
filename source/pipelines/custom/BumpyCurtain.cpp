@@ -3,7 +3,6 @@
 #include "../RenderPass.h"
 #include "../../objects/Light.h"
 #include "../../objects/Noise3DTexture.h"
-#include "../../objects/RenderObject.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 #include <stdexcept>
