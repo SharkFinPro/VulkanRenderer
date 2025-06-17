@@ -26,7 +26,7 @@ namespace Images {
                               uint32_t layerCount);
 
   bool hasStencilComponent(VkFormat format);
-};
+}
 
 
 #endif //VULKANPROJECT_IMAGES_H

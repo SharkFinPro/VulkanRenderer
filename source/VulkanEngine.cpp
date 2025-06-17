@@ -244,8 +244,8 @@ void VulkanEngine::initVulkan()
                                                   renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
   }
 
-  imGuiInstance = std::make_shared<ImGuiInstance>(commandPool, window, instance, physicalDevice, logicalDevice,
-                                                  renderPass, guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
+  imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
+                                                  guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
                                               swapChain->getExtent());

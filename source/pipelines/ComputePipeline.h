@@ -20,7 +20,7 @@ protected:
 
   void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
 
-  virtual void loadComputeDescriptorSetLayouts() {};
+  virtual void loadComputeDescriptorSetLayouts() {}
 
   void createPipelineLayout();
 
