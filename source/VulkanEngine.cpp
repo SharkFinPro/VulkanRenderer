@@ -161,13 +161,15 @@ std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 p
 
 void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem)
 {
-  auto system = std::ranges::find(smokeSystems, smokeSystem);
+  const auto system = std::ranges::find(smokeSystems, smokeSystem);
 
-  if (system != smokeSystems.end())
+  if (system == smokeSystems.end())
   {
-    logicalDevice->waitIdle();
-    smokeSystems.erase(system);
+    return;
   }
+
+  logicalDevice->waitIdle();
+  smokeSystems.erase(system);
 }
 
 void VulkanEngine::initVulkan()

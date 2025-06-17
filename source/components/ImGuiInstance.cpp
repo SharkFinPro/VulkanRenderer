@@ -80,7 +80,7 @@ void ImGuiInstance::createNewFrame()
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowBgAlpha(1.0f);
 
-  ImGuiID id = ImGui::GetID("WindowDockSpace");
+  const ImGuiID id = ImGui::GetID("WindowDockSpace");
   ImGui::DockBuilderRemoveNode(id); // Clear previous layout if any
   ImGui::DockBuilderAddNode(id);    // Create new dock node
 

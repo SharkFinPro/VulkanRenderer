@@ -2,7 +2,6 @@
 #define VULKANPROJECT_IMGUIINSTANCE_H
 
 #include <memory>
-#include <vulkan/vulkan.h>
 #include <imgui.h>
 
 class Window;
