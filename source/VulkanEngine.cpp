@@ -584,19 +584,22 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
 
   linePipeline->render(&renderInfo, nullptr);
 
-  ImGui::Begin("Smoke");
-  ImGui::Separator();
-  for (const auto& system : smokeSystems)
+  if (!smokeSystems.empty())
   {
-    ImGui::PushID(&system);
-    system->displayGui();
-    ImGui::PopID();
-
+    ImGui::Begin("Smoke");
     ImGui::Separator();
+    for (const auto& system : smokeSystems)
+    {
+      ImGui::PushID(&system);
+      system->displayGui();
+      ImGui::PopID();
 
-    system->render(&renderInfo, nullptr);
+      ImGui::Separator();
+
+      system->render(&renderInfo, nullptr);
+    }
+    ImGui::End();
   }
-  ImGui::End();
 }
 
 void VulkanEngine::createNewFrame()
