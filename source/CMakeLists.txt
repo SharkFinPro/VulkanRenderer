@@ -84,6 +84,9 @@ add_library(${PROJECT_NAME}
   pipelines/custom/SmokePipeline.cpp
   pipelines/custom/SmokePipeline.h
   pipelines/SmokeParticle.h
+  pipelines/custom/LinePipeline.cpp
+  pipelines/custom/LinePipeline.h
+  pipelines/LineVertex.h
 )
 
 # Noise
