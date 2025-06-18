@@ -31,6 +31,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "pipelines/custom/LinePipeline.h"
+
 enum class PipelineType {
   bumpyCurtain,
   crosses,
@@ -98,6 +100,8 @@ private:
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
 
   std::vector<std::shared_ptr<SmokePipeline>> smokeSystems;
+
+  std::unique_ptr<LinePipeline> linePipeline;
 
   std::shared_ptr<ImGuiInstance> imGuiInstance;
 

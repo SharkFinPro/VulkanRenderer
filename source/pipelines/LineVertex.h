@@ -17,7 +17,7 @@ struct LineVertex {
     };
   }
 
-  static constexpr std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+  static constexpr std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions()
   {
     return {{
       {
