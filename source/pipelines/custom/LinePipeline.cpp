@@ -5,12 +5,14 @@
 #include "../../components/LogicalDevice.h"
 #include "../../components/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
+#include "../../utilities/Buffers.h"
 #include <stdexcept>
 
 LinePipeline::LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderPass>& renderPass,
-                           VkDescriptorPool descriptorPool)
+                           VkDescriptorPool descriptorPool,
+                           VkCommandPool& commandPool)
   : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool)
 {
   createUniforms();
@@ -20,16 +22,28 @@ LinePipeline::LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
   createDescriptorSets();
 
   createPipeline(renderPass->getRenderPass());
+
+  createVertexBuffer(commandPool);
 }
 
 LinePipeline::~LinePipeline()
 {
+  Buffers::destroyBuffer(logicalDevice, vertexBuffer, vertexBufferMemory);
+
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), lineDescriptorSetLayout, nullptr);
 }
 
 void LinePipeline::render(const RenderInfo *renderInfo, const std::vector<std::shared_ptr<RenderObject>> *objects)
 {
   GraphicsPipeline::render(renderInfo, objects);
+
+  // Bind vertex buffer (assuming you have a vertex buffer created and filled)
+  VkBuffer vertexBuffers[] = {vertexBuffer};
+  VkDeviceSize offsets[] = {0};
+  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, vertexBuffers, offsets);
+
+  // Draw the line
+  vkCmdDraw(renderInfo->commandBuffer, 2, 1, 0, 0);
 }
 
 void LinePipeline::loadGraphicsShaders()
@@ -128,4 +142,34 @@ void LinePipeline::bindDescriptorSet(const RenderInfo *renderInfo)
 {
   vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+}
+
+void LinePipeline::createVertexBuffer(const VkCommandPool &commandPool)
+{
+  std::vector<LineVertex> vertices = {
+    {{-0.5f, 0.0f, 0.0f}},  // Start point
+    {{ 0.5f, 0.0f, 0.0f}}   // End point
+  };
+
+  const VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingBuffer, stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+  memcpy(data, vertices.data(), bufferSize);
+  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+
+  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
+                      vertexBuffer, bufferSize);
+
+  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 }

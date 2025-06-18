@@ -13,7 +13,8 @@ public:
   LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
-                VkDescriptorPool descriptorPool);
+                VkDescriptorPool descriptorPool,
+                VkCommandPool& commandPool);
 
   ~LinePipeline() override;
 
@@ -26,6 +27,9 @@ private:
   VkDescriptorSetLayout lineDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<UniformBuffer> transformUniform;
+
+  VkBuffer vertexBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
 
   void loadGraphicsShaders() override;
 
@@ -42,6 +46,8 @@ private:
   void updateUniformVariables(const RenderInfo *renderInfo) override;
 
   void bindDescriptorSet(const RenderInfo *renderInfo) override;
+
+  void createVertexBuffer(const VkCommandPool& commandPool);
 };
 
 
