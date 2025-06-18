@@ -14,7 +14,10 @@ public:
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
                 VkDescriptorPool descriptorPool);
+
   ~LinePipeline() override;
+
+  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;

@@ -582,6 +582,8 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     dotsPipeline->render(&renderInfo, nullptr);
   }
 
+  linePipeline->render(&renderInfo, nullptr);
+
   ImGui::Begin("Smoke");
   ImGui::Separator();
   for (const auto& system : smokeSystems)

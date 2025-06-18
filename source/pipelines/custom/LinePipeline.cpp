@@ -27,6 +27,11 @@ LinePipeline::~LinePipeline()
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), lineDescriptorSetLayout, nullptr);
 }
 
+void LinePipeline::render(const RenderInfo *renderInfo, const std::vector<std::shared_ptr<RenderObject>> *objects)
+{
+  GraphicsPipeline::render(renderInfo, objects);
+}
+
 void LinePipeline::loadGraphicsShaders()
 {
   createShader("assets/shaders/Line.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
