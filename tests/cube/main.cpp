@@ -72,6 +72,11 @@ int main()
         renderer.renderLight(light);
       }
 
+      // Render lines
+      renderer.renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
+      renderer.renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
+      renderer.renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
+
       // Render Frame
       renderer.render();
     }

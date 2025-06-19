@@ -128,6 +128,12 @@ void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
   lightsToRender.push_back(light);
 }
 
+void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
+{
+  lineVerticesToRender.push_back({start});
+  lineVerticesToRender.push_back({end});
+}
+
 void VulkanEngine::enableCamera()
 {
   useCamera = true;
@@ -582,21 +588,7 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     dotsPipeline->render(&renderInfo, nullptr);
   }
 
-  std::vector<LineVertex> vertices = {
-    // Line 1: from (-1, 0, 0) to (-0.5, 0.5, 0)
-    {{-1.0f,  0.0f, 0.0f}},
-    {{-0.5f,  0.5f, 0.0f}},
-
-    // Line 2: from (0, 0, 0) to (0.5, -0.5, 0)
-    {{ 0.0f,  0.0f, 0.0f}},
-    {{ 0.5f, -0.5f, 0.0f}},
-
-    // Line 3: from (1, 0, 0) to (1.5, 0.5, 0)
-    {{ 1.0f,  0.0f, 0.0f}},
-    {{ 1.5f,  0.5f, 0.0f}}
-  };
-
-  linePipeline->render(&renderInfo, commandPool, vertices);
+  linePipeline->render(&renderInfo, commandPool, lineVerticesToRender);
 
   if (!smokeSystems.empty())
   {
@@ -622,6 +614,7 @@ void VulkanEngine::createNewFrame()
 
   renderObjectsToRender.clear();
   lightsToRender.clear();
+  lineVerticesToRender.clear();
 }
 
 void VulkanEngine::createDescriptorPool()
