@@ -11,8 +11,7 @@
 LinePipeline::LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderPass>& renderPass,
-                           VkDescriptorPool descriptorPool,
-                           VkCommandPool& commandPool)
+                           VkDescriptorPool descriptorPool)
   : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool)
 {
   createUniforms();
@@ -23,19 +22,32 @@ LinePipeline::LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
 
   createPipeline(renderPass->getRenderPass());
 
-  createVertexBuffer(commandPool);
+  createVertexBuffer();
 }
 
 LinePipeline::~LinePipeline()
 {
+  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+
   Buffers::destroyBuffer(logicalDevice, vertexBuffer, vertexBufferMemory);
 
   vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), lineDescriptorSetLayout, nullptr);
 }
 
-void LinePipeline::render(const RenderInfo *renderInfo, const std::vector<std::shared_ptr<RenderObject>> *objects)
+void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& commandPool,
+                          const std::vector<LineVertex>& vertices)
 {
-  GraphicsPipeline::render(renderInfo, objects);
+  GraphicsPipeline::render(renderInfo, nullptr);
+
+  const VkDeviceSize bufferSize = sizeof(LineVertex) * vertices.size();
+
+  void* data;
+  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+  memcpy(data, vertices.data(), bufferSize);
+  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+
+  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
+                      vertexBuffer, bufferSize);
 
   // Bind vertex buffer (assuming you have a vertex buffer created and filled)
   VkBuffer vertexBuffers[] = {vertexBuffer};
@@ -43,7 +55,7 @@ void LinePipeline::render(const RenderInfo *renderInfo, const std::vector<std::s
   vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, vertexBuffers, offsets);
 
   // Draw the line
-  vkCmdDraw(renderInfo->commandBuffer, 2, 1, 0, 0);
+  vkCmdDraw(renderInfo->commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 }
 
 void LinePipeline::loadGraphicsShaders()
@@ -144,32 +156,13 @@ void LinePipeline::bindDescriptorSet(const RenderInfo *renderInfo)
                           &descriptorSets[renderInfo->currentFrame], 0, nullptr);
 }
 
-void LinePipeline::createVertexBuffer(const VkCommandPool &commandPool)
+void LinePipeline::createVertexBuffer()
 {
-  std::vector<LineVertex> vertices = {
-    {{-0.5f, 0.0f, 0.0f}},  // Start point
-    {{ 0.5f, 0.0f, 0.0f}}   // End point
-  };
-
-  const VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
-
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, vertices.data(), bufferSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
-
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
+  Buffers::createBuffer(logicalDevice, physicalDevice, maxVertexBufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
-  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
-                      vertexBuffer, bufferSize);
-
-  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+  Buffers::createBuffer(logicalDevice, physicalDevice, maxVertexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingBuffer, stagingBufferMemory);
 }

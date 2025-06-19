@@ -246,7 +246,7 @@ void VulkanEngine::initVulkan()
                                                   renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
   }
 
-  linePipeline = std::make_unique<LinePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool, commandPool);
+  linePipeline = std::make_unique<LinePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool);
 
   imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
                                                   guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
@@ -582,7 +582,21 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     dotsPipeline->render(&renderInfo, nullptr);
   }
 
-  linePipeline->render(&renderInfo, nullptr);
+  std::vector<LineVertex> vertices = {
+    // Line 1: from (-1, 0, 0) to (-0.5, 0.5, 0)
+    {{-1.0f,  0.0f, 0.0f}},
+    {{-0.5f,  0.5f, 0.0f}},
+
+    // Line 2: from (0, 0, 0) to (0.5, -0.5, 0)
+    {{ 0.0f,  0.0f, 0.0f}},
+    {{ 0.5f, -0.5f, 0.0f}},
+
+    // Line 3: from (1, 0, 0) to (1.5, 0.5, 0)
+    {{ 1.0f,  0.0f, 0.0f}},
+    {{ 1.5f,  0.5f, 0.0f}}
+  };
+
+  linePipeline->render(&renderInfo, commandPool, vertices);
 
   if (!smokeSystems.empty())
   {

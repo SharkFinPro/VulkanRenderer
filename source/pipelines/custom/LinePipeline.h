@@ -2,6 +2,7 @@
 #define LINEPIPELINE_H
 
 #include "../GraphicsPipeline.h"
+#include "../LineVertex.h"
 #include <vector>
 #include <memory>
 
@@ -13,12 +14,11 @@ public:
   LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
-                VkDescriptorPool descriptorPool,
-                VkCommandPool& commandPool);
+                VkDescriptorPool descriptorPool);
 
   ~LinePipeline() override;
 
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+  void render(const RenderInfo* renderInfo, const VkCommandPool& commandPool, const std::vector<LineVertex>& vertices);
 
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
@@ -30,6 +30,10 @@ private:
 
   VkBuffer vertexBuffer = VK_NULL_HANDLE;
   VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
+  size_t maxVertexBufferSize = sizeof(LineVertex) * 20'000;
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
 
   void loadGraphicsShaders() override;
 
@@ -47,7 +51,7 @@ private:
 
   void bindDescriptorSet(const RenderInfo *renderInfo) override;
 
-  void createVertexBuffer(const VkCommandPool& commandPool);
+  void createVertexBuffer();
 };
 
 
