@@ -32,8 +32,8 @@ private:
   VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
   size_t maxVertexBufferSize = sizeof(LineVertex) * 20'000;
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
+  VkBuffer stagingBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
 
   void loadGraphicsShaders() override;
 
