@@ -128,6 +128,12 @@ void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
   lightsToRender.push_back(light);
 }
 
+void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
+{
+  lineVerticesToRender.push_back({start});
+  lineVerticesToRender.push_back({end});
+}
+
 void VulkanEngine::enableCamera()
 {
   useCamera = true;
@@ -245,6 +251,8 @@ void VulkanEngine::initVulkan()
     dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
                                                   renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
   }
+
+  linePipeline = std::make_unique<LinePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool);
 
   imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
                                                   guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
@@ -580,19 +588,24 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     dotsPipeline->render(&renderInfo, nullptr);
   }
 
-  ImGui::Begin("Smoke");
-  ImGui::Separator();
-  for (const auto& system : smokeSystems)
+  linePipeline->render(&renderInfo, commandPool, lineVerticesToRender);
+
+  if (!smokeSystems.empty())
   {
-    ImGui::PushID(&system);
-    system->displayGui();
-    ImGui::PopID();
-
+    ImGui::Begin("Smoke");
     ImGui::Separator();
+    for (const auto& system : smokeSystems)
+    {
+      ImGui::PushID(&system);
+      system->displayGui();
+      ImGui::PopID();
 
-    system->render(&renderInfo, nullptr);
+      ImGui::Separator();
+
+      system->render(&renderInfo, nullptr);
+    }
+    ImGui::End();
   }
-  ImGui::End();
 }
 
 void VulkanEngine::createNewFrame()
@@ -601,6 +614,7 @@ void VulkanEngine::createNewFrame()
 
   renderObjectsToRender.clear();
   lightsToRender.clear();
+  lineVerticesToRender.clear();
 }
 
 void VulkanEngine::createDescriptorPool()

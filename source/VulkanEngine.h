@@ -31,6 +31,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "pipelines/custom/LinePipeline.h"
+
 enum class PipelineType {
   bumpyCurtain,
   crosses,
@@ -69,6 +71,7 @@ public:
 
   void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType);
   void renderLight(const std::shared_ptr<Light>& light);
+  void renderLine(glm::vec3 start, glm::vec3 end);
 
   void enableCamera();
   void disableCamera();
@@ -99,6 +102,8 @@ private:
 
   std::vector<std::shared_ptr<SmokePipeline>> smokeSystems;
 
+  std::unique_ptr<LinePipeline> linePipeline;
+
   std::shared_ptr<ImGuiInstance> imGuiInstance;
 
   std::shared_ptr<Framebuffer> framebuffer;
@@ -110,6 +115,8 @@ private:
   std::vector<std::shared_ptr<Light>> lights;
 
   std::vector<std::shared_ptr<Light>> lightsToRender;
+
+  std::vector<LineVertex> lineVerticesToRender;
 
   std::shared_ptr<Camera> camera;
 

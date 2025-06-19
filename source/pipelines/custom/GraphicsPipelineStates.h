@@ -1,6 +1,7 @@
 #ifndef GRAPHICSPIPELINESTATES_H
 #define GRAPHICSPIPELINESTATES_H
 
+#include "../LineVertex.h"
 #include "../Particle.h"
 #include "../Vertex.h"
 #include "../SmokeParticle.h"
@@ -107,6 +108,12 @@ namespace GraphicsPipelineStates {
     .primitiveRestartEnable = VK_FALSE
   };
 
+  inline VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateLineList {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+    .topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+    .primitiveRestartEnable = VK_FALSE
+  };
+
   inline VkPipelineMultisampleStateCreateInfo getMultsampleState(const std::shared_ptr<PhysicalDevice>& physicalDevice)
   {
     return {
@@ -151,6 +158,17 @@ namespace GraphicsPipelineStates {
     .pVertexBindingDescriptions = &vertexBindingDescription,
     .vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptions.size()),
     .pVertexAttributeDescriptions = vertexAttributeDescriptions.data()
+  };
+
+  inline VkVertexInputBindingDescription lineVertexBindingDescription = LineVertex::getBindingDescription();
+  inline std::array lineVertexAttributeDescriptions = LineVertex::getAttributeDescriptions();
+
+  inline VkPipelineVertexInputStateCreateInfo vertexInputStateLineVertex {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .vertexBindingDescriptionCount = 1,
+    .pVertexBindingDescriptions = &lineVertexBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(lineVertexAttributeDescriptions.size()),
+    .pVertexAttributeDescriptions = lineVertexAttributeDescriptions.data()
   };
 
   inline VkVertexInputBindingDescription particleBindingDescription = Particle::getBindingDescription();
