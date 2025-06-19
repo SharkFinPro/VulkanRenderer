@@ -49,12 +49,9 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
   Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
                       vertexBuffer, bufferSize);
 
-  // Bind vertex buffer (assuming you have a vertex buffer created and filled)
-  VkBuffer vertexBuffers[] = {vertexBuffer};
-  VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, vertexBuffers, offsets);
+  constexpr VkDeviceSize offsets[] = {0};
+  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &vertexBuffer, offsets);
 
-  // Draw the line
   vkCmdDraw(renderInfo->commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 }
 
