@@ -41,6 +41,11 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
 
   const VkDeviceSize bufferSize = sizeof(LineVertex) * vertices.size();
 
+  if (bufferSize > maxVertexBufferSize)
+  {
+    throw std::runtime_error("Vertex data exceeds maximum buffer size");
+  }
+
   void* data;
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
   memcpy(data, vertices.data(), bufferSize);
