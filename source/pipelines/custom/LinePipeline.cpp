@@ -37,6 +37,11 @@ LinePipeline::~LinePipeline()
 void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& commandPool,
                           const std::vector<LineVertex>& vertices)
 {
+  if (vertices.empty())
+  {
+    return;
+  }
+  
   GraphicsPipeline::render(renderInfo, nullptr);
 
   const VkDeviceSize bufferSize = sizeof(LineVertex) * vertices.size();
