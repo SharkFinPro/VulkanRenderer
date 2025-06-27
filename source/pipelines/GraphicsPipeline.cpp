@@ -78,6 +78,11 @@ void GraphicsPipeline::defineViewportState(const VkPipelineViewportStateCreateIn
   viewportState = std::make_unique<VkPipelineViewportStateCreateInfo>(state);
 }
 
+void GraphicsPipeline::definePushConstantRange(const VkPushConstantRange& range)
+{
+  pushConstantRanges.emplace_back(range);
+}
+
 void GraphicsPipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
 {
   descriptorSetLayouts.emplace_back(descriptorSetLayout);
@@ -90,7 +95,9 @@ void GraphicsPipeline::createPipelineLayout()
   const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
-    .pSetLayouts = descriptorSetLayouts.data()
+    .pSetLayouts = descriptorSetLayouts.data(),
+    .pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size()),
+    .pPushConstantRanges = pushConstantRanges.empty() ? nullptr : pushConstantRanges.data()
   };
 
   if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
