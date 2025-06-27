@@ -78,7 +78,7 @@ void GraphicsPipeline::defineViewportState(const VkPipelineViewportStateCreateIn
   viewportState = std::make_unique<VkPipelineViewportStateCreateInfo>(state);
 }
 
-void GraphicsPipeline::definePushConstantRange(const VkPushConstantRange& range)
+void GraphicsPipeline::definePushConstantRange(VkPushConstantRange range)
 {
   pushConstantRanges.emplace_back(range);
 }

@@ -86,7 +86,7 @@ protected:
 
   virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
 
-  void definePushConstantRange(const VkPushConstantRange& range);
+  void definePushConstantRange(VkPushConstantRange range);
 
 private:
   std::unique_ptr<VkPipelineColorBlendStateCreateInfo> colorBlendState{};
