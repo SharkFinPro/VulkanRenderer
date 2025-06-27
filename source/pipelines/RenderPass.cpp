@@ -77,7 +77,7 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
     .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
     .colorAttachmentCount = 1,
     .pColorAttachments = &colorAttachmentRef,
-    .pResolveAttachments = &colorAttachmentResolveRef,
+    .pResolveAttachments = finalLayout != VK_IMAGE_LAYOUT_UNDEFINED ? &colorAttachmentResolveRef : nullptr,
     .pDepthStencilAttachment = &depthAttachmentRef
   };
 
@@ -90,11 +90,15 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
     .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
   };
 
-  const std::array<VkAttachmentDescription, 3> attachments {
+  std::vector<VkAttachmentDescription> attachments {
     colorAttachment,
-    depthAttachment,
-    colorAttachmentResolve
+    depthAttachment
   };
+
+  if (finalLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+  {
+    attachments.push_back(colorAttachmentResolve);
+  }
 
   const VkRenderPassCreateInfo renderPassInfo {
     .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,

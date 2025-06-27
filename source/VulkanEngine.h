@@ -94,6 +94,7 @@ private:
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<RenderPass> offscreenRenderPass;
+  std::shared_ptr<RenderPass> mousePickingRenderPass;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
 

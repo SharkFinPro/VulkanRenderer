@@ -213,6 +213,10 @@ void VulkanEngine::initVulkan()
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
+  mousePickingRenderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
+                                                        VK_SAMPLE_COUNT_1_BIT,
+                                                        VK_IMAGE_LAYOUT_UNDEFINED);
+
   pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
     physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
