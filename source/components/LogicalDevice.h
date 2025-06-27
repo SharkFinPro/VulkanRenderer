@@ -19,6 +19,7 @@ public:
   [[nodiscard]] VkQueue getPresentQueue() const;
   [[nodiscard]] VkQueue getComputeQueue() const;
 
+  void submitMousePickingGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
   void submitOffscreenGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
   void submitGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
   void submitComputeQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
@@ -42,11 +43,13 @@ private:
   VkQueue computeQueue = VK_NULL_HANDLE;
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
-  std::vector<VkSemaphore> imageAvailableSemaphores2;
+
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores2;
+
   std::vector<VkFence> inFlightFences;
   std::vector<VkFence> inFlightFences2;
+  std::vector<VkFence> mousePickingInFlightFences;
 
   std::vector<VkSemaphore> computeFinishedSemaphores;
   std::vector<VkFence> computeInFlightFences;

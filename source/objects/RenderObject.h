@@ -21,7 +21,8 @@ public:
                std::shared_ptr<Texture> texture, std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model);
   ~RenderObject();
 
-  void draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, uint32_t currentFrame) const;
+  void draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, uint32_t currentFrame,
+            bool mousePicking = false) const;
 
   void updateUniformBuffer(uint32_t currentFrame, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) const;
 

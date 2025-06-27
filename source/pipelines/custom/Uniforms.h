@@ -87,4 +87,8 @@ struct SmokeUniform {
   float windStrength;
 };
 
+struct MousePickingID {
+  int objectID;
+};
+
 #endif //VULKANPROJECT_UNIFORMS_H

@@ -199,6 +199,7 @@ void VulkanEngine::initVulkan()
   allocateCommandBuffers(computeCommandBuffers);
   allocateCommandBuffers(offscreenCommandBuffers);
   allocateCommandBuffers(swapchainCommandBuffers);
+  allocateCommandBuffers(mousePickingCommandBuffers);
 
   createDescriptorPool();
 
@@ -250,6 +251,9 @@ void VulkanEngine::initVulkan()
   guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
+  mousePickingPipeline = std::make_unique<MousePickingPipeline>(physicalDevice, logicalDevice, mousePickingRenderPass,
+                                                                objectDescriptorSetLayout);
+
   if (vulkanEngineOptions.DO_DOTS)
   {
     dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
@@ -269,6 +273,9 @@ void VulkanEngine::initVulkan()
     offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
                                                          renderPass, swapChain->getExtent());
   }
+
+  mousePickingFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
+                                                          mousePickingRenderPass, swapChain->getExtent(), true);
 }
 
 void VulkanEngine::createCommandPool()
@@ -438,6 +445,57 @@ void VulkanEngine::doRendering()
 
   logicalDevice->resetGraphicsFences(currentFrame);
 
+  //////////////////////
+
+  vkResetCommandBuffer(mousePickingCommandBuffers[currentFrame], 0);
+
+  recordCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex, [this](const VkCommandBuffer& cmdBuffer,
+                      const uint32_t imgIndex)
+  {
+    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
+
+    const std::vector<std::shared_ptr<Light>> lights{};
+
+    const RenderInfo renderInfo {
+      .commandBuffer = cmdBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = viewPosition,
+      .viewMatrix = viewMatrix,
+      .extent = swapChain->getExtent(),
+      .lights = lights
+    };
+
+    const VkViewport viewport = {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(renderInfo.extent.width),
+      .height = static_cast<float>(renderInfo.extent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+
+    const VkRect2D scissor = {
+      .offset = {0, 0},
+      .extent = renderInfo.extent
+    };
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+
+    for (const auto& [_, objects] : renderObjectsToRender)
+    {
+      if (!objects.empty())
+      {
+        mousePickingPipeline->render(&renderInfo, &objects);
+      }
+    }
+
+    RenderPass::end(cmdBuffer);
+  });
+
+  logicalDevice->submitMousePickingGraphicsQueue(currentFrame, &mousePickingCommandBuffers[currentFrame]);
+
+  //////////////////////
+
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
   recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
   logicalDevice->submitOffscreenGraphicsQueue(currentFrame, &offscreenCommandBuffers[currentFrame]);
@@ -473,6 +531,7 @@ void VulkanEngine::recreateSwapChain()
 
   logicalDevice->waitIdle();
 
+  mousePickingFramebuffer.reset();
   framebuffer.reset();
   swapChain.reset();
 
@@ -481,6 +540,9 @@ void VulkanEngine::recreateSwapChain()
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
   framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
                                               swapChain->getExtent());
+
+  mousePickingFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
+                                                          mousePickingRenderPass, swapChain->getExtent(), true);
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {

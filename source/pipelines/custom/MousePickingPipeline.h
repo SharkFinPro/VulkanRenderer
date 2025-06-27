@@ -1,10 +1,29 @@
 #ifndef MOUSEPICKINGPIPELINE_H
 #define MOUSEPICKINGPIPELINE_H
 
+#include "../GraphicsPipeline.h"
 
+class RenderPass;
 
-class MousePickingPipeline {
+class MousePickingPipeline final : public GraphicsPipeline {
+public:
+  MousePickingPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
+                       const std::shared_ptr<LogicalDevice>& logicalDevice,
+                       const std::shared_ptr<RenderPass>& renderPass,
+                       VkDescriptorSetLayout objectDescriptorSetLayout);
 
+  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+
+private:
+  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+
+  void loadGraphicsShaders() override;
+
+  void loadGraphicsDescriptorSetLayouts() override;
+
+  void defineStates() override;
+
+  void definePushConstants();
 };
 
 

@@ -32,6 +32,7 @@
 #include <unordered_map>
 
 #include "pipelines/custom/LinePipeline.h"
+#include "pipelines/custom/MousePickingPipeline.h"
 
 enum class PipelineType {
   bumpyCurtain,
@@ -97,6 +98,7 @@ private:
   std::shared_ptr<RenderPass> mousePickingRenderPass;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
+  std::unique_ptr<MousePickingPipeline> mousePickingPipeline;
 
   std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> pipelines;
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
@@ -109,6 +111,7 @@ private:
 
   std::shared_ptr<Framebuffer> framebuffer;
   std::shared_ptr<Framebuffer> offscreenFramebuffer;
+  std::shared_ptr<Framebuffer> mousePickingFramebuffer;
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
@@ -126,6 +129,7 @@ private:
   std::vector<VkCommandBuffer> offscreenCommandBuffers;
   std::vector<VkCommandBuffer> swapchainCommandBuffers;
   std::vector<VkCommandBuffer> computeCommandBuffers;
+  std::vector<VkCommandBuffer> mousePickingCommandBuffers;
   uint32_t currentFrame;
 
   bool framebufferResized;

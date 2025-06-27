@@ -17,7 +17,8 @@ public:
               std::shared_ptr<SwapChain> swapChain,
               const VkCommandPool& commandPool,
               const std::shared_ptr<RenderPass>& renderPass,
-              VkExtent2D extent);
+              VkExtent2D extent,
+              bool mousePicking = false);
   ~Framebuffer();
 
   VkFramebuffer& getFramebuffer(uint32_t imageIndex);
@@ -44,6 +45,8 @@ private:
 
   VkSampler sampler = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> framebufferImageDescriptorSets;
+
+  bool m_mousePicking;
 
   void createImageResources(const VkCommandPool& commandPool, VkExtent2D extent);
   void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat, VkExtent2D extent);
