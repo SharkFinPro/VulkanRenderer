@@ -494,109 +494,10 @@ void VulkanEngine::doRendering()
 
   logicalDevice->resetGraphicsFences(currentFrame);
 
-  //////////////////////
-
   vkResetCommandBuffer(mousePickingCommandBuffers[currentFrame], 0);
-
   recordMousePickingCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex);
-
   logicalDevice->submitMousePickingGraphicsQueue(currentFrame, &mousePickingCommandBuffers[currentFrame]);
-
-  /* */
-
-  logicalDevice->waitForMousePickingFences(currentFrame);
-
-  const auto extent = offscreenViewportExtent;
-
-  constexpr VkDeviceSize bufferSize = 4;
-
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
-
-  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
-
-  const VkImageMemoryBarrier barrier {
-    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-    .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-    .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-    .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-    .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .image = mousePickingFramebuffer->getColorImage(),
-    .subresourceRange {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-      .baseMipLevel = 0,
-      .levelCount = 1,
-      .baseArrayLayer = 0,
-      .layerCount = 1
-    }
-  };
-
-  vkCmdPipelineBarrier(
-      commandBuffer,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrier
-  );
-
-  double mouseX, mouseY;
-  window->getCursorPos(mouseX, mouseY);
-
-  mouseX -= offscreenViewportPos.x;
-  mouseY -= offscreenViewportPos.y;
-
-  const int32_t pixelX = std::clamp(static_cast<int>(mouseX), 0, static_cast<int>(extent.width) - 1);
-  const int32_t pixelY = std::clamp(static_cast<int>(mouseY), 0, static_cast<int>(extent.height) - 1);
-
-  VkBufferImageCopy region{};
-  region.bufferOffset = 0;
-  region.bufferRowLength = 0;
-  region.bufferImageHeight = 0;
-  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-  region.imageSubresource.mipLevel = 0;
-  region.imageSubresource.baseArrayLayer = 0;
-  region.imageSubresource.layerCount = 1;
-  region.imageOffset = { pixelX, pixelY, 0 };
-  region.imageExtent = { 1, 1, 1 };
-
-  vkCmdCopyImageToBuffer(
-      commandBuffer,
-      mousePickingFramebuffer->getColorImage(),
-      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      stagingBuffer,
-      1,
-      &region
-  );
-
-  Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
-
-  void* mapped;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, VK_WHOLE_SIZE, 0, &mapped);
-
-  uint8_t r = static_cast<uint8_t*>(mapped)[0];
-  uint8_t g = static_cast<uint8_t*>(mapped)[1];
-  uint8_t b = static_cast<uint8_t*>(mapped)[2];
-
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
-
-  const uint32_t objectID = (r << 16) | (g << 8) | b;
-
-  if (objectID != 0)
-  {
-    std::cout << objectID << std::endl;
-  }
-
-  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
-
-  //////////////////////
+  doMousePicking();
 
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
   recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
@@ -852,4 +753,101 @@ void VulkanEngine::createObjectDescriptorSetLayout()
   {
     throw std::runtime_error("failed to create object descriptor set layout!");
   }
+}
+
+void VulkanEngine::doMousePicking() const
+{
+  logicalDevice->waitForMousePickingFences(currentFrame);
+
+  constexpr VkDeviceSize bufferSize = 4;
+
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+
+  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingBuffer, stagingBufferMemory);
+
+  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
+
+  const VkImageMemoryBarrier barrier {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+    .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .image = mousePickingFramebuffer->getColorImage(),
+    .subresourceRange {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .baseMipLevel = 0,
+      .levelCount = 1,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    }
+  };
+
+  vkCmdPipelineBarrier(
+      commandBuffer,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      0,
+      0, nullptr,
+      0, nullptr,
+      1, &barrier
+  );
+
+  double mouseX, mouseY;
+  window->getCursorPos(mouseX, mouseY);
+
+  mouseX -= offscreenViewportPos.x;
+  mouseY -= offscreenViewportPos.y;
+
+  const int32_t pixelX = std::clamp(static_cast<int>(mouseX), 0, static_cast<int>(offscreenViewportExtent.width) - 1);
+  const int32_t pixelY = std::clamp(static_cast<int>(mouseY), 0, static_cast<int>(offscreenViewportExtent.height) - 1);
+
+  const VkBufferImageCopy region{
+    .bufferOffset = 0,
+    .bufferRowLength = 0,
+    .bufferImageHeight = 0,
+    .imageSubresource {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = 0,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    },
+    .imageOffset = { pixelX, pixelY, 0 },
+    .imageExtent = { 1, 1, 1 }
+  };
+
+  vkCmdCopyImageToBuffer(
+      commandBuffer,
+      mousePickingFramebuffer->getColorImage(),
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      stagingBuffer,
+      1,
+      &region
+  );
+
+  Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+
+  void* data;
+  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
+
+
+  const uint8_t r = static_cast<uint8_t*>(data)[0];
+  const uint8_t g = static_cast<uint8_t*>(data)[1];
+  const uint8_t b = static_cast<uint8_t*>(data)[2];
+
+  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+
+  const uint32_t objectID = (r << 16) | (g << 8) | b;
+
+  if (objectID != 0)
+  {
+    std::cout << objectID << std::endl;
+  }
+
+  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 }

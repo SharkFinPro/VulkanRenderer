@@ -173,6 +173,8 @@ private:
   void createDescriptorPool();
 
   void createObjectDescriptorSetLayout();
+
+  void doMousePicking() const;
 };
 
 
