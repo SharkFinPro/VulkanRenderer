@@ -822,12 +822,12 @@ void VulkanEngine::doMousePicking() const
   };
 
   vkCmdCopyImageToBuffer(
-      commandBuffer,
-      mousePickingFramebuffer->getColorImage(),
-      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      stagingBuffer,
-      1,
-      &region
+    commandBuffer,
+    mousePickingFramebuffer->getColorImage(),
+    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+    stagingBuffer,
+    1,
+    &region
   );
 
   Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
