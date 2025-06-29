@@ -88,7 +88,7 @@ struct SmokeUniform {
 };
 
 struct MousePickingID {
-  int objectID;
+  uint32_t objectID;
 };
 
 #endif //VULKANPROJECT_UNIFORMS_H

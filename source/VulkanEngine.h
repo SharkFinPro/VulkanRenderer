@@ -103,6 +103,8 @@ private:
   std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> pipelines;
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
 
+  std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> renderObjectsToMousePick;
+
   std::vector<std::shared_ptr<SmokePipeline>> smokeSystems;
 
   std::unique_ptr<LinePipeline> linePipeline;

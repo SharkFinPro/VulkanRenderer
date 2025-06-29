@@ -12,7 +12,7 @@ public:
                        const std::shared_ptr<RenderPass>& renderPass,
                        VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+  void render(const RenderInfo* renderInfo, const std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>>* objects);
 
 private:
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;

@@ -18,7 +18,7 @@ MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<PhysicalDevice>
 }
 
 void MousePickingPipeline::render(const RenderInfo* renderInfo,
-                                  const std::vector<std::shared_ptr<RenderObject>>* objects)
+                                  const std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>>* objects)
 {
   updateUniformVariables(renderInfo);
 
@@ -31,15 +31,15 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
     for (size_t i = 0; i < objects->size(); ++i)
     {
       MousePickingID id {
-        .objectID = static_cast<int>(i) + 1
+        .objectID = objects->at(i).second
       };
 
       vkCmdPushConstants(renderInfo->commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                          sizeof(MousePickingID), &id);
 
-      objects->at(i)->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+      objects->at(i).first->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      objects->at(i)->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, true);
+      objects->at(i).first->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, true);
     }
   }
 }

@@ -124,6 +124,8 @@ bool VulkanEngine::sceneIsFocused() const
 void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType)
 {
   renderObjectsToRender[pipelineType].push_back(renderObject);
+
+  renderObjectsToMousePick.emplace_back(renderObject, static_cast<uint32_t>(renderObjectsToMousePick.size()) + 1);
 }
 
 void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
@@ -385,13 +387,7 @@ void VulkanEngine::recordMousePickingCommandBuffer(const VkCommandBuffer &comman
     };
     vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
-    for (const auto& [_, objects] : renderObjectsToRender)
-    {
-      if (!objects.empty())
-      {
-        mousePickingPipeline->render(&renderInfo, &objects);
-      }
-    }
+    mousePickingPipeline->render(&renderInfo, &renderObjectsToMousePick);
 
     RenderPass::end(cmdBuffer);
   });
