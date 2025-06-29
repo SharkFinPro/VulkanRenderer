@@ -26,6 +26,8 @@ public:
 
   void waitForGraphicsFences(uint32_t currentFrame) const;
   void waitForComputeFences(uint32_t currentFrame) const;
+  void waitForMousePickingFences(uint32_t currentFrame) const;
+
   void resetGraphicsFences(uint32_t currentFrame) const;
   void resetComputeFences(uint32_t currentFrame) const;
 

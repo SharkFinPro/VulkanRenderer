@@ -79,6 +79,11 @@ VkDescriptorSet& Framebuffer::getFramebufferImageDescriptorSet(const uint32_t im
   return framebufferImageDescriptorSets[imageIndex];
 }
 
+VkImage& Framebuffer::getColorImage()
+{
+  return colorImage;
+}
+
 void Framebuffer::createImageResources(const VkCommandPool& commandPool, const VkExtent2D extent)
 {
   if (swapChain)
@@ -163,7 +168,8 @@ void Framebuffer::createColorResources(const VkExtent2D extent)
 
   Images::createImage(logicalDevice, physicalDevice, 0, extent.width, extent.height, 1,
                       1, samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
-                      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                      (m_mousePicking ? VK_IMAGE_USAGE_TRANSFER_SRC_BIT : VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT),
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory, VK_IMAGE_TYPE_2D, 1);
 
   colorImageView = Images::createImageView(logicalDevice, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,

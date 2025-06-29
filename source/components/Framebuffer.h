@@ -25,6 +25,8 @@ public:
 
   VkDescriptorSet& getFramebufferImageDescriptorSet(uint32_t imageIndex);
 
+  VkImage& getColorImage();
+
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
