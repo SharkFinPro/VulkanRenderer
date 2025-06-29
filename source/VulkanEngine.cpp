@@ -835,7 +835,6 @@ void VulkanEngine::doMousePicking() const
   void* data;
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
 
-
   const uint8_t r = static_cast<uint8_t*>(data)[0];
   const uint8_t g = static_cast<uint8_t*>(data)[1];
   const uint8_t b = static_cast<uint8_t*>(data)[2];
