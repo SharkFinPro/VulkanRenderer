@@ -138,6 +138,8 @@ private:
 
   VkExtent2D offscreenViewportExtent{};
 
+  ImVec2 offscreenViewportPos{0, 0};
+
   bool useCamera;
   glm::vec3 viewPosition{};
   glm::mat4 viewMatrix{};

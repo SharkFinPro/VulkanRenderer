@@ -10,6 +10,7 @@
 #include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
 #include "pipelines/custom/SnakePipeline.h"
 #include "pipelines/custom/CrossesPipeline.h"
+#include <algorithm>
 #include <stdexcept>
 #include <ranges>
 
@@ -453,7 +454,7 @@ void VulkanEngine::doRendering()
   recordCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex, [this](const VkCommandBuffer& cmdBuffer,
                       const uint32_t imgIndex)
   {
-    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
+    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
 
     const std::vector<std::shared_ptr<Light>> lights{};
 
@@ -462,7 +463,7 @@ void VulkanEngine::doRendering()
       .currentFrame = currentFrame,
       .viewPosition = viewPosition,
       .viewMatrix = viewMatrix,
-      .extent = swapChain->getExtent(),
+      .extent = offscreenViewportExtent,
       .lights = lights
     };
 
@@ -499,6 +500,8 @@ void VulkanEngine::doRendering()
 
   logicalDevice->waitForMousePickingFences(currentFrame);
 
+  const auto extent = offscreenViewportExtent;
+
   constexpr VkDeviceSize bufferSize = 4;
 
   VkBuffer stagingBuffer;
@@ -508,9 +511,9 @@ void VulkanEngine::doRendering()
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
+  VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
 
-  VkImageMemoryBarrier barrier {
+  const VkImageMemoryBarrier barrier {
     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
     .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
     .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
@@ -527,6 +530,7 @@ void VulkanEngine::doRendering()
       .layerCount = 1
     }
   };
+
   vkCmdPipelineBarrier(
       commandBuffer,
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -537,6 +541,15 @@ void VulkanEngine::doRendering()
       1, &barrier
   );
 
+  double mouseX, mouseY;
+  window->getCursorPos(mouseX, mouseY);
+
+  mouseX -= offscreenViewportPos.x;
+  mouseY -= offscreenViewportPos.y;
+
+  const int32_t pixelX = std::clamp(static_cast<int>(mouseX), 0, static_cast<int>(extent.width) - 1);
+  const int32_t pixelY = std::clamp(static_cast<int>(mouseY), 0, static_cast<int>(extent.height) - 1);
+
   VkBufferImageCopy region{};
   region.bufferOffset = 0;
   region.bufferRowLength = 0;
@@ -545,7 +558,7 @@ void VulkanEngine::doRendering()
   region.imageSubresource.mipLevel = 0;
   region.imageSubresource.baseArrayLayer = 0;
   region.imageSubresource.layerCount = 1;
-  region.imageOffset = { 0, 0, 0 };
+  region.imageOffset = { pixelX, pixelY, 0 };
   region.imageExtent = { 1, 1, 1 };
 
   vkCmdCopyImageToBuffer(
@@ -620,7 +633,7 @@ void VulkanEngine::recreateSwapChain()
                                               swapChain->getExtent());
 
   mousePickingFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
-                                                          mousePickingRenderPass, swapChain->getExtent(), true);
+                                                          mousePickingRenderPass, offscreenViewportExtent, true);
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -670,7 +683,13 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
     offscreenFramebuffer.reset();
     offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
                                                          renderPass, offscreenViewportExtent);
+
+    mousePickingFramebuffer.reset();
+    mousePickingFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
+                                                            mousePickingRenderPass, offscreenViewportExtent, true);
   }
+
+  offscreenViewportPos = ImGui::GetCursorScreenPos();
 
   ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex)),
               contentRegionAvailable);
