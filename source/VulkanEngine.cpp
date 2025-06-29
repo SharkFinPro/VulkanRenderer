@@ -125,7 +125,8 @@ void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObjec
 {
   renderObjectsToRender[pipelineType].push_back(renderObject);
 
-  renderObjectsToMousePick.emplace_back(renderObject, static_cast<uint32_t>(renderObjectsToMousePick.size()) + 1);
+  uint32_t objectID = static_cast<uint32_t>(renderObjectsToMousePick.size()) + 1;
+  renderObjectsToMousePick.emplace_back( renderObject, objectID );
 }
 
 void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
@@ -686,6 +687,8 @@ void VulkanEngine::createNewFrame()
   renderObjectsToRender.clear();
   lightsToRender.clear();
   lineVerticesToRender.clear();
+
+  renderObjectsToMousePick.clear();
 }
 
 void VulkanEngine::createDescriptorPool()
