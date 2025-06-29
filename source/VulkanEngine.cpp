@@ -11,6 +11,7 @@
 #include "pipelines/custom/SnakePipeline.h"
 #include "pipelines/custom/CrossesPipeline.h"
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <ranges>
 
@@ -350,6 +351,52 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
   });
 }
 
+void VulkanEngine::recordMousePickingCommandBuffer(const VkCommandBuffer &commandBuffer, uint32_t imageIndex) const
+{
+  recordCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex, [this](const VkCommandBuffer& cmdBuffer,
+                      const uint32_t imgIndex)
+  {
+    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
+
+    const std::vector<std::shared_ptr<Light>> lights{};
+
+    const RenderInfo renderInfo {
+      .commandBuffer = cmdBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = viewPosition,
+      .viewMatrix = viewMatrix,
+      .extent = offscreenViewportExtent,
+      .lights = lights
+    };
+
+    const VkViewport viewport = {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(renderInfo.extent.width),
+      .height = static_cast<float>(renderInfo.extent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+
+    const VkRect2D scissor = {
+      .offset = {0, 0},
+      .extent = renderInfo.extent
+    };
+    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+
+    for (const auto& [_, objects] : renderObjectsToRender)
+    {
+      if (!objects.empty())
+      {
+        mousePickingPipeline->render(&renderInfo, &objects);
+      }
+    }
+
+    RenderPass::end(cmdBuffer);
+  });
+}
+
 void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
   recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer,
@@ -451,48 +498,7 @@ void VulkanEngine::doRendering()
 
   vkResetCommandBuffer(mousePickingCommandBuffers[currentFrame], 0);
 
-  recordCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex, [this](const VkCommandBuffer& cmdBuffer,
-                      const uint32_t imgIndex)
-  {
-    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
-
-    const std::vector<std::shared_ptr<Light>> lights{};
-
-    const RenderInfo renderInfo {
-      .commandBuffer = cmdBuffer,
-      .currentFrame = currentFrame,
-      .viewPosition = viewPosition,
-      .viewMatrix = viewMatrix,
-      .extent = offscreenViewportExtent,
-      .lights = lights
-    };
-
-    const VkViewport viewport = {
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(renderInfo.extent.width),
-      .height = static_cast<float>(renderInfo.extent.height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f
-    };
-    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
-
-    const VkRect2D scissor = {
-      .offset = {0, 0},
-      .extent = renderInfo.extent
-    };
-    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
-
-    for (const auto& [_, objects] : renderObjectsToRender)
-    {
-      if (!objects.empty())
-      {
-        mousePickingPipeline->render(&renderInfo, &objects);
-      }
-    }
-
-    RenderPass::end(cmdBuffer);
-  });
+  recordMousePickingCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex);
 
   logicalDevice->submitMousePickingGraphicsQueue(currentFrame, &mousePickingCommandBuffers[currentFrame]);
 
@@ -582,6 +588,11 @@ void VulkanEngine::doRendering()
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
   const uint32_t objectID = (r << 16) | (g << 8) | b;
+
+  if (objectID != 0)
+  {
+    std::cout << objectID << std::endl;
+  }
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 
