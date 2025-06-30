@@ -11,9 +11,7 @@
 #include "pipelines/custom/SnakePipeline.h"
 #include "pipelines/custom/CrossesPipeline.h"
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
-#include <ranges>
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
@@ -121,12 +119,20 @@ bool VulkanEngine::sceneIsFocused() const
   return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;
 }
 
-void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType)
+void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType,
+                                bool* mousePicked)
 {
   renderObjectsToRender[pipelineType].push_back(renderObject);
 
+  if (mousePicked == nullptr)
+  {
+    return;
+  }
+
   uint32_t objectID = static_cast<uint32_t>(renderObjectsToMousePick.size()) + 1;
   renderObjectsToMousePick.emplace_back( renderObject, objectID );
+  mousePickingItems[objectID] = mousePicked;
+  *mousePicked = false;
 }
 
 void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
@@ -844,7 +850,7 @@ void VulkanEngine::doMousePicking() const
 
   if (objectID != 0)
   {
-    std::cout << objectID << std::endl;
+    *mousePickingItems.at(objectID) = true;
   }
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);

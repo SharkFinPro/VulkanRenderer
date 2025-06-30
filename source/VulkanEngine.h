@@ -70,7 +70,7 @@ public:
 
   [[nodiscard]] bool sceneIsFocused() const;
 
-  void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType);
+  void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);
   void renderLight(const std::shared_ptr<Light>& light);
   void renderLine(glm::vec3 start, glm::vec3 end);
 
@@ -104,6 +104,7 @@ private:
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
 
   std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> renderObjectsToMousePick;
+  std::unordered_map<uint32_t, bool*> mousePickingItems;
 
   std::vector<std::shared_ptr<SmokePipeline>> smokeSystems;
 

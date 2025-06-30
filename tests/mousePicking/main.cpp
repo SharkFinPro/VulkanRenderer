@@ -49,6 +49,10 @@ int main()
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
+    bool selected1 = false;
+    bool selected2 = false;
+    bool selected3 = false;
+
     while (renderer.isActive())
     {
       gui->dockCenter("SceneView");
@@ -74,9 +78,9 @@ int main()
       ImGui::End();
 
       // Render Objects
-      renderer.renderObject(object, PipelineType::object);
-      renderer.renderObject(object2, PipelineType::ellipticalDots);
-      renderer.renderObject(object3, PipelineType::noisyEllipticalDots);
+      renderer.renderObject(object, selected1 ? PipelineType::ellipticalDots : PipelineType::object, &selected1);
+      renderer.renderObject(object2, selected2 ? PipelineType::ellipticalDots : PipelineType::object, &selected2);
+      renderer.renderObject(object3, selected3 ? PipelineType::ellipticalDots : PipelineType::object, &selected3);
 
       for (const auto& light : lights)
       {
