@@ -183,6 +183,8 @@ private:
 
   void createObjectDescriptorSetLayout();
 
+  bool validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY);
+
   void doMousePicking();
 };
 

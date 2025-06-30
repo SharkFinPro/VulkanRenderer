@@ -514,6 +514,7 @@ void VulkanEngine::doRendering()
   vkResetCommandBuffer(mousePickingCommandBuffers[currentFrame], 0);
   recordMousePickingCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex);
   logicalDevice->submitMousePickingGraphicsQueue(currentFrame, &mousePickingCommandBuffers[currentFrame]);
+  logicalDevice->waitForMousePickingFences(currentFrame);
   doMousePicking();
 
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
@@ -774,28 +775,36 @@ void VulkanEngine::createObjectDescriptorSetLayout()
   }
 }
 
-void VulkanEngine::doMousePicking()
+bool VulkanEngine::validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY)
 {
   if (!vulkanEngineOptions.USE_DOCKSPACE || offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
   {
-    return;
+    m_canMousePick = false;
+  }
+  else
+  {
+    double mouseXPos, mouseYPos;
+    window->getCursorPos(mouseXPos, mouseYPos);
+    mouseX = static_cast<int32_t>(mouseXPos);
+    mouseY = static_cast<int32_t>(mouseYPos);
+
+    mouseX -= static_cast<int32_t>(offscreenViewportPos.x);
+    mouseY -= static_cast<int32_t>(offscreenViewportPos.y);
+
+    m_canMousePick = !(mouseX < 0 || mouseX > offscreenViewportExtent.width - 1 ||
+                       mouseY < 0 || mouseY > offscreenViewportExtent.height - 1);
   }
 
-  double mouseX, mouseY;
-  window->getCursorPos(mouseX, mouseY);
+  return m_canMousePick;
+}
 
-  mouseX -= offscreenViewportPos.x;
-  mouseY -= offscreenViewportPos.y;
-
-  m_canMousePick = !(mouseX < 0 || mouseX > offscreenViewportExtent.width - 1 ||
-                     mouseY < 0 || mouseY > offscreenViewportExtent.height - 1);
-
-  if (!m_canMousePick)
+void VulkanEngine::doMousePicking()
+{
+  int32_t mouseX, mouseY;
+  if (!validateMousePickingMousePosition(mouseX, mouseY))
   {
     return;
   }
-
-  logicalDevice->waitForMousePickingFences(currentFrame);
 
   constexpr VkDeviceSize bufferSize = 4;
 
@@ -846,7 +855,7 @@ void VulkanEngine::doMousePicking()
       .baseArrayLayer = 0,
       .layerCount = 1
     },
-    .imageOffset = { static_cast<int32_t>(mouseX), static_cast<int32_t>(mouseY), 0 },
+    .imageOffset = { mouseX, mouseY, 0 },
     .imageExtent = { 1, 1, 1 }
   };
 
@@ -863,28 +872,26 @@ void VulkanEngine::doMousePicking()
 
   void* data;
   vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
-
-  const uint8_t r = static_cast<uint8_t*>(data)[0];
-  const uint8_t g = static_cast<uint8_t*>(data)[1];
-  const uint8_t b = static_cast<uint8_t*>(data)[2];
-
+  const uint8_t* pixel = static_cast<uint8_t*>(data);
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 
-  const uint32_t objectID = (r << 16) | (g << 8) | b;
+  const uint32_t objectID = pixel[0] << 16 | pixel[1] << 8 | pixel[2];
 
-  if (objectID != 0)
+  if (objectID == 0)
   {
-    *mousePickingItems.at(objectID) = true;
+    return;
+  }
+  
+  *mousePickingItems.at(objectID) = true;
 
-    for (auto& object : renderObjectsToMousePick)
+  for (auto& object : renderObjectsToMousePick)
+  {
+    if (object.second == objectID)
     {
-      if (object.second == objectID)
-      {
-        renderObjectsToRender[PipelineType::objectHighlight].push_back(object.first);
-        break;
-      }
+      renderObjectsToRender[PipelineType::objectHighlight].push_back(object.first);
+      break;
     }
   }
 }
