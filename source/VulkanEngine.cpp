@@ -869,6 +869,8 @@ void VulkanEngine::doMousePicking()
 
   vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
 
+  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+
   const uint32_t objectID = (r << 16) | (g << 8) | b;
 
   if (objectID != 0)
@@ -884,6 +886,4 @@ void VulkanEngine::doMousePicking()
       }
     }
   }
-
-  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 }
