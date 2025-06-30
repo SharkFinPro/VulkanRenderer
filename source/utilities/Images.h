@@ -21,6 +21,9 @@ namespace Images {
   void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
                          VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t depth);
 
+  void copyImageToBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkImage& image, VkOffset3D offset,
+                         VkExtent3D extent, VkCommandBuffer commandBuffer, VkBuffer stagingBuffer);
+
   VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice, VkImage image, VkFormat format,
                               VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageViewType viewType,
                               uint32_t layerCount);

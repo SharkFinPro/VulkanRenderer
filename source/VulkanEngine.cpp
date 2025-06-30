@@ -1,5 +1,6 @@
 #include "VulkanEngine.h"
 #include "utilities/Buffers.h"
+#include "utilities/Images.h"
 #include "pipelines/custom/BumpyCurtain.h"
 #include "pipelines/custom/CubeMapPipeline.h"
 #include "pipelines/custom/CurtainPipeline.h"
@@ -839,28 +840,8 @@ uint32_t VulkanEngine::getIDFromMousePickingFramebuffer(const int32_t mouseX, co
     1, &barrier
   );
 
-  const VkBufferImageCopy region{
-    .bufferOffset = 0,
-    .bufferRowLength = 0,
-    .bufferImageHeight = 0,
-    .imageSubresource {
-      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-      .mipLevel = 0,
-      .baseArrayLayer = 0,
-      .layerCount = 1
-    },
-    .imageOffset = { mouseX, mouseY, 0 },
-    .imageExtent = { 1, 1, 1 }
-  };
-
-  vkCmdCopyImageToBuffer(
-    commandBuffer,
-    mousePickingFramebuffer->getColorImage(),
-    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-    stagingBuffer,
-    1,
-    &region
-  );
+  Images::copyImageToBuffer(logicalDevice, mousePickingFramebuffer->getColorImage(), { mouseX, mouseY, 0 },
+                            { 1, 1, 1 }, commandBuffer, stagingBuffer);
 
   Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 
