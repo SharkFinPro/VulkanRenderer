@@ -8,6 +8,7 @@
 #include "pipelines/custom/NoisyEllipticalDots.h"
 #include "pipelines/custom/TexturedPlane.h"
 #include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
+#include "pipelines/custom/ObjectHighlightPipeline.h"
 #include "pipelines/custom/SnakePipeline.h"
 #include "pipelines/custom/CrossesPipeline.h"
 #include <algorithm>
@@ -232,6 +233,9 @@ void VulkanEngine::initVulkan()
 
   pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
     physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+
+  pipelines[PipelineType::objectHighlight] = std::make_unique<ObjectHighlightPipeline>(
+    physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
 
   pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
     physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
@@ -500,7 +504,11 @@ void VulkanEngine::doRendering()
   vkResetCommandBuffer(mousePickingCommandBuffers[currentFrame], 0);
   recordMousePickingCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex);
   logicalDevice->submitMousePickingGraphicsQueue(currentFrame, &mousePickingCommandBuffers[currentFrame]);
-  doMousePicking();
+
+  if (vulkanEngineOptions.USE_DOCKSPACE && offscreenViewportExtent.width != 0 && offscreenViewportExtent.height != 0)
+  {
+    doMousePicking();
+  }
 
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
   recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
@@ -760,7 +768,7 @@ void VulkanEngine::createObjectDescriptorSetLayout()
   }
 }
 
-void VulkanEngine::doMousePicking() const
+void VulkanEngine::doMousePicking()
 {
   logicalDevice->waitForMousePickingFences(currentFrame);
 
@@ -851,6 +859,15 @@ void VulkanEngine::doMousePicking() const
   if (objectID != 0)
   {
     *mousePickingItems.at(objectID) = true;
+
+    for (auto& object : renderObjectsToMousePick)
+    {
+      if (object.second == objectID)
+      {
+        renderObjectsToRender[PipelineType::objectHighlight].push_back(object.first);
+        break;
+      }
+    }
   }
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);

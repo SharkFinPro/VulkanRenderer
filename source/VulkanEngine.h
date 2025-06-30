@@ -43,6 +43,7 @@ enum class PipelineType {
   magnifyWhirlMosaic,
   noisyEllipticalDots,
   object,
+  objectHighlight,
   texturedPlane,
   snake
 };
@@ -177,7 +178,7 @@ private:
 
   void createObjectDescriptorSetLayout();
 
-  void doMousePicking() const;
+  void doMousePicking();
 };
 
 

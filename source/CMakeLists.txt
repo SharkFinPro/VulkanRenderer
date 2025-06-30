@@ -89,6 +89,8 @@ add_library(${PROJECT_NAME}
   pipelines/LineVertex.h
   pipelines/custom/MousePickingPipeline.cpp
   pipelines/custom/MousePickingPipeline.h
+  pipelines/custom/ObjectHighlightPipeline.cpp
+  pipelines/custom/ObjectHighlightPipeline.h
 )
 
 # Noise
