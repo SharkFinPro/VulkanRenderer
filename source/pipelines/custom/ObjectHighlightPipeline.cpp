@@ -29,7 +29,7 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
     {
       object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, true);
+      object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, 0);
     }
   }
 }

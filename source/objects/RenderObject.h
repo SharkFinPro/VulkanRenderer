@@ -22,7 +22,7 @@ public:
   ~RenderObject();
 
   void draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, uint32_t currentFrame,
-            bool mousePicking = false) const;
+            uint32_t descriptorSet = 1) const;
 
   void updateUniformBuffer(uint32_t currentFrame, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) const;
 

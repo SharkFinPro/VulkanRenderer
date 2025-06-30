@@ -39,7 +39,7 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
 
       objects->at(i).first->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      objects->at(i).first->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, true);
+      objects->at(i).first->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, 0);
     }
   }
 }
