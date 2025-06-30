@@ -11,6 +11,7 @@
 #include "pipelines/custom/ObjectHighlightPipeline.h"
 #include "pipelines/custom/SnakePipeline.h"
 #include "pipelines/custom/CrossesPipeline.h"
+#include <ranges>
 #include <stdexcept>
 
 #ifdef NDEBUG
