@@ -69,6 +69,8 @@ public:
 
   [[nodiscard]] bool keyIsPressed(int key) const;
 
+  [[nodiscard]] bool buttonIsPressed(int button) const;
+
   [[nodiscard]] bool sceneIsFocused() const;
 
   void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);

@@ -115,6 +115,11 @@ bool VulkanEngine::keyIsPressed(const int key) const
   return window->keyIsPressed(key);
 }
 
+bool VulkanEngine::buttonIsPressed(const int button) const
+{
+  return window->buttonDown(button);
+}
+
 bool VulkanEngine::sceneIsFocused() const
 {
   return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;

@@ -7,6 +7,12 @@
 void displayObjectGui(const std::shared_ptr<RenderObject>& object);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
 
+struct MousePickingObject {
+  std::shared_ptr<RenderObject> object;
+  bool hovering = false;
+  bool selected = false;
+};
+
 int main()
 {
   try
@@ -28,19 +34,19 @@ int main()
     const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
     const auto model = renderer.loadModel("assets/models/square.glb");
 
-    std::vector<std::pair<std::shared_ptr<RenderObject>, bool>> objects;
+    std::vector<MousePickingObject> objects;
 
     const auto object1 = renderer.loadRenderObject(texture, specularMap, model);
     object1->setPosition({ 0, -5, 0 });
-    objects.emplace_back(object1, false);
+    objects.emplace_back(object1);
 
     const auto object2 = renderer.loadRenderObject(texture, specularMap, model);
     object2->setPosition({ -5, -10, 0 });
-    objects.emplace_back(object2, false);
+    objects.emplace_back(object2);
 
     const auto object3 = renderer.loadRenderObject(texture, specularMap, model);
     object3->setPosition({ 10, 0, 15 });
-    objects.emplace_back(object3, false);
+    objects.emplace_back(object3);
 
     std::vector<std::shared_ptr<Light>> lights;
 
@@ -56,6 +62,14 @@ int main()
 
     while (renderer.isActive())
     {
+      if (renderer.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+      {
+        for (auto& [_, hovering, selected] : objects)
+        {
+          selected = hovering;
+        }
+      }
+
       gui->dockCenter("SceneView");
       gui->dockBottom("Selected Object");
       gui->dockBottom("Lights");
@@ -66,7 +80,7 @@ int main()
 
       // Render GUI
       ImGui::Begin("Selected Object");
-      for (auto& [object, selected] : objects)
+      for (auto& [object, _, selected] : objects)
       {
         if (selected)
         {
@@ -83,9 +97,14 @@ int main()
       ImGui::End();
 
       // Render Objects
-      for (auto& [object, isSelected] : objects)
+      for (auto& [object, hovering, selected] : objects)
       {
-        renderer.renderObject(object, PipelineType::object, &isSelected);
+        renderer.renderObject(object, PipelineType::object, &hovering);
+
+        if (selected)
+        {
+          renderer.renderObject(object, PipelineType::objectHighlight);
+        }
       }
 
       for (const auto& light : lights)
