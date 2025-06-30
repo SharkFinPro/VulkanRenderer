@@ -513,11 +513,7 @@ void VulkanEngine::doRendering()
   vkResetCommandBuffer(mousePickingCommandBuffers[currentFrame], 0);
   recordMousePickingCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex);
   logicalDevice->submitMousePickingGraphicsQueue(currentFrame, &mousePickingCommandBuffers[currentFrame]);
-
-  if (vulkanEngineOptions.USE_DOCKSPACE && offscreenViewportExtent.width != 0 && offscreenViewportExtent.height != 0)
-  {
-    doMousePicking();
-  }
+  doMousePicking();
 
   vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
   recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
@@ -779,20 +775,24 @@ void VulkanEngine::createObjectDescriptorSetLayout()
 
 void VulkanEngine::doMousePicking()
 {
+  if (!vulkanEngineOptions.USE_DOCKSPACE || offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+  {
+    return;
+  }
+
   double mouseX, mouseY;
   window->getCursorPos(mouseX, mouseY);
 
   mouseX -= offscreenViewportPos.x;
   mouseY -= offscreenViewportPos.y;
 
-  if (mouseX < 0 || mouseX > offscreenViewportExtent.width - 1 ||
-      mouseY < 0 || mouseY > offscreenViewportExtent.height - 1)
+  m_canMousePick = !(mouseX < 0 || mouseX > offscreenViewportExtent.width - 1 ||
+                     mouseY < 0 || mouseY > offscreenViewportExtent.height - 1);
+
+  if (!m_canMousePick)
   {
-    m_canMousePick = false;
     return;
   }
-
-  m_canMousePick = true;
 
   logicalDevice->waitForMousePickingFences(currentFrame);
 
