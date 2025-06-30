@@ -89,6 +89,8 @@ public:
 
   void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
 
+  bool canMousePick() const;
+
 private:
   std::shared_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
@@ -153,6 +155,8 @@ private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+
+  bool m_canMousePick = false;
 
   void initVulkan();
   void createCommandPool();

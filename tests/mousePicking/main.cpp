@@ -62,7 +62,7 @@ int main()
 
     while (renderer.isActive())
     {
-      if (renderer.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+      if (renderer.canMousePick() && renderer.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
       {
         for (auto& [_, hovering, selected] : objects)
         {
@@ -128,10 +128,16 @@ int main()
 void displayObjectGui(const std::shared_ptr<RenderObject>& object)
 {
   glm::vec3 position = object->getPosition();
-
   ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-
   object->setPosition(position);
+
+  glm::vec3 scale = object->getScale();
+  ImGui::SliderFloat3("Scale", value_ptr(scale), 0.01f, 50.0f);
+  object->setScale(scale);
+
+  glm::vec3 rotation = object->getOrientationEuler();
+  ImGui::SliderFloat3("Rotation", value_ptr(rotation), -90.0f, 90.0f);
+  object->setOrientationEuler(rotation);
 }
 
 void displayLightGui(const std::shared_ptr<Light>& light, const int id)

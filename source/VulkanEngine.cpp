@@ -11,7 +11,6 @@
 #include "pipelines/custom/ObjectHighlightPipeline.h"
 #include "pipelines/custom/SnakePipeline.h"
 #include "pipelines/custom/CrossesPipeline.h"
-#include <algorithm>
 #include <stdexcept>
 
 #ifdef NDEBUG
@@ -194,6 +193,11 @@ void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smok
 
   logicalDevice->waitIdle();
   smokeSystems.erase(system);
+}
+
+bool VulkanEngine::canMousePick() const
+{
+  return m_canMousePick;
 }
 
 void VulkanEngine::initVulkan()
@@ -775,6 +779,21 @@ void VulkanEngine::createObjectDescriptorSetLayout()
 
 void VulkanEngine::doMousePicking()
 {
+  double mouseX, mouseY;
+  window->getCursorPos(mouseX, mouseY);
+
+  mouseX -= offscreenViewportPos.x;
+  mouseY -= offscreenViewportPos.y;
+
+  if (mouseX < 0 || mouseX > offscreenViewportExtent.width - 1 ||
+      mouseY < 0 || mouseY > offscreenViewportExtent.height - 1)
+  {
+    m_canMousePick = false;
+    return;
+  }
+
+  m_canMousePick = true;
+
   logicalDevice->waitForMousePickingFences(currentFrame);
 
   constexpr VkDeviceSize bufferSize = 4;
@@ -816,15 +835,6 @@ void VulkanEngine::doMousePicking()
     1, &barrier
   );
 
-  double mouseX, mouseY;
-  window->getCursorPos(mouseX, mouseY);
-
-  mouseX -= offscreenViewportPos.x;
-  mouseY -= offscreenViewportPos.y;
-
-  const int32_t pixelX = std::clamp(static_cast<int>(mouseX), 0, static_cast<int>(offscreenViewportExtent.width) - 1);
-  const int32_t pixelY = std::clamp(static_cast<int>(mouseY), 0, static_cast<int>(offscreenViewportExtent.height) - 1);
-
   const VkBufferImageCopy region{
     .bufferOffset = 0,
     .bufferRowLength = 0,
@@ -835,7 +845,7 @@ void VulkanEngine::doMousePicking()
       .baseArrayLayer = 0,
       .layerCount = 1
     },
-    .imageOffset = { pixelX, pixelY, 0 },
+    .imageOffset = { static_cast<int32_t>(mouseX), static_cast<int32_t>(mouseY), 0 },
     .imageExtent = { 1, 1, 1 }
   };
 
