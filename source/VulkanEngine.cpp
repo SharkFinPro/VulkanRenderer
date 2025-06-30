@@ -798,14 +798,8 @@ bool VulkanEngine::validateMousePickingMousePosition(int32_t& mouseX, int32_t& m
   return m_canMousePick;
 }
 
-void VulkanEngine::doMousePicking()
+uint32_t VulkanEngine::getIDFromMousePickingFramebuffer(const int32_t mouseX, const int32_t mouseY) const
 {
-  int32_t mouseX, mouseY;
-  if (!validateMousePickingMousePosition(mouseX, mouseY))
-  {
-    return;
-  }
-
   constexpr VkDeviceSize bufferSize = 4;
 
   VkBuffer stagingBuffer;
@@ -870,20 +864,28 @@ void VulkanEngine::doMousePicking()
 
   Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
 
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
-  const uint8_t* pixel = static_cast<uint8_t*>(data);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  const uint32_t objectID = getObjectIDFromBuffer(stagingBufferMemory);
 
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 
+  return objectID;
+}
+
+uint32_t VulkanEngine::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const
+{
+  void* data;
+  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
+
+  const uint8_t* pixel = static_cast<uint8_t*>(data);
   const uint32_t objectID = pixel[0] << 16 | pixel[1] << 8 | pixel[2];
 
-  if (objectID == 0)
-  {
-    return;
-  }
-  
+  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+
+  return objectID;
+}
+
+void VulkanEngine::handleMousePickingResult(uint32_t objectID)
+{
   *mousePickingItems.at(objectID) = true;
 
   for (auto& object : renderObjectsToMousePick)
@@ -894,4 +896,22 @@ void VulkanEngine::doMousePicking()
       break;
     }
   }
+}
+
+void VulkanEngine::doMousePicking()
+{
+  int32_t mouseX, mouseY;
+  if (!validateMousePickingMousePosition(mouseX, mouseY))
+  {
+    return;
+  }
+
+  const auto objectID = getIDFromMousePickingFramebuffer(mouseX, mouseY);
+
+  if (objectID == 0)
+  {
+    return;
+  }
+
+  handleMousePickingResult(objectID);
 }

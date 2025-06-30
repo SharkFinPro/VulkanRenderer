@@ -185,6 +185,12 @@ private:
 
   bool validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY);
 
+  [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX, int32_t mouseY) const;
+
+  [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
+
+  void handleMousePickingResult(uint32_t objectID);
+
   void doMousePicking();
 };
 
