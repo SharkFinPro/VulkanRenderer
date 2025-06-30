@@ -12,8 +12,10 @@
 #include "components/Window.h"
 
 #include "pipelines/RenderPass.h"
-#include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/DotsPipeline.h"
+#include "pipelines/custom/GuiPipeline.h"
+#include "pipelines/custom/LinePipeline.h"
+#include "pipelines/custom/MousePickingPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
 
 #include "objects/Texture.h"
@@ -30,9 +32,6 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-
-#include "pipelines/custom/LinePipeline.h"
-#include "pipelines/custom/MousePickingPipeline.h"
 
 enum class PipelineType {
   bumpyCurtain,
