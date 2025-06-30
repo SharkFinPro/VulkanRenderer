@@ -38,15 +38,15 @@ int main()
 
     const auto object1 = renderer.loadRenderObject(texture, specularMap, model);
     object1->setPosition({ 0, -5, 0 });
-    objects.emplace_back(object1);
+    objects.push_back({ object1 });
 
     const auto object2 = renderer.loadRenderObject(texture, specularMap, model);
     object2->setPosition({ -5, -10, 0 });
-    objects.emplace_back(object2);
+    objects.push_back({ object2 });
 
     const auto object3 = renderer.loadRenderObject(texture, specularMap, model);
     object3->setPosition({ 10, 0, 15 });
-    objects.emplace_back(object3);
+    objects.push_back({ object3 });
 
     std::vector<std::shared_ptr<Light>> lights;
 
