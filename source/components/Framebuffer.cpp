@@ -14,9 +14,10 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
                          std::shared_ptr<SwapChain> swapChain,
                          const VkCommandPool& commandPool,
                          const std::shared_ptr<RenderPass>& renderPass,
-                         const VkExtent2D extent)
+                         const VkExtent2D extent,
+                         const bool mousePicking)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)),
-    swapChain(std::move(swapChain))
+    swapChain(std::move(swapChain)), m_mousePicking(mousePicking)
 {
   createImageResources(commandPool, extent);
 
@@ -78,6 +79,11 @@ VkDescriptorSet& Framebuffer::getFramebufferImageDescriptorSet(const uint32_t im
   return framebufferImageDescriptorSets[imageIndex];
 }
 
+VkImage& Framebuffer::getColorImage()
+{
+  return colorImage;
+}
+
 void Framebuffer::createImageResources(const VkCommandPool& commandPool, const VkExtent2D extent)
 {
   if (swapChain)
@@ -85,7 +91,7 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool, const V
     return;
   }
 
-  framebufferImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+  framebufferImageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
 
   constexpr VkSamplerCreateInfo samplerInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -140,8 +146,10 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool, const V
 
 void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const VkFormat depthFormat, const VkExtent2D extent)
 {
+  const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : physicalDevice->getMsaaSamples();
+
   Images::createImage(logicalDevice, physicalDevice, 0, extent.width, extent.height, 1,
-                      1, physicalDevice->getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL,
+                      1, samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                       depthImage, depthImageMemory, VK_IMAGE_TYPE_2D, 1);
 
@@ -154,11 +162,14 @@ void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const V
 
 void Framebuffer::createColorResources(const VkExtent2D extent)
 {
+  const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : physicalDevice->getMsaaSamples();
+
   const VkFormat colorFormat = swapChain ? swapChain->getImageFormat() : framebufferImageFormat;
 
   Images::createImage(logicalDevice, physicalDevice, 0, extent.width, extent.height, 1,
-                      1, physicalDevice->getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL,
-                      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                      1, samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                      (m_mousePicking ? VK_IMAGE_USAGE_TRANSFER_SRC_BIT : VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT),
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory, VK_IMAGE_TYPE_2D, 1);
 
   colorImageView = Images::createImageView(logicalDevice, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
@@ -173,11 +184,15 @@ void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExt
 
   for (size_t i = 0; i < imageViews.size(); i++)
   {
-    std::array<VkImageView, 3> attachments {
+    std::vector<VkImageView> attachments {
       colorImageView,
-      depthImageView,
-      imageViews.at(i)
+      depthImageView
     };
+
+    if (!m_mousePicking)
+    {
+      attachments.push_back(imageViews.at(i));
+    }
 
     const VkFramebufferCreateInfo framebufferInfo {
       .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,

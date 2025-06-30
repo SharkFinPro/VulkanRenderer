@@ -172,6 +172,33 @@ namespace Images {
     Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
   }
 
+  void copyImageToBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkImage& image, VkOffset3D offset,
+                         VkExtent3D extent, VkCommandBuffer commandBuffer, VkBuffer stagingBuffer)
+  {
+    const VkBufferImageCopy region{
+      .bufferOffset = 0,
+      .bufferRowLength = 0,
+      .bufferImageHeight = 0,
+      .imageSubresource {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      },
+      .imageOffset = offset,
+      .imageExtent = extent
+    };
+
+    vkCmdCopyImageToBuffer(
+      commandBuffer,
+      image,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      stagingBuffer,
+      1,
+      &region
+    );
+  }
+
   VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkImage image,
                               const VkFormat format, const VkImageAspectFlags aspectFlags, const uint32_t mipLevels,
                               const VkImageViewType viewType, const uint32_t layerCount)

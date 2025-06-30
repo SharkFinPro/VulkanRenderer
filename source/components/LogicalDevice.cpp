@@ -26,11 +26,14 @@ LogicalDevice::~LogicalDevice()
   {
     vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
     vkDestroySemaphore(device, renderFinishedSemaphores2[i], nullptr);
+
     vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-    vkDestroySemaphore(device, imageAvailableSemaphores2[i], nullptr);
+
     vkDestroySemaphore(device, computeFinishedSemaphores[i], nullptr);
+
     vkDestroyFence(device, inFlightFences[i], nullptr);
     vkDestroyFence(device, inFlightFences2[i], nullptr);
+    vkDestroyFence(device, mousePickingInFlightFences[i], nullptr);
     vkDestroyFence(device, computeInFlightFences[i], nullptr);
   }
 
@@ -60,6 +63,30 @@ VkQueue LogicalDevice::getPresentQueue() const
 VkQueue LogicalDevice::getComputeQueue() const
 {
   return computeQueue;
+}
+
+void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer *commandBuffer) const
+{
+  constexpr VkPipelineStageFlags waitStages[] = {
+    VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  };
+
+  const VkSubmitInfo submitInfo {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .waitSemaphoreCount = 0,
+    .pWaitSemaphores = nullptr,
+    .pWaitDstStageMask = waitStages,
+    .commandBufferCount = 1,
+    .pCommandBuffers = commandBuffer,
+    .signalSemaphoreCount = 0,
+    .pSignalSemaphores = nullptr
+  };
+
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, mousePickingInFlightFences[currentFrame]) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to submit draw command buffer!");
+  }
 }
 
 void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
@@ -136,17 +163,23 @@ void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
 {
   vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
   vkWaitForFences(device, 1, &inFlightFences2[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(device, 1, &mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
 {
-  vkWaitForFences(device, 1, &computeInFlightFences[currentFrame],
-    VK_TRUE, UINT64_MAX);
+  vkWaitForFences(device, 1, &computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+}
+
+void LogicalDevice::waitForMousePickingFences(uint32_t currentFrame) const
+{
+  vkWaitForFences(device, 1, &mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 
 void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
 {
   vkResetFences(device, 1, &inFlightFences[currentFrame]);
   vkResetFences(device, 1, &inFlightFences2[currentFrame]);
+  vkResetFences(device, 1, &mousePickingInFlightFences[currentFrame]);
 }
 
 void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
@@ -237,12 +270,15 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
 void LogicalDevice::createSyncObjects()
 {
   imageAvailableSemaphores.resize(maxFramesInFlight);
-  imageAvailableSemaphores2.resize(maxFramesInFlight);
+
   renderFinishedSemaphores.resize(maxFramesInFlight);
   renderFinishedSemaphores2.resize(maxFramesInFlight);
+
   computeFinishedSemaphores.resize(maxFramesInFlight);
+
   inFlightFences.resize(maxFramesInFlight);
   inFlightFences2.resize(maxFramesInFlight);
+  mousePickingInFlightFences.resize(maxFramesInFlight);
   computeInFlightFences.resize(maxFramesInFlight);
 
   constexpr VkSemaphoreCreateInfo semaphoreInfo {
@@ -257,11 +293,11 @@ void LogicalDevice::createSyncObjects()
   for (size_t i = 0; i < maxFramesInFlight; i++)
   {
     if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores2[i]) != VK_SUCCESS ||
         vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
         vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores2[i]) != VK_SUCCESS ||
         vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences2[i]) != VK_SUCCESS)
+        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences2[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &mousePickingInFlightFences[i]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create graphics sync objects!");
     }

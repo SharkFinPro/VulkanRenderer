@@ -12,8 +12,10 @@
 #include "components/Window.h"
 
 #include "pipelines/RenderPass.h"
-#include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/DotsPipeline.h"
+#include "pipelines/custom/GuiPipeline.h"
+#include "pipelines/custom/LinePipeline.h"
+#include "pipelines/custom/MousePickingPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
 
 #include "objects/Texture.h"
@@ -31,8 +33,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "pipelines/custom/LinePipeline.h"
-
 enum class PipelineType {
   bumpyCurtain,
   crosses,
@@ -42,6 +42,7 @@ enum class PipelineType {
   magnifyWhirlMosaic,
   noisyEllipticalDots,
   object,
+  objectHighlight,
   texturedPlane,
   snake
 };
@@ -67,9 +68,11 @@ public:
 
   [[nodiscard]] bool keyIsPressed(int key) const;
 
+  [[nodiscard]] bool buttonIsPressed(int button) const;
+
   [[nodiscard]] bool sceneIsFocused() const;
 
-  void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType);
+  void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);
   void renderLight(const std::shared_ptr<Light>& light);
   void renderLine(glm::vec3 start, glm::vec3 end);
 
@@ -85,6 +88,8 @@ public:
 
   void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
 
+  bool canMousePick() const;
+
 private:
   std::shared_ptr<Instance> instance;
   std::unique_ptr<DebugMessenger> debugMessenger;
@@ -94,11 +99,16 @@ private:
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<RenderPass> offscreenRenderPass;
+  std::shared_ptr<RenderPass> mousePickingRenderPass;
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
+  std::unique_ptr<MousePickingPipeline> mousePickingPipeline;
 
   std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> pipelines;
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
+
+  std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> renderObjectsToMousePick;
+  std::unordered_map<uint32_t, bool*> mousePickingItems;
 
   std::vector<std::shared_ptr<SmokePipeline>> smokeSystems;
 
@@ -108,6 +118,7 @@ private:
 
   std::shared_ptr<Framebuffer> framebuffer;
   std::shared_ptr<Framebuffer> offscreenFramebuffer;
+  std::shared_ptr<Framebuffer> mousePickingFramebuffer;
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
@@ -125,6 +136,7 @@ private:
   std::vector<VkCommandBuffer> offscreenCommandBuffers;
   std::vector<VkCommandBuffer> swapchainCommandBuffers;
   std::vector<VkCommandBuffer> computeCommandBuffers;
+  std::vector<VkCommandBuffer> mousePickingCommandBuffers;
   uint32_t currentFrame;
 
   bool framebufferResized;
@@ -132,6 +144,8 @@ private:
   bool isSceneFocused;
 
   VkExtent2D offscreenViewportExtent{};
+
+  ImVec2 offscreenViewportPos{0, 0};
 
   bool useCamera;
   glm::vec3 viewPosition{};
@@ -141,14 +155,19 @@ private:
 
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
+  bool m_canMousePick = false;
+
   void initVulkan();
   void createCommandPool();
   void allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
   static void recordCommandBuffer(const VkCommandBuffer &commandBuffer, uint32_t imageIndex,
                                   const std::function<void(const VkCommandBuffer &cmdBuffer, uint32_t imgIndex)>& renderFunction);
+
   void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
+  void recordMousePickingCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
   void recordSwapchainCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
+
   void doComputing() const;
   void doRendering();
   void recreateSwapChain();
@@ -163,6 +182,16 @@ private:
   void createDescriptorPool();
 
   void createObjectDescriptorSetLayout();
+
+  bool validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY);
+
+  [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX, int32_t mouseY) const;
+
+  [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
+
+  void handleMousePickingResult(uint32_t objectID);
+
+  void doMousePicking();
 };
 
 

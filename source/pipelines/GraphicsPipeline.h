@@ -82,6 +82,12 @@ protected:
 
   virtual void defineStates() = 0;
 
+  virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
+
+  virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
+
+  void definePushConstantRange(VkPushConstantRange range);
+
 private:
   std::unique_ptr<VkPipelineColorBlendStateCreateInfo> colorBlendState{};
   std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> depthStencilState{};
@@ -93,11 +99,9 @@ private:
   std::unique_ptr<VkPipelineVertexInputStateCreateInfo> vertexInputState{};
   std::unique_ptr<VkPipelineViewportStateCreateInfo> viewportState{};
 
+  std::vector<VkPushConstantRange> pushConstantRanges{};
+
   void destroyStates();
-
-  virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
-
-  virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
 };
 
 

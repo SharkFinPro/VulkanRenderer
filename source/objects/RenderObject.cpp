@@ -30,9 +30,10 @@ RenderObject::~RenderObject()
   vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
 }
 
-void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t currentFrame) const
+void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout,
+                        const uint32_t currentFrame, const uint32_t descriptorSet) const
 {
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &descriptorSets[currentFrame], 0, nullptr);
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet, 1, &descriptorSets[currentFrame], 0, nullptr);
 
   model->draw(commandBuffer);
 }
