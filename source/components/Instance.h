@@ -24,6 +24,8 @@ public:
 
   void destroyDebugUtilsMessenger(VkDebugUtilsMessengerEXT& debugMessenger) const;
 
+  [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
+
 private:
   VkInstance instance = VK_NULL_HANDLE;
 

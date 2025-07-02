@@ -114,6 +114,22 @@ void Instance::destroyDebugUtilsMessenger(VkDebugUtilsMessengerEXT& debugMesseng
   debugMessenger = VK_NULL_HANDLE;
 }
 
+std::vector<VkPhysicalDevice> Instance::getPhysicalDevices() const
+{
+  uint32_t deviceCount = 0;
+  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+  if (deviceCount == 0)
+  {
+    throw std::runtime_error("failed to find GPUs with Vulkan support!");
+  }
+
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+  return devices;
+}
+
 bool Instance::checkValidationLayerSupport()
 {
   uint32_t layerCount;
