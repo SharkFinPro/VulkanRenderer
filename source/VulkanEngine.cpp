@@ -852,7 +852,7 @@ uint32_t VulkanEngine::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory)
   return objectID;
 }
 
-void VulkanEngine::handleMousePickingResult(uint32_t objectID)
+void VulkanEngine::handleMousePickingResult(const uint32_t objectID)
 {
   *mousePickingItems.at(objectID) = true;
 
