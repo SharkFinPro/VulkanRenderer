@@ -856,11 +856,11 @@ void VulkanEngine::handleMousePickingResult(const uint32_t objectID)
 {
   *mousePickingItems.at(objectID) = true;
 
-  for (auto& object : renderObjectsToMousePick)
+  for (auto& [object, id] : renderObjectsToMousePick)
   {
-    if (object.second == objectID)
+    if (id == objectID)
     {
-      renderObjectsToRender[PipelineType::objectHighlight].push_back(object.first);
+      renderObjectsToRender[PipelineType::objectHighlight].push_back(object);
       break;
     }
   }
