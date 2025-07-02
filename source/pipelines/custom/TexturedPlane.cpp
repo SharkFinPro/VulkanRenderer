@@ -6,7 +6,6 @@
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
-#include <stdexcept>
 
 TexturedPlane::TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,

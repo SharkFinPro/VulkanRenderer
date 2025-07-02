@@ -5,7 +5,6 @@
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include <imgui.h>
 #include <backends/imgui_impl_vulkan.h>
-#include <stdexcept>
 
 GuiPipeline::GuiPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                          const std::shared_ptr<LogicalDevice>& logicalDevice,

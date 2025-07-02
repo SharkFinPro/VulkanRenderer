@@ -1,16 +1,12 @@
 #include "RenderObject.h"
-#include <stdexcept>
-#include <chrono>
-#include <utility>
-#include <array>
-#include <glm/gtc/matrix_transform.hpp>
-#include "../components/Camera.h"
-
-#include "../pipelines/custom/Uniforms.h"
-
 #include "Model.h"
 #include "Texture.h"
 #include "UniformBuffer.h"
+#include "../components/Camera.h"
+#include "../pipelines/custom/Uniforms.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <array>
+#include <utility>
 
 RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<PhysicalDevice>& physicalDevice,

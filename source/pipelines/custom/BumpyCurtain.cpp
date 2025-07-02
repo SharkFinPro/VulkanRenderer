@@ -5,7 +5,6 @@
 #include "../../objects/Noise3DTexture.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
-#include <stdexcept>
 
 BumpyCurtain::BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,

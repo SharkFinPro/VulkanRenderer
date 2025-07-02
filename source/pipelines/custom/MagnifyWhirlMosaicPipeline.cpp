@@ -7,7 +7,6 @@
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
-#include <stdexcept>
 
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                                        const std::shared_ptr<LogicalDevice>& logicalDevice,

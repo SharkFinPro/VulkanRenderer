@@ -8,7 +8,6 @@
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include <imgui.h>
-#include <stdexcept>
 
 ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,

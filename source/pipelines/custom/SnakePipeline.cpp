@@ -6,7 +6,6 @@
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include <imgui.h>
-#include <stdexcept>
 
 SnakePipeline::SnakePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,

@@ -7,7 +7,6 @@
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <cmath>
-#include <stdexcept>
 #include <random>
 #include <cstring>
 

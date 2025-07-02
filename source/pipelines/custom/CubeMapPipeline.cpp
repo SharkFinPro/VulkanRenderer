@@ -6,7 +6,6 @@
 #include "../../objects/Noise3DTexture.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
-#include <stdexcept>
 
 CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,

@@ -2,7 +2,6 @@
 #include "ShaderModule.h"
 #include "../core/logicalDevice/LogicalDevice.h"
 #include "../objects/RenderObject.h"
-#include <stdexcept>
 
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                    const std::shared_ptr<LogicalDevice>& logicalDevice)

@@ -8,7 +8,6 @@
 #include "../../objects/Light.h"
 #include "../../utilities/Buffers.h"
 #include <imgui.h>
-#include <stdexcept>
 #include <random>
 #include <cstring>
 

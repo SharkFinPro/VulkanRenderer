@@ -6,7 +6,6 @@
 #include "../../objects/Light.h"
 #include "../../objects/Noise3DTexture.h"
 #include <imgui.h>
-#include <stdexcept>
 
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                          const std::shared_ptr<LogicalDevice>& logicalDevice,
