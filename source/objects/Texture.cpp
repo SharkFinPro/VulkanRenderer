@@ -123,8 +123,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
 void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, const VkFormat imageFormat,
                               const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
-  VkFormatProperties formatProperties;
-  vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), imageFormat, &formatProperties);
+  const VkFormatProperties formatProperties = physicalDevice->getFormatProperties(imageFormat);
 
   if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
   {
@@ -231,8 +230,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
 
 void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
 {
-  VkPhysicalDeviceProperties deviceProperties{};
-  vkGetPhysicalDeviceProperties(physicalDevice->getPhysicalDevice(), &deviceProperties);
+  const VkPhysicalDeviceProperties deviceProperties = physicalDevice->getDeviceProperties();
 
   const VkSamplerCreateInfo samplerCreateInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,

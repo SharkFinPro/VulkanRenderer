@@ -14,11 +14,6 @@ PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurf
   updateSwapChainSupportDetails();
 }
 
-VkPhysicalDevice PhysicalDevice::getPhysicalDevice() const
-{
-  return physicalDevice;
-}
-
 QueueFamilyIndices PhysicalDevice::getQueueFamilies() const
 {
   return queueFamilyIndices;
@@ -53,6 +48,34 @@ uint32_t PhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemor
 void PhysicalDevice::updateSwapChainSupportDetails()
 {
   swapChainSupportDetails = querySwapChainSupport(physicalDevice);
+}
+
+VkFormatProperties PhysicalDevice::getFormatProperties(const VkFormat format) const
+{
+  VkFormatProperties formatProperties{};
+  vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
+
+  return formatProperties;
+}
+
+VkPhysicalDeviceProperties PhysicalDevice::getDeviceProperties() const
+{
+  VkPhysicalDeviceProperties deviceProperties{};
+  vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+  return deviceProperties;
+}
+
+VkDevice PhysicalDevice::createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const
+{
+  VkDevice logicalDevice;
+
+  if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &logicalDevice) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create logical device!");
+  }
+
+  return logicalDevice;
 }
 
 void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)

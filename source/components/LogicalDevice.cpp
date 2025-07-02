@@ -257,10 +257,7 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
     .pEnabledFeatures = &deviceFeatures
   };
 
-  if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create logical device!");
-  }
+  device = physicalDevice->createLogicalDevice(createInfo);
 
   vkGetDeviceQueue(device, queueFamilyIndices.computeFamily.value(), 0, &computeQueue);
   vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);

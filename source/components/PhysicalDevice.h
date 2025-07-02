@@ -39,8 +39,6 @@ class PhysicalDevice {
 public:
   PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface);
 
-  [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const;
-
   [[nodiscard]] QueueFamilyIndices getQueueFamilies() const;
 
   [[nodiscard]] SwapChainSupportDetails getSwapChainSupport() const;
@@ -50,6 +48,14 @@ public:
   [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
 
   void updateSwapChainSupportDetails();
+
+  [[nodiscard]] VkFormatProperties getFormatProperties(VkFormat format) const;
+
+  [[nodiscard]] VkPhysicalDeviceProperties getDeviceProperties() const;
+
+  [[nodiscard]] VkDevice createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const;
+
+  friend class ImGuiInstance;
 
 private:
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

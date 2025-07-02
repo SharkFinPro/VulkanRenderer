@@ -57,8 +57,7 @@ VkWriteDescriptorSet CubeMapTexture::getDescriptorSet(const uint32_t binding, co
 
 void CubeMapTexture::createTextureSampler()
 {
-  VkPhysicalDeviceProperties deviceProperties{};
-  vkGetPhysicalDeviceProperties(physicalDevice->getPhysicalDevice(), &deviceProperties);
+  const VkPhysicalDeviceProperties deviceProperties = physicalDevice->getDeviceProperties();
 
   const VkSamplerCreateInfo samplerCreateInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,

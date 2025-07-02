@@ -121,11 +121,10 @@ VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates
 {
   for (const auto format : candidates)
   {
-    VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), format, &props);
+    const VkFormatProperties formatProperties = physicalDevice->getFormatProperties(format);
 
-    if ((tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) ||
-        (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features))
+    if ((tiling == VK_IMAGE_TILING_LINEAR && (formatProperties.linearTilingFeatures & features) == features) ||
+        (tiling == VK_IMAGE_TILING_OPTIMAL && (formatProperties.optimalTilingFeatures & features) == features))
     {
       return format;
     }
