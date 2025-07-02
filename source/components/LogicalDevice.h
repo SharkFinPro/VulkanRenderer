@@ -58,7 +58,7 @@ public:
 
   void mapMemory(const VkDeviceMemory& memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** data) const;
 
-  void unmapMemory(VkDeviceMemory& memory) const;
+  void unmapMemory(const VkDeviceMemory& memory) const;
 
   void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
                               VkDescriptorSet* descriptorSets) const;

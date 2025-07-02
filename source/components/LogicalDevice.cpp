@@ -263,7 +263,7 @@ void LogicalDevice::mapMemory(const VkDeviceMemory& memory, const VkDeviceSize o
   vkMapMemory(device, memory, offset, size, flags, data);
 }
 
-void LogicalDevice::unmapMemory(VkDeviceMemory& memory) const
+void LogicalDevice::unmapMemory(const VkDeviceMemory& memory) const
 {
   if (memory == VK_NULL_HANDLE)
   {
@@ -271,8 +271,6 @@ void LogicalDevice::unmapMemory(VkDeviceMemory& memory) const
   }
 
   vkUnmapMemory(device, memory);
-
-  memory = VK_NULL_HANDLE;
 }
 
 void LogicalDevice::allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
