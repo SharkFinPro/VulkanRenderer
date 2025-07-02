@@ -9,12 +9,16 @@
 
 class Instance;
 
-constexpr std::array deviceExtensions {
-  VK_KHR_SWAPCHAIN_EXTENSION_NAME
 #ifdef __APPLE__
-, "VK_KHR_portability_subset"
-#endif
+constexpr std::array<const char*, 2> deviceExtensions {
+  VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+  "VK_KHR_portability_subset"
 };
+#else
+constexpr std::array<const char*, 1> deviceExtensions {
+  VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+#endif
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
