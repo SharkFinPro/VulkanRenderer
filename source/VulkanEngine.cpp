@@ -369,9 +369,9 @@ void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuff
   });
 }
 
-void VulkanEngine::recordMousePickingCommandBuffer(const VkCommandBuffer &commandBuffer, uint32_t imageIndex) const
+void VulkanEngine::recordMousePickingCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
 {
-  recordCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex, [this](const VkCommandBuffer& cmdBuffer,
+  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer,
                       const uint32_t imgIndex)
   {
     mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
