@@ -118,7 +118,7 @@ void SwapChain::createSwapChain()
   swapchain = logicalDevice->createSwapchain(createInfo);
 
   logicalDevice->getSwapchainImagesKHR(swapchain, &imageCount, nullptr);
-  swapChainImageViews.resize(imageCount);
+  swapChainImages.resize(imageCount);
   logicalDevice->getSwapchainImagesKHR(swapchain, &imageCount, swapChainImages.data());
 
   swapChainImageFormat = surfaceFormat.format;
