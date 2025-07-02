@@ -2,14 +2,15 @@
 #define VULKANPROJECT_VULKANENGINE_H
 
 #include "components/Camera.h"
-#include "components/DebugMessenger.h"
 #include "components/Framebuffer.h"
 #include "components/ImGuiInstance.h"
-#include "components/Instance.h"
 #include "components/LogicalDevice.h"
 #include "components/PhysicalDevice.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
+
+#include "core/instance/DebugMessenger.h"
+#include "core/instance/Instance.h"
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/custom/DotsPipeline.h"

@@ -8,8 +8,10 @@ add_library(${PROJECT_NAME}
   VulkanEngine.h
   components/Window.cpp
   components/Window.h
-  components/DebugMessenger.cpp
-  components/DebugMessenger.h
+  core/instance/DebugMessenger.cpp
+  core/instance/DebugMessenger.h
+  core/instance/Instance.cpp
+  core/instance/Instance.h
   objects/RenderObject.cpp
   objects/RenderObject.h
   utilities/Buffers.cpp
@@ -36,8 +38,6 @@ add_library(${PROJECT_NAME}
   pipelines/ShaderModule.h
   components/PhysicalDevice.cpp
   components/PhysicalDevice.h
-  components/Instance.cpp
-  components/Instance.h
   components/LogicalDevice.cpp
   components/LogicalDevice.h
   VulkanEngineOptions.h

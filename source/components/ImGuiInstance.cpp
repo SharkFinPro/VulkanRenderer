@@ -8,7 +8,7 @@
 #include "../utilities/Buffers.h"
 
 #include "../components/Window.h"
-#include "../components/Instance.h"
+#include "../core/instance/Instance.h"
 #include "../components/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
