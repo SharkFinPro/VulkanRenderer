@@ -16,7 +16,7 @@ SwapChain::SwapChain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
 
 SwapChain::~SwapChain()
 {
-  for (auto imageView : swapChainImageViews)
+  for (auto& imageView : swapChainImageViews)
   {
     logicalDevice->destroyImageView(imageView);
   }
