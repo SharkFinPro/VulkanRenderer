@@ -19,7 +19,7 @@ GuiPipeline::GuiPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
 
 GuiPipeline::~GuiPipeline()
 {
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
+  logicalDevice->destroyDescriptorPool(descriptorPool);
 }
 
 void GuiPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
@@ -75,10 +75,7 @@ void GuiPipeline::createDescriptorPool(const uint32_t maxImGuiTextures)
     .pPoolSizes = poolSizes.data()
   };
 
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor pool!");
-  }
+  descriptorPool = logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
 VkDescriptorPool& GuiPipeline::getPool()

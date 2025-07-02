@@ -31,13 +31,9 @@ namespace Images {
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    if (vkCreateImage(logicalDevice->getDevice(), &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create image!");
-    }
+    image = logicalDevice->createImage(imageCreateInfo);
 
-    VkMemoryRequirements memoryRequirements;
-    vkGetImageMemoryRequirements(logicalDevice->getDevice(), image, &memoryRequirements);
+    const VkMemoryRequirements memoryRequirements = logicalDevice->getImageMemoryRequirements(image);
 
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -45,12 +41,9 @@ namespace Images {
       .memoryTypeIndex = physicalDevice->findMemoryType(memoryRequirements.memoryTypeBits, properties)
     };
 
-    if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to allocate image memory!");
-    }
+    logicalDevice->allocateMemory(allocateInfo, imageMemory);
 
-    vkBindImageMemory(logicalDevice->getDevice(), image, imageMemory, 0);
+    logicalDevice->bindImageMemory(image, imageMemory);
   }
 
   void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
@@ -224,13 +217,7 @@ namespace Images {
       }
     };
 
-    VkImageView imageView;
-    if (vkCreateImageView(logicalDevice->getDevice(), &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create image views!");
-    }
-
-    return imageView;
+    return logicalDevice->createImageView(imageViewCreateInfo);
   }
 
   bool hasStencilComponent(const VkFormat format)

@@ -1,8 +1,8 @@
 #ifndef VULKANPROJECT_LOGICALDEVICE_H
 #define VULKANPROJECT_LOGICALDEVICE_H
 
-#include <functional>
 #include <vulkan/vulkan.h>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -56,6 +56,10 @@ public:
 
   void doMappedMemoryOperation(VkDeviceMemory deviceMemory, const std::function<void(void* data)>& operationFunction) const;
 
+  void mapMemory(VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** data) const;
+
+  void unmapMemory(VkDeviceMemory& memory) const;
+
   void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
                               VkDescriptorSet* descriptorSets) const;
 
@@ -72,6 +76,40 @@ public:
   void freeMemory(VkDeviceMemory& memory) const;
 
   void bindBufferMemory(const VkBuffer& buffer, const VkDeviceMemory& deviceMemory, VkDeviceSize memoryOffset = 0) const;
+
+  [[nodiscard]] VkSampler createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const;
+
+  void destroySampler(VkSampler& sampler) const;
+
+  [[nodiscard]] VkImageView createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const;
+
+  void destroyImageView(VkImageView& imageView) const;
+
+  [[nodiscard]] VkImage createImage(const VkImageCreateInfo& imageCreateInfo) const;
+
+  void destroyImage(VkImage& image) const;
+
+  [[nodiscard]] VkMemoryRequirements getImageMemoryRequirements(const VkImage& image) const;
+
+  void bindImageMemory(const VkImage& image, const VkDeviceMemory& deviceMemory, VkDeviceSize memoryOffset = 0) const;
+
+  [[nodiscard]] VkRenderPass createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const;
+
+  void destroyRenderPass(VkRenderPass& renderPass) const;
+
+  [[nodiscard]] VkShaderModule createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const;
+
+  void destroyShaderModule(VkShaderModule& shaderModule) const;
+
+  [[nodiscard]] VkSwapchainKHR createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const;
+
+  void getSwapchainImagesKHR(VkSwapchainKHR swapchain, uint32_t* swapchainImageCount, VkImage* swapchainImages) const;
+
+  void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
+
+  [[nodiscard]] VkFramebuffer createFramebuffer(const VkFramebufferCreateInfo& framebufferCreateInfo) const;
+
+  void destroyFramebuffer(VkFramebuffer& framebuffer) const;
 
   friend class ImGuiInstance;
 

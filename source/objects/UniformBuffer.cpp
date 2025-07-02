@@ -19,7 +19,7 @@ UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                           uniformBuffers[i], uniformBuffersMemory[i]);
 
-    vkMapMemory(logicalDevice->getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    logicalDevice->mapMemory(uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 
     const VkDescriptorBufferInfo bufferInfo {
       .buffer = uniformBuffers[i],
@@ -38,10 +38,7 @@ UniformBuffer::~UniformBuffer()
 {
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
-    if (uniformBuffersMapped[i] != VK_NULL_HANDLE)
-    {
-      vkUnmapMemory(logicalDevice->getDevice(), uniformBuffersMemory[i]);
-    }
+    logicalDevice->unmapMemory(uniformBuffersMemory[i]);
 
     Buffers::destroyBuffer(logicalDevice, uniformBuffers[i], uniformBuffersMemory[i]);
   }

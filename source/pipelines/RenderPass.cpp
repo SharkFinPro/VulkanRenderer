@@ -14,7 +14,7 @@ RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
 RenderPass::~RenderPass()
 {
-  vkDestroyRenderPass(logicalDevice->getDevice(), renderPass, nullptr);
+  logicalDevice->destroyRenderPass(renderPass);
 }
 
 VkRenderPass& RenderPass::getRenderPass()
@@ -110,10 +110,7 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
     .pDependencies = &dependency
   };
 
-  if (vkCreateRenderPass(logicalDevice->getDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create render pass!");
-  }
+  renderPass = logicalDevice->createRenderPass(renderPassInfo);
 }
 
 VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,

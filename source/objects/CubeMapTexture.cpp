@@ -27,11 +27,11 @@ CubeMapTexture::CubeMapTexture(std::shared_ptr<LogicalDevice> logicalDevice,
 
 CubeMapTexture::~CubeMapTexture()
 {
-  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
-  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
+  logicalDevice->destroySampler(textureSampler);
+  logicalDevice->destroyImageView(textureImageView);
 
-  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
+  logicalDevice->destroyImage(textureImage);
+  logicalDevice->freeMemory(textureImageMemory);
 }
 
 VkDescriptorPoolSize CubeMapTexture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
@@ -78,10 +78,7 @@ void CubeMapTexture::createTextureSampler()
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  if (vkCreateSampler(logicalDevice->getDevice(), &samplerCreateInfo, nullptr, &textureSampler) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create texture sampler!");
-  }
+  textureSampler = logicalDevice->createSampler(samplerCreateInfo);
 }
 
 void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)

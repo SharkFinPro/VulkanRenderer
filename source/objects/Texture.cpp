@@ -22,11 +22,12 @@ Texture::~Texture()
     ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
   }
 
-  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
-  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
+  logicalDevice->destroySampler(textureSampler);
+  logicalDevice->destroyImageView(textureImageView);
 
-  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
+  logicalDevice->destroyImage(textureImage);
+
+  logicalDevice->freeMemory(textureImageMemory);
 }
 
 void Texture::init(const VkCommandPool& commandPool, const char* path, const VkSamplerAddressMode addressMode)
@@ -94,7 +95,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels](void* data) {
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
     memcpy(data, pixels, imageSize);
   });
 
@@ -250,8 +251,5 @@ void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  if (vkCreateSampler(logicalDevice->getDevice(), &samplerCreateInfo, nullptr, &textureSampler) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create texture sampler!");
-  }
+  textureSampler = logicalDevice->createSampler(samplerCreateInfo);
 }

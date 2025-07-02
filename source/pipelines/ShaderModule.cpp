@@ -11,7 +11,7 @@ ShaderModule::ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, 
 
 ShaderModule::~ShaderModule()
 {
-  vkDestroyShaderModule(logicalDevice->getDevice(), module, nullptr);
+  logicalDevice->destroyShaderModule(module);
 }
 
 VkPipelineShaderStageCreateInfo ShaderModule::getShaderStageCreateInfo() const
@@ -56,8 +56,5 @@ void ShaderModule::createShaderModule(const char* file)
     .pCode = reinterpret_cast<const uint32_t*>(code.data())
   };
 
-  if (vkCreateShaderModule(logicalDevice->getDevice(), &shaderModuleCreateInfo, nullptr, &module) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create shader module!");
-  }
+  module = logicalDevice->createShaderModule(shaderModuleCreateInfo);
 }

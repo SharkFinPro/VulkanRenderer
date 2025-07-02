@@ -32,7 +32,7 @@ Framebuffer::~Framebuffer()
 {
   if (!swapChain)
   {
-    vkDestroySampler(logicalDevice->getDevice(), sampler, nullptr);
+    logicalDevice->destroySampler(sampler);
 
     for (const auto& framebufferImageDescriptorSet : framebufferImageDescriptorSets)
     {
@@ -40,32 +40,32 @@ Framebuffer::~Framebuffer()
     }
   }
 
-  for (const auto& imageView : framebufferImageViews)
+  for (auto& imageView : framebufferImageViews)
   {
-    vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
+    logicalDevice->destroyImageView(imageView);
   }
 
-  for (const auto& imageMemory : framebufferImageMemory)
+  for (auto& imageMemory : framebufferImageMemory)
   {
-    vkFreeMemory(logicalDevice->getDevice(), imageMemory, nullptr);
+    logicalDevice->freeMemory(imageMemory);
   }
 
-  for (const auto& image : framebufferImages)
+  for (auto& image : framebufferImages)
   {
-    vkDestroyImage(logicalDevice->getDevice(), image, nullptr);
+    logicalDevice->destroyImage(image);
   }
 
-  vkDestroyImageView(logicalDevice->getDevice(), colorImageView, nullptr);
-  vkDestroyImage(logicalDevice->getDevice(), colorImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), colorImageMemory, nullptr);
+  logicalDevice->destroyImageView(colorImageView);
+  logicalDevice->destroyImage(colorImage);
+  logicalDevice->freeMemory(colorImageMemory);
 
-  vkDestroyImageView(logicalDevice->getDevice(), depthImageView, nullptr);
-  vkDestroyImage(logicalDevice->getDevice(), depthImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), depthImageMemory, nullptr);
+  logicalDevice->destroyImageView(depthImageView);
+  logicalDevice->destroyImage(depthImage);
+  logicalDevice->freeMemory(depthImageMemory);
 
-  for (const auto framebuffer : framebuffers)
+  for (auto framebuffer : framebuffers)
   {
-    vkDestroyFramebuffer(logicalDevice->getDevice(), framebuffer, nullptr);
+    logicalDevice->destroyFramebuffer(framebuffer);
   }
 }
 
@@ -114,10 +114,7 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool, const V
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  if (vkCreateSampler(this->logicalDevice->getDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
-  {
-    throw std::runtime_error("Failed to create image sampler!");
-  }
+  sampler = logicalDevice->createSampler(samplerInfo);
 
   constexpr size_t numImages = 3;
   framebufferImageMemory.resize(numImages);
@@ -204,9 +201,6 @@ void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExt
       .layers = 1
     };
 
-    if (vkCreateFramebuffer(logicalDevice->getDevice(), &framebufferInfo, nullptr, &framebuffers[i]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create framebuffer!");
-    }
+    framebuffers[i] = logicalDevice->createFramebuffer(framebufferInfo);
   }
 }
