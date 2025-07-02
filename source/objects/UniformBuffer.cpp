@@ -1,7 +1,7 @@
 #include "UniformBuffer.h"
 #include "../utilities/Buffers.h"
 #include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include <cstring>
 
 UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,

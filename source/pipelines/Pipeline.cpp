@@ -1,6 +1,6 @@
 #include "Pipeline.h"
 #include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include <iostream>
 
 Pipeline::Pipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,

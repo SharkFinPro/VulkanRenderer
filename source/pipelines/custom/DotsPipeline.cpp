@@ -3,7 +3,7 @@
 #include "Uniforms.h"
 #include "../Particle.h"
 #include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <cmath>

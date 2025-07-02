@@ -1,6 +1,6 @@
 #include "CubeMapTexture.h"
 #include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 #include <stb_image.h>

@@ -9,7 +9,7 @@
 
 #include "../components/Window.h"
 #include "../core/instance/Instance.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
 #include "../pipelines/RenderPass.h"

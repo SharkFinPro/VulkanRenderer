@@ -1,6 +1,6 @@
 #include "Buffers.h"
 #include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include <stdexcept>
 
 namespace Buffers {

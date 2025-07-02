@@ -12,6 +12,8 @@ add_library(${PROJECT_NAME}
   core/instance/DebugMessenger.h
   core/instance/Instance.cpp
   core/instance/Instance.h
+  core/physicalDevice/PhysicalDevice.cpp
+  core/physicalDevice/PhysicalDevice.h
   objects/RenderObject.cpp
   objects/RenderObject.h
   utilities/Buffers.cpp
@@ -36,8 +38,6 @@ add_library(${PROJECT_NAME}
   pipelines/custom/GuiPipeline.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
-  components/PhysicalDevice.cpp
-  components/PhysicalDevice.h
   components/LogicalDevice.cpp
   components/LogicalDevice.h
   VulkanEngineOptions.h

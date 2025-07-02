@@ -2,7 +2,7 @@
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include <imgui.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <stdexcept>

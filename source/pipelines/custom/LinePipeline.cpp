@@ -3,7 +3,7 @@
 #include "Uniforms.h"
 #include "../RenderPass.h"
 #include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <stdexcept>

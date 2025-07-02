@@ -3,7 +3,7 @@
 #include "Uniforms.h"
 #include "../RenderPass.h"
 #include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/RenderObject.h"
 
 MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,

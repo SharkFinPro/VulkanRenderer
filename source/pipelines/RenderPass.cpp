@@ -2,7 +2,7 @@
 #include <array>
 #include <stdexcept>
 #include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 
 RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkFormat imageFormat,

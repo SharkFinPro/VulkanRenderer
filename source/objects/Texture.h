@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
-#include "../components/PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include "../components/LogicalDevice.h"
 
 #include <imgui.h>

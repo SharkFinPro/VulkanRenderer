@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-#include "PhysicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include "LogicalDevice.h"
 #include "Window.h"
 

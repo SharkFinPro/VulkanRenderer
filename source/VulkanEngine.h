@@ -5,12 +5,12 @@
 #include "components/Framebuffer.h"
 #include "components/ImGuiInstance.h"
 #include "components/LogicalDevice.h"
-#include "components/PhysicalDevice.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
 
 #include "core/instance/DebugMessenger.h"
 #include "core/instance/Instance.h"
+#include "core/physicalDevice/PhysicalDevice.h"
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/custom/DotsPipeline.h"
