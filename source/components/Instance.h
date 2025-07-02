@@ -20,6 +20,10 @@ public:
 
   void destroySurface(VkSurfaceKHR& surface) const;
 
+  [[nodiscard]] VkDebugUtilsMessengerEXT createDebugUtilsMessenger(const VkDebugUtilsMessengerCreateInfoEXT& debugCreateInfo) const;
+
+  void destroyDebugUtilsMessenger(VkDebugUtilsMessengerEXT& debugMessenger) const;
+
 private:
   VkInstance instance = VK_NULL_HANDLE;
 

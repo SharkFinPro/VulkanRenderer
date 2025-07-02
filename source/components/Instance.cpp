@@ -80,6 +80,40 @@ void Instance::destroySurface(VkSurfaceKHR& surface) const
   surface = VK_NULL_HANDLE;
 }
 
+VkDebugUtilsMessengerEXT Instance::createDebugUtilsMessenger(const VkDebugUtilsMessengerCreateInfoEXT& debugCreateInfo) const
+{
+  VkDebugUtilsMessengerEXT debugMessenger;
+  VkResult result;
+
+  const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+  if (func != nullptr)
+  {
+    result = func(instance, &debugCreateInfo, nullptr, &debugMessenger);
+  }
+  else
+  {
+    result = VK_ERROR_EXTENSION_NOT_PRESENT;
+  }
+
+  if (result != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to set up debug messenger!");
+  }
+
+  return debugMessenger;
+}
+
+void Instance::destroyDebugUtilsMessenger(VkDebugUtilsMessengerEXT& debugMessenger) const
+{
+  const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+  if (func != nullptr)
+  {
+    func(instance, debugMessenger, nullptr);
+  }
+
+  debugMessenger = VK_NULL_HANDLE;
+}
+
 bool Instance::checkValidationLayerSupport()
 {
   uint32_t layerCount;
