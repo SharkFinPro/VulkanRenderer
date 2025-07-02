@@ -5,6 +5,8 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
+#include <GLFW/glfw3.h>
+
 constexpr std::array<const char*, 1> validationLayers {
   "VK_LAYER_KHRONOS_validation"
 };
@@ -14,7 +16,9 @@ public:
   Instance();
   ~Instance();
 
-  [[nodiscard]] VkInstance getInstance() const;
+  [[nodiscard]] VkSurfaceKHR createSurface(GLFWwindow* window) const;
+
+  void destroySurface(VkSurfaceKHR& surface) const;
 
 private:
   VkInstance instance = VK_NULL_HANDLE;

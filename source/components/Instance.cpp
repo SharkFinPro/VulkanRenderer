@@ -63,9 +63,21 @@ Instance::~Instance()
   vkDestroyInstance(instance, nullptr);
 }
 
-VkInstance Instance::getInstance() const
+VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
 {
-  return instance;
+  VkSurfaceKHR surface;
+  if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create window surface!");
+  }
+
+  return surface;
+}
+
+void Instance::destroySurface(VkSurfaceKHR& surface) const
+{
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+  surface = VK_NULL_HANDLE;
 }
 
 bool Instance::checkValidationLayerSupport()
