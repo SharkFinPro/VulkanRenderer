@@ -1,7 +1,5 @@
 #include "SwapChain.h"
 #include "../utilities/Images.h"
-
-#include <stdexcept>
 #include <limits>
 #include <algorithm>
 
