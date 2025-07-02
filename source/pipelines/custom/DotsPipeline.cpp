@@ -33,7 +33,7 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
 
 DotsPipeline::~DotsPipeline()
 {
-  vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout, nullptr);
+  ComputePipeline::logicalDevice->destroyDescriptorSetLayout(computeDescriptorSetLayout);
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -192,10 +192,7 @@ void DotsPipeline::createDescriptorSets()
   };
 
   computeDescriptorSets.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo, computeDescriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  ComputePipeline::logicalDevice->allocateDescriptorSets(allocateInfo, computeDescriptorSets.data());
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -233,8 +230,8 @@ void DotsPipeline::createDescriptorSets()
       }
     }};
 
-    vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
-                           writeDescriptorSets.data(), 0, nullptr);
+    ComputePipeline::logicalDevice->updateDescriptorSets(writeDescriptorSets.size(),
+                                            writeDescriptorSets.data());
   }
 }
 

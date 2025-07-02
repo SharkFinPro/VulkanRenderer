@@ -329,7 +329,7 @@ void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandB
     .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())
   };
 
-  logicalDevice->allocateCommandBuffers(allocInfo, commandBuffers);
+  logicalDevice->allocateCommandBuffers(allocInfo, commandBuffers.data());
 }
 
 void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex,
@@ -841,13 +841,13 @@ uint32_t VulkanEngine::getIDFromMousePickingFramebuffer(const int32_t mouseX, co
 
 uint32_t VulkanEngine::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const
 {
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, VK_WHOLE_SIZE, 0, &data);
+  uint32_t objectID = 0;
 
-  const uint8_t* pixel = static_cast<uint8_t*>(data);
-  const uint32_t objectID = pixel[0] << 16 | pixel[1] << 8 | pixel[2];
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
+    const uint8_t* pixel = static_cast<uint8_t*>(data);
 
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+    objectID = pixel[0] << 16 | pixel[1] << 8 | pixel[2];
+  });
 
   return objectID;
 }

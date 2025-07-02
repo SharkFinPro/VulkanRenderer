@@ -246,10 +246,36 @@ void LogicalDevice::destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptor
   descriptorSetLayout = VK_NULL_HANDLE;
 }
 
-void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
-                                           std::vector<VkCommandBuffer>& commandBuffers) const
+void LogicalDevice::doMappedMemoryOperation(VkDeviceMemory deviceMemory,
+                                            const std::function<void(void* data)>& operationFunction) const
 {
-  if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers.data()) != VK_SUCCESS)
+  void* data;
+  vkMapMemory(device, deviceMemory, 0, VK_WHOLE_SIZE, 0, &data);
+
+  operationFunction(data);
+
+  vkUnmapMemory(device, deviceMemory);
+}
+
+void LogicalDevice::allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
+                                           VkDescriptorSet* descriptorSets) const
+{
+  if (vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to allocate descriptor sets!");
+  }
+}
+
+void LogicalDevice::updateDescriptorSets(const uint32_t descriptorWriteCount,
+                                         const VkWriteDescriptorSet* descriptorWrites) const
+{
+  vkUpdateDescriptorSets(device, descriptorWriteCount, descriptorWrites, 0, nullptr);
+}
+
+void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                           VkCommandBuffer* commandBuffers) const
+{
+  if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }

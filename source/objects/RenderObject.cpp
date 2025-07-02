@@ -27,7 +27,7 @@ RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
 RenderObject::~RenderObject()
 {
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
+  logicalDevice->destroyDescriptorPool(descriptorPool);
 }
 
 void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout,
@@ -110,10 +110,7 @@ void RenderObject::createDescriptorPool()
     .pPoolSizes = poolSizes.data()
   };
 
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor pool!");
-  }
+  descriptorPool = logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
 void RenderObject::createDescriptorSets()
@@ -127,10 +124,7 @@ void RenderObject::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -140,8 +134,7 @@ void RenderObject::createDescriptorSets()
       specularMap->getDescriptorSet(4, descriptorSets[i])
     };
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(), descriptorWrites.data(),
-                           0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 

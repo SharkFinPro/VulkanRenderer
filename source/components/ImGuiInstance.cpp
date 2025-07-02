@@ -39,7 +39,7 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
   ImGui_ImplVulkan_InitInfo initInfo {
     .Instance = instance->instance,
     .PhysicalDevice = physicalDevice->physicalDevice,
-    .Device = logicalDevice->getDevice(),
+    .Device = logicalDevice->device,
     .Queue = logicalDevice->getGraphicsQueue(),
     .DescriptorPool = guiPipeline->getPool(),
     .RenderPass = renderPass->getRenderPass(),

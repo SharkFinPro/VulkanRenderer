@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_LOGICALDEVICE_H
 #define VULKANPROJECT_LOGICALDEVICE_H
 
+#include <functional>
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <vector>
@@ -41,7 +42,7 @@ public:
   void destroyCommandPool(VkCommandPool& commandPool) const;
 
   void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
-                              std::vector<VkCommandBuffer>& commandBuffers) const;
+                              VkCommandBuffer* commandBuffers) const;
 
   [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
 
@@ -50,6 +51,15 @@ public:
   [[nodiscard]] VkDescriptorSetLayout createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
 
   void destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const;
+
+  void doMappedMemoryOperation(VkDeviceMemory deviceMemory, const std::function<void(void* data)>& operationFunction) const;
+
+  void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
+                              VkDescriptorSet* descriptorSets) const;
+
+  void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* descriptorWrites) const;
+
+  friend class ImGuiInstance;
 
 private:
   VkDevice device = VK_NULL_HANDLE;

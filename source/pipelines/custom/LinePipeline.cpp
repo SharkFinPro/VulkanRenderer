@@ -31,7 +31,7 @@ LinePipeline::~LinePipeline()
 
   Buffers::destroyBuffer(logicalDevice, vertexBuffer, vertexBufferMemory);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), lineDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(lineDescriptorSetLayout);
 }
 
 void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& commandPool,
@@ -124,10 +124,7 @@ void LinePipeline::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -135,8 +132,7 @@ void LinePipeline::createDescriptorSets()
       transformUniform->getDescriptorSet(0, descriptorSets[i], i),
     }};
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
-                           descriptorWrites.data(), 0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 

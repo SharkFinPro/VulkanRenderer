@@ -77,10 +77,7 @@ namespace Buffers {
     };
 
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-    if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocateInfo, &commandBuffer) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to allocate command buffer!");
-    }
+    logicalDevice->allocateCommandBuffers(allocateInfo, &commandBuffer);
 
     constexpr VkCommandBufferBeginInfo beginInfo {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

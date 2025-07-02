@@ -83,7 +83,7 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
 
 SmokePipeline::~SmokePipeline()
 {
-  vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout, nullptr);
+  ComputePipeline::logicalDevice->destroyDescriptorSetLayout(computeDescriptorSetLayout);
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -256,10 +256,7 @@ void SmokePipeline::createDescriptorSets()
   };
 
   computeDescriptorSets.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo, computeDescriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  ComputePipeline::logicalDevice->allocateDescriptorSets(allocateInfo, computeDescriptorSets.data());
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -311,8 +308,8 @@ void SmokePipeline::createDescriptorSet(const uint32_t set) const
     lightMetadataUniform->getDescriptorSet(5, computeDescriptorSets[set], set)
   }};
 
-  vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
-                         writeDescriptorSets.data(), 0, nullptr);
+  ComputePipeline::logicalDevice->updateDescriptorSets(writeDescriptorSets.size(),
+                                          writeDescriptorSets.data());
 }
 
 void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
@@ -378,7 +375,7 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
       auto descriptorSet = lightsUniform->getDescriptorSet(6, computeDescriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-      vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
+      ComputePipeline::logicalDevice->updateDescriptorSets(1, &descriptorSet);
     }
 
     prevNumLights = static_cast<int>(lights.size());
