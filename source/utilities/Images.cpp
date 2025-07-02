@@ -165,8 +165,8 @@ namespace Images {
     Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
   }
 
-  void copyImageToBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkImage& image, VkOffset3D offset,
-                         VkExtent3D extent, VkCommandBuffer commandBuffer, VkBuffer stagingBuffer)
+  void copyImageToBuffer(const VkImage& image, const VkOffset3D offset, const VkExtent3D extent,
+                         VkCommandBuffer commandBuffer, VkBuffer stagingBuffer)
   {
     const VkBufferImageCopy region{
       .bufferOffset = 0,

@@ -822,7 +822,7 @@ uint32_t VulkanEngine::getIDFromMousePickingFramebuffer(const int32_t mouseX, co
     1, &barrier
   );
 
-  Images::copyImageToBuffer(logicalDevice, mousePickingFramebuffer->getColorImage(), { mouseX, mouseY, 0 },
+  Images::copyImageToBuffer(mousePickingFramebuffer->getColorImage(), { mouseX, mouseY, 0 },
                             { 1, 1, 1 }, commandBuffer, stagingBuffer);
 
   Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
