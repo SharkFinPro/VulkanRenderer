@@ -51,10 +51,9 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
-  memcpy(data, noiseData, imageSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [noiseData](void* data) {
+    memcpy(data, noiseData, imageSize);
+  });
 
   delete noiseData;
 

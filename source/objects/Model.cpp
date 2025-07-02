@@ -95,10 +95,9 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool)
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, vertices.data(), bufferSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this](void* data) {
+    memcpy(data, vertices.data(), bufferSize);
+  });
 
   Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -121,10 +120,9 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, indices.data(), bufferSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this](void* data) {
+    memcpy(data, indices.data(), bufferSize);
+  });
 
   Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,

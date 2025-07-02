@@ -94,10 +94,9 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
-  memcpy(data, pixels, imageSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels](void* data) {
+    memcpy(data, pixels, imageSize);
+  });
 
   stbi_image_free(pixels);
 

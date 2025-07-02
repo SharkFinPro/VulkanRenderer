@@ -107,16 +107,14 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, totalSize, 0, &data);
-  for (size_t i = 0; i < pixels.size(); ++i)
-  {
-    const VkDeviceSize offset = i * imageSize;
-    memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
-    stbi_image_free(pixels[i]);
-  }
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels](void* data) {
+    for (size_t i = 0; i < pixels.size(); ++i)
+    {
+      const VkDeviceSize offset = i * imageSize;
+      memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
+      stbi_image_free(pixels[i]);
+    }
+  });
 
   Images::createImage(logicalDevice, physicalDevice, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, texWidth, texHeight, 1, 1,
                       VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,

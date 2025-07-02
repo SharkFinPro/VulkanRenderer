@@ -127,10 +127,9 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void* data;
-  vkMapMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, particles.data(), bufferSize);
-  vkUnmapMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory);
+  ComputePipeline::logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
+    memcpy(data, particles.data(), bufferSize);
+  });
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
