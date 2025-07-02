@@ -70,8 +70,6 @@ Framebuffer::~Framebuffer()
 
 VkFramebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex)
 {
-  assert(framebuffers.size() > imageIndex);
-
   return framebuffers[imageIndex];
 }
 
