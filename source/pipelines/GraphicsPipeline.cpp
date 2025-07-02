@@ -100,10 +100,7 @@ void GraphicsPipeline::createPipelineLayout()
     .pPushConstantRanges = pushConstantRanges.empty() ? nullptr : pushConstantRanges.data()
   };
 
-  if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create pipeline layout!");
-  }
+  pipelineLayout = logicalDevice->createPipelineLayout(pipelineLayoutInfo);
 
   descriptorSetLayouts.clear();
 }
@@ -142,11 +139,7 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
     .basePipelineIndex = -1
   };
 
-  if (vkCreateGraphicsPipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo,
-                                nullptr, &pipeline) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create graphics pipeline!");
-  }
+  pipeline = logicalDevice->createPipeline(pipelineInfo);
 
   shaderModules.clear();
 

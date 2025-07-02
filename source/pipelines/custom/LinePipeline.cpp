@@ -51,7 +51,7 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
     throw std::runtime_error("Vertex data exceeds maximum buffer size");
   }
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [vertices](void* data) {
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [vertices, bufferSize](void* data) {
     memcpy(data, vertices.data(), bufferSize);
   });
 

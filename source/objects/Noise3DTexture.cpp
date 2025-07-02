@@ -51,7 +51,7 @@ void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [noiseData](void* data) {
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [noiseData, imageSize](void* data) {
     memcpy(data, noiseData, imageSize);
   });
 

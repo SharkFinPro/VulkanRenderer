@@ -111,6 +111,16 @@ public:
 
   void destroyFramebuffer(VkFramebuffer& framebuffer) const;
 
+  [[nodiscard]] VkPipelineLayout createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const;
+
+  void destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const;
+
+  [[nodiscard]] VkPipeline createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const;
+
+  [[nodiscard]] VkPipeline createPipeline(const VkComputePipelineCreateInfo& computePipelineCreateInfo) const;
+
+  void destroyPipeline(VkPipeline& pipeline) const;
+
   friend class ImGuiInstance;
 
 private:

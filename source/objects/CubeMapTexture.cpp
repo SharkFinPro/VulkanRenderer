@@ -104,7 +104,7 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels](void* data) {
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
     for (size_t i = 0; i < pixels.size(); ++i)
     {
       const VkDeviceSize offset = i * imageSize;

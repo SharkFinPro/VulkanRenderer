@@ -503,6 +503,66 @@ void LogicalDevice::destroyFramebuffer(VkFramebuffer& framebuffer) const
   framebuffer = VK_NULL_HANDLE;
 }
 
+VkPipelineLayout LogicalDevice::createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const
+{
+  VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+
+  if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create pipeline layout!");
+  }
+
+  return pipelineLayout;
+}
+
+void LogicalDevice::destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const
+{
+  if (pipelineLayout == VK_NULL_HANDLE)
+  {
+    return;
+  }
+
+  vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+
+  pipelineLayout = VK_NULL_HANDLE;
+}
+
+VkPipeline LogicalDevice::createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const
+{
+  VkPipeline pipeline = VK_NULL_HANDLE;
+
+  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create graphics pipeline!");
+  }
+
+  return pipeline;
+}
+
+VkPipeline LogicalDevice::createPipeline(const VkComputePipelineCreateInfo& computePipelineCreateInfo) const
+{
+  VkPipeline pipeline = VK_NULL_HANDLE;
+
+  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create compute pipeline!");
+  }
+
+  return pipeline;
+}
+
+void LogicalDevice::destroyPipeline(VkPipeline&pipeline) const
+{
+  if (pipeline == VK_NULL_HANDLE)
+  {
+    return;
+  }
+
+  vkDestroyPipeline(device, pipeline, nullptr);
+
+  pipeline = VK_NULL_HANDLE;
+}
+
 void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                            VkCommandBuffer* commandBuffers) const
 {
