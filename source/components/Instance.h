@@ -1,11 +1,10 @@
 #ifndef VULKANPROJECT_INSTANCE_H
 #define VULKANPROJECT_INSTANCE_H
 
-#include <array>
-#include <vulkan/vulkan.h>
-#include <vector>
-
 #include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+#include <array>
+#include <vector>
 
 constexpr std::array<const char*, 1> validationLayers {
   "VK_LAYER_KHRONOS_validation"
@@ -25,6 +24,8 @@ public:
   void destroyDebugUtilsMessenger(VkDebugUtilsMessengerEXT& debugMessenger) const;
 
   [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
+
+  friend class ImGuiInstance;
 
 private:
   VkInstance instance = VK_NULL_HANDLE;
