@@ -95,7 +95,7 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool)
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this](void* data) {
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
     memcpy(data, vertices.data(), bufferSize);
   });
 
@@ -120,7 +120,7 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this](void* data) {
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
     memcpy(data, indices.data(), bufferSize);
   });
 
