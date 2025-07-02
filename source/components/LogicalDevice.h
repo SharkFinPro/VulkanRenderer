@@ -44,6 +44,8 @@ public:
   void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                               VkCommandBuffer* commandBuffers) const;
 
+  void freeCommandBuffers(VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer* commandBuffers) const;
+
   [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
 
   void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
@@ -58,6 +60,18 @@ public:
                               VkDescriptorSet* descriptorSets) const;
 
   void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* descriptorWrites) const;
+
+  [[nodiscard]] VkBuffer createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const;
+
+  void destroyBuffer(VkBuffer& buffer) const;
+
+  [[nodiscard]] VkMemoryRequirements getBufferMemoryRequirements(const VkBuffer& buffer) const;
+
+  void allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory deviceMemory) const;
+
+  void freeMemory(VkDeviceMemory& memory) const;
+
+  void bindBufferMemory(const VkBuffer& buffer, const VkDeviceMemory& deviceMemory, VkDeviceSize memoryOffset = 0) const;
 
   friend class ImGuiInstance;
 

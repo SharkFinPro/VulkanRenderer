@@ -272,6 +272,65 @@ void LogicalDevice::updateDescriptorSets(const uint32_t descriptorWriteCount,
   vkUpdateDescriptorSets(device, descriptorWriteCount, descriptorWrites, 0, nullptr);
 }
 
+VkBuffer LogicalDevice::createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const
+{
+  VkBuffer buffer = VK_NULL_HANDLE;
+
+  if (vkCreateBuffer(device, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create buffer!");
+  }
+
+  return buffer;
+}
+
+void LogicalDevice::destroyBuffer(VkBuffer&buffer) const
+{
+  if (buffer == VK_NULL_HANDLE)
+  {
+    return;
+  }
+
+  vkDestroyBuffer(device, buffer, nullptr);
+
+  buffer = VK_NULL_HANDLE;
+}
+
+VkMemoryRequirements LogicalDevice::getBufferMemoryRequirements(const VkBuffer& buffer) const
+{
+  VkMemoryRequirements memoryRequirements{};
+
+  vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+
+  return memoryRequirements;
+}
+
+void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory deviceMemory) const
+{
+  if (vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to allocate memory!");
+  }
+}
+
+void LogicalDevice::freeMemory(VkDeviceMemory& memory) const
+{
+  if (memory == VK_NULL_HANDLE)
+  {
+    return;
+  }
+
+  vkFreeMemory(device, memory, nullptr);
+
+  memory = VK_NULL_HANDLE;
+}
+
+void LogicalDevice::bindBufferMemory(const VkBuffer& buffer, const VkDeviceMemory& deviceMemory,
+                                     const VkDeviceSize memoryOffset) const
+{
+  vkBindBufferMemory(device, buffer, deviceMemory, memoryOffset);
+}
+
 void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                            VkCommandBuffer* commandBuffers) const
 {
@@ -279,6 +338,12 @@ void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& co
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }
+}
+
+void LogicalDevice::freeCommandBuffers(VkCommandPool commandPool, const uint32_t commandBufferCount,
+                                       const VkCommandBuffer* commandBuffers) const
+{
+  vkFreeCommandBuffers(device, commandPool, commandBufferCount, commandBuffers);
 }
 
 VkDescriptorPool LogicalDevice::createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const
