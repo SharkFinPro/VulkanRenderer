@@ -36,11 +36,11 @@ VulkanEngine::~VulkanEngine()
 {
   logicalDevice->waitIdle();
 
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
+  logicalDevice->destroyDescriptorPool(descriptorPool);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), objectDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(objectDescriptorSetLayout);
 
-  vkDestroyCommandPool(logicalDevice->getDevice(), commandPool, nullptr);
+  logicalDevice->destroyCommandPool(commandPool);
 
   glfwTerminate();
 }
@@ -315,10 +315,7 @@ void VulkanEngine::createCommandPool()
     .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()
   };
 
-  if (vkCreateCommandPool(logicalDevice->getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create command pool!");
-  }
+  commandPool = logicalDevice->createCommandPool(poolInfo);
 }
 
 void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
@@ -332,10 +329,7 @@ void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandB
     .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())
   };
 
-  if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate command buffers!");
-  }
+  logicalDevice->allocateCommandBuffers(allocInfo, commandBuffers);
 }
 
 void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex,
@@ -728,10 +722,7 @@ void VulkanEngine::createDescriptorPool()
     .pPoolSizes = poolSizes.data()
   };
 
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor pool!");
-  }
+  descriptorPool = logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
 void VulkanEngine::createObjectDescriptorSetLayout()
@@ -769,11 +760,7 @@ void VulkanEngine::createObjectDescriptorSetLayout()
     .pBindings = objectBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &objectLayoutCreateInfo, nullptr,
-                                  &objectDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create object descriptor set layout!");
-  }
+  objectDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
 }
 
 bool VulkanEngine::validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY)

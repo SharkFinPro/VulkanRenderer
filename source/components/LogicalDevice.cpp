@@ -40,11 +40,6 @@ LogicalDevice::~LogicalDevice()
   vkDestroyDevice(device, nullptr);
 }
 
-VkDevice LogicalDevice::getDevice() const
-{
-  return device;
-}
-
 void LogicalDevice::waitIdle() const
 {
   vkDeviceWaitIdle(device);
@@ -216,6 +211,72 @@ VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame, const VkSw
 uint32_t LogicalDevice::getMaxFramesInFlight() const
 {
   return maxFramesInFlight;
+}
+
+VkCommandPool LogicalDevice::createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const
+{
+  VkCommandPool commandPool = VK_NULL_HANDLE;
+
+  if (vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create command pool!");
+  }
+
+  return commandPool;
+}
+
+void LogicalDevice::destroyCommandPool(VkCommandPool& commandPool) const
+{
+  vkDestroyCommandPool(device, commandPool, nullptr);
+
+  commandPool = VK_NULL_HANDLE;
+}
+
+void LogicalDevice::destroyDescriptorPool(VkDescriptorPool& descriptorPool) const
+{
+  vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+
+  descriptorPool = VK_NULL_HANDLE;
+}
+
+void LogicalDevice::destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const
+{
+  vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+
+  descriptorSetLayout = VK_NULL_HANDLE;
+}
+
+void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                           std::vector<VkCommandBuffer>& commandBuffers) const
+{
+  if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers.data()) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to allocate command buffers!");
+  }
+}
+
+VkDescriptorPool LogicalDevice::createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const
+{
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+
+  if (vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create descriptor pool!");
+  }
+
+  return descriptorPool;
+}
+
+VkDescriptorSetLayout LogicalDevice::createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const
+{
+  VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+
+  if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create descriptor set layout!");
+  }
+
+  return descriptorSetLayout;
 }
 
 void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)

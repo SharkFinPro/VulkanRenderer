@@ -12,7 +12,6 @@ public:
   explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
   ~LogicalDevice();
 
-  [[nodiscard]] VkDevice getDevice() const;
   void waitIdle() const;
 
   [[nodiscard]] VkQueue getGraphicsQueue() const;
@@ -36,6 +35,21 @@ public:
   VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const;
 
   [[nodiscard]] uint32_t getMaxFramesInFlight() const;
+
+  [[nodiscard]] VkCommandPool createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const;
+
+  void destroyCommandPool(VkCommandPool& commandPool) const;
+
+  void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                              std::vector<VkCommandBuffer>& commandBuffers) const;
+
+  [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
+
+  void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
+
+  [[nodiscard]] VkDescriptorSetLayout createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
+
+  void destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const;
 
 private:
   VkDevice device = VK_NULL_HANDLE;
