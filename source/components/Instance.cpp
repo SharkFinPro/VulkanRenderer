@@ -61,6 +61,8 @@ Instance::Instance()
 Instance::~Instance()
 {
   vkDestroyInstance(instance, nullptr);
+
+  instance = VK_NULL_HANDLE;
 }
 
 VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
@@ -77,6 +79,7 @@ VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
 void Instance::destroySurface(VkSurfaceKHR& surface) const
 {
   vkDestroySurfaceKHR(instance, surface, nullptr);
+
   surface = VK_NULL_HANDLE;
 }
 
