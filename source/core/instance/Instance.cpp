@@ -56,10 +56,17 @@ Instance::Instance()
   {
     throw std::runtime_error("failed to create instance!");
   }
+
+  if (enableValidationLayers)
+  {
+    createDebugUtilsMessenger();
+  }
 }
 
 Instance::~Instance()
 {
+  destroyDebugUtilsMessenger();
+
   vkDestroyInstance(instance, nullptr);
 
   instance = VK_NULL_HANDLE;
@@ -83,9 +90,11 @@ void Instance::destroySurface(VkSurfaceKHR& surface) const
   surface = VK_NULL_HANDLE;
 }
 
-VkDebugUtilsMessengerEXT Instance::createDebugUtilsMessenger(const VkDebugUtilsMessengerCreateInfoEXT& debugCreateInfo) const
+void Instance::createDebugUtilsMessenger()
 {
-  VkDebugUtilsMessengerEXT debugMessenger;
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+  DebugMessenger::populateCreateInfo(debugCreateInfo);
+
   VkResult result;
 
   const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
@@ -102,11 +111,9 @@ VkDebugUtilsMessengerEXT Instance::createDebugUtilsMessenger(const VkDebugUtilsM
   {
     throw std::runtime_error("failed to set up debug messenger!");
   }
-
-  return debugMessenger;
 }
 
-void Instance::destroyDebugUtilsMessenger(VkDebugUtilsMessengerEXT& debugMessenger) const
+void Instance::destroyDebugUtilsMessenger()
 {
   const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
   if (func != nullptr)

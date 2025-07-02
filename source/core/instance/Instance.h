@@ -19,9 +19,9 @@ public:
 
   void destroySurface(VkSurfaceKHR& surface) const;
 
-  [[nodiscard]] VkDebugUtilsMessengerEXT createDebugUtilsMessenger(const VkDebugUtilsMessengerCreateInfoEXT& debugCreateInfo) const;
+  void createDebugUtilsMessenger();
 
-  void destroyDebugUtilsMessenger(VkDebugUtilsMessengerEXT& debugMessenger) const;
+  void destroyDebugUtilsMessenger();
 
   [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
 
@@ -29,6 +29,8 @@ public:
 
 private:
   VkInstance instance = VK_NULL_HANDLE;
+
+  VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
   static bool checkValidationLayerSupport();
 

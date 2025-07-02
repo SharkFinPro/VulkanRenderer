@@ -8,7 +8,6 @@
 #include "components/SwapChain.h"
 #include "components/Window.h"
 
-#include "core/instance/DebugMessenger.h"
 #include "core/instance/Instance.h"
 #include "core/physicalDevice/PhysicalDevice.h"
 
@@ -93,7 +92,6 @@ public:
 
 private:
   std::shared_ptr<Instance> instance;
-  std::unique_ptr<DebugMessenger> debugMessenger;
   std::shared_ptr<Window> window;
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;

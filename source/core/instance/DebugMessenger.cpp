@@ -1,20 +1,5 @@
 #include "DebugMessenger.h"
-#include "Instance.h"
 #include <iostream>
-
-DebugMessenger::DebugMessenger(const std::shared_ptr<Instance>& instance)
-  : instance(instance)
-{
-  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  populateCreateInfo(debugCreateInfo);
-
-  debugMessenger = instance->createDebugUtilsMessenger(debugCreateInfo);
-}
-
-DebugMessenger::~DebugMessenger()
-{
-  instance->destroyDebugUtilsMessenger(debugMessenger);
-}
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(
   const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

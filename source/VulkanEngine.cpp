@@ -206,11 +206,6 @@ void VulkanEngine::initVulkan()
 {
   instance = std::make_shared<Instance>();
 
-  if (enableValidationLayers)
-  {
-    debugMessenger = std::make_unique<DebugMessenger>(instance);
-  }
-
   window = std::make_shared<Window>(vulkanEngineOptions.WINDOW_WIDTH, vulkanEngineOptions.WINDOW_HEIGHT,
                                     vulkanEngineOptions.WINDOW_TITLE, instance,
                                     vulkanEngineOptions.FULLSCREEN);
