@@ -238,11 +238,7 @@ void SmokePipeline::createDescriptorSetLayouts()
     .pBindings = layoutBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), &descriptorSetLayoutInfo, nullptr,
-                                  &computeDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor set layout!");
-  }
+  computeDescriptorSetLayout = ComputePipeline::logicalDevice->createDescriptorSetLayout(descriptorSetLayoutInfo);
 }
 
 void SmokePipeline::createDescriptorSets()

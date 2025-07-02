@@ -107,10 +107,7 @@ void LinePipeline::createLineDescriptorSetLayout()
     .pBindings = lineBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &lineLayoutCreateInfo, nullptr, &lineDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create line descriptor set layout!");
-  }
+  lineDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(lineLayoutCreateInfo);
 }
 
 void LinePipeline::createDescriptorSets()
