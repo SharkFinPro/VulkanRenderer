@@ -323,7 +323,7 @@ VkMemoryRequirements LogicalDevice::getBufferMemoryRequirements(const VkBuffer& 
   return memoryRequirements;
 }
 
-void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory deviceMemory) const
+void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory& deviceMemory) const
 {
   if (vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
   {

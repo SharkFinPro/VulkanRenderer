@@ -71,7 +71,7 @@ public:
 
   [[nodiscard]] VkMemoryRequirements getBufferMemoryRequirements(const VkBuffer& buffer) const;
 
-  void allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory deviceMemory) const;
+  void allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory& deviceMemory) const;
 
   void freeMemory(VkDeviceMemory& memory) const;
 
