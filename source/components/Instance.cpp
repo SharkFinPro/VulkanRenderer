@@ -1,9 +1,9 @@
+#define GLFW_INCLUDE_VULKAN
 #include "Instance.h"
 #include "DebugMessenger.h"
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <cstring>
-
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
