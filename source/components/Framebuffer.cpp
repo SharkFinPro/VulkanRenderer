@@ -1,6 +1,6 @@
 #include "Framebuffer.h"
 #include "../core/physicalDevice/PhysicalDevice.h"
-#include "LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include "SwapChain.h"
 #include "../pipelines/RenderPass.h"
 #include "../utilities/Images.h"

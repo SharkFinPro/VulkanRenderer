@@ -1,5 +1,5 @@
 #include "ShaderModule.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include <fstream>
 
 ShaderModule::ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename,

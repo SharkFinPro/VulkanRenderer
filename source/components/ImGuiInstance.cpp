@@ -10,7 +10,7 @@
 #include "../components/Window.h"
 #include "../core/instance/Instance.h"
 #include "../core/physicalDevice/PhysicalDevice.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 
 #include "../pipelines/RenderPass.h"
 #include "../pipelines/custom/GuiPipeline.h"

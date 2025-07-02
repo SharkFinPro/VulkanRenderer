@@ -8,7 +8,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "../core/physicalDevice/PhysicalDevice.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 
 struct Vertex;
 

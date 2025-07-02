@@ -1,6 +1,6 @@
 #include "GraphicsPipeline.h"
 #include "ShaderModule.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include "../objects/RenderObject.h"
 #include <stdexcept>
 

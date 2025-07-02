@@ -1,7 +1,7 @@
 #include "RenderPass.h"
 #include <array>
 #include <stdexcept>
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include "../core/physicalDevice/PhysicalDevice.h"
 
 RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,

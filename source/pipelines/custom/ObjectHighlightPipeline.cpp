@@ -1,7 +1,7 @@
 #include "ObjectHighlightPipeline.h"
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
-#include "../../components/LogicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/RenderObject.h"
 

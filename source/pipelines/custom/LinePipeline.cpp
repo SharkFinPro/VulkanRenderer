@@ -2,7 +2,7 @@
 #include "GraphicsPipelineStates.h"
 #include "Uniforms.h"
 #include "../RenderPass.h"
-#include "../../components/LogicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"

@@ -1,9 +1,7 @@
 #include "LogicalDevice.h"
-
+#include "../instance/Instance.h"
+#include "../physicalDevice/PhysicalDevice.h"
 #include <array>
-
-#include "../core/physicalDevice/PhysicalDevice.h"
-#include "../core/instance/Instance.h"
 #include <set>
 #include <stdexcept>
 

@@ -1,6 +1,6 @@
 #include "ComputePipeline.h"
 #include "ShaderModule.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include <stdexcept>
 
 ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,

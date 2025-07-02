@@ -1,12 +1,11 @@
 #ifndef VULKANPROJECT_SWAPCHAIN_H
 #define VULKANPROJECT_SWAPCHAIN_H
 
+#include "../core/physicalDevice/PhysicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
+#include "Window.h"
 #include <vulkan/vulkan.h>
 #include <vector>
-
-#include "../core/physicalDevice/PhysicalDevice.h"
-#include "LogicalDevice.h"
-#include "Window.h"
 
 class SwapChain {
 public:

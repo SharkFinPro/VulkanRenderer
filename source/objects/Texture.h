@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "../core/physicalDevice/PhysicalDevice.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 
 #include <imgui.h>
 

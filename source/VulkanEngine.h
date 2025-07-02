@@ -4,7 +4,7 @@
 #include "components/Camera.h"
 #include "components/Framebuffer.h"
 #include "components/ImGuiInstance.h"
-#include "components/LogicalDevice.h"
+#include "core/logicalDevice/LogicalDevice.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
 

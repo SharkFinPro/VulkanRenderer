@@ -12,6 +12,8 @@ add_library(${PROJECT_NAME}
   core/instance/DebugMessenger.h
   core/instance/Instance.cpp
   core/instance/Instance.h
+  core/logicalDevice/LogicalDevice.cpp
+  core/logicalDevice/LogicalDevice.h
   core/physicalDevice/PhysicalDevice.cpp
   core/physicalDevice/PhysicalDevice.h
   objects/RenderObject.cpp
@@ -38,8 +40,6 @@ add_library(${PROJECT_NAME}
   pipelines/custom/GuiPipeline.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
-  components/LogicalDevice.cpp
-  components/LogicalDevice.h
   VulkanEngineOptions.h
   components/ImGuiInstance.cpp
   components/ImGuiInstance.h

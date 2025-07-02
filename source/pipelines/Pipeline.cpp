@@ -1,5 +1,5 @@
 #include "Pipeline.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include "../core/physicalDevice/PhysicalDevice.h"
 #include <iostream>
 
