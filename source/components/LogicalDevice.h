@@ -56,7 +56,7 @@ public:
 
   void doMappedMemoryOperation(VkDeviceMemory deviceMemory, const std::function<void(void* data)>& operationFunction) const;
 
-  void mapMemory(VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** data) const;
+  void mapMemory(const VkDeviceMemory& memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** data) const;
 
   void unmapMemory(VkDeviceMemory& memory) const;
 
@@ -103,7 +103,7 @@ public:
 
   [[nodiscard]] VkSwapchainKHR createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const;
 
-  void getSwapchainImagesKHR(VkSwapchainKHR swapchain, uint32_t* swapchainImageCount, VkImage* swapchainImages) const;
+  void getSwapchainImagesKHR(const VkSwapchainKHR& swapchain, uint32_t* swapchainImageCount, VkImage* swapchainImages) const;
 
   void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
 

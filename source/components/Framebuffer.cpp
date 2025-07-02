@@ -4,7 +4,6 @@
 #include "SwapChain.h"
 #include "../pipelines/RenderPass.h"
 #include "../utilities/Images.h"
-#include <array>
 #include <utility>
 #include <stdexcept>
 #include <backends/imgui_impl_vulkan.h>
@@ -63,7 +62,7 @@ Framebuffer::~Framebuffer()
   logicalDevice->destroyImage(depthImage);
   logicalDevice->freeMemory(depthImageMemory);
 
-  for (auto framebuffer : framebuffers)
+  for (auto& framebuffer : framebuffers)
   {
     logicalDevice->destroyFramebuffer(framebuffer);
   }
@@ -71,6 +70,8 @@ Framebuffer::~Framebuffer()
 
 VkFramebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex)
 {
+  assert(framebuffers.size() > imageIndex);
+
   return framebuffers[imageIndex];
 }
 

@@ -250,15 +250,15 @@ void LogicalDevice::doMappedMemoryOperation(VkDeviceMemory deviceMemory,
                                             const std::function<void(void* data)>& operationFunction) const
 {
   void* data;
-  vkMapMemory(device, deviceMemory, 0, VK_WHOLE_SIZE, 0, &data);
+  mapMemory(deviceMemory, 0, VK_WHOLE_SIZE, 0, &data);
 
   operationFunction(data);
 
-  vkUnmapMemory(device, deviceMemory);
+  unmapMemory(deviceMemory);
 }
 
-void LogicalDevice::mapMemory(const VkDeviceMemory memory, const VkDeviceSize offset, const VkDeviceSize size,
-                              const VkMemoryMapFlags flags, void **data) const
+void LogicalDevice::mapMemory(const VkDeviceMemory& memory, const VkDeviceSize offset, const VkDeviceSize size,
+                              const VkMemoryMapFlags flags, void** data) const
 {
   vkMapMemory(device, memory, offset, size, flags, data);
 }
@@ -471,7 +471,7 @@ VkSwapchainKHR LogicalDevice::createSwapchain(const VkSwapchainCreateInfoKHR& sw
   return swapchain;
 }
 
-void LogicalDevice::getSwapchainImagesKHR(const VkSwapchainKHR swapchain, uint32_t* swapchainImageCount,
+void LogicalDevice::getSwapchainImagesKHR(const VkSwapchainKHR& swapchain, uint32_t* swapchainImageCount,
                                           VkImage* swapchainImages) const
 {
   vkGetSwapchainImagesKHR(device, swapchain, swapchainImageCount, swapchainImages);
