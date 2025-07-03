@@ -12,7 +12,7 @@
 Texture2D::Texture2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const VkCommandPool& commandPool,
                      const char* path,
-                     VkSamplerAddressMode samplerAddressMode)
+                     const VkSamplerAddressMode samplerAddressMode)
   : Texture(logicalDevice, samplerAddressMode)
 {
   createTextureImage(commandPool, path);
