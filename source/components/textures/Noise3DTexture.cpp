@@ -36,7 +36,7 @@ Noise3DTexture::Noise3DTexture(const std::shared_ptr<PhysicalDevice>& physicalDe
   init(commandPool, nullptr, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
-void Noise3DTexture::createTextureImage(const VkCommandPool &commandPool, const char *path)
+void Noise3DTexture::createTextureImage(const VkCommandPool& commandPool, const char* path)
 {
   mipLevels = 1;  // No mipmaps for noise
 
