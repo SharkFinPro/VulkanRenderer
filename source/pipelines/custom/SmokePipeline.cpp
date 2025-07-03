@@ -90,14 +90,14 @@ SmokePipeline::~SmokePipeline()
   }
 }
 
-void SmokePipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
+void SmokePipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer, const uint32_t currentFrame) const
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          ComputePipeline::pipelineLayout, 0, 1, &computeDescriptorSets[currentFrame],
-                          0, nullptr);
+  commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
 
-  vkCmdDispatch(commandBuffer, numParticles / 256, 1, 1);
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipelineLayout, 0,
+                                    1, &computeDescriptorSets[currentFrame]);
+
+  commandBuffer->dispatch(numParticles / 256, 1, 1);
 }
 
 void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
@@ -105,9 +105,9 @@ void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::
   GraphicsPipeline::render(renderInfo, objects);
 
   constexpr VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
+  renderInfo->commandBuffer->bindVertexBuffers(0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
 
-  vkCmdDraw(renderInfo->commandBuffer, numParticles, 1, 0, 0);
+  renderInfo->commandBuffer->draw(numParticles, 1, 0, 0);
 }
 
 void SmokePipeline::displayGui()
@@ -336,9 +336,8 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
 void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          ComputePipeline::pipelineLayout, 0, 1,
-                          &computeDescriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, ComputePipeline::pipelineLayout, 0,
+                                                1, &computeDescriptorSets[renderInfo->currentFrame]);
 }
 
 void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)

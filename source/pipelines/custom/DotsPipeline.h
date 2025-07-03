@@ -4,9 +4,11 @@
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <chrono>
+#include <memory>
+#include <vector>
 
+class CommandBuffer;
 class UniformBuffer;
 
 constexpr int PARTICLE_COUNT = 8192;
@@ -22,7 +24,7 @@ public:
 
   ~DotsPipeline() override;
 
-  void compute(const VkCommandBuffer& commandBuffer, uint32_t currentFrame) const;
+  void compute(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t currentFrame) const;
 
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 

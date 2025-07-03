@@ -19,7 +19,7 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
 {
   updateUniformVariables(renderInfo);
 
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   bindDescriptorSet(renderInfo);
 

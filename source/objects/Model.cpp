@@ -6,6 +6,8 @@
 #include <assimp/postprocess.h>
 #include <stdexcept>
 
+#include "../core/commandBuffer/CommandBuffer.h"
+
 Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
              const VkCommandPool& commandPool, const char* path, const glm::vec3 rotation)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
@@ -134,17 +136,17 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
   Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
 }
 
-void Model::bind(const VkCommandBuffer& commandBuffer) const
+void Model::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
 {
   constexpr VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
+  commandBuffer->bindVertexBuffers(0, 1, &vertexBuffer, offsets);
 
-  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  commandBuffer->bindIndexBuffer(indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void Model::draw(const VkCommandBuffer& commandBuffer) const
+void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
 {
   bind(commandBuffer);
 
-  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+  commandBuffer->drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }

@@ -59,9 +59,9 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
                       vertexBuffer, bufferSize);
 
   constexpr VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &vertexBuffer, offsets);
+  renderInfo->commandBuffer->bindVertexBuffers(0, 1, &vertexBuffer, offsets);
 
-  vkCmdDraw(renderInfo->commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+  renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 }
 
 void LinePipeline::loadGraphicsShaders()
@@ -151,8 +151,8 @@ void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
 void LinePipeline::bindDescriptorSet(const RenderInfo *renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                                &descriptorSets[renderInfo->currentFrame]);
 }
 
 void LinePipeline::createVertexBuffer()

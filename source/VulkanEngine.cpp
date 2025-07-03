@@ -317,30 +317,26 @@ void VulkanEngine::createCommandPool()
 
 void VulkanEngine::recordComputeCommandBuffer() const
 {
-  computeCommandBuffer->record(currentFrame, [this](const VkCommandBuffer& cmdBuffer)
+  computeCommandBuffer->record([this]()
   {
     if (vulkanEngineOptions.DO_DOTS)
     {
-      dotsPipeline->compute(cmdBuffer, currentFrame);
+      dotsPipeline->compute(computeCommandBuffer, currentFrame);
     }
 
     for (const auto& system : smokeSystems)
     {
-      system->compute(cmdBuffer, currentFrame);
+      system->compute(computeCommandBuffer, currentFrame);
     }
   });
 }
 
 void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) const
 {
-  mousePickingCommandBuffer->record(currentFrame, [this, imageIndex](const VkCommandBuffer& cmdBuffer)
+  mousePickingCommandBuffer->record([this, imageIndex]()
   {
-    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, cmdBuffer);
-
-    const std::vector<std::shared_ptr<Light>> lights{};
-
     const RenderInfo renderInfo {
-      .commandBuffer = cmdBuffer,
+      .commandBuffer = mousePickingCommandBuffer,
       .currentFrame = currentFrame,
       .viewPosition = viewPosition,
       .viewMatrix = viewMatrix,
@@ -348,6 +344,10 @@ void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) co
       .lights = lights
     };
 
+    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, renderInfo.commandBuffer);
+
+    const std::vector<std::shared_ptr<Light>> lights{};
+
     const VkViewport viewport = {
       .x = 0.0f,
       .y = 0.0f,
@@ -356,23 +356,23 @@ void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) co
       .minDepth = 0.0f,
       .maxDepth = 1.0f
     };
-    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+    renderInfo.commandBuffer->setViewport(viewport);
 
     const VkRect2D scissor = {
       .offset = {0, 0},
       .extent = renderInfo.extent
     };
-    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+    renderInfo.commandBuffer->setScissor(scissor);
 
     mousePickingPipeline->render(&renderInfo, &renderObjectsToMousePick);
 
-    RenderPass::end(cmdBuffer);
+    mousePickingCommandBuffer->endRenderPass();
   });
 }
 
 void VulkanEngine::recordOffscreenCommandBuffer(const uint32_t imageIndex) const
 {
-  offscreenCommandBuffer->record(currentFrame, [this, imageIndex](const VkCommandBuffer& cmdBuffer)
+  offscreenCommandBuffer->record([this, imageIndex]()
   {
     if (!vulkanEngineOptions.USE_DOCKSPACE ||
         offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
@@ -380,33 +380,33 @@ void VulkanEngine::recordOffscreenCommandBuffer(const uint32_t imageIndex) const
       return;
     }
 
-    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, cmdBuffer);
+    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, offscreenCommandBuffer);
 
-    renderGraphicsPipelines(cmdBuffer, offscreenViewportExtent);
+    renderGraphicsPipelines(offscreenCommandBuffer, offscreenViewportExtent);
 
-    RenderPass::end(cmdBuffer);
+    offscreenCommandBuffer->endRenderPass();
   });
 }
 
 void VulkanEngine::recordSwapchainCommandBuffer(const uint32_t imageIndex) const
 {
-  swapchainCommandBuffer->record(currentFrame, [this, imageIndex](const VkCommandBuffer& cmdBuffer)
+  swapchainCommandBuffer->record([this, imageIndex]()
   {
-    renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), cmdBuffer);
-
-    if (!vulkanEngineOptions.USE_DOCKSPACE)
-    {
-      renderGraphicsPipelines(cmdBuffer, swapChain->getExtent());
-    }
-
     const RenderInfo renderInfo {
-      .commandBuffer = cmdBuffer,
+      .commandBuffer = swapchainCommandBuffer,
       .currentFrame = currentFrame,
       .viewPosition = viewPosition,
       .viewMatrix = viewMatrix,
       .extent = swapChain->getExtent(),
       .lights = lightsToRender
     };
+
+    renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), renderInfo.commandBuffer);
+
+    if (!vulkanEngineOptions.USE_DOCKSPACE)
+    {
+      renderGraphicsPipelines(renderInfo.commandBuffer, swapChain->getExtent());
+    }
 
     const VkViewport viewport = {
       .x = 0.0f,
@@ -416,17 +416,17 @@ void VulkanEngine::recordSwapchainCommandBuffer(const uint32_t imageIndex) const
       .minDepth = 0.0f,
       .maxDepth = 1.0f
     };
-    vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+    renderInfo.commandBuffer->setViewport(viewport);
 
     const VkRect2D scissor = {
       .offset = {0, 0},
       .extent = renderInfo.extent
     };
-    vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+    renderInfo.commandBuffer->setScissor(scissor);
 
-    guiPipeline->render(&renderInfo, nullptr);
+    guiPipeline->render(&renderInfo);
 
-    RenderPass::end(cmdBuffer);
+    renderInfo.commandBuffer->endRenderPass();
   });
 }
 
@@ -436,10 +436,11 @@ void VulkanEngine::doComputing() const
 
   logicalDevice->resetComputeFences(currentFrame);
 
-  computeCommandBuffer->resetCommandBuffer(currentFrame);
+  computeCommandBuffer->setCurrentFrame(currentFrame);
+  computeCommandBuffer->resetCommandBuffer();
   recordComputeCommandBuffer();
 
-  logicalDevice->submitComputeQueue(currentFrame, computeCommandBuffer->getCommandBuffer(currentFrame));
+  logicalDevice->submitComputeQueue(currentFrame, computeCommandBuffer->getCommandBuffer());
 }
 
 void VulkanEngine::doRendering()
@@ -465,19 +466,22 @@ void VulkanEngine::doRendering()
 
   logicalDevice->resetGraphicsFences(currentFrame);
 
-  mousePickingCommandBuffer->resetCommandBuffer(currentFrame);
+  mousePickingCommandBuffer->setCurrentFrame(currentFrame);
+  mousePickingCommandBuffer->resetCommandBuffer();
   recordMousePickingCommandBuffer(imageIndex);
-  logicalDevice->submitMousePickingGraphicsQueue(currentFrame, mousePickingCommandBuffer->getCommandBuffer(currentFrame));
+  logicalDevice->submitMousePickingGraphicsQueue(currentFrame, mousePickingCommandBuffer->getCommandBuffer());
   logicalDevice->waitForMousePickingFences(currentFrame);
   doMousePicking();
 
-  offscreenCommandBuffer->resetCommandBuffer(currentFrame);
+  offscreenCommandBuffer->setCurrentFrame(currentFrame);
+  offscreenCommandBuffer->resetCommandBuffer();
   recordOffscreenCommandBuffer(imageIndex);
-  logicalDevice->submitOffscreenGraphicsQueue(currentFrame, offscreenCommandBuffer->getCommandBuffer(currentFrame));
+  logicalDevice->submitOffscreenGraphicsQueue(currentFrame, offscreenCommandBuffer->getCommandBuffer());
 
-  swapchainCommandBuffer->resetCommandBuffer(currentFrame);
+  swapchainCommandBuffer->setCurrentFrame(currentFrame);
+  swapchainCommandBuffer->resetCommandBuffer();
   recordSwapchainCommandBuffer(imageIndex);
-  logicalDevice->submitGraphicsQueue(currentFrame, swapchainCommandBuffer->getCommandBuffer(currentFrame));
+  logicalDevice->submitGraphicsQueue(currentFrame, swapchainCommandBuffer->getCommandBuffer());
 
   result = logicalDevice->queuePresent(currentFrame, swapChain->getSwapChain(), &imageIndex);
 
@@ -581,7 +585,7 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
   ImGui::End();
 }
 
-void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, const VkExtent2D extent) const
+void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>& commandBuffer, const VkExtent2D extent) const
 {
   const RenderInfo renderInfo {
     .commandBuffer = commandBuffer,
@@ -600,13 +604,13 @@ void VulkanEngine::renderGraphicsPipelines(const VkCommandBuffer& commandBuffer,
     .minDepth = 0.0f,
     .maxDepth = 1.0f
   };
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+  renderInfo.commandBuffer->setViewport(viewport);
 
   const VkRect2D scissor = {
     .offset = {0, 0},
     .extent = extent
   };
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+  renderInfo.commandBuffer->setScissor(scissor);
 
   for (const auto& [type, objects] : renderObjectsToRender)
   {

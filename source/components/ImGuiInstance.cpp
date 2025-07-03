@@ -8,6 +8,8 @@
 #include "../utilities/Buffers.h"
 
 #include "../components/Window.h"
+
+#include "../core/commandBuffer/CommandBuffer.h"
 #include "../core/instance/Instance.h"
 #include "../core/physicalDevice/PhysicalDevice.h"
 #include "../core/logicalDevice/LogicalDevice.h"
@@ -209,4 +211,13 @@ void ImGuiInstance::setRightDockPercent(const float percent)
   rightDockPercent = percent;
 
   dockNeedsUpdate = true;
+}
+
+void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
+{
+  ImGui_ImplVulkan_RenderDrawData(
+    ImGui::GetDrawData(),
+    commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame],
+    nullptr
+  );
 }

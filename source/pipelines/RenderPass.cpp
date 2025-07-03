@@ -1,8 +1,9 @@
 #include "RenderPass.h"
-#include <array>
-#include <stdexcept>
+#include "../core/commandBuffer/CommandBuffer.h"
 #include "../core/logicalDevice/LogicalDevice.h"
 #include "../core/physicalDevice/PhysicalDevice.h"
+#include <array>
+#include <stdexcept>
 
 RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkFormat imageFormat,
@@ -140,7 +141,7 @@ VkFormat RenderPass::findDepthFormat() const
 }
 
 void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent,
-                       const VkCommandBuffer& commandBuffer) const
+                       std::shared_ptr<CommandBuffer> commandBuffer) const
 {
   constexpr std::array<VkClearValue, 2> clearValues {{
     {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
@@ -159,10 +160,5 @@ void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& exten
     .pClearValues = clearValues.data()
   };
 
-  vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-}
-
-void RenderPass::end(const VkCommandBuffer& commandBuffer)
-{
-  vkCmdEndRenderPass(commandBuffer);
+  commandBuffer->beginRenderPass(renderPassInfo);
 }

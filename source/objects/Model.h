@@ -10,6 +10,7 @@
 #include "../core/physicalDevice/PhysicalDevice.h"
 #include "../core/logicalDevice/LogicalDevice.h"
 
+class CommandBuffer;
 struct Vertex;
 
 class Model {
@@ -20,7 +21,7 @@ public:
         const VkCommandPool& commandPool, const char* path, glm::quat orientation);
   ~Model();
 
-  void draw(const VkCommandBuffer& commandBuffer) const;
+  void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
 private:
   std::shared_ptr<PhysicalDevice> physicalDevice;
@@ -39,7 +40,7 @@ private:
   void createVertexBuffer(const VkCommandPool& commandPool);
   void createIndexBuffer(const VkCommandPool& commandPool);
 
-  void bind(const VkCommandBuffer& commandBuffer) const;
+  void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 };
 
 

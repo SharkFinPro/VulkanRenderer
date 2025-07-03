@@ -3,6 +3,7 @@
 #include "Texture.h"
 #include "UniformBuffer.h"
 #include "../components/Camera.h"
+#include "../core/commandBuffer/CommandBuffer.h"
 #include "../pipelines/custom/Uniforms.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
@@ -26,10 +27,11 @@ RenderObject::~RenderObject()
   logicalDevice->destroyDescriptorPool(descriptorPool);
 }
 
-void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout,
+void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer, const VkPipelineLayout& pipelineLayout,
                         const uint32_t currentFrame, const uint32_t descriptorSet) const
 {
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet, 1, &descriptorSets[currentFrame], 0, nullptr);
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet, 1,
+                                    &descriptorSets[currentFrame]);
 
   model->draw(commandBuffer);
 }

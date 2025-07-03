@@ -1,10 +1,10 @@
 #include "GuiPipeline.h"
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
+#include "../../components/ImGuiInstance.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include <imgui.h>
-#include <backends/imgui_impl_vulkan.h>
 
 GuiPipeline::GuiPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                          const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -21,14 +21,14 @@ GuiPipeline::~GuiPipeline()
   logicalDevice->destroyDescriptorPool(descriptorPool);
 }
 
-void GuiPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+void GuiPipeline::render(const RenderInfo* renderInfo)
 {
-  GraphicsPipeline::render(renderInfo, objects);
+  GraphicsPipeline::render(renderInfo, nullptr);
 
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   ImGui::Render();
-  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderInfo->commandBuffer, nullptr);
+  ImGuiInstance::renderDrawData(renderInfo->commandBuffer);
 }
 
 void GuiPipeline::loadGraphicsShaders()

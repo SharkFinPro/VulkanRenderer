@@ -171,7 +171,7 @@ private:
   void recreateSwapChain();
   void renderGuiScene(uint32_t imageIndex);
 
-  void renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, VkExtent2D extent) const;
+  void renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>& commandBuffer, VkExtent2D extent) const;
 
   void createNewFrame();
 

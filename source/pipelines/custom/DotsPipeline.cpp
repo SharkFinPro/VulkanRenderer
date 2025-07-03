@@ -40,14 +40,14 @@ DotsPipeline::~DotsPipeline()
   }
 }
 
-void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
+void DotsPipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer, const uint32_t currentFrame) const
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          ComputePipeline::pipelineLayout, 0, 1, &computeDescriptorSets[currentFrame],
-                          0, nullptr);
+  commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
 
-  vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipelineLayout, 0,
+                                    1, &computeDescriptorSets[currentFrame]);
+
+  commandBuffer->dispatch(PARTICLE_COUNT / 256, 1, 1);
 }
 
 void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
@@ -55,9 +55,9 @@ void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::s
   GraphicsPipeline::render(renderInfo, objects);
 
   constexpr VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
+  renderInfo->commandBuffer->bindVertexBuffers(0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
 
-  vkCmdDraw(renderInfo->commandBuffer, PARTICLE_COUNT, 1, 0, 0);
+  renderInfo->commandBuffer->draw(PARTICLE_COUNT, 1, 0, 0);
 }
 
 void DotsPipeline::loadComputeShaders()
