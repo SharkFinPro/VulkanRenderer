@@ -4,7 +4,6 @@
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
 #include <stb_image.h>
-#include <cmath>
 #include <cstring>
 #include <stdexcept>
 
