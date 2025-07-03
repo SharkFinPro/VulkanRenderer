@@ -47,32 +47,32 @@ void Noise3DTexture::createTextureImage(const VkCommandPool& commandPool, const 
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(logicalDevice, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(m_logicalDevice, m_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [noiseData, imageSize](void* data) {
+  m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [noiseData, imageSize](void* data) {
     memcpy(data, noiseData, imageSize);
   });
 
   delete noiseData;
 
-  // Create a 3D texture
-  Images::createImage(logicalDevice, physicalDevice, 0, width, height, depth, mipLevels, VK_SAMPLE_COUNT_1_BIT,
+  // Create a 3D m_logicalDevice
+  Images::createImage(m_logicalDevice, m_physicalDevice, 0, width, height, depth, mipLevels, VK_SAMPLE_COUNT_1_BIT,
                       VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, VK_IMAGE_TYPE_3D, 1);
 
   // Transition and copy buffer to 3D image
-  Images::transitionImageLayout(logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+  Images::transitionImageLayout(m_logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
-  Images::copyBufferToImage(logicalDevice, commandPool, stagingBuffer, textureImage, width, height, depth);
+  Images::copyBufferToImage(m_logicalDevice, commandPool, stagingBuffer, textureImage, width, height, depth);
 
-  Images::transitionImageLayout(logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+  Images::transitionImageLayout(m_logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 1);
 
-  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
-  textureImageView = Images::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+  textureImageView = Images::createImageView(m_logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                              VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_VIEW_TYPE_3D, 1);
 }

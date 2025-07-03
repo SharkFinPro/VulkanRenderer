@@ -93,6 +93,10 @@ add_library(${PROJECT_NAME}
   pipelines/custom/ObjectHighlightPipeline.h
   core/commandBuffer/CommandBuffer.cpp
   core/commandBuffer/CommandBuffer.h
+  components/textures/Texture2D.cpp
+  components/textures/Texture2D.h
+  components/textures/Texture3D.cpp
+  components/textures/Texture3D.h
 )
 
 # Assets
