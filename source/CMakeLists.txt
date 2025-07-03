@@ -8,10 +8,12 @@ add_library(${PROJECT_NAME}
   VulkanEngine.h
   components/textures/CubeMapTexture.cpp
   components/textures/CubeMapTexture.h
-  components/textures/Noise3DTexture.cpp
-  components/textures/Noise3DTexture.h
   components/textures/Texture.cpp
   components/textures/Texture.h
+  components/textures/Texture2D.cpp
+  components/textures/Texture2D.h
+  components/textures/Texture3D.cpp
+  components/textures/Texture3D.h
   components/Window.cpp
   components/Window.h
   core/instance/DebugMessenger.cpp
@@ -93,10 +95,6 @@ add_library(${PROJECT_NAME}
   pipelines/custom/ObjectHighlightPipeline.h
   core/commandBuffer/CommandBuffer.cpp
   core/commandBuffer/CommandBuffer.h
-  components/textures/Texture2D.cpp
-  components/textures/Texture2D.h
-  components/textures/Texture3D.cpp
-  components/textures/Texture3D.h
 )
 
 # Assets

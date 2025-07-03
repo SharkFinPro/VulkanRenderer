@@ -3,7 +3,7 @@
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../components/textures/CubeMapTexture.h"
-#include "../../components/textures/Noise3DTexture.h"
+#include "../../components/textures/Texture3D.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
@@ -169,7 +169,8 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
 
   noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Noise3DTexture>(logicalDevice, commandPool);
+  noiseTexture = std::make_unique<Texture3D>(logicalDevice);
+  noiseTexture->init(commandPool, "assets/noise/noise3d.064.tex", VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
   std::array<std::string, 6> paths {
     "assets/cubeMap/nvposx.bmp",

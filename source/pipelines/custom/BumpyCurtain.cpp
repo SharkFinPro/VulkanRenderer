@@ -1,7 +1,7 @@
 #include "BumpyCurtain.h"
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
-#include "../../components/textures/Noise3DTexture.h"
+#include "../../components/textures/Texture3D.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/Light.h"
 #include "../../objects/UniformBuffer.h"
@@ -171,8 +171,8 @@ void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
 
   noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Noise3DTexture>(logicalDevice, commandPool);
-
+  noiseTexture = std::make_unique<Texture3D>(logicalDevice);
+  noiseTexture->init(commandPool, "assets/noise/noise3d.064.tex", VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
 void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
