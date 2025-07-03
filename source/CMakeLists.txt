@@ -6,6 +6,12 @@ set(BUILD_SHARED_LIBS ON)
 add_library(${PROJECT_NAME}
   VulkanEngine.cpp
   VulkanEngine.h
+  components/textures/CubeMapTexture.cpp
+  components/textures/CubeMapTexture.h
+  components/textures/Noise3DTexture.cpp
+  components/textures/Noise3DTexture.h
+  components/textures/Texture.cpp
+  components/textures/Texture.h
   components/Window.cpp
   components/Window.h
   core/instance/DebugMessenger.cpp
