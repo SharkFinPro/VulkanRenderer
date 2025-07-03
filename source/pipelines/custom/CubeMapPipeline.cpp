@@ -2,8 +2,8 @@
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
-#include "../../objects/CubeMapTexture.h"
-#include "../../objects/Noise3DTexture.h"
+#include "../../components/textures/CubeMapTexture.h"
+#include "../../components/textures/Noise3DTexture.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 

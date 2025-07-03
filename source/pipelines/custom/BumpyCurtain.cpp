@@ -2,7 +2,7 @@
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../objects/Light.h"
-#include "../../objects/Noise3DTexture.h"
+#include "../../components/textures/Noise3DTexture.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 

@@ -8,8 +8,8 @@
 #include <stb_image.h>
 #include <backends/imgui_impl_vulkan.h>
 
-#include "../utilities/Buffers.h"
-#include "../utilities/Images.h"
+#include "../../utilities/Buffers.h"
+#include "../../utilities/Images.h"
 
 Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), mipLevels(1)

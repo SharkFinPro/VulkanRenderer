@@ -1,6 +1,6 @@
 #include "RenderObject.h"
 #include "Model.h"
-#include "Texture.h"
+#include "../components/textures/Texture.h"
 #include "UniformBuffer.h"
 #include "../components/Camera.h"
 #include "../core/commandBuffer/CommandBuffer.h"

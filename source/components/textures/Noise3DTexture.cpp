@@ -1,6 +1,6 @@
 #include "Noise3DTexture.h"
-#include "../utilities/Buffers.h"
-#include "../utilities/Images.h"
+#include "../../utilities/Buffers.h"
+#include "../../utilities/Images.h"
 #include <stdexcept>
 #include <cstdio>
 

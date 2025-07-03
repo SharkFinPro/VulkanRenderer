@@ -19,7 +19,7 @@
 #include "pipelines/custom/MousePickingPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
 
-#include "objects/Texture.h"
+#include "components/textures/Texture.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "objects/Light.h"

@@ -4,7 +4,7 @@
 #include "../../components/Camera.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
-#include "../../objects/Noise3DTexture.h"
+#include "../../components/textures/Noise3DTexture.h"
 #include <imgui.h>
 
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,

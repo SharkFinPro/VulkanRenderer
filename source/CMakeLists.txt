@@ -22,8 +22,6 @@ add_library(${PROJECT_NAME}
   utilities/Buffers.h
   objects/Model.cpp
   objects/Model.h
-  objects/Texture.cpp
-  objects/Texture.h
   utilities/Images.cpp
   utilities/Images.h
   components/Camera.cpp
@@ -61,16 +59,12 @@ add_library(${PROJECT_NAME}
   pipelines/custom/EllipticalDots.h
   pipelines/custom/NoisyEllipticalDots.cpp
   pipelines/custom/NoisyEllipticalDots.h
-  objects/Noise3DTexture.cpp
-  objects/Noise3DTexture.h
   pipelines/custom/CurtainPipeline.cpp
   pipelines/custom/CurtainPipeline.h
   pipelines/custom/BumpyCurtain.cpp
   pipelines/custom/BumpyCurtain.h
   pipelines/custom/CubeMapPipeline.cpp
   pipelines/custom/CubeMapPipeline.h
-  objects/CubeMapTexture.cpp
-  objects/CubeMapTexture.h
   pipelines/custom/TexturedPlane.cpp
   pipelines/custom/TexturedPlane.h
   pipelines/custom/GraphicsPipelineStates.h
