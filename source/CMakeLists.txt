@@ -95,11 +95,8 @@ add_library(${PROJECT_NAME}
   core/commandBuffer/CommandBuffer.h
 )
 
-# Noise
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/noise/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/noise/")
-
-# Cube Map
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/cubeMap/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/cubeMap/")
+# Assets
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/")
 
 # Shaders
 set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
