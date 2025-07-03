@@ -1,6 +1,6 @@
 #include "Buffers.h"
-#include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include <stdexcept>
 
 namespace Buffers {
@@ -16,13 +16,9 @@ namespace Buffers {
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE
     };
 
-    if (vkCreateBuffer(logicalDevice->getDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create buffer!");
-    }
+    buffer = logicalDevice->createBuffer(bufferInfo);
 
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(logicalDevice->getDevice(), buffer, &memoryRequirements);
+    const VkMemoryRequirements memoryRequirements = logicalDevice->getBufferMemoryRequirements(buffer);
 
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -30,12 +26,9 @@ namespace Buffers {
       .memoryTypeIndex = physicalDevice->findMemoryType(memoryRequirements.memoryTypeBits, properties)
     };
 
-    if (vkAllocateMemory(logicalDevice->getDevice(), &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to allocate buffer memory!");
-    }
+    logicalDevice->allocateMemory(allocateInfo, bufferMemory);
 
-    vkBindBufferMemory(logicalDevice->getDevice(), buffer, bufferMemory, 0);
+    logicalDevice->bindBufferMemory(buffer, bufferMemory);
   }
 
   void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
@@ -53,17 +46,9 @@ namespace Buffers {
 
   void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
   {
-    if (bufferMemory != VK_NULL_HANDLE)
-    {
-      vkFreeMemory(logicalDevice->getDevice(), bufferMemory, nullptr);
-      bufferMemory = VK_NULL_HANDLE;
-    }
+    logicalDevice->freeMemory(bufferMemory);
 
-    if (buffer != VK_NULL_HANDLE)
-    {
-      vkDestroyBuffer(logicalDevice->getDevice(), buffer, nullptr);
-      buffer = VK_NULL_HANDLE;
-    }
+    logicalDevice->destroyBuffer(buffer);
   }
 
   VkCommandBuffer beginSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -77,10 +62,7 @@ namespace Buffers {
     };
 
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-    if (vkAllocateCommandBuffers(logicalDevice->getDevice(), &allocateInfo, &commandBuffer) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to allocate command buffer!");
-    }
+    logicalDevice->allocateCommandBuffers(allocateInfo, &commandBuffer);
 
     constexpr VkCommandBufferBeginInfo beginInfo {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -116,6 +98,6 @@ namespace Buffers {
 
     vkQueueWaitIdle(queue);
 
-    vkFreeCommandBuffers(logicalDevice->getDevice(), commandPool, 1, &commandBuffer);
+    logicalDevice->freeCommandBuffers(commandPool, 1, &commandBuffer);
   }
 }

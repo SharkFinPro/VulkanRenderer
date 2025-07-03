@@ -6,7 +6,6 @@
 #include "../../objects/Light.h"
 #include "../../objects/Noise3DTexture.h"
 #include <imgui.h>
-#include <stdexcept>
 
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                          const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -28,7 +27,7 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& 
 
 NoisyEllipticalDots::~NoisyEllipticalDots()
 {
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void NoisyEllipticalDots::displayGui()
@@ -131,10 +130,7 @@ void NoisyEllipticalDots::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create global descriptor set layout!");
-  }
+  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void NoisyEllipticalDots::createDescriptorSets()
@@ -148,10 +144,7 @@ void NoisyEllipticalDots::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -163,8 +156,7 @@ void NoisyEllipticalDots::createDescriptorSets()
       noiseTexture->getDescriptorSet(7, descriptorSets[i])
     }};
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
-                           descriptorWrites.data(), 0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
@@ -212,7 +204,7 @@ void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-      vkUpdateDescriptorSets(this->logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
+      logicalDevice->updateDescriptorSets(1, &descriptorSet);
     }
 
     prevNumLights = static_cast<int>(lights.size());
@@ -244,6 +236,6 @@ void NoisyEllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
 
 void NoisyEllipticalDots::bindDescriptorSet(const RenderInfo *renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                                &descriptorSets[renderInfo->currentFrame]);
 }

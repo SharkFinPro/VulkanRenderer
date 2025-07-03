@@ -1,12 +1,11 @@
 #ifndef VULKANPROJECT_SWAPCHAIN_H
 #define VULKANPROJECT_SWAPCHAIN_H
 
+#include "../core/physicalDevice/PhysicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
+#include "Window.h"
 #include <vulkan/vulkan.h>
 #include <vector>
-
-#include "PhysicalDevice.h"
-#include "LogicalDevice.h"
-#include "Window.h"
 
 class SwapChain {
 public:
@@ -27,8 +26,8 @@ private:
 
   VkSwapchainKHR swapchain = VK_NULL_HANDLE;
   std::vector<VkImage> swapChainImages;
-  VkFormat swapChainImageFormat;
-  VkExtent2D swapChainExtent;
+  VkFormat swapChainImageFormat = VK_FORMAT_UNDEFINED;
+  VkExtent2D swapChainExtent{};
   std::vector<VkImageView> swapChainImageViews;
 
   static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);

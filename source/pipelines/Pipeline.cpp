@@ -1,6 +1,6 @@
 #include "Pipeline.h"
-#include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include <iostream>
 
 Pipeline::Pipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
@@ -10,23 +10,7 @@ Pipeline::Pipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
 
 Pipeline::~Pipeline()
 {
-  if (pipeline != VK_NULL_HANDLE)
-  {
-    vkDestroyPipeline(logicalDevice->getDevice(), pipeline, nullptr);
-    pipeline = VK_NULL_HANDLE;
-  }
-  else
-  {
-    std::cerr << "Warning: Attempted to destroy an invalid pipeline!" << std::endl;
-  }
+  logicalDevice->destroyPipeline(pipeline);
 
-  if (pipelineLayout != VK_NULL_HANDLE)
-  {
-    vkDestroyPipelineLayout(logicalDevice->getDevice(), pipelineLayout, nullptr);
-    pipelineLayout = VK_NULL_HANDLE;
-  }
-  else
-  {
-    std::cerr << "Warning: Attempted to destroy an invalid pipeline layout!" << std::endl;
-  }
+  logicalDevice->destroyPipelineLayout(pipelineLayout);
 }

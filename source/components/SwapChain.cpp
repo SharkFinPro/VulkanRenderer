@@ -1,7 +1,5 @@
 #include "SwapChain.h"
 #include "../utilities/Images.h"
-
-#include <stdexcept>
 #include <limits>
 #include <algorithm>
 
@@ -16,12 +14,12 @@ SwapChain::SwapChain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
 
 SwapChain::~SwapChain()
 {
-  for (const auto imageView : swapChainImageViews)
+  for (auto& imageView : swapChainImageViews)
   {
-    vkDestroyImageView(logicalDevice->getDevice(), imageView, nullptr);
+    logicalDevice->destroyImageView(imageView);
   }
 
-  vkDestroySwapchainKHR(logicalDevice->getDevice(), swapchain, nullptr);
+  logicalDevice->destroySwapchainKHR(swapchain);
 }
 
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
@@ -115,14 +113,11 @@ void SwapChain::createSwapChain()
     .oldSwapchain = VK_NULL_HANDLE
   };
 
-  if (vkCreateSwapchainKHR(logicalDevice->getDevice(), &createInfo, nullptr, &swapchain) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create swap chain!");
-  }
+  swapchain = logicalDevice->createSwapchain(createInfo);
 
-  vkGetSwapchainImagesKHR(logicalDevice->getDevice(), swapchain, &imageCount, nullptr);
+  logicalDevice->getSwapchainImagesKHR(swapchain, &imageCount, nullptr);
   swapChainImages.resize(imageCount);
-  vkGetSwapchainImagesKHR(logicalDevice->getDevice(), swapchain, &imageCount, swapChainImages.data());
+  logicalDevice->getSwapchainImagesKHR(swapchain, &imageCount, swapChainImages.data());
 
   swapChainImageFormat = surfaceFormat.format;
   swapChainExtent = extent;

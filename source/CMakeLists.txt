@@ -8,8 +8,14 @@ add_library(${PROJECT_NAME}
   VulkanEngine.h
   components/Window.cpp
   components/Window.h
-  components/DebugMessenger.cpp
-  components/DebugMessenger.h
+  core/instance/DebugMessenger.cpp
+  core/instance/DebugMessenger.h
+  core/instance/Instance.cpp
+  core/instance/Instance.h
+  core/logicalDevice/LogicalDevice.cpp
+  core/logicalDevice/LogicalDevice.h
+  core/physicalDevice/PhysicalDevice.cpp
+  core/physicalDevice/PhysicalDevice.h
   objects/RenderObject.cpp
   objects/RenderObject.h
   utilities/Buffers.cpp
@@ -34,12 +40,6 @@ add_library(${PROJECT_NAME}
   pipelines/custom/GuiPipeline.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
-  components/PhysicalDevice.cpp
-  components/PhysicalDevice.h
-  components/Instance.cpp
-  components/Instance.h
-  components/LogicalDevice.cpp
-  components/LogicalDevice.h
   VulkanEngineOptions.h
   components/ImGuiInstance.cpp
   components/ImGuiInstance.h
@@ -91,13 +91,12 @@ add_library(${PROJECT_NAME}
   pipelines/custom/MousePickingPipeline.h
   pipelines/custom/ObjectHighlightPipeline.cpp
   pipelines/custom/ObjectHighlightPipeline.h
+  core/commandBuffer/CommandBuffer.cpp
+  core/commandBuffer/CommandBuffer.h
 )
 
-# Noise
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/noise/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/noise/")
-
-# Cube Map
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/cubeMap/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/cubeMap/")
+# Assets
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/")
 
 # Shaders
 set(shadersSrc ${CMAKE_CURRENT_SOURCE_DIR}/shaders)

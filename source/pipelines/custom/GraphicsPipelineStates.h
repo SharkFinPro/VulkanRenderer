@@ -5,7 +5,7 @@
 #include "../Particle.h"
 #include "../Vertex.h"
 #include "../SmokeParticle.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
 #include <array>
 #include <memory>

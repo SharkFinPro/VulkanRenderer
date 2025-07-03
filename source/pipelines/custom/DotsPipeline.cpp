@@ -2,12 +2,11 @@
 #include "GraphicsPipelineStates.h"
 #include "Uniforms.h"
 #include "../Particle.h"
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <cmath>
-#include <stdexcept>
 #include <random>
 #include <cstring>
 
@@ -33,7 +32,7 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
 
 DotsPipeline::~DotsPipeline()
 {
-  vkDestroyDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), computeDescriptorSetLayout, nullptr);
+  ComputePipeline::logicalDevice->destroyDescriptorSetLayout(computeDescriptorSetLayout);
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -41,14 +40,14 @@ DotsPipeline::~DotsPipeline()
   }
 }
 
-void DotsPipeline::compute(const VkCommandBuffer& commandBuffer, const uint32_t currentFrame) const
+void DotsPipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer, const uint32_t currentFrame) const
 {
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                          ComputePipeline::pipelineLayout, 0, 1, &computeDescriptorSets[currentFrame],
-                          0, nullptr);
+  commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
 
-  vkCmdDispatch(commandBuffer, PARTICLE_COUNT / 256, 1, 1);
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipelineLayout, 0,
+                                    1, &computeDescriptorSets[currentFrame]);
+
+  commandBuffer->dispatch(PARTICLE_COUNT / 256, 1, 1);
 }
 
 void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
@@ -56,9 +55,9 @@ void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::s
   GraphicsPipeline::render(renderInfo, objects);
 
   constexpr VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
+  renderInfo->commandBuffer->bindVertexBuffers(0, 1, &shaderStorageBuffers[renderInfo->currentFrame], offsets);
 
-  vkCmdDraw(renderInfo->commandBuffer, PARTICLE_COUNT, 1, 0, 0);
+  renderInfo->commandBuffer->draw(PARTICLE_COUNT, 1, 0, 0);
 }
 
 void DotsPipeline::loadComputeShaders()
@@ -127,10 +126,9 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void* data;
-  vkMapMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, particles.data(), bufferSize);
-  vkUnmapMemory(ComputePipeline::logicalDevice->getDevice(), stagingBufferMemory);
+  ComputePipeline::logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
+    memcpy(data, particles.data(), bufferSize);
+  });
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -174,11 +172,7 @@ void DotsPipeline::createDescriptorSetLayouts()
     .pBindings = layoutBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(ComputePipeline::logicalDevice->getDevice(), &descriptorSetLayoutInfo, nullptr,
-                                  &computeDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor set layout!");
-  }
+  computeDescriptorSetLayout = ComputePipeline::logicalDevice->createDescriptorSetLayout(descriptorSetLayoutInfo);
 }
 
 void DotsPipeline::createDescriptorSets()
@@ -192,10 +186,7 @@ void DotsPipeline::createDescriptorSets()
   };
 
   computeDescriptorSets.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), &allocateInfo, computeDescriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  ComputePipeline::logicalDevice->allocateDescriptorSets(allocateInfo, computeDescriptorSets.data());
 
   for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -233,8 +224,8 @@ void DotsPipeline::createDescriptorSets()
       }
     }};
 
-    vkUpdateDescriptorSets(ComputePipeline::logicalDevice->getDevice(), writeDescriptorSets.size(),
-                           writeDescriptorSets.data(), 0, nullptr);
+    ComputePipeline::logicalDevice->updateDescriptorSets(writeDescriptorSets.size(),
+                                            writeDescriptorSets.data());
   }
 }
 

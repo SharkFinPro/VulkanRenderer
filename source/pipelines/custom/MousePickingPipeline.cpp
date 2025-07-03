@@ -2,8 +2,8 @@
 #include "GraphicsPipelineStates.h"
 #include "Uniforms.h"
 #include "../RenderPass.h"
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/RenderObject.h"
 
 MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
@@ -22,7 +22,7 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
 {
   updateUniformVariables(renderInfo);
 
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   bindDescriptorSet(renderInfo);
 
@@ -34,8 +34,8 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
         .objectID = objects->at(i).second
       };
 
-      vkCmdPushConstants(renderInfo->commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-                         sizeof(MousePickingID), &id);
+      renderInfo->commandBuffer->pushConstants(pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                                               sizeof(MousePickingID), &id);
 
       objects->at(i).first->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 

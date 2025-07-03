@@ -1,7 +1,6 @@
 #include "ComputePipeline.h"
 #include "ShaderModule.h"
-#include "../components/LogicalDevice.h"
-#include <stdexcept>
+#include "../core/logicalDevice/LogicalDevice.h"
 
 ComputePipeline::ComputePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice)
@@ -28,10 +27,7 @@ void ComputePipeline::createPipelineLayout()
     .pSetLayouts = descriptorSetLayouts.data()
   };
 
-  if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create pipeline layout!");
-  }
+  pipelineLayout = logicalDevice->createPipelineLayout(pipelineLayoutInfo);
 }
 
 void ComputePipeline::createPipeline()
@@ -46,11 +42,7 @@ void ComputePipeline::createPipeline()
     .layout = pipelineLayout
   };
 
-  if (vkCreateComputePipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1,
-                               &computePipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create compute pipeline!");
-  }
+  pipeline = logicalDevice->createPipeline(computePipelineCreateInfo);
 
   shaderModule.reset();
 }

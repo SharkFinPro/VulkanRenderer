@@ -8,9 +8,11 @@
 #include "../utilities/Buffers.h"
 
 #include "../components/Window.h"
-#include "../components/Instance.h"
-#include "../components/PhysicalDevice.h"
-#include "../components/LogicalDevice.h"
+
+#include "../core/commandBuffer/CommandBuffer.h"
+#include "../core/instance/Instance.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 
 #include "../pipelines/RenderPass.h"
 #include "../pipelines/custom/GuiPipeline.h"
@@ -37,9 +39,9 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
   }
 
   ImGui_ImplVulkan_InitInfo initInfo {
-    .Instance = instance->getInstance(),
-    .PhysicalDevice = physicalDevice->getPhysicalDevice(),
-    .Device = logicalDevice->getDevice(),
+    .Instance = instance->instance,
+    .PhysicalDevice = physicalDevice->physicalDevice,
+    .Device = logicalDevice->device,
     .Queue = logicalDevice->getGraphicsQueue(),
     .DescriptorPool = guiPipeline->getPool(),
     .RenderPass = renderPass->getRenderPass(),
@@ -209,4 +211,13 @@ void ImGuiInstance::setRightDockPercent(const float percent)
   rightDockPercent = percent;
 
   dockNeedsUpdate = true;
+}
+
+void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
+{
+  ImGui_ImplVulkan_RenderDrawData(
+    ImGui::GetDrawData(),
+    commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame],
+    nullptr
+  );
 }

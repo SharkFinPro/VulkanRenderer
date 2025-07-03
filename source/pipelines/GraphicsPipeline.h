@@ -3,18 +3,19 @@
 
 #include "Pipeline.h"
 #include "ShaderModule.h"
+#include "../core/commandBuffer/CommandBuffer.h"
 #include <vulkan/vulkan.h>
-#include <memory>
-#include <vector>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <memory>
+#include <vector>
 
 class Light;
 class RenderObject;
 
 struct RenderInfo {
-  const VkCommandBuffer& commandBuffer;
+  std::shared_ptr<CommandBuffer> commandBuffer;
   uint32_t currentFrame;
   glm::vec3 viewPosition;
   const glm::mat4& viewMatrix;

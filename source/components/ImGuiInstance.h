@@ -4,6 +4,7 @@
 #include <memory>
 #include <imgui.h>
 
+class CommandBuffer;
 class Window;
 class Instance;
 class PhysicalDevice;
@@ -41,6 +42,8 @@ public:
   void setLeftDockPercent(float percent);
 
   void setRightDockPercent(float percent);
+
+  static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
 private:
   bool dockNeedsUpdate = true;

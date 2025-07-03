@@ -2,14 +2,15 @@
 #define VULKANPROJECT_VULKANENGINE_H
 
 #include "components/Camera.h"
-#include "components/DebugMessenger.h"
 #include "components/Framebuffer.h"
 #include "components/ImGuiInstance.h"
-#include "components/Instance.h"
-#include "components/LogicalDevice.h"
-#include "components/PhysicalDevice.h"
+#include "core/logicalDevice/LogicalDevice.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
+
+#include "core/commandBuffer/CommandBuffer.h"
+#include "core/instance/Instance.h"
+#include "core/physicalDevice/PhysicalDevice.h"
 
 #include "pipelines/RenderPass.h"
 #include "pipelines/custom/DotsPipeline.h"
@@ -28,7 +29,6 @@
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 
-#include <functional>
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -92,7 +92,6 @@ public:
 
 private:
   std::shared_ptr<Instance> instance;
-  std::unique_ptr<DebugMessenger> debugMessenger;
   std::shared_ptr<Window> window;
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
@@ -133,10 +132,12 @@ private:
 
   VulkanEngineOptions vulkanEngineOptions;
   VkCommandPool commandPool = VK_NULL_HANDLE;
-  std::vector<VkCommandBuffer> offscreenCommandBuffers;
-  std::vector<VkCommandBuffer> swapchainCommandBuffers;
-  std::vector<VkCommandBuffer> computeCommandBuffers;
-  std::vector<VkCommandBuffer> mousePickingCommandBuffers;
+
+  std::shared_ptr<CommandBuffer> offscreenCommandBuffer;
+  std::shared_ptr<CommandBuffer> swapchainCommandBuffer;
+  std::shared_ptr<CommandBuffer> computeCommandBuffer;
+  std::shared_ptr<CommandBuffer> mousePickingCommandBuffer;
+
   uint32_t currentFrame;
 
   bool framebufferResized;
@@ -159,21 +160,18 @@ private:
 
   void initVulkan();
   void createCommandPool();
-  void allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
-  static void recordCommandBuffer(const VkCommandBuffer &commandBuffer, uint32_t imageIndex,
-                                  const std::function<void(const VkCommandBuffer &cmdBuffer, uint32_t imgIndex)>& renderFunction);
 
-  void recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const;
-  void recordMousePickingCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
-  void recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
-  void recordSwapchainCommandBuffer(const VkCommandBuffer& commandBuffer, uint32_t imageIndex) const;
+  void recordComputeCommandBuffer() const;
+  void recordMousePickingCommandBuffer(uint32_t imageIndex) const;
+  void recordOffscreenCommandBuffer(uint32_t imageIndex) const;
+  void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
 
   void doComputing() const;
   void doRendering();
   void recreateSwapChain();
   void renderGuiScene(uint32_t imageIndex);
 
-  void renderGraphicsPipelines(const VkCommandBuffer& commandBuffer, VkExtent2D extent) const;
+  void renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>& commandBuffer, VkExtent2D extent) const;
 
   void createNewFrame();
 

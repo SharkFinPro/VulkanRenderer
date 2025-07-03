@@ -1,5 +1,5 @@
 #include "PhysicalDevice.h"
-#include "Instance.h"
+#include "../instance/Instance.h"
 #include <array>
 #include <stdexcept>
 #include <set>
@@ -12,11 +12,6 @@ PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurf
   queueFamilyIndices = findQueueFamilies(physicalDevice);
 
   updateSwapChainSupportDetails();
-}
-
-VkPhysicalDevice PhysicalDevice::getPhysicalDevice() const
-{
-  return physicalDevice;
 }
 
 QueueFamilyIndices PhysicalDevice::getQueueFamilies() const
@@ -55,20 +50,37 @@ void PhysicalDevice::updateSwapChainSupportDetails()
   swapChainSupportDetails = querySwapChainSupport(physicalDevice);
 }
 
-void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
+VkFormatProperties PhysicalDevice::getFormatProperties(const VkFormat format) const
 {
-  uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, nullptr);
+  VkFormatProperties formatProperties{};
+  vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
 
-  if (deviceCount == 0)
+  return formatProperties;
+}
+
+VkPhysicalDeviceProperties PhysicalDevice::getDeviceProperties() const
+{
+  VkPhysicalDeviceProperties deviceProperties{};
+  vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+  return deviceProperties;
+}
+
+VkDevice PhysicalDevice::createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const
+{
+  VkDevice logicalDevice;
+
+  if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &logicalDevice) != VK_SUCCESS)
   {
-    throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    throw std::runtime_error("failed to create logical device!");
   }
 
-  std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, devices.data());
+  return logicalDevice;
+}
 
-  for (const auto& device : devices)
+void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
+{
+  for (const auto& device : instance->getPhysicalDevices())
   {
     if (isDeviceSuitable(device))
     {

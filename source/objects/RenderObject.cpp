@@ -1,16 +1,13 @@
 #include "RenderObject.h"
-#include <stdexcept>
-#include <chrono>
-#include <utility>
-#include <array>
-#include <glm/gtc/matrix_transform.hpp>
-#include "../components/Camera.h"
-
-#include "../pipelines/custom/Uniforms.h"
-
 #include "Model.h"
 #include "Texture.h"
 #include "UniformBuffer.h"
+#include "../components/Camera.h"
+#include "../core/commandBuffer/CommandBuffer.h"
+#include "../pipelines/custom/Uniforms.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <array>
+#include <utility>
 
 RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<PhysicalDevice>& physicalDevice,
@@ -27,13 +24,14 @@ RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
 RenderObject::~RenderObject()
 {
-  vkDestroyDescriptorPool(logicalDevice->getDevice(), descriptorPool, nullptr);
+  logicalDevice->destroyDescriptorPool(descriptorPool);
 }
 
-void RenderObject::draw(const VkCommandBuffer& commandBuffer, const VkPipelineLayout& pipelineLayout,
+void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer, const VkPipelineLayout& pipelineLayout,
                         const uint32_t currentFrame, const uint32_t descriptorSet) const
 {
-  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet, 1, &descriptorSets[currentFrame], 0, nullptr);
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet, 1,
+                                    &descriptorSets[currentFrame]);
 
   model->draw(commandBuffer);
 }
@@ -110,10 +108,7 @@ void RenderObject::createDescriptorPool()
     .pPoolSizes = poolSizes.data()
   };
 
-  if (vkCreateDescriptorPool(logicalDevice->getDevice(), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create descriptor pool!");
-  }
+  descriptorPool = logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
 void RenderObject::createDescriptorSets()
@@ -127,10 +122,7 @@ void RenderObject::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -140,8 +132,7 @@ void RenderObject::createDescriptorSets()
       specularMap->getDescriptorSet(4, descriptorSets[i])
     };
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(), descriptorWrites.data(),
-                           0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 

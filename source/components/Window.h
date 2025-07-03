@@ -19,7 +19,7 @@ public:
 
   void getFramebufferSize(int* width, int* height) const;
 
-  VkSurfaceKHR& getSurface();
+  [[nodiscard]] VkSurfaceKHR& getSurface();
 
   [[nodiscard]] bool keyIsPressed(int key) const;
 
@@ -41,6 +41,7 @@ private:
   GLFWwindow* window;
 
   std::shared_ptr<Instance> instance;
+
   VkSurfaceKHR surface = VK_NULL_HANDLE;
 
   double previousMouseX;
@@ -51,8 +52,6 @@ private:
   double scroll;
 
   std::unordered_map<int, bool> keysPressed;
-
-  void createSurface();
 
   static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };

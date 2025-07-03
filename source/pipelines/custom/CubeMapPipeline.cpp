@@ -6,7 +6,6 @@
 #include "../../objects/Noise3DTexture.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
-#include <stdexcept>
 
 CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -28,7 +27,7 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physical
 
 CubeMapPipeline::~CubeMapPipeline()
 {
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void CubeMapPipeline::displayGui()
@@ -130,10 +129,7 @@ void CubeMapPipeline::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create global descriptor set layout!");
-  }
+  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void CubeMapPipeline::createDescriptorSets()
@@ -147,10 +143,7 @@ void CubeMapPipeline::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -163,8 +156,7 @@ void CubeMapPipeline::createDescriptorSets()
       refractUnit->getDescriptorSet(5, descriptorSets[i])
     }};
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
-                           descriptorWrites.data(), 0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
@@ -205,6 +197,6 @@ void CubeMapPipeline::updateUniformVariables(const RenderInfo *renderInfo)
 
 void CubeMapPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                                &descriptorSets[renderInfo->currentFrame]);
 }

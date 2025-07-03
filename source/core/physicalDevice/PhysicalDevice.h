@@ -9,12 +9,16 @@
 
 class Instance;
 
-constexpr std::array deviceExtensions {
-  VK_KHR_SWAPCHAIN_EXTENSION_NAME
 #ifdef __APPLE__
-, "VK_KHR_portability_subset"
-#endif
+constexpr std::array<const char*, 2> deviceExtensions {
+  VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+  "VK_KHR_portability_subset"
 };
+#else
+constexpr std::array<const char*, 1> deviceExtensions {
+  VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+#endif
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
@@ -39,8 +43,6 @@ class PhysicalDevice {
 public:
   PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface);
 
-  [[nodiscard]] VkPhysicalDevice getPhysicalDevice() const;
-
   [[nodiscard]] QueueFamilyIndices getQueueFamilies() const;
 
   [[nodiscard]] SwapChainSupportDetails getSwapChainSupport() const;
@@ -50,6 +52,14 @@ public:
   [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
 
   void updateSwapChainSupportDetails();
+
+  [[nodiscard]] VkFormatProperties getFormatProperties(VkFormat format) const;
+
+  [[nodiscard]] VkPhysicalDeviceProperties getDeviceProperties() const;
+
+  [[nodiscard]] VkDevice createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const;
+
+  friend class ImGuiInstance;
 
 private:
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

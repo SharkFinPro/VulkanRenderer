@@ -2,11 +2,10 @@
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
-#include "../../components/LogicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include <imgui.h>
-#include <stdexcept>
 
 CrossesPipeline::CrossesPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -27,7 +26,7 @@ CrossesPipeline::CrossesPipeline(const std::shared_ptr<PhysicalDevice>& physical
 
 CrossesPipeline::~CrossesPipeline()
 {
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void CrossesPipeline::displayGui()
@@ -131,10 +130,7 @@ void CrossesPipeline::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create global descriptor set layout!");
-  }
+  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void CrossesPipeline::createDescriptorSets()
@@ -148,10 +144,7 @@ void CrossesPipeline::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -162,8 +155,7 @@ void CrossesPipeline::createDescriptorSets()
       chromaDepthUniform->getDescriptorSet(6, descriptorSets[i], i)
     }};
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
-                           descriptorWrites.data(), 0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
@@ -208,7 +200,7 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-      vkUpdateDescriptorSets(this->logicalDevice->getDevice(), 1, &descriptorSet, 0, nullptr);
+      logicalDevice->updateDescriptorSets(1, &descriptorSet);
     }
 
     prevNumLights = static_cast<int>(lights.size());
@@ -239,6 +231,6 @@ void CrossesPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
 void CrossesPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                                &descriptorSets[renderInfo->currentFrame]);
 }

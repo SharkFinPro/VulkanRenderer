@@ -1,8 +1,7 @@
 #include "GraphicsPipeline.h"
 #include "ShaderModule.h"
-#include "../components/LogicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include "../objects/RenderObject.h"
-#include <stdexcept>
 
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                    const std::shared_ptr<LogicalDevice>& logicalDevice)
@@ -13,7 +12,7 @@ void GraphicsPipeline::render(const RenderInfo* renderInfo, const std::vector<st
 {
   updateUniformVariables(renderInfo);
 
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   bindDescriptorSet(renderInfo);
 
@@ -100,10 +99,7 @@ void GraphicsPipeline::createPipelineLayout()
     .pPushConstantRanges = pushConstantRanges.empty() ? nullptr : pushConstantRanges.data()
   };
 
-  if (vkCreatePipelineLayout(logicalDevice->getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create pipeline layout!");
-  }
+  pipelineLayout = logicalDevice->createPipelineLayout(pipelineLayoutInfo);
 
   descriptorSetLayouts.clear();
 }
@@ -142,11 +138,7 @@ void GraphicsPipeline::createPipeline(const VkRenderPass& renderPass)
     .basePipelineIndex = -1
   };
 
-  if (vkCreateGraphicsPipelines(logicalDevice->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo,
-                                nullptr, &pipeline) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create graphics pipeline!");
-  }
+  pipeline = logicalDevice->createPipeline(pipelineInfo);
 
   shaderModules.clear();
 

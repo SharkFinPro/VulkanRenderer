@@ -22,11 +22,12 @@ Texture::~Texture()
     ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
   }
 
-  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
-  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
+  logicalDevice->destroySampler(textureSampler);
+  logicalDevice->destroyImageView(textureImageView);
 
-  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
+  logicalDevice->destroyImage(textureImage);
+
+  logicalDevice->freeMemory(textureImageMemory);
 }
 
 void Texture::init(const VkCommandPool& commandPool, const char* path, const VkSamplerAddressMode addressMode)
@@ -94,10 +95,9 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
-  memcpy(data, pixels, imageSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
+    memcpy(data, pixels, imageSize);
+  });
 
   stbi_image_free(pixels);
 
@@ -123,8 +123,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
 void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, const VkFormat imageFormat,
                               const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
-  VkFormatProperties formatProperties;
-  vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), imageFormat, &formatProperties);
+  const VkFormatProperties formatProperties = physicalDevice->getFormatProperties(imageFormat);
 
   if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
   {
@@ -231,8 +230,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
 
 void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
 {
-  VkPhysicalDeviceProperties deviceProperties{};
-  vkGetPhysicalDeviceProperties(physicalDevice->getPhysicalDevice(), &deviceProperties);
+  const VkPhysicalDeviceProperties deviceProperties = physicalDevice->getDeviceProperties();
 
   const VkSamplerCreateInfo samplerCreateInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -253,8 +251,5 @@ void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  if (vkCreateSampler(logicalDevice->getDevice(), &samplerCreateInfo, nullptr, &textureSampler) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create texture sampler!");
-  }
+  textureSampler = logicalDevice->createSampler(samplerCreateInfo);
 }

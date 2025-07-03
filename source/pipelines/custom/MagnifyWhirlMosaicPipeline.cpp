@@ -3,11 +3,10 @@
 #include "Uniforms.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
-#include <stdexcept>
 
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                                        const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -28,7 +27,7 @@ MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<Phy
 
 MagnifyWhirlMosaicPipeline::~MagnifyWhirlMosaicPipeline()
 {
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void MagnifyWhirlMosaicPipeline::displayGui()
@@ -99,10 +98,7 @@ void MagnifyWhirlMosaicPipeline::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create global descriptor set layout!");
-  }
+  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void MagnifyWhirlMosaicPipeline::createDescriptorSets()
@@ -116,10 +112,7 @@ void MagnifyWhirlMosaicPipeline::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -128,8 +121,7 @@ void MagnifyWhirlMosaicPipeline::createDescriptorSets()
       magnifyWhirlMosaicUniform->getDescriptorSet(4, descriptorSets[i], i)
     }};
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
-                           descriptorWrites.data(), 0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
@@ -152,6 +144,6 @@ void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo *render
 
 void MagnifyWhirlMosaicPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                                &descriptorSets[renderInfo->currentFrame]);
 }

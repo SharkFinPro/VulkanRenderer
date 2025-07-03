@@ -1,8 +1,9 @@
 #include "RenderPass.h"
+#include "../core/commandBuffer/CommandBuffer.h"
+#include "../core/logicalDevice/LogicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include <array>
 #include <stdexcept>
-#include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
 
 RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkFormat imageFormat,
@@ -14,7 +15,7 @@ RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
 RenderPass::~RenderPass()
 {
-  vkDestroyRenderPass(logicalDevice->getDevice(), renderPass, nullptr);
+  logicalDevice->destroyRenderPass(renderPass);
 }
 
 VkRenderPass& RenderPass::getRenderPass()
@@ -110,22 +111,18 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
     .pDependencies = &dependency
   };
 
-  if (vkCreateRenderPass(logicalDevice->getDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create render pass!");
-  }
+  renderPass = logicalDevice->createRenderPass(renderPassInfo);
 }
 
 VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
                                          VkFormatFeatureFlags features) const
 {
-  for (const auto format : candidates)
+  for (const auto& format : candidates)
   {
-    VkFormatProperties props;
-    vkGetPhysicalDeviceFormatProperties(physicalDevice->getPhysicalDevice(), format, &props);
+    const VkFormatProperties formatProperties = physicalDevice->getFormatProperties(format);
 
-    if ((tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) ||
-        (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features))
+    if ((tiling == VK_IMAGE_TILING_LINEAR && (formatProperties.linearTilingFeatures & features) == features) ||
+        (tiling == VK_IMAGE_TILING_OPTIMAL && (formatProperties.optimalTilingFeatures & features) == features))
     {
       return format;
     }
@@ -144,7 +141,7 @@ VkFormat RenderPass::findDepthFormat() const
 }
 
 void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent,
-                       const VkCommandBuffer& commandBuffer) const
+                       std::shared_ptr<CommandBuffer> commandBuffer) const
 {
   constexpr std::array<VkClearValue, 2> clearValues {{
     {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
@@ -163,10 +160,5 @@ void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& exten
     .pClearValues = clearValues.data()
   };
 
-  vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-}
-
-void RenderPass::end(const VkCommandBuffer& commandBuffer)
-{
-  vkCmdEndRenderPass(commandBuffer);
+  commandBuffer->beginRenderPass(renderPassInfo);
 }

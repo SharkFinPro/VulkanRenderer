@@ -3,10 +3,9 @@
 #include "Uniforms.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
-#include <stdexcept>
 
 TexturedPlane::TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -27,7 +26,7 @@ TexturedPlane::TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevi
 
 TexturedPlane::~TexturedPlane()
 {
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), globalDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void TexturedPlane::loadGraphicsShaders()
@@ -73,10 +72,7 @@ void TexturedPlane::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &globalLayoutCreateInfo, nullptr, &globalDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create global descriptor set layout!");
-  }
+  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void TexturedPlane::createDescriptorSets()
@@ -90,10 +86,7 @@ void TexturedPlane::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -101,8 +94,7 @@ void TexturedPlane::createDescriptorSets()
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i)
     }};
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
-                           descriptorWrites.data(), 0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
@@ -121,6 +113,6 @@ void TexturedPlane::updateUniformVariables(const RenderInfo *renderInfo)
 
 void TexturedPlane::bindDescriptorSet(const RenderInfo *renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                                &descriptorSets[renderInfo->currentFrame]);
 }

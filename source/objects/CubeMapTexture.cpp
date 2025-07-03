@@ -1,6 +1,6 @@
 #include "CubeMapTexture.h"
-#include "../components/LogicalDevice.h"
-#include "../components/PhysicalDevice.h"
+#include "../core/logicalDevice/LogicalDevice.h"
+#include "../core/physicalDevice/PhysicalDevice.h"
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 #include <stb_image.h>
@@ -27,11 +27,11 @@ CubeMapTexture::CubeMapTexture(std::shared_ptr<LogicalDevice> logicalDevice,
 
 CubeMapTexture::~CubeMapTexture()
 {
-  vkDestroySampler(logicalDevice->getDevice(), textureSampler, nullptr);
-  vkDestroyImageView(logicalDevice->getDevice(), textureImageView, nullptr);
+  logicalDevice->destroySampler(textureSampler);
+  logicalDevice->destroyImageView(textureImageView);
 
-  vkDestroyImage(logicalDevice->getDevice(), textureImage, nullptr);
-  vkFreeMemory(logicalDevice->getDevice(), textureImageMemory, nullptr);
+  logicalDevice->destroyImage(textureImage);
+  logicalDevice->freeMemory(textureImageMemory);
 }
 
 VkDescriptorPoolSize CubeMapTexture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
@@ -57,8 +57,7 @@ VkWriteDescriptorSet CubeMapTexture::getDescriptorSet(const uint32_t binding, co
 
 void CubeMapTexture::createTextureSampler()
 {
-  VkPhysicalDeviceProperties deviceProperties{};
-  vkGetPhysicalDeviceProperties(physicalDevice->getPhysicalDevice(), &deviceProperties);
+  const VkPhysicalDeviceProperties deviceProperties = physicalDevice->getDeviceProperties();
 
   const VkSamplerCreateInfo samplerCreateInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -79,10 +78,7 @@ void CubeMapTexture::createTextureSampler()
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  if (vkCreateSampler(logicalDevice->getDevice(), &samplerCreateInfo, nullptr, &textureSampler) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create texture sampler!");
-  }
+  textureSampler = logicalDevice->createSampler(samplerCreateInfo);
 }
 
 void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)
@@ -108,16 +104,14 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, totalSize, 0, &data);
-  for (size_t i = 0; i < pixels.size(); ++i)
-  {
-    const VkDeviceSize offset = i * imageSize;
-    memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
-    stbi_image_free(pixels[i]);
-  }
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
+    for (size_t i = 0; i < pixels.size(); ++i)
+    {
+      const VkDeviceSize offset = i * imageSize;
+      memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
+      stbi_image_free(pixels[i]);
+    }
+  });
 
   Images::createImage(logicalDevice, physicalDevice, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, texWidth, texHeight, 1, 1,
                       VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,

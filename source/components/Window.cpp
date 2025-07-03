@@ -39,14 +39,14 @@ Window::Window(const int width, const int height, const char* title, const std::
   previousMouseX = mouseX;
   previousMouseY = mouseY;
 
-  createSurface();
+  surface = instance->createSurface(window);
 
   glfwSetKeyCallback(window, keyCallback);
 }
 
 Window::~Window()
 {
-  vkDestroySurfaceKHR(instance->getInstance(), surface, nullptr);
+  instance->destroySurface(surface);
 
   glfwDestroyWindow(window);
 }
@@ -75,14 +75,6 @@ void Window::update()
 void Window::getFramebufferSize(int* width, int* height) const
 {
   glfwGetFramebufferSize(window, width, height);
-}
-
-void Window::createSurface()
-{
-  if (glfwCreateWindowSurface(instance->getInstance(), window, nullptr, &surface) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create window surface!");
-  }
 }
 
 VkSurfaceKHR& Window::getSurface()

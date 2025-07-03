@@ -1,8 +1,9 @@
 #ifndef VULKANPROJECT_INSTANCE_H
 #define VULKANPROJECT_INSTANCE_H
 
-#include <array>
+#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include <array>
 #include <vector>
 
 constexpr std::array<const char*, 1> validationLayers {
@@ -14,10 +15,22 @@ public:
   Instance();
   ~Instance();
 
-  [[nodiscard]] VkInstance getInstance() const;
+  [[nodiscard]] VkSurfaceKHR createSurface(GLFWwindow* window) const;
+
+  void destroySurface(VkSurfaceKHR& surface) const;
+
+  void createDebugUtilsMessenger();
+
+  void destroyDebugUtilsMessenger();
+
+  [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
+
+  friend class ImGuiInstance;
 
 private:
   VkInstance instance = VK_NULL_HANDLE;
+
+  VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
   static bool checkValidationLayerSupport();
 

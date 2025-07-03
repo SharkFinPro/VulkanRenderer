@@ -2,8 +2,8 @@
 #include "GraphicsPipelineStates.h"
 #include "Uniforms.h"
 #include "../RenderPass.h"
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <stdexcept>
@@ -31,7 +31,7 @@ LinePipeline::~LinePipeline()
 
   Buffers::destroyBuffer(logicalDevice, vertexBuffer, vertexBufferMemory);
 
-  vkDestroyDescriptorSetLayout(logicalDevice->getDevice(), lineDescriptorSetLayout, nullptr);
+  logicalDevice->destroyDescriptorSetLayout(lineDescriptorSetLayout);
 }
 
 void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& commandPool,
@@ -51,18 +51,17 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
     throw std::runtime_error("Vertex data exceeds maximum buffer size");
   }
 
-  void* data;
-  vkMapMemory(logicalDevice->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  memcpy(data, vertices.data(), bufferSize);
-  vkUnmapMemory(logicalDevice->getDevice(), stagingBufferMemory);
+  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [vertices, bufferSize](void* data) {
+    memcpy(data, vertices.data(), bufferSize);
+  });
 
   Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
                       vertexBuffer, bufferSize);
 
   constexpr VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(renderInfo->commandBuffer, 0, 1, &vertexBuffer, offsets);
+  renderInfo->commandBuffer->bindVertexBuffers(0, 1, &vertexBuffer, offsets);
 
-  vkCmdDraw(renderInfo->commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+  renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 }
 
 void LinePipeline::loadGraphicsShaders()
@@ -107,10 +106,7 @@ void LinePipeline::createLineDescriptorSetLayout()
     .pBindings = lineBindings.data()
   };
 
-  if (vkCreateDescriptorSetLayout(logicalDevice->getDevice(), &lineLayoutCreateInfo, nullptr, &lineDescriptorSetLayout) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to create line descriptor set layout!");
-  }
+  lineDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(lineLayoutCreateInfo);
 }
 
 void LinePipeline::createDescriptorSets()
@@ -124,10 +120,7 @@ void LinePipeline::createDescriptorSets()
   };
 
   descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  if (vkAllocateDescriptorSets(logicalDevice->getDevice(), &allocateInfo, descriptorSets.data()) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to allocate descriptor sets!");
-  }
+  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
@@ -135,8 +128,7 @@ void LinePipeline::createDescriptorSets()
       transformUniform->getDescriptorSet(0, descriptorSets[i], i),
     }};
 
-    vkUpdateDescriptorSets(logicalDevice->getDevice(), descriptorWrites.size(),
-                           descriptorWrites.data(), 0, nullptr);
+    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
@@ -159,8 +151,8 @@ void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
 void LinePipeline::bindDescriptorSet(const RenderInfo *renderInfo)
 {
-  vkCmdBindDescriptorSets(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &descriptorSets[renderInfo->currentFrame], 0, nullptr);
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                                &descriptorSets[renderInfo->currentFrame]);
 }
 
 void LinePipeline::createVertexBuffer()

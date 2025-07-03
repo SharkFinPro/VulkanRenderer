@@ -1,9 +1,9 @@
+#define GLFW_INCLUDE_VULKAN
 #include "Instance.h"
 #include "DebugMessenger.h"
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <cstring>
-
 
 #ifdef NDEBUG
 constexpr bool enableValidationLayers = false;
@@ -56,16 +56,88 @@ Instance::Instance()
   {
     throw std::runtime_error("failed to create instance!");
   }
+
+  if (enableValidationLayers)
+  {
+    createDebugUtilsMessenger();
+  }
 }
 
 Instance::~Instance()
 {
+  destroyDebugUtilsMessenger();
+
   vkDestroyInstance(instance, nullptr);
+
+  instance = VK_NULL_HANDLE;
 }
 
-VkInstance Instance::getInstance() const
+VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
 {
-  return instance;
+  VkSurfaceKHR surface;
+  if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to create window surface!");
+  }
+
+  return surface;
+}
+
+void Instance::destroySurface(VkSurfaceKHR& surface) const
+{
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+
+  surface = VK_NULL_HANDLE;
+}
+
+void Instance::createDebugUtilsMessenger()
+{
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+  DebugMessenger::populateCreateInfo(debugCreateInfo);
+
+  VkResult result;
+
+  const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+  if (func != nullptr)
+  {
+    result = func(instance, &debugCreateInfo, nullptr, &debugMessenger);
+  }
+  else
+  {
+    result = VK_ERROR_EXTENSION_NOT_PRESENT;
+  }
+
+  if (result != VK_SUCCESS)
+  {
+    throw std::runtime_error("failed to set up debug messenger!");
+  }
+}
+
+void Instance::destroyDebugUtilsMessenger()
+{
+  const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+  if (func != nullptr)
+  {
+    func(instance, debugMessenger, nullptr);
+  }
+
+  debugMessenger = VK_NULL_HANDLE;
+}
+
+std::vector<VkPhysicalDevice> Instance::getPhysicalDevices() const
+{
+  uint32_t deviceCount = 0;
+  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+  if (deviceCount == 0)
+  {
+    throw std::runtime_error("failed to find GPUs with Vulkan support!");
+  }
+
+  std::vector<VkPhysicalDevice> devices(deviceCount);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+  return devices;
 }
 
 bool Instance::checkValidationLayerSupport()

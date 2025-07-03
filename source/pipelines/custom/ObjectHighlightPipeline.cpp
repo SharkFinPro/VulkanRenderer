@@ -1,8 +1,8 @@
 #include "ObjectHighlightPipeline.h"
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
-#include "../../components/LogicalDevice.h"
-#include "../../components/PhysicalDevice.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/RenderObject.h"
 
 ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
@@ -19,7 +19,7 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
 {
   updateUniformVariables(renderInfo);
 
-  vkCmdBindPipeline(renderInfo->commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
   bindDescriptorSet(renderInfo);
 

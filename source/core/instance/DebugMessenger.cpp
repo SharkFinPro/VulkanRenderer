@@ -1,36 +1,5 @@
 #include "DebugMessenger.h"
-#include "Instance.h"
 #include <iostream>
-
-DebugMessenger::DebugMessenger(const std::shared_ptr<Instance>& instance)
-  : instance(instance)
-{
-  VkResult result;
-  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  populateCreateInfo(debugCreateInfo);
-
-  if (const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance->getInstance(), "vkCreateDebugUtilsMessengerEXT")); func != nullptr)
-  {
-    result = func(instance->getInstance(), &debugCreateInfo, nullptr, &debugMessenger);
-  }
-  else
-  {
-    result = VK_ERROR_EXTENSION_NOT_PRESENT;
-  }
-
-  if (result != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to set up debug messenger!");
-  }
-}
-
-DebugMessenger::~DebugMessenger()
-{
-  if (const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance->getInstance(), "vkDestroyDebugUtilsMessengerEXT")); func != nullptr)
-  {
-    func(instance->getInstance(), debugMessenger, nullptr);
-  }
-}
 
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(
   const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
