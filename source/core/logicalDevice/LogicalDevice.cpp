@@ -12,8 +12,9 @@ constexpr bool enableValidationLayers = true;
 #endif
 
 LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
+  : m_physicalDevice(physicalDevice)
 {
-  createDevice(physicalDevice);
+  createDevice();
 
   createSyncObjects();
 }
@@ -36,6 +37,11 @@ LogicalDevice::~LogicalDevice()
   }
 
   vkDestroyDevice(device, nullptr);
+}
+
+std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
+{
+  return m_physicalDevice;
 }
 
 void LogicalDevice::waitIdle() const
@@ -598,9 +604,9 @@ VkDescriptorSetLayout LogicalDevice::createDescriptorSetLayout(const VkDescripto
   return descriptorSetLayout;
 }
 
-void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
+void LogicalDevice::createDevice()
 {
-  auto queueFamilyIndices = physicalDevice->getQueueFamilies();
+  auto queueFamilyIndices = m_physicalDevice->getQueueFamilies();
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set uniqueQueueFamilies = {
@@ -637,7 +643,7 @@ void LogicalDevice::createDevice(const std::shared_ptr<PhysicalDevice>& physical
     .pEnabledFeatures = &deviceFeatures
   };
 
-  device = physicalDevice->createLogicalDevice(createInfo);
+  device = m_physicalDevice->createLogicalDevice(createInfo);
 
   vkGetDeviceQueue(device, queueFamilyIndices.computeFamily.value(), 0, &computeQueue);
   vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);

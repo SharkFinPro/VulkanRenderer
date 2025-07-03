@@ -14,7 +14,7 @@ UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice
 
   for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
   {
-    Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
+    Buffers::createBuffer(logicalDevice, bufferSize,
                           VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                           uniformBuffers[i], uniformBuffersMemory[i]);

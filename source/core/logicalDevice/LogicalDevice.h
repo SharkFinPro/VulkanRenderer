@@ -13,6 +13,8 @@ public:
   explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
   ~LogicalDevice();
 
+  [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
+
   void waitIdle() const;
 
   [[nodiscard]] VkQueue getGraphicsQueue() const;
@@ -124,6 +126,8 @@ public:
   friend class ImGuiInstance;
 
 private:
+  std::shared_ptr<PhysicalDevice> m_physicalDevice;
+
   VkDevice device = VK_NULL_HANDLE;
 
   VkQueue graphicsQueue = VK_NULL_HANDLE;
@@ -144,7 +148,7 @@ private:
 
   uint8_t maxFramesInFlight = 2;
 
-  void createDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
+  void createDevice();
 
   void createSyncObjects();
 };

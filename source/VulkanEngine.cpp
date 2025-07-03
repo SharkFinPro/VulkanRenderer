@@ -756,7 +756,7 @@ uint32_t VulkanEngine::getIDFromMousePickingFramebuffer(const int32_t mouseX, co
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+  Buffers::createBuffer(logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 

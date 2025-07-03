@@ -5,11 +5,9 @@
 #include <memory>
 
 class LogicalDevice;
-class PhysicalDevice;
 
 namespace Buffers {
-  void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                    const std::shared_ptr<PhysicalDevice>& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage,
+  void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDeviceSize size, VkBufferUsageFlags usage,
                     VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
   void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,

@@ -47,7 +47,7 @@ void Noise3DTexture::createTextureImage(const VkCommandPool& commandPool, const 
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(m_logicalDevice, m_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(m_logicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 

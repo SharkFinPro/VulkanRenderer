@@ -93,7 +93,7 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool)
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
@@ -101,7 +101,7 @@ void Model::createVertexBuffer(const VkCommandPool& commandPool)
     memcpy(data, vertices.data(), bufferSize);
   });
 
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
+  Buffers::createBuffer(logicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
@@ -118,7 +118,7 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
@@ -126,7 +126,7 @@ void Model::createIndexBuffer(const VkCommandPool& commandPool)
     memcpy(data, indices.data(), bufferSize);
   });
 
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize,
+  Buffers::createBuffer(logicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
