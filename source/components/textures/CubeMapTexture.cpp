@@ -81,12 +81,12 @@ void CubeMapTexture::createTextureSampler()
 
 void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)
 {
-  int texWidth, texHeight, texChannels;
+  int texWidth, texHeight;
   std::array<stbi_uc*, 6> pixels{};
 
   for (size_t i = 0; i < pixels.size(); ++i)
   {
-    pixels[i] = stbi_load(paths[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    pixels[i] = stbi_load(paths[i].c_str(), &texWidth, &texHeight, nullptr, STBI_rgb_alpha);
     if (!pixels[i])
     {
       throw std::runtime_error("failed to load texture image: " + paths[i]);
