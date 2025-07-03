@@ -180,9 +180,9 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
     "assets/cubeMap/nvposz.bmp",
     "assets/cubeMap/nvnegz.bmp"
   };
-  reflectUnit = std::make_unique<CubeMapTexture>(logicalDevice, physicalDevice, commandPool, paths);
+  reflectUnit = std::make_unique<CubeMapTexture>(logicalDevice, commandPool, paths);
 
-  refractUnit = std::make_unique<CubeMapTexture>(logicalDevice, physicalDevice, commandPool, paths);
+  refractUnit = std::make_unique<CubeMapTexture>(logicalDevice, commandPool, paths);
 }
 
 void CubeMapPipeline::updateUniformVariables(const RenderInfo *renderInfo)
