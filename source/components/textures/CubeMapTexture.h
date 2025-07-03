@@ -2,8 +2,8 @@
 #define CUBEMAPTEXTURE_H
 
 #include <vulkan/vulkan.h>
-#include <memory>
 #include <array>
+#include <memory>
 #include <string>
 
 class LogicalDevice;

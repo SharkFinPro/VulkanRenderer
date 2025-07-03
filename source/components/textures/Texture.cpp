@@ -1,15 +1,13 @@
 #include "Texture.h"
-#include <stdexcept>
-#include <cmath>
-
+#include "../../utilities/Buffers.h"
+#include "../../utilities/Images.h"
 #ifndef STB_IMAGE_IMPLEMENTATION
   #define STB_IMAGE_IMPLEMENTATION
 #endif
 #include <stb_image.h>
 #include <backends/imgui_impl_vulkan.h>
-
-#include "../../utilities/Buffers.h"
-#include "../../utilities/Images.h"
+#include <cmath>
+#include <stdexcept>
 
 Texture::Texture(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice)
   : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)), mipLevels(1)

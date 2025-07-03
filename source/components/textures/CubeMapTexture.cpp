@@ -4,9 +4,9 @@
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
 #include <stb_image.h>
-#include <stdexcept>
 #include <cmath>
 #include <cstring>
+#include <stdexcept>
 
 CubeMapTexture::CubeMapTexture(std::shared_ptr<LogicalDevice> logicalDevice,
                                std::shared_ptr<PhysicalDevice> physicalDevice,

@@ -1,13 +1,11 @@
 #ifndef VULKANPROJECT_TEXTURE_H
 #define VULKANPROJECT_TEXTURE_H
 
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
+#include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
-
-#include "../../core/physicalDevice/PhysicalDevice.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
-
-#include <imgui.h>
 
 class Texture {
 public:
