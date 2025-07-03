@@ -1,11 +1,11 @@
 #ifndef VULKANPROJECT_TEXTURE_H
 #define VULKANPROJECT_TEXTURE_H
 
-#include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
+
+class LogicalDevice;
 
 class Texture {
 public:
@@ -15,7 +15,7 @@ public:
 
   void init(const VkCommandPool& commandPool, const char* path, VkSamplerAddressMode addressMode);
 
-  [[nodiscard]] static VkDescriptorPoolSize getDescriptorPoolSize(uint32_t MAX_FRAMES_IN_FLIGHT);
+  [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
   [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
 

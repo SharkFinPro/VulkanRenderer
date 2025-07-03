@@ -1,4 +1,5 @@
 #include "Noise3DTexture.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
 #include <stdexcept>

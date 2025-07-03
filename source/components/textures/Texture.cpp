@@ -1,8 +1,10 @@
 #include "Texture.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
 #ifndef STB_IMAGE_IMPLEMENTATION
-  #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #endif
 #include <stb_image.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -39,11 +41,12 @@ void Texture::init(const VkCommandPool& commandPool, const char* path, const VkS
   imageInfo.sampler = textureSampler;
 }
 
-VkDescriptorPoolSize Texture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
+VkDescriptorPoolSize Texture::getDescriptorPoolSize() const
 {
-  VkDescriptorPoolSize poolSize{};
-  poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+  const VkDescriptorPoolSize poolSize {
+    .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = m_logicalDevice->getMaxFramesInFlight(),
+  };
 
   return poolSize;
 }

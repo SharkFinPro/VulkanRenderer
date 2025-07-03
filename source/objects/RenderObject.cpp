@@ -97,8 +97,8 @@ void RenderObject::createDescriptorPool()
 {
   const std::array<VkDescriptorPoolSize, 3> poolSizes {
     transformUniform->getDescriptorPoolSize(),
-    Texture::getDescriptorPoolSize(logicalDevice->getMaxFramesInFlight()),
-    Texture::getDescriptorPoolSize(logicalDevice->getMaxFramesInFlight())
+    texture->getDescriptorPoolSize(),
+    specularMap->getDescriptorPoolSize()
   };
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {

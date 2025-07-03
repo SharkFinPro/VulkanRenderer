@@ -4,6 +4,7 @@
 #include "../../components/Camera.h"
 #include "../../components/textures/CubeMapTexture.h"
 #include "../../components/textures/Noise3DTexture.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 
