@@ -58,7 +58,7 @@ VkQueue LogicalDevice::getComputeQueue() const
   return computeQueue;
 }
 
-void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer *commandBuffer) const
+void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
   constexpr VkPipelineStageFlags waitStages[] = {
     VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,

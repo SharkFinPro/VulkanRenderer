@@ -215,10 +215,12 @@ void VulkanEngine::initVulkan()
   logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
 
   createCommandPool();
-  allocateCommandBuffers(computeCommandBuffers);
-  allocateCommandBuffers(offscreenCommandBuffers);
-  allocateCommandBuffers(swapchainCommandBuffers);
-  allocateCommandBuffers(mousePickingCommandBuffers);
+
+  computeCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
+  offscreenCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
+  swapchainCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
+  mousePickingCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
+
 
   createDescriptorPool();
 
@@ -313,63 +315,27 @@ void VulkanEngine::createCommandPool()
   commandPool = logicalDevice->createCommandPool(poolInfo);
 }
 
-void VulkanEngine::allocateCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const
+void VulkanEngine::recordComputeCommandBuffer() const
 {
-  commandBuffers.resize(logicalDevice->getMaxFramesInFlight());
-
-  const VkCommandBufferAllocateInfo allocInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-    .commandPool = commandPool,
-    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-    .commandBufferCount = static_cast<uint32_t>(commandBuffers.size())
-  };
-
-  logicalDevice->allocateCommandBuffers(allocInfo, commandBuffers.data());
-}
-
-void VulkanEngine::recordCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex,
-                                       const std::function<void(const VkCommandBuffer& cmdBuffer, uint32_t imgIndex)>& renderFunction)
-{
-  constexpr VkCommandBufferBeginInfo beginInfo {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-  };
-
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to begin recording command buffer!");
-  }
-
-  renderFunction(commandBuffer, imageIndex);
-
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-  {
-    throw std::runtime_error("failed to record command buffer!");
-  }
-}
-
-void VulkanEngine::recordComputeCommandBuffer(const VkCommandBuffer& commandBuffer) const
-{
-  recordCommandBuffer(commandBuffer, currentFrame, [this](const VkCommandBuffer& cmdBuffer,
-                      const uint32_t imgIndex)
+  computeCommandBuffer->record(currentFrame, [this](const VkCommandBuffer& cmdBuffer)
   {
     if (vulkanEngineOptions.DO_DOTS)
     {
-      dotsPipeline->compute(cmdBuffer, imgIndex);
+      dotsPipeline->compute(cmdBuffer, currentFrame);
     }
 
     for (const auto& system : smokeSystems)
     {
-      system->compute(cmdBuffer, imgIndex);
+      system->compute(cmdBuffer, currentFrame);
     }
   });
 }
 
-void VulkanEngine::recordMousePickingCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
+void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) const
 {
-  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer,
-                      const uint32_t imgIndex)
+  mousePickingCommandBuffer->record(currentFrame, [this, imageIndex](const VkCommandBuffer& cmdBuffer)
   {
-    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
+    mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, cmdBuffer);
 
     const std::vector<std::shared_ptr<Light>> lights{};
 
@@ -404,10 +370,9 @@ void VulkanEngine::recordMousePickingCommandBuffer(const VkCommandBuffer& comman
   });
 }
 
-void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
+void VulkanEngine::recordOffscreenCommandBuffer(const uint32_t imageIndex) const
 {
-  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer,
-                      const uint32_t imgIndex)
+  offscreenCommandBuffer->record(currentFrame, [this, imageIndex](const VkCommandBuffer& cmdBuffer)
   {
     if (!vulkanEngineOptions.USE_DOCKSPACE ||
         offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
@@ -415,7 +380,7 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
       return;
     }
 
-    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imgIndex), offscreenViewportExtent, cmdBuffer);
+    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, cmdBuffer);
 
     renderGraphicsPipelines(cmdBuffer, offscreenViewportExtent);
 
@@ -423,12 +388,11 @@ void VulkanEngine::recordOffscreenCommandBuffer(const VkCommandBuffer& commandBu
   });
 }
 
-void VulkanEngine::recordSwapchainCommandBuffer(const VkCommandBuffer& commandBuffer, const uint32_t imageIndex) const
+void VulkanEngine::recordSwapchainCommandBuffer(const uint32_t imageIndex) const
 {
-  recordCommandBuffer(commandBuffer, imageIndex, [this](const VkCommandBuffer& cmdBuffer,
-                      const uint32_t imgIndex)
+  swapchainCommandBuffer->record(currentFrame, [this, imageIndex](const VkCommandBuffer& cmdBuffer)
   {
-    renderPass->begin(framebuffer->getFramebuffer(imgIndex), swapChain->getExtent(), cmdBuffer);
+    renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), cmdBuffer);
 
     if (!vulkanEngineOptions.USE_DOCKSPACE)
     {
@@ -472,10 +436,10 @@ void VulkanEngine::doComputing() const
 
   logicalDevice->resetComputeFences(currentFrame);
 
-  vkResetCommandBuffer(computeCommandBuffers[currentFrame], 0);
-  recordComputeCommandBuffer(computeCommandBuffers[currentFrame]);
+  computeCommandBuffer->resetCommandBuffer(currentFrame);
+  recordComputeCommandBuffer();
 
-  logicalDevice->submitComputeQueue(currentFrame, &computeCommandBuffers[currentFrame]);
+  logicalDevice->submitComputeQueue(currentFrame, computeCommandBuffer->getCommandBuffer(currentFrame));
 }
 
 void VulkanEngine::doRendering()
@@ -501,19 +465,19 @@ void VulkanEngine::doRendering()
 
   logicalDevice->resetGraphicsFences(currentFrame);
 
-  vkResetCommandBuffer(mousePickingCommandBuffers[currentFrame], 0);
-  recordMousePickingCommandBuffer(mousePickingCommandBuffers[currentFrame], imageIndex);
-  logicalDevice->submitMousePickingGraphicsQueue(currentFrame, &mousePickingCommandBuffers[currentFrame]);
+  mousePickingCommandBuffer->resetCommandBuffer(currentFrame);
+  recordMousePickingCommandBuffer(imageIndex);
+  logicalDevice->submitMousePickingGraphicsQueue(currentFrame, mousePickingCommandBuffer->getCommandBuffer(currentFrame));
   logicalDevice->waitForMousePickingFences(currentFrame);
   doMousePicking();
 
-  vkResetCommandBuffer(offscreenCommandBuffers[currentFrame], 0);
-  recordOffscreenCommandBuffer(offscreenCommandBuffers[currentFrame], imageIndex);
-  logicalDevice->submitOffscreenGraphicsQueue(currentFrame, &offscreenCommandBuffers[currentFrame]);
+  offscreenCommandBuffer->resetCommandBuffer(currentFrame);
+  recordOffscreenCommandBuffer(imageIndex);
+  logicalDevice->submitOffscreenGraphicsQueue(currentFrame, offscreenCommandBuffer->getCommandBuffer(currentFrame));
 
-  vkResetCommandBuffer(swapchainCommandBuffers[currentFrame], 0);
-  recordSwapchainCommandBuffer(swapchainCommandBuffers[currentFrame], imageIndex);
-  logicalDevice->submitGraphicsQueue(currentFrame, &swapchainCommandBuffers[currentFrame]);
+  swapchainCommandBuffer->resetCommandBuffer(currentFrame);
+  recordSwapchainCommandBuffer(imageIndex);
+  logicalDevice->submitGraphicsQueue(currentFrame, swapchainCommandBuffer->getCommandBuffer(currentFrame));
 
   result = logicalDevice->queuePresent(currentFrame, swapChain->getSwapChain(), &imageIndex);
 

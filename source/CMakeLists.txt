@@ -91,6 +91,8 @@ add_library(${PROJECT_NAME}
   pipelines/custom/MousePickingPipeline.h
   pipelines/custom/ObjectHighlightPipeline.cpp
   pipelines/custom/ObjectHighlightPipeline.h
+  core/commandBuffer/CommandBuffer.cpp
+  core/commandBuffer/CommandBuffer.h
 )
 
 # Noise
