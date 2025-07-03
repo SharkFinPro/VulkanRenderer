@@ -6,12 +6,12 @@ set(BUILD_SHARED_LIBS ON)
 add_library(${PROJECT_NAME}
   VulkanEngine.cpp
   VulkanEngine.h
-  components/textures/CubeMapTexture.cpp
-  components/textures/CubeMapTexture.h
   components/textures/Texture.cpp
   components/textures/Texture.h
   components/textures/Texture2D.cpp
   components/textures/Texture2D.h
+  components/textures/TextureCubemap.cpp
+  components/textures/TextureCubemap.h
   components/textures/Texture3D.cpp
   components/textures/Texture3D.h
   components/Window.cpp

@@ -171,8 +171,8 @@ void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
 
   noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Texture3D>(logicalDevice);
-  noiseTexture->init(commandPool, "assets/noise/noise3d.064.tex", VK_SAMPLER_ADDRESS_MODE_REPEAT);
+  noiseTexture = std::make_unique<Texture3D>(logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
+                                             VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
 void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)

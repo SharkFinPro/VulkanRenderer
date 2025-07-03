@@ -5,34 +5,27 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <stdexcept>
 
-Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice)
-  : m_logicalDevice(logicalDevice), mipLevels(1)
-{}
+Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkSamplerAddressMode samplerAddressMode)
+  : m_logicalDevice(logicalDevice), m_mipLevels(1)
+{
+  createTextureSampler(samplerAddressMode);
+
+  m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+}
 
 Texture::~Texture()
 {
-  if (imGuiTexture != VK_NULL_HANDLE)
+  if (m_imGuiTexture != VK_NULL_HANDLE)
   {
-    ImGui_ImplVulkan_RemoveTexture(imGuiTexture);
+    ImGui_ImplVulkan_RemoveTexture(m_imGuiTexture);
   }
 
-  m_logicalDevice->destroySampler(textureSampler);
-  m_logicalDevice->destroyImageView(textureImageView);
+  m_logicalDevice->destroySampler(m_textureSampler);
+  m_logicalDevice->destroyImageView(m_textureImageView);
 
-  m_logicalDevice->destroyImage(textureImage);
+  m_logicalDevice->destroyImage(m_textureImage);
 
-  m_logicalDevice->freeMemory(textureImageMemory);
-}
-
-void Texture::init(const VkCommandPool& commandPool, const char* path, const VkSamplerAddressMode addressMode)
-{
-  createTextureImage(commandPool, path);
-
-  createTextureSampler(addressMode);
-
-  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  imageInfo.imageView = textureImageView;
-  imageInfo.sampler = textureSampler;
+  m_logicalDevice->freeMemory(m_textureImageMemory);
 }
 
 VkDescriptorPoolSize Texture::getDescriptorPoolSize() const
@@ -54,7 +47,7 @@ VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkD
     .dstArrayElement = 0,
     .descriptorCount = 1,
     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .pImageInfo = &imageInfo
+    .pImageInfo = &m_imageInfo
   };
 
   return descriptorSet;
@@ -62,12 +55,12 @@ VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkD
 
 ImTextureID Texture::getImGuiTexture()
 {
-  if (imGuiTexture == VK_NULL_HANDLE)
+  if (m_imGuiTexture == VK_NULL_HANDLE)
   {
-    imGuiTexture = ImGui_ImplVulkan_AddTexture(textureSampler, textureImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    m_imGuiTexture = ImGui_ImplVulkan_AddTexture(m_textureSampler, m_textureImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
 
-  return reinterpret_cast<ImTextureID>(imGuiTexture);
+  return reinterpret_cast<ImTextureID>(m_imGuiTexture);
 }
 
 void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, const VkFormat imageFormat,
@@ -201,5 +194,7 @@ void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  textureSampler = m_logicalDevice->createSampler(samplerCreateInfo);
+  m_textureSampler = m_logicalDevice->createSampler(samplerCreateInfo);
+
+  m_imageInfo.sampler = m_textureSampler;
 }

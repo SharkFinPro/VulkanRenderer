@@ -5,10 +5,15 @@
 
 class Texture3D final : public Texture {
 public:
-  explicit Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice);
+  Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
+            const VkCommandPool& commandPool,
+            const char* path,
+            VkSamplerAddressMode samplerAddressMode);
 
-protected:
-  void createTextureImage(const VkCommandPool& commandPool, const char* path) override;
+private:
+  void createTextureImage(const VkCommandPool& commandPool, const char* path);
+
+  void createImageView() override;
 };
 
 

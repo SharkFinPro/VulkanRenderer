@@ -2,7 +2,7 @@
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
-#include "../../components/textures/CubeMapTexture.h"
+#include "../../components/textures/TextureCubemap.h"
 #include "../../components/textures/Texture3D.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
@@ -169,8 +169,8 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
 
   noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Texture3D>(logicalDevice);
-  noiseTexture->init(commandPool, "assets/noise/noise3d.064.tex", VK_SAMPLER_ADDRESS_MODE_REPEAT);
+  noiseTexture = std::make_unique<Texture3D>(logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
+                                             VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
   std::array<std::string, 6> paths {
     "assets/cubeMap/nvposx.bmp",
@@ -180,9 +180,9 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
     "assets/cubeMap/nvposz.bmp",
     "assets/cubeMap/nvnegz.bmp"
   };
-  reflectUnit = std::make_unique<CubeMapTexture>(logicalDevice, commandPool, paths);
+  reflectUnit = std::make_unique<TextureCubemap>(logicalDevice, commandPool, paths);
 
-  refractUnit = std::make_unique<CubeMapTexture>(logicalDevice, commandPool, paths);
+  refractUnit = std::make_unique<TextureCubemap>(logicalDevice, commandPool, paths);
 }
 
 void CubeMapPipeline::updateUniformVariables(const RenderInfo *renderInfo)

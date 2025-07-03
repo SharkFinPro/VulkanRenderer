@@ -9,7 +9,7 @@ class RenderObject;
 class Camera;
 class UniformBuffer;
 class Texture3D;
-class CubeMapTexture;
+class TextureCubemap;
 
 class CubeMapPipeline final : public GraphicsPipeline {
 public:
@@ -47,8 +47,8 @@ private:
   std::unique_ptr<UniformBuffer> noiseOptionsUniform;
   std::unique_ptr<Texture3D> noiseTexture;
 
-  std::unique_ptr<CubeMapTexture> reflectUnit;
-  std::unique_ptr<CubeMapTexture> refractUnit;
+  std::unique_ptr<TextureCubemap> reflectUnit;
+  std::unique_ptr<TextureCubemap> refractUnit;
 
   void loadGraphicsShaders() override;
 

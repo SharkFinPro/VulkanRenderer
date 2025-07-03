@@ -1,85 +1,20 @@
-#include "CubeMapTexture.h"
+#include "TextureCubemap.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
 #include <stb_image.h>
-#include <cstring>
 #include <stdexcept>
 
-CubeMapTexture::CubeMapTexture(const std::shared_ptr<LogicalDevice> &logicalDevice,
+TextureCubemap::TextureCubemap(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const VkCommandPool& commandPool,
                                const std::array<std::string, 6>& paths)
-  : m_logicalDevice(logicalDevice)
+  : Texture(logicalDevice, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
 {
   createTextureImage(commandPool, paths);
-
-  createTextureSampler();
-
-  imageInfo = {
-    .sampler = textureSampler,
-    .imageView = textureImageView,
-    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-  };
 }
 
-CubeMapTexture::~CubeMapTexture()
-{
-  m_logicalDevice->destroySampler(textureSampler);
-  m_logicalDevice->destroyImageView(textureImageView);
-
-  m_logicalDevice->destroyImage(textureImage);
-  m_logicalDevice->freeMemory(textureImageMemory);
-}
-
-VkDescriptorPoolSize CubeMapTexture::getDescriptorPoolSize(const uint32_t MAX_FRAMES_IN_FLIGHT)
-{
-  return {
-    .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = MAX_FRAMES_IN_FLIGHT,
-  };
-}
-
-VkWriteDescriptorSet CubeMapTexture::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet) const
-{
-  return {
-    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-    .dstSet = dstSet,
-    .dstBinding = binding,
-    .dstArrayElement = 0,
-    .descriptorCount = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .pImageInfo = &imageInfo
-  };
-}
-
-void CubeMapTexture::createTextureSampler()
-{
-  const VkPhysicalDeviceProperties deviceProperties = m_logicalDevice->getPhysicalDevice()->getDeviceProperties();
-
-  const VkSamplerCreateInfo samplerCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-    .magFilter = VK_FILTER_LINEAR,
-    .minFilter = VK_FILTER_LINEAR,
-    .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-    .mipLodBias = 0.0f,
-    .anisotropyEnable = VK_TRUE,
-    .maxAnisotropy = deviceProperties.limits.maxSamplerAnisotropy,
-    .compareEnable = VK_FALSE,
-    .compareOp = VK_COMPARE_OP_ALWAYS,
-    .minLod = 0.0f,
-    .maxLod = VK_LOD_CLAMP_NONE,
-    .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-    .unnormalizedCoordinates = VK_FALSE
-  };
-
-  textureSampler = m_logicalDevice->createSampler(samplerCreateInfo);
-}
-
-void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)
+void TextureCubemap::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)
 {
   int texWidth, texHeight;
   std::array<stbi_uc*, 6> pixels{};
@@ -114,10 +49,10 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
   Images::createImage(m_logicalDevice, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, texWidth, texHeight, 1, 1,
                       VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory,
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory,
                       VK_IMAGE_TYPE_2D, 6);
 
-  Images::transitionImageLayout(m_logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+  Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                 1, 6);
 
@@ -136,16 +71,30 @@ void CubeMapTexture::createTextureImage(const VkCommandPool& commandPool, const 
   }
 
   const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
-  vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+  vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          static_cast<uint32_t>(bufferCopyRegions.size()), bufferCopyRegions.data());
   Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
 
-  Images::transitionImageLayout(m_logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+  Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 6);
 
   Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
-  textureImageView = Images::createImageView(m_logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                             VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_CUBE, 6);
+  createImageView();
+}
+
+void TextureCubemap::createImageView()
+{
+  m_textureImageView = Images::createImageView(
+    m_logicalDevice,
+    m_textureImage,
+    VK_FORMAT_R8G8B8A8_UNORM,
+    VK_IMAGE_ASPECT_COLOR_BIT,
+    1,
+    VK_IMAGE_VIEW_TYPE_CUBE,
+    6
+  );
+
+  m_imageInfo.imageView = m_textureImageView;
 }

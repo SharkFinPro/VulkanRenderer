@@ -29,13 +29,18 @@ unsigned char* ReadTexture3D(const char* filename, int* width, int* height, int*
   return texture;
 }
 
-Texture3D::Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice)
-  : Texture(logicalDevice)
-{}
+Texture3D::Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                     const VkCommandPool& commandPool,
+                     const char* path,
+                     const VkSamplerAddressMode samplerAddressMode)
+  : Texture(logicalDevice, samplerAddressMode)
+{
+  createTextureImage(commandPool, path);
+}
 
 void Texture3D::createTextureImage(const VkCommandPool& commandPool, const char* path)
 {
-  mipLevels = 1;
+  m_mipLevels = 1;
 
   int width, height, depth;
   const auto imageData = ReadTexture3D(path, &width, &height, &depth);
@@ -54,20 +59,34 @@ void Texture3D::createTextureImage(const VkCommandPool& commandPool, const char*
 
   delete imageData;
 
-  Images::createImage(m_logicalDevice, 0, width, height, depth, mipLevels, VK_SAMPLE_COUNT_1_BIT,
+  Images::createImage(m_logicalDevice, 0, width, height, depth, m_mipLevels, VK_SAMPLE_COUNT_1_BIT,
                       VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, VK_IMAGE_TYPE_3D, 1);
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory, VK_IMAGE_TYPE_3D, 1);
 
-  Images::transitionImageLayout(m_logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
-  Images::copyBufferToImage(m_logicalDevice, commandPool, stagingBuffer, textureImage, width, height, depth);
+  Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+                                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
+  Images::copyBufferToImage(m_logicalDevice, commandPool, stagingBuffer, m_textureImage, width, height, depth);
 
-  Images::transitionImageLayout(m_logicalDevice, commandPool, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels, 1);
+  Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_mipLevels, 1);
 
   Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
-  textureImageView = Images::createImageView(m_logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                             VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, VK_IMAGE_VIEW_TYPE_3D, 1);
+  createImageView();
+}
+
+void Texture3D::createImageView()
+{
+  m_textureImageView = Images::createImageView(
+    m_logicalDevice,
+    m_textureImage,
+    VK_FORMAT_R8G8B8A8_UNORM,
+    VK_IMAGE_ASPECT_COLOR_BIT,
+    m_mipLevels,
+    VK_IMAGE_VIEW_TYPE_3D,
+    1
+  );
+
+  m_imageInfo.imageView = m_textureImageView;
 }

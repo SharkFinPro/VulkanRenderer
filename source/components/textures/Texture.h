@@ -9,11 +9,9 @@ class LogicalDevice;
 
 class Texture {
 public:
-  explicit Texture(const std::shared_ptr<LogicalDevice>& logicalDevice);
+  Texture(const std::shared_ptr<LogicalDevice>& logicalDevice, VkSamplerAddressMode samplerAddressMode);
 
   virtual ~Texture();
-
-  void init(const VkCommandPool& commandPool, const char* path, VkSamplerAddressMode addressMode);
 
   [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
@@ -24,23 +22,23 @@ public:
 protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  uint32_t mipLevels;
+  VkImage m_textureImage = VK_NULL_HANDLE;
+  VkDeviceMemory m_textureImageMemory = VK_NULL_HANDLE;
+  VkImageView m_textureImageView = VK_NULL_HANDLE;
+  VkSampler m_textureSampler = VK_NULL_HANDLE;
 
-  VkImage textureImage = VK_NULL_HANDLE;
-  VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
-  VkImageView textureImageView = VK_NULL_HANDLE;
-  VkSampler textureSampler = VK_NULL_HANDLE;
+  VkDescriptorImageInfo m_imageInfo{};
 
-  VkDescriptorImageInfo imageInfo{};
+  uint32_t m_mipLevels;
 
-  VkDescriptorSet imGuiTexture = VK_NULL_HANDLE;
-
-  virtual void createTextureImage(const VkCommandPool& commandPool, const char* path) = 0;
+  VkDescriptorSet m_imGuiTexture = VK_NULL_HANDLE;
 
   void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
                        int32_t texHeight, uint32_t mipLevels) const;
 
   void createTextureSampler(VkSamplerAddressMode addressMode);
+
+  virtual void createImageView() = 0;
 };
 
 
