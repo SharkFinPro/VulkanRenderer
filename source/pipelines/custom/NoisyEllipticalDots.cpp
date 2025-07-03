@@ -172,7 +172,7 @@ void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
 
   noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
+  noiseTexture = std::make_unique<Noise3DTexture>(logicalDevice, commandPool);
 
 }
 

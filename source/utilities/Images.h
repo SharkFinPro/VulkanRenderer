@@ -8,8 +8,7 @@ class LogicalDevice;
 class PhysicalDevice;
 
 namespace Images {
-  void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                   const std::shared_ptr<PhysicalDevice>& physicalDevice, VkImageCreateFlags flags,
+  void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice, VkImageCreateFlags flags,
                    uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
                    VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
                    VkImage& image, VkDeviceMemory& imageMemory, VkImageType imageType, uint32_t layerCount);

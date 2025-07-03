@@ -9,7 +9,7 @@
 
 class Texture {
 public:
-  Texture(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice);
+  Texture(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
   virtual ~Texture();
 
@@ -22,7 +22,6 @@ public:
   [[nodiscard]] ImTextureID getImGuiTexture();
 
 protected:
-  std::shared_ptr<PhysicalDevice> m_physicalDevice;
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
   uint32_t mipLevels;

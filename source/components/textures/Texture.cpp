@@ -9,9 +9,8 @@
 #include <cmath>
 #include <stdexcept>
 
-Texture::Texture(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                 const std::shared_ptr<LogicalDevice>& logicalDevice)
-  : m_physicalDevice(physicalDevice), m_logicalDevice(logicalDevice), mipLevels(1)
+Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice)
+  : m_logicalDevice(logicalDevice), mipLevels(1)
 {}
 
 Texture::~Texture()
@@ -100,7 +99,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
 
   stbi_image_free(pixels);
 
-  Images::createImage(m_logicalDevice, m_physicalDevice, 0, texWidth, texHeight,
+  Images::createImage(m_logicalDevice, 0, texWidth, texHeight,
                       1, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory, VK_IMAGE_TYPE_2D, 1);
@@ -122,7 +121,7 @@ void Texture::createTextureImage(const VkCommandPool& commandPool, const char* p
 void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, const VkFormat imageFormat,
                               const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
 {
-  const VkFormatProperties formatProperties = m_physicalDevice->getFormatProperties(imageFormat);
+  const VkFormatProperties formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(imageFormat);
 
   if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
   {
@@ -229,7 +228,7 @@ void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage im
 
 void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
 {
-  const VkPhysicalDeviceProperties deviceProperties = m_physicalDevice->getDeviceProperties();
+  const VkPhysicalDeviceProperties deviceProperties = m_logicalDevice->getPhysicalDevice()->getDeviceProperties();
 
   const VkSamplerCreateInfo samplerCreateInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
