@@ -58,6 +58,21 @@ void TextureCubemap::createTextureImage(const VkCommandPool& commandPool, const 
                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                 1, 6);
 
+  copyBufferToImage(commandPool, stagingBuffer, imageSize, texWidth, texHeight);
+
+  Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 6);
+
+  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+}
+
+void TextureCubemap::copyBufferToImage(const VkCommandPool& commandPool,
+                                       VkBuffer stagingBuffer,
+                                       const VkDeviceSize imageSize,
+                                       const uint32_t textureWidth,
+                                       const uint32_t textureHeight) const
+{
   std::vector<VkBufferImageCopy> bufferCopyRegions(6);
   for (uint32_t i = 0; i < 6; ++i)
   {
@@ -68,20 +83,14 @@ void TextureCubemap::createTextureImage(const VkCommandPool& commandPool, const 
     bufferCopyRegions[i].imageSubresource.mipLevel = 0;
     bufferCopyRegions[i].imageSubresource.baseArrayLayer = i;
     bufferCopyRegions[i].imageSubresource.layerCount = 1;
-    bufferCopyRegions[i].imageOffset = {0, 0, 0};
-    bufferCopyRegions[i].imageExtent = {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1};
+    bufferCopyRegions[i].imageOffset = { 0, 0, 0 };
+    bufferCopyRegions[i].imageExtent = { textureWidth, textureHeight, 1 };
   }
 
   const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
   vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                          static_cast<uint32_t>(bufferCopyRegions.size()), bufferCopyRegions.data());
   Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
-
-  Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 6);
-
-  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 }
 
 void TextureCubemap::createImageView()

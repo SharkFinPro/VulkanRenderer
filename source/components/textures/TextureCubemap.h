@@ -18,6 +18,12 @@ public:
 private:
   void createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths);
 
+  void copyBufferToImage(const VkCommandPool& commandPool,
+                         VkBuffer stagingBuffer,
+                         VkDeviceSize imageSize,
+                         uint32_t textureWidth,
+                         uint32_t textureHeight) const;
+
   void createImageView() override;
 };
 
