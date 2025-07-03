@@ -9,7 +9,7 @@
 
 class Texture {
 public:
-  Texture(const std::shared_ptr<LogicalDevice>& logicalDevice);
+  explicit Texture(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
   virtual ~Texture();
 
