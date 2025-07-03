@@ -19,7 +19,7 @@
 #include "pipelines/custom/MousePickingPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
 
-#include "components/textures/Texture.h"
+#include "components/textures/Texture2D.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "objects/Light.h"
@@ -56,10 +56,10 @@ public:
 
   void render();
 
-  std::shared_ptr<Texture> loadTexture(const char* path, bool repeat = true);
+  std::shared_ptr<Texture2D> loadTexture(const char* path, bool repeat = true);
   std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
-  [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture>& texture,
-                                                               const std::shared_ptr<Texture>& specularMap,
+  [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
+                                                               const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>&);
 
   std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);

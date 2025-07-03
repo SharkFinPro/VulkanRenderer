@@ -35,7 +35,7 @@ protected:
 
   VkDescriptorSet imGuiTexture = VK_NULL_HANDLE;
 
-  virtual void createTextureImage(const VkCommandPool& commandPool, const char* path);
+  virtual void createTextureImage(const VkCommandPool& commandPool, const char* path) = 0;
 
   void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
                        int32_t texHeight, uint32_t mipLevels) const;
