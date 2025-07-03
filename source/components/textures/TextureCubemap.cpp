@@ -12,6 +12,8 @@ TextureCubemap::TextureCubemap(const std::shared_ptr<LogicalDevice>& logicalDevi
   : Texture(logicalDevice, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
 {
   createTextureImage(commandPool, paths);
+
+  createImageView();
 }
 
 void TextureCubemap::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)
@@ -80,8 +82,6 @@ void TextureCubemap::createTextureImage(const VkCommandPool& commandPool, const 
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 6);
 
   Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
-
-  createImageView();
 }
 
 void TextureCubemap::createImageView()

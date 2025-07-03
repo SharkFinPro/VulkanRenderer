@@ -36,6 +36,8 @@ Texture3D::Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
   : Texture(logicalDevice, samplerAddressMode)
 {
   createTextureImage(commandPool, path);
+
+  createImageView();
 }
 
 void Texture3D::createTextureImage(const VkCommandPool& commandPool, const char* path)
@@ -72,8 +74,6 @@ void Texture3D::createTextureImage(const VkCommandPool& commandPool, const char*
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_mipLevels, 1);
 
   Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
-
-  createImageView();
 }
 
 void Texture3D::createImageView()

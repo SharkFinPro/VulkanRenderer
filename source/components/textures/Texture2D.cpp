@@ -16,6 +16,8 @@ Texture2D::Texture2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
   : Texture(logicalDevice, samplerAddressMode)
 {
   createTextureImage(commandPool, path);
+
+  createImageView();
 }
 
 void Texture2D::createTextureImage(const VkCommandPool& commandPool, const char* path)
@@ -58,8 +60,6 @@ void Texture2D::createTextureImage(const VkCommandPool& commandPool, const char*
   Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
   generateMipmaps(commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, m_mipLevels);
-
-  createImageView();
 }
 
 void Texture2D::createImageView()
