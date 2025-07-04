@@ -6,7 +6,6 @@
 #include <memory>
 
 class LogicalDevice;
-class PhysicalDevice;
 class RenderPass;
 class SwapChain;
 
