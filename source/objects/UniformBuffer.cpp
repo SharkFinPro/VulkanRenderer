@@ -1,6 +1,7 @@
 #include "UniformBuffer.h"
 #include "../core/logicalDevice/LogicalDevice.h"
 #include "../utilities/Buffers.h"
+#include <cstring>
 
 UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkDeviceSize bufferSize)
   : m_logicalDevice(logicalDevice), m_bufferSize(bufferSize)
