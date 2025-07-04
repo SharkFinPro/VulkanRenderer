@@ -6,6 +6,12 @@ set(BUILD_SHARED_LIBS ON)
 add_library(${PROJECT_NAME}
   VulkanEngine.cpp
   VulkanEngine.h
+  components/framebuffers/Framebuffer.cpp
+  components/framebuffers/Framebuffer.h
+  components/framebuffers/StandardFramebuffer.cpp
+  components/framebuffers/StandardFramebuffer.h
+  components/framebuffers/SwapchainFramebuffer.cpp
+  components/framebuffers/SwapchainFramebuffer.h
   components/textures/Texture.cpp
   components/textures/Texture.h
   components/textures/Texture2D.cpp
@@ -51,8 +57,6 @@ add_library(${PROJECT_NAME}
   components/ImGuiInstance.h
   components/SwapChain.cpp
   components/SwapChain.h
-  components/Framebuffer.cpp
-  components/Framebuffer.h
   pipelines/custom/DotsPipeline.cpp
   pipelines/custom/DotsPipeline.h
   pipelines/GraphicsPipeline.cpp

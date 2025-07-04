@@ -289,17 +289,17 @@ void VulkanEngine::initVulkan()
   imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
                                                   guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
-                                              swapChain->getExtent());
+  framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
+                                                       swapChain->getExtent());
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
-                                                         renderPass, swapChain->getExtent());
+    offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
+                                                                 swapChain->getExtent());
   }
 
-  mousePickingFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
-                                                          mousePickingRenderPass, swapChain->getExtent(), true);
+  mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, mousePickingRenderPass,
+                                                                  swapChain->getExtent(), true);
 }
 
 void VulkanEngine::createCommandPool()
@@ -517,11 +517,11 @@ void VulkanEngine::recreateSwapChain()
   physicalDevice->updateSwapChainSupportDetails();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
-  framebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, swapChain, commandPool, renderPass,
-                                              swapChain->getExtent());
+  framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
+                                                       swapChain->getExtent());
 
-  mousePickingFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
-                                                          mousePickingRenderPass, offscreenViewportExtent, true);
+  mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, mousePickingRenderPass,
+                                                                  offscreenViewportExtent, true);
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -532,8 +532,8 @@ void VulkanEngine::recreateSwapChain()
 
     offscreenFramebuffer.reset();
 
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
-                                                         renderPass, offscreenViewportExtent);
+    offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
+                                                                 offscreenViewportExtent);
   }
 }
 
@@ -569,12 +569,12 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
     logicalDevice->waitIdle();
     offscreenFramebuffer.reset();
-    offscreenFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
-                                                         renderPass, offscreenViewportExtent);
+    offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
+                                                                 offscreenViewportExtent);
 
     mousePickingFramebuffer.reset();
-    mousePickingFramebuffer = std::make_shared<Framebuffer>(physicalDevice, logicalDevice, nullptr, commandPool,
-                                                            mousePickingRenderPass, offscreenViewportExtent, true);
+    mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, mousePickingRenderPass,
+                                                                    offscreenViewportExtent, true);
   }
 
   offscreenViewportPos = ImGui::GetCursorScreenPos();

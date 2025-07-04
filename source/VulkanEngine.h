@@ -1,8 +1,9 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
+#include "components/framebuffers/StandardFramebuffer.h"
+#include "components/framebuffers/SwapchainFramebuffer.h"
 #include "components/Camera.h"
-#include "components/Framebuffer.h"
 #include "components/ImGuiInstance.h"
 #include "core/logicalDevice/LogicalDevice.h"
 #include "components/SwapChain.h"
@@ -115,9 +116,9 @@ private:
 
   std::shared_ptr<ImGuiInstance> imGuiInstance;
 
-  std::shared_ptr<Framebuffer> framebuffer;
-  std::shared_ptr<Framebuffer> offscreenFramebuffer;
-  std::shared_ptr<Framebuffer> mousePickingFramebuffer;
+  std::shared_ptr<SwapchainFramebuffer> framebuffer;
+  std::shared_ptr<StandardFramebuffer> offscreenFramebuffer;
+  std::shared_ptr<StandardFramebuffer> mousePickingFramebuffer;
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
