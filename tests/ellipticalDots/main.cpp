@@ -8,7 +8,7 @@
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject> &object, const std::vector<std::shared_ptr<Light>>& lights,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights,
                  bool& useEllipticalDots);
 
 int main()
@@ -109,7 +109,7 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
 }
 
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject> &object, const std::vector<std::shared_ptr<Light>>& lights,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights,
                  bool& useEllipticalDots)
 {
   gui->dockCenter("SceneView");
