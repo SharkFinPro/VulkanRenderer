@@ -67,10 +67,10 @@ void VulkanEngine::render()
   createNewFrame();
 }
 
-std::shared_ptr<Texture> VulkanEngine::loadTexture(const char* path, const bool repeat)
+std::shared_ptr<Texture2D> VulkanEngine::loadTexture(const char* path, const bool repeat)
 {
-  auto texture = std::make_shared<Texture>(physicalDevice, logicalDevice);
-  texture->init(commandPool, path, repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+  auto texture = std::make_shared<Texture2D>(logicalDevice, commandPool, path,
+                                             repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
   textures.push_back(texture);
 
   return texture;
@@ -84,8 +84,8 @@ std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotat
   return model;
 }
 
-std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture>& texture,
-                                                             const std::shared_ptr<Texture>& specularMap,
+std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture2D>& texture,
+                                                             const std::shared_ptr<Texture2D>& specularMap,
                                                              const std::shared_ptr<Model>& model)
 {
   auto renderObject = std::make_shared<RenderObject>(logicalDevice, physicalDevice, objectDescriptorSetLayout,
@@ -756,7 +756,7 @@ uint32_t VulkanEngine::getIDFromMousePickingFramebuffer(const int32_t mouseX, co
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+  Buffers::createBuffer(logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 

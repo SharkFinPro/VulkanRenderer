@@ -123,7 +123,7 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool, const V
 
   for (int i = 0; i < numImages; i++)
   {
-    Images::createImage(logicalDevice, physicalDevice, 0, extent.width, extent.height, 1,
+    Images::createImage(logicalDevice, 0, extent.width, extent.height, 1,
                         1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                         framebufferImages[i], framebufferImageMemory[i], VK_IMAGE_TYPE_2D, 1);
@@ -144,7 +144,7 @@ void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const V
 {
   const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : physicalDevice->getMsaaSamples();
 
-  Images::createImage(logicalDevice, physicalDevice, 0, extent.width, extent.height, 1,
+  Images::createImage(logicalDevice, 0, extent.width, extent.height, 1,
                       1, samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                       depthImage, depthImageMemory, VK_IMAGE_TYPE_2D, 1);
@@ -162,7 +162,7 @@ void Framebuffer::createColorResources(const VkExtent2D extent)
 
   const VkFormat colorFormat = swapChain ? swapChain->getImageFormat() : framebufferImageFormat;
 
-  Images::createImage(logicalDevice, physicalDevice, 0, extent.width, extent.height, 1,
+  Images::createImage(logicalDevice, 0, extent.width, extent.height, 1,
                       1, samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                       (m_mousePicking ? VK_IMAGE_USAGE_TRANSFER_SRC_BIT : VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT),

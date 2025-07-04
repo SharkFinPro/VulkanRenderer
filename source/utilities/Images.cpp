@@ -5,8 +5,7 @@
 #include <stdexcept>
 
 namespace Images {
-  void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                   const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkImageCreateFlags flags,
+  void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkImageCreateFlags flags,
                    const uint32_t width, const uint32_t height, const uint32_t depth, const uint32_t mipLevels,
                    const VkSampleCountFlagBits numSamples, const VkFormat format, const VkImageTiling tiling,
                    const VkImageUsageFlags usage, const VkMemoryPropertyFlags properties, VkImage& image,
@@ -38,7 +37,7 @@ namespace Images {
     const VkMemoryAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
-      .memoryTypeIndex = physicalDevice->findMemoryType(memoryRequirements.memoryTypeBits, properties)
+      .memoryTypeIndex = logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits, properties)
     };
 
     logicalDevice->allocateMemory(allocateInfo, imageMemory);

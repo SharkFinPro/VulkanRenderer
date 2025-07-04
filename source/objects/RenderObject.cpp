@@ -1,6 +1,6 @@
 #include "RenderObject.h"
 #include "Model.h"
-#include "Texture.h"
+#include "../components/textures/Texture.h"
 #include "UniformBuffer.h"
 #include "../components/Camera.h"
 #include "../core/commandBuffer/CommandBuffer.h"
@@ -97,8 +97,8 @@ void RenderObject::createDescriptorPool()
 {
   const std::array<VkDescriptorPoolSize, 3> poolSizes {
     transformUniform->getDescriptorPoolSize(),
-    Texture::getDescriptorPoolSize(logicalDevice->getMaxFramesInFlight()),
-    Texture::getDescriptorPoolSize(logicalDevice->getMaxFramesInFlight())
+    texture->getDescriptorPoolSize(),
+    specularMap->getDescriptorPoolSize()
   };
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {

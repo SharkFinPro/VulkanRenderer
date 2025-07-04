@@ -1,10 +1,11 @@
 #include "NoisyEllipticalDots.h"
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../components/Camera.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
-#include "../../objects/Noise3DTexture.h"
+#include "../../components/textures/Texture3D.h"
 #include <imgui.h>
 
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
@@ -172,8 +173,8 @@ void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
 
   noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Noise3DTexture>(physicalDevice, logicalDevice, commandPool);
-
+  noiseTexture = std::make_unique<Texture3D>(logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
+                                             VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
 void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)

@@ -14,7 +14,7 @@ class RenderObject;
 class Camera;
 class UniformBuffer;
 class Light;
-class Noise3DTexture;
+class Texture3D;
 
 class BumpyCurtain final : public GraphicsPipeline {
 public:
@@ -52,7 +52,7 @@ private:
   std::unique_ptr<UniformBuffer> cameraUniform;
   std::unique_ptr<UniformBuffer> curtainUniform;
   std::unique_ptr<UniformBuffer> noiseOptionsUniform;
-  std::unique_ptr<Noise3DTexture> noiseTexture;
+  std::unique_ptr<Texture3D> noiseTexture;
 
   int prevNumLights = 0;
 
