@@ -141,13 +141,13 @@ void SnakePipeline::createDescriptorSets()
 
 void SnakePipeline::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 
-  snakeUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(SnakeUniform));
+  snakeUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(SnakeUniform));
 }
 
 void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -169,7 +169,7 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, lightsUniformBufferSize);
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {

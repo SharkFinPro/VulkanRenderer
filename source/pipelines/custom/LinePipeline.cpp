@@ -134,7 +134,7 @@ void LinePipeline::createDescriptorSets()
 
 void LinePipeline::createUniforms()
 {
-  transformUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(TransformUniform));
+  transformUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform));
 }
 
 void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)

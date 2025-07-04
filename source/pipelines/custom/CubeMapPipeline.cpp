@@ -163,11 +163,11 @@ void CubeMapPipeline::createDescriptorSets()
 
 void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
 {
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 
-  cubeMapUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CubeMapUniform));
+  cubeMapUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CubeMapUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(NoiseOptionsUniform));
 
   noiseTexture = std::make_unique<Texture3D>(logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
                                              VK_SAMPLER_ADDRESS_MODE_REPEAT);

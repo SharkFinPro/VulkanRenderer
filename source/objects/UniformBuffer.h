@@ -6,12 +6,10 @@
 #include <memory>
 
 class LogicalDevice;
-class PhysicalDevice;
 
 class UniformBuffer {
 public:
-  UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<PhysicalDevice>& physicalDevice, VkDeviceSize bufferSize);
+  UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDeviceSize bufferSize);
   ~UniformBuffer();
 
   [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
@@ -21,16 +19,16 @@ public:
   void update(uint32_t frame, const void* data) const;
 
 protected:
-  std::shared_ptr<LogicalDevice> logicalDevice;
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  std::vector<VkBuffer> uniformBuffers;
-  std::vector<VkDeviceMemory> uniformBuffersMemory;
-  std::vector<void*> uniformBuffersMapped;
+  std::vector<VkBuffer> m_uniformBuffers;
+  std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+  std::vector<void*> m_uniformBuffersMapped;
 
-  std::vector<VkDescriptorBufferInfo> bufferInfos;
-  VkDescriptorPoolSize poolSize{};
+  std::vector<VkDescriptorBufferInfo> m_bufferInfos;
+  VkDescriptorPoolSize m_poolSize{};
 
-  VkDeviceSize bufferSize;
+  VkDeviceSize m_bufferSize;
 };
 
 

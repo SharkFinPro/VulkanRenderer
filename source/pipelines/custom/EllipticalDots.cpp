@@ -139,13 +139,13 @@ void EllipticalDots::createDescriptorSets()
 
 void EllipticalDots::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 
-  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(EllipticalDotsUniform));
+  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(EllipticalDotsUniform));
 }
 
 void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -167,7 +167,7 @@ void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, lightsUniformBufferSize);
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {

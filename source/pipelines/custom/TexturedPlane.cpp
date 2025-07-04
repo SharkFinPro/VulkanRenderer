@@ -100,7 +100,7 @@ void TexturedPlane::createDescriptorSets()
 
 void TexturedPlane::createUniforms()
 {
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 }
 
 void TexturedPlane::updateUniformVariables(const RenderInfo *renderInfo)

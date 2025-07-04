@@ -127,9 +127,9 @@ void MagnifyWhirlMosaicPipeline::createDescriptorSets()
 
 void MagnifyWhirlMosaicPipeline::createUniforms()
 {
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 
-  magnifyWhirlMosaicUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(MagnifyWhirlMosaicUniform));
+  magnifyWhirlMosaicUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(MagnifyWhirlMosaicUniform));
 }
 
 void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo *renderInfo)

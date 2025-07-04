@@ -90,8 +90,7 @@ void DotsPipeline::defineStates()
 
 void DotsPipeline::createUniforms()
 {
-  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                     sizeof(DeltaTimeUniform));
+  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(DeltaTimeUniform));
 }
 
 void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)

@@ -161,15 +161,15 @@ void BumpyCurtain::createDescriptorSets()
 
 void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 
-  curtainUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CurtainUniform));
+  curtainUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CurtainUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(NoiseOptionsUniform));
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(NoiseOptionsUniform));
 
   noiseTexture = std::make_unique<Texture3D>(logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
                                              VK_SAMPLER_ADDRESS_MODE_REPEAT);
@@ -194,7 +194,7 @@ void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, lightsUniformBufferSize);
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
