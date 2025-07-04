@@ -12,9 +12,8 @@ class SwapChain;
 
 class Framebuffer {
 public:
-  Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
-              std::shared_ptr<LogicalDevice> logicalDevice,
-              std::shared_ptr<SwapChain> swapChain,
+  Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+              const std::shared_ptr<SwapChain>& swapChain,
               const VkCommandPool& commandPool,
               const std::shared_ptr<RenderPass>& renderPass,
               VkExtent2D extent,
@@ -28,25 +27,24 @@ public:
   VkImage& getColorImage();
 
 private:
-  std::shared_ptr<PhysicalDevice> physicalDevice;
-  std::shared_ptr<LogicalDevice> logicalDevice;
-  std::shared_ptr<SwapChain> swapChain;
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
+  std::shared_ptr<SwapChain> m_swapChain;
 
-  std::vector<VkFramebuffer> framebuffers;
-  VkImage depthImage = VK_NULL_HANDLE;
-  VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
-  VkImageView depthImageView = VK_NULL_HANDLE;
-  VkImage colorImage = VK_NULL_HANDLE;
-  VkDeviceMemory colorImageMemory = VK_NULL_HANDLE;
-  VkImageView colorImageView = VK_NULL_HANDLE;
+  std::vector<VkFramebuffer> m_framebuffers;
+  VkImage m_depthImage = VK_NULL_HANDLE;
+  VkDeviceMemory m_depthImageMemory = VK_NULL_HANDLE;
+  VkImageView m_depthImageView = VK_NULL_HANDLE;
+  VkImage m_colorImage = VK_NULL_HANDLE;
+  VkDeviceMemory m_colorImageMemory = VK_NULL_HANDLE;
+  VkImageView m_colorImageView = VK_NULL_HANDLE;
 
-  VkFormat framebufferImageFormat{};
-  std::vector<VkImage> framebufferImages;
-  std::vector<VkImageView> framebufferImageViews;
-  std::vector<VkDeviceMemory> framebufferImageMemory;
+  VkFormat m_framebufferImageFormat{};
+  std::vector<VkImage> m_framebufferImages;
+  std::vector<VkImageView> m_framebufferImageViews;
+  std::vector<VkDeviceMemory> m_framebufferImageMemory;
 
-  VkSampler sampler = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> framebufferImageDescriptorSets;
+  VkSampler m_sampler = VK_NULL_HANDLE;
+  std::vector<VkDescriptorSet> m_framebufferImageDescriptorSets;
 
   bool m_mousePicking;
 

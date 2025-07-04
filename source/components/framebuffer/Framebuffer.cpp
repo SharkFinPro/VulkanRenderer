@@ -1,22 +1,19 @@
 #include "Framebuffer.h"
+#include "../SwapChain.h"
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../SwapChain.h"
 #include "../../pipelines/RenderPass.h"
 #include "../../utilities/Images.h"
-#include <utility>
 #include <stdexcept>
 #include <backends/imgui_impl_vulkan.h>
 
-Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
-                         std::shared_ptr<LogicalDevice> logicalDevice,
-                         std::shared_ptr<SwapChain> swapChain,
+Framebuffer::Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                         const std::shared_ptr<SwapChain>& swapChain,
                          const VkCommandPool& commandPool,
                          const std::shared_ptr<RenderPass>& renderPass,
                          const VkExtent2D extent,
                          const bool mousePicking)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice)),
-    swapChain(std::move(swapChain)), m_mousePicking(mousePicking)
+  : m_logicalDevice(logicalDevice), m_swapChain(swapChain), m_mousePicking(mousePicking)
 {
   createImageResources(commandPool, extent);
 
@@ -29,68 +26,68 @@ Framebuffer::Framebuffer(std::shared_ptr<PhysicalDevice> physicalDevice,
 
 Framebuffer::~Framebuffer()
 {
-  if (!swapChain)
+  if (!m_swapChain)
   {
-    logicalDevice->destroySampler(sampler);
+    m_logicalDevice->destroySampler(m_sampler);
 
-    for (const auto& framebufferImageDescriptorSet : framebufferImageDescriptorSets)
+    for (const auto& framebufferImageDescriptorSet : m_framebufferImageDescriptorSets)
     {
       ImGui_ImplVulkan_RemoveTexture(framebufferImageDescriptorSet);
     }
   }
 
-  for (auto& imageView : framebufferImageViews)
+  for (auto& imageView : m_framebufferImageViews)
   {
-    logicalDevice->destroyImageView(imageView);
+    m_logicalDevice->destroyImageView(imageView);
   }
 
-  for (auto& imageMemory : framebufferImageMemory)
+  for (auto& imageMemory : m_framebufferImageMemory)
   {
-    logicalDevice->freeMemory(imageMemory);
+    m_logicalDevice->freeMemory(imageMemory);
   }
 
-  for (auto& image : framebufferImages)
+  for (auto& image : m_framebufferImages)
   {
-    logicalDevice->destroyImage(image);
+    m_logicalDevice->destroyImage(image);
   }
 
-  logicalDevice->destroyImageView(colorImageView);
-  logicalDevice->destroyImage(colorImage);
-  logicalDevice->freeMemory(colorImageMemory);
+  m_logicalDevice->destroyImageView(m_colorImageView);
+  m_logicalDevice->destroyImage(m_colorImage);
+  m_logicalDevice->freeMemory(m_colorImageMemory);
 
-  logicalDevice->destroyImageView(depthImageView);
-  logicalDevice->destroyImage(depthImage);
-  logicalDevice->freeMemory(depthImageMemory);
+  m_logicalDevice->destroyImageView(m_depthImageView);
+  m_logicalDevice->destroyImage(m_depthImage);
+  m_logicalDevice->freeMemory(m_depthImageMemory);
 
-  for (auto& framebuffer : framebuffers)
+  for (auto& framebuffer : m_framebuffers)
   {
-    logicalDevice->destroyFramebuffer(framebuffer);
+    m_logicalDevice->destroyFramebuffer(framebuffer);
   }
 }
 
 VkFramebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex)
 {
-  return framebuffers[imageIndex];
+  return m_framebuffers[imageIndex];
 }
 
 VkDescriptorSet& Framebuffer::getFramebufferImageDescriptorSet(const uint32_t imageIndex)
 {
-  return framebufferImageDescriptorSets[imageIndex];
+  return m_framebufferImageDescriptorSets[imageIndex];
 }
 
 VkImage& Framebuffer::getColorImage()
 {
-  return colorImage;
+  return m_colorImage;
 }
 
 void Framebuffer::createImageResources(const VkCommandPool& commandPool, const VkExtent2D extent)
 {
-  if (swapChain)
+  if (m_swapChain)
   {
     return;
   }
 
-  framebufferImageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
+  m_framebufferImageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
 
   constexpr VkSamplerCreateInfo samplerInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -113,76 +110,76 @@ void Framebuffer::createImageResources(const VkCommandPool& commandPool, const V
     .unnormalizedCoordinates = VK_FALSE
   };
 
-  sampler = logicalDevice->createSampler(samplerInfo);
+  m_sampler = m_logicalDevice->createSampler(samplerInfo);
 
   constexpr size_t numImages = 3;
-  framebufferImageMemory.resize(numImages);
-  framebufferImageViews.resize(numImages);
-  framebufferImages.resize(numImages);
-  framebufferImageDescriptorSets.resize(numImages);
+  m_framebufferImageMemory.resize(numImages);
+  m_framebufferImageViews.resize(numImages);
+  m_framebufferImages.resize(numImages);
+  m_framebufferImageDescriptorSets.resize(numImages);
 
   for (int i = 0; i < numImages; i++)
   {
-    Images::createImage(logicalDevice, 0, extent.width, extent.height, 1,
-                        1, VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
+    Images::createImage(m_logicalDevice, 0, extent.width, extent.height, 1,
+                        1, VK_SAMPLE_COUNT_1_BIT, m_framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        framebufferImages[i], framebufferImageMemory[i], VK_IMAGE_TYPE_2D, 1);
+                        m_framebufferImages[i], m_framebufferImageMemory[i], VK_IMAGE_TYPE_2D, 1);
 
-    framebufferImageViews[i] = Images::createImageView(logicalDevice, framebufferImages[i],
-                                                       framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
-                                                       VK_IMAGE_VIEW_TYPE_2D, 1);
+    m_framebufferImageViews[i] = Images::createImageView(m_logicalDevice, m_framebufferImages[i],
+                                                         m_framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
+                                                         VK_IMAGE_VIEW_TYPE_2D, 1);
 
-    Images::transitionImageLayout(this->logicalDevice, commandPool, framebufferImages[i], framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+    Images::transitionImageLayout(m_logicalDevice, commandPool, m_framebufferImages[i], m_framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 1);
 
-    framebufferImageDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(sampler, framebufferImageViews[i],
-                                                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    m_framebufferImageDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(m_sampler, m_framebufferImageViews[i],
+                                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
 }
 
 void Framebuffer::createDepthResources(const VkCommandPool& commandPool, const VkFormat depthFormat, const VkExtent2D extent)
 {
-  const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : physicalDevice->getMsaaSamples();
+  const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
 
-  Images::createImage(logicalDevice, 0, extent.width, extent.height, 1,
+  Images::createImage(m_logicalDevice, 0, extent.width, extent.height, 1,
                       1, samples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                      depthImage, depthImageMemory, VK_IMAGE_TYPE_2D, 1);
+                      m_depthImage, m_depthImageMemory, VK_IMAGE_TYPE_2D, 1);
 
-  depthImageView = Images::createImageView(logicalDevice, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1,
-                                           VK_IMAGE_VIEW_TYPE_2D, 1);
+  m_depthImageView = Images::createImageView(m_logicalDevice, m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1,
+                                             VK_IMAGE_VIEW_TYPE_2D, 1);
 
-  Images::transitionImageLayout(logicalDevice, commandPool, depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+  Images::transitionImageLayout(m_logicalDevice, commandPool, m_depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 1);
 }
 
 void Framebuffer::createColorResources(const VkExtent2D extent)
 {
-  const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : physicalDevice->getMsaaSamples();
+  const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
 
-  const VkFormat colorFormat = swapChain ? swapChain->getImageFormat() : framebufferImageFormat;
+  const VkFormat colorFormat = m_swapChain ? m_swapChain->getImageFormat() : m_framebufferImageFormat;
 
-  Images::createImage(logicalDevice, 0, extent.width, extent.height, 1,
+  Images::createImage(m_logicalDevice, 0, extent.width, extent.height, 1,
                       1, samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                       (m_mousePicking ? VK_IMAGE_USAGE_TRANSFER_SRC_BIT : VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT),
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory, VK_IMAGE_TYPE_2D, 1);
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_colorImage, m_colorImageMemory, VK_IMAGE_TYPE_2D, 1);
 
-  colorImageView = Images::createImageView(logicalDevice, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
-                                           VK_IMAGE_VIEW_TYPE_2D, 1);
+  m_colorImageView = Images::createImageView(m_logicalDevice, m_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
+                                             VK_IMAGE_VIEW_TYPE_2D, 1);
 }
 
 void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExtent2D extent)
 {
-  const std::vector<VkImageView>& imageViews = swapChain ? swapChain->getImageViews() : framebufferImageViews;
+  const std::vector<VkImageView>& imageViews = m_swapChain ? m_swapChain->getImageViews() : m_framebufferImageViews;
 
-  framebuffers.resize(imageViews.size());
+  m_framebuffers.resize(imageViews.size());
 
   for (size_t i = 0; i < imageViews.size(); i++)
   {
     std::vector<VkImageView> attachments {
-      colorImageView,
-      depthImageView
+      m_colorImageView,
+      m_depthImageView
     };
 
     if (!m_mousePicking)
@@ -200,6 +197,6 @@ void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExt
       .layers = 1
     };
 
-    framebuffers[i] = logicalDevice->createFramebuffer(framebufferInfo);
+    m_framebuffers[i] = m_logicalDevice->createFramebuffer(framebufferInfo);
   }
 }
