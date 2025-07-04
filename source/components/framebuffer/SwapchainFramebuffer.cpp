@@ -6,16 +6,17 @@ SwapchainFramebuffer::SwapchainFramebuffer(const std::shared_ptr<LogicalDevice>&
                                            const VkCommandPool& commandPool,
                                            const std::shared_ptr<RenderPass>& renderPass,
                                            const VkExtent2D extent)
-  : Framebuffer(logicalDevice, commandPool, renderPass, extent), m_swapChain(swapChain)
+  : Framebuffer(logicalDevice), m_swapChain(swapChain)
 {
+  initializeFramebuffer(commandPool, renderPass, extent);
 }
 
-VkFormat SwapchainFramebuffer::getColorFormat() const
+VkFormat SwapchainFramebuffer::getColorFormat()
 {
   return m_swapChain->getImageFormat();
 }
 
-const std::vector<VkImageView>& SwapchainFramebuffer::getImageViews() const
+const std::vector<VkImageView>& SwapchainFramebuffer::getImageViews()
 {
   return m_swapChain->getImageViews();
 }

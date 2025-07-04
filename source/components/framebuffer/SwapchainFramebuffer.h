@@ -16,8 +16,9 @@ public:
 private:
   std::shared_ptr<SwapChain> m_swapChain;
 
-  [[nodiscard]] VkFormat getColorFormat() const override;
-  [[nodiscard]] const std::vector<VkImageView>& getImageViews() const override;
+  [[nodiscard]] VkFormat getColorFormat() override;
+
+  [[nodiscard]] const std::vector<VkImageView>& getImageViews() override;
 };
 
 

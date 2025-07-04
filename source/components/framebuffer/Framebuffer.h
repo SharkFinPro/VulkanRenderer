@@ -11,16 +11,15 @@ class RenderPass;
 class Framebuffer {
 public:
   Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-              const VkCommandPool& commandPool,
-              const std::shared_ptr<RenderPass>& renderPass,
-              VkExtent2D extent,
               bool mousePicking = false);
 
   virtual ~Framebuffer();
 
-  VkFramebuffer& getFramebuffer(uint32_t imageIndex);
+  void initializeFramebuffer(const VkCommandPool& commandPool,
+                             const std::shared_ptr<RenderPass>& renderPass,
+                             VkExtent2D extent);
 
-  VkDescriptorSet& getFramebufferImageDescriptorSet(uint32_t imageIndex);
+  VkFramebuffer& getFramebuffer(uint32_t imageIndex);
 
   VkImage& getColorImage();
 
@@ -35,23 +34,14 @@ protected:
   VkDeviceMemory m_colorImageMemory = VK_NULL_HANDLE;
   VkImageView m_colorImageView = VK_NULL_HANDLE;
 
-  VkFormat m_framebufferImageFormat{};
-  std::vector<VkImage> m_framebufferImages;
-  std::vector<VkImageView> m_framebufferImageViews;
-  std::vector<VkDeviceMemory> m_framebufferImageMemory;
-
-  VkSampler m_sampler = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> m_framebufferImageDescriptorSets;
-
   bool m_mousePicking;
 
-  void createImageResources(const VkCommandPool& commandPool, VkExtent2D extent);
   void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat, VkExtent2D extent);
   void createColorResources(VkExtent2D extent);
   void createFrameBuffers(const VkRenderPass& renderPass, VkExtent2D extent);
 
-  [[nodiscard]] virtual VkFormat getColorFormat() const = 0;
-  [[nodiscard]] virtual const std::vector<VkImageView>& getImageViews() const = 0;
+  [[nodiscard]] virtual VkFormat getColorFormat() = 0;
+  [[nodiscard]] virtual const std::vector<VkImageView>& getImageViews() = 0;
 };
 
 

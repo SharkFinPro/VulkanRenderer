@@ -97,6 +97,8 @@ add_library(${PROJECT_NAME}
   pipelines/custom/ObjectHighlightPipeline.h
   core/commandBuffer/CommandBuffer.cpp
   core/commandBuffer/CommandBuffer.h
+  components/framebuffer/StandardFramebuffer.cpp
+  components/framebuffer/StandardFramebuffer.h
 )
 
 # Assets
