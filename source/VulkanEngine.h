@@ -2,7 +2,7 @@
 #define VULKANPROJECT_VULKANENGINE_H
 
 #include "components/Camera.h"
-#include "components/Framebuffer.h"
+#include "components/framebuffer/Framebuffer.h"
 #include "components/ImGuiInstance.h"
 #include "core/logicalDevice/LogicalDevice.h"
 #include "components/SwapChain.h"
