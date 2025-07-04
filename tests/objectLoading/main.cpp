@@ -1,6 +1,6 @@
-#include <iostream>
-#include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
+#include <source/VulkanEngine.h>
+#include <iostream>
 
 int main()
 {
