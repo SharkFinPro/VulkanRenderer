@@ -174,6 +174,10 @@ private:
 
   void renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>& commandBuffer, VkExtent2D extent) const;
 
+  void renderRenderObjects(const RenderInfo& renderInfo) const;
+
+  void renderSmokeSystems(const RenderInfo& renderInfo) const;
+
   void createNewFrame();
 
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);

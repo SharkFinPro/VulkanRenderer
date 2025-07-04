@@ -57,7 +57,7 @@ private:
 
   void createDescriptorSets();
 
-  void updateUniformVariables(const RenderInfo *renderInfo) override;
+  void updateUniformVariables(const RenderInfo* renderInfo) override;
 };
 
 

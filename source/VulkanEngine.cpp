@@ -622,6 +622,20 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
   };
   renderInfo.commandBuffer->setScissor(scissor);
 
+  renderRenderObjects(renderInfo);
+
+  if (vulkanEngineOptions.DO_DOTS)
+  {
+    dotsPipeline->render(&renderInfo, nullptr);
+  }
+
+  linePipeline->render(&renderInfo, commandPool, lineVerticesToRender);
+
+  renderSmokeSystems(renderInfo);
+}
+
+void VulkanEngine::renderRenderObjects(const RenderInfo& renderInfo) const
+{
   for (const auto& [type, objects] : renderObjectsToRender)
   {
     if (objects.empty())
@@ -643,14 +657,10 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
 
     throw std::runtime_error("Pipeline for object type does not exist");
   }
+}
 
-  if (vulkanEngineOptions.DO_DOTS)
-  {
-    dotsPipeline->render(&renderInfo, nullptr);
-  }
-
-  linePipeline->render(&renderInfo, commandPool, lineVerticesToRender);
-
+void VulkanEngine::renderSmokeSystems(const RenderInfo& renderInfo) const
+{
   if (!smokeSystems.empty())
   {
     ImGui::Begin("Smoke");

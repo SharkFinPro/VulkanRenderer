@@ -8,6 +8,20 @@
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 
+constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  .binding = 3,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding magnifyWhirlMosaicLayout {
+  .binding = 4,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                                        const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                        const std::shared_ptr<RenderPass>& renderPass,
@@ -73,20 +87,6 @@ void MagnifyWhirlMosaicPipeline::defineStates()
 
 void MagnifyWhirlMosaicPipeline::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
-    .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding magnifyWhirlMosaicLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array<VkDescriptorSetLayoutBinding, 2> globalBindings {
     cameraLayout,
     magnifyWhirlMosaicLayout
@@ -132,7 +132,7 @@ void MagnifyWhirlMosaicPipeline::createUniforms()
   magnifyWhirlMosaicUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(MagnifyWhirlMosaicUniform));
 }
 
-void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
@@ -142,7 +142,7 @@ void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo *render
   magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &magnifyWhirlMosaicUBO);
 }
 
-void MagnifyWhirlMosaicPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+void MagnifyWhirlMosaicPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);

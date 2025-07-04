@@ -8,6 +8,48 @@
 #include "../../components/textures/Texture3D.h"
 #include <imgui.h>
 
+constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
+  .binding = 2,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding lightsLayout {
+  .binding = 5,
+  .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  .binding = 3,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
+  .binding = 4,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
+  .binding = 6,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+  .binding = 7,
+  .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                          const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          const std::shared_ptr<RenderPass>& renderPass,
@@ -74,48 +116,6 @@ void NoisyEllipticalDots::defineStates()
 
 void NoisyEllipticalDots::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-    .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding lightsLayout {
-    .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
-    .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
-    .binding = 6,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
-    .binding = 7,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array<VkDescriptorSetLayoutBinding, 6> globalBindings {
     lightMetadataLayout,
     lightsLayout,
@@ -221,7 +221,7 @@ void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<
   lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
-void NoisyEllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
+void NoisyEllipticalDots::updateUniformVariables(const RenderInfo* renderInfo)
 {
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
@@ -235,7 +235,7 @@ void NoisyEllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
   noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO);
 }
 
-void NoisyEllipticalDots::bindDescriptorSet(const RenderInfo *renderInfo)
+void NoisyEllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);

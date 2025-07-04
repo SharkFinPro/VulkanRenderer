@@ -8,6 +8,48 @@
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 
+constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  .binding = 0,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding cubeMapLayout {
+  .binding = 1,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
+  .binding = 2,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+  .binding = 3,
+  .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding reflectUnitLayout {
+  .binding = 4,
+  .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding refractUnitLayout {
+  .binding = 5,
+  .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
@@ -73,48 +115,6 @@ void CubeMapPipeline::defineStates()
 
 void CubeMapPipeline::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
-    .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding cubeMapLayout {
-    .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
-    .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
-    .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding reflectUnitLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding refractUnitLayout {
-    .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array globalBindings {
     cameraLayout,
     cubeMapLayout,
@@ -185,7 +185,7 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
   refractUnit = std::make_unique<TextureCubemap>(logicalDevice, commandPool, paths);
 }
 
-void CubeMapPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+void CubeMapPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
@@ -197,7 +197,7 @@ void CubeMapPipeline::updateUniformVariables(const RenderInfo *renderInfo)
   noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO);
 }
 
-void CubeMapPipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+void CubeMapPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);

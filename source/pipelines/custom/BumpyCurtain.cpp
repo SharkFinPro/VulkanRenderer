@@ -7,6 +7,48 @@
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 
+constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
+  .binding = 2,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding lightsLayout {
+  .binding = 5,
+  .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  .binding = 3,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding curtainLayout {
+  .binding = 4,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
+  .binding = 6,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+  .binding = 7,
+  .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 BumpyCurtain::BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderPass>& renderPass,
@@ -72,48 +114,6 @@ void BumpyCurtain::defineStates()
 
 void BumpyCurtain::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-    .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding lightsLayout {
-    .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
-    .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding curtainLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
-    .binding = 6,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
-    .binding = 7,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array<VkDescriptorSetLayoutBinding, 6> globalBindings {
     lightMetadataLayout,
     lightsLayout,

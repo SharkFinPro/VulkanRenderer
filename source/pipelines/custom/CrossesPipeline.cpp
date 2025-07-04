@@ -7,6 +7,41 @@
 #include "../../objects/Light.h"
 #include <imgui.h>
 
+constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
+  .binding = 2,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding lightsLayout {
+  .binding = 5,
+  .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  .binding = 3,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding crossesLayout {
+  .binding = 4,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding chromaDepthLayout {
+  .binding = 6,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 CrossesPipeline::CrossesPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                  const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
@@ -81,41 +116,6 @@ void CrossesPipeline::defineStates()
 
 void CrossesPipeline::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-    .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding lightsLayout {
-    .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
-    .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding crossesLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding chromaDepthLayout {
-    .binding = 6,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array globalBindings {
     lightMetadataLayout,
     lightsLayout,

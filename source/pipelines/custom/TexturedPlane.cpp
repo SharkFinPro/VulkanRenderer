@@ -7,6 +7,13 @@
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 
+constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  .binding = 3,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 TexturedPlane::TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
@@ -55,13 +62,6 @@ void TexturedPlane::defineStates()
 
 void TexturedPlane::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
-    .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array<VkDescriptorSetLayoutBinding, 1> globalBindings {
     cameraLayout
   };
@@ -103,7 +103,7 @@ void TexturedPlane::createUniforms()
   cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 }
 
-void TexturedPlane::updateUniformVariables(const RenderInfo *renderInfo)
+void TexturedPlane::updateUniformVariables(const RenderInfo* renderInfo)
 {
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
@@ -111,7 +111,7 @@ void TexturedPlane::updateUniformVariables(const RenderInfo *renderInfo)
   cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 }
 
-void TexturedPlane::bindDescriptorSet(const RenderInfo *renderInfo)
+void TexturedPlane::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);
