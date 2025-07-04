@@ -10,6 +10,8 @@ StandardFramebuffer::StandardFramebuffer(const std::shared_ptr<LogicalDevice>& l
                                          const bool mousePicking)
   : Framebuffer(logicalDevice, mousePicking), m_commandPool(commandPool), m_extent(extent)
 {
+  createSampler();
+  
   createImageResources();
 
   initializeFramebuffer(commandPool, renderPass, extent);
@@ -55,10 +57,8 @@ const std::vector<VkImageView>& StandardFramebuffer::getImageViews()
   return m_framebufferImageViews;
 }
 
-void StandardFramebuffer::createImageResources()
+void StandardFramebuffer::createSampler()
 {
-  m_framebufferImageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
-
   constexpr VkSamplerCreateInfo samplerInfo {
     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
     .pNext = nullptr,
@@ -81,6 +81,11 @@ void StandardFramebuffer::createImageResources()
   };
 
   m_sampler = m_logicalDevice->createSampler(samplerInfo);
+}
+
+void StandardFramebuffer::createImageResources()
+{
+  m_framebufferImageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
 
   constexpr size_t numImages = 3;
   m_framebufferImageMemory.resize(numImages);

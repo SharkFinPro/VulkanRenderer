@@ -31,6 +31,8 @@ private:
 
   [[nodiscard]] const std::vector<VkImageView>& getImageViews() override;
 
+  void createSampler();
+
   void createImageResources();
 };
 
