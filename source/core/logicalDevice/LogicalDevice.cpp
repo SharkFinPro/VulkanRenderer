@@ -21,22 +21,22 @@ LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevi
 
 LogicalDevice::~LogicalDevice()
 {
-  for (size_t i = 0; i < maxFramesInFlight; i++)
+  for (size_t i = 0; i < m_maxFramesInFlight; i++)
   {
-    vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
-    vkDestroySemaphore(device, renderFinishedSemaphores2[i], nullptr);
+    vkDestroySemaphore(m_device, m_renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(m_device, m_renderFinishedSemaphores2[i], nullptr);
 
-    vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+    vkDestroySemaphore(m_device, m_imageAvailableSemaphores[i], nullptr);
 
-    vkDestroySemaphore(device, computeFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(m_device, m_computeFinishedSemaphores[i], nullptr);
 
-    vkDestroyFence(device, inFlightFences[i], nullptr);
-    vkDestroyFence(device, inFlightFences2[i], nullptr);
-    vkDestroyFence(device, mousePickingInFlightFences[i], nullptr);
-    vkDestroyFence(device, computeInFlightFences[i], nullptr);
+    vkDestroyFence(m_device, m_inFlightFences[i], nullptr);
+    vkDestroyFence(m_device, m_inFlightFences2[i], nullptr);
+    vkDestroyFence(m_device, m_mousePickingInFlightFences[i], nullptr);
+    vkDestroyFence(m_device, m_computeInFlightFences[i], nullptr);
   }
 
-  vkDestroyDevice(device, nullptr);
+  vkDestroyDevice(m_device, nullptr);
 }
 
 std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
@@ -46,22 +46,22 @@ std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
 
 void LogicalDevice::waitIdle() const
 {
-  vkDeviceWaitIdle(device);
+  vkDeviceWaitIdle(m_device);
 }
 
 VkQueue LogicalDevice::getGraphicsQueue() const
 {
-  return graphicsQueue;
+  return m_graphicsQueue;
 }
 
 VkQueue LogicalDevice::getPresentQueue() const
 {
-  return presentQueue;
+  return m_presentQueue;
 }
 
 VkQueue LogicalDevice::getComputeQueue() const
 {
-  return computeQueue;
+  return m_computeQueue;
 }
 
 void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
@@ -82,7 +82,7 @@ void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
     .pSignalSemaphores = nullptr
   };
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, mousePickingInFlightFences[currentFrame]) != VK_SUCCESS)
+  if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_mousePickingInFlightFences[currentFrame]) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
@@ -91,7 +91,7 @@ void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
 void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
   const std::array<VkSemaphore, 1> waitSemaphores = {
-    computeFinishedSemaphores[currentFrame]
+    m_computeFinishedSemaphores[currentFrame]
   };
   constexpr VkPipelineStageFlags waitStages[] = {
     VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
@@ -106,10 +106,10 @@ void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame, co
     .commandBufferCount = 1,
     .pCommandBuffers = commandBuffer,
     .signalSemaphoreCount = 1,
-    .pSignalSemaphores = &renderFinishedSemaphores2[currentFrame]
+    .pSignalSemaphores = &m_renderFinishedSemaphores2[currentFrame]
   };
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences2[currentFrame]) != VK_SUCCESS)
+  if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences2[currentFrame]) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
@@ -118,7 +118,7 @@ void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame, co
 void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
 {
   const std::array<VkSemaphore, 1> waitSemaphores = {
-    imageAvailableSemaphores[currentFrame]
+    m_imageAvailableSemaphores[currentFrame]
   };
   constexpr VkPipelineStageFlags waitStages[] = {
     VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
@@ -133,10 +133,10 @@ void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCom
     .commandBufferCount = 1,
     .pCommandBuffers = commandBuffer,
     .signalSemaphoreCount = 1,
-    .pSignalSemaphores = &renderFinishedSemaphores[currentFrame]
+    .pSignalSemaphores = &m_renderFinishedSemaphores[currentFrame]
   };
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
+  if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
@@ -149,10 +149,10 @@ void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkComm
     .commandBufferCount = 1,
     .pCommandBuffers = commandBuffer,
     .signalSemaphoreCount = 1,
-    .pSignalSemaphores = &computeFinishedSemaphores[currentFrame]
+    .pSignalSemaphores = &m_computeFinishedSemaphores[currentFrame]
   };
 
-  if (vkQueueSubmit(computeQueue, 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS)
+  if (vkQueueSubmit(m_computeQueue, 1, &submitInfo, m_computeInFlightFences[currentFrame]) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to submit compute command buffer!");
   }
@@ -160,37 +160,37 @@ void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkComm
 
 void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
 {
-  vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-  vkWaitForFences(device, 1, &inFlightFences2[currentFrame], VK_TRUE, UINT64_MAX);
-  vkWaitForFences(device, 1, &mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(m_device, 1, &m_inFlightFences2[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
 {
-  vkWaitForFences(device, 1, &computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(m_device, 1, &m_computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 
 void LogicalDevice::waitForMousePickingFences(uint32_t currentFrame) const
 {
-  vkWaitForFences(device, 1, &mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  vkWaitForFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 
 void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
 {
-  vkResetFences(device, 1, &inFlightFences[currentFrame]);
-  vkResetFences(device, 1, &inFlightFences2[currentFrame]);
-  vkResetFences(device, 1, &mousePickingInFlightFences[currentFrame]);
+  vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
+  vkResetFences(m_device, 1, &m_inFlightFences2[currentFrame]);
+  vkResetFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame]);
 }
 
 void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
 {
-  vkResetFences(device, 1, &computeInFlightFences[currentFrame]);
+  vkResetFences(m_device, 1, &m_computeInFlightFences[currentFrame]);
 }
 
 VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const
 {
   const std::array<VkSemaphore, 2> waitSemaphores = {
-    renderFinishedSemaphores[currentFrame],
-    renderFinishedSemaphores2[currentFrame]
+    m_renderFinishedSemaphores[currentFrame],
+    m_renderFinishedSemaphores2[currentFrame]
   };
 
   const VkPresentInfoKHR presentInfo {
@@ -203,25 +203,25 @@ VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapch
     .pResults = nullptr
   };
 
-  return vkQueuePresentKHR(presentQueue, &presentInfo);
+  return vkQueuePresentKHR(m_presentQueue, &presentInfo);
 }
 
 VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const
 {
-  return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
-                               imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);
+  return vkAcquireNextImageKHR(m_device, swapchain, UINT64_MAX,
+                               m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);
 }
 
 uint32_t LogicalDevice::getMaxFramesInFlight() const
 {
-  return maxFramesInFlight;
+  return m_maxFramesInFlight;
 }
 
 VkCommandPool LogicalDevice::createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const
 {
   VkCommandPool commandPool = VK_NULL_HANDLE;
 
-  if (vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+  if (vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create command pool!");
   }
@@ -231,21 +231,21 @@ VkCommandPool LogicalDevice::createCommandPool(const VkCommandPoolCreateInfo& co
 
 void LogicalDevice::destroyCommandPool(VkCommandPool& commandPool) const
 {
-  vkDestroyCommandPool(device, commandPool, nullptr);
+  vkDestroyCommandPool(m_device, commandPool, nullptr);
 
   commandPool = VK_NULL_HANDLE;
 }
 
 void LogicalDevice::destroyDescriptorPool(VkDescriptorPool& descriptorPool) const
 {
-  vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+  vkDestroyDescriptorPool(m_device, descriptorPool, nullptr);
 
   descriptorPool = VK_NULL_HANDLE;
 }
 
 void LogicalDevice::destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const
 {
-  vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+  vkDestroyDescriptorSetLayout(m_device, descriptorSetLayout, nullptr);
 
   descriptorSetLayout = VK_NULL_HANDLE;
 }
@@ -264,7 +264,7 @@ void LogicalDevice::doMappedMemoryOperation(VkDeviceMemory deviceMemory,
 void LogicalDevice::mapMemory(const VkDeviceMemory& memory, const VkDeviceSize offset, const VkDeviceSize size,
                               const VkMemoryMapFlags flags, void** data) const
 {
-  vkMapMemory(device, memory, offset, size, flags, data);
+  vkMapMemory(m_device, memory, offset, size, flags, data);
 }
 
 void LogicalDevice::unmapMemory(const VkDeviceMemory& memory) const
@@ -274,13 +274,13 @@ void LogicalDevice::unmapMemory(const VkDeviceMemory& memory) const
     return;
   }
 
-  vkUnmapMemory(device, memory);
+  vkUnmapMemory(m_device, memory);
 }
 
 void LogicalDevice::allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
                                            VkDescriptorSet* descriptorSets) const
 {
-  if (vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets) != VK_SUCCESS)
+  if (vkAllocateDescriptorSets(m_device, &descriptorSetAllocateInfo, descriptorSets) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate descriptor sets!");
   }
@@ -289,14 +289,14 @@ void LogicalDevice::allocateDescriptorSets(const VkDescriptorSetAllocateInfo& de
 void LogicalDevice::updateDescriptorSets(const uint32_t descriptorWriteCount,
                                          const VkWriteDescriptorSet* descriptorWrites) const
 {
-  vkUpdateDescriptorSets(device, descriptorWriteCount, descriptorWrites, 0, nullptr);
+  vkUpdateDescriptorSets(m_device, descriptorWriteCount, descriptorWrites, 0, nullptr);
 }
 
 VkBuffer LogicalDevice::createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const
 {
   VkBuffer buffer = VK_NULL_HANDLE;
 
-  if (vkCreateBuffer(device, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
+  if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create buffer!");
   }
@@ -311,7 +311,7 @@ void LogicalDevice::destroyBuffer(VkBuffer&buffer) const
     return;
   }
 
-  vkDestroyBuffer(device, buffer, nullptr);
+  vkDestroyBuffer(m_device, buffer, nullptr);
 
   buffer = VK_NULL_HANDLE;
 }
@@ -320,14 +320,14 @@ VkMemoryRequirements LogicalDevice::getBufferMemoryRequirements(const VkBuffer& 
 {
   VkMemoryRequirements memoryRequirements{};
 
-  vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+  vkGetBufferMemoryRequirements(m_device, buffer, &memoryRequirements);
 
   return memoryRequirements;
 }
 
 void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory& deviceMemory) const
 {
-  if (vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
+  if (vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate memory!");
   }
@@ -340,7 +340,7 @@ void LogicalDevice::freeMemory(VkDeviceMemory& memory) const
     return;
   }
 
-  vkFreeMemory(device, memory, nullptr);
+  vkFreeMemory(m_device, memory, nullptr);
 
   memory = VK_NULL_HANDLE;
 }
@@ -348,14 +348,14 @@ void LogicalDevice::freeMemory(VkDeviceMemory& memory) const
 void LogicalDevice::bindBufferMemory(const VkBuffer& buffer, const VkDeviceMemory& deviceMemory,
                                      const VkDeviceSize memoryOffset) const
 {
-  vkBindBufferMemory(device, buffer, deviceMemory, memoryOffset);
+  vkBindBufferMemory(m_device, buffer, deviceMemory, memoryOffset);
 }
 
 VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo &samplerCreateInfo) const
 {
   VkSampler sampler = VK_NULL_HANDLE;
 
-  if (vkCreateSampler(device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS)
+  if (vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create sampler!");
   }
@@ -365,7 +365,7 @@ VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo &samplerCreateI
 
 void LogicalDevice::destroySampler(VkSampler& sampler) const
 {
-  vkDestroySampler(device, sampler, nullptr);
+  vkDestroySampler(m_device, sampler, nullptr);
 
   sampler = VK_NULL_HANDLE;
 }
@@ -374,7 +374,7 @@ VkImageView LogicalDevice::createImageView(const VkImageViewCreateInfo& imageVie
 {
   VkImageView imageView = VK_NULL_HANDLE;
 
-  if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
+  if (vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create image view!");
   }
@@ -384,7 +384,7 @@ VkImageView LogicalDevice::createImageView(const VkImageViewCreateInfo& imageVie
 
 void LogicalDevice::destroyImageView(VkImageView& imageView) const
 {
-  vkDestroyImageView(device, imageView, nullptr);
+  vkDestroyImageView(m_device, imageView, nullptr);
 
   imageView = VK_NULL_HANDLE;
 }
@@ -393,7 +393,7 @@ VkImage LogicalDevice::createImage(const VkImageCreateInfo& imageCreateInfo) con
 {
   VkImage image = VK_NULL_HANDLE;
 
-  if (vkCreateImage(device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
+  if (vkCreateImage(m_device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create image!");
   }
@@ -403,7 +403,7 @@ VkImage LogicalDevice::createImage(const VkImageCreateInfo& imageCreateInfo) con
 
 void LogicalDevice::destroyImage(VkImage& image) const
 {
-  vkDestroyImage(device, image, nullptr);
+  vkDestroyImage(m_device, image, nullptr);
 
   image = VK_NULL_HANDLE;
 }
@@ -412,7 +412,7 @@ VkMemoryRequirements LogicalDevice::getImageMemoryRequirements(const VkImage& im
 {
   VkMemoryRequirements memoryRequirements{};
 
-  vkGetImageMemoryRequirements(device, image, &memoryRequirements);
+  vkGetImageMemoryRequirements(m_device, image, &memoryRequirements);
 
   return memoryRequirements;
 }
@@ -420,14 +420,14 @@ VkMemoryRequirements LogicalDevice::getImageMemoryRequirements(const VkImage& im
 void LogicalDevice::bindImageMemory(const VkImage& image, const VkDeviceMemory& deviceMemory,
                                     const VkDeviceSize memoryOffset) const
 {
-  vkBindImageMemory(device, image, deviceMemory, memoryOffset);
+  vkBindImageMemory(m_device, image, deviceMemory, memoryOffset);
 }
 
 VkRenderPass LogicalDevice::createRenderPass(const VkRenderPassCreateInfo &renderPassCreateInfo) const
 {
   VkRenderPass renderPass = VK_NULL_HANDLE;
 
-  if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
+  if (vkCreateRenderPass(m_device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create render pass!");
   }
@@ -437,7 +437,7 @@ VkRenderPass LogicalDevice::createRenderPass(const VkRenderPassCreateInfo &rende
 
 void LogicalDevice::destroyRenderPass(VkRenderPass& renderPass) const
 {
-  vkDestroyRenderPass(device, renderPass, nullptr);
+  vkDestroyRenderPass(m_device, renderPass, nullptr);
 
   renderPass = VK_NULL_HANDLE;
 }
@@ -446,7 +446,7 @@ VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo 
 {
   VkShaderModule shaderModule = VK_NULL_HANDLE;
 
-  if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
+  if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create shader module!");
   }
@@ -456,7 +456,7 @@ VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo 
 
 void LogicalDevice::destroyShaderModule(VkShaderModule& shaderModule) const
 {
-  vkDestroyShaderModule(device, shaderModule, nullptr);
+  vkDestroyShaderModule(m_device, shaderModule, nullptr);
 
   shaderModule = VK_NULL_HANDLE;
 }
@@ -465,7 +465,7 @@ VkSwapchainKHR LogicalDevice::createSwapchain(const VkSwapchainCreateInfoKHR& sw
 {
   VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 
-  if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
+  if (vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create swapchain!");
   }
@@ -476,12 +476,12 @@ VkSwapchainKHR LogicalDevice::createSwapchain(const VkSwapchainCreateInfoKHR& sw
 void LogicalDevice::getSwapchainImagesKHR(const VkSwapchainKHR& swapchain, uint32_t* swapchainImageCount,
                                           VkImage* swapchainImages) const
 {
-  vkGetSwapchainImagesKHR(device, swapchain, swapchainImageCount, swapchainImages);
+  vkGetSwapchainImagesKHR(m_device, swapchain, swapchainImageCount, swapchainImages);
 }
 
 void LogicalDevice::destroySwapchainKHR(VkSwapchainKHR& swapchain) const
 {
-  vkDestroySwapchainKHR(device, swapchain, nullptr);
+  vkDestroySwapchainKHR(m_device, swapchain, nullptr);
 
   swapchain = VK_NULL_HANDLE;
 }
@@ -490,7 +490,7 @@ VkFramebuffer LogicalDevice::createFramebuffer(const VkFramebufferCreateInfo& fr
 {
   VkFramebuffer framebuffer = VK_NULL_HANDLE;
 
-  if (vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &framebuffer) != VK_SUCCESS)
+  if (vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &framebuffer) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create framebuffer!");
   }
@@ -500,7 +500,7 @@ VkFramebuffer LogicalDevice::createFramebuffer(const VkFramebufferCreateInfo& fr
 
 void LogicalDevice::destroyFramebuffer(VkFramebuffer& framebuffer) const
 {
-  vkDestroyFramebuffer(device, framebuffer, nullptr);
+  vkDestroyFramebuffer(m_device, framebuffer, nullptr);
 
   framebuffer = VK_NULL_HANDLE;
 }
@@ -509,7 +509,7 @@ VkPipelineLayout LogicalDevice::createPipelineLayout(const VkPipelineLayoutCreat
 {
   VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 
-  if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create pipeline layout!");
   }
@@ -524,7 +524,7 @@ void LogicalDevice::destroyPipelineLayout(VkPipelineLayout& pipelineLayout) cons
     return;
   }
 
-  vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+  vkDestroyPipelineLayout(m_device, pipelineLayout, nullptr);
 
   pipelineLayout = VK_NULL_HANDLE;
 }
@@ -533,7 +533,7 @@ VkPipeline LogicalDevice::createPipeline(const VkGraphicsPipelineCreateInfo& gra
 {
   VkPipeline pipeline = VK_NULL_HANDLE;
 
-  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+  if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create graphics pipeline!");
   }
@@ -545,7 +545,7 @@ VkPipeline LogicalDevice::createPipeline(const VkComputePipelineCreateInfo& comp
 {
   VkPipeline pipeline = VK_NULL_HANDLE;
 
-  if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+  if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create compute pipeline!");
   }
@@ -560,7 +560,7 @@ void LogicalDevice::destroyPipeline(VkPipeline&pipeline) const
     return;
   }
 
-  vkDestroyPipeline(device, pipeline, nullptr);
+  vkDestroyPipeline(m_device, pipeline, nullptr);
 
   pipeline = VK_NULL_HANDLE;
 }
@@ -568,7 +568,7 @@ void LogicalDevice::destroyPipeline(VkPipeline&pipeline) const
 void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                            VkCommandBuffer* commandBuffers) const
 {
-  if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers) != VK_SUCCESS)
+  if (vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, commandBuffers) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to allocate command buffers!");
   }
@@ -577,14 +577,14 @@ void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& co
 void LogicalDevice::freeCommandBuffers(VkCommandPool commandPool, const uint32_t commandBufferCount,
                                        const VkCommandBuffer* commandBuffers) const
 {
-  vkFreeCommandBuffers(device, commandPool, commandBufferCount, commandBuffers);
+  vkFreeCommandBuffers(m_device, commandPool, commandBufferCount, commandBuffers);
 }
 
 VkDescriptorPool LogicalDevice::createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const
 {
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
-  if (vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+  if (vkCreateDescriptorPool(m_device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor pool!");
   }
@@ -596,7 +596,7 @@ VkDescriptorSetLayout LogicalDevice::createDescriptorSetLayout(const VkDescripto
 {
   VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 
-  if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+  if (vkCreateDescriptorSetLayout(m_device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create descriptor set layout!");
   }
@@ -643,26 +643,26 @@ void LogicalDevice::createDevice()
     .pEnabledFeatures = &deviceFeatures
   };
 
-  device = m_physicalDevice->createLogicalDevice(createInfo);
+  m_device = m_physicalDevice->createLogicalDevice(createInfo);
 
-  vkGetDeviceQueue(device, queueFamilyIndices.computeFamily.value(), 0, &computeQueue);
-  vkGetDeviceQueue(device, queueFamilyIndices.graphicsFamily.value(), 0, &graphicsQueue);
-  vkGetDeviceQueue(device, queueFamilyIndices.presentFamily.value(), 0, &presentQueue);
+  vkGetDeviceQueue(m_device, queueFamilyIndices.computeFamily.value(), 0, &m_computeQueue);
+  vkGetDeviceQueue(m_device, queueFamilyIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
+  vkGetDeviceQueue(m_device, queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
 }
 
 void LogicalDevice::createSyncObjects()
 {
-  imageAvailableSemaphores.resize(maxFramesInFlight);
+  m_imageAvailableSemaphores.resize(m_maxFramesInFlight);
 
-  renderFinishedSemaphores.resize(maxFramesInFlight);
-  renderFinishedSemaphores2.resize(maxFramesInFlight);
+  m_renderFinishedSemaphores.resize(m_maxFramesInFlight);
+  m_renderFinishedSemaphores2.resize(m_maxFramesInFlight);
 
-  computeFinishedSemaphores.resize(maxFramesInFlight);
+  m_computeFinishedSemaphores.resize(m_maxFramesInFlight);
 
-  inFlightFences.resize(maxFramesInFlight);
-  inFlightFences2.resize(maxFramesInFlight);
-  mousePickingInFlightFences.resize(maxFramesInFlight);
-  computeInFlightFences.resize(maxFramesInFlight);
+  m_inFlightFences.resize(m_maxFramesInFlight);
+  m_inFlightFences2.resize(m_maxFramesInFlight);
+  m_mousePickingInFlightFences.resize(m_maxFramesInFlight);
+  m_computeInFlightFences.resize(m_maxFramesInFlight);
 
   constexpr VkSemaphoreCreateInfo semaphoreInfo {
     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
@@ -673,20 +673,20 @@ void LogicalDevice::createSyncObjects()
     .flags = VK_FENCE_CREATE_SIGNALED_BIT
   };
 
-  for (size_t i = 0; i < maxFramesInFlight; i++)
+  for (size_t i = 0; i < m_maxFramesInFlight; i++)
   {
-    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores2[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences2[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &mousePickingInFlightFences[i]) != VK_SUCCESS)
+    if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores2[i]) != VK_SUCCESS ||
+        vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS ||
+        vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences2[i]) != VK_SUCCESS ||
+        vkCreateFence(m_device, &fenceInfo, nullptr, &m_mousePickingInFlightFences[i]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create graphics sync objects!");
     }
 
-    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
-        vkCreateFence(device, &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS)
+    if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_computeFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(m_device, &fenceInfo, nullptr, &m_computeInFlightFences[i]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create compute sync objects!");
     }

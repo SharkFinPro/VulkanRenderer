@@ -39,9 +39,9 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
   }
 
   ImGui_ImplVulkan_InitInfo initInfo {
-    .Instance = instance->instance,
-    .PhysicalDevice = physicalDevice->physicalDevice,
-    .Device = logicalDevice->device,
+    .Instance = instance->m_instance,
+    .PhysicalDevice = physicalDevice->m_physicalDevice,
+    .Device = logicalDevice->m_device,
     .Queue = logicalDevice->getGraphicsQueue(),
     .DescriptorPool = guiPipeline->getPool(),
     .RenderPass = renderPass->getRenderPass(),

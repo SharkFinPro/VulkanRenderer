@@ -128,25 +128,25 @@ public:
 private:
   std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
-  VkDevice device = VK_NULL_HANDLE;
+  VkDevice m_device = VK_NULL_HANDLE;
 
-  VkQueue graphicsQueue = VK_NULL_HANDLE;
-  VkQueue presentQueue = VK_NULL_HANDLE;
-  VkQueue computeQueue = VK_NULL_HANDLE;
+  VkQueue m_graphicsQueue = VK_NULL_HANDLE;
+  VkQueue m_presentQueue = VK_NULL_HANDLE;
+  VkQueue m_computeQueue = VK_NULL_HANDLE;
 
-  std::vector<VkSemaphore> imageAvailableSemaphores;
+  std::vector<VkSemaphore> m_imageAvailableSemaphores;
 
-  std::vector<VkSemaphore> renderFinishedSemaphores;
-  std::vector<VkSemaphore> renderFinishedSemaphores2;
+  std::vector<VkSemaphore> m_renderFinishedSemaphores;
+  std::vector<VkSemaphore> m_renderFinishedSemaphores2;
 
-  std::vector<VkFence> inFlightFences;
-  std::vector<VkFence> inFlightFences2;
-  std::vector<VkFence> mousePickingInFlightFences;
+  std::vector<VkFence> m_inFlightFences;
+  std::vector<VkFence> m_inFlightFences2;
+  std::vector<VkFence> m_mousePickingInFlightFences;
 
-  std::vector<VkSemaphore> computeFinishedSemaphores;
-  std::vector<VkFence> computeInFlightFences;
+  std::vector<VkSemaphore> m_computeFinishedSemaphores;
+  std::vector<VkFence> m_computeInFlightFences;
 
-  uint8_t maxFramesInFlight = 2;
+  uint8_t m_maxFramesInFlight = 2;
 
   void createDevice();
 

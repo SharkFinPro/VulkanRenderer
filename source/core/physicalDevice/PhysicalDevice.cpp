@@ -5,34 +5,34 @@
 #include <set>
 
 PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface)
-  : surface(surface), msaaSamples(VK_SAMPLE_COUNT_1_BIT)
+  : m_surface(surface), m_msaaSamples(VK_SAMPLE_COUNT_1_BIT)
 {
   pickPhysicalDevice(instance);
 
-  queueFamilyIndices = findQueueFamilies(physicalDevice);
+  m_queueFamilyIndices = findQueueFamilies(m_physicalDevice);
 
   updateSwapChainSupportDetails();
 }
 
 QueueFamilyIndices PhysicalDevice::getQueueFamilies() const
 {
-  return queueFamilyIndices;
+  return m_queueFamilyIndices;
 }
 
 SwapChainSupportDetails PhysicalDevice::getSwapChainSupport() const
 {
-  return swapChainSupportDetails;
+  return m_swapChainSupportDetails;
 }
 
 VkSampleCountFlagBits PhysicalDevice::getMsaaSamples() const
 {
-  return msaaSamples;
+  return m_msaaSamples;
 }
 
 uint32_t PhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const
 {
   VkPhysicalDeviceMemoryProperties memoryProperties;
-  vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+  vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memoryProperties);
 
   for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
   {
@@ -47,13 +47,13 @@ uint32_t PhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemor
 
 void PhysicalDevice::updateSwapChainSupportDetails()
 {
-  swapChainSupportDetails = querySwapChainSupport(physicalDevice);
+  m_swapChainSupportDetails = querySwapChainSupport(m_physicalDevice);
 }
 
 VkFormatProperties PhysicalDevice::getFormatProperties(const VkFormat format) const
 {
   VkFormatProperties formatProperties{};
-  vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
+  vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &formatProperties);
 
   return formatProperties;
 }
@@ -61,7 +61,7 @@ VkFormatProperties PhysicalDevice::getFormatProperties(const VkFormat format) co
 VkPhysicalDeviceProperties PhysicalDevice::getDeviceProperties() const
 {
   VkPhysicalDeviceProperties deviceProperties{};
-  vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+  vkGetPhysicalDeviceProperties(m_physicalDevice, &deviceProperties);
 
   return deviceProperties;
 }
@@ -70,7 +70,7 @@ VkDevice PhysicalDevice::createLogicalDevice(const VkDeviceCreateInfo& deviceCre
 {
   VkDevice logicalDevice;
 
-  if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &logicalDevice) != VK_SUCCESS)
+  if (vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &logicalDevice) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create logical device!");
   }
@@ -84,13 +84,13 @@ void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instanc
   {
     if (isDeviceSuitable(device))
     {
-      physicalDevice = device;
-      msaaSamples = getMaxUsableSampleCount();
+      m_physicalDevice = device;
+      m_msaaSamples = getMaxUsableSampleCount();
       break;
     }
   }
 
-  if (physicalDevice == VK_NULL_HANDLE)
+  if (m_physicalDevice == VK_NULL_HANDLE)
   {
     throw std::runtime_error("failed to find a suitable GPU!");
   }
@@ -139,7 +139,7 @@ QueueFamilyIndices PhysicalDevice::findQueueFamilies(const VkPhysicalDevice devi
     }
 
     VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
 
     if (presentSupport)
     {
@@ -179,24 +179,24 @@ SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const VkPhysicalDe
 {
   SwapChainSupportDetails details;
 
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &details.capabilities);
 
   uint32_t formatCount;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &formatCount, nullptr);
 
   if (formatCount != 0)
   {
     details.formats.resize(formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &formatCount, details.formats.data());
   }
 
   uint32_t presentModeCount;
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+  vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &presentModeCount, nullptr);
 
   if (presentModeCount != 0)
   {
     details.presentModes.resize(presentModeCount);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &presentModeCount, details.presentModes.data());
   }
 
   return details;
@@ -205,7 +205,7 @@ SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const VkPhysicalDe
 VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount() const
 {
   VkPhysicalDeviceProperties physicalDeviceProperties;
-  vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+  vkGetPhysicalDeviceProperties(m_physicalDevice, &physicalDeviceProperties);
 
   const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
                                     physicalDeviceProperties.limits.framebufferDepthSampleCounts;
