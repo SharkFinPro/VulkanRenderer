@@ -1,9 +1,9 @@
-#include <iostream>
-#include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
+#include <source/VulkanEngine.h>
 #include <imgui.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <string>
-#include "glm/gtc/type_ptr.hpp"
 
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);

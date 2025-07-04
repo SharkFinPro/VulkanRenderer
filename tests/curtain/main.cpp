@@ -2,11 +2,14 @@
 #include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
 #include <imgui.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <string>
-#include "glm/gtc/type_ptr.hpp"
 
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights,
+                 bool& useCurtain);
 
 int main()
 {
@@ -43,45 +46,11 @@ int main()
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
-    bool useEllipticalDots = true;
+    bool useCurtain = true;
 
     while (renderer.isActive())
     {
-      gui->dockCenter("SceneView");
-      gui->dockBottom("Objects");
-      gui->dockBottom("Lights");
-      gui->dockBottom("Rendering");
-      gui->dockBottom("Curtain");
-
-      gui->setBottomDockPercent(0.3);
-
-      // Render GUI
-      ImGui::Begin("Objects");
-      displayObjectGui(object, 0);
-      ImGui::End();
-
-      ImGui::Begin("Lights");
-      for (int i = 0; i < lights.size(); i++)
-      {
-        displayLightGui(lights[i], i);
-      }
-      ImGui::End();
-
-      ImGui::Begin("Rendering");
-      ImGui::Checkbox("Use Noisy Elliptical Dots", &useEllipticalDots);
-      ImGui::End();
-
-
-      // Render Objects
-      renderer.renderObject(object, useEllipticalDots ? PipelineType::curtain : PipelineType::object);
-
-      for (const auto& light : lights)
-      {
-        renderer.renderLight(light);
-      }
-
-      // Render Frame
-      renderer.render();
+      renderScene(renderer, gui, object, lights, useCurtain);
     }
   }
   catch (const std::exception& e)
@@ -136,4 +105,45 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
+}
+
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights,
+                 bool& useCurtain)
+{
+  gui->dockCenter("SceneView");
+  gui->dockBottom("Objects");
+  gui->dockBottom("Lights");
+  gui->dockBottom("Rendering");
+  gui->dockBottom("Curtain");
+
+  gui->setBottomDockPercent(0.3);
+
+  // Render GUI
+  ImGui::Begin("Objects");
+  displayObjectGui(object, 0);
+  ImGui::End();
+
+  ImGui::Begin("Lights");
+  for (int i = 0; i < lights.size(); i++)
+  {
+    displayLightGui(lights[i], i);
+  }
+  ImGui::End();
+
+  ImGui::Begin("Rendering");
+  ImGui::Checkbox("Use Curtain", &useCurtain);
+  ImGui::End();
+
+
+  // Render Objects
+  renderer.renderObject(object, useCurtain ? PipelineType::curtain : PipelineType::object);
+
+  for (const auto& light : lights)
+  {
+    renderer.renderLight(light);
+  }
+
+  // Render Frame
+  renderer.render();
 }
