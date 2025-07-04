@@ -2,8 +2,8 @@
 #define VULKANPROJECT_UNIFORMBUFFER_H
 
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <memory>
+#include <vector>
 
 class LogicalDevice;
 
