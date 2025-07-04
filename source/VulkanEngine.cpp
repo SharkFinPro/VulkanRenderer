@@ -232,7 +232,6 @@ void VulkanEngine::initVulkan()
   swapchainCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
   mousePickingCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
 
-
   createDescriptorPool();
 
   createObjectDescriptorSetLayout();
