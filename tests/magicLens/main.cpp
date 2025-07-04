@@ -8,8 +8,9 @@
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
 void createLights(VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights);
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui, std::shared_ptr<RenderObject> object,
-                 const std::vector<std::shared_ptr<Light>>& lights, bool& useMagicLens);
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights,
+                 bool& useMagicLens);
 
 int main()
 {
@@ -111,8 +112,9 @@ void createLights(VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& l
   lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
 
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui, std::shared_ptr<RenderObject> object,
-                 const std::vector<std::shared_ptr<Light>>& lights, bool& useMagicLens)
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights,
+                 bool& useMagicLens)
 {
   gui->dockCenter("SceneView");
   gui->dockBottom("Objects");
