@@ -8,12 +8,11 @@
 #include <backends/imgui_impl_vulkan.h>
 
 Framebuffer::Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const std::shared_ptr<SwapChain>& swapChain,
                          const VkCommandPool& commandPool,
                          const std::shared_ptr<RenderPass>& renderPass,
                          const VkExtent2D extent,
                          const bool mousePicking)
-  : m_logicalDevice(logicalDevice), m_swapChain(swapChain), m_mousePicking(mousePicking)
+  : m_logicalDevice(logicalDevice), m_mousePicking(mousePicking)
 {
   createImageResources(commandPool, extent);
 
@@ -26,15 +25,16 @@ Framebuffer::Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
 Framebuffer::~Framebuffer()
 {
-  if (!m_swapChain)
-  {
-    m_logicalDevice->destroySampler(m_sampler);
-
-    for (const auto& framebufferImageDescriptorSet : m_framebufferImageDescriptorSets)
-    {
-      ImGui_ImplVulkan_RemoveTexture(framebufferImageDescriptorSet);
-    }
-  }
+  // TODO: Child Pipeline
+  // if (!m_swapChain)
+  // {
+  //   m_logicalDevice->destroySampler(m_sampler);
+  //
+  //   for (const auto& framebufferImageDescriptorSet : m_framebufferImageDescriptorSets)
+  //   {
+  //     ImGui_ImplVulkan_RemoveTexture(framebufferImageDescriptorSet);
+  //   }
+  // }
 
   for (auto& imageView : m_framebufferImageViews)
   {
@@ -82,10 +82,11 @@ VkImage& Framebuffer::getColorImage()
 
 void Framebuffer::createImageResources(const VkCommandPool& commandPool, const VkExtent2D extent)
 {
-  if (m_swapChain)
-  {
+  // TODO: Child Pipeline
+  // if (m_swapChain)
+  // {
     return;
-  }
+  // }
 
   m_framebufferImageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
 
@@ -157,7 +158,7 @@ void Framebuffer::createColorResources(const VkExtent2D extent)
 {
   const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
 
-  const VkFormat colorFormat = m_swapChain ? m_swapChain->getImageFormat() : m_framebufferImageFormat;
+  const auto colorFormat = getColorFormat();
 
   Images::createImage(m_logicalDevice, 0, extent.width, extent.height, 1,
                       1, samples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
@@ -171,7 +172,7 @@ void Framebuffer::createColorResources(const VkExtent2D extent)
 
 void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExtent2D extent)
 {
-  const std::vector<VkImageView>& imageViews = m_swapChain ? m_swapChain->getImageViews() : m_framebufferImageViews;
+  const auto imageViews = getImageViews();
 
   m_framebuffers.resize(imageViews.size());
 

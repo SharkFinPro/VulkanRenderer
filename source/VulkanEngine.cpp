@@ -289,8 +289,8 @@ void VulkanEngine::initVulkan()
   imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
                                                   guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
 
-  framebuffer = std::make_shared<Framebuffer>(logicalDevice, swapChain, commandPool, renderPass,
-                                              swapChain->getExtent());
+  framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
+                                                       swapChain->getExtent());
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -517,8 +517,8 @@ void VulkanEngine::recreateSwapChain()
   physicalDevice->updateSwapChainSupportDetails();
 
   swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
-  framebuffer = std::make_shared<Framebuffer>(logicalDevice, swapChain, commandPool, renderPass,
-                                              swapChain->getExtent());
+  framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
+                                                       swapChain->getExtent());
 
   mousePickingFramebuffer = std::make_shared<Framebuffer>(logicalDevice, nullptr, commandPool,
                                                           mousePickingRenderPass, offscreenViewportExtent, true);

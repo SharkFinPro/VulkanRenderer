@@ -7,17 +7,16 @@
 
 class LogicalDevice;
 class RenderPass;
-class SwapChain;
 
 class Framebuffer {
 public:
   Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-              const std::shared_ptr<SwapChain>& swapChain,
               const VkCommandPool& commandPool,
               const std::shared_ptr<RenderPass>& renderPass,
               VkExtent2D extent,
               bool mousePicking = false);
-  ~Framebuffer();
+
+  virtual ~Framebuffer();
 
   VkFramebuffer& getFramebuffer(uint32_t imageIndex);
 
@@ -25,9 +24,8 @@ public:
 
   VkImage& getColorImage();
 
-private:
+protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
-  std::shared_ptr<SwapChain> m_swapChain;
 
   std::vector<VkFramebuffer> m_framebuffers;
   VkImage m_depthImage = VK_NULL_HANDLE;
@@ -51,6 +49,9 @@ private:
   void createDepthResources(const VkCommandPool& commandPool, VkFormat depthFormat, VkExtent2D extent);
   void createColorResources(VkExtent2D extent);
   void createFrameBuffers(const VkRenderPass& renderPass, VkExtent2D extent);
+
+  [[nodiscard]] virtual VkFormat getColorFormat() const = 0;
+  [[nodiscard]] virtual const std::vector<VkImageView>& getImageViews() const = 0;
 };
 
 
