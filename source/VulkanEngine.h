@@ -1,8 +1,8 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
-#include "components/framebuffer/StandardFramebuffer.h"
-#include "components/framebuffer/SwapchainFramebuffer.h"
+#include "components/framebuffers/StandardFramebuffer.h"
+#include "components/framebuffers/SwapchainFramebuffer.h"
 #include "components/Camera.h"
 #include "components/ImGuiInstance.h"
 #include "core/logicalDevice/LogicalDevice.h"

@@ -6,10 +6,12 @@ set(BUILD_SHARED_LIBS ON)
 add_library(${PROJECT_NAME}
   VulkanEngine.cpp
   VulkanEngine.h
-  components/framebuffer/Framebuffer.cpp
-  components/framebuffer/Framebuffer.h
-  components/framebuffer/SwapchainFramebuffer.cpp
-  components/framebuffer/SwapchainFramebuffer.h
+  components/framebuffers/Framebuffer.cpp
+  components/framebuffers/Framebuffer.h
+  components/framebuffers/StandardFramebuffer.cpp
+  components/framebuffers/StandardFramebuffer.h
+  components/framebuffers/SwapchainFramebuffer.cpp
+  components/framebuffers/SwapchainFramebuffer.h
   components/textures/Texture.cpp
   components/textures/Texture.h
   components/textures/Texture2D.cpp
@@ -97,8 +99,6 @@ add_library(${PROJECT_NAME}
   pipelines/custom/ObjectHighlightPipeline.h
   core/commandBuffer/CommandBuffer.cpp
   core/commandBuffer/CommandBuffer.h
-  components/framebuffer/StandardFramebuffer.cpp
-  components/framebuffer/StandardFramebuffer.h
 )
 
 # Assets
