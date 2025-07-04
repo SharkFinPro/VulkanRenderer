@@ -11,7 +11,7 @@ StandardFramebuffer::StandardFramebuffer(const std::shared_ptr<LogicalDevice>& l
   : Framebuffer(logicalDevice, mousePicking), m_commandPool(commandPool), m_extent(extent)
 {
   createSampler();
-  
+
   createImageResources();
 
   initializeFramebuffer(commandPool, renderPass, extent);
@@ -95,19 +95,27 @@ void StandardFramebuffer::createImageResources()
 
   for (int i = 0; i < numImages; i++)
   {
-    Images::createImage(m_logicalDevice, 0, m_extent.width, m_extent.height, 1,
-                        1, VK_SAMPLE_COUNT_1_BIT, m_framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        m_framebufferImages[i], m_framebufferImageMemory[i], VK_IMAGE_TYPE_2D, 1);
-
-    m_framebufferImageViews[i] = Images::createImageView(m_logicalDevice, m_framebufferImages[i],
-                                                         m_framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
-                                                         VK_IMAGE_VIEW_TYPE_2D, 1);
-
-    Images::transitionImageLayout(m_logicalDevice, m_commandPool, m_framebufferImages[i], m_framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 1);
-
-    m_framebufferImageDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(m_sampler, m_framebufferImageViews[i],
-                                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createImageResource(i);
   }
+}
+
+void StandardFramebuffer::createImageResource(const size_t imageIndex)
+{
+  Images::createImage(m_logicalDevice, 0, m_extent.width, m_extent.height, 1,
+                      1, VK_SAMPLE_COUNT_1_BIT, m_framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_framebufferImages[imageIndex],
+                      m_framebufferImageMemory[imageIndex], VK_IMAGE_TYPE_2D, 1);
+
+  m_framebufferImageViews[imageIndex] = Images::createImageView(m_logicalDevice, m_framebufferImages[imageIndex],
+                                                                m_framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT,
+                                                                1, VK_IMAGE_VIEW_TYPE_2D, 1);
+
+  Images::transitionImageLayout(m_logicalDevice, m_commandPool, m_framebufferImages[imageIndex],
+                                m_framebufferImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 1);
+
+  m_framebufferImageDescriptorSets[imageIndex] = ImGui_ImplVulkan_AddTexture(m_sampler,
+                                                                             m_framebufferImageViews[imageIndex],
+                                                                             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }

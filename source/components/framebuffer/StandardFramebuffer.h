@@ -34,6 +34,8 @@ private:
   void createSampler();
 
   void createImageResources();
+
+  void createImageResource(size_t imageIndex);
 };
 
 
