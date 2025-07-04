@@ -1,22 +1,23 @@
 #include "RenderObject.h"
 #include "Model.h"
-#include "../components/textures/Texture.h"
 #include "UniformBuffer.h"
-#include "../components/Camera.h"
+#include "../components/textures/Texture.h"
 #include "../core/commandBuffer/CommandBuffer.h"
 #include "../pipelines/custom/Uniforms.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
-#include <utility>
 
 RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                           const VkDescriptorSetLayout& descriptorSetLayout, std::shared_ptr<Texture> texture,
-                           std::shared_ptr<Texture> specularMap, std::shared_ptr<Model> model)
-  : logicalDevice(logicalDevice), physicalDevice(physicalDevice), descriptorSetLayout(descriptorSetLayout),
-    texture(std::move(texture)), specularMap(std::move(specularMap)), model(std::move(model)),
-    position(0, 0, 0), scale(1, 1, 1), orientation(1, 0, 0, 0),
-    transformUniform(std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform)))
+                           const VkDescriptorSetLayout& descriptorSetLayout,
+                           const std::shared_ptr<Texture>& texture,
+                           const std::shared_ptr<Texture>& specularMap,
+                           const std::shared_ptr<Model>& model)
+  : m_logicalDevice(logicalDevice),
+    m_descriptorSetLayout(descriptorSetLayout),
+    m_texture(texture),
+    m_specularMap(specularMap),
+    m_model(model),
+    m_transformUniform(std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform)))
 {
   createDescriptorPool();
   createDescriptorSets();
@@ -24,19 +25,22 @@ RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
 RenderObject::~RenderObject()
 {
-  logicalDevice->destroyDescriptorPool(descriptorPool);
+  m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 }
 
-void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer, const VkPipelineLayout& pipelineLayout,
-                        const uint32_t currentFrame, const uint32_t descriptorSet) const
+void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                        const VkPipelineLayout& pipelineLayout,
+                        const uint32_t currentFrame,
+                        const uint32_t descriptorSet) const
 {
-  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet, 1,
-                                    &descriptorSets[currentFrame]);
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet,
+                                    1, &m_descriptorSets[currentFrame]);
 
-  model->draw(commandBuffer);
+  m_model->draw(commandBuffer);
 }
 
-void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const glm::mat4& viewMatrix,
+void RenderObject::updateUniformBuffer(const uint32_t currentFrame,
+                                       const glm::mat4& viewMatrix,
                                        const glm::mat4& projectionMatrix) const
 {
   const TransformUniform transformUBO {
@@ -45,102 +49,104 @@ void RenderObject::updateUniformBuffer(const uint32_t currentFrame, const glm::m
     .proj = projectionMatrix
   };
 
-  transformUniform->update(currentFrame, &transformUBO);
+  m_transformUniform->update(currentFrame, &transformUBO);
 }
 
 void RenderObject::setPosition(const glm::vec3 position)
 {
-  this->position = position;
+  m_position = position;
 }
 
 void RenderObject::setScale(const glm::vec3 scale)
 {
-  this->scale = scale;
+  m_scale = scale;
 }
 
 void RenderObject::setScale(const float scale)
 {
-  this->scale = glm::vec3(scale);
+  m_scale = glm::vec3(scale);
 }
 
 void RenderObject::setOrientationEuler(const glm::vec3 orientation)
 {
-  this->orientation = glm::quat(glm::radians(orientation));
+  m_orientation = glm::quat(glm::radians(orientation));
 }
 
 void RenderObject::setOrientationQuat(const glm::quat orientation)
 {
-  this->orientation = glm::normalize(orientation);
+  m_orientation = glm::normalize(orientation);
 }
 
 glm::vec3 RenderObject::getPosition() const
 {
-  return position;
+  return m_position;
 }
 
 glm::vec3 RenderObject::getScale() const
 {
-  return scale;
+  return m_scale;
 }
 
 glm::vec3 RenderObject::getOrientationEuler() const
 {
-  return glm::degrees(glm::eulerAngles(orientation));
+  return glm::degrees(glm::eulerAngles(m_orientation));
 }
 
 glm::quat RenderObject::getOrientationQuat() const
 {
-  return orientation;
+  return m_orientation;
 }
 
 void RenderObject::createDescriptorPool()
 {
   const std::array<VkDescriptorPoolSize, 3> poolSizes {
-    transformUniform->getDescriptorPoolSize(),
-    texture->getDescriptorPoolSize(),
-    specularMap->getDescriptorPoolSize()
+    m_transformUniform->getDescriptorPoolSize(),
+    m_texture->getDescriptorPoolSize(),
+    m_specularMap->getDescriptorPoolSize()
   };
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = logicalDevice->getMaxFramesInFlight(),
+    .maxSets = m_logicalDevice->getMaxFramesInFlight(),
     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
     .pPoolSizes = poolSizes.data()
   };
 
-  descriptorPool = logicalDevice->createDescriptorPool(poolCreateInfo);
+  m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
 void RenderObject::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), descriptorSetLayout);
+  const auto maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
+
+  const std::vector<VkDescriptorSetLayout> layouts(maxFramesInFlight, m_descriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptorPool,
-    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
+    .descriptorPool = m_descriptorPool,
+    .descriptorSetCount = maxFramesInFlight,
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
+  m_descriptorSets.resize(maxFramesInFlight);
+  m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
 
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < maxFramesInFlight; i++)
   {
     std::array<VkWriteDescriptorSet, 3> descriptorWrites {
-      transformUniform->getDescriptorSet(0, descriptorSets[i], i),
-      texture->getDescriptorSet(1, descriptorSets[i]),
-      specularMap->getDescriptorSet(4, descriptorSets[i])
+      m_transformUniform->getDescriptorSet(0, m_descriptorSets[i], i),
+      m_texture->getDescriptorSet(1, m_descriptorSets[i]),
+      m_specularMap->getDescriptorSet(4, m_descriptorSets[i])
     };
 
-    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
+    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
 glm::mat4 RenderObject::createModelMatrix() const
 {
-  const glm::mat4 model = glm::translate(glm::mat4(1.0f), position)
-                          * glm::mat4(orientation)
-                          * glm::scale(glm::mat4(1.0f), scale);
+  const glm::mat4 model = glm::translate(glm::mat4(1.0f), m_position)
+                          * glm::mat4(m_orientation)
+                          * glm::scale(glm::mat4(1.0f), m_scale);
 
   return model;
 }
