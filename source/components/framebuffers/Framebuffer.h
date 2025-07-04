@@ -10,8 +10,8 @@ class RenderPass;
 
 class Framebuffer {
 public:
-  Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-              bool mousePicking = false);
+  explicit Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                       bool mousePicking = false);
 
   virtual ~Framebuffer();
 
