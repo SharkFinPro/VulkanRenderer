@@ -8,6 +8,8 @@ add_library(${PROJECT_NAME}
   VulkanEngine.h
   components/framebuffer/Framebuffer.cpp
   components/framebuffer/Framebuffer.h
+  components/framebuffer/SwapchainFramebuffer.cpp
+  components/framebuffer/SwapchainFramebuffer.h
   components/textures/Texture.cpp
   components/textures/Texture.h
   components/textures/Texture2D.cpp
