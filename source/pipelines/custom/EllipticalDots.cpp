@@ -8,6 +8,34 @@
 #include "../../objects/Light.h"
 #include <imgui.h>
 
+constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
+  .binding = 2,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding lightsLayout {
+  .binding = 5,
+  .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  .binding = 3,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
+constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
+  .binding = 4,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 EllipticalDots::EllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                                const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
@@ -68,34 +96,6 @@ void EllipticalDots::defineStates()
 
 void EllipticalDots::createGlobalDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-    .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding lightsLayout {
-    .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
-    .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array<VkDescriptorSetLayoutBinding, 4> globalBindings {
     lightMetadataLayout,
     lightsLayout,
@@ -139,13 +139,13 @@ void EllipticalDots::createDescriptorSets()
 
 void EllipticalDots::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
 
-  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(EllipticalDotsUniform));
+  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(EllipticalDotsUniform));
 }
 
 void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -167,7 +167,7 @@ void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, lightsUniformBufferSize);
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
@@ -192,7 +192,7 @@ void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light
   lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
-void EllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
+void EllipticalDots::updateUniformVariables(const RenderInfo* renderInfo)
 {
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
@@ -204,7 +204,7 @@ void EllipticalDots::updateUniformVariables(const RenderInfo *renderInfo)
   ellipticalDotsUniform->update(renderInfo->currentFrame, &ellipticalDotsUBO);
 }
 
-void EllipticalDots::bindDescriptorSet(const RenderInfo *renderInfo)
+void EllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);

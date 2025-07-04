@@ -78,7 +78,13 @@ std::shared_ptr<Texture2D> VulkanEngine::loadTexture(const char* path, const boo
 
 std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotation)
 {
-  auto model = std::make_shared<Model>(physicalDevice, logicalDevice, commandPool, path, rotation);
+  auto model = std::make_shared<Model>(
+    logicalDevice,
+    commandPool,
+    path,
+    rotation
+  );
+
   models.push_back(model);
 
   return model;
@@ -88,8 +94,13 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Texture2D>& specularMap,
                                                              const std::shared_ptr<Model>& model)
 {
-  auto renderObject = std::make_shared<RenderObject>(logicalDevice, physicalDevice, objectDescriptorSetLayout,
-                                                     texture, specularMap, model);
+  auto renderObject = std::make_shared<RenderObject>(
+    logicalDevice,
+    objectDescriptorSetLayout,
+    texture,
+    specularMap,
+    model
+  );
 
   renderObjects.push_back(renderObject);
 
@@ -221,12 +232,11 @@ void VulkanEngine::initVulkan()
   swapchainCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
   mousePickingCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
 
-
   createDescriptorPool();
 
   createObjectDescriptorSetLayout();
 
-  swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
+  swapChain = std::make_shared<SwapChain>(logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, swapChain->getImageFormat(),
                                             physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
@@ -286,8 +296,8 @@ void VulkanEngine::initVulkan()
 
   linePipeline = std::make_unique<LinePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool);
 
-  imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
-                                                  guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
+  imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, logicalDevice, renderPass, guiPipeline,
+                                                  vulkanEngineOptions.USE_DOCKSPACE);
 
   framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
                                                        swapChain->getExtent());
@@ -516,7 +526,7 @@ void VulkanEngine::recreateSwapChain()
 
   physicalDevice->updateSwapChainSupportDetails();
 
-  swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
+  swapChain = std::make_shared<SwapChain>(logicalDevice, window);
   framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
                                                        swapChain->getExtent());
 
@@ -612,6 +622,20 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
   };
   renderInfo.commandBuffer->setScissor(scissor);
 
+  renderRenderObjects(renderInfo);
+
+  if (vulkanEngineOptions.DO_DOTS)
+  {
+    dotsPipeline->render(&renderInfo, nullptr);
+  }
+
+  linePipeline->render(&renderInfo, commandPool, lineVerticesToRender);
+
+  renderSmokeSystems(renderInfo);
+}
+
+void VulkanEngine::renderRenderObjects(const RenderInfo& renderInfo) const
+{
   for (const auto& [type, objects] : renderObjectsToRender)
   {
     if (objects.empty())
@@ -633,14 +657,10 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
 
     throw std::runtime_error("Pipeline for object type does not exist");
   }
+}
 
-  if (vulkanEngineOptions.DO_DOTS)
-  {
-    dotsPipeline->render(&renderInfo, nullptr);
-  }
-
-  linePipeline->render(&renderInfo, commandPool, lineVerticesToRender);
-
+void VulkanEngine::renderSmokeSystems(const RenderInfo& renderInfo) const
+{
   if (!smokeSystems.empty())
   {
     ImGui::Begin("Smoke");

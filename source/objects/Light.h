@@ -17,7 +17,7 @@ struct alignas(16) LightUniform {
 
 class Light {
 public:
-  Light(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular);
+  Light(const glm::vec3& position, const glm::vec3& color, float ambient, float diffuse, float specular);
 
   [[nodiscard]] LightUniform getUniform() const;
 
@@ -27,18 +27,18 @@ public:
   [[nodiscard]] float getDiffuse() const;
   [[nodiscard]] float getSpecular() const;
 
-  void setPosition(glm::vec3 position);
-  void setColor(glm::vec3 color);
+  void setPosition(const glm::vec3& position);
+  void setColor(const glm::vec3& color);
   void setAmbient(float ambient);
   void setDiffuse(float diffuse);
   void setSpecular(float specular);
 
 private:
-  glm::vec3 position;
-  glm::vec3 color;
-  float ambient;
-  float diffuse;
-  float specular;
+  glm::vec3 m_position;
+  glm::vec3 m_color;
+  float m_ambient;
+  float m_diffuse;
+  float m_specular;
 };
 
 

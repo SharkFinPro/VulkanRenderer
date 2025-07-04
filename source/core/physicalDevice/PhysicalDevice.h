@@ -62,15 +62,15 @@ public:
   friend class ImGuiInstance;
 
 private:
-  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+  VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
-  VkSurfaceKHR& surface;
+  VkSurfaceKHR& m_surface;
 
-  VkSampleCountFlagBits msaaSamples;
+  VkSampleCountFlagBits m_msaaSamples;
 
-  QueueFamilyIndices queueFamilyIndices;
+  QueueFamilyIndices m_queueFamilyIndices;
 
-  SwapChainSupportDetails swapChainSupportDetails;
+  SwapChainSupportDetails m_swapChainSupportDetails;
 
   void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
 

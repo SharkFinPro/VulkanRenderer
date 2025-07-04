@@ -16,7 +16,6 @@ class ImGuiInstance {
 public:
   ImGuiInstance(const std::shared_ptr<Window>& window,
                 const std::shared_ptr<Instance>& instance,
-                const std::shared_ptr<PhysicalDevice>& physicalDevice,
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
                 const std::unique_ptr<GuiPipeline>& guiPipeline,
@@ -46,21 +45,21 @@ public:
   static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
 private:
-  bool dockNeedsUpdate = true;
+  bool m_dockNeedsUpdate = true;
 
-  bool useDockSpace;
+  bool m_useDockSpace;
 
-  float topDockPercent = 0.15f;
-  float bottomDockPercent = 0.2f;
-  float leftDockPercent = 0.3f;
-  float rightDockPercent = 0.3f;
+  float m_topDockPercent = 0.15f;
+  float m_bottomDockPercent = 0.2f;
+  float m_leftDockPercent = 0.3f;
+  float m_rightDockPercent = 0.3f;
 
-  ImGuiID mainDock = 0;
-  ImGuiID topDock = 0;
-  ImGuiID bottomDock = 0;
-  ImGuiID leftDock = 0;
-  ImGuiID rightDock = 0;
-  ImGuiID centerDock = 0;
+  ImGuiID m_mainDock = 0;
+  ImGuiID m_topDock = 0;
+  ImGuiID m_bottomDock = 0;
+  ImGuiID m_leftDock = 0;
+  ImGuiID m_rightDock = 0;
+  ImGuiID m_centerDock = 0;
 };
 
 

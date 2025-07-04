@@ -1,11 +1,11 @@
 #include "Window.h"
 #include "../VulkanEngine.h"
-#include <stdexcept>
 #include <backends/imgui_impl_glfw.h>
+#include <stdexcept>
 
 Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
                const bool fullscreen)
-  : instance(instance), mouseX(0), mouseY(0), scroll(0)
+  : m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -17,74 +17,74 @@ Window::Window(const int width, const int height, const char* title, const std::
 
     const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
 
-    window = glfwCreateWindow(videoMode->width, videoMode->height, title, primaryMonitor, nullptr);
+    m_window = glfwCreateWindow(videoMode->width, videoMode->height, title, primaryMonitor, nullptr);
   }
   else
   {
-    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
   }
 
-  if (window == nullptr)
+  if (m_window == nullptr)
   {
     glfwTerminate();
     throw std::runtime_error("Failed to create GLFW window");
   }
 
-  glfwSetWindowUserPointer(window, this);
-  glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+  glfwSetWindowUserPointer(m_window, this);
+  glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
 
-  glfwSetScrollCallback(window, scrollCallback);
+  glfwSetScrollCallback(m_window, scrollCallback);
 
-  glfwGetCursorPos(window, &mouseX, &mouseY);
-  previousMouseX = mouseX;
-  previousMouseY = mouseY;
+  glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
+  m_previousMouseX = m_mouseX;
+  m_previousMouseY = m_mouseY;
 
-  surface = instance->createSurface(window);
+  m_surface = instance->createSurface(m_window);
 
-  glfwSetKeyCallback(window, keyCallback);
+  glfwSetKeyCallback(m_window, keyCallback);
 }
 
 Window::~Window()
 {
-  instance->destroySurface(surface);
+  m_instance->destroySurface(m_surface);
 
-  glfwDestroyWindow(window);
+  glfwDestroyWindow(m_window);
 }
 
 bool Window::isOpen() const
 {
-  return !glfwWindowShouldClose(window);
+  return !glfwWindowShouldClose(m_window);
 }
 
 void Window::update()
 {
-  scroll = 0;
+  m_scroll = 0;
 
   glfwPollEvents();
 
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+  if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
   {
-    glfwSetWindowShouldClose(window, true);
+    glfwSetWindowShouldClose(m_window, true);
   }
 
-  previousMouseX = mouseX;
-  previousMouseY = mouseY;
-  glfwGetCursorPos(window, &mouseX, &mouseY);
+  m_previousMouseX = m_mouseX;
+  m_previousMouseY = m_mouseY;
+  glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
 }
 
 void Window::getFramebufferSize(int* width, int* height) const
 {
-  glfwGetFramebufferSize(window, width, height);
+  glfwGetFramebufferSize(m_window, width, height);
 }
 
 VkSurfaceKHR& Window::getSurface()
 {
-  return surface;
+  return m_surface;
 }
 
 bool Window::keyIsPressed(const int key) const
 {
-  if (const auto keyNode = keysPressed.find(key); keyNode != keysPressed.end())
+  if (const auto keyNode = m_keysPressed.find(key); keyNode != m_keysPressed.end())
   {
     return keyNode->second;
   }
@@ -94,27 +94,27 @@ bool Window::keyIsPressed(const int key) const
 
 bool Window::buttonDown(const int button) const
 {
-  return glfwGetMouseButton(window, button) == GLFW_PRESS;
+  return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
 }
 
 void Window::getCursorPos(double& xpos, double& ypos) const
 {
-  xpos = mouseX;
-  ypos = mouseY;
+  xpos = m_mouseX;
+  ypos = m_mouseY;
 }
 
 void Window::getPreviousCursorPos(double& xpos, double& ypos) const
 {
-  xpos = previousMouseX;
-  ypos = previousMouseY;
+  xpos = m_previousMouseX;
+  ypos = m_previousMouseY;
 }
 
 void Window::initImGui() const
 {
-  ImGui_ImplGlfw_InitForVulkan(window, true);
+  ImGui_ImplGlfw_InitForVulkan(m_window, true);
 
   float xscale, yscale;
-  glfwGetWindowContentScale(window, &xscale, &yscale);
+  glfwGetWindowContentScale(m_window, &xscale, &yscale);
 
   ImGui::GetStyle().ScaleAllSizes(xscale);
   ImGui::GetIO().FontGlobalScale = xscale;
@@ -122,13 +122,13 @@ void Window::initImGui() const
 
 double Window::getScroll() const
 {
-  return scroll;
+  return m_scroll;
 }
 
 void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, const double yoffset)
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-  app->scroll = yoffset;
+  app->m_scroll = yoffset;
 }
 
 void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
@@ -142,5 +142,5 @@ void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-  app->keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
+  app->m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
 }

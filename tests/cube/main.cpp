@@ -1,12 +1,14 @@
-#include <iostream>
-#include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
+#include <source/VulkanEngine.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+#include <iostream>
 #include <string>
-#include "glm/gtc/type_ptr.hpp"
 
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void displayLightGui(const std::shared_ptr<Light>& light, int id);
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights);
 
 int main()
 {
@@ -46,39 +48,7 @@ int main()
 
     while (renderer.isActive())
     {
-      gui->dockCenter("SceneView");
-      gui->dockBottom("Objects");
-      gui->dockBottom("Lights");
-
-      gui->setBottomDockPercent(0.3);
-
-      // Render GUI
-      ImGui::Begin("Objects");
-      displayObjectGui(object, 0);
-      ImGui::End();
-
-      ImGui::Begin("Lights");
-      for (int i = 0; i < lights.size(); i++)
-      {
-        displayLightGui(lights[i], i);
-      }
-      ImGui::End();
-
-      // Render Objects
-      renderer.renderObject(object, PipelineType::object);
-
-      for (const auto& light : lights)
-      {
-        renderer.renderLight(light);
-      }
-
-      // Render lines
-      renderer.renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
-      renderer.renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
-      renderer.renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
-
-      // Render Frame
-      renderer.render();
+      renderScene(renderer, gui, object, lights);
     }
   }
   catch (const std::exception& e)
@@ -133,4 +103,42 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
+}
+
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights)
+{
+  gui->dockCenter("SceneView");
+  gui->dockBottom("Objects");
+  gui->dockBottom("Lights");
+
+  gui->setBottomDockPercent(0.3);
+
+  // Render GUI
+  ImGui::Begin("Objects");
+  displayObjectGui(object, 0);
+  ImGui::End();
+
+  ImGui::Begin("Lights");
+  for (int i = 0; i < lights.size(); i++)
+  {
+    displayLightGui(lights[i], i);
+  }
+  ImGui::End();
+
+  // Render Objects
+  renderer.renderObject(object, PipelineType::object);
+
+  for (const auto& light : lights)
+  {
+    renderer.renderLight(light);
+  }
+
+  // Render lines
+  renderer.renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
+  renderer.renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
+  renderer.renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
+
+  // Render Frame
+  renderer.render();
 }

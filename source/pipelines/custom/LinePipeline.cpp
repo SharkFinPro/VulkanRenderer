@@ -8,6 +8,13 @@
 #include "../../utilities/Buffers.h"
 #include <stdexcept>
 
+constexpr VkDescriptorSetLayoutBinding transformLayout {
+  .binding = 0,
+  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+  .descriptorCount = 1,
+  .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+};
+
 LinePipeline::LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
                            const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderPass>& renderPass,
@@ -89,13 +96,6 @@ void LinePipeline::defineStates()
 
 void LinePipeline::createLineDescriptorSetLayout()
 {
-  constexpr VkDescriptorSetLayoutBinding transformLayout {
-    .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
   constexpr std::array<VkDescriptorSetLayoutBinding, 1> lineBindings {
     transformLayout
   };
@@ -134,7 +134,7 @@ void LinePipeline::createDescriptorSets()
 
 void LinePipeline::createUniforms()
 {
-  transformUniform = std::make_unique<UniformBuffer>(logicalDevice, physicalDevice, sizeof(TransformUniform));
+  transformUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform));
 }
 
 void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
@@ -149,7 +149,7 @@ void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
   transformUniform->update(renderInfo->currentFrame, &transformUBO);
 }
 
-void LinePipeline::bindDescriptorSet(const RenderInfo *renderInfo)
+void LinePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);

@@ -9,8 +9,7 @@
 
 class SwapChain {
 public:
-  SwapChain(const std::shared_ptr<PhysicalDevice>& physicalDevice, const std::shared_ptr<LogicalDevice>& logicalDevice,
-            const std::shared_ptr<Window>& window);
+  SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<Window>& window);
   ~SwapChain();
 
   [[nodiscard]] VkFormat& getImageFormat();
@@ -20,15 +19,14 @@ public:
   [[nodiscard]] std::vector<VkImageView>& getImageViews();
 
 private:
-  std::shared_ptr<PhysicalDevice> physicalDevice;
-  std::shared_ptr<LogicalDevice> logicalDevice;
-  std::shared_ptr<Window> window;
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
+  std::shared_ptr<Window> m_window;
 
-  VkSwapchainKHR swapchain = VK_NULL_HANDLE;
-  std::vector<VkImage> swapChainImages;
-  VkFormat swapChainImageFormat = VK_FORMAT_UNDEFINED;
-  VkExtent2D swapChainExtent{};
-  std::vector<VkImageView> swapChainImageViews;
+  VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
+  std::vector<VkImage> m_swapChainImages;
+  VkFormat m_swapChainImageFormat = VK_FORMAT_UNDEFINED;
+  VkExtent2D m_swapChainExtent{};
+  std::vector<VkImageView> m_swapChainImageViews;
 
   static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
   static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);

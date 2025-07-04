@@ -58,9 +58,9 @@ private:
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 
-  void updateUniformVariables(const RenderInfo *renderInfo) override;
+  void updateUniformVariables(const RenderInfo* renderInfo) override;
 
-  void bindDescriptorSet(const RenderInfo *renderInfo) override;
+  void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };
 
 #endif //CURTAINPIPELINE_H

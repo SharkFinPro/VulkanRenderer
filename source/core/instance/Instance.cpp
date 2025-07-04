@@ -52,7 +52,7 @@ Instance::Instance()
     .ppEnabledExtensionNames = extensions.data()
   };
 
-  if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+  if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create instance!");
   }
@@ -67,15 +67,15 @@ Instance::~Instance()
 {
   destroyDebugUtilsMessenger();
 
-  vkDestroyInstance(instance, nullptr);
+  vkDestroyInstance(m_instance, nullptr);
 
-  instance = VK_NULL_HANDLE;
+  m_instance = VK_NULL_HANDLE;
 }
 
 VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
 {
   VkSurfaceKHR surface;
-  if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+  if (glfwCreateWindowSurface(m_instance, window, nullptr, &surface) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create window surface!");
   }
@@ -85,7 +85,7 @@ VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
 
 void Instance::destroySurface(VkSurfaceKHR& surface) const
 {
-  vkDestroySurfaceKHR(instance, surface, nullptr);
+  vkDestroySurfaceKHR(m_instance, surface, nullptr);
 
   surface = VK_NULL_HANDLE;
 }
@@ -97,10 +97,10 @@ void Instance::createDebugUtilsMessenger()
 
   VkResult result;
 
-  const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+  const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
   if (func != nullptr)
   {
-    result = func(instance, &debugCreateInfo, nullptr, &debugMessenger);
+    result = func(m_instance, &debugCreateInfo, nullptr, &m_debugMessenger);
   }
   else
   {
@@ -115,19 +115,19 @@ void Instance::createDebugUtilsMessenger()
 
 void Instance::destroyDebugUtilsMessenger()
 {
-  const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+  const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
   if (func != nullptr)
   {
-    func(instance, debugMessenger, nullptr);
+    func(m_instance, m_debugMessenger, nullptr);
   }
 
-  debugMessenger = VK_NULL_HANDLE;
+  m_debugMessenger = VK_NULL_HANDLE;
 }
 
 std::vector<VkPhysicalDevice> Instance::getPhysicalDevices() const
 {
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
 
   if (deviceCount == 0)
   {
@@ -135,7 +135,7 @@ std::vector<VkPhysicalDevice> Instance::getPhysicalDevices() const
   }
 
   std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+  vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
 
   return devices;
 }

@@ -1,52 +1,52 @@
 #include "UniformBuffer.h"
-#include "../utilities/Buffers.h"
 #include "../core/logicalDevice/LogicalDevice.h"
-#include "../core/physicalDevice/PhysicalDevice.h"
+#include "../utilities/Buffers.h"
 #include <cstring>
 
-UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkDeviceSize bufferSize)
-  : logicalDevice(logicalDevice), bufferSize(bufferSize)
+UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkDeviceSize bufferSize)
+  : m_logicalDevice(logicalDevice), m_bufferSize(bufferSize)
 {
-  uniformBuffers.resize(logicalDevice->getMaxFramesInFlight());
-  uniformBuffersMemory.resize(logicalDevice->getMaxFramesInFlight());
-  uniformBuffersMapped.resize(logicalDevice->getMaxFramesInFlight());
+  const auto maxFramesInFlight = logicalDevice->getMaxFramesInFlight();
 
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  m_uniformBuffers.resize(maxFramesInFlight);
+  m_uniformBuffersMemory.resize(maxFramesInFlight);
+  m_uniformBuffersMapped.resize(maxFramesInFlight);
+
+  for (size_t i = 0; i < maxFramesInFlight; i++)
   {
     Buffers::createBuffer(logicalDevice, bufferSize,
                           VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          uniformBuffers[i], uniformBuffersMemory[i]);
+                          m_uniformBuffers[i], m_uniformBuffersMemory[i]);
 
-    logicalDevice->mapMemory(uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, bufferSize, 0, &m_uniformBuffersMapped[i]);
 
     const VkDescriptorBufferInfo bufferInfo {
-      .buffer = uniformBuffers[i],
+      .buffer = m_uniformBuffers[i],
       .offset = 0,
       .range = bufferSize
     };
 
-    bufferInfos.push_back(bufferInfo);
+    m_bufferInfos.push_back(bufferInfo);
   }
 
-  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSize.descriptorCount = logicalDevice->getMaxFramesInFlight();
+  m_poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  m_poolSize.descriptorCount = maxFramesInFlight;
 }
 
 UniformBuffer::~UniformBuffer()
 {
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
   {
-    logicalDevice->unmapMemory(uniformBuffersMemory[i]);
+    m_logicalDevice->unmapMemory(m_uniformBuffersMemory[i]);
 
-    Buffers::destroyBuffer(logicalDevice, uniformBuffers[i], uniformBuffersMemory[i]);
+    Buffers::destroyBuffer(m_logicalDevice, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
   }
 }
 
 VkDescriptorPoolSize UniformBuffer::getDescriptorPoolSize() const
 {
-  return poolSize;
+  return m_poolSize;
 }
 
 VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet,
@@ -59,7 +59,7 @@ VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, con
     .dstArrayElement = 0,
     .descriptorCount = 1,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .pBufferInfo = &bufferInfos[frame]
+    .pBufferInfo = &m_bufferInfos[frame]
   };
 
   return uniformDescriptorSet;
@@ -67,5 +67,5 @@ VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, con
 
 void UniformBuffer::update(const uint32_t frame, const void* data) const
 {
-  memcpy(uniformBuffersMapped[frame], data, bufferSize);
+  memcpy(m_uniformBuffersMapped[frame], data, m_bufferSize);
 }

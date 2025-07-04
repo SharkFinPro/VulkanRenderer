@@ -158,18 +158,15 @@ void SmokePipeline::defineStates()
 
 void SmokePipeline::createUniforms()
 {
-  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                       sizeof(DeltaTimeUniform));
+  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(DeltaTimeUniform));
 
-  transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                     sizeof(ViewProjTransformUniform));
+  transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(ViewProjTransformUniform));
 
-  smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice,
-                                                 sizeof(SmokeUniform));
+  smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(SmokeUniform));
 
-  lightMetadataUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(LightUniform));
 }
 
 void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
@@ -359,7 +356,7 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, ComputePipeline::physicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, lightsUniformBufferSize);
 
     for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
     {

@@ -47,9 +47,9 @@ private:
 
   void createUniforms();
 
-  void updateUniformVariables(const RenderInfo *renderInfo) override;
+  void updateUniformVariables(const RenderInfo* renderInfo) override;
 
-  void bindDescriptorSet(const RenderInfo *renderInfo) override;
+  void bindDescriptorSet(const RenderInfo* renderInfo) override;
 
   void createVertexBuffer();
 };

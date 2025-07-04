@@ -3,12 +3,12 @@
 
 #include "Window.h"
 #include <glm/glm.hpp>
-#include <memory>
 #include <chrono>
+#include <memory>
 
 class Camera {
 public:
-  explicit Camera(glm::vec3 pos = { 0, 0, 0 });
+  explicit Camera(glm::vec3 initialPosition = { 0, 0, 0 });
 
   [[nodiscard]] glm::mat4 getViewMatrix() const;
 
@@ -19,23 +19,23 @@ public:
   void processInput(const std::shared_ptr<Window>& window);
 
 private:
-  glm::vec3 position;
-  glm::vec3 direction;
+  glm::vec3 m_position;
+  glm::vec3 m_direction;
 
   struct SpeedSettings {
     float speed;
     float cameraSpeed;
     float scrollSpeed;
     float swivelSpeed;
-  } speedSettings;
+  } m_speedSettings;
 
   struct Rotation {
     float pitch;
     float yaw;
-  } rotation;
+  } m_rotation;
 
-  std::chrono::time_point<std::chrono::steady_clock> previousTime;
-  float dt = 0;
+  std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
+  float m_dt = 0;
 
   void handleMovement(const std::shared_ptr<Window>& window);
   void handleRotation(const std::shared_ptr<Window>& window);

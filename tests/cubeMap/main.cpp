@@ -1,11 +1,16 @@
-#include <iostream>
-#include <source/VulkanEngine.h>
 #include <source/objects/RenderObject.h>
-#include <imgui.h>
-#include <string>
+#include <source/VulkanEngine.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
+#include <iostream>
+#include <string>
 
 void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject> &object, std::vector<std::shared_ptr<RenderObject>>& walls);
+
+void setupScene(VulkanEngine& renderer, std::shared_ptr<RenderObject>& object,
+                std::vector<std::shared_ptr<RenderObject>>& walls);
 
 int main()
 {
@@ -24,77 +29,14 @@ int main()
 
     ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
 
-    const auto texture = renderer.loadTexture("assets/textures/white.png");
-    const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/catH.obj");
+    std::shared_ptr<RenderObject> object = nullptr;
+    std::vector<std::shared_ptr<RenderObject>> walls;
 
-    const auto object = renderer.loadRenderObject(texture, specularMap, model);
-    object->setPosition({ 0, 0, -5 });
-    object->setScale(2.0f);
-
-
-    const auto planeModel = renderer.loadModel("assets/models/curtain.glb");
-
-    constexpr float scale = 4.0f;
-    constexpr float d = 5 * scale;
-    constexpr float offset = -5.0f;
-
-    const auto px = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposx.bmp", false), specularMap, planeModel);
-    px->setScale(scale);
-    px->setPosition({ d, 0, offset });
-    px->setOrientationEuler({0, 90, 0});
-
-    const auto nx = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegx.bmp", false), specularMap, planeModel);
-    nx->setScale(scale);
-    nx->setPosition({ -d, 0, offset });
-    nx->setOrientationEuler({0, -90, 0});
-
-    const auto py = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposy.bmp", false), specularMap, planeModel);
-    py->setScale(scale);
-    py->setPosition({ 0, d, offset });
-    py->setOrientationEuler({-90, 0, 0});
-
-    const auto ny = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegy.bmp", false), specularMap, planeModel);
-    ny->setScale(scale);
-    ny->setPosition({ 0, -d, offset });
-    ny->setOrientationEuler({90, 0, 0});
-
-    const auto pz = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposz.bmp", false), specularMap, planeModel);
-    pz->setScale(scale);
-    pz->setPosition({ 0, 0, d + offset });
-    pz->setOrientationEuler({0, 0, 0});
-
-    const auto nz = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegz.bmp", false), specularMap, planeModel);
-    nz->setScale(scale);
-    nz->setPosition({ 0, 0, -d + offset });
-    nz->setOrientationEuler({0, 180, 0});
-
+    setupScene(renderer, object, walls);
 
     while (renderer.isActive())
     {
-      gui->dockCenter("SceneView");
-      gui->dockBottom("Objects");
-      gui->dockBottom("Cube Map");
-
-      gui->setBottomDockPercent(0.42);
-
-      // Render GUI
-      ImGui::Begin("Objects");
-      displayObjectGui(object, 0);
-      ImGui::End();
-
-      // Render Objects
-      renderer.renderObject(object, PipelineType::cubeMap);
-
-      renderer.renderObject(px, PipelineType::texturedPlane);
-      renderer.renderObject(nx, PipelineType::texturedPlane);
-      renderer.renderObject(py, PipelineType::texturedPlane);
-      renderer.renderObject(ny, PipelineType::texturedPlane);
-      renderer.renderObject(pz, PipelineType::texturedPlane);
-      renderer.renderObject(nz, PipelineType::texturedPlane);
-
-      // Render Frame
-      renderer.render();
+      renderScene(renderer, gui, object, walls);
     }
   }
   catch (const std::exception& e)
@@ -120,4 +62,80 @@ void displayObjectGui(const std::shared_ptr<RenderObject>& object, const int id)
   ImGui::PopID();
 
   object->setPosition(position);
+}
+
+void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject> &object, std::vector<std::shared_ptr<RenderObject>>& walls)
+{
+  gui->dockCenter("SceneView");
+  gui->dockBottom("Objects");
+  gui->dockBottom("Cube Map");
+
+  gui->setBottomDockPercent(0.42);
+
+  // Render GUI
+  ImGui::Begin("Objects");
+  displayObjectGui(object, 0);
+  ImGui::End();
+
+  // Render Objects
+  renderer.renderObject(object, PipelineType::cubeMap);
+
+  for (auto& wall : walls)
+  {
+    renderer.renderObject(wall, PipelineType::texturedPlane);
+  }
+
+  // Render Frame
+  renderer.render();
+}
+
+void setupScene(VulkanEngine& renderer, std::shared_ptr<RenderObject>& object,
+                std::vector<std::shared_ptr<RenderObject>>& walls)
+{
+  const auto texture = renderer.loadTexture("assets/textures/white.png");
+  const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
+  const auto model = renderer.loadModel("assets/models/catH.obj");
+
+  object = renderer.loadRenderObject(texture, specularMap, model);
+  object->setPosition({ 0, 0, -5 });
+  object->setScale(2.0f);
+
+  const auto planeModel = renderer.loadModel("assets/models/curtain.glb");
+
+  constexpr float scale = 4.0f;
+  constexpr float d = 5 * scale;
+  constexpr float offset = -5.0f;
+
+  const auto px = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposx.bmp", false), specularMap, planeModel);
+  px->setScale(scale);
+  px->setPosition({ d, 0, offset });
+  px->setOrientationEuler({0, 90, 0});
+
+  const auto nx = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegx.bmp", false), specularMap, planeModel);
+  nx->setScale(scale);
+  nx->setPosition({ -d, 0, offset });
+  nx->setOrientationEuler({0, -90, 0});
+
+  const auto py = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposy.bmp", false), specularMap, planeModel);
+  py->setScale(scale);
+  py->setPosition({ 0, d, offset });
+  py->setOrientationEuler({-90, 0, 0});
+
+  const auto ny = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegy.bmp", false), specularMap, planeModel);
+  ny->setScale(scale);
+  ny->setPosition({ 0, -d, offset });
+  ny->setOrientationEuler({90, 0, 0});
+
+  const auto pz = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvposz.bmp", false), specularMap, planeModel);
+  pz->setScale(scale);
+  pz->setPosition({ 0, 0, d + offset });
+  pz->setOrientationEuler({0, 0, 0});
+
+  const auto nz = renderer.loadRenderObject(renderer.loadTexture("assets/cubeMap/nvnegz.bmp", false), specularMap, planeModel);
+  nz->setScale(scale);
+  nz->setPosition({ 0, 0, -d + offset });
+  nz->setOrientationEuler({0, 180, 0});
+
+  walls.insert(walls.end(), {px, nx, py, ny, pz, nz});
 }
