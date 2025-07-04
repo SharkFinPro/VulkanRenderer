@@ -3,6 +3,7 @@
 #include "UniformBuffer.h"
 #include "../components/textures/Texture.h"
 #include "../core/commandBuffer/CommandBuffer.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include "../pipelines/custom/Uniforms.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>

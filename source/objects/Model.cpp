@@ -1,16 +1,18 @@
 #include "Model.h"
-#include "../utilities/Buffers.h"
+#include "../core/commandBuffer/CommandBuffer.h"
+#include "../core/logicalDevice/LogicalDevice.h"
 #include "../pipelines/Vertex.h"
+#include "../utilities/Buffers.h"
 #include <assimp/Importer.hpp>
-#include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/scene.h>
 #include <stdexcept>
 
-#include "../core/commandBuffer/CommandBuffer.h"
-
-Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-             const VkCommandPool& commandPool, const char* path, const glm::vec3 rotation)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+Model::Model(const std::shared_ptr<LogicalDevice> &logicalDevice,
+             const VkCommandPool& commandPool,
+             const char* path,
+             const glm::vec3 rotation)
+  : m_logicalDevice(logicalDevice)
 {
   loadModel(path, glm::quat(glm::radians(rotation)));
 
@@ -18,9 +20,11 @@ Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<Log
   createIndexBuffer(commandPool);
 }
 
-Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<LogicalDevice> logicalDevice,
-             const VkCommandPool& commandPool, const char* path, const glm::quat orientation)
-  : physicalDevice(std::move(physicalDevice)), logicalDevice(std::move(logicalDevice))
+Model::Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
+             const VkCommandPool& commandPool,
+             const char* path,
+             const glm::quat orientation)
+  : m_logicalDevice(logicalDevice)
 {
   loadModel(path, glm::normalize(orientation));
 
@@ -30,16 +34,16 @@ Model::Model(std::shared_ptr<PhysicalDevice> physicalDevice, std::shared_ptr<Log
 
 Model::~Model()
 {
-  Buffers::destroyBuffer(logicalDevice, indexBuffer, indexBufferMemory);
+  Buffers::destroyBuffer(m_logicalDevice, m_indexBuffer, m_indexBufferMemory);
 
-  Buffers::destroyBuffer(logicalDevice, vertexBuffer, vertexBufferMemory);
+  Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
 }
 
 void Model::loadModel(const char* path, const glm::quat orientation)
 {
   Assimp::Importer importer;
   constexpr auto sceneFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                              aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices;
+                                 aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices;
   const aiScene* scene = importer.ReadFile(path, sceneFlags);
 
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -48,7 +52,12 @@ void Model::loadModel(const char* path, const glm::quat orientation)
   }
 
   const aiMesh* mesh = scene->mMeshes[0];
+  loadVertices(mesh, orientation);
+  loadIndices(mesh);
+}
 
+void Model::loadVertices(const aiMesh* mesh, const glm::quat orientation)
+{
   const auto orientationMatrix = glm::mat4(orientation);
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -73,80 +82,83 @@ void Model::loadModel(const char* path, const glm::quat orientation)
     vertex.pos = orientationMatrix * glm::vec4(vertex.pos, 1.0f);
     vertex.normal = orientationMatrix * glm::vec4(vertex.normal, 1.0f);
 
-    vertices.push_back(vertex);
+    m_vertices.push_back(vertex);
   }
+}
 
+void Model::loadIndices(const aiMesh* mesh)
+{
   for (unsigned int i = 0; i < mesh->mNumFaces; i++)
   {
     const aiFace face = mesh->mFaces[i];
 
     for (unsigned int j = 0; j < face.mNumIndices; j++)
     {
-      indices.push_back(face.mIndices[j]);
+      m_indices.push_back(face.mIndices[j]);
     }
   }
 }
 
 void Model::createVertexBuffer(const VkCommandPool& commandPool)
 {
-  const VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+  const VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
-    memcpy(data, vertices.data(), bufferSize);
+  m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
+    memcpy(data, m_vertices.data(), bufferSize);
   });
 
-  Buffers::createBuffer(logicalDevice, bufferSize,
+  Buffers::createBuffer(m_logicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
-  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
-                      vertexBuffer, bufferSize);
+  Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
+                      m_vertexBuffer, bufferSize);
 
-  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 }
 
 void Model::createIndexBuffer(const VkCommandPool& commandPool)
 {
-  const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+  const VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
-    memcpy(data, indices.data(), bufferSize);
+  m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
+    memcpy(data, m_indices.data(), bufferSize);
   });
 
-  Buffers::createBuffer(logicalDevice, bufferSize,
+  Buffers::createBuffer(m_logicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
 
-  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
-                      indexBuffer, bufferSize);
+  Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
+                      m_indexBuffer, bufferSize);
 
-  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 }
 
 void Model::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
 {
   constexpr VkDeviceSize offsets[] = {0};
-  commandBuffer->bindVertexBuffers(0, 1, &vertexBuffer, offsets);
+  commandBuffer->bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
 
-  commandBuffer->bindIndexBuffer(indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  commandBuffer->bindIndexBuffer(m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
 {
   bind(commandBuffer);
 
-  commandBuffer->drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+  commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
 }
