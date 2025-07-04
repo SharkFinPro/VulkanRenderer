@@ -237,7 +237,7 @@ void VulkanEngine::initVulkan()
 
   createObjectDescriptorSetLayout();
 
-  swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
+  swapChain = std::make_shared<SwapChain>(logicalDevice, window);
 
   renderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, swapChain->getImageFormat(),
                                             physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
@@ -297,8 +297,8 @@ void VulkanEngine::initVulkan()
 
   linePipeline = std::make_unique<LinePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool);
 
-  imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, physicalDevice, logicalDevice, renderPass,
-                                                  guiPipeline, vulkanEngineOptions.USE_DOCKSPACE);
+  imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, logicalDevice, renderPass, guiPipeline,
+                                                  vulkanEngineOptions.USE_DOCKSPACE);
 
   framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
                                                        swapChain->getExtent());
@@ -527,7 +527,7 @@ void VulkanEngine::recreateSwapChain()
 
   physicalDevice->updateSwapChainSupportDetails();
 
-  swapChain = std::make_shared<SwapChain>(physicalDevice, logicalDevice, window);
+  swapChain = std::make_shared<SwapChain>(logicalDevice, window);
   framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
                                                        swapChain->getExtent());
 

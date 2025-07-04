@@ -3,10 +3,8 @@
 #include <limits>
 #include <algorithm>
 
-SwapChain::SwapChain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                     const std::shared_ptr<LogicalDevice>& logicalDevice,
-                     const std::shared_ptr<Window>& window)
-  : physicalDevice(physicalDevice), logicalDevice(logicalDevice), window(window)
+SwapChain::SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<Window>& window)
+  : m_logicalDevice(logicalDevice), m_window(window)
 {
   createSwapChain();
   createImageViews();
@@ -14,12 +12,12 @@ SwapChain::SwapChain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
 
 SwapChain::~SwapChain()
 {
-  for (auto& imageView : swapChainImageViews)
+  for (auto& imageView : m_swapChainImageViews)
   {
-    logicalDevice->destroyImageView(imageView);
+    m_logicalDevice->destroyImageView(imageView);
   }
 
-  logicalDevice->destroySwapchainKHR(swapchain);
+  m_logicalDevice->destroySwapchainKHR(m_swapchain);
 }
 
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
@@ -56,7 +54,7 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
   }
 
   int width, height;
-  window->getFramebufferSize(&width, &height);
+  m_window->getFramebufferSize(&width, &height);
 
   const VkExtent2D actualExtent {
     .width = std::clamp(static_cast<uint32_t>(width),
@@ -81,14 +79,14 @@ uint32_t SwapChain::chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabil
 
 void SwapChain::createSwapChain()
 {
-  SwapChainSupportDetails swapChainSupport = physicalDevice->getSwapChainSupport();
+  const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
   const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
   const VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
   uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
-  const auto indices = physicalDevice->getQueueFamilies();
+  const auto indices = m_logicalDevice->getPhysicalDevice()->getQueueFamilies();
   const uint32_t queueFamilyIndices[] = {
     indices.graphicsFamily.value(),
     indices.presentFamily.value()
@@ -96,7 +94,7 @@ void SwapChain::createSwapChain()
 
   const VkSwapchainCreateInfoKHR createInfo {
     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-    .surface = window->getSurface(),
+    .surface = m_window->getSurface(),
     .minImageCount = imageCount,
     .imageFormat = surfaceFormat.format,
     .imageColorSpace = surfaceFormat.colorSpace,
@@ -113,43 +111,43 @@ void SwapChain::createSwapChain()
     .oldSwapchain = VK_NULL_HANDLE
   };
 
-  swapchain = logicalDevice->createSwapchain(createInfo);
+  m_swapchain = m_logicalDevice->createSwapchain(createInfo);
 
-  logicalDevice->getSwapchainImagesKHR(swapchain, &imageCount, nullptr);
-  swapChainImages.resize(imageCount);
-  logicalDevice->getSwapchainImagesKHR(swapchain, &imageCount, swapChainImages.data());
+  m_logicalDevice->getSwapchainImagesKHR(m_swapchain, &imageCount, nullptr);
+  m_swapChainImages.resize(imageCount);
+  m_logicalDevice->getSwapchainImagesKHR(m_swapchain, &imageCount, m_swapChainImages.data());
 
-  swapChainImageFormat = surfaceFormat.format;
-  swapChainExtent = extent;
+  m_swapChainImageFormat = surfaceFormat.format;
+  m_swapChainExtent = extent;
 }
 
 void SwapChain::createImageViews()
 {
-  swapChainImageViews.resize(swapChainImages.size());
+  m_swapChainImageViews.resize(m_swapChainImages.size());
 
-  for (size_t i = 0; i < swapChainImages.size(); i++)
+  for (size_t i = 0; i < m_swapChainImages.size(); i++)
   {
-    swapChainImageViews[i] = Images::createImageView(logicalDevice, swapChainImages[i], swapChainImageFormat,
-                                                     VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D, 1);
+    m_swapChainImageViews[i] = Images::createImageView(m_logicalDevice, m_swapChainImages[i], m_swapChainImageFormat,
+                                                       VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D, 1);
   }
 }
 
 VkFormat& SwapChain::getImageFormat()
 {
-  return swapChainImageFormat;
+  return m_swapChainImageFormat;
 }
 
 VkExtent2D& SwapChain::getExtent()
 {
-  return swapChainExtent;
+  return m_swapChainExtent;
 }
 
 VkSwapchainKHR& SwapChain::getSwapChain()
 {
-  return swapchain;
+  return m_swapchain;
 }
 
 std::vector<VkImageView>& SwapChain::getImageViews()
 {
-  return swapChainImageViews;
+  return m_swapChainImageViews;
 }
