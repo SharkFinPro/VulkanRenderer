@@ -38,6 +38,4 @@ private:
   void createImageResource(size_t imageIndex);
 };
 
-
-
 #endif //STANDARDFRAMEBUFFER_H

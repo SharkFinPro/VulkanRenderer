@@ -21,6 +21,4 @@ private:
   [[nodiscard]] const std::vector<VkImageView>& getImageViews() override;
 };
 
-
-
 #endif //SWAPCHAINFRAMEBUFFER_H

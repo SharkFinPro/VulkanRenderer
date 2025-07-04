@@ -2,8 +2,8 @@
 #define VULKANPROJECT_FRAMEBUFFER_H
 
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <memory>
+#include <vector>
 
 class LogicalDevice;
 class RenderPass;
@@ -43,6 +43,5 @@ protected:
   [[nodiscard]] virtual VkFormat getColorFormat() = 0;
   [[nodiscard]] virtual const std::vector<VkImageView>& getImageViews() = 0;
 };
-
 
 #endif //VULKANPROJECT_FRAMEBUFFER_H
