@@ -49,13 +49,12 @@ constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
   .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
 };
 
-BumpyCurtain::BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                           const std::shared_ptr<LogicalDevice>& logicalDevice,
+BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderPass>& renderPass,
                            const VkCommandPool& commandPool,
                            const VkDescriptorPool descriptorPool,
                            const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool),
+  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
     objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms(commandPool);
@@ -69,7 +68,7 @@ BumpyCurtain::BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice
 
 BumpyCurtain::~BumpyCurtain()
 {
-  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
+  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void BumpyCurtain::displayGui()
@@ -106,7 +105,7 @@ void BumpyCurtain::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
   defineViewportState(GraphicsPipelineStates::viewportState);
@@ -129,23 +128,23 @@ void BumpyCurtain::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void BumpyCurtain::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
+    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
+  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
+  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 5> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
@@ -155,23 +154,23 @@ void BumpyCurtain::createDescriptorSets()
       noiseTexture->getDescriptorSet(7, descriptorSets[i])
     }};
 
-    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
+    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
 void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  curtainUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CurtainUniform));
+  curtainUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CurtainUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(NoiseOptionsUniform));
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Texture3D>(logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
+  noiseTexture = std::make_unique<Texture3D>(m_logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
                                              VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
@@ -184,7 +183,7 @@ void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>
 
   if (prevNumLights != lights.size())
   {
-    logicalDevice->waitIdle();
+    m_logicalDevice->waitIdle();
 
     const LightMetadataUniform lightMetadataUBO {
       .numLights = static_cast<int>(lights.size())
@@ -194,16 +193,16 @@ void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
-    for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
     {
       lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-      logicalDevice->updateDescriptorSets(1, &descriptorSet);
+      m_logicalDevice->updateDescriptorSets(1, &descriptorSet);
     }
 
     prevNumLights = static_cast<int>(lights.size());
@@ -235,6 +234,6 @@ void BumpyCurtain::updateUniformVariables(const RenderInfo* renderInfo)
 
 void BumpyCurtain::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);
 }

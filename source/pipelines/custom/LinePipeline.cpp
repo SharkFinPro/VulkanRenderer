@@ -3,7 +3,6 @@
 #include "Uniforms.h"
 #include "../RenderPass.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <stdexcept>
@@ -15,11 +14,10 @@ constexpr VkDescriptorSetLayoutBinding transformLayout {
   .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
 };
 
-LinePipeline::LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                           const std::shared_ptr<LogicalDevice>& logicalDevice,
+LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderPass>& renderPass,
                            VkDescriptorPool descriptorPool)
-  : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool)
+  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool)
 {
   createUniforms();
 
@@ -34,11 +32,11 @@ LinePipeline::LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
 
 LinePipeline::~LinePipeline()
 {
-  Buffers::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
-  Buffers::destroyBuffer(logicalDevice, vertexBuffer, vertexBufferMemory);
+  Buffers::destroyBuffer(m_logicalDevice, vertexBuffer, vertexBufferMemory);
 
-  logicalDevice->destroyDescriptorSetLayout(lineDescriptorSetLayout);
+  m_logicalDevice->destroyDescriptorSetLayout(lineDescriptorSetLayout);
 }
 
 void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& commandPool,
@@ -58,11 +56,11 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
     throw std::runtime_error("Vertex data exceeds maximum buffer size");
   }
 
-  logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [vertices, bufferSize](void* data) {
+  m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [vertices, bufferSize](void* data) {
     memcpy(data, vertices.data(), bufferSize);
   });
 
-  Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), stagingBuffer,
+  Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
                       vertexBuffer, bufferSize);
 
   constexpr VkDeviceSize offsets[] = {0};
@@ -88,7 +86,7 @@ void LinePipeline::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateLineList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateLineVertex);
   defineViewportState(GraphicsPipelineStates::viewportState);
@@ -106,35 +104,35 @@ void LinePipeline::createLineDescriptorSetLayout()
     .pBindings = lineBindings.data()
   };
 
-  lineDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(lineLayoutCreateInfo);
+  lineDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(lineLayoutCreateInfo);
 }
 
 void LinePipeline::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), lineDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), lineDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
+    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
+  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
+  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 1> descriptorWrites{{
       transformUniform->getDescriptorSet(0, descriptorSets[i], i),
     }};
 
-    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
+    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
 void LinePipeline::createUniforms()
 {
-  transformUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform));
+  transformUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(TransformUniform));
 }
 
 void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
@@ -151,17 +149,17 @@ void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
 void LinePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);
 }
 
 void LinePipeline::createVertexBuffer()
 {
-  Buffers::createBuffer(logicalDevice, maxVertexBufferSize,
+  Buffers::createBuffer(m_logicalDevice, maxVertexBufferSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
-  Buffers::createBuffer(logicalDevice, maxVertexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+  Buffers::createBuffer(m_logicalDevice, maxVertexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 }

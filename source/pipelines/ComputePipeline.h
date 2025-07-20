@@ -9,10 +9,10 @@ class ShaderModule;
 
 class ComputePipeline : public Pipeline {
 public:
-  ComputePipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
+  explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
 protected:
-  std::unique_ptr<ShaderModule> shaderModule;
+  std::unique_ptr<ShaderModule> m_shaderModule;
 
   void createShader(const char* filename);
 

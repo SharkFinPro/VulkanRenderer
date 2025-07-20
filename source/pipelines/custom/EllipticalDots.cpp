@@ -3,7 +3,6 @@
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include <imgui.h>
@@ -36,12 +35,11 @@ constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
   .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
 };
 
-EllipticalDots::EllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                               const std::shared_ptr<LogicalDevice>& logicalDevice,
+EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const VkDescriptorPool descriptorPool,
                                const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool),
+  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
     objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
@@ -55,7 +53,7 @@ EllipticalDots::EllipticalDots(const std::shared_ptr<PhysicalDevice>& physicalDe
 
 EllipticalDots::~EllipticalDots()
 {
-  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
+  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void EllipticalDots::displayGui()
@@ -88,7 +86,7 @@ void EllipticalDots::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
   defineViewportState(GraphicsPipelineStates::viewportState);
@@ -109,23 +107,23 @@ void EllipticalDots::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void EllipticalDots::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
+    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
+  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
+  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
       lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
@@ -133,19 +131,19 @@ void EllipticalDots::createDescriptorSets()
       ellipticalDotsUniform->getDescriptorSet(4, descriptorSets[i], i)
     }};
 
-    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
+    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
 void EllipticalDots::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  ellipticalDotsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(EllipticalDotsUniform));
+  ellipticalDotsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(EllipticalDotsUniform));
 }
 
 void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -157,7 +155,7 @@ void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light
 
   if (prevNumLights != lights.size())
   {
-    logicalDevice->waitIdle();
+    m_logicalDevice->waitIdle();
 
     const LightMetadataUniform lightMetadataUBO {
       .numLights = static_cast<int>(lights.size())
@@ -167,16 +165,16 @@ void EllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(logicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
-    for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
     {
       lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-      logicalDevice->updateDescriptorSets(1, &descriptorSet);
+      m_logicalDevice->updateDescriptorSets(1, &descriptorSet);
     }
 
     prevNumLights = static_cast<int>(lights.size());
@@ -206,6 +204,6 @@ void EllipticalDots::updateUniformVariables(const RenderInfo* renderInfo)
 
 void EllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);
 }

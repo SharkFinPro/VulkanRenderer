@@ -2,14 +2,12 @@
 #include "GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/RenderObject.h"
 
-ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                                                 const std::shared_ptr<LogicalDevice>& logicalDevice,
+ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                  const std::shared_ptr<RenderPass>& renderPass,
                                                  VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createPipeline(renderPass->getRenderPass());
 }
@@ -19,7 +17,7 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
 {
   updateUniformVariables(renderInfo);
 
-  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
   bindDescriptorSet(renderInfo);
 
@@ -29,7 +27,7 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
     {
       object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      object->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, 0);
+      object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
     }
   }
 }
@@ -51,7 +49,7 @@ void ObjectHighlightPipeline::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
   defineViewportState(GraphicsPipelineStates::viewportState);

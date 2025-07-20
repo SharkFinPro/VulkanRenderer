@@ -3,14 +3,12 @@
 #include "Uniforms.h"
 #include "../RenderPass.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/RenderObject.h"
 
-MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                                           const std::shared_ptr<LogicalDevice>& logicalDevice,
+MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            const std::shared_ptr<RenderPass>& renderPass,
                                            VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   definePushConstants();
 
@@ -22,7 +20,7 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
 {
   updateUniformVariables(renderInfo);
 
-  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
   bindDescriptorSet(renderInfo);
 
@@ -34,12 +32,12 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
         .objectID = objects->at(i).second
       };
 
-      renderInfo->commandBuffer->pushConstants(pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+      renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                                                sizeof(MousePickingID), &id);
 
       objects->at(i).first->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      objects->at(i).first->draw(renderInfo->commandBuffer, pipelineLayout, renderInfo->currentFrame, 0);
+      objects->at(i).first->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
     }
   }
 }

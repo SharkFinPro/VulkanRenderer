@@ -7,7 +7,6 @@
 
 class CommandBuffer;
 class LogicalDevice;
-class PhysicalDevice;
 
 class RenderPass {
 public:

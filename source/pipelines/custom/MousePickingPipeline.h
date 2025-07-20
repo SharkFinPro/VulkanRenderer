@@ -7,8 +7,7 @@ class RenderPass;
 
 class MousePickingPipeline final : public GraphicsPipeline {
 public:
-  MousePickingPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                       const std::shared_ptr<LogicalDevice>& logicalDevice,
+  MousePickingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<RenderPass>& renderPass,
                        VkDescriptorSetLayout objectDescriptorSetLayout);
 

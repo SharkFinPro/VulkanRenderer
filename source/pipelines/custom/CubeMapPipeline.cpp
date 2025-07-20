@@ -50,13 +50,12 @@ constexpr VkDescriptorSetLayoutBinding refractUnitLayout {
   .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
 };
 
-CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                                 const std::shared_ptr<LogicalDevice>& logicalDevice,
+CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
                                  const VkCommandPool& commandPool,
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool),
+  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
     objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms(commandPool);
@@ -70,7 +69,7 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<PhysicalDevice>& physical
 
 CubeMapPipeline::~CubeMapPipeline()
 {
-  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
+  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void CubeMapPipeline::displayGui()
@@ -107,7 +106,7 @@ void CubeMapPipeline::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
   defineViewportState(GraphicsPipelineStates::viewportState);
@@ -130,23 +129,23 @@ void CubeMapPipeline::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void CubeMapPipeline::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
+    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
+  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
+  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 6> descriptorWrites{{
       cameraUniform->getDescriptorSet(0, descriptorSets[i], i),
@@ -157,19 +156,19 @@ void CubeMapPipeline::createDescriptorSets()
       refractUnit->getDescriptorSet(5, descriptorSets[i])
     }};
 
-    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
+    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
 void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
 {
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  cubeMapUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CubeMapUniform));
+  cubeMapUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CubeMapUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(NoiseOptionsUniform));
+  noiseOptionsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Texture3D>(logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
+  noiseTexture = std::make_unique<Texture3D>(m_logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
                                              VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
   std::array<std::string, 6> paths {
@@ -180,9 +179,9 @@ void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)
     "assets/cubeMap/nvposz.bmp",
     "assets/cubeMap/nvnegz.bmp"
   };
-  reflectUnit = std::make_unique<TextureCubemap>(logicalDevice, commandPool, paths);
+  reflectUnit = std::make_unique<TextureCubemap>(m_logicalDevice, commandPool, paths);
 
-  refractUnit = std::make_unique<TextureCubemap>(logicalDevice, commandPool, paths);
+  refractUnit = std::make_unique<TextureCubemap>(m_logicalDevice, commandPool, paths);
 }
 
 void CubeMapPipeline::updateUniformVariables(const RenderInfo* renderInfo)
@@ -199,6 +198,6 @@ void CubeMapPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
 void CubeMapPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);
 }

@@ -7,7 +7,6 @@
 #include <vector>
 #include <memory>
 
-class PhysicalDevice;
 class LogicalDevice;
 class RenderPass;
 class RenderObject;
@@ -17,8 +16,7 @@ class Light;
 
 class SnakePipeline final : public GraphicsPipeline {
 public:
-  SnakePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                const std::shared_ptr<LogicalDevice>& logicalDevice,
+  SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
                 VkDescriptorPool descriptorPool,
                 VkDescriptorSetLayout objectDescriptorSetLayout);

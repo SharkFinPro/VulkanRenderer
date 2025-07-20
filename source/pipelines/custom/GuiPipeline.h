@@ -10,8 +10,7 @@ class RenderPass;
 
 class GuiPipeline final : public GraphicsPipeline {
 public:
-  GuiPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-              const std::shared_ptr<LogicalDevice>& logicalDevice,
+  GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
               const std::shared_ptr<RenderPass>& renderPass,
               uint32_t maxImGuiTextures);
 
