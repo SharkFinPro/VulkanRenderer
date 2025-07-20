@@ -238,14 +238,14 @@ void VulkanEngine::initVulkan()
 
   swapChain = std::make_shared<SwapChain>(logicalDevice, window);
 
-  renderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, swapChain->getImageFormat(),
+  renderPass = std::make_shared<RenderPass>(logicalDevice, swapChain->getImageFormat(),
                                             physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
+  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  mousePickingRenderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
+  mousePickingRenderPass = std::make_shared<RenderPass>(logicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
                                                         VK_SAMPLE_COUNT_1_BIT,
                                                         VK_IMAGE_LAYOUT_UNDEFINED);
 
