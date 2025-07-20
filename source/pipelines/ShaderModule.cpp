@@ -4,22 +4,22 @@
 
 ShaderModule::ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename,
                            const VkShaderStageFlagBits stage)
-  : logicalDevice(logicalDevice), stage(stage)
+  : m_logicalDevice(logicalDevice), m_stage(stage)
 {
   createShaderModule(filename);
 }
 
 ShaderModule::~ShaderModule()
 {
-  logicalDevice->destroyShaderModule(module);
+  m_logicalDevice->destroyShaderModule(m_module);
 }
 
 VkPipelineShaderStageCreateInfo ShaderModule::getShaderStageCreateInfo() const
 {
   const VkPipelineShaderStageCreateInfo shaderStageCreateInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-    .stage = stage,
-    .module = module,
+    .stage = m_stage,
+    .module = m_module,
     .pName = "main"
   };
 
@@ -56,5 +56,5 @@ void ShaderModule::createShaderModule(const char* file)
     .pCode = reinterpret_cast<const uint32_t*>(code.data())
   };
 
-  module = logicalDevice->createShaderModule(shaderModuleCreateInfo);
+  m_module = m_logicalDevice->createShaderModule(shaderModuleCreateInfo);
 }
