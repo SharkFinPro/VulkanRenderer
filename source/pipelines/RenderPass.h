@@ -21,7 +21,7 @@ public:
 
   [[nodiscard]] VkFormat findDepthFormat() const;
 
-  void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, std::shared_ptr<CommandBuffer> commandBuffer) const;
+  void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
