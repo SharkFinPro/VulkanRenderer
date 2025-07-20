@@ -1,3 +1,5 @@
+include(FetchContent)
+
 # GLFW
 set(GLFW_BUILD_EXAMPLES OFF)
 set(GLFW_BUILD_TESTS OFF)
@@ -45,7 +47,13 @@ FetchContent_Declare(
   GIT_TAG docking
 )
 
-FetchContent_MakeAvailable(imgui)
+FetchContent_MakeAvailable(
+  glfw
+  glm
+  assimp
+  stb
+  imgui
+)
 
 add_library(imgui STATIC
   ${imgui_SOURCE_DIR}/imgui.cpp
@@ -65,12 +73,4 @@ target_link_libraries(imgui PUBLIC
 )
 target_include_directories(imgui PUBLIC
   ${imgui_SOURCE_DIR}
-)
-
-# Include
-FetchContent_MakeAvailable(
-  glfw
-  glm
-  assimp
-  stb
 )
