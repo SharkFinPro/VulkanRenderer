@@ -47,11 +47,11 @@ vec3 getStandardSpecular(PointLight light, vec3 cameraPosition, vec3 fragPos, ve
 }
 
 vec3 StandardPointLightAffect(PointLight light,
-                      vec3 color,
-                      vec3 normal,
-                      vec3 fragPos,
-                      vec3 cameraPosition,
-                      float shininess)
+                              vec3 color,
+                              vec3 normal,
+                              vec3 fragPos,
+                              vec3 cameraPosition,
+                              float shininess)
 {
   vec3 normalizedNormal = normalize(normal);
 
@@ -63,12 +63,12 @@ vec3 StandardPointLightAffect(PointLight light,
 }
 
 vec3 SpecularMapPointLightAffect(PointLight light,
-                              vec3 color,
-                              vec3 specColor,
-                              vec3 normal,
-                              vec3 fragPos,
-                              vec3 cameraPosition,
-                              float shininess)
+                                 vec3 color,
+                                 vec3 specColor,
+                                 vec3 normal,
+                                 vec3 fragPos,
+                                 vec3 cameraPosition,
+                                 float shininess)
 {
   vec3 normalizedNormal = normalize(normal);
 
