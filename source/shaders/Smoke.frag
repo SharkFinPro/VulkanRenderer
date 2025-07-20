@@ -15,20 +15,6 @@ layout(location = 1) in vec4 fragColor;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 PointLightAffect(PointLight light, vec3 color)
-{
-  // Calculate distance
-  vec3 lightToFrag = light.position - fragPos;
-  float dist = length(lightToFrag);
-
-  // Calculate attenuation
-  float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
-
-  // Combined Output
-  return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color
-}
-
-
 float noise2D(vec2 st)
 {
   vec2 i = floor(st);
@@ -65,7 +51,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], fragColor.rgb);
+    result += SmokePointLightAffect(lights[i], fragColor.rgb, fragPos);
   }
 
   outColor = vec4(result, finalMask * fragColor.a);

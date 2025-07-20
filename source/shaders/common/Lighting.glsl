@@ -78,3 +78,16 @@ vec3 SpecularMapPointLightAffect(PointLight light,
 
   return (ambient + diffuse + specular) * light.color;
 }
+
+vec3 SmokePointLightAffect(PointLight light, vec3 color, vec3 fragPos)
+{
+  // Calculate distance
+  vec3 lightToFrag = light.position - fragPos;
+  float dist = length(lightToFrag);
+
+  // Calculate attenuation
+  float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+
+  // Combined Output
+  return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color
+}
