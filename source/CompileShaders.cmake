@@ -11,6 +11,11 @@ file(GLOB_RECURSE SHADER_FILES
   "${shadersSrc}/*.comp"
 )
 
+# Find all common shader files recursively
+file(GLOB_RECURSE COMMON_SHADER_FILES
+  "${shadersSrc}/common/*.glsl"
+)
+
 # List to store compiled SPIR-V shader files
 set(SPV_FILES "")
 
@@ -30,7 +35,7 @@ foreach(SHADER ${SHADER_FILES})
   add_custom_command(
     OUTPUT ${SPV_FILE}
     COMMAND glslangValidator -V -I${shadersSrc}/include ${SHADER} -o ${SPV_FILE}
-    DEPENDS ${SHADER}
+    DEPENDS ${SHADER} ${COMMON_SHADER_FILES}
     COMMENT "Compiling shader: ${REL_PATH}"
   )
 endforeach()
