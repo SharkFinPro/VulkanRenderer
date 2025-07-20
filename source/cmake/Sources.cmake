@@ -145,3 +145,10 @@ set(VULKAN_ENGINE_SOURCES
   ${VULKAN_ENGINE_SOURCES_UTILITIES}
   ${VULKAN_ENGINE_SOURCES_BASE}
 )
+
+# Validation: Ensure all listed files exist
+foreach(SOURCE_FILE ${VULKAN_ENGINE_SOURCES})
+  if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_FILE}")
+    message(WARNING "Source file not found: ${SOURCE_FILE}")
+  endif()
+endforeach()
