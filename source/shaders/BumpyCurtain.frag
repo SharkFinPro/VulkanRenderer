@@ -1,6 +1,7 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 #include "common/Lighting.glsl"
+#include "common/Perturb.glsl"
 
 layout(set = 1, binding = 0) uniform Transform {
   mat4 model;
@@ -38,28 +39,6 @@ layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
-
-vec3 PerturbNormal2(float angx, float angy, vec3 n)
-{
-  float cx = cos(angx);
-  float sx = sin(angx);
-  float cy = cos(angy);
-  float sy = sin(angy);
-
-  // rotate about x:
-  float yp =  n.y * cx - n.z * sx;    // y'
-  n.z      =  n.y * sx + n.z * cx;    // z'
-  n.y      =  yp;
-  // n.x      =  n.x;
-
-  // rotate about y:
-  float xp =  n.x * cy + n.z * sy;    // x'
-  n.z      = -n.x * sy + n.z * cy;    // z'
-  n.x      =  xp;
-  // n.y      =  n.y;
-
-  return normalize( n );
-}
 
 void main()
 {
