@@ -1,15 +1,6 @@
 #version 450
-
-struct PointLight {
-  vec3 position;
-  float padding1; // Padding to ensure alignment
-  vec3 color;
-  float padding2; // Padding to ensure alignment
-  float ambient;
-  float diffuse;
-  float specular;
-  float padding3; // Padding to ensure alignment
-};
+#extension GL_GOOGLE_include_directive : require
+#include "common/Lighting.glsl"
 
 layout(set = 0, binding = 5) uniform PointLightsMetadata {
   int numLights;
@@ -23,20 +14,6 @@ layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec4 fragColor;
 
 layout(location = 0) out vec4 outColor;
-
-vec3 PointLightAffect(PointLight light, vec3 color)
-{
-  // Calculate distance
-  vec3 lightToFrag = light.position - fragPos;
-  float dist = length(lightToFrag);
-
-  // Calculate attenuation
-  float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
-
-  // Combined Output
-  return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color
-}
-
 
 float noise2D(vec2 st)
 {
@@ -74,7 +51,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], fragColor.rgb);
+    result += SmokePointLightAffect(lights[i], fragColor.rgb, fragPos);
   }
 
   outColor = vec4(result, finalMask * fragColor.a);

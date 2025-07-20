@@ -1,4 +1,6 @@
 #version 450
+#extension GL_GOOGLE_include_directive : require
+#include "common/Perturb.glsl"
 
 layout(set = 1, binding = 0) uniform Transform {
   mat4 model;
@@ -33,36 +35,6 @@ layout(location = 2) in vec3 fragNormal;
 layout(location = 0) out vec4 outColor;
 
 const vec3 WHITE = vec3(1.0, 1.0, 1.0);
-
-vec3 PerturbNormal3(float angx, float angy, float angz, vec3 n)
-{
-  float cx = cos( angx );
-  float sx = sin( angx );
-  float cy = cos( angy );
-  float sy = sin( angy );
-  float cz = cos( angz );
-  float sz = sin( angz );
-
-  // rotate about x:
-  float yp =  n.y*cx - n.z*sx;	// y'
-  n.z      =  n.y*sx + n.z*cx;	// z'
-  n.y      =  yp;
-  // n.x      =  n.x;
-
-  // rotate about y:
-  float xp =  n.x*cy + n.z*sy;	// x'
-  n.z      = -n.x*sy + n.z*cy;	// z'
-  n.x      =  xp;
-  // n.y      =  n.y;
-
-  // rotate about z:
-  xp =  n.x*cz - n.y*sz;	// x'
-  n.y      =  n.x*sz + n.y*cz;	// y'
-  n.x      = xp;
-  // n.z      =  n.z;
-
-  return normalize( n );
-}
 
 void main()
 {

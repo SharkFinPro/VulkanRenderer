@@ -1,15 +1,7 @@
 #version 450
-
-struct PointLight {
-  vec3 position;
-  float padding1; // Padding to ensure alignment
-  vec3 color;
-  float padding2; // Padding to ensure alignment
-  float ambient;
-  float diffuse;
-  float specular;
-  float padding3; // Padding to ensure alignment
-};
+#extension GL_GOOGLE_include_directive : require
+#include "common/Lighting.glsl"
+#include "common/Perturb.glsl"
 
 layout(set = 1, binding = 0) uniform Transform {
   mat4 model;
@@ -48,56 +40,6 @@ layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 PointLightAffect(PointLight light, vec3 color, vec3 normal)
-{
-  // Ambient
-  vec3 ambient = light.ambient * color;
-
-  // Diffuse
-  vec3 lightDir = normalize(light.position - fragPos);
-  float d = max(dot(normal, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * color;
-
-  // Specular
-  vec3 specular = vec3(0);
-  if(d > 0.0) // only do specular if the light can see the point
-  {
-    vec3 viewDir = normalize(camera.position - fragPos);
-    vec3 reflectDir = normalize(reflect(-lightDir, normal));
-    float cosphi = dot(viewDir, reflectDir);
-
-    if (cosphi > 0.0)
-    {
-      specular = pow(cosphi, curtain.shininess) * light.specular * light.color;
-    }
-  }
-
-  // Combined Output
-  return (ambient + diffuse + specular) * light.color;
-}
-
-vec3 PerturbNormal2(float angx, float angy, vec3 n)
-{
-  float cx = cos(angx);
-  float sx = sin(angx);
-  float cy = cos(angy);
-  float sy = sin(angy);
-
-  // rotate about x:
-  float yp =  n.y * cx - n.z * sx;    // y'
-  n.z      =  n.y * sx + n.z * cx;    // z'
-  n.y      =  yp;
-  // n.x      =  n.x;
-
-  // rotate about y:
-  float xp =  n.x * cy + n.z * sy;    // x'
-  n.z      = -n.x * sy + n.z * cy;    // z'
-  n.x      =  xp;
-  // n.y      =  n.y;
-
-  return normalize( n );
-}
-
 void main()
 {
   vec4 nvx = texture(Noise3, noiseOptions.frequency * fragPos);
@@ -117,7 +59,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], fragColor, n);
+    result += StandardPointLightAffect(lights[i], fragColor, n, fragPos, camera.position, curtain.shininess);
   }
 
   outColor = vec4(result, 1.0);
