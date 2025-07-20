@@ -1,6 +1,6 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
-#include "common/structs.glsl"
+#include "common/Lighting.glsl"
 
 layout(set = 0, binding = 2) uniform PointLightsMetadata {
   int numLights;
@@ -35,8 +35,6 @@ layout(location = 0) out vec4 outColor;
 
 vec3 Rainbow(float t);
 
-vec3 PointLightAffect(PointLight light, vec3 color);
-
 void main()
 {
   vec3 color = vec3(0.8);
@@ -51,7 +49,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], color);
+    result += StandardPointLightAffect(lights[i], color, fragNormal, fragPos, camera.position, crosses.shininess);
   }
 
   outColor = vec4(result, 1.0);
@@ -100,33 +98,4 @@ vec3 Rainbow(float t)
   }
 
   return vec3( r, g, b );
-}
-
-vec3 PointLightAffect(PointLight light, vec3 color)
-{
-  // Ambient
-  vec3 ambient = light.ambient * color;
-
-  // Diffuse
-  vec3 norm = normalize(fragNormal);
-  vec3 lightDir = normalize(light.position - fragPos);
-  float d = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * color;
-
-  // Specular
-  vec3 specular = vec3(0);
-  if(d > 0.0) // only do specular if the light can see the point
-  {
-    vec3 viewDir = normalize(camera.position - fragPos);
-    vec3 reflectDir = normalize(reflect(-lightDir, norm));
-    float cosphi = dot(viewDir, reflectDir);
-
-    if (cosphi > 0.0)
-    {
-      specular = pow(cosphi, crosses.shininess) * light.specular * light.color;
-    }
-  }
-
-  // Combined Output
-  return (ambient + diffuse + specular) * light.color;
 }

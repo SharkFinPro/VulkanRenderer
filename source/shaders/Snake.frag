@@ -1,6 +1,6 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
-#include "common/structs.glsl"
+#include "common/Lighting.glsl"
 
 layout(set = 0, binding = 2) uniform PointLightsMetadata {
   int numLights;
@@ -23,35 +23,6 @@ layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
-
-vec3 PointLightAffect(PointLight light, vec3 color)
-{
-  // Ambient
-  vec3 ambient = light.ambient * color;
-
-  // Diffuse
-  vec3 norm = normalize(fragNormal);
-  vec3 lightDir = normalize(light.position - fragPos);
-  float d = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * color;
-
-  // Specular
-  vec3 specular = vec3(0);
-  if(d > 0.0) // only do specular if the light can see the point
-  {
-    vec3 viewDir = normalize(camera.position - fragPos);
-    vec3 reflectDir = normalize(reflect(-lightDir, norm));
-    float cosphi = dot(viewDir, reflectDir);
-
-    if (cosphi > 0.0)
-    {
-      specular = pow(cosphi, 10) * light.specular * light.color; // 10 = shininess
-    }
-  }
-
-  // Combined Output
-  return (ambient + diffuse + specular) * light.color;
-}
 
 vec3 hsvToRgb(float h, float s, float v)
 {
@@ -86,7 +57,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], color);
+    result += StandardPointLightAffect(lights[i], color, fragNormal, fragPos, camera.position, 10);
   }
 
   outColor = vec4(result, 1.0);

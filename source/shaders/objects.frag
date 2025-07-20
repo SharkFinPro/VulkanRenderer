@@ -1,6 +1,6 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
-#include "common/structs.glsl"
+#include "common/Lighting.glsl"
 
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 layout(set = 1, binding = 4) uniform sampler2D specSampler;
@@ -23,35 +23,6 @@ layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 PointLightAffect(PointLight light, vec3 texColor, vec3 specColor)
-{
-  // Ambient
-  vec3 ambient = light.ambient * texColor;
-
-  // Diffuse
-  vec3 norm = normalize(fragNormal);
-  vec3 lightDir = normalize(light.position - fragPos);
-  float d = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * texColor;
-
-  // Specular
-  vec3 specular = vec3(0);
-  if(d > 0.0) // only do specular if the light can see the point
-  {
-    vec3 viewDir = normalize(camera.position - fragPos);
-    vec3 reflectDir = normalize(reflect(-lightDir, norm));
-    float cosphi = dot(viewDir, reflectDir);
-
-    if (cosphi > 0.0)
-    {
-      specular = pow(cosphi, 32.0f) * light.specular * light.color;
-    }
-  }
-
-  // Combined Output
-  return (ambient + diffuse + specular) * light.color;
-}
-
 void main()
 {
   vec3 texColor = texture(texSampler, fragTexCoord).rgb;
@@ -60,7 +31,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], texColor, specColor);
+    result += SpecularMapPointLightAffect(lights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
   }
 
   outColor = vec4(result, 1.0);

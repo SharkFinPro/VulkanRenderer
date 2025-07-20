@@ -1,6 +1,6 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
-#include "common/structs.glsl"
+#include "common/Lighting.glsl"
 
 layout(set = 1, binding = 0) uniform Transform {
   mat4 model;
@@ -38,34 +38,6 @@ layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
 
 layout(location = 0) out vec4 outColor;
-
-vec3 PointLightAffect(PointLight light, vec3 color, vec3 normal)
-{
-  // Ambient
-  vec3 ambient = light.ambient * color;
-
-  // Diffuse
-  vec3 lightDir = normalize(light.position - fragPos);
-  float d = max(dot(normal, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * color;
-
-  // Specular
-  vec3 specular = vec3(0);
-  if(d > 0.0) // only do specular if the light can see the point
-  {
-    vec3 viewDir = normalize(camera.position - fragPos);
-    vec3 reflectDir = normalize(reflect(-lightDir, normal));
-    float cosphi = dot(viewDir, reflectDir);
-
-    if (cosphi > 0.0)
-    {
-      specular = pow(cosphi, curtain.shininess) * light.specular * light.color;
-    }
-  }
-
-  // Combined Output
-  return (ambient + diffuse + specular) * light.color;
-}
 
 vec3 PerturbNormal2(float angx, float angy, vec3 n)
 {
@@ -108,7 +80,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numLights; i++)
   {
-    result += PointLightAffect(lights[i], fragColor, n);
+    result += StandardPointLightAffect(lights[i], fragColor, n, fragPos, camera.position, curtain.shininess);
   }
 
   outColor = vec4(result, 1.0);
