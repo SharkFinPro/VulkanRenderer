@@ -20,28 +20,7 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& l
 {
   createUniforms(commandPool);
 
-  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
-  m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
-  {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{{
-      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
-      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
-    }};
-
-    return descriptorWrites;
-  });
-
-  m_noisyEllipticalDotsDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::noisyEllipticalDotsLayoutBindings);
-  m_noisyEllipticalDotsDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
-  {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{{
-      m_ellipticalDotsUniform->getDescriptorSet(4, descriptorSet, frame),
-      m_noiseOptionsUniform->getDescriptorSet(6, descriptorSet, frame),
-      m_noiseTexture->getDescriptorSet(7, descriptorSet)
-    }};
-
-    return descriptorWrites;
-  });
+  createDescriptorSets(descriptorPool);
 
   createPipeline(renderPass->getRenderPass());
 }
@@ -102,6 +81,32 @@ void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
 
   m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
                                                VK_SAMPLER_ADDRESS_MODE_REPEAT);
+}
+
+void NoisyEllipticalDots::createDescriptorSets(const VkDescriptorPool descriptorPool)
+{
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
+  m_lightingDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
+      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
+
+  m_noisyEllipticalDotsDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::noisyEllipticalDotsLayoutBindings);
+  m_noisyEllipticalDotsDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_ellipticalDotsUniform->getDescriptorSet(4, descriptorSet, frame),
+      m_noiseOptionsUniform->getDescriptorSet(6, descriptorSet, frame),
+      m_noiseTexture->getDescriptorSet(7, descriptorSet)
+    }};
+
+    return descriptorWrites;
+  });
 }
 
 void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
