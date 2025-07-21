@@ -10,7 +10,7 @@ class RenderObject;
 class Camera;
 class UniformBuffer;
 class Light;
-class LightingDescriptorSet;
+class DescriptorSet;
 
 class ObjectsPipeline final : public GraphicsPipeline {
 public:
@@ -20,7 +20,7 @@ public:
                   VkDescriptorSetLayout objectDescriptorSetLayout);
 
 private:
-  std::shared_ptr<LightingDescriptorSet> m_lightingDescriptorSet;
+  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::shared_ptr<UniformBuffer> m_lightMetadataUniform;

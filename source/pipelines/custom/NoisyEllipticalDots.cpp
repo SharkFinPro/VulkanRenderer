@@ -1,6 +1,7 @@
 #include "NoisyEllipticalDots.h"
 #include "config/GraphicsPipelineStates.h"
-#include "descriptorSets/LightingDescriptorSet.h"
+#include "descriptorSets/DescriptorSet.h"
+#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../components/Camera.h"
@@ -40,7 +41,7 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& l
 {
   createUniforms(commandPool);
 
-  m_lightingDescriptorSet = std::make_shared<LightingDescriptorSet>(m_logicalDevice, descriptorPool);
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
   m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{{

@@ -2,9 +2,15 @@
 #include "../../../core/logicalDevice/LogicalDevice.h"
 #include <vector>
 
-DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice)
+DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             VkDescriptorPool descriptorPool,
+                             const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
   : m_logicalDevice(logicalDevice)
-{}
+{
+  createDescriptorSetLayout(layoutBindings);
+
+  allocateDescriptorSets(descriptorPool);
+}
 
 DescriptorSet::~DescriptorSet()
 {
@@ -31,17 +37,8 @@ VkDescriptorSet& DescriptorSet::getDescriptorSet(const size_t frame)
   return m_descriptorSets[frame];
 }
 
-void DescriptorSet::createDescriptorSet(VkDescriptorPool descriptorPool)
+void DescriptorSet::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
 {
-  createDescriptorSetLayout();
-
-  allocateDescriptorSets(descriptorPool);
-}
-
-void DescriptorSet::createDescriptorSetLayout()
-{
-  const auto layoutBindings = getLayoutBindings();
-
   const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
     .bindingCount = static_cast<uint32_t>(layoutBindings.size()),

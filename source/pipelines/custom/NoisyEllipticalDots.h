@@ -4,7 +4,7 @@
 #include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 
-class LightingDescriptorSet;
+class DescriptorSet;
 class RenderPass;
 class RenderObject;
 class Camera;
@@ -37,7 +37,7 @@ private:
     .frequency = 1.0f
   };
 
-  std::shared_ptr<LightingDescriptorSet> m_lightingDescriptorSet;
+  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
   VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
   std::vector<VkDescriptorSet> m_descriptorSets;

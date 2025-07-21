@@ -8,11 +8,13 @@
 
 class LogicalDevice;
 
-class DescriptorSet {
+class DescriptorSet final {
 public:
-  explicit DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice);
+  explicit DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                         VkDescriptorPool descriptorPool,
+                         const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
 
-  virtual ~DescriptorSet();
+  ~DescriptorSet();
 
   void updateDescriptorSets(const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const;
 
@@ -24,15 +26,12 @@ protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
   VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
+
   std::vector<VkDescriptorSet> m_descriptorSets;
 
-  void createDescriptorSet(VkDescriptorPool descriptorPool);
-
-  void createDescriptorSetLayout();
+  void createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
 
   void allocateDescriptorSets(VkDescriptorPool descriptorPool);
-
-  [[nodiscard]] virtual std::vector<VkDescriptorSetLayoutBinding> getLayoutBindings() = 0;
 };
 
 

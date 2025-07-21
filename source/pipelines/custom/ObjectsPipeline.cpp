@@ -1,7 +1,8 @@
 #include "ObjectsPipeline.h"
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
-#include "descriptorSets/LightingDescriptorSet.h"
+#include "descriptorSets/DescriptorSet.h"
+#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
@@ -18,7 +19,7 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
 {
   createUniforms();
 
-  m_lightingDescriptorSet = std::make_shared<LightingDescriptorSet>(m_logicalDevice, descriptorPool);
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
   m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{{

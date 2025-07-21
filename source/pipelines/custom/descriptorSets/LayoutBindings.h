@@ -1,0 +1,36 @@
+#ifndef LAYOUTBINDINGS_H
+#define LAYOUTBINDINGS_H
+
+#include <vector>
+#include <vulkan/vulkan.h>
+
+namespace LayoutBindings {
+  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
+    .binding = 2,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding lightsLayout {
+    .binding = 5,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding cameraLayout {
+    .binding = 3,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  inline std::vector<VkDescriptorSetLayoutBinding> lightingLayoutBindings {
+    lightMetadataLayout,
+    lightsLayout,
+    cameraLayout
+  };
+}
+
+#endif //LAYOUTBINDINGS_H
