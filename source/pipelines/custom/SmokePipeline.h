@@ -40,7 +40,9 @@ private:
 
   std::vector<VkBuffer> m_shaderStorageBuffers;
   std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
+  std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
 
+  std::shared_ptr<DescriptorSet> m_smokeDescriptorSet;
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
   std::shared_ptr<UniformBuffer> m_deltaTimeUniform;
@@ -52,11 +54,6 @@ private:
 
   int m_prevNumLights = 0;
   size_t m_lightsUniformBufferSize = 0;
-
-  VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> m_computeDescriptorSets;
-
-  VkDescriptorSetLayout m_computeDescriptorSetLayout = VK_NULL_HANDLE;
 
   float m_dotSpeed;
   std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
@@ -81,11 +78,7 @@ private:
 
   void uploadShaderStorageBuffers(const VkCommandPool& commandPool, const std::vector<SmokeParticle>& particles);
 
-  void createDescriptorSetLayouts();
-
-  void createDescriptorSets();
-
-  void createDescriptorSet(uint32_t set) const;
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 
