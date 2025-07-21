@@ -12,8 +12,7 @@ class UniformBuffer;
 
 class TexturedPlane final : public GraphicsPipeline {
 public:
-  TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                const std::shared_ptr<LogicalDevice>& logicalDevice,
+  TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
                 VkDescriptorPool descriptorPool,
                 VkDescriptorSetLayout objectDescriptorSetLayout);

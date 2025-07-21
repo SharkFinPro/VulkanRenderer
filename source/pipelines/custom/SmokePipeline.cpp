@@ -3,7 +3,6 @@
 #include "Uniforms.h"
 #include "../SmokeParticle.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include "../../utilities/Buffers.h"
@@ -56,14 +55,13 @@ constexpr std::array<VkDescriptorSetLayoutBinding, 7> layoutBindings {{
   }
 }};
 
-SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                             const std::shared_ptr<LogicalDevice>& logicalDevice,
+SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const VkCommandPool& commandPool,
                              const VkRenderPass& renderPass,
                              const VkDescriptorPool descriptorPool,
                              const glm::vec3 position,
                              const uint32_t numParticles)
-  : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
+  : ComputePipeline(logicalDevice), GraphicsPipeline(logicalDevice),
     descriptorPool(descriptorPool), dotSpeed(0.75f), previousTime(std::chrono::steady_clock::now()),
     numParticles(numParticles)
 {
@@ -82,19 +80,19 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevi
 
 SmokePipeline::~SmokePipeline()
 {
-  ComputePipeline::logicalDevice->destroyDescriptorSetLayout(computeDescriptorSetLayout);
+  ComputePipeline::m_logicalDevice->destroyDescriptorSetLayout(computeDescriptorSetLayout);
 
-  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
   {
-    Buffers::destroyBuffer(ComputePipeline::logicalDevice, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
+    Buffers::destroyBuffer(ComputePipeline::m_logicalDevice, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
   }
 }
 
 void SmokePipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer, const uint32_t currentFrame) const
 {
-  commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
+  commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipeline);
 
-  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipelineLayout, 0,
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipelineLayout, 0,
                                     1, &computeDescriptorSets[currentFrame]);
 
   commandBuffer->dispatch(numParticles / 256, 1, 1);
@@ -150,7 +148,7 @@ void SmokePipeline::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStatePointList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateSmokeParticle);
   defineViewportState(GraphicsPipelineStates::viewportState);
@@ -158,15 +156,15 @@ void SmokePipeline::defineStates()
 
 void SmokePipeline::createUniforms()
 {
-  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(DeltaTimeUniform));
+  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(DeltaTimeUniform));
 
-  transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(ViewProjTransformUniform));
+  transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(ViewProjTransformUniform));
 
-  smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(SmokeUniform));
+  smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(SmokeUniform));
 
-  lightMetadataUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(LightMetadataUniform));
+  lightMetadataUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(LightUniform));
+  lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(LightUniform));
 }
 
 void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
@@ -195,34 +193,34 @@ void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 void SmokePipeline::uploadShaderStorageBuffers(const VkCommandPool& commandPool,
                                                const std::vector<SmokeParticle>& particles)
 {
-  shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
+  shaderStorageBuffers.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
+  shaderStorageBuffersMemory.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
 
   const VkDeviceSize bufferSize = sizeof(SmokeParticle) * numParticles;
 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(ComputePipeline::logicalDevice, bufferSize,
+  Buffers::createBuffer(ComputePipeline::m_logicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  ComputePipeline::logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles, bufferSize](void* data) {
+  ComputePipeline::m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles, bufferSize](void* data) {
     memcpy(data, particles.data(), bufferSize);
   });
 
-  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
   {
-    Buffers::createBuffer(ComputePipeline::logicalDevice, bufferSize,
+    Buffers::createBuffer(ComputePipeline::m_logicalDevice, bufferSize,
                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 
-    Buffers::copyBuffer(ComputePipeline::logicalDevice, commandPool, ComputePipeline::logicalDevice->getComputeQueue(),
+    Buffers::copyBuffer(ComputePipeline::m_logicalDevice, commandPool, ComputePipeline::m_logicalDevice->getComputeQueue(),
                         stagingBuffer, shaderStorageBuffers[i], bufferSize);
   }
 
-  Buffers::destroyBuffer(ComputePipeline::logicalDevice, stagingBuffer, stagingBufferMemory);
+  Buffers::destroyBuffer(ComputePipeline::m_logicalDevice, stagingBuffer, stagingBufferMemory);
 }
 
 void SmokePipeline::createDescriptorSetLayouts()
@@ -233,23 +231,23 @@ void SmokePipeline::createDescriptorSetLayouts()
     .pBindings = layoutBindings.data()
   };
 
-  computeDescriptorSetLayout = ComputePipeline::logicalDevice->createDescriptorSetLayout(descriptorSetLayoutInfo);
+  computeDescriptorSetLayout = ComputePipeline::m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutInfo);
 }
 
 void SmokePipeline::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(ComputePipeline::logicalDevice->getMaxFramesInFlight(), computeDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(ComputePipeline::m_logicalDevice->getMaxFramesInFlight(), computeDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = ComputePipeline::logicalDevice->getMaxFramesInFlight(),
+    .descriptorSetCount = ComputePipeline::m_logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  computeDescriptorSets.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  ComputePipeline::logicalDevice->allocateDescriptorSets(allocateInfo, computeDescriptorSets.data());
+  computeDescriptorSets.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
+  ComputePipeline::m_logicalDevice->allocateDescriptorSets(allocateInfo, computeDescriptorSets.data());
 
-  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
   {
     createDescriptorSet(i);
 
@@ -263,7 +261,7 @@ void SmokePipeline::createDescriptorSets()
 void SmokePipeline::createDescriptorSet(const uint32_t set) const
 {
   const VkDescriptorBufferInfo storageBufferInfoLastFrame {
-    .buffer = shaderStorageBuffers[(set - 1) % ComputePipeline::logicalDevice->getMaxFramesInFlight()],
+    .buffer = shaderStorageBuffers[(set - 1) % ComputePipeline::m_logicalDevice->getMaxFramesInFlight()],
     .offset = 0,
     .range = sizeof(SmokeParticle) * numParticles
   };
@@ -299,7 +297,7 @@ void SmokePipeline::createDescriptorSet(const uint32_t set) const
     lightMetadataUniform->getDescriptorSet(5, computeDescriptorSets[set], set)
   }};
 
-  ComputePipeline::logicalDevice->updateDescriptorSets(writeDescriptorSets.size(),
+  ComputePipeline::m_logicalDevice->updateDescriptorSets(writeDescriptorSets.size(),
                                           writeDescriptorSets.data());
 }
 
@@ -333,7 +331,7 @@ void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
 void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, ComputePipeline::pipelineLayout, 0,
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, ComputePipeline::m_pipelineLayout, 0,
                                                 1, &computeDescriptorSets[renderInfo->currentFrame]);
 }
 
@@ -346,7 +344,7 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
   if (prevNumLights != lights.size())
   {
-    ComputePipeline::logicalDevice->waitIdle();
+    ComputePipeline::m_logicalDevice->waitIdle();
 
     const LightMetadataUniform lightMetadataUBO {
       .numLights = static_cast<int>(lights.size())
@@ -356,16 +354,16 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
     lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, lightsUniformBufferSize);
+    lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, lightsUniformBufferSize);
 
-    for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+    for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
     {
       lightMetadataUniform->update(i, &lightMetadataUBO);
 
       auto descriptorSet = lightsUniform->getDescriptorSet(6, computeDescriptorSets[i], i);
       descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-      ComputePipeline::logicalDevice->updateDescriptorSets(1, &descriptorSet);
+      ComputePipeline::m_logicalDevice->updateDescriptorSets(1, &descriptorSet);
     }
 
     prevNumLights = static_cast<int>(lights.size());

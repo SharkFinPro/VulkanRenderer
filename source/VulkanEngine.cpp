@@ -187,7 +187,7 @@ std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
 
 std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 position, const uint32_t numParticles)
 {
-  auto system = std::make_shared<SmokePipeline>(physicalDevice, logicalDevice, commandPool, renderPass->getRenderPass(),
+  auto system = std::make_shared<SmokePipeline>(logicalDevice, commandPool, renderPass->getRenderPass(),
                                                 descriptorPool, position, numParticles);
 
   smokeSystems.push_back(system);
@@ -238,63 +238,63 @@ void VulkanEngine::initVulkan()
 
   swapChain = std::make_shared<SwapChain>(logicalDevice, window);
 
-  renderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, swapChain->getImageFormat(),
+  renderPass = std::make_shared<RenderPass>(logicalDevice, swapChain->getImageFormat(),
                                             physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
+  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
                                                      physicalDevice->getMsaaSamples(),
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  mousePickingRenderPass = std::make_shared<RenderPass>(logicalDevice, physicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
+  mousePickingRenderPass = std::make_shared<RenderPass>(logicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
                                                         VK_SAMPLE_COUNT_1_BIT,
                                                         VK_IMAGE_LAYOUT_UNDEFINED);
 
   pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
-    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::objectHighlight] = std::make_unique<ObjectHighlightPipeline>(
-    physicalDevice, logicalDevice, renderPass, objectDescriptorSetLayout);
+    logicalDevice, renderPass, objectDescriptorSetLayout);
 
   pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
-    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
-    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
-    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
-    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
-    physicalDevice, logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
-    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
-    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
-    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
-    physicalDevice, logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
-  guiPipeline = std::make_unique<GuiPipeline>(physicalDevice, logicalDevice, renderPass,
+  guiPipeline = std::make_unique<GuiPipeline>(logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
-  mousePickingPipeline = std::make_unique<MousePickingPipeline>(physicalDevice, logicalDevice, mousePickingRenderPass,
+  mousePickingPipeline = std::make_unique<MousePickingPipeline>(logicalDevice, mousePickingRenderPass,
                                                                 objectDescriptorSetLayout);
 
   if (vulkanEngineOptions.DO_DOTS)
   {
-    dotsPipeline = std::make_unique<DotsPipeline>(physicalDevice, logicalDevice, commandPool,
+    dotsPipeline = std::make_unique<DotsPipeline>(logicalDevice, commandPool,
                                                   renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
   }
 
-  linePipeline = std::make_unique<LinePipeline>(physicalDevice, logicalDevice, renderPass, descriptorPool);
+  linePipeline = std::make_unique<LinePipeline>(logicalDevice, renderPass, descriptorPool);
 
   imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, logicalDevice, renderPass, guiPipeline,
                                                   vulkanEngineOptions.USE_DOCKSPACE);

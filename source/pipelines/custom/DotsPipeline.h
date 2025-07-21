@@ -15,8 +15,7 @@ constexpr int PARTICLE_COUNT = 8192;
 
 class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
 public:
-  DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-               const std::shared_ptr<LogicalDevice>& logicalDevice,
+  DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const VkCommandPool& commandPool,
                const VkRenderPass& renderPass,
                const VkExtent2D& swapChainExtent,

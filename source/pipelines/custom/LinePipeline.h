@@ -11,10 +11,9 @@ class UniformBuffer;
 
 class LinePipeline final : public GraphicsPipeline {
 public:
-  LinePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<RenderPass>& renderPass,
-                VkDescriptorPool descriptorPool);
+  LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+               const std::shared_ptr<RenderPass>& renderPass,
+               VkDescriptorPool descriptorPool);
 
   ~LinePipeline() override;
 

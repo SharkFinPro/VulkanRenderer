@@ -15,8 +15,7 @@ struct SmokeParticle;
 
 class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
 public:
-  SmokePipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                const std::shared_ptr<LogicalDevice>& logicalDevice,
+  SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const VkCommandPool& commandPool,
                 const VkRenderPass& renderPass,
                 VkDescriptorPool descriptorPool,

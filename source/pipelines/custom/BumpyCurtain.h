@@ -7,7 +7,6 @@
 #include <memory>
 #include <vector>
 
-class PhysicalDevice;
 class LogicalDevice;
 class RenderPass;
 class RenderObject;
@@ -18,8 +17,7 @@ class Texture3D;
 
 class BumpyCurtain final : public GraphicsPipeline {
 public:
-  BumpyCurtain(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-               const std::shared_ptr<LogicalDevice>& logicalDevice,
+  BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const std::shared_ptr<RenderPass>& renderPass,
                const VkCommandPool& commandPool,
                VkDescriptorPool descriptorPool,

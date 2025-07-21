@@ -8,15 +8,13 @@
 #include <memory>
 
 class LogicalDevice;
-class PhysicalDevice;
 class RenderPass;
 class RenderObject;
 class UniformBuffer;
 
 class MagnifyWhirlMosaicPipeline final : public GraphicsPipeline {
 public:
-  MagnifyWhirlMosaicPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                             const std::shared_ptr<LogicalDevice>& logicalDevice,
+  MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
                              VkDescriptorPool descriptorPool,
                              VkDescriptorSetLayout objectDescriptorSetLayout);

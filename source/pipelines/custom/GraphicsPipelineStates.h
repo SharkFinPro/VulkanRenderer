@@ -5,6 +5,7 @@
 #include "../Particle.h"
 #include "../Vertex.h"
 #include "../SmokeParticle.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../core/physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
 #include <array>
@@ -114,11 +115,11 @@ namespace GraphicsPipelineStates {
     .primitiveRestartEnable = VK_FALSE
   };
 
-  inline VkPipelineMultisampleStateCreateInfo getMultsampleState(const std::shared_ptr<PhysicalDevice>& physicalDevice)
+  inline VkPipelineMultisampleStateCreateInfo getMultsampleState(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-      .rasterizationSamples = physicalDevice->getMsaaSamples(),
+      .rasterizationSamples = logicalDevice->getPhysicalDevice()->getMsaaSamples(),
       .sampleShadingEnable = VK_FALSE,
       .minSampleShading = 1.0f,
       .pSampleMask = nullptr,

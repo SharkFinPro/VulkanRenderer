@@ -7,26 +7,25 @@
 
 class CommandBuffer;
 class LogicalDevice;
-class PhysicalDevice;
 
 class RenderPass {
 public:
   RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
-             const std::shared_ptr<PhysicalDevice>& physicalDevice, VkFormat imageFormat,
-             VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
+             VkFormat imageFormat,
+             VkSampleCountFlagBits msaaSamples,
+             VkImageLayout finalLayout);
   ~RenderPass();
 
   VkRenderPass& getRenderPass();
 
   [[nodiscard]] VkFormat findDepthFormat() const;
 
-  void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, std::shared_ptr<CommandBuffer> commandBuffer) const;
+  void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
 private:
-  std::shared_ptr<LogicalDevice> logicalDevice;
-  std::shared_ptr<PhysicalDevice> physicalDevice;
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  VkRenderPass renderPass = VK_NULL_HANDLE;
+  VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
   void createRenderPass(VkFormat imageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
 

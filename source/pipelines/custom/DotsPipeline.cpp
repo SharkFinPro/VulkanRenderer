@@ -3,20 +3,18 @@
 #include "Uniforms.h"
 #include "../Particle.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <cmath>
 #include <random>
 #include <cstring>
 
-DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                           const std::shared_ptr<LogicalDevice>& logicalDevice,
+DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkCommandPool& commandPool,
                            const VkRenderPass& renderPass,
                            const VkExtent2D& swapChainExtent,
                            const VkDescriptorPool descriptorPool)
-  : ComputePipeline(physicalDevice, logicalDevice), GraphicsPipeline(physicalDevice, logicalDevice),
+  : ComputePipeline(logicalDevice), GraphicsPipeline(logicalDevice),
     descriptorPool(descriptorPool), dotSpeed(1000.0f), previousTime(std::chrono::steady_clock::now())
 {
   createUniforms();
@@ -32,19 +30,19 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<PhysicalDevice>& physicalDevice
 
 DotsPipeline::~DotsPipeline()
 {
-  ComputePipeline::logicalDevice->destroyDescriptorSetLayout(computeDescriptorSetLayout);
+  ComputePipeline::m_logicalDevice->destroyDescriptorSetLayout(computeDescriptorSetLayout);
 
-  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
   {
-    Buffers::destroyBuffer(ComputePipeline::logicalDevice, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
+    Buffers::destroyBuffer(ComputePipeline::m_logicalDevice, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
   }
 }
 
 void DotsPipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer, const uint32_t currentFrame) const
 {
-  commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipeline);
+  commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipeline);
 
-  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::pipelineLayout, 0,
+  commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipelineLayout, 0,
                                     1, &computeDescriptorSets[currentFrame]);
 
   commandBuffer->dispatch(PARTICLE_COUNT / 256, 1, 1);
@@ -82,7 +80,7 @@ void DotsPipeline::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilStateNone);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStatePointList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateParticle);
   defineViewportState(GraphicsPipelineStates::viewportState);
@@ -90,13 +88,13 @@ void DotsPipeline::defineStates()
 
 void DotsPipeline::createUniforms()
 {
-  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::logicalDevice, sizeof(DeltaTimeUniform));
+  deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(DeltaTimeUniform));
 }
 
 void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
 {
-  shaderStorageBuffers.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  shaderStorageBuffersMemory.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
+  shaderStorageBuffers.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
+  shaderStorageBuffersMemory.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
 
   std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
   std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
@@ -120,26 +118,26 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
   VkBuffer stagingBuffer;
   VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(ComputePipeline::logicalDevice, bufferSize,
+  Buffers::createBuffer(ComputePipeline::m_logicalDevice, bufferSize,
                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-  ComputePipeline::logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
+  ComputePipeline::m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
     memcpy(data, particles.data(), bufferSize);
   });
 
-  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
   {
-    Buffers::createBuffer(ComputePipeline::logicalDevice, bufferSize,
+    Buffers::createBuffer(ComputePipeline::m_logicalDevice, bufferSize,
                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, shaderStorageBuffers[i], shaderStorageBuffersMemory[i]);
 
-    Buffers::copyBuffer(ComputePipeline::logicalDevice, commandPool, ComputePipeline::logicalDevice->getComputeQueue(),
+    Buffers::copyBuffer(ComputePipeline::m_logicalDevice, commandPool, ComputePipeline::m_logicalDevice->getComputeQueue(),
                         stagingBuffer, shaderStorageBuffers[i], bufferSize);
   }
 
-  Buffers::destroyBuffer(ComputePipeline::logicalDevice, stagingBuffer, stagingBufferMemory);
+  Buffers::destroyBuffer(ComputePipeline::m_logicalDevice, stagingBuffer, stagingBufferMemory);
 }
 
 void DotsPipeline::createDescriptorSetLayouts()
@@ -171,26 +169,26 @@ void DotsPipeline::createDescriptorSetLayouts()
     .pBindings = layoutBindings.data()
   };
 
-  computeDescriptorSetLayout = ComputePipeline::logicalDevice->createDescriptorSetLayout(descriptorSetLayoutInfo);
+  computeDescriptorSetLayout = ComputePipeline::m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutInfo);
 }
 
 void DotsPipeline::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(ComputePipeline::logicalDevice->getMaxFramesInFlight(), computeDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(ComputePipeline::m_logicalDevice->getMaxFramesInFlight(), computeDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = ComputePipeline::logicalDevice->getMaxFramesInFlight(),
+    .descriptorSetCount = ComputePipeline::m_logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  computeDescriptorSets.resize(ComputePipeline::logicalDevice->getMaxFramesInFlight());
-  ComputePipeline::logicalDevice->allocateDescriptorSets(allocateInfo, computeDescriptorSets.data());
+  computeDescriptorSets.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
+  ComputePipeline::m_logicalDevice->allocateDescriptorSets(allocateInfo, computeDescriptorSets.data());
 
-  for (size_t i = 0; i < ComputePipeline::logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
   {
     const VkDescriptorBufferInfo storageBufferInfoLastFrame {
-      .buffer = shaderStorageBuffers[(i - 1) % ComputePipeline::logicalDevice->getMaxFramesInFlight()],
+      .buffer = shaderStorageBuffers[(i - 1) % ComputePipeline::m_logicalDevice->getMaxFramesInFlight()],
       .offset = 0,
       .range = sizeof(Particle) * PARTICLE_COUNT
     };
@@ -223,7 +221,7 @@ void DotsPipeline::createDescriptorSets()
       }
     }};
 
-    ComputePipeline::logicalDevice->updateDescriptorSets(writeDescriptorSets.size(),
+    ComputePipeline::m_logicalDevice->updateDescriptorSets(writeDescriptorSets.size(),
                                             writeDescriptorSets.data());
   }
 }

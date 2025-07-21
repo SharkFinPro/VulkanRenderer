@@ -6,21 +6,22 @@
 #include <stdexcept>
 
 RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                       const std::shared_ptr<PhysicalDevice>& physicalDevice, const VkFormat imageFormat,
-                       const VkSampleCountFlagBits msaaSamples, const VkImageLayout finalLayout)
-  : logicalDevice(logicalDevice), physicalDevice(physicalDevice)
+                       const VkFormat imageFormat,
+                       const VkSampleCountFlagBits msaaSamples,
+                       const VkImageLayout finalLayout)
+  : m_logicalDevice(logicalDevice)
 {
   createRenderPass(imageFormat, msaaSamples, finalLayout);
 }
 
 RenderPass::~RenderPass()
 {
-  logicalDevice->destroyRenderPass(renderPass);
+  m_logicalDevice->destroyRenderPass(m_renderPass);
 }
 
 VkRenderPass& RenderPass::getRenderPass()
 {
-  return renderPass;
+  return m_renderPass;
 }
 
 void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCountFlagBits msaaSamples,
@@ -111,15 +112,16 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
     .pDependencies = &dependency
   };
 
-  renderPass = logicalDevice->createRenderPass(renderPassInfo);
+  m_renderPass = m_logicalDevice->createRenderPass(renderPassInfo);
 }
 
-VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                         VkImageTiling tiling,
                                          VkFormatFeatureFlags features) const
 {
   for (const auto& format : candidates)
   {
-    const VkFormatProperties formatProperties = physicalDevice->getFormatProperties(format);
+    const VkFormatProperties formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(format);
 
     if ((tiling == VK_IMAGE_TILING_LINEAR && (formatProperties.linearTilingFeatures & features) == features) ||
         (tiling == VK_IMAGE_TILING_OPTIMAL && (formatProperties.optimalTilingFeatures & features) == features))
@@ -141,7 +143,7 @@ VkFormat RenderPass::findDepthFormat() const
 }
 
 void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent,
-                       std::shared_ptr<CommandBuffer> commandBuffer) const
+                       const std::shared_ptr<CommandBuffer>& commandBuffer) const
 {
   constexpr std::array<VkClearValue, 2> clearValues {{
     {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
@@ -150,7 +152,7 @@ void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& exten
 
   const VkRenderPassBeginInfo renderPassInfo {
     .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-    .renderPass = renderPass,
+    .renderPass = m_renderPass,
     .framebuffer = framebuffer,
     .renderArea = {
       .offset = {0, 0},

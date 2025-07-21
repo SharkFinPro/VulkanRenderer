@@ -4,10 +4,10 @@
 #include "Pipeline.h"
 #include "ShaderModule.h"
 #include "../core/commandBuffer/CommandBuffer.h"
-#include <vulkan/vulkan.h>
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <vulkan/vulkan.h>
 #include <memory>
 #include <vector>
 
@@ -45,12 +45,12 @@ struct RenderInfo {
 
 class GraphicsPipeline : public Pipeline {
 public:
-  GraphicsPipeline(const std::shared_ptr<PhysicalDevice> &physicalDevice, const std::shared_ptr<LogicalDevice> &logicalDevice);
+  explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
   virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects);
 
 protected:
-  std::vector<std::unique_ptr<ShaderModule>> shaderModules;
+  std::vector<std::unique_ptr<ShaderModule>> m_shaderModules;
 
   void createShader(const char* filename, VkShaderStageFlagBits stage);
 
@@ -90,17 +90,17 @@ protected:
   void definePushConstantRange(VkPushConstantRange range);
 
 private:
-  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> colorBlendState{};
-  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> depthStencilState{};
-  std::unique_ptr<VkPipelineDynamicStateCreateInfo> dynamicState{};
-  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> inputAssemblyState{};
-  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> multisampleState{};
-  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> rasterizationState{};
-  std::unique_ptr<VkPipelineTessellationStateCreateInfo> tessellationState{};
-  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> vertexInputState{};
-  std::unique_ptr<VkPipelineViewportStateCreateInfo> viewportState{};
+  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> m_colorBlendState{};
+  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> m_depthStencilState{};
+  std::unique_ptr<VkPipelineDynamicStateCreateInfo> m_dynamicState{};
+  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> m_inputAssemblyState{};
+  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> m_multisampleState{};
+  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> m_rasterizationState{};
+  std::unique_ptr<VkPipelineTessellationStateCreateInfo> m_tessellationState{};
+  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> m_vertexInputState{};
+  std::unique_ptr<VkPipelineViewportStateCreateInfo> m_viewportState{};
 
-  std::vector<VkPushConstantRange> pushConstantRanges{};
+  std::vector<VkPushConstantRange> m_pushConstantRanges{};
 
   void destroyStates();
 };

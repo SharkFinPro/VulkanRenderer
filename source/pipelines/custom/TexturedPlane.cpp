@@ -4,7 +4,6 @@
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 
 constexpr VkDescriptorSetLayoutBinding cameraLayout {
@@ -14,12 +13,11 @@ constexpr VkDescriptorSetLayoutBinding cameraLayout {
   .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
 };
 
-TexturedPlane::TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevice,
-                             const std::shared_ptr<LogicalDevice>& logicalDevice,
+TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
                              const VkDescriptorPool descriptorPool,
                              const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(physicalDevice, logicalDevice), descriptorPool(descriptorPool),
+  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
     objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
@@ -33,7 +31,7 @@ TexturedPlane::TexturedPlane(const std::shared_ptr<PhysicalDevice>& physicalDevi
 
 TexturedPlane::~TexturedPlane()
 {
-  logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
+  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void TexturedPlane::loadGraphicsShaders()
@@ -54,7 +52,7 @@ void TexturedPlane::defineStates()
   defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(physicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
   defineViewportState(GraphicsPipelineStates::viewportState);
@@ -72,35 +70,35 @@ void TexturedPlane::createGlobalDescriptorSetLayout()
     .pBindings = globalBindings.data()
   };
 
-  globalDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
 }
 
 void TexturedPlane::createDescriptorSets()
 {
-  const std::vector<VkDescriptorSetLayout> layouts(logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
+  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
   const VkDescriptorSetAllocateInfo allocateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
     .descriptorPool = descriptorPool,
-    .descriptorSetCount = logicalDevice->getMaxFramesInFlight(),
+    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
     .pSetLayouts = layouts.data()
   };
 
-  descriptorSets.resize(logicalDevice->getMaxFramesInFlight());
-  logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
+  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
+  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
 
-  for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
   {
     std::array<VkWriteDescriptorSet, 1> descriptorWrites{{
       cameraUniform->getDescriptorSet(3, descriptorSets[i], i)
     }};
 
-    logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
+    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
   }
 }
 
 void TexturedPlane::createUniforms()
 {
-  cameraUniform = std::make_unique<UniformBuffer>(logicalDevice, sizeof(CameraUniform));
+  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 }
 
 void TexturedPlane::updateUniformVariables(const RenderInfo* renderInfo)
@@ -113,6 +111,6 @@ void TexturedPlane::updateUniformVariables(const RenderInfo* renderInfo)
 
 void TexturedPlane::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &descriptorSets[renderInfo->currentFrame]);
 }

@@ -2,8 +2,8 @@
 #define VULKANPROJECT_SHADERMODULE_H
 
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <memory>
+#include <vector>
 
 class LogicalDevice;
 
@@ -15,10 +15,10 @@ public:
   [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
 
 private:
-  std::shared_ptr<LogicalDevice> logicalDevice;
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  VkShaderStageFlagBits stage{};
-  VkShaderModule module = VK_NULL_HANDLE;
+  VkShaderStageFlagBits m_stage{};
+  VkShaderModule m_module = VK_NULL_HANDLE;
 
   static std::vector<char> readFile(const char* filename);
 
