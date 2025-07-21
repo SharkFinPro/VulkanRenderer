@@ -31,6 +31,33 @@ namespace LayoutBindings {
     lightsLayout,
     cameraLayout
   };
+
+  constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
+    .binding = 6,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+    .binding = 7,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  inline std::vector<VkDescriptorSetLayoutBinding> noisyEllipticalDotsLayoutBindings {
+    ellipticalDotsLayout,
+    noiseOptionsLayout,
+    noiseSamplerLayout
+  };
 }
 
 #endif //LAYOUTBINDINGS_H

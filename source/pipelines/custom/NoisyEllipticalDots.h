@@ -20,8 +20,6 @@ public:
                       VkDescriptorPool descriptorPool,
                       VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~NoisyEllipticalDots() override;
-
   void displayGui() override;
 
 private:
@@ -38,19 +36,16 @@ private:
   };
 
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
+  std::shared_ptr<DescriptorSet> m_noisyEllipticalDotsDescriptorSet;
 
-  VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> m_descriptorSets;
-
-  VkDescriptorSetLayout m_globalDescriptorSetLayout = VK_NULL_HANDLE;
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<UniformBuffer> m_lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> m_lightsUniform;
-  std::unique_ptr<UniformBuffer> m_cameraUniform;
-  std::unique_ptr<UniformBuffer> m_ellipticalDotsUniform;
-  std::unique_ptr<UniformBuffer> m_noiseOptionsUniform;
-  std::unique_ptr<Texture3D> m_noiseTexture;
+  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::shared_ptr<UniformBuffer> m_lightsUniform;
+  std::shared_ptr<UniformBuffer> m_cameraUniform;
+  std::shared_ptr<UniformBuffer> m_ellipticalDotsUniform;
+  std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
+  std::shared_ptr<Texture3D> m_noiseTexture;
 
   int m_prevNumLights = 0;
 
@@ -61,10 +56,6 @@ private:
   void loadGraphicsDescriptorSetLayouts() override;
 
   void defineStates() override;
-
-  void createGlobalDescriptorSetLayout();
-
-  void createDescriptorSets();
 
   void createUniforms(const VkCommandPool& commandPool);
 

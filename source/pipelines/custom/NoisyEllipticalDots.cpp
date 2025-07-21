@@ -10,33 +10,12 @@
 #include "../../components/textures/Texture3D.h"
 #include <imgui.h>
 
-constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
-  .binding = 4,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
-  .binding = 6,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
-  .binding = 7,
-  .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          const std::shared_ptr<RenderPass>& renderPass,
                                          const VkCommandPool& commandPool,
                                          const VkDescriptorPool descriptorPool,
                                          const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), m_descriptorPool(descriptorPool),
+  : GraphicsPipeline(logicalDevice),
     m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms(commandPool);
@@ -52,16 +31,19 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& l
     return descriptorWrites;
   });
 
-  createGlobalDescriptorSetLayout();
+  m_noisyEllipticalDotsDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::noisyEllipticalDotsLayoutBindings);
+  m_noisyEllipticalDotsDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_ellipticalDotsUniform->getDescriptorSet(4, descriptorSet, frame),
+      m_noiseOptionsUniform->getDescriptorSet(6, descriptorSet, frame),
+      m_noiseTexture->getDescriptorSet(7, descriptorSet)
+    }};
 
-  createDescriptorSets();
+    return descriptorWrites;
+  });
 
   createPipeline(renderPass->getRenderPass());
-}
-
-NoisyEllipticalDots::~NoisyEllipticalDots()
-{
-  m_logicalDevice->destroyDescriptorSetLayout(m_globalDescriptorSetLayout);
 }
 
 void NoisyEllipticalDots::displayGui()
@@ -89,7 +71,7 @@ void NoisyEllipticalDots::loadGraphicsShaders()
 
 void NoisyEllipticalDots::loadGraphicsDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(m_globalDescriptorSetLayout);
+  loadDescriptorSetLayout(m_noisyEllipticalDotsDescriptorSet->getDescriptorSetLayout());
   loadDescriptorSetLayout(m_objectDescriptorSetLayout);
   loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
@@ -106,61 +88,19 @@ void NoisyEllipticalDots::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void NoisyEllipticalDots::createGlobalDescriptorSetLayout()
-{
-  constexpr std::array<VkDescriptorSetLayoutBinding, 3> globalBindings {
-    ellipticalDotsLayout,
-    noiseOptionsLayout,
-    noiseSamplerLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(globalBindings.size()),
-    .pBindings = globalBindings.data()
-  };
-
-  m_globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
-}
-
-void NoisyEllipticalDots::createDescriptorSets()
-{
-  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), m_globalDescriptorSetLayout);
-  const VkDescriptorSetAllocateInfo allocateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = m_descriptorPool,
-    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
-    .pSetLayouts = layouts.data()
-  };
-
-  m_descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-  m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
-
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-  {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
-      m_ellipticalDotsUniform->getDescriptorSet(4, m_descriptorSets[i], i),
-      m_noiseOptionsUniform->getDescriptorSet(6, m_descriptorSets[i], i),
-      m_noiseTexture->getDescriptorSet(7, m_descriptorSets[i])
-    }};
-
-    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
-  }
-}
-
 void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
 {
-  m_lightMetadataUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
+  m_lightMetadataUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-  m_lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
+  m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
 
-  m_cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+  m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  m_ellipticalDotsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(EllipticalDotsUniform));
+  m_ellipticalDotsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(EllipticalDotsUniform));
 
-  m_noiseOptionsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
+  m_noiseOptionsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
 
-  m_noiseTexture = std::make_unique<Texture3D>(m_logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
+  m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
                                                VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
@@ -183,7 +123,7 @@ void NoisyEllipticalDots::updateLightUniforms(const std::vector<std::shared_ptr<
 
     m_lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    m_lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, m_lightsUniformBufferSize);
+    m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, m_lightsUniformBufferSize);
 
     m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](VkDescriptorSet descriptorSet, const size_t frame)
     {
@@ -228,7 +168,7 @@ void NoisyEllipticalDots::updateUniformVariables(const RenderInfo* renderInfo)
 void NoisyEllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &m_descriptorSets[renderInfo->currentFrame]);
+                                                &m_noisyEllipticalDotsDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
