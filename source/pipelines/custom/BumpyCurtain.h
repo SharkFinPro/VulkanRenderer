@@ -1,7 +1,7 @@
 #ifndef BUMPYCURTAIN_H
 #define BUMPYCURTAIN_H
 
-#include "Uniforms.h"
+#include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>

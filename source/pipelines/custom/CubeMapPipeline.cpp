@@ -1,5 +1,5 @@
 #include "CubeMapPipeline.h"
-#include "GraphicsPipelineStates.h"
+#include "config/GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../components/textures/TextureCubemap.h"

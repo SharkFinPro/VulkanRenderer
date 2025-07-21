@@ -1,5 +1,5 @@
 #include "SnakePipeline.h"
-#include "GraphicsPipelineStates.h"
+#include "config/GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"

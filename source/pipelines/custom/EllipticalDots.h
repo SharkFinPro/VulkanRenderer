@@ -1,7 +1,7 @@
 #ifndef ELLIPTICALDOTS_H
 #define ELLIPTICALDOTS_H
 
-#include "Uniforms.h"
+#include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vector>
 #include <memory>

@@ -1,6 +1,6 @@
 #include "DotsPipeline.h"
-#include "GraphicsPipelineStates.h"
-#include "Uniforms.h"
+#include "config/GraphicsPipelineStates.h"
+#include "config/Uniforms.h"
 #include "../Particle.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"

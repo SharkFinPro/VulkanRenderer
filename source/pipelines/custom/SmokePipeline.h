@@ -1,7 +1,7 @@
 #ifndef SMOKEPIPELINE_H
 #define SMOKEPIPELINE_H
 
-#include "Uniforms.h"
+#include "config/Uniforms.h"
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>

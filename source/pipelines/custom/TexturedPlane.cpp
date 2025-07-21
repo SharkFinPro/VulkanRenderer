@@ -1,6 +1,6 @@
 #include "TexturedPlane.h"
-#include "GraphicsPipelineStates.h"
-#include "Uniforms.h"
+#include "config/GraphicsPipelineStates.h"
+#include "config/Uniforms.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"

@@ -1,5 +1,5 @@
 #include "NoisyEllipticalDots.h"
-#include "GraphicsPipelineStates.h"
+#include "config/GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../components/Camera.h"

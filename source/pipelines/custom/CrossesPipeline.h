@@ -1,7 +1,7 @@
 #ifndef CROSSESPIPELINE_H
 #define CROSSESPIPELINE_H
 
-#include "Uniforms.h"
+#include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <vector>

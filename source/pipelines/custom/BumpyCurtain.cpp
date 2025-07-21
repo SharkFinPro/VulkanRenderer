@@ -1,5 +1,5 @@
 #include "BumpyCurtain.h"
-#include "GraphicsPipelineStates.h"
+#include "config/GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/textures/Texture3D.h"
 #include "../../core/logicalDevice/LogicalDevice.h"

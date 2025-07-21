@@ -1,12 +1,12 @@
 #ifndef GRAPHICSPIPELINESTATES_H
 #define GRAPHICSPIPELINESTATES_H
 
-#include "../LineVertex.h"
-#include "../Particle.h"
-#include "../Vertex.h"
-#include "../SmokeParticle.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
+#include "../../LineVertex.h"
+#include "../../Particle.h"
+#include "../../Vertex.h"
+#include "../../SmokeParticle.h"
+#include "../../../core/logicalDevice/LogicalDevice.h"
+#include "../../../core/physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
 #include <array>
 #include <memory>
