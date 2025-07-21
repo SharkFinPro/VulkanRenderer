@@ -2,6 +2,7 @@
 #define DESCRIPTORSET_H
 
 #include <vulkan/vulkan.h>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -13,7 +14,13 @@ public:
 
   virtual ~DescriptorSet();
 
-private:
+  void updateDescriptorSets(const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const;
+
+  [[nodiscard]] VkDescriptorSetLayout getDescriptorSetLayout() const;
+
+  [[nodiscard]] VkDescriptorSet& getDescriptorSet(size_t frame);
+
+protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
   VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
@@ -26,11 +33,7 @@ private:
 
   void allocateDescriptorSets();
 
-  void updateDescriptorSets();
-
   [[nodiscard]] virtual std::vector<VkDescriptorSetLayoutBinding> getLayoutBindings() = 0;
-
-  [[nodiscard]] virtual std::vector<VkWriteDescriptorSet> getWriteDescriptorSets(size_t frame) = 0;
 };
 
 

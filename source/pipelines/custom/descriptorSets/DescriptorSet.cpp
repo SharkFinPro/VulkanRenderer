@@ -11,13 +11,31 @@ DescriptorSet::~DescriptorSet()
   m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
 }
 
+void DescriptorSet::updateDescriptorSets(const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const
+{
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+  {
+    std::vector<VkWriteDescriptorSet> writeDescriptorSets = getWriteDescriptorSets(m_descriptorSets[i], i);
+
+    m_logicalDevice->updateDescriptorSets(writeDescriptorSets.size(), writeDescriptorSets.data());
+  }
+}
+
+VkDescriptorSetLayout DescriptorSet::getDescriptorSetLayout() const
+{
+  return m_descriptorSetLayout;
+}
+
+VkDescriptorSet& DescriptorSet::getDescriptorSet(const size_t frame)
+{
+  return m_descriptorSets[frame];
+}
+
 void DescriptorSet::createDescriptorSet()
 {
   createDescriptorSetLayout();
 
   allocateDescriptorSets();
-
-  updateDescriptorSets();
 }
 
 void DescriptorSet::createDescriptorSetLayout()
@@ -45,14 +63,4 @@ void DescriptorSet::allocateDescriptorSets()
 
   m_descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
   m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
-}
-
-void DescriptorSet::updateDescriptorSets()
-{
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-  {
-    auto writeDescriptorSets = getWriteDescriptorSets(i);
-
-    m_logicalDevice->updateDescriptorSets(writeDescriptorSets.size(), writeDescriptorSets.data());
-  }
 }

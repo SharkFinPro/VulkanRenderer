@@ -10,6 +10,7 @@ class RenderObject;
 class Camera;
 class UniformBuffer;
 class Light;
+class LightingDescriptorSet;
 
 class ObjectsPipeline final : public GraphicsPipeline {
 public:
@@ -18,18 +19,13 @@ public:
                   VkDescriptorPool descriptorPool,
                   VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~ObjectsPipeline() override;
-
 private:
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
-
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
+  std::shared_ptr<LightingDescriptorSet> lightingDescriptorSet;
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
-  std::unique_ptr<UniformBuffer> cameraUniform;
+  std::shared_ptr<UniformBuffer> lightMetadataUniform;
+  std::shared_ptr<UniformBuffer> lightsUniform;
+  std::shared_ptr<UniformBuffer> cameraUniform;
 
   int prevNumLights = 0;
 
@@ -40,10 +36,6 @@ private:
   void loadGraphicsDescriptorSetLayouts() override;
 
   void defineStates() override;
-
-  void createGlobalDescriptorSetLayout();
-
-  void createDescriptorSets();
 
   void createUniforms();
 
