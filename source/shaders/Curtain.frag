@@ -2,15 +2,15 @@
 #extension GL_GOOGLE_include_directive : require
 #include "common/Lighting.glsl"
 
-layout(set = 0, binding = 2) uniform PointLightsMetadata {
+layout(set = 2, binding = 2) uniform PointLightsMetadata {
   int numLights;
 };
 
-layout(set = 0, binding = 5) readonly buffer PointLights {
+layout(set = 2, binding = 5) readonly buffer PointLights {
   PointLight lights[];
 };
 
-layout(set = 0, binding = 3) uniform Camera {
+layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 

@@ -10,7 +10,8 @@ include(cmake/Dependencies.cmake)
 include(cmake/Sources.cmake)
 
 # Create the main library
-add_library(${PROJECT_NAME} ${VULKAN_ENGINE_SOURCES})
+add_library(${PROJECT_NAME} ${VULKAN_ENGINE_SOURCES}
+  pipelines/custom/descriptorSets/LayoutBindings.h)
 
 # Link dependencies
 target_link_libraries(${PROJECT_NAME} PUBLIC ${VULKAN_ENGINE_LINK_LIBRARIES})

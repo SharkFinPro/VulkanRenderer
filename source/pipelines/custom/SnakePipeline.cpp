@@ -1,5 +1,7 @@
 #include "SnakePipeline.h"
-#include "GraphicsPipelineStates.h"
+#include "config/GraphicsPipelineStates.h"
+#include "descriptorSets/DescriptorSet.h"
+#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
@@ -7,67 +9,32 @@
 #include "../../objects/Light.h"
 #include <imgui.h>
 
-constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-  .binding = 2,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding lightsLayout {
-  .binding = 5,
-  .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding cameraLayout {
-  .binding = 3,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding snakeLayout {
-  .binding = 4,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
 SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
                              const VkDescriptorPool descriptorPool,
                              const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
-    objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice),
+    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
-  createGlobalDescriptorSetLayout();
-
-  createDescriptorSets();
+  createDescriptorSets(descriptorPool);
 
   createPipeline(renderPass->getRenderPass());
-}
-
-SnakePipeline::~SnakePipeline()
-{
-  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void SnakePipeline::displayGui()
 {
   ImGui::Begin("Snake");
 
-  ImGui::SliderFloat("Wiggle", &snakeUBO.wiggle, -1.0f, 1.0f);
+  ImGui::SliderFloat("Wiggle", &m_snakeUBO.wiggle, -1.0f, 1.0f);
 
   ImGui::End();
 
   static float w = 0.0f;
   w += 0.025f;
 
-  snakeUBO.wiggle = sin(w);
+  m_snakeUBO.wiggle = sin(w);
 }
 
 void SnakePipeline::loadGraphicsShaders()
@@ -79,8 +46,9 @@ void SnakePipeline::loadGraphicsShaders()
 
 void SnakePipeline::loadGraphicsDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(globalDescriptorSetLayout);
-  loadDescriptorSetLayout(objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_snakeDescriptorSet->getDescriptorSetLayout());
+  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void SnakePipeline::defineStates()
@@ -95,58 +63,39 @@ void SnakePipeline::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void SnakePipeline::createGlobalDescriptorSetLayout()
-{
-  constexpr std::array globalBindings {
-    lightMetadataLayout,
-    lightsLayout,
-    cameraLayout,
-    snakeLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(globalBindings.size()),
-    .pBindings = globalBindings.data()
-  };
-
-  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
-}
-
-void SnakePipeline::createDescriptorSets()
-{
-  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
-  const VkDescriptorSetAllocateInfo allocateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptorPool,
-    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
-    .pSetLayouts = layouts.data()
-  };
-
-  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
-
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-  {
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites{{
-      lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
-      cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
-      snakeUniform->getDescriptorSet(4, descriptorSets[i], i)
-    }};
-
-    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
-  }
-}
-
 void SnakePipeline::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
+  m_lightMetadataUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
+  m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+  m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  snakeUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(SnakeUniform));
+  m_snakeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SnakeUniform));
+}
+
+void SnakePipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
+{
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
+  m_lightingDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
+      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
+
+  m_snakeDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::snakeLayoutBindings);
+  m_snakeDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_snakeUniform->getDescriptorSet(4, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
 }
 
 void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -156,7 +105,7 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
     return;
   }
 
-  if (prevNumLights != lights.size())
+  if (m_prevNumLights != lights.size())
   {
     m_logicalDevice->waitIdle();
 
@@ -164,23 +113,26 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
       .numLights = static_cast<int>(lights.size())
     };
 
-    lightsUniform.reset();
+    m_lightsUniform.reset();
 
-    lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
+    m_lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
+    m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, m_lightsUniformBufferSize);
 
-    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+    m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO);
+      m_lightMetadataUniform->update(frame, &lightMetadataUBO);
 
-      auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
-      descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_lightsUniform->getDescriptorSet(5, descriptorSet, frame)
+      }};
 
-      m_logicalDevice->updateDescriptorSets(1, &descriptorSet);
-    }
+      descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-    prevNumLights = static_cast<int>(lights.size());
+      return descriptorWrites;
+    });
+
+    m_prevNumLights = static_cast<int>(lights.size());
   }
 
   std::vector<LightUniform> lightUniforms;
@@ -190,7 +142,7 @@ void SnakePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data());
+  m_lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
 void SnakePipeline::updateUniformVariables(const RenderInfo* renderInfo)
@@ -198,15 +150,18 @@ void SnakePipeline::updateUniformVariables(const RenderInfo* renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+  m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  snakeUniform->update(renderInfo->currentFrame, &snakeUBO);
+  m_snakeUniform->update(renderInfo->currentFrame, &m_snakeUBO);
 }
 
 void SnakePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &descriptorSets[renderInfo->currentFrame]);
+                                                &m_snakeDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
+                                                &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }

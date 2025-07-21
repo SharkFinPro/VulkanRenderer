@@ -1,7 +1,7 @@
 #ifndef SMOKEPIPELINE_H
 #define SMOKEPIPELINE_H
 
-#include "Uniforms.h"
+#include "config/Uniforms.h"
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+class DescriptorSet;
 class CommandBuffer;
 class UniformBuffer;
 struct SmokeParticle;
@@ -31,36 +32,35 @@ public:
   void displayGui() override;
 
 private:
-  SmokeUniform smokeUBO {
+  SmokeUniform m_smokeUBO {
     .spreadFactor = 0.3f,
     .maxSpreadDistance = 7.0f,
     .windStrength = 0.4f
   };
 
-  std::vector<VkBuffer> shaderStorageBuffers;
-  std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
+  std::vector<VkBuffer> m_shaderStorageBuffers;
+  std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
+  std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
 
-  std::unique_ptr<UniformBuffer> deltaTimeUniform;
-  std::unique_ptr<UniformBuffer> transformUniform;
-  std::unique_ptr<UniformBuffer> smokeUniform;
+  std::shared_ptr<DescriptorSet> m_smokeDescriptorSet;
+  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
+  std::shared_ptr<UniformBuffer> m_deltaTimeUniform;
+  std::shared_ptr<UniformBuffer> m_transformUniform;
+  std::shared_ptr<UniformBuffer> m_smokeUniform;
 
-  int prevNumLights = 0;
-  size_t lightsUniformBufferSize = 0;
+  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::shared_ptr<UniformBuffer> m_lightsUniform;
 
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> computeDescriptorSets;
+  int m_prevNumLights = 0;
+  size_t m_lightsUniformBufferSize = 0;
 
-  VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
+  float m_dotSpeed;
+  std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
-  float dotSpeed;
-  std::chrono::time_point<std::chrono::steady_clock> previousTime;
+  uint32_t m_numParticles;
 
-  uint32_t numParticles;
-
-  bool ran = false;
+  bool m_ran = false;
 
   void loadComputeShaders() override;
 
@@ -78,11 +78,7 @@ private:
 
   void uploadShaderStorageBuffers(const VkCommandPool& commandPool, const std::vector<SmokeParticle>& particles);
 
-  void createDescriptorSetLayouts();
-
-  void createDescriptorSets();
-
-  void createDescriptorSet(uint32_t set) const;
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 

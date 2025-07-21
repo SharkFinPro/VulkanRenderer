@@ -1,60 +1,41 @@
 #include "MagnifyWhirlMosaicPipeline.h"
-#include "GraphicsPipelineStates.h"
-#include "Uniforms.h"
+#include "config/GraphicsPipelineStates.h"
+#include "config/Uniforms.h"
+#include "descriptorSets/DescriptorSet.h"
+#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 
-constexpr VkDescriptorSetLayoutBinding cameraLayout {
-  .binding = 3,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding magnifyWhirlMosaicLayout {
-  .binding = 4,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                        const std::shared_ptr<RenderPass>& renderPass,
                                                        VkDescriptorPool descriptorPool,
                                                        VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
-    objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice),
+    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
-  createGlobalDescriptorSetLayout();
-
-  createDescriptorSets();
+  createDescriptorSets(descriptorPool);
 
   createPipeline(renderPass->getRenderPass());
-}
-
-MagnifyWhirlMosaicPipeline::~MagnifyWhirlMosaicPipeline()
-{
-  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void MagnifyWhirlMosaicPipeline::displayGui()
 {
   ImGui::Begin("Magnify Whirl Mosaic");
 
-  ImGui::SliderFloat("Lens S Center", &magnifyWhirlMosaicUBO.lensS, 0.0f, 1.0f);
-  ImGui::SliderFloat("Lens T Center", &magnifyWhirlMosaicUBO.lensT, 0.0f, 1.0f);
-  ImGui::SliderFloat("Lens Radius", &magnifyWhirlMosaicUBO.lensRadius, 0.01f, 0.75f);
+  ImGui::SliderFloat("Lens S Center", &m_magnifyWhirlMosaicUBO.lensS, 0.0f, 1.0f);
+  ImGui::SliderFloat("Lens T Center", &m_magnifyWhirlMosaicUBO.lensT, 0.0f, 1.0f);
+  ImGui::SliderFloat("Lens Radius", &m_magnifyWhirlMosaicUBO.lensRadius, 0.01f, 0.75f);
 
   ImGui::Separator();
 
-  ImGui::SliderFloat("Magnification", &magnifyWhirlMosaicUBO.magnification, 0.1f, 7.5f);
-  ImGui::SliderFloat("Whirl", &magnifyWhirlMosaicUBO.whirl, -30.0f, 30.0f);
-  ImGui::SliderFloat("Mosaic", &magnifyWhirlMosaicUBO.mosaic, 0.001f, 0.1f);
+  ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicUBO.magnification, 0.1f, 7.5f);
+  ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicUBO.whirl, -30.0f, 30.0f);
+  ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicUBO.mosaic, 0.001f, 0.1f);
 
   ImGui::End();
 }
@@ -67,8 +48,8 @@ void MagnifyWhirlMosaicPipeline::loadGraphicsShaders()
 
 void MagnifyWhirlMosaicPipeline::loadGraphicsDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(globalDescriptorSetLayout);
-  loadDescriptorSetLayout(objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_magnifyWhirlMosaicDescriptorSet->getDescriptorSetLayout());
+  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }
 
 void MagnifyWhirlMosaicPipeline::defineStates()
@@ -83,51 +64,25 @@ void MagnifyWhirlMosaicPipeline::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void MagnifyWhirlMosaicPipeline::createGlobalDescriptorSetLayout()
-{
-  constexpr std::array<VkDescriptorSetLayoutBinding, 2> globalBindings {
-    cameraLayout,
-    magnifyWhirlMosaicLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(globalBindings.size()),
-    .pBindings = globalBindings.data()
-  };
-
-  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
-}
-
-void MagnifyWhirlMosaicPipeline::createDescriptorSets()
-{
-  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
-  const VkDescriptorSetAllocateInfo allocateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptorPool,
-    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
-    .pSetLayouts = layouts.data()
-  };
-
-  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
-
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-  {
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{{
-      cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
-      magnifyWhirlMosaicUniform->getDescriptorSet(4, descriptorSets[i], i)
-    }};
-
-    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
-  }
-}
-
 void MagnifyWhirlMosaicPipeline::createUniforms()
 {
-  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+  m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  magnifyWhirlMosaicUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(MagnifyWhirlMosaicUniform));
+  m_magnifyWhirlMosaicUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(MagnifyWhirlMosaicUniform));
+}
+
+void MagnifyWhirlMosaicPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
+{
+  m_magnifyWhirlMosaicDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::magnifyWhirlMosaicLayoutBindings);
+  m_magnifyWhirlMosaicDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame),
+      m_magnifyWhirlMosaicUniform->getDescriptorSet(4, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
 }
 
 void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo* renderInfo)
@@ -135,13 +90,13 @@ void MagnifyWhirlMosaicPipeline::updateUniformVariables(const RenderInfo* render
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+  m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
-  magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &magnifyWhirlMosaicUBO);
+  m_magnifyWhirlMosaicUniform->update(renderInfo->currentFrame, &m_magnifyWhirlMosaicUBO);
 }
 
 void MagnifyWhirlMosaicPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &descriptorSets[renderInfo->currentFrame]);
+                                                &m_magnifyWhirlMosaicDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }

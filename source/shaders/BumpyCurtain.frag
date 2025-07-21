@@ -9,15 +9,15 @@ layout(set = 1, binding = 0) uniform Transform {
   mat4 proj;
 } transform;
 
-layout(set = 0, binding = 2) uniform PointLightsMetadata {
+layout(set = 2, binding = 2) uniform PointLightsMetadata {
   int numLights;
 };
 
-layout(set = 0, binding = 5) readonly buffer PointLights {
+layout(set = 2, binding = 5) readonly buffer PointLights {
   PointLight lights[];
 };
 
-layout(set = 0, binding = 3) uniform Camera {
+layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 

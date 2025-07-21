@@ -9,6 +9,7 @@
 #include <vector>
 
 class CommandBuffer;
+class DescriptorSet;
 class UniformBuffer;
 
 constexpr int PARTICLE_COUNT = 8192;
@@ -28,18 +29,16 @@ public:
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
 private:
-  std::vector<VkBuffer> shaderStorageBuffers;
-  std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
+  std::vector<VkBuffer> m_shaderStorageBuffers;
+  std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
+  std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
 
-  std::unique_ptr<UniformBuffer> deltaTimeUniform;
+  std::shared_ptr<DescriptorSet> m_dotsDescriptorSet;
 
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> computeDescriptorSets;
+  std::unique_ptr<UniformBuffer> m_deltaTimeUniform;
 
-  VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
-
-  float dotSpeed;
-  std::chrono::time_point<std::chrono::steady_clock> previousTime;
+  float m_dotSpeed;
+  std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
   void loadComputeShaders() override;
 
@@ -52,9 +51,7 @@ private:
   void createUniforms();
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 
-  void createDescriptorSetLayouts();
-
-  void createDescriptorSets();
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 };

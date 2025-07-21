@@ -1,5 +1,7 @@
 #include "BumpyCurtain.h"
-#include "GraphicsPipelineStates.h"
+#include "config/GraphicsPipelineStates.h"
+#include "descriptorSets/DescriptorSet.h"
+#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/textures/Texture3D.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
@@ -7,82 +9,33 @@
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
 
-constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-  .binding = 2,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding lightsLayout {
-  .binding = 5,
-  .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding cameraLayout {
-  .binding = 3,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding curtainLayout {
-  .binding = 4,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
-  .binding = 6,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
-  .binding = 7,
-  .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
 BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderPass>& renderPass,
                            const VkCommandPool& commandPool,
                            const VkDescriptorPool descriptorPool,
                            const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
-    objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice),
+    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms(commandPool);
 
-  createGlobalDescriptorSetLayout();
-
-  createDescriptorSets();
+  createDescriptorSets(descriptorPool);
 
   createPipeline(renderPass->getRenderPass());
-}
-
-BumpyCurtain::~BumpyCurtain()
-{
-  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void BumpyCurtain::displayGui()
 {
   ImGui::Begin("Bumpy Curtain");
 
-  ImGui::SliderFloat("Amplitude", &curtainUBO.amplitude, 0.001f, 3.0f);
-  ImGui::SliderFloat("Period", &curtainUBO.period, 0.1f, 10.0f);
-  ImGui::SliderFloat("Shininess", &curtainUBO.shininess, 1.0f, 100.0f);
+  ImGui::SliderFloat("Amplitude", &m_curtainUBO.amplitude, 0.001f, 3.0f);
+  ImGui::SliderFloat("Period", &m_curtainUBO.period, 0.1f, 10.0f);
+  ImGui::SliderFloat("Shininess", &m_curtainUBO.shininess, 1.0f, 100.0f);
 
   ImGui::Separator();
 
-  ImGui::SliderFloat("Noise Amplitude", &noiseOptionsUBO.amplitude, 0.0f, 10.0f);
-  ImGui::SliderFloat("Noise Frequency", &noiseOptionsUBO.frequency, 0.1f, 10.0f);
+  ImGui::SliderFloat("Noise Amplitude", &m_noiseOptionsUBO.amplitude, 0.0f, 10.0f);
+  ImGui::SliderFloat("Noise Frequency", &m_noiseOptionsUBO.frequency, 0.1f, 10.0f);
 
   ImGui::End();
 }
@@ -95,8 +48,9 @@ void BumpyCurtain::loadGraphicsShaders()
 
 void BumpyCurtain::loadGraphicsDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(globalDescriptorSetLayout);
-  loadDescriptorSetLayout(objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_bumpyCurtainDescriptorSet->getDescriptorSetLayout());
+  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void BumpyCurtain::defineStates()
@@ -111,67 +65,46 @@ void BumpyCurtain::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void BumpyCurtain::createGlobalDescriptorSetLayout()
-{
-  constexpr std::array<VkDescriptorSetLayoutBinding, 6> globalBindings {
-    lightMetadataLayout,
-    lightsLayout,
-    cameraLayout,
-    curtainLayout,
-    noiseOptionsLayout,
-    noiseSamplerLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(globalBindings.size()),
-    .pBindings = globalBindings.data()
-  };
-
-  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
-}
-
-void BumpyCurtain::createDescriptorSets()
-{
-  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
-  const VkDescriptorSetAllocateInfo allocateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptorPool,
-    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
-    .pSetLayouts = layouts.data()
-  };
-
-  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
-
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-  {
-    std::array<VkWriteDescriptorSet, 5> descriptorWrites{{
-      lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
-      cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
-      curtainUniform->getDescriptorSet(4, descriptorSets[i], i),
-      noiseOptionsUniform->getDescriptorSet(6, descriptorSets[i], i),
-      noiseTexture->getDescriptorSet(7, descriptorSets[i])
-    }};
-
-    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
-  }
-}
-
 void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
+  m_lightMetadataUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
+  m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+  m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  curtainUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CurtainUniform));
+  m_curtainUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CurtainUniform));
 
-  noiseOptionsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
+  m_noiseOptionsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
 
-  noiseTexture = std::make_unique<Texture3D>(m_logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
+  m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, commandPool, "assets/noise/noise3d.064.tex",
                                              VK_SAMPLER_ADDRESS_MODE_REPEAT);
+}
+
+void BumpyCurtain::createDescriptorSets(VkDescriptorPool descriptorPool)
+{
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
+  m_lightingDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
+      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
+
+  m_bumpyCurtainDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::bumpyCurtainLayoutBindings);
+  m_bumpyCurtainDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_curtainUniform->getDescriptorSet(4, descriptorSet, frame),
+      m_noiseOptionsUniform->getDescriptorSet(6, descriptorSet, frame),
+      m_noiseTexture->getDescriptorSet(7, descriptorSet)
+    }};
+
+    return descriptorWrites;
+  });
 }
 
 void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -181,7 +114,7 @@ void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>
     return;
   }
 
-  if (prevNumLights != lights.size())
+  if (m_prevNumLights != lights.size())
   {
     m_logicalDevice->waitIdle();
 
@@ -189,23 +122,26 @@ void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>
       .numLights = static_cast<int>(lights.size())
     };
 
-    lightsUniform.reset();
+    m_lightsUniform.reset();
 
-    lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
+    m_lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
+    m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, m_lightsUniformBufferSize);
 
-    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+    m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO);
+      m_lightMetadataUniform->update(frame, &lightMetadataUBO);
 
-      auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
-      descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_lightsUniform->getDescriptorSet(5, descriptorSet, frame)
+      }};
 
-      m_logicalDevice->updateDescriptorSets(1, &descriptorSet);
-    }
+      descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-    prevNumLights = static_cast<int>(lights.size());
+      return descriptorWrites;
+    });
+
+    m_prevNumLights = static_cast<int>(lights.size());
   }
 
   std::vector<LightUniform> lightUniforms;
@@ -215,7 +151,7 @@ void BumpyCurtain::updateLightUniforms(const std::vector<std::shared_ptr<Light>>
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data());
+  m_lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
 void BumpyCurtain::updateUniformVariables(const RenderInfo* renderInfo)
@@ -225,15 +161,18 @@ void BumpyCurtain::updateUniformVariables(const RenderInfo* renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+  m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 
-  curtainUniform->update(renderInfo->currentFrame, &curtainUBO);
+  m_curtainUniform->update(renderInfo->currentFrame, &m_curtainUBO);
 
-  noiseOptionsUniform->update(renderInfo->currentFrame, &noiseOptionsUBO);
+  m_noiseOptionsUniform->update(renderInfo->currentFrame, &m_noiseOptionsUBO);
 }
 
 void BumpyCurtain::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &descriptorSets[renderInfo->currentFrame]);
+                                                &m_bumpyCurtainDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
+                                                &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }

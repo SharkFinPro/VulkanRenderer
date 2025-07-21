@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 
+class DescriptorSet;
 class RenderPass;
 class RenderObject;
 class Camera;
@@ -18,22 +19,17 @@ public:
                   VkDescriptorPool descriptorPool,
                   VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~ObjectsPipeline() override;
-
 private:
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
+  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::shared_ptr<UniformBuffer> m_lightsUniform;
+  std::shared_ptr<UniformBuffer> m_cameraUniform;
 
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
-  std::unique_ptr<UniformBuffer> cameraUniform;
+  int m_prevNumLights = 0;
 
-  int prevNumLights = 0;
-
-  size_t lightsUniformBufferSize = 0;
+  size_t m_lightsUniformBufferSize = 0;
 
   void loadGraphicsShaders() override;
 
@@ -41,11 +37,9 @@ private:
 
   void defineStates() override;
 
-  void createGlobalDescriptorSetLayout();
-
-  void createDescriptorSets();
-
   void createUniforms();
+
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 

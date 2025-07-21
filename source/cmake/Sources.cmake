@@ -68,16 +68,12 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   pipelines/ComputePipeline.h
   pipelines/GraphicsPipeline.cpp
   pipelines/GraphicsPipeline.h
-  pipelines/LineVertex.h
-  pipelines/Particle.h
   pipelines/Pipeline.cpp
   pipelines/Pipeline.h
   pipelines/RenderPass.cpp
   pipelines/RenderPass.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
-  pipelines/SmokeParticle.h
-  pipelines/Vertex.h
 )
 
 # Custom Pipeline Implementations
@@ -116,8 +112,16 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
   pipelines/custom/TexturedPlane.h
 
   # Configuration and State Headers
-  pipelines/custom/GraphicsPipelineStates.h
-  pipelines/custom/Uniforms.h
+  pipelines/custom/config/GraphicsPipelineStates.h
+  pipelines/custom/config/Uniforms.h
+  pipelines/custom/descriptorSets/DescriptorSet.cpp
+  pipelines/custom/descriptorSets/DescriptorSet.h
+
+  # Vertex Input States
+  pipelines/custom/vertexInputs/LineVertex.h
+  pipelines/custom/vertexInputs/Particle.h
+  pipelines/custom/vertexInputs/SmokeParticle.h
+  pipelines/custom/vertexInputs/Vertex.h
 )
 
 # Utilities - Helper functions and common operations

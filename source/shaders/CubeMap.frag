@@ -8,7 +8,7 @@ layout(set = 1, binding = 0) uniform Transform {
   mat4 proj;
 } transform;
 
-layout(set = 0, binding = 0) uniform Camera {
+layout(set = 0, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
@@ -18,12 +18,12 @@ layout(set = 0, binding = 1) uniform CubeMap {
   float whiteMix;
 } cubeMap;
 
-layout(set = 0, binding = 2) uniform NoiseOptions {
+layout(set = 0, binding = 6) uniform NoiseOptions {
   float amplitude;
   float frequency;
 } noiseOptions;
 
-layout(set = 0, binding = 3) uniform sampler3D Noise3;
+layout(set = 0, binding = 7) uniform sampler3D Noise3;
 
 layout(set = 0, binding = 4) uniform samplerCube ReflectUnit;
 layout(set = 0, binding = 5) uniform samplerCube RefractUnit;
