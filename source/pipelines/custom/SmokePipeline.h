@@ -31,36 +31,36 @@ public:
   void displayGui() override;
 
 private:
-  SmokeUniform smokeUBO {
+  SmokeUniform m_smokeUBO {
     .spreadFactor = 0.3f,
     .maxSpreadDistance = 7.0f,
     .windStrength = 0.4f
   };
 
-  std::vector<VkBuffer> shaderStorageBuffers;
-  std::vector<VkDeviceMemory> shaderStorageBuffersMemory;
+  std::vector<VkBuffer> m_shaderStorageBuffers;
+  std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
 
-  std::unique_ptr<UniformBuffer> deltaTimeUniform;
-  std::unique_ptr<UniformBuffer> transformUniform;
-  std::unique_ptr<UniformBuffer> smokeUniform;
+  std::unique_ptr<UniformBuffer> m_deltaTimeUniform;
+  std::unique_ptr<UniformBuffer> m_transformUniform;
+  std::unique_ptr<UniformBuffer> m_smokeUniform;
 
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
+  std::unique_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::unique_ptr<UniformBuffer> m_lightsUniform;
 
-  int prevNumLights = 0;
-  size_t lightsUniformBufferSize = 0;
+  int m_prevNumLights = 0;
+  size_t m_lightsUniformBufferSize = 0;
 
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> computeDescriptorSets;
+  VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+  std::vector<VkDescriptorSet> m_computeDescriptorSets;
 
-  VkDescriptorSetLayout computeDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_computeDescriptorSetLayout = VK_NULL_HANDLE;
 
-  float dotSpeed;
-  std::chrono::time_point<std::chrono::steady_clock> previousTime;
+  float m_dotSpeed;
+  std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
-  uint32_t numParticles;
+  uint32_t m_numParticles;
 
-  bool ran = false;
+  bool m_ran = false;
 
   void loadComputeShaders() override;
 
