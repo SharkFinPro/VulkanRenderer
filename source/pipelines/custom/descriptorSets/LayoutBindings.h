@@ -39,6 +39,10 @@ namespace LayoutBindings {
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
+  inline std::vector<VkDescriptorSetLayoutBinding> ellipticalDotsLayoutBindings {
+    ellipticalDotsLayout
+  };
+
   constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
     .binding = 6,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
