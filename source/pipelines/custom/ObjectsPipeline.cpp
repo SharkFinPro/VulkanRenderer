@@ -1,14 +1,13 @@
 #include "ObjectsPipeline.h"
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
+#include "descriptorSets/LightingDescriptorSet.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include <imgui.h>
-
-#include "descriptorSets/LightingDescriptorSet.h"
 
 constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
   .binding = 2,
