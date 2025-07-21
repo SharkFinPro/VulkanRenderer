@@ -1,0 +1,58 @@
+#include "DescriptorSet.h"
+#include "../../../core/logicalDevice/LogicalDevice.h"
+#include <vector>
+
+DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDescriptorPool descriptorPool)
+  : m_logicalDevice(logicalDevice), m_descriptorPool(descriptorPool)
+{}
+
+DescriptorSet::~DescriptorSet()
+{
+  m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+}
+
+void DescriptorSet::createDescriptorSet()
+{
+  createDescriptorSetLayout();
+
+  allocateDescriptorSets();
+
+  updateDescriptorSets();
+}
+
+void DescriptorSet::createDescriptorSetLayout()
+{
+  const auto layoutBindings = getLayoutBindings();
+
+  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
+    .pBindings = layoutBindings.data()
+  };
+
+  m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+}
+
+void DescriptorSet::allocateDescriptorSets()
+{
+  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
+  const VkDescriptorSetAllocateInfo allocateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+    .descriptorPool = m_descriptorPool,
+    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
+    .pSetLayouts = layouts.data()
+  };
+
+  m_descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
+  m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
+}
+
+void DescriptorSet::updateDescriptorSets()
+{
+  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+  {
+    auto writeDescriptorSets = getWriteDescriptorSets(i);
+
+    m_logicalDevice->updateDescriptorSets(writeDescriptorSets.size(), writeDescriptorSets.data());
+  }
+}
