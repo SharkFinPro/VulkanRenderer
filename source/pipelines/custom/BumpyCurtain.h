@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+class DescriptorSet;
 class LogicalDevice;
 class RenderPass;
 class RenderObject;
@@ -23,38 +24,35 @@ public:
                VkDescriptorPool descriptorPool,
                VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~BumpyCurtain() override;
-
   void displayGui() override;
 
 private:
-  CurtainUniform curtainUBO {
+  CurtainUniform m_curtainUBO {
     .amplitude = 0.1,
     .period = 1,
     .shininess = 10
   };
 
-  NoiseOptionsUniform noiseOptionsUBO {
+  NoiseOptionsUniform m_noiseOptionsUBO {
     .amplitude = 0.5f,
     .frequency = 1.0f
   };
 
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
+  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
+  std::shared_ptr<DescriptorSet> m_bumpyCurtainDescriptorSet;
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
-  std::unique_ptr<UniformBuffer> cameraUniform;
-  std::unique_ptr<UniformBuffer> curtainUniform;
-  std::unique_ptr<UniformBuffer> noiseOptionsUniform;
-  std::unique_ptr<Texture3D> noiseTexture;
+  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::shared_ptr<UniformBuffer> m_lightsUniform;
+  std::shared_ptr<UniformBuffer> m_cameraUniform;
+  std::shared_ptr<UniformBuffer> m_curtainUniform;
+  std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
+  std::shared_ptr<Texture3D> m_noiseTexture;
 
-  int prevNumLights = 0;
+  int m_prevNumLights = 0;
 
-  size_t lightsUniformBufferSize = 0;
+  size_t m_lightsUniformBufferSize = 0;
 
   void loadGraphicsShaders() override;
 
@@ -62,11 +60,9 @@ private:
 
   void defineStates() override;
 
-  void createGlobalDescriptorSetLayout();
-
-  void createDescriptorSets();
-
   void createUniforms(const VkCommandPool& commandPool);
+
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 
