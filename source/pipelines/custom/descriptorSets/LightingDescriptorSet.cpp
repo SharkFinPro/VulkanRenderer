@@ -23,9 +23,9 @@ constexpr VkDescriptorSetLayoutBinding cameraLayout {
 
 LightingDescriptorSet::LightingDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                              VkDescriptorPool descriptorPool)
-  : DescriptorSet(logicalDevice, descriptorPool)
+  : DescriptorSet(logicalDevice)
 {
-  createDescriptorSet();
+  createDescriptorSet(descriptorPool);
 }
 
 std::vector<VkDescriptorSetLayoutBinding> LightingDescriptorSet::getLayoutBindings()
