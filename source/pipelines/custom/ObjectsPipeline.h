@@ -20,16 +20,16 @@ public:
                   VkDescriptorSetLayout objectDescriptorSetLayout);
 
 private:
-  std::shared_ptr<LightingDescriptorSet> lightingDescriptorSet;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  std::shared_ptr<LightingDescriptorSet> m_lightingDescriptorSet;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::shared_ptr<UniformBuffer> lightMetadataUniform;
-  std::shared_ptr<UniformBuffer> lightsUniform;
-  std::shared_ptr<UniformBuffer> cameraUniform;
+  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::shared_ptr<UniformBuffer> m_lightsUniform;
+  std::shared_ptr<UniformBuffer> m_cameraUniform;
 
-  int prevNumLights = 0;
+  int m_prevNumLights = 0;
 
-  size_t lightsUniformBufferSize = 0;
+  size_t m_lightsUniformBufferSize = 0;
 
   void loadGraphicsShaders() override;
 
