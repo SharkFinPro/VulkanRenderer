@@ -40,12 +40,12 @@ private:
   std::vector<VkBuffer> m_shaderStorageBuffers;
   std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
 
-  std::unique_ptr<UniformBuffer> m_deltaTimeUniform;
-  std::unique_ptr<UniformBuffer> m_transformUniform;
-  std::unique_ptr<UniformBuffer> m_smokeUniform;
+  std::shared_ptr<UniformBuffer> m_deltaTimeUniform;
+  std::shared_ptr<UniformBuffer> m_transformUniform;
+  std::shared_ptr<UniformBuffer> m_smokeUniform;
 
-  std::unique_ptr<UniformBuffer> m_lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> m_lightsUniform;
+  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::shared_ptr<UniformBuffer> m_lightsUniform;
 
   int m_prevNumLights = 0;
   size_t m_lightsUniformBufferSize = 0;

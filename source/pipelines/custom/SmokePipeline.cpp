@@ -156,15 +156,15 @@ void SmokePipeline::defineStates()
 
 void SmokePipeline::createUniforms()
 {
-  m_deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(DeltaTimeUniform));
+  m_deltaTimeUniform = std::make_shared<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(DeltaTimeUniform));
 
-  m_transformUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(ViewProjTransformUniform));
+  m_transformUniform = std::make_shared<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(ViewProjTransformUniform));
 
-  m_smokeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(SmokeUniform));
+  m_smokeUniform = std::make_shared<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(SmokeUniform));
 
-  m_lightMetadataUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(LightMetadataUniform));
+  m_lightMetadataUniform = std::make_shared<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(LightMetadataUniform));
 
-  m_lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(LightUniform));
+  m_lightsUniform = std::make_shared<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(LightUniform));
 }
 
 void SmokePipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
@@ -354,7 +354,7 @@ void SmokePipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>
 
     m_lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    m_lightsUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, m_lightsUniformBufferSize);
+    m_lightsUniform = std::make_shared<UniformBuffer>(ComputePipeline::m_logicalDevice, m_lightsUniformBufferSize);
 
     for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
     {
