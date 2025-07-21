@@ -4,6 +4,7 @@
 #include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 
+class LightingDescriptorSet;
 class RenderPass;
 class RenderObject;
 class Camera;
@@ -24,34 +25,36 @@ public:
   void displayGui() override;
 
 private:
-  EllipticalDotsUniform ellipticalDotsUBO {
+  EllipticalDotsUniform m_ellipticalDotsUBO {
     .shininess = 10.0f,
     .sDiameter = 0.025f,
     .tDiameter = 0.025f,
     .blendFactor = 0.0f
   };
 
-  NoiseOptionsUniform noiseOptionsUBO {
+  NoiseOptionsUniform m_noiseOptionsUBO {
     .amplitude = 0.5f,
     .frequency = 1.0f
   };
 
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
+  std::shared_ptr<LightingDescriptorSet> m_lightingDescriptorSet;
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+  std::vector<VkDescriptorSet> m_descriptorSets;
 
-  std::unique_ptr<UniformBuffer> lightMetadataUniform;
-  std::unique_ptr<UniformBuffer> lightsUniform;
-  std::unique_ptr<UniformBuffer> cameraUniform;
-  std::unique_ptr<UniformBuffer> ellipticalDotsUniform;
-  std::unique_ptr<UniformBuffer> noiseOptionsUniform;
-  std::unique_ptr<Texture3D> noiseTexture;
+  VkDescriptorSetLayout m_globalDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  int prevNumLights = 0;
+  std::unique_ptr<UniformBuffer> m_lightMetadataUniform;
+  std::unique_ptr<UniformBuffer> m_lightsUniform;
+  std::unique_ptr<UniformBuffer> m_cameraUniform;
+  std::unique_ptr<UniformBuffer> m_ellipticalDotsUniform;
+  std::unique_ptr<UniformBuffer> m_noiseOptionsUniform;
+  std::unique_ptr<Texture3D> m_noiseTexture;
 
-  size_t lightsUniformBufferSize = 0;
+  int m_prevNumLights = 0;
+
+  size_t m_lightsUniformBufferSize = 0;
 
   void loadGraphicsShaders() override;
 
