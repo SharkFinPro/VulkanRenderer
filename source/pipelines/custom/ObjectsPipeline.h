@@ -39,6 +39,8 @@ private:
 
   void createUniforms();
 
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
+
   void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;

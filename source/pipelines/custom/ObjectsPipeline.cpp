@@ -19,16 +19,7 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
 {
   createUniforms();
 
-  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
-  m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
-  {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{{
-      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
-      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
-    }};
-
-    return descriptorWrites;
-  });
+  createDescriptorSets(descriptorPool);
 
   createPipeline(renderPass->getRenderPass());
 }
@@ -64,6 +55,20 @@ void ObjectsPipeline::createUniforms()
   m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
 
   m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+}
+
+void ObjectsPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
+{
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
+  m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
+      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
 }
 
 void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
