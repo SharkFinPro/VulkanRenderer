@@ -116,6 +116,11 @@ namespace LayoutBindings {
     cameraLayout
   };
 
+  inline std::vector<VkDescriptorSetLayoutBinding> lightingNoCameraLayoutBindings {
+    lightMetadataLayout,
+    lightsLayout
+  };
+
   inline std::vector<VkDescriptorSetLayoutBinding> bumpyCurtainLayoutBindings {
     curtainLayout,
     noiseOptionsLayout,

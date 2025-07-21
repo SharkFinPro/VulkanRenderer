@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+class DescriptorSet;
 class CommandBuffer;
 class UniformBuffer;
 struct SmokeParticle;
@@ -39,6 +40,8 @@ private:
 
   std::vector<VkBuffer> m_shaderStorageBuffers;
   std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
+
+  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
   std::shared_ptr<UniformBuffer> m_deltaTimeUniform;
   std::shared_ptr<UniformBuffer> m_transformUniform;

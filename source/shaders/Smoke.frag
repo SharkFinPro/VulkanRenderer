@@ -2,11 +2,11 @@
 #extension GL_GOOGLE_include_directive : require
 #include "common/Lighting.glsl"
 
-layout(set = 0, binding = 5) uniform PointLightsMetadata {
+layout(set = 1, binding = 2) uniform PointLightsMetadata {
   int numLights;
 };
 
-layout(set = 0, binding = 6) readonly buffer PointLights {
+layout(set = 1, binding = 5) readonly buffer PointLights {
   PointLight lights[];
 };
 
