@@ -1,7 +1,7 @@
 #include "SmokePipeline.h"
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
-#include "../SmokeParticle.h"
+#include "vertexInputs/SmokeParticle.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"

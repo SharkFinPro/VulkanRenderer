@@ -1,7 +1,7 @@
 #include "DotsPipeline.h"
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
-#include "../Particle.h"
+#include "vertexInputs/Particle.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"

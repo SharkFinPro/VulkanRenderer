@@ -2,7 +2,7 @@
 #define LINEPIPELINE_H
 
 #include "../GraphicsPipeline.h"
-#include "../LineVertex.h"
+#include "vertexInputs/LineVertex.h"
 #include <vector>
 #include <memory>
 
