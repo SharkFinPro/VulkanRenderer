@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 
+class DescriptorSet;
 class RenderPass;
 class RenderObject;
 class Camera;
@@ -17,16 +18,12 @@ public:
                 VkDescriptorPool descriptorPool,
                 VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~TexturedPlane() override;
-
 private:
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
+  std::shared_ptr<DescriptorSet> m_texturedPlaneDescriptorSet;
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<UniformBuffer> cameraUniform;
+  std::shared_ptr<UniformBuffer> m_cameraUniform;
 
   void loadGraphicsShaders() override;
 
@@ -34,11 +31,9 @@ private:
 
   void defineStates() override;
 
-  void createGlobalDescriptorSetLayout();
-
-  void createDescriptorSets();
-
   void createUniforms();
+
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 

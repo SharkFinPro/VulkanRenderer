@@ -4,6 +4,7 @@
 #include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 
+class DescriptorSet;
 class RenderPass;
 class RenderObject;
 class Camera;
@@ -19,35 +20,31 @@ public:
                   VkDescriptorPool descriptorPool,
                   VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~CubeMapPipeline() override;
-
   void displayGui() override;
 
 private:
-  CubeMapUniform cubeMapUBO {
+  CubeMapUniform m_cubeMapUBO {
     .mix = 0,
     .refractionIndex = 1.4,
     .whiteMix = 0.2
   };
 
-  NoiseOptionsUniform noiseOptionsUBO {
+  NoiseOptionsUniform m_noiseOptionsUBO {
     .amplitude = 0.0f,
     .frequency = 0.1f
   };
 
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
+  std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<UniformBuffer> cameraUniform;
-  std::unique_ptr<UniformBuffer> cubeMapUniform;
-  std::unique_ptr<UniformBuffer> noiseOptionsUniform;
-  std::unique_ptr<Texture3D> noiseTexture;
+  std::shared_ptr<UniformBuffer> m_cameraUniform;
+  std::shared_ptr<UniformBuffer> m_cubeMapUniform;
+  std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
+  std::shared_ptr<Texture3D> m_noiseTexture;
 
-  std::unique_ptr<TextureCubemap> reflectUnit;
-  std::unique_ptr<TextureCubemap> refractUnit;
+  std::shared_ptr<TextureCubemap> m_reflectUnit;
+  std::shared_ptr<TextureCubemap> m_refractUnit;
 
   void loadGraphicsShaders() override;
 
@@ -55,11 +52,9 @@ private:
 
   void defineStates() override;
 
-  void createGlobalDescriptorSetLayout();
-
-  void createDescriptorSets();
-
   void createUniforms(const VkCommandPool& commandPool);
+
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 

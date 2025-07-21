@@ -90,7 +90,7 @@ void ObjectsPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
 
     m_lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    m_lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, m_lightsUniformBufferSize);
+    m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, m_lightsUniformBufferSize);
 
     m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](VkDescriptorSet descriptorSet, const size_t frame)
     {

@@ -1,37 +1,25 @@
 #include "TexturedPlane.h"
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
+#include "descriptorSets/DescriptorSet.h"
+#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 
-constexpr VkDescriptorSetLayoutBinding cameraLayout {
-  .binding = 3,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
 TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
                              const VkDescriptorPool descriptorPool,
                              const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
-    objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice),
+    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
-  createGlobalDescriptorSetLayout();
-
-  createDescriptorSets();
+  createDescriptorSets(descriptorPool);
 
   createPipeline(renderPass->getRenderPass());
-}
-
-TexturedPlane::~TexturedPlane()
-{
-  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void TexturedPlane::loadGraphicsShaders()
@@ -42,8 +30,8 @@ void TexturedPlane::loadGraphicsShaders()
 
 void TexturedPlane::loadGraphicsDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(globalDescriptorSetLayout);
-  loadDescriptorSetLayout(objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_texturedPlaneDescriptorSet->getDescriptorSetLayout());
+  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }
 
 void TexturedPlane::defineStates()
@@ -58,47 +46,22 @@ void TexturedPlane::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void TexturedPlane::createGlobalDescriptorSetLayout()
-{
-  constexpr std::array<VkDescriptorSetLayoutBinding, 1> globalBindings {
-    cameraLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(globalBindings.size()),
-    .pBindings = globalBindings.data()
-  };
-
-  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
-}
-
-void TexturedPlane::createDescriptorSets()
-{
-  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
-  const VkDescriptorSetAllocateInfo allocateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptorPool,
-    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
-    .pSetLayouts = layouts.data()
-  };
-
-  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
-
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-  {
-    std::array<VkWriteDescriptorSet, 1> descriptorWrites{{
-      cameraUniform->getDescriptorSet(3, descriptorSets[i], i)
-    }};
-
-    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
-  }
-}
-
 void TexturedPlane::createUniforms()
 {
-  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+  m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+}
+
+void TexturedPlane::createDescriptorSets(VkDescriptorPool descriptorPool)
+{
+  m_texturedPlaneDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::texturedPlaneBindings);
+  m_texturedPlaneDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
 }
 
 void TexturedPlane::updateUniformVariables(const RenderInfo* renderInfo)
@@ -106,11 +69,11 @@ void TexturedPlane::updateUniformVariables(const RenderInfo* renderInfo)
   const CameraUniform cameraUBO {
     .position = renderInfo->viewPosition
   };
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+  m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
 }
 
 void TexturedPlane::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &descriptorSets[renderInfo->currentFrame]);
+                                                &m_texturedPlaneDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }

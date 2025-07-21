@@ -5,12 +5,12 @@
 #include <vector>
 #include <memory>
 
+class DescriptorSet;
 class RenderPass;
 class RenderObject;
 class Camera;
 class UniformBuffer;
 class Light;
-class DescriptorSet;
 
 class ObjectsPipeline final : public GraphicsPipeline {
 public:

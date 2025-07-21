@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 
+class DescriptorSet;
 class LogicalDevice;
 class RenderPass;
 class RenderObject;
@@ -19,12 +20,10 @@ public:
                              VkDescriptorPool descriptorPool,
                              VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~MagnifyWhirlMosaicPipeline() override;
-
   void displayGui() override;
 
 private:
-  MagnifyWhirlMosaicUniform magnifyWhirlMosaicUBO {
+  MagnifyWhirlMosaicUniform m_magnifyWhirlMosaicUBO {
     .lensS = 0.5f,
     .lensT = 0.5f,
     .lensRadius = 0.25f,
@@ -33,14 +32,12 @@ private:
     .mosaic = 0.001f
   };
 
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
+  std::shared_ptr<DescriptorSet> m_magnifyWhirlMosaicDescriptorSet;
 
-  VkDescriptorSetLayout globalDescriptorSetLayout = VK_NULL_HANDLE;
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<UniformBuffer> cameraUniform;
-  std::unique_ptr<UniformBuffer> magnifyWhirlMosaicUniform;
+  std::shared_ptr<UniformBuffer> m_cameraUniform;
+  std::shared_ptr<UniformBuffer> m_magnifyWhirlMosaicUniform;
 
   void loadGraphicsShaders() override;
 
@@ -48,11 +45,9 @@ private:
 
   void defineStates() override;
 
-  void createGlobalDescriptorSetLayout();
-
-  void createDescriptorSets();
-
   void createUniforms();
+
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 

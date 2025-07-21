@@ -1,5 +1,7 @@
 #include "CrossesPipeline.h"
 #include "config/GraphicsPipelineStates.h"
+#include "descriptorSets/DescriptorSet.h"
+#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
@@ -7,83 +9,41 @@
 #include "../../objects/Light.h"
 #include <imgui.h>
 
-constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-  .binding = 2,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding lightsLayout {
-  .binding = 5,
-  .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding cameraLayout {
-  .binding = 3,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding crossesLayout {
-  .binding = 4,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
-constexpr VkDescriptorSetLayoutBinding chromaDepthLayout {
-  .binding = 6,
-  .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  .descriptorCount = 1,
-  .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-};
-
 CrossesPipeline::CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
-: GraphicsPipeline(logicalDevice), descriptorPool(descriptorPool),
-  objectDescriptorSetLayout(objectDescriptorSetLayout)
+: GraphicsPipeline(logicalDevice),
+  m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
-  createGlobalDescriptorSetLayout();
-
-  createDescriptorSets();
+  createDescriptorSets(descriptorPool);
 
   createPipeline(renderPass->getRenderPass());
-}
-
-CrossesPipeline::~CrossesPipeline()
-{
-  m_logicalDevice->destroyDescriptorSetLayout(globalDescriptorSetLayout);
 }
 
 void CrossesPipeline::displayGui()
 {
   ImGui::Begin("Crosses");
 
-  ImGui::SliderInt("Level", &crossesUBO.level, 0, 3);
+  ImGui::SliderInt("Level", &m_crossesUBO.level, 0, 3);
 
-  ImGui::SliderFloat("Quantize", &crossesUBO.quantize, 2.0f, 50.0f);
+  ImGui::SliderFloat("Quantize", &m_crossesUBO.quantize, 2.0f, 50.0f);
 
-  ImGui::SliderFloat("Size", &crossesUBO.size, 0.0001f, 0.1f);
+  ImGui::SliderFloat("Size", &m_crossesUBO.size, 0.0001f, 0.1f);
 
-  ImGui::SliderFloat("Shininess", &crossesUBO.shininess, 2.0f, 50.0f);
+  ImGui::SliderFloat("Shininess", &m_crossesUBO.shininess, 2.0f, 50.0f);
 
   ImGui::End();
 
   ImGui::Begin("Chroma Depth");
 
-  ImGui::Checkbox("Use Chroma Depth", &chromaDepthUBO.use);
+  ImGui::Checkbox("Use Chroma Depth", &m_chromaDepthUBO.use);
 
-  ImGui::SliderFloat("Blue Depth", &chromaDepthUBO.blueDepth, 0.0f, 50.0f);
+  ImGui::SliderFloat("Blue Depth", &m_chromaDepthUBO.blueDepth, 0.0f, 50.0f);
 
-  ImGui::SliderFloat("Red Depth", &chromaDepthUBO.redDepth, 0.0f, 50.0f);
+  ImGui::SliderFloat("Red Depth", &m_chromaDepthUBO.redDepth, 0.0f, 50.0f);
 
   ImGui::End();
 }
@@ -97,8 +57,9 @@ void CrossesPipeline::loadGraphicsShaders()
 
 void CrossesPipeline::loadGraphicsDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(globalDescriptorSetLayout);
-  loadDescriptorSetLayout(objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_crossesDescriptorSet->getDescriptorSetLayout());
+  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void CrossesPipeline::defineStates()
@@ -113,62 +74,42 @@ void CrossesPipeline::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
-void CrossesPipeline::createGlobalDescriptorSetLayout()
-{
-  constexpr std::array globalBindings {
-    lightMetadataLayout,
-    lightsLayout,
-    cameraLayout,
-    crossesLayout,
-    chromaDepthLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(globalBindings.size()),
-    .pBindings = globalBindings.data()
-  };
-
-  globalDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
-}
-
-void CrossesPipeline::createDescriptorSets()
-{
-  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), globalDescriptorSetLayout);
-  const VkDescriptorSetAllocateInfo allocateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptorPool,
-    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
-    .pSetLayouts = layouts.data()
-  };
-
-  descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-  m_logicalDevice->allocateDescriptorSets(allocateInfo, descriptorSets.data());
-
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-  {
-    std::array<VkWriteDescriptorSet, 4> descriptorWrites{{
-      lightMetadataUniform->getDescriptorSet(2, descriptorSets[i], i),
-      cameraUniform->getDescriptorSet(3, descriptorSets[i], i),
-      crossesUniform->getDescriptorSet(4, descriptorSets[i], i),
-      chromaDepthUniform->getDescriptorSet(6, descriptorSets[i], i)
-    }};
-
-    m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
-  }
-}
-
 void CrossesPipeline::createUniforms()
 {
-  lightMetadataUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
+  m_lightMetadataUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-  lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
+  m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
 
-  cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
+  m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 
-  crossesUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(CrossesUniform));
+  m_crossesUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CrossesUniform));
 
-  chromaDepthUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(ChromaDepthUniform));
+  m_chromaDepthUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(ChromaDepthUniform));
+}
+
+void CrossesPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
+{
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
+  m_lightingDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
+      m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
+
+  m_crossesDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::crossesLayoutBindings);
+  m_crossesDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+  {
+    std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      m_crossesUniform->getDescriptorSet(4, descriptorSet, frame),
+      m_chromaDepthUniform->getDescriptorSet(6, descriptorSet, frame)
+    }};
+
+    return descriptorWrites;
+  });
 }
 
 void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, const uint32_t currentFrame)
@@ -178,7 +119,7 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
     return;
   }
 
-  if (prevNumLights != lights.size())
+  if (m_prevNumLights != lights.size())
   {
     m_logicalDevice->waitIdle();
 
@@ -186,23 +127,26 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
       .numLights = static_cast<int>(lights.size())
     };
 
-    lightsUniform.reset();
+    m_lightsUniform.reset();
 
-    lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
+    m_lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
 
-    lightsUniform = std::make_unique<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
+    m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, m_lightsUniformBufferSize);
 
-    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+    m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
     {
-      lightMetadataUniform->update(i, &lightMetadataUBO);
+      m_lightMetadataUniform->update(frame, &lightMetadataUBO);
 
-      auto descriptorSet = lightsUniform->getDescriptorSet(5, descriptorSets[i], i);
-      descriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_lightsUniform->getDescriptorSet(5, descriptorSet, frame)
+      }};
 
-      m_logicalDevice->updateDescriptorSets(1, &descriptorSet);
-    }
+      descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
-    prevNumLights = static_cast<int>(lights.size());
+      return descriptorWrites;
+    });
+
+    m_prevNumLights = static_cast<int>(lights.size());
   }
 
   std::vector<LightUniform> lightUniforms;
@@ -212,24 +156,27 @@ void CrossesPipeline::updateLightUniforms(const std::vector<std::shared_ptr<Ligh
     lightUniforms[i] = lights[i]->getUniform();
   }
 
-  lightsUniform->update(currentFrame, lightUniforms.data());
+  m_lightsUniform->update(currentFrame, lightUniforms.data());
 }
 
 void CrossesPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
-  cameraUBO.position = renderInfo->viewPosition;
+  m_cameraUBO.position = renderInfo->viewPosition;
 
   updateLightUniforms(renderInfo->lights, renderInfo->currentFrame);
 
-  cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+  m_cameraUniform->update(renderInfo->currentFrame, &m_cameraUBO);
 
-  chromaDepthUniform->update(renderInfo->currentFrame, &chromaDepthUBO);
+  m_chromaDepthUniform->update(renderInfo->currentFrame, &m_chromaDepthUBO);
 
-  crossesUniform->update(renderInfo->currentFrame, &crossesUBO);
+  m_crossesUniform->update(renderInfo->currentFrame, &m_crossesUBO);
 }
 
 void CrossesPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &descriptorSets[renderInfo->currentFrame]);
+                                                &m_crossesDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
+                                                &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }

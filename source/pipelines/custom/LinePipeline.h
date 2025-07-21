@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 
+class DescriptorSet;
 class RenderPass;
 class UniformBuffer;
 
@@ -20,19 +21,16 @@ public:
   void render(const RenderInfo* renderInfo, const VkCommandPool& commandPool, const std::vector<LineVertex>& vertices);
 
 private:
-  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-  std::vector<VkDescriptorSet> descriptorSets;
+  std::shared_ptr<DescriptorSet> m_lineDescriptorSet;
 
-  VkDescriptorSetLayout lineDescriptorSetLayout = VK_NULL_HANDLE;
+  std::shared_ptr<UniformBuffer> m_transformUniform;
 
-  std::unique_ptr<UniformBuffer> transformUniform;
+  VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory m_vertexBufferMemory = VK_NULL_HANDLE;
+  size_t m_maxVertexBufferSize = sizeof(LineVertex) * 20'000;
 
-  VkBuffer vertexBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
-  size_t maxVertexBufferSize = sizeof(LineVertex) * 20'000;
-
-  VkBuffer stagingBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+  VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
   void loadGraphicsShaders() override;
 
@@ -40,11 +38,9 @@ private:
 
   void defineStates() override;
 
-  void createLineDescriptorSetLayout();
-
-  void createDescriptorSets();
-
   void createUniforms();
+
+  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 
