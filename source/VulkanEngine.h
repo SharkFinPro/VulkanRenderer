@@ -89,7 +89,7 @@ public:
 
   void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
 
-  bool canMousePick() const;
+  [[nodiscard]] bool canMousePick() const;
 
 private:
   std::shared_ptr<Instance> instance;
