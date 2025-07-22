@@ -3,7 +3,6 @@
 #include "descriptorSets/DescriptorSet.h"
 #include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
-#include "../../components/Camera.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"

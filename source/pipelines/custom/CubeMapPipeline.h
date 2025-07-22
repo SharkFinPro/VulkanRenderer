@@ -6,8 +6,6 @@
 
 class DescriptorSet;
 class RenderPass;
-class RenderObject;
-class Camera;
 class UniformBuffer;
 class Texture3D;
 class TextureCubemap;

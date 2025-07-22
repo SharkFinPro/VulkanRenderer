@@ -8,10 +8,7 @@
 
 class DescriptorSet;
 class RenderPass;
-class RenderObject;
-class Camera;
 class UniformBuffer;
-class Light;
 
 class EllipticalDots final : public GraphicsPipeline {
 public:

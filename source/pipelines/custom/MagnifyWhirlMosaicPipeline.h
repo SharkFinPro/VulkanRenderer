@@ -4,13 +4,10 @@
 #include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <memory>
 
 class DescriptorSet;
-class LogicalDevice;
 class RenderPass;
-class RenderObject;
 class UniformBuffer;
 
 class MagnifyWhirlMosaicPipeline final : public GraphicsPipeline {

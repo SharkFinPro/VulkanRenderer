@@ -1,8 +1,9 @@
 #ifndef VULKANPROJECT_VERTEX_H
 #define VULKANPROJECT_VERTEX_H
 
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
 #include <array>
 
 struct Vertex {

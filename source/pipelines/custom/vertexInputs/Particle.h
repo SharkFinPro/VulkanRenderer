@@ -1,10 +1,10 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 #include <vulkan/vulkan.h>
 #include <array>
-#include <glm/glm.hpp>
-
 
 struct Particle {
   glm::vec2 position;

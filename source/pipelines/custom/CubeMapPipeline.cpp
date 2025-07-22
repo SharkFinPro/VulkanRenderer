@@ -3,7 +3,6 @@
 #include "descriptorSets/DescriptorSet.h"
 #include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
-#include "../../components/Camera.h"
 #include "../../components/textures/TextureCubemap.h"
 #include "../../components/textures/Texture3D.h"
 #include "../../core/logicalDevice/LogicalDevice.h"

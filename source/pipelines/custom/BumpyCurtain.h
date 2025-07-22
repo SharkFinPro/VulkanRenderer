@@ -8,12 +8,8 @@
 #include <vector>
 
 class DescriptorSet;
-class LogicalDevice;
 class RenderPass;
-class RenderObject;
-class Camera;
 class UniformBuffer;
-class Light;
 class Texture3D;
 
 class BumpyCurtain final : public GraphicsPipeline {

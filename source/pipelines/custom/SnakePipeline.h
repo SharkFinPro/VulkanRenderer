@@ -8,12 +8,8 @@
 #include <memory>
 
 class DescriptorSet;
-class LogicalDevice;
 class RenderPass;
-class RenderObject;
-class Camera;
 class UniformBuffer;
-class Light;
 
 class SnakePipeline final : public GraphicsPipeline {
 public:

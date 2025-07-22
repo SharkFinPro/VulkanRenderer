@@ -3,36 +3,36 @@
 
 #include "components/framebuffers/StandardFramebuffer.h"
 #include "components/framebuffers/SwapchainFramebuffer.h"
+#include "components/textures/Texture2D.h"
 #include "components/Camera.h"
 #include "components/ImGuiInstance.h"
-#include "core/logicalDevice/LogicalDevice.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
 
 #include "core/commandBuffer/CommandBuffer.h"
 #include "core/instance/Instance.h"
+#include "core/logicalDevice/LogicalDevice.h"
 #include "core/physicalDevice/PhysicalDevice.h"
 
-#include "pipelines/RenderPass.h"
+#include "objects/Light.h"
+#include "objects/Model.h"
+#include "objects/RenderObject.h"
+
 #include "pipelines/custom/DotsPipeline.h"
 #include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/LinePipeline.h"
 #include "pipelines/custom/MousePickingPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
-
-#include "components/textures/Texture2D.h"
-#include "objects/Model.h"
-#include "objects/RenderObject.h"
-#include "objects/Light.h"
+#include "pipelines/RenderPass.h"
 
 #include "VulkanEngineOptions.h"
 
-#include <vulkan/vulkan.h>
 #include <imgui.h>
+#include <vulkan/vulkan.h>
 
-#include <vector>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 enum class PipelineType {
   bumpyCurtain,
@@ -89,7 +89,7 @@ public:
 
   void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
 
-  bool canMousePick() const;
+  [[nodiscard]] bool canMousePick() const;
 
 private:
   std::shared_ptr<Instance> instance;

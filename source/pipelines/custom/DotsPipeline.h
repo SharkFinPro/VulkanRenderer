@@ -8,7 +8,6 @@
 #include <memory>
 #include <vector>
 
-class CommandBuffer;
 class DescriptorSet;
 class UniformBuffer;
 

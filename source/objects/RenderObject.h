@@ -1,7 +1,6 @@
 #ifndef VULKANPROJECT_RENDEROBJECT_H
 #define VULKANPROJECT_RENDEROBJECT_H
 
-#include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>

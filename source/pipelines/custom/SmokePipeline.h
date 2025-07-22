@@ -10,7 +10,6 @@
 #include <vector>
 
 class DescriptorSet;
-class CommandBuffer;
 class UniformBuffer;
 struct SmokeParticle;
 

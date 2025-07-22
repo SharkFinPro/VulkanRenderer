@@ -5,7 +5,6 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
-class ImGuiInstance;
 class RenderPass;
 
 class GuiPipeline final : public GraphicsPipeline {
