@@ -6,10 +6,7 @@
 
 class DescriptorSet;
 class RenderPass;
-class RenderObject;
-class Camera;
 class UniformBuffer;
-class Light;
 
 class CurtainPipeline final : public GraphicsPipeline {
 public:

@@ -2,13 +2,10 @@
 #define TEXTUREDPLANE_H
 
 #include "../GraphicsPipeline.h"
-#include <vector>
 #include <memory>
 
 class DescriptorSet;
 class RenderPass;
-class RenderObject;
-class Camera;
 class UniformBuffer;
 
 class TexturedPlane final : public GraphicsPipeline {
