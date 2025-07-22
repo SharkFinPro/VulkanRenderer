@@ -1,10 +1,9 @@
 #ifndef SMOKEPARTICLE_H
 #define SMOKEPARTICLE_H
 
+#include <glm/vec4.hpp>
 #include <vulkan/vulkan.h>
 #include <array>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 
 struct SmokeParticle {
   glm::vec4 positionTtl;

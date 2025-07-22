@@ -2,7 +2,7 @@
 #define LINEVERTEX_H
 
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 #include <array>
 
 struct LineVertex {
