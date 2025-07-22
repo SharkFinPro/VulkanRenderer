@@ -104,7 +104,6 @@ void LinePipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
 void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
   const TransformUniform transformUBO {
-    // .model = createModelMatrix(),
     .model = glm::mat4(1.0f),
     .view = renderInfo->viewMatrix,
     .proj = renderInfo->projectionMatrix
