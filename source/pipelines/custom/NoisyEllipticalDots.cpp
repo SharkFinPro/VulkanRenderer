@@ -4,7 +4,6 @@
 #include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../components/Camera.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../objects/Light.h"
 #include "../../components/textures/Texture3D.h"
