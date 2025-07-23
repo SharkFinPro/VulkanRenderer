@@ -281,7 +281,8 @@ void VulkanEngine::initVulkan()
     logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+    m_lightingManager->getLightingDescriptorSet());
 
   guiPipeline = std::make_unique<GuiPipeline>(logicalDevice, renderPass,
                                               vulkanEngineOptions.MAX_IMGUI_TEXTURES);

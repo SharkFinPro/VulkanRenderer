@@ -16,7 +16,8 @@ public:
   CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
                   VkDescriptorPool descriptorPool,
-                  VkDescriptorSetLayout objectDescriptorSetLayout);
+                  VkDescriptorSetLayout objectDescriptorSetLayout,
+                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
   void displayGui() override;
 
@@ -43,17 +44,9 @@ private:
 
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
-  std::shared_ptr<UniformBuffer> m_lightsUniform;
-  std::shared_ptr<UniformBuffer> m_cameraUniform;
-
   std::shared_ptr<UniformBuffer> m_crossesUniform;
 
   std::shared_ptr<UniformBuffer> m_chromaDepthUniform;
-
-  int m_prevNumLights = 0;
-
-  size_t m_lightsUniformBufferSize = 0;
 
   void loadGraphicsShaders() override;
 
@@ -64,8 +57,6 @@ private:
   void createUniforms();
 
   void createDescriptorSets(VkDescriptorPool descriptorPool);
-
-  void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 
