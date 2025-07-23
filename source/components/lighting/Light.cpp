@@ -8,7 +8,7 @@ Light::Light(const glm::vec3& position,
   : m_position(position), m_color(color), m_ambient(ambient), m_diffuse(diffuse), m_specular(specular)
 {}
 
-PointLightUniform Light::getUniform() const
+PointLightUniform Light::getPointLightUniform() const
 {
   return {
     .position = m_position,
@@ -17,6 +17,27 @@ PointLightUniform Light::getUniform() const
     .diffuse = m_diffuse,
     .specular = m_specular
   };
+}
+
+SpotLightUniform Light::getSpotLightUniform() const
+{
+  return {
+    .position = m_position,
+    .color = m_color,
+    .ambient = m_ambient,
+    .diffuse = m_diffuse,
+    .specular = m_specular
+  };
+}
+
+bool Light::isSpotLight() const
+{
+  return m_isSpotLight;
+}
+
+void Light::setSpotLight(const bool isSpotLight)
+{
+  m_isSpotLight = isSpotLight;
 }
 
 glm::vec3 Light::getPosition() const

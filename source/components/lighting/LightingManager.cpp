@@ -22,14 +22,21 @@ std::shared_ptr<Light> LightingManager::createLight(glm::vec3 position,
 {
   auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
 
-  pointLights.push_back(light);
+  lights.push_back(light);
 
   return light;
 }
 
 void LightingManager::renderLight(const std::shared_ptr<Light>& light)
 {
-  pointLightsToRender.push_back(light);
+  if (light->isSpotLight())
+  {
+    spotLightsToRender.push_back(light);
+  }
+  else
+  {
+    pointLightsToRender.push_back(light);
+  }
 }
 
 std::shared_ptr<DescriptorSet> LightingManager::getLightingDescriptorSet() const
@@ -85,26 +92,21 @@ void LightingManager::updateUniforms(const uint32_t currentFrame, const glm::vec
   updateSpotLightUniforms(currentFrame);
 }
 
-void LightingManager::updatePointLightUniforms(uint32_t currentFrame)
+void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
 {
-  if (pointLights.empty())
-  {
-    return;
-  }
-
-  if (m_prevNumPointLights != pointLights.size())
+  if (m_prevNumPointLights != pointLightsToRender.size())
   {
     m_logicalDevice->waitIdle();
 
     m_pointLightsUniform.reset();
 
-    auto lightsUniformBufferSize = sizeof(PointLightUniform) * pointLights.size();
+    auto lightsUniformBufferSize = sizeof(PointLightUniform) * pointLightsToRender.size();
 
     m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
     const LightMetadataUniform lightMetadataUBO {
-      .numPointLights = static_cast<int>(pointLights.size()),
-      .numSpotLights = static_cast<int>(spotLights.size())
+      .numPointLights = static_cast<int>(pointLightsToRender.size()),
+      .numSpotLights = static_cast<int>(spotLightsToRender.size())
     };
 
     m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
@@ -120,39 +122,39 @@ void LightingManager::updatePointLightUniforms(uint32_t currentFrame)
       return descriptorWrites;
     });
 
-    m_prevNumPointLights = static_cast<int>(pointLights.size());
+    m_prevNumPointLights = static_cast<int>(pointLightsToRender.size());
+  }
+
+  if (pointLightsToRender.empty())
+  {
+    return;
   }
 
   std::vector<PointLightUniform> lightUniforms;
-  lightUniforms.resize(pointLights.size());
-  for (int i = 0; i < pointLights.size(); i++)
+  lightUniforms.resize(pointLightsToRender.size());
+  for (int i = 0; i < pointLightsToRender.size(); i++)
   {
-    lightUniforms[i] = pointLights[i]->getUniform();
+    lightUniforms[i] = pointLightsToRender[i]->getPointLightUniform();
   }
 
   m_pointLightsUniform->update(currentFrame, lightUniforms.data());
 }
 
-void LightingManager::updateSpotLightUniforms(uint32_t currentFrame)
+void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
 {
-  if (spotLights.empty())
-  {
-    return;
-  }
-
-  if (m_prevNumSpotLights != spotLights.size())
+  if (m_prevNumSpotLights != spotLightsToRender.size())
   {
     m_logicalDevice->waitIdle();
 
     m_spotLightsUniform.reset();
 
-    auto lightsUniformBufferSize = sizeof(SpotLightUniform) * spotLights.size();
+    auto lightsUniformBufferSize = sizeof(SpotLightUniform) * spotLightsToRender.size();
 
     m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
     const LightMetadataUniform lightMetadataUBO {
-      .numPointLights = static_cast<int>(pointLights.size()),
-      .numSpotLights = static_cast<int>(spotLights.size())
+      .numPointLights = static_cast<int>(spotLightsToRender.size()),
+      .numSpotLights = static_cast<int>(spotLightsToRender.size())
     };
 
     m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
@@ -168,14 +170,19 @@ void LightingManager::updateSpotLightUniforms(uint32_t currentFrame)
       return descriptorWrites;
     });
 
-    m_prevNumSpotLights = static_cast<int>(spotLights.size());
+    m_prevNumSpotLights = static_cast<int>(spotLightsToRender.size());
+  }
+
+  if (spotLightsToRender.empty())
+  {
+    return;
   }
 
   std::vector<SpotLightUniform> lightUniforms;
-  lightUniforms.resize(spotLights.size());
-  for (int i = 0; i < spotLights.size(); i++)
+  lightUniforms.resize(spotLightsToRender.size());
+  for (int i = 0; i < spotLightsToRender.size(); i++)
   {
-    // lightUniforms[i] = spotLights[i]->getUniform();
+    lightUniforms[i] = spotLightsToRender[i]->getSpotLightUniform();
   }
 
   m_spotLightsUniform->update(currentFrame, lightUniforms.data());

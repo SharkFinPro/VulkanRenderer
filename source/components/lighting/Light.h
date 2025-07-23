@@ -31,7 +31,13 @@ class Light {
 public:
   Light(const glm::vec3& position, const glm::vec3& color, float ambient, float diffuse, float specular);
 
-  [[nodiscard]] PointLightUniform getUniform() const;
+  [[nodiscard]] PointLightUniform getPointLightUniform() const;
+
+  [[nodiscard]] SpotLightUniform getSpotLightUniform() const;
+
+  [[nodiscard]] bool isSpotLight() const;
+
+  void setSpotLight(bool isSpotLight);
 
   [[nodiscard]] glm::vec3 getPosition() const;
   [[nodiscard]] glm::vec3 getColor() const;
@@ -51,6 +57,11 @@ private:
   float m_ambient;
   float m_diffuse;
   float m_specular;
+
+  bool m_isSpotLight = false;
+
+  glm::vec3 m_direction = glm::vec3(0, 0, 0);
+  float m_coneAngle = 0;
 };
 
 

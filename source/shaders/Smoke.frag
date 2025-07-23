@@ -2,12 +2,17 @@
 #extension GL_GOOGLE_include_directive : require
 #include "common/Lighting.glsl"
 
-layout(set = 1, binding = 2) uniform PointLightsMetadata {
-  int numLights;
+layout(set = 2, binding = 0) uniform PointLightsMetadata {
+  int numPointLights;
+  int numSpotLights;
 };
 
-layout(set = 1, binding = 5) readonly buffer PointLights {
-  PointLight lights[];
+layout(set = 2, binding = 1) readonly buffer PointLights {
+  PointLight pointLights[];
+};
+
+layout(set = 2, binding = 2) readonly buffer SpotLights {
+  SpotLight spotLights[];
 };
 
 layout(location = 0) in vec3 fragPos;
@@ -49,9 +54,9 @@ void main()
   finalMask *= 0.9 + 0.1 * secondNoise;
 
   vec3 result = vec3(0);
-  for (int i = 0; i < numLights; i++)
+  for (int i = 0; i < numPointLights; i++)
   {
-    result += SmokePointLightAffect(lights[i], fragColor.rgb, fragPos);
+    result += SmokePointLightAffect(pointLights[i], fragColor.rgb, fragPos);
   }
 
   outColor = vec4(result, finalMask * fragColor.a);
