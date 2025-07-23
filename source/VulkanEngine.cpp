@@ -351,6 +351,11 @@ void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) co
 {
   mousePickingCommandBuffer->record([this, imageIndex]()
   {
+    if (renderObjectsToMousePick.empty())
+    {
+      return;
+    }
+
     const RenderInfo renderInfo {
       .commandBuffer = mousePickingCommandBuffer,
       .currentFrame = currentFrame,
@@ -360,8 +365,6 @@ void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) co
     };
 
     mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, renderInfo.commandBuffer);
-
-    const std::vector<std::shared_ptr<Light>> lights{};
 
     const VkViewport viewport = {
       .x = 0.0f,
