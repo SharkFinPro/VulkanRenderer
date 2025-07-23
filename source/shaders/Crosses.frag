@@ -59,7 +59,7 @@ void main()
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, crosses.shininess);
+    result += StandardSpotLightAffect(spotLights[i], color, fragNormal, fragPos, camera.position, crosses.shininess);
   }
 
   outColor = vec4(result, 1.0);

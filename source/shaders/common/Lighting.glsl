@@ -19,6 +19,16 @@ struct SpotLight {
   float coneAngle;
 };
 
+bool isInSpotlight(SpotLight light, vec3 fragPos)
+{
+  float cutoffAngle = cos(light.coneAngle);
+  vec3 lightToFrag = normalize(fragPos - light.position);
+
+  float theta = dot(lightToFrag, normalize(light.direction));
+
+  return theta >= cutoffAngle;
+}
+
 vec3 getStandardAmbient(float lightAmbient, vec3 color)
 {
   vec3 ambient = lightAmbient * color;
@@ -79,11 +89,7 @@ vec3 StandardSpotLightAffect(SpotLight light,
                               vec3 cameraPosition,
                               float shininess)
 {
-  float cutoffAngle = cos(light.coneAngle);
-  vec3 lightToFrag = normalize(fragPos - light.position);
-
-  float theta = dot(lightToFrag, normalize(light.direction));
-  if (theta < cutoffAngle)
+  if (!isInSpotlight(light, fragPos))
   {
     vec3 ambient = getStandardAmbient(light.ambient, color);
 
@@ -124,11 +130,7 @@ vec3 SpecularMapSpotLightAffect(SpotLight light,
                                  vec3 cameraPosition,
                                  float shininess)
 {
-  float cutoffAngle = cos(light.coneAngle);
-  vec3 lightToFrag = normalize(fragPos - light.position);
-
-  float theta = dot(lightToFrag, normalize(light.direction));
-  if (theta < cutoffAngle)
+  if (!isInSpotlight(light, fragPos))
   {
     vec3 ambient = getStandardAmbient(light.ambient, color);
 
@@ -152,6 +154,25 @@ vec3 SmokePointLightAffect(PointLight light, vec3 color, vec3 fragPos)
 
   // Calculate attenuation
   float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+
+  // Combined Output
+  return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color
+}
+
+vec3 SmokeSpotLightAffect(SpotLight light, vec3 color, vec3 fragPos)
+{
+  // Calculate distance
+  vec3 lightToFrag = light.position - fragPos;
+  float dist = length(lightToFrag);
+
+  // Calculate attenuation
+  float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+
+  if (!isInSpotlight(light, fragPos))
+  {
+    // Combined Output
+    return (light.ambient) * light.color * light.color * attenuation; // Color * Color for brighter color
+  }
 
   // Combined Output
   return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color
