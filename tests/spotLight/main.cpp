@@ -37,14 +37,19 @@ int main()
     std::vector<std::shared_ptr<Light>> lights;
 
     lights.push_back(renderer.createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
+    lights.back()->setSpotLight(true);
 
     lights.push_back(renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
+    lights.back()->setSpotLight(true);
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+    lights.back()->setSpotLight(true);
 
     lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
+    lights.back()->setSpotLight(true);
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+    lights.back()->setSpotLight(true);
 
     while (renderer.isActive())
     {

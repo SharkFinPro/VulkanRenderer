@@ -60,7 +60,7 @@ private:
   float m_diffuse;
   float m_specular;
 
-  bool m_isSpotLight = true;
+  bool m_isSpotLight = false;
 
   glm::vec3 m_direction = glm::vec3(0, -1, 0);
   float m_coneAngle = 15;
