@@ -5,7 +5,8 @@
 #include <glm/mat4x4.hpp>
 
 struct LightMetadataUniform {
-  alignas(16) int numLights;
+  int numPointLights;
+  int numSpotLights;
 };
 
 struct CameraUniform {

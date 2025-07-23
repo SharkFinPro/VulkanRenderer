@@ -9,27 +9,47 @@ struct PointLight {
   float padding3; // Padding to ensure alignment
 };
 
-vec3 getStandardAmbient(PointLight light, vec3 color)
+struct SpotLight {
+  vec3 position;
+  float ambient;
+  vec3 color;
+  float diffuse;
+  vec3 direction;
+  float specular;
+  float coneAngle;
+};
+
+bool isInSpotlight(SpotLight light, vec3 fragPos)
 {
-  vec3 ambient = light.ambient * color;
+  float cutoffAngle = cos(light.coneAngle);
+  vec3 lightToFrag = normalize(fragPos - light.position);
+
+  float theta = dot(lightToFrag, normalize(light.direction));
+
+  return theta >= cutoffAngle;
+}
+
+vec3 getStandardAmbient(float lightAmbient, vec3 color)
+{
+  vec3 ambient = lightAmbient * color;
 
   return ambient;
 }
 
-vec3 getStandardDiffuse(PointLight light, vec3 fragPos, vec3 normal, vec3 color)
+vec3 getStandardDiffuse(vec3 lightPosition, float lightDiffuse, vec3 fragPos, vec3 normal, vec3 color)
 {
-  vec3 lightDir = normalize(light.position - fragPos);
+  vec3 lightDir = normalize(lightPosition - fragPos);
   float d = max(dot(normal, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * color;
+  vec3 diffuse = lightDiffuse * d * color;
 
   return diffuse;
 }
 
-vec3 getStandardSpecular(PointLight light, vec3 cameraPosition, vec3 fragPos, vec3 normal, float shininess)
+vec3 getStandardSpecular(vec3 lightPosition, float lightSpecular, vec3 lightColor, vec3 cameraPosition, vec3 fragPos, vec3 normal, float shininess)
 {
   vec3 specular = vec3(0);
 
-  vec3 lightDir = normalize(light.position - fragPos);
+  vec3 lightDir = normalize(lightPosition - fragPos);
   float d = max(dot(normal, lightDir), 0.0);
   if(d > 0.0) // only do specular if the light can see the point
   {
@@ -39,7 +59,7 @@ vec3 getStandardSpecular(PointLight light, vec3 cameraPosition, vec3 fragPos, ve
 
     if (cosphi > 0.0)
     {
-      specular = pow(cosphi, shininess) * light.specular * light.color;
+      specular = pow(cosphi, shininess) * lightSpecular * lightColor;
     }
   }
 
@@ -55,9 +75,32 @@ vec3 StandardPointLightAffect(PointLight light,
 {
   vec3 normalizedNormal = normalize(normal);
 
-  vec3 ambient = getStandardAmbient(light, color);
-  vec3 diffuse = getStandardDiffuse(light, fragPos, normalizedNormal, color);
-  vec3 specular = getStandardSpecular(light, cameraPosition, fragPos, normalizedNormal, shininess);
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
+  vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess);
+
+  return (ambient + diffuse + specular) * light.color;
+}
+
+vec3 StandardSpotLightAffect(SpotLight light,
+                              vec3 color,
+                              vec3 normal,
+                              vec3 fragPos,
+                              vec3 cameraPosition,
+                              float shininess)
+{
+  if (!isInSpotlight(light, fragPos))
+  {
+    vec3 ambient = getStandardAmbient(light.ambient, color);
+
+    return ambient * light.color;
+  }
+
+  vec3 normalizedNormal = normalize(normal);
+
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
+  vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess);
 
   return (ambient + diffuse + specular) * light.color;
 }
@@ -72,9 +115,33 @@ vec3 SpecularMapPointLightAffect(PointLight light,
 {
   vec3 normalizedNormal = normalize(normal);
 
-  vec3 ambient = getStandardAmbient(light, color);
-  vec3 diffuse = getStandardDiffuse(light, fragPos, normalizedNormal, color);
-  vec3 specular = getStandardSpecular(light, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
+  vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
+
+  return (ambient + diffuse + specular) * light.color;
+}
+
+vec3 SpecularMapSpotLightAffect(SpotLight light,
+                                 vec3 color,
+                                 vec3 specColor,
+                                 vec3 normal,
+                                 vec3 fragPos,
+                                 vec3 cameraPosition,
+                                 float shininess)
+{
+  if (!isInSpotlight(light, fragPos))
+  {
+    vec3 ambient = getStandardAmbient(light.ambient, color);
+
+    return ambient * light.color;
+  }
+
+  vec3 normalizedNormal = normalize(normal);
+
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
+  vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
 
   return (ambient + diffuse + specular) * light.color;
 }
@@ -87,6 +154,25 @@ vec3 SmokePointLightAffect(PointLight light, vec3 color, vec3 fragPos)
 
   // Calculate attenuation
   float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+
+  // Combined Output
+  return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color
+}
+
+vec3 SmokeSpotLightAffect(SpotLight light, vec3 color, vec3 fragPos)
+{
+  // Calculate distance
+  vec3 lightToFrag = light.position - fragPos;
+  float dist = length(lightToFrag);
+
+  // Calculate attenuation
+  float attenuation = 1.0 / (1.0 + 0.09 * dist + 0.032 * dist * dist);
+
+  if (!isInSpotlight(light, fragPos))
+  {
+    // Combined Output
+    return (light.ambient) * light.color * light.color * attenuation; // Color * Color for brighter color
+  }
 
   // Combined Output
   return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color

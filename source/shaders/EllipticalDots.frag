@@ -2,12 +2,17 @@
 #extension GL_GOOGLE_include_directive : require
 #include "common/Lighting.glsl"
 
-layout(set = 2, binding = 2) uniform PointLightsMetadata {
-  int numLights;
+layout(set = 2, binding = 0) uniform PointLightsMetadata {
+  int numPointLights;
+  int numSpotLights;
 };
 
-layout(set = 2, binding = 5) readonly buffer PointLights {
-  PointLight lights[];
+layout(set = 2, binding = 1) readonly buffer PointLights {
+  PointLight pointLights[];
+};
+
+layout(set = 2, binding = 2) readonly buffer SpotLights {
+  SpotLight spotLights[];
 };
 
 layout(set = 2, binding = 3) uniform Camera {
@@ -53,9 +58,14 @@ void main()
 
   // now use fragColor in the per-fragment lighting equations:
   vec3 result = vec3(0);
-  for (int i = 0; i < numLights; i++)
+  for (int i = 0; i < numPointLights; i++)
   {
-    result += StandardPointLightAffect(lights[i], fragColor, fragNormal, fragPos, camera.position, ellipticalDots.shininess);
+    result += StandardPointLightAffect(pointLights[i], fragColor, fragNormal, fragPos, camera.position, ellipticalDots.shininess);
+  }
+
+  for (int i = 0; i < numSpotLights; i++)
+  {
+    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, ellipticalDots.shininess);
   }
 
   outColor = vec4(result, 1.0);
