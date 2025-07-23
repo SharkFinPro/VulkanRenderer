@@ -1,6 +1,5 @@
 #include "Light.h"
-
-#include "glm/detail/func_trigonometric.inl"
+#include <glm/detail/func_trigonometric.inl>
 
 Light::Light(const glm::vec3& position,
              const glm::vec3& color,
@@ -69,6 +68,16 @@ float Light::getSpecular() const
   return m_specular;
 }
 
+glm::vec3 Light::getDirection() const
+{
+  return m_direction;
+}
+
+float Light::getConeAngle() const
+{
+  return m_coneAngle;
+}
+
 void Light::setPosition(const glm::vec3& position)
 {
   m_position = position;
@@ -92,4 +101,14 @@ void Light::setDiffuse(const float diffuse)
 void Light::setSpecular(const float specular)
 {
   m_specular = specular;
+}
+
+void Light::setDirection(const glm::vec3& direction)
+{
+  m_direction = direction;
+}
+
+void Light::setConeAngle(float coneAngle)
+{
+  m_coneAngle = coneAngle;
 }

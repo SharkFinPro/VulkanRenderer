@@ -84,6 +84,8 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
   float diffuse = light->getDiffuse();
   float specular = light->getSpecular();
   bool isSpotLight = light->isSpotLight();
+  glm::vec3 direction = light->getDirection();
+  float coneAngle = light->getConeAngle();
 
   ImGui::PushID(id);
 
@@ -95,6 +97,8 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
     ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
     ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
     ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
+    ImGui::SliderFloat3("Direction", value_ptr(direction), -50.0f, 50.0f);
+    ImGui::SliderFloat("Cone Angle", &coneAngle, 0.0f, 180.0f);
     ImGui::Separator();
   }
 
@@ -106,6 +110,8 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
   light->setSpotLight(isSpotLight);
+  light->setDirection(direction);
+  light->setConeAngle(coneAngle);
 }
 
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,

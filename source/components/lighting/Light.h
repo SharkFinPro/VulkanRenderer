@@ -42,12 +42,16 @@ public:
   [[nodiscard]] float getAmbient() const;
   [[nodiscard]] float getDiffuse() const;
   [[nodiscard]] float getSpecular() const;
+  [[nodiscard]] glm::vec3 getDirection() const;
+  [[nodiscard]] float getConeAngle() const;
 
   void setPosition(const glm::vec3& position);
   void setColor(const glm::vec3& color);
   void setAmbient(float ambient);
   void setDiffuse(float diffuse);
   void setSpecular(float specular);
+  void setDirection(const glm::vec3& direction);
+  void setConeAngle(float coneAngle);
 
 private:
   glm::vec3 m_position;
