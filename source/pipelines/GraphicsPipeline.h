@@ -20,7 +20,6 @@ struct RenderInfo {
   glm::vec3 viewPosition;
   const glm::mat4& viewMatrix;
   VkExtent2D extent;
-  const std::vector<std::shared_ptr<Light>>& lights;
 
   mutable glm::mat4 projectionMatrix;
   mutable bool shouldCreateProjectionMatrix = true;

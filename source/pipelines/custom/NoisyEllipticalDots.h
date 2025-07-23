@@ -15,7 +15,8 @@ public:
                       const std::shared_ptr<RenderPass>& renderPass,
                       const VkCommandPool& commandPool,
                       VkDescriptorPool descriptorPool,
-                      VkDescriptorSetLayout objectDescriptorSetLayout);
+                      VkDescriptorSetLayout objectDescriptorSetLayout,
+                      const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
   void displayGui() override;
 
@@ -37,16 +38,9 @@ private:
 
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
-  std::shared_ptr<UniformBuffer> m_lightsUniform;
-  std::shared_ptr<UniformBuffer> m_cameraUniform;
   std::shared_ptr<UniformBuffer> m_ellipticalDotsUniform;
   std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
   std::shared_ptr<Texture3D> m_noiseTexture;
-
-  int m_prevNumLights = 0;
-
-  size_t m_lightsUniformBufferSize = 0;
 
   void loadGraphicsShaders() override;
 
@@ -57,8 +51,6 @@ private:
   void createUniforms(const VkCommandPool& commandPool);
 
   void createDescriptorSets(VkDescriptorPool descriptorPool);
-
-  void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 

@@ -20,7 +20,8 @@ public:
                 const VkRenderPass& renderPass,
                 VkDescriptorPool descriptorPool,
                 glm::vec3 position,
-                uint32_t numParticles);
+                uint32_t numParticles,
+                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
   ~SmokePipeline() override;
 
@@ -47,12 +48,6 @@ private:
   std::shared_ptr<UniformBuffer> m_deltaTimeUniform;
   std::shared_ptr<UniformBuffer> m_transformUniform;
   std::shared_ptr<UniformBuffer> m_smokeUniform;
-
-  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
-  std::shared_ptr<UniformBuffer> m_lightsUniform;
-
-  int m_prevNumLights = 0;
-  size_t m_lightsUniformBufferSize = 0;
 
   float m_dotSpeed;
   std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
@@ -82,8 +77,6 @@ private:
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
-
-  void updateLightUniforms(const std::vector<std::shared_ptr<Light>>& lights, uint32_t currentFrame);
 };
 
 
