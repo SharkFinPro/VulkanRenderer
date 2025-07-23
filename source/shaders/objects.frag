@@ -39,10 +39,10 @@ void main()
     result += SpecularMapPointLightAffect(pointLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
   }
 
-//  for (int i = 0; i < numSpotLights; i++)
-//  {
-//    result += SpecularMapPointLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
-//  }
+  for (int i = 0; i < numSpotLights; i++)
+  {
+    result += SpecularMapSpotLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
+  }
 
   outColor = vec4(result, 1.0);
 }

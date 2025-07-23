@@ -90,6 +90,23 @@ vec3 SpecularMapPointLightAffect(PointLight light,
   return (ambient + diffuse + specular) * light.color;
 }
 
+vec3 SpecularMapSpotLightAffect(SpotLight light,
+                                 vec3 color,
+                                 vec3 specColor,
+                                 vec3 normal,
+                                 vec3 fragPos,
+                                 vec3 cameraPosition,
+                                 float shininess)
+{
+  vec3 normalizedNormal = normalize(normal);
+
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
+  vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
+
+  return (ambient + diffuse + specular) * light.color;
+}
+
 vec3 SmokePointLightAffect(PointLight light, vec3 color, vec3 fragPos)
 {
   // Calculate distance
