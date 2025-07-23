@@ -1,10 +1,10 @@
 #include "LightingManager.h"
-#include "../core/logicalDevice/LogicalDevice.h"
-#include "../pipelines/custom/config/Uniforms.h"
-#include "../pipelines/custom/descriptorSets/DescriptorSet.h"
-#include "../pipelines/custom/descriptorSets/LayoutBindings.h"
-#include "../objects/Light.h"
-#include "../objects/UniformBuffer.h"
+#include "Light.h"
+#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../pipelines/custom/config/Uniforms.h"
+#include "../../pipelines/custom/descriptorSets/DescriptorSet.h"
+#include "../../pipelines/custom/descriptorSets/LayoutBindings.h"
+#include "../../objects/UniformBuffer.h"
 
 LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDescriptorPool descriptorPool)
   : m_logicalDevice(logicalDevice)

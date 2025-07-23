@@ -6,7 +6,7 @@
 #include "components/textures/Texture2D.h"
 #include "components/Camera.h"
 #include "components/ImGuiInstance.h"
-#include "components/LightingManager.h"
+#include "components/lighting/LightingManager.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
 
@@ -15,7 +15,7 @@
 #include "core/logicalDevice/LogicalDevice.h"
 #include "core/physicalDevice/PhysicalDevice.h"
 
-#include "objects/Light.h"
+#include "components/lighting/Light.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 

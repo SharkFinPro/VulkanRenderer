@@ -8,6 +8,12 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/framebuffers/SwapchainFramebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.h
 
+  # Lighting
+  components/lighting/Light.cpp
+  components/lighting/Light.h
+  components/lighting/LightingManager.cpp
+  components/lighting/LightingManager.h
+
   # Textures
   components/textures/Texture.cpp
   components/textures/Texture.h
@@ -23,8 +29,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/Camera.h
   components/ImGuiInstance.cpp
   components/ImGuiInstance.h
-  components/LightingManager.cpp
-  components/LightingManager.h
   components/SwapChain.cpp
   components/SwapChain.h
   components/Window.cpp
@@ -54,8 +58,6 @@ set(VULKAN_ENGINE_SOURCES_CORE
 
 # Objects - Renderable objects and data structures
 set(VULKAN_ENGINE_SOURCES_OBJECTS
-  objects/Light.cpp
-  objects/Light.h
   objects/Model.cpp
   objects/Model.h
   objects/RenderObject.cpp
