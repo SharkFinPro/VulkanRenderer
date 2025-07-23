@@ -73,8 +73,13 @@ void LightingManager::createDescriptorSet(VkDescriptorPool descriptorPool)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{{
       m_lightMetadataUniform->getDescriptorSet(0, descriptorSet, frame),
+      m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame),
+      m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame),
       m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
     }};
+
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
     return descriptorWrites;
   });

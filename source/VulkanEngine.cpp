@@ -865,7 +865,7 @@ void VulkanEngine::doMousePicking()
   {
     return;
   }
-  
+
   int32_t mouseX, mouseY;
   if (!validateMousePickingMousePosition(mouseX, mouseY))
   {
