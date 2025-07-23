@@ -861,6 +861,11 @@ void VulkanEngine::handleMousePickingResult(const uint32_t objectID)
 
 void VulkanEngine::doMousePicking()
 {
+  if (renderObjectsToMousePick.empty())
+  {
+    return;
+  }
+  
   int32_t mouseX, mouseY;
   if (!validateMousePickingMousePosition(mouseX, mouseY))
   {
