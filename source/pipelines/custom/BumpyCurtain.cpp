@@ -15,8 +15,8 @@ BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkDescriptorSetLayout objectDescriptorSetLayout,
                            const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout),
-    m_lightingDescriptorSet(lightingDescriptorSet)
+    m_lightingDescriptorSet(lightingDescriptorSet),
+    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms(commandPool);
 

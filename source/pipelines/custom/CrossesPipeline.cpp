@@ -12,9 +12,9 @@ CrossesPipeline::CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
                                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-: GraphicsPipeline(logicalDevice),
-  m_objectDescriptorSetLayout(objectDescriptorSetLayout),
-  m_lightingDescriptorSet(lightingDescriptorSet)
+  : GraphicsPipeline(logicalDevice),
+    m_lightingDescriptorSet(lightingDescriptorSet),
+    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createUniforms();
 
