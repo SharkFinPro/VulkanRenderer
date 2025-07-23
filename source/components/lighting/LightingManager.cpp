@@ -96,6 +96,18 @@ void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
 {
   if (m_prevNumPointLights != pointLightsToRender.size())
   {
+    if (pointLightsToRender.empty())
+    {
+      const LightMetadataUniform lightMetadataUBO {
+        .numPointLights = 0,
+        .numSpotLights = static_cast<int>(spotLightsToRender.size())
+      };
+
+      m_lightMetadataUniform->update(currentFrame, &lightMetadataUBO);
+
+      return;
+    }
+
     m_logicalDevice->waitIdle();
 
     m_pointLightsUniform.reset();
@@ -144,6 +156,18 @@ void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
 {
   if (m_prevNumSpotLights != spotLightsToRender.size())
   {
+    if (spotLightsToRender.empty())
+    {
+      const LightMetadataUniform lightMetadataUBO {
+        .numPointLights = static_cast<int>(pointLightsToRender.size()),
+        .numSpotLights = 0
+      };
+
+      m_lightMetadataUniform->update(currentFrame, &lightMetadataUBO);
+
+      return;
+    }
+
     m_logicalDevice->waitIdle();
 
     m_spotLightsUniform.reset();
