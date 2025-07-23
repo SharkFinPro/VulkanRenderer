@@ -149,10 +149,8 @@ void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObjec
   *mousePicked = false;
 }
 
-void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
+void VulkanEngine::renderLight(const std::shared_ptr<Light>& light) const
 {
-  lightsToRender.push_back(light);
-
   m_lightingManager->renderLight(light);
 }
 
@@ -186,7 +184,8 @@ std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
 std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 position, const uint32_t numParticles)
 {
   auto system = std::make_shared<SmokePipeline>(logicalDevice, commandPool, renderPass->getRenderPass(),
-                                                descriptorPool, position, numParticles);
+                                                descriptorPool, position, numParticles,
+                                                m_lightingManager->getLightingDescriptorSet());
 
   smokeSystems.push_back(system);
 
@@ -250,23 +249,27 @@ void VulkanEngine::initVulkan()
                                                         VK_IMAGE_LAYOUT_UNDEFINED);
 
   pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, objectDescriptorSetLayout,
+    m_lightingManager->getLightingDescriptorSet());
 
   pipelines[PipelineType::objectHighlight] = std::make_unique<ObjectHighlightPipeline>(
     logicalDevice, renderPass, objectDescriptorSetLayout);
 
   pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+    m_lightingManager->getLightingDescriptorSet());
 
   pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
-    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout,
+    m_lightingManager->getLightingDescriptorSet());
 
   pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
     logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
   pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+    m_lightingManager->getLightingDescriptorSet());
 
   pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
     logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
@@ -278,7 +281,8 @@ void VulkanEngine::initVulkan()
     logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+    m_lightingManager->getLightingDescriptorSet());
 
   pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
     logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
@@ -352,8 +356,7 @@ void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) co
       .currentFrame = currentFrame,
       .viewPosition = viewPosition,
       .viewMatrix = viewMatrix,
-      .extent = offscreenViewportExtent,
-      .lights = lightsToRender
+      .extent = offscreenViewportExtent
     };
 
     mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, renderInfo.commandBuffer);
@@ -409,8 +412,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const uint32_t imageIndex) const
       .currentFrame = currentFrame,
       .viewPosition = viewPosition,
       .viewMatrix = viewMatrix,
-      .extent = swapChain->getExtent(),
-      .lights = lightsToRender
+      .extent = swapChain->getExtent()
     };
 
     renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), renderInfo.commandBuffer);
@@ -606,8 +608,7 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
     .currentFrame = currentFrame,
     .viewPosition = viewPosition,
     .viewMatrix = viewMatrix,
-    .extent = extent,
-    .lights = lightsToRender
+    .extent = extent
   };
 
   const VkViewport viewport = {
@@ -689,7 +690,6 @@ void VulkanEngine::createNewFrame()
 
   renderObjectsToRender.clear();
 
-  lightsToRender.clear();
   m_lightingManager->clearLightsToRender();
 
   lineVerticesToRender.clear();
