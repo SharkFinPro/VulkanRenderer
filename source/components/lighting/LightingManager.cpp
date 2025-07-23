@@ -22,14 +22,14 @@ std::shared_ptr<Light> LightingManager::createLight(glm::vec3 position,
 {
   auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
 
-  lights.push_back(light);
+  pointLights.push_back(light);
 
   return light;
 }
 
 void LightingManager::renderLight(const std::shared_ptr<Light>& light)
 {
-  lightsToRender.push_back(light);
+  pointLightsToRender.push_back(light);
 }
 
 std::shared_ptr<DescriptorSet> LightingManager::getLightingDescriptorSet() const
@@ -39,7 +39,8 @@ std::shared_ptr<DescriptorSet> LightingManager::getLightingDescriptorSet() const
 
 void LightingManager::clearLightsToRender()
 {
-  lightsToRender.clear();
+  pointLightsToRender.clear();
+  spotLightsToRender.clear();
 }
 
 void LightingManager::update(const uint32_t currentFrame, const glm::vec3 viewPosition)
@@ -51,7 +52,9 @@ void LightingManager::createUniforms()
 {
   m_lightMetadataUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-  m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightUniform));
+  m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(PointLightUniform));
+
+  m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SpotLightUniform));
 
   m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 }
@@ -62,7 +65,7 @@ void LightingManager::createDescriptorSet(VkDescriptorPool descriptorPool)
   m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{{
-      m_lightMetadataUniform->getDescriptorSet(2, descriptorSet, frame),
+      m_lightMetadataUniform->getDescriptorSet(0, descriptorSet, frame),
       m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
     }};
 
@@ -77,31 +80,39 @@ void LightingManager::updateUniforms(const uint32_t currentFrame, const glm::vec
   };
   m_cameraUniform->update(currentFrame, &cameraUBO);
 
-  if (lights.empty())
+  updatePointLightUniforms(currentFrame);
+
+  updateSpotLightUniforms(currentFrame);
+}
+
+void LightingManager::updatePointLightUniforms(uint32_t currentFrame)
+{
+  if (pointLights.empty())
   {
     return;
   }
 
-  if (m_prevNumLights != lights.size())
+  if (m_prevNumPointLights != pointLights.size())
   {
     m_logicalDevice->waitIdle();
 
+    m_pointLightsUniform.reset();
+
+    auto lightsUniformBufferSize = sizeof(PointLightUniform) * pointLights.size();
+
+    m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
+
     const LightMetadataUniform lightMetadataUBO {
-      .numLights = static_cast<int>(lights.size())
+      .numPointLights = static_cast<int>(pointLights.size()),
+      .numSpotLights = static_cast<int>(spotLights.size())
     };
-
-    m_lightsUniform.reset();
-
-    auto lightsUniformBufferSize = sizeof(LightUniform) * lights.size();
-
-    m_lightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
     m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
     {
       m_lightMetadataUniform->update(frame, &lightMetadataUBO);
 
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
-        m_lightsUniform->getDescriptorSet(5, descriptorSet, frame)
+        m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame)
       }};
 
       descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -109,15 +120,63 @@ void LightingManager::updateUniforms(const uint32_t currentFrame, const glm::vec
       return descriptorWrites;
     });
 
-    m_prevNumLights = static_cast<int>(lights.size());
+    m_prevNumPointLights = static_cast<int>(pointLights.size());
   }
 
-  std::vector<LightUniform> lightUniforms;
-  lightUniforms.resize(lights.size());
-  for (int i = 0; i < lights.size(); i++)
+  std::vector<PointLightUniform> lightUniforms;
+  lightUniforms.resize(pointLights.size());
+  for (int i = 0; i < pointLights.size(); i++)
   {
-    lightUniforms[i] = lights[i]->getUniform();
+    lightUniforms[i] = pointLights[i]->getUniform();
   }
 
-  m_lightsUniform->update(currentFrame, lightUniforms.data());
+  m_pointLightsUniform->update(currentFrame, lightUniforms.data());
+}
+
+void LightingManager::updateSpotLightUniforms(uint32_t currentFrame)
+{
+  if (spotLights.empty())
+  {
+    return;
+  }
+
+  if (m_prevNumSpotLights != spotLights.size())
+  {
+    m_logicalDevice->waitIdle();
+
+    m_spotLightsUniform.reset();
+
+    auto lightsUniformBufferSize = sizeof(SpotLightUniform) * spotLights.size();
+
+    m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
+
+    const LightMetadataUniform lightMetadataUBO {
+      .numPointLights = static_cast<int>(pointLights.size()),
+      .numSpotLights = static_cast<int>(spotLights.size())
+    };
+
+    m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
+    {
+      m_lightMetadataUniform->update(frame, &lightMetadataUBO);
+
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame)
+      }};
+
+      descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+      return descriptorWrites;
+    });
+
+    m_prevNumSpotLights = static_cast<int>(spotLights.size());
+  }
+
+  std::vector<SpotLightUniform> lightUniforms;
+  lightUniforms.resize(spotLights.size());
+  for (int i = 0; i < spotLights.size(); i++)
+  {
+    // lightUniforms[i] = spotLights[i]->getUniform();
+  }
+
+  m_spotLightsUniform->update(currentFrame, lightUniforms.data());
 }

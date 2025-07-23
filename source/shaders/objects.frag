@@ -5,12 +5,17 @@
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 layout(set = 1, binding = 4) uniform sampler2D specSampler;
 
-layout(set = 0, binding = 2) uniform PointLightsMetadata {
-  int numLights;
+layout(set = 0, binding = 0) uniform PointLightsMetadata {
+  int numPointLights;
+  int numSpotLights;
 };
 
-layout(set = 0, binding = 5) readonly buffer PointLights {
-  PointLight lights[];
+layout(set = 0, binding = 1) readonly buffer PointLights {
+  PointLight pointLights[];
+};
+
+layout(set = 0, binding = 2) readonly buffer SpotLights {
+  SpotLight spotLights[];
 };
 
 layout(set = 0, binding = 3) uniform Camera {
@@ -29,10 +34,15 @@ void main()
   vec3 specColor = texture(specSampler, fragTexCoord).rgb;
 
   vec3 result = vec3(0);
-  for (int i = 0; i < numLights; i++)
+  for (int i = 0; i < numPointLights; i++)
   {
-    result += SpecularMapPointLightAffect(lights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
+    result += SpecularMapPointLightAffect(pointLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
   }
+
+//  for (int i = 0; i < numSpotLights; i++)
+//  {
+//    result += SpecularMapPointLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
+//  }
 
   outColor = vec4(result, 1.0);
 }

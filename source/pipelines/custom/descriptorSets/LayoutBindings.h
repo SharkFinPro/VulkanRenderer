@@ -6,14 +6,21 @@
 
 namespace LayoutBindings {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
-    .binding = 2,
+    .binding = 0,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
-  constexpr VkDescriptorSetLayoutBinding lightsLayout {
-    .binding = 5,
+  constexpr VkDescriptorSetLayoutBinding pointLightsLayout {
+    .binding = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding spotLightsLayout {
+    .binding = 2,
     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
     .descriptorCount = 1,
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
@@ -112,13 +119,9 @@ namespace LayoutBindings {
 
   inline std::vector<VkDescriptorSetLayoutBinding> lightingLayoutBindings {
     lightMetadataLayout,
-    lightsLayout,
+    pointLightsLayout,
+    spotLightsLayout,
     cameraLayout
-  };
-
-  inline std::vector<VkDescriptorSetLayoutBinding> lightingNoCameraLayoutBindings {
-    lightMetadataLayout,
-    lightsLayout
   };
 
   inline std::vector<VkDescriptorSetLayoutBinding> bumpyCurtainLayoutBindings {

@@ -3,7 +3,19 @@
 
 #include <glm/vec3.hpp>
 
-struct alignas(16) LightUniform {
+struct alignas(16) PointLightUniform {
+  glm::vec3 position;
+  float padding1;
+  glm::vec3 color;
+  float padding2;
+
+  float ambient;
+  float diffuse;
+  float specular;
+  float padding3;
+};
+
+struct alignas(16) SpotLightUniform {
   glm::vec3 position;
   float padding1;
   glm::vec3 color;
@@ -19,7 +31,7 @@ class Light {
 public:
   Light(const glm::vec3& position, const glm::vec3& color, float ambient, float diffuse, float specular);
 
-  [[nodiscard]] LightUniform getUniform() const;
+  [[nodiscard]] PointLightUniform getUniform() const;
 
   [[nodiscard]] glm::vec3 getPosition() const;
   [[nodiscard]] glm::vec3 getColor() const;

@@ -9,27 +9,38 @@ struct PointLight {
   float padding3; // Padding to ensure alignment
 };
 
-vec3 getStandardAmbient(PointLight light, vec3 color)
+struct SpotLight {
+  vec3 position;
+  float padding1; // Padding to ensure alignment
+  vec3 color;
+  float padding2; // Padding to ensure alignment
+  float ambient;
+  float diffuse;
+  float specular;
+  float padding3; // Padding to ensure alignment
+};
+
+vec3 getStandardAmbient(float lightAmbient, vec3 color)
 {
-  vec3 ambient = light.ambient * color;
+  vec3 ambient = lightAmbient * color;
 
   return ambient;
 }
 
-vec3 getStandardDiffuse(PointLight light, vec3 fragPos, vec3 normal, vec3 color)
+vec3 getStandardDiffuse(vec3 lightPosition, float lightDiffuse, vec3 fragPos, vec3 normal, vec3 color)
 {
-  vec3 lightDir = normalize(light.position - fragPos);
+  vec3 lightDir = normalize(lightPosition - fragPos);
   float d = max(dot(normal, lightDir), 0.0);
-  vec3 diffuse = light.diffuse * d * color;
+  vec3 diffuse = lightDiffuse * d * color;
 
   return diffuse;
 }
 
-vec3 getStandardSpecular(PointLight light, vec3 cameraPosition, vec3 fragPos, vec3 normal, float shininess)
+vec3 getStandardSpecular(vec3 lightPosition, float lightSpecular, vec3 lightColor, vec3 cameraPosition, vec3 fragPos, vec3 normal, float shininess)
 {
   vec3 specular = vec3(0);
 
-  vec3 lightDir = normalize(light.position - fragPos);
+  vec3 lightDir = normalize(lightPosition - fragPos);
   float d = max(dot(normal, lightDir), 0.0);
   if(d > 0.0) // only do specular if the light can see the point
   {
@@ -39,7 +50,7 @@ vec3 getStandardSpecular(PointLight light, vec3 cameraPosition, vec3 fragPos, ve
 
     if (cosphi > 0.0)
     {
-      specular = pow(cosphi, shininess) * light.specular * light.color;
+      specular = pow(cosphi, shininess) * lightSpecular * lightColor;
     }
   }
 
@@ -55,9 +66,9 @@ vec3 StandardPointLightAffect(PointLight light,
 {
   vec3 normalizedNormal = normalize(normal);
 
-  vec3 ambient = getStandardAmbient(light, color);
-  vec3 diffuse = getStandardDiffuse(light, fragPos, normalizedNormal, color);
-  vec3 specular = getStandardSpecular(light, cameraPosition, fragPos, normalizedNormal, shininess);
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
+  vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess);
 
   return (ambient + diffuse + specular) * light.color;
 }
@@ -72,9 +83,9 @@ vec3 SpecularMapPointLightAffect(PointLight light,
 {
   vec3 normalizedNormal = normalize(normal);
 
-  vec3 ambient = getStandardAmbient(light, color);
-  vec3 diffuse = getStandardDiffuse(light, fragPos, normalizedNormal, color);
-  vec3 specular = getStandardSpecular(light, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
+  vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
 
   return (ambient + diffuse + specular) * light.color;
 }

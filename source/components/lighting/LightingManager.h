@@ -31,20 +31,30 @@ private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
   std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
-  std::shared_ptr<UniformBuffer> m_lightsUniform;
+  std::shared_ptr<UniformBuffer> m_spotLightsUniform;
+  std::shared_ptr<UniformBuffer> m_pointLightsUniform;
   std::shared_ptr<UniformBuffer> m_cameraUniform;
 
-  int m_prevNumLights = 0;
+  int m_prevNumPointLights = 0;
+  int m_prevNumSpotLights = 0;
 
-  std::vector<std::shared_ptr<Light>> lights;
+  std::vector<std::shared_ptr<Light>> pointLights;
+  std::vector<std::shared_ptr<Light>> spotLights;
 
-  std::vector<std::shared_ptr<Light>> lightsToRender;
+  std::vector<std::shared_ptr<Light>> pointLightsToRender;
+  std::vector<std::shared_ptr<Light>> spotLightsToRender;
 
   void createUniforms();
 
   void createDescriptorSet(VkDescriptorPool descriptorPool);
 
   void updateUniforms(uint32_t currentFrame, glm::vec3 viewPosition);
+
+  void updateLightMetadata();
+
+  void updatePointLightUniforms(uint32_t currentFrame);
+
+  void updateSpotLightUniforms(uint32_t currentFrame);
 };
 
 
