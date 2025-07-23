@@ -97,6 +97,17 @@ vec3 SpecularMapSpotLightAffect(SpotLight light,
                                  vec3 cameraPosition,
                                  float shininess)
 {
+  float cutoffAngle = cos(light.coneAngle);
+  vec3 lightToFrag = normalize(fragPos - light.position);
+
+  float theta = dot(lightToFrag, normalize(light.direction));
+  if (theta < cutoffAngle)
+  {
+    vec3 ambient = getStandardAmbient(light.ambient, color);
+
+    return ambient * light.color;
+  }
+
   vec3 normalizedNormal = normalize(normal);
 
   vec3 ambient = getStandardAmbient(light.ambient, color);
