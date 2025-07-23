@@ -351,6 +351,11 @@ void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) co
 {
   mousePickingCommandBuffer->record([this, imageIndex]()
   {
+    if (renderObjectsToMousePick.empty())
+    {
+      return;
+    }
+
     const RenderInfo renderInfo {
       .commandBuffer = mousePickingCommandBuffer,
       .currentFrame = currentFrame,
