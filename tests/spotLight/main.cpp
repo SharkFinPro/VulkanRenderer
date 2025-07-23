@@ -102,7 +102,7 @@ void displayLightGui(const std::shared_ptr<Light>& light, const int id)
     ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
     ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
     ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-    ImGui::SliderFloat3("Direction", value_ptr(direction), -50.0f, 50.0f);
+    ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f);
     ImGui::SliderFloat("Cone Angle", &coneAngle, 0.0f, 180.0f);
     ImGui::Separator();
   }
@@ -147,11 +147,6 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
   {
     renderer.renderLight(light);
   }
-
-  // Render lines
-  renderer.renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
-  renderer.renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
-  renderer.renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
 
   // Render Frame
   renderer.render();
