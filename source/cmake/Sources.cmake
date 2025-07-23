@@ -23,6 +23,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/Camera.h
   components/ImGuiInstance.cpp
   components/ImGuiInstance.h
+  components/LightingManager.cpp
+  components/LightingManager.h
   components/SwapChain.cpp
   components/SwapChain.h
   components/Window.cpp
@@ -116,6 +118,7 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
   pipelines/custom/config/Uniforms.h
   pipelines/custom/descriptorSets/DescriptorSet.cpp
   pipelines/custom/descriptorSets/DescriptorSet.h
+  pipelines/custom/descriptorSets/LayoutBindings.h
 
   # Vertex Input States
   pipelines/custom/vertexInputs/LineVertex.h

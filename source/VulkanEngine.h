@@ -6,6 +6,7 @@
 #include "components/textures/Texture2D.h"
 #include "components/Camera.h"
 #include "components/ImGuiInstance.h"
+#include "components/LightingManager.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
 
@@ -63,7 +64,7 @@ public:
                                                                const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>&);
 
-  std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f);
+  std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f) const;
 
   static ImGuiContext* getImGuiContext();
 
@@ -96,6 +97,9 @@ private:
   std::shared_ptr<Window> window;
   std::shared_ptr<PhysicalDevice> physicalDevice;
   std::shared_ptr<LogicalDevice> logicalDevice;
+
+  std::unique_ptr<LightingManager> m_lightingManager;
+
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<RenderPass> offscreenRenderPass;
@@ -123,7 +127,6 @@ private:
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
   std::vector<std::shared_ptr<RenderObject>> renderObjects;
-  std::vector<std::shared_ptr<Light>> lights;
 
   std::vector<std::shared_ptr<Light>> lightsToRender;
 

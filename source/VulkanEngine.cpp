@@ -108,13 +108,9 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
 }
 
 std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                                                 const float diffuse, const float specular)
+                                                 const float diffuse, const float specular) const
 {
-  auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
-
-  lights.push_back(light);
-
-  return light;
+  return m_lightingManager->createLight(position, color, ambient, diffuse, specular);
 }
 
 ImGuiContext* VulkanEngine::getImGuiContext()
@@ -156,6 +152,8 @@ void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObjec
 void VulkanEngine::renderLight(const std::shared_ptr<Light>& light)
 {
   lightsToRender.push_back(light);
+
+  m_lightingManager->renderLight(light);
 }
 
 void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
@@ -234,6 +232,8 @@ void VulkanEngine::initVulkan()
 
   createDescriptorPool();
 
+  m_lightingManager = std::make_unique<LightingManager>(logicalDevice, descriptorPool);
+
   createObjectDescriptorSetLayout();
 
   swapChain = std::make_shared<SwapChain>(logicalDevice, window);
@@ -262,7 +262,8 @@ void VulkanEngine::initVulkan()
     logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
 
   pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
-    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
+    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout,
+    m_lightingManager->getLightingDescriptorSet());
 
   pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
     logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
@@ -351,7 +352,7 @@ void VulkanEngine::recordMousePickingCommandBuffer(const uint32_t imageIndex) co
       .viewPosition = viewPosition,
       .viewMatrix = viewMatrix,
       .extent = offscreenViewportExtent,
-      .lights = lights
+      .lights = lightsToRender
     };
 
     mousePickingRenderPass->begin(mousePickingFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, renderInfo.commandBuffer);
@@ -475,6 +476,8 @@ void VulkanEngine::doRendering()
   renderGuiScene(imageIndex);
 
   logicalDevice->resetGraphicsFences(currentFrame);
+
+  m_lightingManager->update(currentFrame, camera->getPosition());
 
   mousePickingCommandBuffer->setCurrentFrame(currentFrame);
   mousePickingCommandBuffer->resetCommandBuffer();
@@ -684,7 +687,10 @@ void VulkanEngine::createNewFrame()
   imGuiInstance->createNewFrame();
 
   renderObjectsToRender.clear();
+
   lightsToRender.clear();
+  m_lightingManager->clearLightsToRender();
+
   lineVerticesToRender.clear();
 
   renderObjectsToMousePick.clear();
