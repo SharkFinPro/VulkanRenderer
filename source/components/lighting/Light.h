@@ -17,14 +17,12 @@ struct alignas(16) PointLightUniform {
 
 struct alignas(16) SpotLightUniform {
   glm::vec3 position;
-  float padding1;
-  glm::vec3 color;
-  float padding2;
-
   float ambient;
+  glm::vec3 color;
   float diffuse;
+  glm::vec3 direction;
   float specular;
-  float padding3;
+  float coneAngle;
 };
 
 class Light {
@@ -58,10 +56,10 @@ private:
   float m_diffuse;
   float m_specular;
 
-  bool m_isSpotLight = false;
+  bool m_isSpotLight = true;
 
-  glm::vec3 m_direction = glm::vec3(0, 0, 0);
-  float m_coneAngle = 0;
+  glm::vec3 m_direction = glm::vec3(0, -1, 0);
+  float m_coneAngle = 15;
 };
 
 

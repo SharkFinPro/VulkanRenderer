@@ -1,5 +1,7 @@
 #include "Light.h"
 
+#include "glm/detail/func_trigonometric.inl"
+
 Light::Light(const glm::vec3& position,
              const glm::vec3& color,
              const float ambient,
@@ -23,10 +25,12 @@ SpotLightUniform Light::getSpotLightUniform() const
 {
   return {
     .position = m_position,
-    .color = m_color,
     .ambient = m_ambient,
+    .color = m_color,
     .diffuse = m_diffuse,
-    .specular = m_specular
+    .direction = m_direction,
+    .specular = m_specular,
+    .coneAngle = glm::radians(m_coneAngle)
   };
 }
 
