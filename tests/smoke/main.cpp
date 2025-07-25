@@ -6,9 +6,6 @@
 
 void createLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights);
 void createSmokeSystems(VulkanEngine& renderer);
-void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui);
-void displayGui(const std::shared_ptr<ImGuiInstance>& gui, const std::vector<std::shared_ptr<Light>>& lights,
-                const std::shared_ptr<RenderObject>& object);
 
 int main()
 {
