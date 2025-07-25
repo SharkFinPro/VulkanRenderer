@@ -1,3 +1,4 @@
+#include "../common/gui.h"
 #include <source/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
 #include <iostream>
@@ -16,6 +17,8 @@ int main()
     VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
+    ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
+
     const auto texture = renderer.loadTexture("assets/textures/viking_room.png");
     const auto specular = renderer.loadTexture("assets/textures/blank_specular.png");
     const auto model = renderer.loadModel("assets/models/viking_room.obj", { -90, 0, 0 });
@@ -28,7 +31,7 @@ int main()
 
     while (renderer.isActive())
     {
-      gui->dockCenter("SceneView");
+      displayGui(gui, { light }, { object });
 
       renderer.renderLight(light);
 

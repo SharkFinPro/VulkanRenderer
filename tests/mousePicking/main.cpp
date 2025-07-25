@@ -1,8 +1,8 @@
+#include "../common/gui.h"
 #include <source/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
-#include <string>
 
 struct MousePickingObject {
   std::shared_ptr<RenderObject> object;
@@ -10,8 +10,6 @@ struct MousePickingObject {
   bool selected = false;
 };
 
-void displayObjectGui(const std::shared_ptr<RenderObject>& object);
-void displayLightGui(const std::shared_ptr<Light>& light, int id);
 void setupScene(VulkanEngine& renderer, std::vector<MousePickingObject>& objects,
                 std::vector<std::shared_ptr<Light>>& lights);
 
@@ -59,50 +57,6 @@ int main()
   }
 
   return EXIT_SUCCESS;
-}
-
-void displayObjectGui(const std::shared_ptr<RenderObject>& object)
-{
-  glm::vec3 position = object->getPosition();
-  ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-  object->setPosition(position);
-
-  glm::vec3 scale = object->getScale();
-  ImGui::SliderFloat3("Scale", value_ptr(scale), 0.01f, 50.0f);
-  object->setScale(scale);
-
-  glm::vec3 rotation = object->getOrientationEuler();
-  ImGui::SliderFloat3("Rotation", value_ptr(rotation), -90.0f, 90.0f);
-  object->setOrientationEuler(rotation);
-}
-
-void displayLightGui(const std::shared_ptr<Light>& light, const int id)
-{
-  glm::vec3 position = light->getPosition();
-  glm::vec3 color = light->getColor();
-  float ambient = light->getAmbient();
-  float diffuse = light->getDiffuse();
-  float specular = light->getSpecular();
-
-  ImGui::PushID(id);
-
-  if (ImGui::CollapsingHeader(("Light " + std::to_string(id)).c_str()))
-  {
-    ImGui::ColorEdit3("Color", value_ptr(color));
-    ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
-    ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
-    ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
-    ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-    ImGui::Separator();
-  }
-
-  ImGui::PopID();
-
-  light->setPosition(position);
-  light->setColor(color);
-  light->setAmbient(ambient);
-  light->setDiffuse(diffuse);
-  light->setSpecular(specular);
 }
 
 void setupScene(VulkanEngine& renderer, std::vector<MousePickingObject>& objects,
@@ -153,7 +107,7 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
   {
     if (selected)
     {
-      displayObjectGui(object);
+      displayObjectGui(object, 0);
     }
   }
   ImGui::End();

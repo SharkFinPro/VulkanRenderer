@@ -64,20 +64,8 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
                  const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights,
                  bool& useEllipticalDots)
 {
-  gui->dockCenter("SceneView");
-  gui->dockBottom("Objects");
-  gui->dockBottom("Lights");
-  gui->dockBottom("Rendering");
-  gui->dockBottom("Elliptical Dots");
-
-  gui->setBottomDockPercent(0.3);
-
   // Render GUI
-  ImGui::Begin("Objects");
-  displayObjectGui(object, 0);
-  ImGui::End();
-
-  displayLightGuis(lights);
+  displayGui(gui, lights, { object });
 
   ImGui::Begin("Rendering");
   ImGui::Checkbox("Use Elliptical Dots", &useEllipticalDots);

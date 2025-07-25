@@ -1,12 +1,9 @@
+#include "../common/gui.h"
 #include <source/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <iostream>
-#include <string>
 
-void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
-void displayLightGui(const std::shared_ptr<Light>& light, int id);
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
                  const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights);
 
@@ -17,7 +14,7 @@ int main()
     constexpr VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Cube",
+      .WINDOW_TITLE = "Spotlight",
       .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
       .DO_DOTS = false
     };
@@ -65,80 +62,10 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void displayObjectGui(const std::shared_ptr<RenderObject>& object, const int id)
-{
-  glm::vec3 position = object->getPosition();
-
-  ImGui::PushID(id);
-
-  if (ImGui::CollapsingHeader(("Object " + std::to_string(id)).c_str()))
-  {
-    ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-  }
-
-  ImGui::PopID();
-
-  object->setPosition(position);
-}
-
-void displayLightGui(const std::shared_ptr<Light>& light, const int id)
-{
-  glm::vec3 position = light->getPosition();
-  glm::vec3 color = light->getColor();
-  float ambient = light->getAmbient();
-  float diffuse = light->getDiffuse();
-  float specular = light->getSpecular();
-  bool isSpotLight = light->isSpotLight();
-  glm::vec3 direction = light->getDirection();
-  float coneAngle = light->getConeAngle();
-
-  ImGui::PushID(id);
-
-  if (ImGui::CollapsingHeader(("Light " + std::to_string(id)).c_str()))
-  {
-    ImGui::Checkbox("Spot Light", &isSpotLight);
-    ImGui::ColorEdit3("Color", value_ptr(color));
-    ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
-    ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
-    ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
-    ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-    ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f);
-    ImGui::SliderFloat("Cone Angle", &coneAngle, 0.0f, 180.0f);
-    ImGui::Separator();
-  }
-
-  ImGui::PopID();
-
-  light->setPosition(position);
-  light->setColor(color);
-  light->setAmbient(ambient);
-  light->setDiffuse(diffuse);
-  light->setSpecular(specular);
-  light->setSpotLight(isSpotLight);
-  light->setDirection(direction);
-  light->setConeAngle(coneAngle);
-}
-
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
                  const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights)
 {
-  gui->dockCenter("SceneView");
-  gui->dockBottom("Objects");
-  gui->dockBottom("Lights");
-
-  gui->setBottomDockPercent(0.3);
-
-  // Render GUI
-  ImGui::Begin("Objects");
-  displayObjectGui(object, 0);
-  ImGui::End();
-
-  ImGui::Begin("Lights");
-  for (int i = 0; i < lights.size(); i++)
-  {
-    displayLightGui(lights[i], i);
-  }
-  ImGui::End();
+  displayGui(gui, lights, { object });
 
   // Render Objects
   renderer.renderObject(object, PipelineType::object);
