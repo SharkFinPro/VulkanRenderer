@@ -1,11 +1,9 @@
+#include "../common/gui.h"
 #include <source/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <iostream>
-#include <string>
 
-void displayObjectGui(const std::shared_ptr<RenderObject>& object, int id);
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
                  const std::shared_ptr<RenderObject> &object, std::vector<std::shared_ptr<RenderObject>>& walls);
 
@@ -48,22 +46,6 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void displayObjectGui(const std::shared_ptr<RenderObject>& object, const int id)
-{
-  glm::vec3 position = object->getPosition();
-
-  ImGui::PushID(id);
-
-  if (ImGui::CollapsingHeader(("Object " + std::to_string(id)).c_str()))
-  {
-    ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-  }
-
-  ImGui::PopID();
-
-  object->setPosition(position);
-}
-
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
                  const std::shared_ptr<RenderObject> &object, std::vector<std::shared_ptr<RenderObject>>& walls)
 {
@@ -74,9 +56,7 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
   gui->setBottomDockPercent(0.42);
 
   // Render GUI
-  ImGui::Begin("Objects");
-  displayObjectGui(object, 0);
-  ImGui::End();
+  displayObjectGuis({ object });
 
   // Render Objects
   renderer.renderObject(object, PipelineType::cubeMap);
