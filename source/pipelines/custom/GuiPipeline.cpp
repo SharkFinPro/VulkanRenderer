@@ -2,6 +2,7 @@
 #include "config/GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/ImGuiInstance.h"
+#include "../../core/commandBuffer/CommandBuffer.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 

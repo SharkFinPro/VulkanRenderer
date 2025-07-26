@@ -2,6 +2,7 @@
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
 #include "../RenderPass.h"
+#include "../../core/commandBuffer/CommandBuffer.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/RenderObject.h"
 

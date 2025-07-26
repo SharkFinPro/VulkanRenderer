@@ -3,6 +3,7 @@
 #include "config/Uniforms.h"
 #include "descriptorSets/DescriptorSet.h"
 #include "vertexInputs/Particle.h"
+#include "../../core/commandBuffer/CommandBuffer.h"
 #include "../../core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
