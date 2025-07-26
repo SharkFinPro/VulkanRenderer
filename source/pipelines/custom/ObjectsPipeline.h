@@ -2,7 +2,6 @@
 #define VULKANPROJECT_OBJECTSPIPELINE_H
 
 #include "../GraphicsPipeline.h"
-#include <vector>
 #include <memory>
 
 class DescriptorSet;
