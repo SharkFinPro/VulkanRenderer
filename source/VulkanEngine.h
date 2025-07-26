@@ -7,6 +7,7 @@
 #include "components/Camera.h"
 #include "components/ImGuiInstance.h"
 #include "components/lighting/LightingManager.h"
+#include "components/MousePicker.h"
 #include "components/SwapChain.h"
 #include "components/Window.h"
 
@@ -19,10 +20,10 @@
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 
+#include "pipelines/custom/config/PipelineTypes.h"
 #include "pipelines/custom/DotsPipeline.h"
 #include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/LinePipeline.h"
-#include "pipelines/custom/MousePickingPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
 #include "pipelines/RenderPass.h"
 
@@ -34,20 +35,6 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-
-enum class PipelineType {
-  bumpyCurtain,
-  crosses,
-  curtain,
-  cubeMap,
-  ellipticalDots,
-  magnifyWhirlMosaic,
-  noisyEllipticalDots,
-  object,
-  objectHighlight,
-  texturedPlane,
-  snake
-};
 
 class VulkanEngine {
 public:
@@ -103,16 +90,12 @@ private:
   std::shared_ptr<SwapChain> swapChain;
   std::shared_ptr<RenderPass> renderPass;
   std::shared_ptr<RenderPass> offscreenRenderPass;
-  std::shared_ptr<RenderPass> mousePickingRenderPass;
+
   std::unique_ptr<GuiPipeline> guiPipeline;
   std::unique_ptr<DotsPipeline> dotsPipeline;
-  std::unique_ptr<MousePickingPipeline> mousePickingPipeline;
 
   std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> pipelines;
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> renderObjectsToRender;
-
-  std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> renderObjectsToMousePick;
-  std::unordered_map<uint32_t, bool*> mousePickingItems;
 
   std::vector<std::shared_ptr<SmokePipeline>> smokeSystems;
 
@@ -122,7 +105,6 @@ private:
 
   std::shared_ptr<SwapchainFramebuffer> framebuffer;
   std::shared_ptr<StandardFramebuffer> offscreenFramebuffer;
-  std::shared_ptr<StandardFramebuffer> mousePickingFramebuffer;
 
   std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::shared_ptr<Model>> models;
@@ -138,7 +120,6 @@ private:
   std::shared_ptr<CommandBuffer> offscreenCommandBuffer;
   std::shared_ptr<CommandBuffer> swapchainCommandBuffer;
   std::shared_ptr<CommandBuffer> computeCommandBuffer;
-  std::shared_ptr<CommandBuffer> mousePickingCommandBuffer;
 
   uint32_t currentFrame;
 
@@ -158,13 +139,12 @@ private:
 
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  bool m_canMousePick = false;
+  std::unique_ptr<MousePicker> m_mousePicker;
 
   void initVulkan();
   void createCommandPool();
 
   void recordComputeCommandBuffer() const;
-  void recordMousePickingCommandBuffer(uint32_t imageIndex) const;
   void recordOffscreenCommandBuffer(uint32_t imageIndex) const;
   void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
 
@@ -186,16 +166,6 @@ private:
   void createDescriptorPool();
 
   void createObjectDescriptorSetLayout();
-
-  bool validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY);
-
-  [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX, int32_t mouseY) const;
-
-  [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
-
-  void handleMousePickingResult(uint32_t objectID);
-
-  void doMousePicking();
 };
 
 
