@@ -23,6 +23,8 @@ public:
               const VkCommandPool& commandPool,
               VkDescriptorSetLayout objectDescriptorSetLayout);
 
+  ~MousePicker();
+
   void clearObjectsToMousePick();
 
   void recreateFramebuffer(VkExtent2D viewportExtent);
@@ -59,6 +61,9 @@ private:
   bool m_canMousePick = false;
 
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+  VkBuffer m_stagingBuffer;
+  VkDeviceMemory m_stagingBufferMemory;
 
   void recordMousePickingCommandBuffer(uint32_t imageIndex,
                                        uint32_t currentFrame,

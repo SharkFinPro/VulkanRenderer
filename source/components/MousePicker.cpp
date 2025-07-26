@@ -23,6 +23,16 @@ MousePicker::MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
   m_mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool,
                                                                     m_mousePickingRenderPass, m_viewportExtent, true);
+
+  constexpr VkDeviceSize bufferSize = 4;
+  Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        m_stagingBuffer, m_stagingBufferMemory);
+}
+
+MousePicker::~MousePicker()
+{
+  Buffers::destroyBuffer(m_logicalDevice, m_stagingBuffer, m_stagingBufferMemory);
 }
 
 void MousePicker::clearObjectsToMousePick()
@@ -161,15 +171,6 @@ bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX, int32_t& mo
 
 uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX, const int32_t mouseY) const
 {
-  constexpr VkDeviceSize bufferSize = 4;
-
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-
-  Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
-
   VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, m_commandPool);
 
   const VkImageMemoryBarrier barrier {
@@ -201,13 +202,11 @@ uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX, con
   );
 
   Images::copyImageToBuffer(m_mousePickingFramebuffer->getColorImage(), { mouseX, mouseY, 0 },
-                            { 1, 1, 1 }, commandBuffer, stagingBuffer);
+                            { 1, 1, 1 }, commandBuffer, m_stagingBuffer);
 
   Buffers::endSingleTimeCommands(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
 
-  const uint32_t objectID = getObjectIDFromBuffer(stagingBufferMemory);
-
-  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+  const uint32_t objectID = getObjectIDFromBuffer(m_stagingBufferMemory);
 
   return objectID;
 }
