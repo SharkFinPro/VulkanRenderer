@@ -19,43 +19,43 @@ constexpr bool enableValidationLayers = false;
 constexpr bool enableValidationLayers = true;
 #endif
 
-VulkanEngine::VulkanEngine(VulkanEngineOptions vulkanEngineOptions)
-  : vulkanEngineOptions(vulkanEngineOptions), currentFrame(0), framebufferResized(false), isSceneFocused(false),
-    useCamera(true)
+VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
+  : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_isSceneFocused(false),
+    m_useCamera(true)
 {
   glfwInit();
   initVulkan();
 
-  camera = std::make_shared<Camera>(vulkanEngineOptions.CAMERA_POSITION);
-  camera->setSpeed(vulkanEngineOptions.CAMERA_SPEED);
+  m_camera = std::make_shared<Camera>(m_vulkanEngineOptions.CAMERA_POSITION);
+  m_camera->setSpeed(m_vulkanEngineOptions.CAMERA_SPEED);
 }
 
 VulkanEngine::~VulkanEngine()
 {
-  logicalDevice->waitIdle();
+  m_logicalDevice->waitIdle();
 
-  logicalDevice->destroyDescriptorPool(descriptorPool);
+  m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 
-  logicalDevice->destroyDescriptorSetLayout(objectDescriptorSetLayout);
+  m_logicalDevice->destroyDescriptorSetLayout(m_objectDescriptorSetLayout);
 
-  logicalDevice->destroyCommandPool(commandPool);
+  m_logicalDevice->destroyCommandPool(m_commandPool);
 
   glfwTerminate();
 }
 
 bool VulkanEngine::isActive() const
 {
-  return window->isOpen();
+  return m_window->isOpen();
 }
 
 void VulkanEngine::render()
 {
-  window->update();
+  m_window->update();
 
-  if (sceneIsFocused() && useCamera)
+  if (sceneIsFocused() && m_useCamera)
   {
-    camera->processInput(window);
-    setCameraParameters(camera->getPosition(), camera->getViewMatrix());
+    m_camera->processInput(m_window);
+    setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
   }
 
   doComputing();
@@ -67,9 +67,9 @@ void VulkanEngine::render()
 
 std::shared_ptr<Texture2D> VulkanEngine::loadTexture(const char* path, const bool repeat)
 {
-  auto texture = std::make_shared<Texture2D>(logicalDevice, commandPool, path,
+  auto texture = std::make_shared<Texture2D>(m_logicalDevice, m_commandPool, path,
                                              repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-  textures.push_back(texture);
+  m_textures.push_back(texture);
 
   return texture;
 }
@@ -77,13 +77,13 @@ std::shared_ptr<Texture2D> VulkanEngine::loadTexture(const char* path, const boo
 std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotation)
 {
   auto model = std::make_shared<Model>(
-    logicalDevice,
-    commandPool,
+    m_logicalDevice,
+    m_commandPool,
     path,
     rotation
   );
 
-  models.push_back(model);
+  m_models.push_back(model);
 
   return model;
 }
@@ -93,14 +93,14 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
                                                              const std::shared_ptr<Model>& model)
 {
   auto renderObject = std::make_shared<RenderObject>(
-    logicalDevice,
-    objectDescriptorSetLayout,
+    m_logicalDevice,
+    m_objectDescriptorSetLayout,
     texture,
     specularMap,
     model
   );
 
-  renderObjects.push_back(renderObject);
+  m_renderObjects.push_back(renderObject);
 
   return renderObject;
 }
@@ -118,23 +118,23 @@ ImGuiContext* VulkanEngine::getImGuiContext()
 
 bool VulkanEngine::keyIsPressed(const int key) const
 {
-  return window->keyIsPressed(key);
+  return m_window->keyIsPressed(key);
 }
 
 bool VulkanEngine::buttonIsPressed(const int button) const
 {
-  return window->buttonDown(button);
+  return m_window->buttonDown(button);
 }
 
 bool VulkanEngine::sceneIsFocused() const
 {
-  return isSceneFocused || !vulkanEngineOptions.USE_DOCKSPACE;
+  return m_isSceneFocused || !m_vulkanEngineOptions.USE_DOCKSPACE;
 }
 
 void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType,
                                 bool* mousePicked)
 {
-  renderObjectsToRender[pipelineType].push_back(renderObject);
+  m_renderObjectsToRender[pipelineType].push_back(renderObject);
 
   if (mousePicked == nullptr)
   {
@@ -151,53 +151,53 @@ void VulkanEngine::renderLight(const std::shared_ptr<Light>& light) const
 
 void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
 {
-  lineVerticesToRender.push_back({start});
-  lineVerticesToRender.push_back({end});
+  m_lineVerticesToRender.push_back({start});
+  m_lineVerticesToRender.push_back({end});
 }
 
 void VulkanEngine::enableCamera()
 {
-  useCamera = true;
+  m_useCamera = true;
 }
 
 void VulkanEngine::disableCamera()
 {
-  useCamera = false;
+  m_useCamera = false;
 }
 
 void VulkanEngine::setCameraParameters(const glm::vec3 position, const glm::mat4& viewMatrix)
 {
-  viewPosition = position;
-  this->viewMatrix = viewMatrix;
+  m_viewPosition = position;
+  m_viewMatrix = viewMatrix;
 }
 
 std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
 {
-  return imGuiInstance;
+  return m_imGuiInstance;
 }
 
 std::shared_ptr<SmokePipeline> VulkanEngine::createSmokeSystem(const glm::vec3 position, const uint32_t numParticles)
 {
-  auto system = std::make_shared<SmokePipeline>(logicalDevice, commandPool, renderPass->getRenderPass(),
-                                                descriptorPool, position, numParticles,
+  auto system = std::make_shared<SmokePipeline>(m_logicalDevice, m_commandPool, m_renderPass->getRenderPass(),
+                                                m_descriptorPool, position, numParticles,
                                                 m_lightingManager->getLightingDescriptorSet());
 
-  smokeSystems.push_back(system);
+  m_smokeSystems.push_back(system);
 
   return system;
 }
 
 void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem)
 {
-  const auto system = std::ranges::find(smokeSystems, smokeSystem);
+  const auto system = std::ranges::find(m_smokeSystems, smokeSystem);
 
-  if (system == smokeSystems.end())
+  if (system == m_smokeSystems.end())
   {
     return;
   }
 
-  logicalDevice->waitIdle();
-  smokeSystems.erase(system);
+  m_logicalDevice->waitIdle();
+  m_smokeSystems.erase(system);
 }
 
 bool VulkanEngine::canMousePick() const
@@ -207,110 +207,110 @@ bool VulkanEngine::canMousePick() const
 
 void VulkanEngine::initVulkan()
 {
-  instance = std::make_shared<Instance>();
+  m_instance = std::make_shared<Instance>();
 
-  window = std::make_shared<Window>(vulkanEngineOptions.WINDOW_WIDTH, vulkanEngineOptions.WINDOW_HEIGHT,
-                                    vulkanEngineOptions.WINDOW_TITLE, instance,
-                                    vulkanEngineOptions.FULLSCREEN);
+  m_window = std::make_shared<Window>(m_vulkanEngineOptions.WINDOW_WIDTH, m_vulkanEngineOptions.WINDOW_HEIGHT,
+                                      m_vulkanEngineOptions.WINDOW_TITLE, m_instance,
+                                      m_vulkanEngineOptions.FULLSCREEN);
 
-  physicalDevice = std::make_shared<PhysicalDevice>(instance, window->getSurface());
+  m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_window->getSurface());
 
-  logicalDevice = std::make_shared<LogicalDevice>(physicalDevice);
+  m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
 
   createCommandPool();
 
-  computeCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
-  offscreenCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
-  swapchainCommandBuffer = std::make_shared<CommandBuffer>(logicalDevice, commandPool);
+  m_computeCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
+  m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
+  m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
   createDescriptorPool();
 
-  m_lightingManager = std::make_unique<LightingManager>(logicalDevice, descriptorPool);
+  m_lightingManager = std::make_unique<LightingManager>(m_logicalDevice, m_descriptorPool);
 
   createObjectDescriptorSetLayout();
 
-  swapChain = std::make_shared<SwapChain>(logicalDevice, window);
+  m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window);
 
-  renderPass = std::make_shared<RenderPass>(logicalDevice, swapChain->getImageFormat(),
-                                            physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  m_renderPass = std::make_shared<RenderPass>(m_logicalDevice, m_swapChain->getImageFormat(),
+                                              m_physicalDevice->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-  offscreenRenderPass = std::make_shared<RenderPass>(logicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
-                                                     physicalDevice->getMsaaSamples(),
-                                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
+                                                       m_physicalDevice->getMsaaSamples(),
+                                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
-    logicalDevice, renderPass, objectDescriptorSetLayout,
+  m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
+    m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  pipelines[PipelineType::objectHighlight] = std::make_unique<ObjectHighlightPipeline>(
-    logicalDevice, renderPass, objectDescriptorSetLayout);
+  m_pipelines[PipelineType::objectHighlight] = std::make_unique<ObjectHighlightPipeline>(
+    m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout);
 
-  pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+  m_pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
+    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
-    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout,
+  m_pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
+    m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, m_objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
-    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout,
+  m_pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
+    m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, m_objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+  m_pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
+    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
-    logicalDevice, renderPass, commandPool, descriptorPool, objectDescriptorSetLayout);
+  m_pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
+    m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, m_objectDescriptorSetLayout);
 
-  pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+  m_pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
+    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout);
 
-  pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
+  m_pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
+    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout);
 
-  pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+  m_pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
+    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
-    logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+  m_pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
+    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  guiPipeline = std::make_unique<GuiPipeline>(logicalDevice, renderPass,
-                                              vulkanEngineOptions.MAX_IMGUI_TEXTURES);
+  m_guiPipeline = std::make_unique<GuiPipeline>(m_logicalDevice, m_renderPass,
+                                                m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
-  if (vulkanEngineOptions.DO_DOTS)
+  if (m_vulkanEngineOptions.DO_DOTS)
   {
-    dotsPipeline = std::make_unique<DotsPipeline>(logicalDevice, commandPool,
-                                                  renderPass->getRenderPass(), swapChain->getExtent(), descriptorPool);
+    m_dotsPipeline = std::make_unique<DotsPipeline>(m_logicalDevice, m_commandPool,
+                                                    m_renderPass->getRenderPass(), m_swapChain->getExtent(), m_descriptorPool);
   }
 
-  linePipeline = std::make_unique<LinePipeline>(logicalDevice, renderPass, descriptorPool);
+  m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
 
-  imGuiInstance = std::make_shared<ImGuiInstance>(window, instance, logicalDevice, renderPass, guiPipeline,
-                                                  vulkanEngineOptions.USE_DOCKSPACE);
+  m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice, m_renderPass, m_guiPipeline,
+                                                    m_vulkanEngineOptions.USE_DOCKSPACE);
 
-  framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
-                                                       swapChain->getExtent());
+  m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
+                                                         m_swapChain->getExtent());
 
-  if (vulkanEngineOptions.USE_DOCKSPACE)
+  if (m_vulkanEngineOptions.USE_DOCKSPACE)
   {
-    offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
-                                                                 swapChain->getExtent());
+    m_offscreenFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_renderPass,
+                                                                   m_swapChain->getExtent());
   }
 
-  m_mousePicker = std::make_unique<MousePicker>(logicalDevice, window, commandPool, objectDescriptorSetLayout);
-  if (!vulkanEngineOptions.USE_DOCKSPACE)
+  m_mousePicker = std::make_unique<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
+  if (!m_vulkanEngineOptions.USE_DOCKSPACE)
   {
-    m_mousePicker->recreateFramebuffer(swapChain->getExtent());
+    m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
   }
 }
 
 void VulkanEngine::createCommandPool()
 {
-  const auto queueFamilyIndices = physicalDevice->getQueueFamilies();
+  const auto queueFamilyIndices = m_physicalDevice->getQueueFamilies();
 
   const VkCommandPoolCreateInfo poolInfo {
     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -318,60 +318,61 @@ void VulkanEngine::createCommandPool()
     .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()
   };
 
-  commandPool = logicalDevice->createCommandPool(poolInfo);
+  m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
 }
 
 void VulkanEngine::recordComputeCommandBuffer() const
 {
-  computeCommandBuffer->record([this]()
+  m_computeCommandBuffer->record([this]()
   {
-    if (vulkanEngineOptions.DO_DOTS)
+    if (m_vulkanEngineOptions.DO_DOTS)
     {
-      dotsPipeline->compute(computeCommandBuffer, currentFrame);
+      m_dotsPipeline->compute(m_computeCommandBuffer, m_currentFrame);
     }
 
-    for (const auto& system : smokeSystems)
+    for (const auto& system : m_smokeSystems)
     {
-      system->compute(computeCommandBuffer, currentFrame);
+      system->compute(m_computeCommandBuffer, m_currentFrame);
     }
   });
 }
 
 void VulkanEngine::recordOffscreenCommandBuffer(const uint32_t imageIndex) const
 {
-  offscreenCommandBuffer->record([this, imageIndex]()
+  m_offscreenCommandBuffer->record([this, imageIndex]()
   {
-    if (!vulkanEngineOptions.USE_DOCKSPACE ||
-        offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    if (!m_vulkanEngineOptions.USE_DOCKSPACE ||
+        m_offscreenViewportExtent.width == 0 ||
+        m_offscreenViewportExtent.height == 0)
     {
       return;
     }
 
-    offscreenRenderPass->begin(offscreenFramebuffer->getFramebuffer(imageIndex), offscreenViewportExtent, offscreenCommandBuffer);
+    m_offscreenRenderPass->begin(m_offscreenFramebuffer->getFramebuffer(imageIndex), m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
-    renderGraphicsPipelines(offscreenCommandBuffer, offscreenViewportExtent);
+    renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent);
 
-    offscreenCommandBuffer->endRenderPass();
+    m_offscreenCommandBuffer->endRenderPass();
   });
 }
 
 void VulkanEngine::recordSwapchainCommandBuffer(const uint32_t imageIndex) const
 {
-  swapchainCommandBuffer->record([this, imageIndex]()
+  m_swapchainCommandBuffer->record([this, imageIndex]()
   {
     const RenderInfo renderInfo {
-      .commandBuffer = swapchainCommandBuffer,
-      .currentFrame = currentFrame,
-      .viewPosition = viewPosition,
-      .viewMatrix = viewMatrix,
-      .extent = swapChain->getExtent()
+      .commandBuffer = m_swapchainCommandBuffer,
+      .currentFrame = m_currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = m_swapChain->getExtent()
     };
 
-    renderPass->begin(framebuffer->getFramebuffer(imageIndex), swapChain->getExtent(), renderInfo.commandBuffer);
+    m_renderPass->begin(m_framebuffer->getFramebuffer(imageIndex), m_swapChain->getExtent(), renderInfo.commandBuffer);
 
-    if (!vulkanEngineOptions.USE_DOCKSPACE)
+    if (!m_vulkanEngineOptions.USE_DOCKSPACE)
     {
-      renderGraphicsPipelines(renderInfo.commandBuffer, swapChain->getExtent());
+      renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent());
     }
 
     const VkViewport viewport = {
@@ -390,7 +391,7 @@ void VulkanEngine::recordSwapchainCommandBuffer(const uint32_t imageIndex) const
     };
     renderInfo.commandBuffer->setScissor(scissor);
 
-    guiPipeline->render(&renderInfo);
+    m_guiPipeline->render(&renderInfo);
 
     renderInfo.commandBuffer->endRenderPass();
   });
@@ -398,27 +399,27 @@ void VulkanEngine::recordSwapchainCommandBuffer(const uint32_t imageIndex) const
 
 void VulkanEngine::doComputing() const
 {
-  logicalDevice->waitForComputeFences(currentFrame);
+  m_logicalDevice->waitForComputeFences(m_currentFrame);
 
-  logicalDevice->resetComputeFences(currentFrame);
+  m_logicalDevice->resetComputeFences(m_currentFrame);
 
-  computeCommandBuffer->setCurrentFrame(currentFrame);
-  computeCommandBuffer->resetCommandBuffer();
+  m_computeCommandBuffer->setCurrentFrame(m_currentFrame);
+  m_computeCommandBuffer->resetCommandBuffer();
   recordComputeCommandBuffer();
 
-  logicalDevice->submitComputeQueue(currentFrame, computeCommandBuffer->getCommandBuffer());
+  m_logicalDevice->submitComputeQueue(m_currentFrame, m_computeCommandBuffer->getCommandBuffer());
 }
 
 void VulkanEngine::doRendering()
 {
-  logicalDevice->waitForGraphicsFences(currentFrame);
+  m_logicalDevice->waitForGraphicsFences(m_currentFrame);
 
   uint32_t imageIndex;
-  auto result = logicalDevice->acquireNextImage(currentFrame, swapChain->getSwapChain(), &imageIndex);
+  auto result = m_logicalDevice->acquireNextImage(m_currentFrame, m_swapChain->getSwapChain(), &imageIndex);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
   {
-    framebufferResized = false;
+    m_framebufferResized = false;
     recreateSwapChain();
     return;
   }
@@ -430,27 +431,27 @@ void VulkanEngine::doRendering()
 
   renderGuiScene(imageIndex);
 
-  logicalDevice->resetGraphicsFences(currentFrame);
+  m_logicalDevice->resetGraphicsFences(m_currentFrame);
 
-  m_lightingManager->update(currentFrame, camera->getPosition());
+  m_lightingManager->update(m_currentFrame, m_camera->getPosition());
 
-  m_mousePicker->doMousePicking(imageIndex, currentFrame, viewPosition, viewMatrix, renderObjectsToRender);
+  m_mousePicker->doMousePicking(imageIndex, m_currentFrame, m_viewPosition, m_viewMatrix, m_renderObjectsToRender);
 
-  offscreenCommandBuffer->setCurrentFrame(currentFrame);
-  offscreenCommandBuffer->resetCommandBuffer();
+  m_offscreenCommandBuffer->setCurrentFrame(m_currentFrame);
+  m_offscreenCommandBuffer->resetCommandBuffer();
   recordOffscreenCommandBuffer(imageIndex);
-  logicalDevice->submitOffscreenGraphicsQueue(currentFrame, offscreenCommandBuffer->getCommandBuffer());
+  m_logicalDevice->submitOffscreenGraphicsQueue(m_currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
 
-  swapchainCommandBuffer->setCurrentFrame(currentFrame);
-  swapchainCommandBuffer->resetCommandBuffer();
+  m_swapchainCommandBuffer->setCurrentFrame(m_currentFrame);
+  m_swapchainCommandBuffer->resetCommandBuffer();
   recordSwapchainCommandBuffer(imageIndex);
-  logicalDevice->submitGraphicsQueue(currentFrame, swapchainCommandBuffer->getCommandBuffer());
+  m_logicalDevice->submitGraphicsQueue(m_currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
 
-  result = logicalDevice->queuePresent(currentFrame, swapChain->getSwapChain(), &imageIndex);
+  result = m_logicalDevice->queuePresent(m_currentFrame, m_swapChain->getSwapChain(), &imageIndex);
 
-  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebufferResized)
   {
-    framebufferResized = false;
+    m_framebufferResized = false;
     recreateSwapChain();
   }
   else if (result != VK_SUCCESS)
@@ -458,62 +459,62 @@ void VulkanEngine::doRendering()
     throw std::runtime_error("failed to present swap chain image!");
   }
 
-  currentFrame = (currentFrame + 1) % logicalDevice->getMaxFramesInFlight();
+  m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
 }
 
 void VulkanEngine::recreateSwapChain()
 {
   int width = 0, height = 0;
-  window->getFramebufferSize(&width, &height);
+  m_window->getFramebufferSize(&width, &height);
   while (width == 0 || height == 0)
   {
-    window->getFramebufferSize(&width, &height);
+    m_window->getFramebufferSize(&width, &height);
     glfwWaitEvents();
   }
 
-  logicalDevice->waitIdle();
+  m_logicalDevice->waitIdle();
 
-  framebuffer.reset();
-  swapChain.reset();
+  m_framebuffer.reset();
+  m_swapChain.reset();
 
-  physicalDevice->updateSwapChainSupportDetails();
+  m_physicalDevice->updateSwapChainSupportDetails();
 
-  swapChain = std::make_shared<SwapChain>(logicalDevice, window);
-  framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
-                                                       swapChain->getExtent());
+  m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window);
+  m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
+                                                         m_swapChain->getExtent());
 
-  if (!vulkanEngineOptions.USE_DOCKSPACE)
+  if (!m_vulkanEngineOptions.USE_DOCKSPACE)
   {
-    m_mousePicker->recreateFramebuffer(swapChain->getExtent());
+    m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
   }
 
 
-  if (vulkanEngineOptions.USE_DOCKSPACE)
+  if (m_vulkanEngineOptions.USE_DOCKSPACE)
   {
-    if (offscreenViewportExtent.width == 0 || offscreenViewportExtent.height == 0)
+    if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
       return;
     }
 
-    offscreenFramebuffer.reset();
+    m_offscreenFramebuffer.reset();
 
-    offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
-                                                                 offscreenViewportExtent);
+    m_offscreenFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_renderPass,
+                                                                   m_offscreenViewportExtent);
 
-    m_mousePicker->recreateFramebuffer(offscreenViewportExtent);
+    m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
   }
 }
 
 void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 {
-  if (!vulkanEngineOptions.USE_DOCKSPACE)
+  if (!m_vulkanEngineOptions.USE_DOCKSPACE)
   {
     return;
   }
 
-  ImGui::Begin(vulkanEngineOptions.SCENE_VIEW_NAME);
+  ImGui::Begin(m_vulkanEngineOptions.SCENE_VIEW_NAME);
 
-  isSceneFocused = ImGui::IsWindowFocused();
+  m_isSceneFocused = ImGui::IsWindowFocused();
 
   const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
@@ -524,28 +525,28 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
   if (currentOffscreenViewportExtent.width == 0 || currentOffscreenViewportExtent.height == 0)
   {
-    offscreenViewportExtent = currentOffscreenViewportExtent;
+    m_offscreenViewportExtent = currentOffscreenViewportExtent;
     ImGui::End();
     return;
   }
 
-  if (offscreenViewportExtent.width != currentOffscreenViewportExtent.width ||
-      offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
+  if (m_offscreenViewportExtent.width != currentOffscreenViewportExtent.width ||
+      m_offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
   {
-    offscreenViewportExtent = currentOffscreenViewportExtent;
+    m_offscreenViewportExtent = currentOffscreenViewportExtent;
 
-    logicalDevice->waitIdle();
-    offscreenFramebuffer.reset();
-    offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
-                                                                 offscreenViewportExtent);
+    m_logicalDevice->waitIdle();
+    m_offscreenFramebuffer.reset();
+    m_offscreenFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_renderPass,
+                                                                   m_offscreenViewportExtent);
 
-    m_mousePicker->recreateFramebuffer(offscreenViewportExtent);
+    m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
   }
 
-  offscreenViewportPos = ImGui::GetCursorScreenPos();
-  m_mousePicker->setViewportPos(offscreenViewportPos);
+  m_offscreenViewportPos = ImGui::GetCursorScreenPos();
+  m_mousePicker->setViewportPos(m_offscreenViewportPos);
 
-  ImGui::Image(reinterpret_cast<ImTextureID>(offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex)),
+  ImGui::Image(reinterpret_cast<ImTextureID>(m_offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex)),
               contentRegionAvailable);
 
   ImGui::End();
@@ -555,9 +556,9 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
 {
   const RenderInfo renderInfo {
     .commandBuffer = commandBuffer,
-    .currentFrame = currentFrame,
-    .viewPosition = viewPosition,
-    .viewMatrix = viewMatrix,
+    .currentFrame = m_currentFrame,
+    .viewPosition = m_viewPosition,
+    .viewMatrix = m_viewMatrix,
     .extent = extent
   };
 
@@ -579,26 +580,26 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
 
   renderRenderObjects(renderInfo);
 
-  if (vulkanEngineOptions.DO_DOTS)
+  if (m_vulkanEngineOptions.DO_DOTS)
   {
-    dotsPipeline->render(&renderInfo, nullptr);
+    m_dotsPipeline->render(&renderInfo, nullptr);
   }
 
-  linePipeline->render(&renderInfo, commandPool, lineVerticesToRender);
+  m_linePipeline->render(&renderInfo, m_commandPool, m_lineVerticesToRender);
 
   renderSmokeSystems(renderInfo);
 }
 
 void VulkanEngine::renderRenderObjects(const RenderInfo& renderInfo) const
 {
-  for (const auto& [type, objects] : renderObjectsToRender)
+  for (const auto& [type, objects] : m_renderObjectsToRender)
   {
     if (objects.empty())
     {
       continue;
     }
 
-    if (auto it = pipelines.find(type); it != pipelines.end())
+    if (auto it = m_pipelines.find(type); it != m_pipelines.end())
     {
       if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get()))
       {
@@ -616,11 +617,11 @@ void VulkanEngine::renderRenderObjects(const RenderInfo& renderInfo) const
 
 void VulkanEngine::renderSmokeSystems(const RenderInfo& renderInfo) const
 {
-  if (!smokeSystems.empty())
+  if (!m_smokeSystems.empty())
   {
     ImGui::Begin("Smoke");
     ImGui::Separator();
-    for (const auto& system : smokeSystems)
+    for (const auto& system : m_smokeSystems)
     {
       ImGui::PushID(&system);
       system->displayGui();
@@ -636,13 +637,13 @@ void VulkanEngine::renderSmokeSystems(const RenderInfo& renderInfo) const
 
 void VulkanEngine::createNewFrame()
 {
-  imGuiInstance->createNewFrame();
+  m_imGuiInstance->createNewFrame();
 
-  renderObjectsToRender.clear();
+  m_renderObjectsToRender.clear();
 
   m_lightingManager->clearLightsToRender();
 
-  lineVerticesToRender.clear();
+  m_lineVerticesToRender.clear();
 
   m_mousePicker->clearObjectsToMousePick();
 }
@@ -650,19 +651,19 @@ void VulkanEngine::createNewFrame()
 void VulkanEngine::createDescriptorPool()
 {
   const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, logicalDevice->getMaxFramesInFlight() * 30},
-    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, logicalDevice->getMaxFramesInFlight() * 50},
-    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, logicalDevice->getMaxFramesInFlight() * 10}
+    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
+    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
+    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
   }};
 
   const VkDescriptorPoolCreateInfo poolCreateInfo {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-    .maxSets = logicalDevice->getMaxFramesInFlight() * 30,
+    .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
     .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
     .pPoolSizes = poolSizes.data()
   };
 
-  descriptorPool = logicalDevice->createDescriptorPool(poolCreateInfo);
+  m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
 void VulkanEngine::createObjectDescriptorSetLayout()
@@ -700,5 +701,5 @@ void VulkanEngine::createObjectDescriptorSetLayout()
     .pBindings = objectBindings.data()
   };
 
-  objectDescriptorSetLayout = logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
+  m_objectDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
 }

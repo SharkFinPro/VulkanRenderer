@@ -134,7 +134,7 @@ void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset,
 void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
 {
   const auto app = static_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
-  app->framebufferResized = true;
+  app->m_framebufferResized = true;
 }
 
 void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,
