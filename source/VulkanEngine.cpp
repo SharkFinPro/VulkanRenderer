@@ -664,7 +664,10 @@ void VulkanEngine::createNewFrame()
 {
   m_imGuiInstance->createNewFrame();
 
-  m_renderObjectsToRender.clear();
+  for (auto& [_, objects] : m_renderObjectsToRender)
+  {
+    objects.clear();
+  }
 
   m_lightingManager->clearLightsToRender();
 
