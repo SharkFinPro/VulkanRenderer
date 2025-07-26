@@ -29,6 +29,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/Camera.h
   components/ImGuiInstance.cpp
   components/ImGuiInstance.h
+  components/MousePicker.cpp
+  components/MousePicker.h
   components/SwapChain.cpp
   components/SwapChain.h
   components/Window.cpp
@@ -117,6 +119,7 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
 
   # Configuration and State Headers
   pipelines/custom/config/GraphicsPipelineStates.h
+  pipelines/custom/config/PipelineTypes.h
   pipelines/custom/config/Uniforms.h
   pipelines/custom/descriptorSets/DescriptorSet.cpp
   pipelines/custom/descriptorSets/DescriptorSet.h
