@@ -162,14 +162,13 @@ void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
 {
   vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
   vkWaitForFences(m_device, 1, &m_inFlightFences2[currentFrame], VK_TRUE, UINT64_MAX);
-  vkWaitForFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
 {
   vkWaitForFences(m_device, 1, &m_computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
 
-void LogicalDevice::waitForMousePickingFences(uint32_t currentFrame) const
+void LogicalDevice::waitForMousePickingFences(const uint32_t currentFrame) const
 {
   vkWaitForFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 }
@@ -178,6 +177,10 @@ void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
 {
   vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
   vkResetFences(m_device, 1, &m_inFlightFences2[currentFrame]);
+}
+
+void LogicalDevice::resetMousePickingFences(const uint32_t currentFrame) const
+{
   vkResetFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame]);
 }
 

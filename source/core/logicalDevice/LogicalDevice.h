@@ -31,6 +31,7 @@ public:
   void waitForMousePickingFences(uint32_t currentFrame) const;
 
   void resetGraphicsFences(uint32_t currentFrame) const;
+  void resetMousePickingFences(uint32_t currentFrame) const;
   void resetComputeFences(uint32_t currentFrame) const;
 
   VkResult queuePresent(uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const;

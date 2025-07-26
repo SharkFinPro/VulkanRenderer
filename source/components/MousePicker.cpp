@@ -45,12 +45,6 @@ void MousePicker::doMousePicking(const uint32_t imageIndex,
                                  const glm::mat4& viewMatrix,
                                  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender)
 {
-  m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
-  m_mousePickingCommandBuffer->resetCommandBuffer();
-  recordMousePickingCommandBuffer(imageIndex, currentFrame, viewPosition, viewMatrix);
-  m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
-  m_logicalDevice->waitForMousePickingFences(currentFrame);
-
   if (m_renderObjectsToMousePick.empty())
   {
     return;
@@ -61,6 +55,14 @@ void MousePicker::doMousePicking(const uint32_t imageIndex,
   {
     return;
   }
+
+  m_logicalDevice->resetMousePickingFences(currentFrame);
+
+  m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
+  m_mousePickingCommandBuffer->resetCommandBuffer();
+  recordMousePickingCommandBuffer(imageIndex, currentFrame, viewPosition, viewMatrix);
+  m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
+  m_logicalDevice->waitForMousePickingFences(currentFrame);
 
   const auto objectID = getIDFromMousePickingFramebuffer(mouseX, mouseY);
 
