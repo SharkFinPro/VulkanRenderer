@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "../VulkanEngine.h"
+#include "../core/instance/Instance.h"
 #include <backends/imgui_impl_glfw.h>
 #include <stdexcept>
 
@@ -39,7 +40,7 @@ Window::Window(const int width, const int height, const char* title, const std::
   m_previousMouseX = m_mouseX;
   m_previousMouseY = m_mouseY;
 
-  m_surface = instance->createSurface(m_window);
+  m_surface = m_instance->createSurface(m_window);
 
   glfwSetKeyCallback(m_window, keyCallback);
 }
@@ -134,7 +135,7 @@ void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset,
 void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
 {
   const auto app = static_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
-  app->framebufferResized = true;
+  app->m_framebufferResized = true;
 }
 
 void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,

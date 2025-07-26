@@ -5,7 +5,6 @@
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
-#include <vector>
 
 class DescriptorSet;
 class RenderPass;
