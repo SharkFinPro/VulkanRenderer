@@ -16,7 +16,6 @@
 #include "core/logicalDevice/LogicalDevice.h"
 #include "core/physicalDevice/PhysicalDevice.h"
 
-#include "components/lighting/Light.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 
@@ -35,6 +34,8 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
+class Light;
 
 class VulkanEngine {
 public:
