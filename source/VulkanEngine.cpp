@@ -1,6 +1,4 @@
 #include "VulkanEngine.h"
-#include "utilities/Buffers.h"
-#include "utilities/Images.h"
 #include "pipelines/custom/BumpyCurtain.h"
 #include "pipelines/custom/CubeMapPipeline.h"
 #include "pipelines/custom/CurtainPipeline.h"
