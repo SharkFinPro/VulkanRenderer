@@ -303,8 +303,11 @@ void VulkanEngine::initVulkan()
                                                                  swapChain->getExtent());
   }
 
-  m_mousePicker = std::make_unique<MousePicker>(logicalDevice, window, commandPool, objectDescriptorSetLayout,
-                                                vulkanEngineOptions.USE_DOCKSPACE);
+  m_mousePicker = std::make_unique<MousePicker>(logicalDevice, window, commandPool, objectDescriptorSetLayout);
+  if (!vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    m_mousePicker->recreateFramebuffer(swapChain->getExtent());
+  }
 }
 
 void VulkanEngine::createCommandPool()
@@ -481,7 +484,11 @@ void VulkanEngine::recreateSwapChain()
   framebuffer = std::make_shared<SwapchainFramebuffer>(logicalDevice, swapChain, commandPool, renderPass,
                                                        swapChain->getExtent());
 
-  m_mousePicker->recreateFramebuffer();
+  if (!vulkanEngineOptions.USE_DOCKSPACE)
+  {
+    m_mousePicker->recreateFramebuffer(swapChain->getExtent());
+  }
+
 
   if (vulkanEngineOptions.USE_DOCKSPACE)
   {
@@ -494,6 +501,8 @@ void VulkanEngine::recreateSwapChain()
 
     offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
                                                                  offscreenViewportExtent);
+
+    m_mousePicker->recreateFramebuffer(offscreenViewportExtent);
   }
 }
 
@@ -526,14 +535,13 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
       offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
   {
     offscreenViewportExtent = currentOffscreenViewportExtent;
-    m_mousePicker->setViewportExtent(offscreenViewportExtent);
 
     logicalDevice->waitIdle();
     offscreenFramebuffer.reset();
     offscreenFramebuffer = std::make_shared<StandardFramebuffer>(logicalDevice, commandPool, renderPass,
                                                                  offscreenViewportExtent);
 
-    m_mousePicker->recreateFramebuffer();
+    m_mousePicker->recreateFramebuffer(offscreenViewportExtent);
   }
 
   offscreenViewportPos = ImGui::GetCursorScreenPos();

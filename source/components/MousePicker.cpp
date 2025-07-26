@@ -9,9 +9,8 @@
 MousePicker::MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<Window>& window,
                          const VkCommandPool& commandPool,
-                         VkDescriptorSetLayout objectDescriptorSetLayout,
-                         bool USE_DOCKSPACE)
-  : m_logicalDevice(logicalDevice), m_window(window), m_USE_DOCKSPACE(USE_DOCKSPACE), m_commandPool(commandPool)
+                         VkDescriptorSetLayout objectDescriptorSetLayout)
+  : m_logicalDevice(logicalDevice), m_window(window), m_commandPool(commandPool)
 {
   m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
@@ -31,8 +30,10 @@ void MousePicker::clearObjectsToMousePick()
   m_renderObjectsToMousePick.clear();
 }
 
-void MousePicker::recreateFramebuffer()
+void MousePicker::recreateFramebuffer(const VkExtent2D viewportExtent)
 {
+  m_viewportExtent = viewportExtent;
+
   m_mousePickingFramebuffer.reset();
   m_mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_mousePickingRenderPass,
                                                                     m_viewportExtent, true);
@@ -89,11 +90,6 @@ void MousePicker::setViewportPos(const ImVec2 viewportPos)
   m_viewportPos = viewportPos;
 }
 
-void MousePicker::setViewportExtent(VkExtent2D viewportExtent)
-{
-  m_viewportExtent = viewportExtent;
-}
-
 void MousePicker::recordMousePickingCommandBuffer(const uint32_t imageIndex,
                                                   uint32_t currentFrame,
                                                   const glm::vec3 viewPosition,
@@ -140,7 +136,7 @@ void MousePicker::recordMousePickingCommandBuffer(const uint32_t imageIndex,
 
 bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY)
 {
-  if (!m_USE_DOCKSPACE || m_viewportExtent.width == 0 || m_viewportExtent.height == 0)
+  if (m_viewportExtent.width == 0 || m_viewportExtent.height == 0)
   {
     m_canMousePick = false;
   }

@@ -21,12 +21,11 @@ public:
   MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
               const std::shared_ptr<Window>& window,
               const VkCommandPool& commandPool,
-              VkDescriptorSetLayout objectDescriptorSetLayout,
-              bool USE_DOCKSPACE);
+              VkDescriptorSetLayout objectDescriptorSetLayout);
 
   void clearObjectsToMousePick();
 
-  void recreateFramebuffer();
+  void recreateFramebuffer(VkExtent2D viewportExtent);
 
   void doMousePicking(uint32_t imageIndex,
                       uint32_t currentFrame,
@@ -40,13 +39,9 @@ public:
 
   void setViewportPos(ImVec2 viewportPos);
 
-  void setViewportExtent(VkExtent2D viewportExtent);
-
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
   std::shared_ptr<Window> m_window;
-
-  bool m_USE_DOCKSPACE;
 
   VkExtent2D m_viewportExtent { 1, 1 };
 
