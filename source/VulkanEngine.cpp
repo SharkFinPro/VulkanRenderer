@@ -18,21 +18,21 @@
 #include "objects/RenderObject.h"
 
 #include "pipelines/custom/BumpyCurtain.h"
+#include "pipelines/custom/CrossesPipeline.h"
 #include "pipelines/custom/CubeMapPipeline.h"
 #include "pipelines/custom/CurtainPipeline.h"
-#include "pipelines/custom/ObjectsPipeline.h"
-#include "pipelines/custom/EllipticalDots.h"
-#include "pipelines/custom/NoisyEllipticalDots.h"
-#include "pipelines/custom/TexturedPlane.h"
-#include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
-#include "pipelines/custom/ObjectHighlightPipeline.h"
-#include "pipelines/custom/SnakePipeline.h"
-#include "pipelines/custom/CrossesPipeline.h"
-
 #include "pipelines/custom/DotsPipeline.h"
+#include "pipelines/custom/EllipticalDots.h"
 #include "pipelines/custom/GuiPipeline.h"
 #include "pipelines/custom/LinePipeline.h"
+#include "pipelines/custom/MagnifyWhirlMosaicPipeline.h"
+#include "pipelines/custom/NoisyEllipticalDots.h"
+#include "pipelines/custom/ObjectHighlightPipeline.h"
+#include "pipelines/custom/ObjectsPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
+#include "pipelines/custom/SnakePipeline.h"
+#include "pipelines/custom/TexturedPlane.h"
+
 #include "pipelines/RenderPass.h"
 
 #include <ranges>
