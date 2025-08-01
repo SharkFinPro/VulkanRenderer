@@ -10,6 +10,8 @@ void renderScene(VulkanEngine& renderer,
                  const std::vector<std::shared_ptr<Light>>& lights,
                  std::vector<BendyPlant>& bendyPlants);
 
+void createBendyPlants(std::vector<BendyPlant>& bendyPlants);
+
 int main()
 {
   try
@@ -47,24 +49,7 @@ int main()
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
     std::vector<BendyPlant> bendyPlants;
-
-    constexpr int NUM_BENDY_PLANTS = 50;
-    constexpr float SPACING = 4.5;
-
-    for (size_t i = 0; i < NUM_BENDY_PLANTS; ++i)
-    {
-      for (size_t j = 0; j < NUM_BENDY_PLANTS; ++j)
-      {
-        bendyPlants.emplace_back();
-        bendyPlants[bendyPlants.size() - 1].position = { i * SPACING - NUM_BENDY_PLANTS * SPACING / 2, -2, j * SPACING - NUM_BENDY_PLANTS * SPACING / 2 };
-      }
-    }
-
-    // bendyPlants.emplace_back();
-    // bendyPlants.emplace_back();
-    //
-    // bendyPlants[0].position = { 0, -2, 3 };
-    // bendyPlants[1].position = { 3, -2, 3 };
+    createBendyPlants(bendyPlants);
 
     while (renderer.isActive())
     {
@@ -107,4 +92,13 @@ void renderScene(VulkanEngine& renderer,
 
   // Render Frame
   renderer.render();
+}
+
+void createBendyPlants(std::vector<BendyPlant>& bendyPlants)
+{
+  bendyPlants.emplace_back();
+  bendyPlants.emplace_back();
+
+  bendyPlants[0].position = { 0, -4, 3 };
+  bendyPlants[1].position = { 3, -4, 3 };
 }
