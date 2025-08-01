@@ -20,13 +20,13 @@ void main()
 {
   // Generate quad vertices from vertex index (0,1,2,3 -> corners of quad)
   vec2 quadVertex = vec2(
-    float(gl_VertexIndex % 2) - 0.5,  // x: -0.5 or 0.5
-    float(gl_VertexIndex / 2) / 4.0         // y: 0.0 or 1.0
+    float(gl_VertexIndex % 2) - 0.5, // x: -0.5 or 0.5
+    float(gl_VertexIndex / 2) / 4.0
   );
 
   fragTexCoord = vec2(
     (gl_VertexIndex % 2) / 2.0 + 0.25,
-    quadVertex.y / bendy.leafLength
+    1 - quadVertex.y / bendy.leafLength
   );
 
   // Calculate rotation angles
