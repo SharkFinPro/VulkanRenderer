@@ -33,7 +33,7 @@ void main()
   float pitchRadians = radians(bendy.pitch - float(gl_InstanceIndex) * PITCH_OFFSET_PER_INSTANCE);
 
   // Sway
-  pitchRadians += radians(sin(bendy.time) * 5.0);
+  pitchRadians += radians(sin(bendy.time + ((gl_InstanceIndex * 2) % 5)) * quadVertex.y * 1.5);
 
   // Pre-calculate trigonometric values
   vec2 yawTrig = vec2(cos(yawRadians), sin(yawRadians));  // cos, sin
