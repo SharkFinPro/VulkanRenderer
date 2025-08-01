@@ -40,9 +40,9 @@ void main()
 
   // Calculate 3D position with rotations applied
   vec3 position = vec3(
-  yawTrig.x * -quadVertex.x + bendPitchTrig.x * quadVertex.y * yawTrig.y,  // x
-  bendPitchTrig.y * quadVertex.y,                                          // y
-  yawTrig.y * quadVertex.x + bendPitchTrig.x * quadVertex.y * yawTrig.x    // z
+    yawTrig.x * -quadVertex.x + bendPitchTrig.x * quadVertex.y * yawTrig.y,  // x
+    bendPitchTrig.y * quadVertex.y,                                          // y
+    yawTrig.y * quadVertex.x + bendPitchTrig.x * quadVertex.y * yawTrig.x    // z
   );
 
   // Transform to clip space
