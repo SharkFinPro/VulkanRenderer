@@ -26,8 +26,8 @@ void BendyPipeline::render(const RenderInfo* renderInfo)
   static int numFins = 21;
 
   ImGui::Begin("Vertices");
-  ImGui::SliderInt("# Fins", &numFins, 0, 100);
-  ImGui::SliderInt("Leaf Length", &m_bendyUBO.leafLength, 0, 20);
+  ImGui::SliderInt("# Fins", &numFins, 0, 35);
+  ImGui::SliderInt("Leaf Length", &m_bendyUBO.leafLength, 0, 10);
   ImGui::SliderFloat3("Position", &m_position.x, -10, 10);
   ImGui::SliderFloat("Pitch", &m_bendyUBO.pitch, -90, 90);
   ImGui::SliderFloat("Bend Strength", &m_bendyUBO.bendStrength, -1, 1);
