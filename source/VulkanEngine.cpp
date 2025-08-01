@@ -181,6 +181,11 @@ void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
   m_lineVerticesToRender.push_back({end});
 }
 
+void VulkanEngine::renderBendyPlant(const BendyPlant& bendyPlant) const
+{
+  m_bendyPipeline->renderBendyPlant(bendyPlant);
+}
+
 void VulkanEngine::enableCamera()
 {
   m_useCamera = true;
@@ -679,6 +684,8 @@ void VulkanEngine::createNewFrame()
   m_lineVerticesToRender.clear();
 
   m_mousePicker->clearObjectsToMousePick();
+
+  m_bendyPipeline->clearBendyPlantsToRender();
 }
 
 void VulkanEngine::createDescriptorPool()

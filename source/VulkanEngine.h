@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "pipelines/custom/BendyPipeline.h"
+
 class BendyPipeline;
 class Camera;
 class CommandBuffer;
@@ -64,6 +66,8 @@ public:
   void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);
   void renderLight(const std::shared_ptr<Light>& light) const;
   void renderLine(glm::vec3 start, glm::vec3 end);
+
+  void renderBendyPlant(const BendyPlant& bendyPlant) const;
 
   void enableCamera();
   void disableCamera();

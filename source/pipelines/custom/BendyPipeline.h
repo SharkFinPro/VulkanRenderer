@@ -11,6 +11,14 @@ class DescriptorSet;
 class RenderPass;
 class Texture2D;
 
+struct BendyPlant {
+  glm::vec3 position = glm::vec3(0.0f);
+  int numFins = 21;
+  int leafLength = 3;
+  float pitch = 77.5;
+  float bendStrength = -0.07;
+};
+
 class BendyPipeline final : public GraphicsPipeline {
 public:
   BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -20,11 +28,12 @@ public:
 
   void render(const RenderInfo* renderInfo);
 
+  void renderBendyPlant(const BendyPlant &bendyPlant);
+
+  void clearBendyPlantsToRender();
+
 private:
   BendyUniform m_bendyUBO {
-    .leafLength = 3,
-    .pitch = 77.5,
-    .bendStrength = -0.07,
     .time = 0
   };
 
@@ -33,17 +42,19 @@ private:
 
   std::shared_ptr<DescriptorSet> m_BendyPipelineDescriptorSet;
 
-  glm::vec3 m_position = glm::vec3(0, -2, 3);
-
   std::shared_ptr<Texture2D> m_texture;
 
   std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
+
+  std::vector<BendyPlant> m_bendyPlantsToRender;
 
   void loadGraphicsShaders() override;
 
   void loadGraphicsDescriptorSetLayouts() override;
 
   void defineStates() override;
+
+  void definePushConstants();
 
   void createUniforms(const VkCommandPool& commandPool);
 

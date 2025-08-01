@@ -6,7 +6,6 @@
 #include "../../components/textures/Texture2D.h"
 #include "../../core/commandBuffer/CommandBuffer.h"
 #include "../../objects/UniformBuffer.h"
-#include <imgui.h>
 
 BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
@@ -14,6 +13,8 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
                              VkDescriptorPool descriptorPool)
   : GraphicsPipeline(logicalDevice), m_previousTime(std::chrono::steady_clock::now())
 {
+  definePushConstants();
+
   createUniforms(commandPool);
 
   createDescriptorSets(descriptorPool);
@@ -23,19 +24,32 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
 
 void BendyPipeline::render(const RenderInfo* renderInfo)
 {
-  static int numFins = 21;
-
-  ImGui::Begin("Vertices");
-  ImGui::SliderInt("# Fins", &numFins, 0, 35);
-  ImGui::SliderInt("Leaf Length", &m_bendyUBO.leafLength, 0, 10);
-  ImGui::SliderFloat3("Position", &m_position.x, -10, 10);
-  ImGui::SliderFloat("Pitch", &m_bendyUBO.pitch, -90, 90);
-  ImGui::SliderFloat("Bend Strength", &m_bendyUBO.bendStrength, -0.5, 0.5);
-  ImGui::End();
-
   GraphicsPipeline::render(renderInfo, nullptr);
 
-  renderInfo->commandBuffer->draw(m_bendyUBO.leafLength * 2 * 4 + 2, numFins, 0, 0);
+  for (const auto bendyPlant : m_bendyPlantsToRender)
+  {
+    BendyPlantInfo bendyPlantInfo {
+      .model = glm::translate(glm::mat4(1.0f), bendyPlant.position),
+      .leafLength = bendyPlant.leafLength,
+      .pitch = bendyPlant.pitch,
+      .bendStrength = bendyPlant.bendStrength
+    };
+
+    renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                                             sizeof(BendyPlantInfo), &bendyPlantInfo);
+
+    renderInfo->commandBuffer->draw(bendyPlant.leafLength * 2 * 4 + 2, bendyPlant.numFins, 0, 0);
+  }
+}
+
+void BendyPipeline::renderBendyPlant(const BendyPlant& bendyPlant)
+{
+  m_bendyPlantsToRender.push_back(bendyPlant);
+}
+
+void BendyPipeline::clearBendyPlantsToRender()
+{
+  m_bendyPlantsToRender.clear();
 }
 
 void BendyPipeline::loadGraphicsShaders()
@@ -61,9 +75,20 @@ void BendyPipeline::defineStates()
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
+void BendyPipeline::definePushConstants()
+{
+  constexpr VkPushConstantRange bendyPlantPushConstant {
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+    .offset = 0,
+    .size = sizeof(BendyPlantInfo)
+  };
+
+  definePushConstantRange(bendyPlantPushConstant);
+}
+
 void BendyPipeline::createUniforms(const VkCommandPool& commandPool)
 {
-  m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(MVPTransformUniform));
+  m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(VPTransformUniform));
 
   m_bendyUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(BendyUniform));
 
@@ -87,8 +112,8 @@ void BendyPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
 
 void BendyPipeline::updateUniformVariables(const RenderInfo *renderInfo)
 {
-  const MVPTransformUniform transformUBO {
-    .mvp = renderInfo->projectionMatrix * renderInfo->viewMatrix * glm::translate(glm::mat4(1.0f), m_position)
+  const VPTransformUniform transformUBO {
+    .vp = renderInfo->projectionMatrix * renderInfo->viewMatrix// * glm::translate(glm::mat4(1.0f), bendyPlant.position)
   };
 
   m_transformUniform->update(renderInfo->currentFrame, &transformUBO);

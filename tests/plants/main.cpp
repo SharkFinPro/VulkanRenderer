@@ -4,8 +4,11 @@
 #include <imgui.h>
 #include <iostream>
 
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights);
+void renderScene(VulkanEngine& renderer,
+                 const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object,
+                 const std::vector<std::shared_ptr<Light>>& lights,
+                 std::vector<BendyPlant>& bendyPlants);
 
 int main()
 {
@@ -14,7 +17,7 @@ int main()
     constexpr VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Cube",
+      .WINDOW_TITLE = "Plants",
       .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
       .DO_DOTS = false
     };
@@ -43,9 +46,29 @@ int main()
 
     lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
+    std::vector<BendyPlant> bendyPlants;
+
+    constexpr int NUM_BENDY_PLANTS = 50;
+    constexpr float SPACING = 4.5;
+
+    for (size_t i = 0; i < NUM_BENDY_PLANTS; ++i)
+    {
+      for (size_t j = 0; j < NUM_BENDY_PLANTS; ++j)
+      {
+        bendyPlants.emplace_back();
+        bendyPlants[bendyPlants.size() - 1].position = { i * SPACING - NUM_BENDY_PLANTS * SPACING / 2, -2, j * SPACING - NUM_BENDY_PLANTS * SPACING / 2 };
+      }
+    }
+
+    // bendyPlants.emplace_back();
+    // bendyPlants.emplace_back();
+    //
+    // bendyPlants[0].position = { 0, -2, 3 };
+    // bendyPlants[1].position = { 3, -2, 3 };
+
     while (renderer.isActive())
     {
-      renderScene(renderer, gui, object, lights);
+      renderScene(renderer, gui, object, lights, bendyPlants);
     }
   }
   catch (const std::exception& e)
@@ -57,8 +80,11 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights)
+void renderScene(VulkanEngine& renderer,
+                 const std::shared_ptr<ImGuiInstance>& gui,
+                 const std::shared_ptr<RenderObject>& object,
+                 const std::vector<std::shared_ptr<Light>>& lights,
+                 std::vector<BendyPlant>& bendyPlants)
 {
   // Render GUI
   displayGui(gui, lights, { object });
@@ -71,10 +97,13 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
     renderer.renderLight(light);
   }
 
-  // Render lines
-  renderer.renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
-  renderer.renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
-  renderer.renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
+  // Render BendyPlants
+  displayBendyPlantGuis(bendyPlants);
+
+  for (const auto& bendyPlant : bendyPlants)
+  {
+    renderer.renderBendyPlant(bendyPlant);
+  }
 
   // Render Frame
   renderer.render();

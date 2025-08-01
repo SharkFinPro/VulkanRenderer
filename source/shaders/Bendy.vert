@@ -1,15 +1,19 @@
 #version 450
 
 layout(set = 0, binding = 0) uniform Transform {
-  mat4 mvp;
+  mat4 vp;
 } transform;
 
 layout(set = 0, binding = 1) uniform Bendy {
+  float time;
+} bendy;
+
+layout(push_constant) uniform PushConstants {
+  mat4 model;
   int leafLength;
   float pitch;
   float bendStrength;
-  float time;
-} bendy;
+};
 
 layout(location = 0) out vec2 fragTexCoord;
 
@@ -25,13 +29,13 @@ void main()
   );
 
   fragTexCoord = vec2(
-    (gl_VertexIndex % 2) / 2.0 + 0.25,
-    1 - quadVertex.y / bendy.leafLength
+    (gl_VertexIndex % 2),
+    1 - quadVertex.y / leafLength
   );
 
   // Calculate rotation angles
   float yawRadians = radians(YAW_DEGREES_PER_INSTANCE * float(gl_InstanceIndex));
-  float pitchRadians = radians(bendy.pitch - float(gl_InstanceIndex) * PITCH_OFFSET_PER_INSTANCE);
+  float pitchRadians = radians(pitch - float(gl_InstanceIndex) * PITCH_OFFSET_PER_INSTANCE);
 
   // Sway
   pitchRadians += radians(sin(bendy.time + ((gl_InstanceIndex * 2) % 5)) * quadVertex.y * 1.25);
@@ -40,7 +44,7 @@ void main()
   vec2 yawTrig = vec2(cos(yawRadians), sin(yawRadians));  // cos, sin
 
   // Apply bending effect to pitch based on vertex height
-  float bendPitchRadians = pitchRadians + quadVertex.y * bendy.bendStrength;
+  float bendPitchRadians = pitchRadians + quadVertex.y * bendStrength;
   vec2 bendPitchTrig = vec2(cos(bendPitchRadians), sin(bendPitchRadians));  // cos, sin
 
   // Calculate 3D position with rotations applied
@@ -51,5 +55,5 @@ void main()
   );
 
   // Transform to clip space
-  gl_Position = transform.mvp * vec4(position, 1.0);
+  gl_Position = transform.vp * model * vec4(position, 1.0);
 }
