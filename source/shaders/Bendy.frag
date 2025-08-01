@@ -10,6 +10,11 @@ void main()
 {
   vec4 texColor = texture(texSampler, fragTexCoord);
 
+  if (texColor.a < 0.1)
+  {
+    discard;
+  }
+
   outColor = texColor;
 //  outColor = vec4(texColor.rgb, 1.0);
 //  outColor = vec4(0.2, 0.8, 0.2, 1.0);

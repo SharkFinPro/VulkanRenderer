@@ -69,6 +69,27 @@ namespace GraphicsPipelineStates {
     .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
   };
 
+  inline VkPipelineColorBlendAttachmentState colorBlendAttachmentBendy {
+    .blendEnable = VK_TRUE,
+    .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+    .colorBlendOp = VK_BLEND_OP_ADD,
+    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+    .alphaBlendOp = VK_BLEND_OP_ADD,
+    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+  };
+
+  inline VkPipelineColorBlendStateCreateInfo colorBlendStateBendy {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+    .logicOpEnable = VK_FALSE,
+    .logicOp = VK_LOGIC_OP_COPY,
+    .attachmentCount = 1,
+    .pAttachments = &colorBlendAttachmentSmoke,
+    .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
+  };
+
   inline VkPipelineDepthStencilStateCreateInfo depthStencilState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
     .depthTestEnable = VK_TRUE,
@@ -129,6 +150,19 @@ namespace GraphicsPipelineStates {
       .minSampleShading = 1.0f,
       .pSampleMask = nullptr,
       .alphaToCoverageEnable = VK_FALSE,
+      .alphaToOneEnable = VK_FALSE
+    };
+  }
+
+  inline VkPipelineMultisampleStateCreateInfo getMultsampleStateAlpha(const std::shared_ptr<LogicalDevice>& logicalDevice)
+  {
+    return {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+      .rasterizationSamples = logicalDevice->getPhysicalDevice()->getMsaaSamples(),
+      .sampleShadingEnable = VK_FALSE,
+      .minSampleShading = 1.0f,
+      .pSampleMask = nullptr,
+      .alphaToCoverageEnable = VK_TRUE,
       .alphaToOneEnable = VK_FALSE
     };
   }

@@ -65,11 +65,11 @@ void BendyPipeline::loadGraphicsDescriptorSetLayouts()
 
 void BendyPipeline::defineStates()
 {
-  defineColorBlendState(GraphicsPipelineStates::colorBlendStateDots);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilStateNone);
+  defineColorBlendState(GraphicsPipelineStates::colorBlendStateBendy);
+  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleStrip);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
+  defineMultisampleState(GraphicsPipelineStates::getMultsampleStateAlpha(m_logicalDevice));
   defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateRaw);
   defineViewportState(GraphicsPipelineStates::viewportState);
