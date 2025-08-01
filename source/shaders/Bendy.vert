@@ -11,7 +11,7 @@ layout(set = 0, binding = 1) uniform Bendy {
 
 layout(location = 0) out vec2 fragTexCoord;
 
-const float YAW_DEGREES_PER_INSTANCE = 70.0;
+const float YAW_DEGREES_PER_INSTANCE = 65.0;
 const float PITCH_OFFSET_PER_INSTANCE = 2.5;
 
 void main()
