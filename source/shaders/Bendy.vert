@@ -9,6 +9,8 @@ layout(set = 0, binding = 1) uniform Bendy {
   float bendStrength;
 } bendy;
 
+layout(location = 0) out vec2 fragTexCoord;
+
 const float YAW_DEGREES_PER_INSTANCE = 70.0;
 const float PITCH_OFFSET_PER_INSTANCE = 2.5;
 
@@ -16,8 +18,13 @@ void main()
 {
   // Generate quad vertices from vertex index (0,1,2,3 -> corners of quad)
   vec2 quadVertex = vec2(
-  float(gl_VertexIndex % 2) - 0.5,  // x: -0.5 or 0.5
-  float(gl_VertexIndex / 2)         // y: 0.0 or 1.0
+    float(gl_VertexIndex % 2) - 0.5,  // x: -0.5 or 0.5
+    float(gl_VertexIndex / 2)         // y: 0.0 or 1.0
+  );
+
+  fragTexCoord = vec2(
+    (gl_VertexIndex % 2) / 2.0 + 0.25,
+    quadVertex.y / 4.0
   );
 
   // Calculate rotation angles

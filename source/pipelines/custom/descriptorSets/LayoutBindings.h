@@ -117,9 +117,17 @@ namespace LayoutBindings {
     .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
   };
 
+  constexpr VkDescriptorSetLayoutBinding textureLayout {
+    .binding = 2,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
   inline std::vector<VkDescriptorSetLayoutBinding> bendyLayoutBindings {
     MVPTransformLayout,
-    bendyLayout
+    bendyLayout,
+    textureLayout
   };
 
   constexpr VkDescriptorSetLayoutBinding magnifyWhirlMosaicLayout {

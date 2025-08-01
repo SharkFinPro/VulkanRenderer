@@ -1,8 +1,16 @@
 #version 450
 
+layout(set = 0, binding = 2) uniform sampler2D texSampler;
+
+layout(location = 0) in vec2 fragTexCoord;
+
 layout(location = 0) out vec4 outColor;
 
 void main()
 {
-  outColor = vec4(0.2, 0.8, 0.2, 1.0);
+  vec4 texColor = texture(texSampler, fragTexCoord);
+
+  outColor = texColor;
+//  outColor = vec4(texColor.rgb, 1.0);
+//  outColor = vec4(0.2, 0.8, 0.2, 1.0);
 }

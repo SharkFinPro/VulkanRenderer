@@ -3,6 +3,7 @@
 #include "descriptorSets/DescriptorSet.h"
 #include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
+#include "../../components/textures/Texture2D.h"
 #include "../../core/commandBuffer/CommandBuffer.h"
 #include "../../objects/UniformBuffer.h"
 #include <imgui.h>
@@ -22,7 +23,7 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
 
 void BendyPipeline::render(const RenderInfo* renderInfo)
 {
-  static int numFins = 3;
+  static int numFins = 1;
 
   ImGui::Begin("Vertices");
   ImGui::SliderInt("# Fins", &numFins, 0, 1000);
@@ -49,12 +50,12 @@ void BendyPipeline::loadGraphicsDescriptorSetLayouts()
 
 void BendyPipeline::defineStates()
 {
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
+  defineColorBlendState(GraphicsPipelineStates::colorBlendStateDots);
+  defineDepthStencilState(GraphicsPipelineStates::depthStencilStateNone);
   defineDynamicState(GraphicsPipelineStates::dynamicState);
   defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleStrip);
   defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateOutline);
+  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
   defineVertexInputState(GraphicsPipelineStates::vertexInputStateRaw);
   defineViewportState(GraphicsPipelineStates::viewportState);
 }
@@ -64,6 +65,8 @@ void BendyPipeline::createUniforms(const VkCommandPool& commandPool)
   m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(MVPTransformUniform));
 
   m_bendyUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(BendyUniform));
+
+  m_texture = std::make_shared<Texture2D>(m_logicalDevice, commandPool, "assets/bendy/leaf.png", VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 }
 
 void BendyPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
@@ -73,7 +76,8 @@ void BendyPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{{
       m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
-      m_bendyUniform->getDescriptorSet(1, descriptorSet, frame)
+      m_bendyUniform->getDescriptorSet(1, descriptorSet, frame),
+      m_texture->getDescriptorSet(2, descriptorSet)
     }};
 
     return descriptorWrites;

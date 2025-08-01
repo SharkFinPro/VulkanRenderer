@@ -8,6 +8,7 @@
 class UniformBuffer;
 class DescriptorSet;
 class RenderPass;
+class Texture2D;
 
 class BendyPipeline final : public GraphicsPipeline {
 public:
@@ -30,6 +31,8 @@ private:
   std::shared_ptr<DescriptorSet> m_BendyPipelineDescriptorSet;
 
   glm::vec3 m_position = glm::vec3(0, -2, 3);
+
+  std::shared_ptr<Texture2D> m_texture;
 
   void loadGraphicsShaders() override;
 
