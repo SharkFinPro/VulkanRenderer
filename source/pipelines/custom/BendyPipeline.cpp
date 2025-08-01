@@ -35,7 +35,7 @@ void BendyPipeline::render(const RenderInfo* renderInfo)
 
   GraphicsPipeline::render(renderInfo, nullptr);
 
-  renderInfo->commandBuffer->draw(m_bendyUBO.leafLength * 2 + 2, numFins, 0, 0);
+  renderInfo->commandBuffer->draw(m_bendyUBO.leafLength * 2 * 4 + 2, numFins, 0, 0);
 }
 
 void BendyPipeline::loadGraphicsShaders()
