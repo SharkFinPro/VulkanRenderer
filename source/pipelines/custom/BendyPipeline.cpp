@@ -23,7 +23,7 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
 
 void BendyPipeline::render(const RenderInfo* renderInfo)
 {
-  static int numFins = 1;
+  static int numFins = 21;
 
   ImGui::Begin("Vertices");
   ImGui::SliderInt("# Fins", &numFins, 0, 1000);
