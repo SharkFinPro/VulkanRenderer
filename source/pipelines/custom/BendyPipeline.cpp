@@ -30,7 +30,7 @@ void BendyPipeline::render(const RenderInfo* renderInfo)
   ImGui::SliderInt("Leaf Length", &m_bendyUBO.leafLength, 0, 10);
   ImGui::SliderFloat3("Position", &m_position.x, -10, 10);
   ImGui::SliderFloat("Pitch", &m_bendyUBO.pitch, -90, 90);
-  ImGui::SliderFloat("Bend Strength", &m_bendyUBO.bendStrength, -1, 1);
+  ImGui::SliderFloat("Bend Strength", &m_bendyUBO.bendStrength, -0.5, 0.5);
   ImGui::End();
 
   GraphicsPipeline::render(renderInfo, nullptr);
