@@ -5,6 +5,7 @@ layout(set = 0, binding = 0) uniform Transform {
 } transform;
 
 layout(set = 0, binding = 1) uniform Bendy {
+  int leafLength;
   float pitch;
   float bendStrength;
   float time;
@@ -25,7 +26,7 @@ void main()
 
   fragTexCoord = vec2(
     (gl_VertexIndex % 2) / 2.0 + 0.25,
-    quadVertex.y / 4.0
+    quadVertex.y / bendy.leafLength
   );
 
   // Calculate rotation angles

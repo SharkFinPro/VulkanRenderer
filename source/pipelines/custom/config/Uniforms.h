@@ -97,6 +97,7 @@ struct MousePickingID {
 };
 
 struct BendyUniform {
+  int leafLength;
   float pitch;
   float bendStrength;
   float time;

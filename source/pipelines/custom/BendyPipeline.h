@@ -22,6 +22,7 @@ public:
 
 private:
   BendyUniform m_bendyUBO {
+    .leafLength = 4,
     .pitch = 77.5,
     .bendStrength = -0.07,
     .time = 0
