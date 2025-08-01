@@ -4,6 +4,7 @@
 #include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <glm/vec3.hpp>
+#include <chrono>
 
 class UniformBuffer;
 class DescriptorSet;
@@ -22,7 +23,8 @@ public:
 private:
   BendyUniform m_bendyUBO {
     .pitch = 70,
-    .bendStrength = -0.07
+    .bendStrength = -0.07,
+    .time = 0
   };
 
   std::shared_ptr<UniformBuffer> m_transformUniform;
@@ -33,6 +35,8 @@ private:
   glm::vec3 m_position = glm::vec3(0, -2, 3);
 
   std::shared_ptr<Texture2D> m_texture;
+
+  std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
   void loadGraphicsShaders() override;
 

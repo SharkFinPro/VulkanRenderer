@@ -7,6 +7,7 @@ layout(set = 0, binding = 0) uniform Transform {
 layout(set = 0, binding = 1) uniform Bendy {
   float pitch;
   float bendStrength;
+  float time;
 } bendy;
 
 layout(location = 0) out vec2 fragTexCoord;
@@ -30,6 +31,9 @@ void main()
   // Calculate rotation angles
   float yawRadians = radians(YAW_DEGREES_PER_INSTANCE * float(gl_InstanceIndex));
   float pitchRadians = radians(bendy.pitch - float(gl_InstanceIndex) * PITCH_OFFSET_PER_INSTANCE);
+
+  // Sway
+  pitchRadians += radians(sin(bendy.time) * 5.0);
 
   // Pre-calculate trigonometric values
   vec2 yawTrig = vec2(cos(yawRadians), sin(yawRadians));  // cos, sin

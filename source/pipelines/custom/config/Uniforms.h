@@ -99,6 +99,7 @@ struct MousePickingID {
 struct BendyUniform {
   float pitch;
   float bendStrength;
+  float time;
 };
 
 #endif //VULKANPROJECT_UNIFORMS_H

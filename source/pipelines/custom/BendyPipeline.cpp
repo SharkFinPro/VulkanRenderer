@@ -12,7 +12,7 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
                              const std::shared_ptr<RenderPass>& renderPass,
                              const VkCommandPool& commandPool,
                              VkDescriptorPool descriptorPool)
-  : GraphicsPipeline(logicalDevice)
+  : GraphicsPipeline(logicalDevice), m_previousTime(std::chrono::steady_clock::now())
 {
   createUniforms(commandPool);
 
@@ -91,6 +91,12 @@ void BendyPipeline::updateUniformVariables(const RenderInfo *renderInfo)
   };
 
   m_transformUniform->update(renderInfo->currentFrame, &transformUBO);
+
+  const auto currentTime = std::chrono::steady_clock::now();
+  const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count();
+  m_previousTime = currentTime;
+
+  m_bendyUBO.time += dt;
 
   m_bendyUniform->update(renderInfo->currentFrame, &m_bendyUBO);
 }
