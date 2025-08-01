@@ -99,6 +99,6 @@ void createBendyPlants(std::vector<BendyPlant>& bendyPlants)
   bendyPlants.emplace_back();
   bendyPlants.emplace_back();
 
-  bendyPlants[0].position = { 0, -4, 3 };
-  bendyPlants[1].position = { 3, -4, 3 };
+  bendyPlants[0].position = { -3, -4, 4 };
+  bendyPlants[1].position = { 3, -4, 4 };
 }
