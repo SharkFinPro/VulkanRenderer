@@ -106,6 +106,8 @@ inline void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui)
   gui->dockBottom("Smoke");
   gui->dockBottom("Snake");
 
+  gui->dockBottom("Vertices");
+
   gui->setBottomDockPercent(0.3);
 }
 

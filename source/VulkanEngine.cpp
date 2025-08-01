@@ -17,6 +17,7 @@
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 
+#include "pipelines/custom/BendyPipeline.h"
 #include "pipelines/custom/BumpyCurtain.h"
 #include "pipelines/custom/CrossesPipeline.h"
 #include "pipelines/custom/CubeMapPipeline.h"
@@ -331,6 +332,8 @@ void VulkanEngine::initVulkan()
   {
     m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
   }
+
+  m_bendyPipeline = std::make_unique<BendyPipeline>(m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool);
 }
 
 void VulkanEngine::createCommandPool()
@@ -611,6 +614,8 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
   }
 
   m_linePipeline->render(&renderInfo, m_commandPool, m_lineVerticesToRender);
+
+  m_bendyPipeline->render(&renderInfo);
 
   renderSmokeSystems(renderInfo);
 }

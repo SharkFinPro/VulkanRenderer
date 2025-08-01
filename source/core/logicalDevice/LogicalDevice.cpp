@@ -632,6 +632,7 @@ void LogicalDevice::createDevice()
 
   constexpr VkPhysicalDeviceFeatures deviceFeatures {
     .geometryShader = VK_TRUE,
+    .fillModeNonSolid = VK_TRUE,
     .samplerAnisotropy = VK_TRUE
   };
 

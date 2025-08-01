@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
+class BendyPipeline;
 class Camera;
 class CommandBuffer;
 class DotsPipeline;
@@ -139,6 +140,8 @@ private:
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<MousePicker> m_mousePicker;
+
+  std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
   void initVulkan();
   void createCommandPool();

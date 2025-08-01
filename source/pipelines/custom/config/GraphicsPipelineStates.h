@@ -102,6 +102,11 @@ namespace GraphicsPipelineStates {
     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
     .primitiveRestartEnable = VK_FALSE
   };
+  inline VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateTriangleStrip {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+    .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+    .primitiveRestartEnable = VK_FALSE
+  };
 
   inline VkPipelineInputAssemblyStateCreateInfo inputAssemblyStatePointList {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
@@ -158,6 +163,25 @@ namespace GraphicsPipelineStates {
     .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
     .depthBiasEnable = VK_FALSE,
     .lineWidth = 1.0f
+  };
+
+  inline VkPipelineRasterizationStateCreateInfo rasterizationStateOutline {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+    .depthClampEnable = VK_FALSE,
+    .rasterizerDiscardEnable = VK_FALSE,
+    .polygonMode = VK_POLYGON_MODE_LINE,
+    .cullMode = VK_CULL_MODE_NONE,
+    .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+    .depthBiasEnable = VK_FALSE,
+    .lineWidth = 1.0f
+  };
+
+  inline VkPipelineVertexInputStateCreateInfo vertexInputStateRaw {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .vertexBindingDescriptionCount = 0,
+    .pVertexBindingDescriptions = nullptr,
+    .vertexAttributeDescriptionCount = 0,
+    .pVertexAttributeDescriptions = nullptr
   };
 
   inline VkVertexInputBindingDescription vertexBindingDescription = Vertex::getBindingDescription();

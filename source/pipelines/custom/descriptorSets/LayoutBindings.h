@@ -103,6 +103,25 @@ namespace LayoutBindings {
     .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
+  constexpr VkDescriptorSetLayoutBinding MVPTransformLayout {
+    .binding = 0,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding bendyLayout {
+    .binding = 1,
+    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+  };
+
+  inline std::vector<VkDescriptorSetLayoutBinding> bendyLayoutBindings {
+    MVPTransformLayout,
+    bendyLayout
+  };
+
   constexpr VkDescriptorSetLayoutBinding magnifyWhirlMosaicLayout {
     .binding = 4,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
