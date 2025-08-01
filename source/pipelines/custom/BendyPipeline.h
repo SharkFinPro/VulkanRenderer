@@ -22,7 +22,7 @@ public:
 
 private:
   BendyUniform m_bendyUBO {
-    .pitch = 70,
+    .pitch = 77.5,
     .bendStrength = -0.07,
     .time = 0
   };
