@@ -3,7 +3,7 @@
 #include "../RenderPass.h"
 #include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../objects/RenderObject.h"
+#include "../../components/objects/RenderObject.h"
 
 ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                  const std::shared_ptr<RenderPass>& renderPass,

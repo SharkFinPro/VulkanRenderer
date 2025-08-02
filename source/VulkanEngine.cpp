@@ -14,8 +14,8 @@
 #include "components/core/logicalDevice/LogicalDevice.h"
 #include "components/core/physicalDevice/PhysicalDevice.h"
 
-#include "objects/Model.h"
-#include "objects/RenderObject.h"
+#include "components/objects/Model.h"
+#include "components/objects/RenderObject.h"
 
 #include "pipelines/custom/BendyPipeline.h"
 #include "pipelines/custom/BumpyCurtain.h"

@@ -35,6 +35,12 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/lighting/LightingManager.cpp
   components/lighting/LightingManager.h
 
+  # Objects - Renderable objects and data structures
+  components/objects/Model.cpp
+  components/objects/Model.h
+  components/objects/RenderObject.cpp
+  components/objects/RenderObject.h
+
   # Textures
   components/textures/Texture.cpp
   components/textures/Texture.h
@@ -60,14 +66,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/MousePicker.h
   components/UniformBuffer.cpp
   components/UniformBuffer.h
-)
-
-# Objects - Renderable objects and data structures
-set(VULKAN_ENGINE_SOURCES_OBJECTS
-  objects/Model.cpp
-  objects/Model.h
-  objects/RenderObject.cpp
-  objects/RenderObject.h
 )
 
 # Pipeline Infrastructure
@@ -155,7 +153,6 @@ set(VULKAN_ENGINE_SOURCES_BASE
 set(VULKAN_ENGINE_SOURCES
   ${VULKAN_ENGINE_SOURCES_CORE_COMPONENTS}
   ${VULKAN_ENGINE_SOURCES_COMPONENTS}
-  ${VULKAN_ENGINE_SOURCES_OBJECTS}
   ${VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM}
   ${VULKAN_ENGINE_SOURCES_PIPELINES}
   ${VULKAN_ENGINE_SOURCES_UTILITIES}

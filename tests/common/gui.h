@@ -3,7 +3,7 @@
 
 #include <source/components/lighting/Light.h>
 #include <source/components/ImGuiInstance.h>
-#include <source/objects/RenderObject.h>
+#include <source/components/objects/RenderObject.h>
 #include <source/pipelines/custom/BendyPipeline.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>

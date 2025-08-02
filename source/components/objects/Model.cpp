@@ -1,8 +1,8 @@
 #include "Model.h"
-#include "../components/core/commandBuffer/CommandBuffer.h"
-#include "../components/core/logicalDevice/LogicalDevice.h"
-#include "../pipelines/custom/vertexInputs/Vertex.h"
-#include "../utilities/Buffers.h"
+#include "../core/commandBuffer/CommandBuffer.h"
+#include "../core/logicalDevice/LogicalDevice.h"
+#include "../../pipelines/custom/vertexInputs/Vertex.h"
+#include "../../utilities/Buffers.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
