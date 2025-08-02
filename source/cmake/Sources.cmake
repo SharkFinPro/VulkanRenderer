@@ -84,6 +84,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
 
 # Custom Pipeline Implementations
 set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
+  pipelines/custom/BendyPipeline.cpp
+  pipelines/custom/BendyPipeline.h
   pipelines/custom/BumpyCurtain.cpp
   pipelines/custom/BumpyCurtain.h
   pipelines/custom/CrossesPipeline.cpp
