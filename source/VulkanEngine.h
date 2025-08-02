@@ -3,6 +3,7 @@
 
 #include "components/Window.h"
 #include "pipelines/custom/config/PipelineTypes.h"
+#include "pipelines/custom/BendyPipeline.h"
 #include "VulkanEngineOptions.h"
 #include <glm/mat4x4.hpp>
 #include <imgui.h>
@@ -63,6 +64,8 @@ public:
   void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);
   void renderLight(const std::shared_ptr<Light>& light) const;
   void renderLine(glm::vec3 start, glm::vec3 end);
+
+  void renderBendyPlant(const BendyPlant& bendyPlant) const;
 
   void enableCamera();
   void disableCamera();
@@ -139,6 +142,8 @@ private:
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   std::unique_ptr<MousePicker> m_mousePicker;
+
+  std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
   void initVulkan();
   void createCommandPool();

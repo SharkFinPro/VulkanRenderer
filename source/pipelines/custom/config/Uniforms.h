@@ -76,6 +76,10 @@ struct TransformUniform {
   alignas(16) glm::mat4 proj;
 };
 
+struct VPTransformUniform {
+  alignas(16) glm::mat4 vp;
+};
+
 struct ViewProjTransformUniform {
   alignas(16) glm::mat4 view;
   alignas(16) glm::mat4 proj;
@@ -90,6 +94,17 @@ struct SmokeUniform {
 
 struct MousePickingID {
   uint32_t objectID;
+};
+
+struct BendyUniform {
+  float time;
+};
+
+struct BendyPlantInfo {
+  glm::mat4 model;
+  int leafLength;
+  float pitch;
+  float bendStrength;
 };
 
 #endif //VULKANPROJECT_UNIFORMS_H

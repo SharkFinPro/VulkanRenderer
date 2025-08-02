@@ -4,10 +4,37 @@
 #include <source/components/lighting/Light.h>
 #include <source/components/ImGuiInstance.h>
 #include <source/objects/RenderObject.h>
+#include <source/pipelines/custom/BendyPipeline.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <memory>
 #include <string>
+
+inline void displayBendyPlantGui(BendyPlant& bendyPlant, const int id)
+{
+  ImGui::PushID(id);
+
+  if (ImGui::CollapsingHeader(("Bending Plant " + std::to_string(id)).c_str()))
+  {
+    ImGui::SliderInt("# Fins", &bendyPlant.numFins, 0, 35);
+    ImGui::SliderInt("Leaf Length", &bendyPlant.leafLength, 0, 10);
+    ImGui::SliderFloat3("Position", &bendyPlant.position.x, -10, 10);
+    ImGui::SliderFloat("Pitch", &bendyPlant.pitch, -90, 90);
+    ImGui::SliderFloat("Bend Strength", &bendyPlant.bendStrength, -0.5, 0.5);
+  }
+
+  ImGui::PopID();
+}
+
+inline void displayBendyPlantGuis(std::vector<BendyPlant>& bendyPlants)
+{
+  ImGui::Begin("Bendy Plants");
+  for (int i = 0; i < bendyPlants.size(); i++)
+  {
+    displayBendyPlantGui(bendyPlants[i], i);
+  }
+  ImGui::End();
+}
 
 inline void displayObjectGui(const std::shared_ptr<RenderObject>& object, const int id)
 {
@@ -93,6 +120,7 @@ inline void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui)
 {
   gui->dockCenter("SceneView");
 
+  gui->dockBottom("Bendy Plants");
   gui->dockBottom("Bumpy Curtain");
   gui->dockBottom("Chroma Depth");
   gui->dockBottom("Crosses");

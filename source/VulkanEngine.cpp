@@ -17,6 +17,7 @@
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 
+#include "pipelines/custom/BendyPipeline.h"
 #include "pipelines/custom/BumpyCurtain.h"
 #include "pipelines/custom/CrossesPipeline.h"
 #include "pipelines/custom/CubeMapPipeline.h"
@@ -180,6 +181,11 @@ void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
   m_lineVerticesToRender.push_back({end});
 }
 
+void VulkanEngine::renderBendyPlant(const BendyPlant& bendyPlant) const
+{
+  m_bendyPipeline->renderBendyPlant(bendyPlant);
+}
+
 void VulkanEngine::enableCamera()
 {
   m_useCamera = true;
@@ -331,6 +337,8 @@ void VulkanEngine::initVulkan()
   {
     m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
   }
+
+  m_bendyPipeline = std::make_unique<BendyPipeline>(m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool);
 }
 
 void VulkanEngine::createCommandPool()
@@ -612,6 +620,8 @@ void VulkanEngine::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>&
 
   m_linePipeline->render(&renderInfo, m_commandPool, m_lineVerticesToRender);
 
+  m_bendyPipeline->render(&renderInfo);
+
   renderSmokeSystems(renderInfo);
 }
 
@@ -674,6 +684,8 @@ void VulkanEngine::createNewFrame()
   m_lineVerticesToRender.clear();
 
   m_mousePicker->clearObjectsToMousePick();
+
+  m_bendyPipeline->clearBendyPlantsToRender();
 }
 
 void VulkanEngine::createDescriptorPool()
