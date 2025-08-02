@@ -2,8 +2,8 @@
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
 #include "../RenderPass.h"
-#include "../../core/commandBuffer/CommandBuffer.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../objects/RenderObject.h"
 
 MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

@@ -1,6 +1,6 @@
 #include "LightingManager.h"
 #include "Light.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../pipelines/custom/config/Uniforms.h"
 #include "../../pipelines/custom/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/custom/descriptorSets/LayoutBindings.h"

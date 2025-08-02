@@ -1,5 +1,5 @@
 #include "Pipeline.h"
-#include "../core/logicalDevice/LogicalDevice.h"
+#include "../components/core/logicalDevice/LogicalDevice.h"
 
 Pipeline::Pipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
   : m_logicalDevice(logicalDevice)

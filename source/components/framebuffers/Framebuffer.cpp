@@ -1,7 +1,7 @@
 #include "Framebuffer.h"
 #include "../SwapChain.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../components/core/physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/RenderPass.h"
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>

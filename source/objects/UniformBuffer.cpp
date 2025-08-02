@@ -1,5 +1,5 @@
 #include "UniformBuffer.h"
-#include "../core/logicalDevice/LogicalDevice.h"
+#include "../components/core/logicalDevice/LogicalDevice.h"
 #include "../utilities/Buffers.h"
 #include <cstring>
 

@@ -1,7 +1,7 @@
 #include "RenderPass.h"
-#include "../core/commandBuffer/CommandBuffer.h"
-#include "../core/logicalDevice/LogicalDevice.h"
-#include "../core/physicalDevice/PhysicalDevice.h"
+#include "../components/core/commandBuffer/CommandBuffer.h"
+#include "../components/core/logicalDevice/LogicalDevice.h"
+#include "../components/core/physicalDevice/PhysicalDevice.h"
 #include <array>
 #include <stdexcept>
 

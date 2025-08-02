@@ -4,7 +4,7 @@
 #include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/textures/Texture2D.h"
-#include "../../core/commandBuffer/CommandBuffer.h"
+#include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../objects/UniformBuffer.h"
 
 BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

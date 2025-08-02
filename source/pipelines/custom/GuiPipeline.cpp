@@ -2,8 +2,8 @@
 #include "config/GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/ImGuiInstance.h"
-#include "../../core/commandBuffer/CommandBuffer.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
 GuiPipeline::GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

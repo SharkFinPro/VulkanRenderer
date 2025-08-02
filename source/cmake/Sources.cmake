@@ -1,3 +1,24 @@
+# Core Components - Low-level API wrappers
+set(VULKAN_ENGINE_SOURCES_CORE_COMPONENTS
+  # Command Buffer Management
+  components/core/commandBuffer/CommandBuffer.cpp
+  components/core/commandBuffer/CommandBuffer.h
+
+  # Instance Management
+  components/core/instance/DebugMessenger.cpp
+  components/core/instance/DebugMessenger.h
+  components/core/instance/Instance.cpp
+  components/core/instance/Instance.h
+
+  # Logical Device Management
+  components/core/logicalDevice/LogicalDevice.cpp
+  components/core/logicalDevice/LogicalDevice.h
+
+  # Physical Device Managements
+  components/core/physicalDevice/PhysicalDevice.cpp
+  components/core/physicalDevice/PhysicalDevice.h
+)
+
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Framebuffers
@@ -35,27 +56,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/SwapChain.h
   components/Window.cpp
   components/Window.h
-)
-
-# Core - Low-level Vulkan API wrappers
-set(VULKAN_ENGINE_SOURCES_CORE
-  # Command Buffer Management
-  core/commandBuffer/CommandBuffer.cpp
-  core/commandBuffer/CommandBuffer.h
-
-  # Instance Management
-  core/instance/DebugMessenger.cpp
-  core/instance/DebugMessenger.h
-  core/instance/Instance.cpp
-  core/instance/Instance.h
-
-  # Logical Device Management
-  core/logicalDevice/LogicalDevice.cpp
-  core/logicalDevice/LogicalDevice.h
-
-  # Physical Device Managements
-  core/physicalDevice/PhysicalDevice.cpp
-  core/physicalDevice/PhysicalDevice.h
 )
 
 # Objects - Renderable objects and data structures
@@ -151,8 +151,8 @@ set(VULKAN_ENGINE_SOURCES_BASE
 
 # Combine all source groups
 set(VULKAN_ENGINE_SOURCES
+  ${VULKAN_ENGINE_SOURCES_CORE_COMPONENTS}
   ${VULKAN_ENGINE_SOURCES_COMPONENTS}
-  ${VULKAN_ENGINE_SOURCES_CORE}
   ${VULKAN_ENGINE_SOURCES_OBJECTS}
   ${VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM}
   ${VULKAN_ENGINE_SOURCES_PIPELINES}

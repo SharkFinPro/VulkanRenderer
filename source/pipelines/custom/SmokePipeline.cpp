@@ -3,8 +3,8 @@
 #include "config/Uniforms.h"
 #include "descriptorSets/DescriptorSet.h"
 #include "vertexInputs/SmokeParticle.h"
-#include "../../core/commandBuffer/CommandBuffer.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../objects/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <imgui.h>
