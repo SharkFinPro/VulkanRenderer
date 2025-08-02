@@ -3,9 +3,9 @@
 #include "descriptorSets/DescriptorSet.h"
 #include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
-#include "../../core/commandBuffer/CommandBuffer.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../objects/UniformBuffer.h"
+#include "../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../components/UniformBuffer.h"
 #include <imgui.h>
 
 SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

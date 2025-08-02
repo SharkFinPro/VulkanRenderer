@@ -1,6 +1,6 @@
 #include "Texture.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
-#include "../../core/physicalDevice/PhysicalDevice.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../components/core/physicalDevice/PhysicalDevice.h"
 #include "../../utilities/Buffers.h"
 #include <backends/imgui_impl_vulkan.h>
 #include <stdexcept>

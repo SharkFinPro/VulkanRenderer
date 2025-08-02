@@ -1,5 +1,5 @@
 #include "StandardFramebuffer.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 

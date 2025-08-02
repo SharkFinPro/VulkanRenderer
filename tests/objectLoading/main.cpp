@@ -1,5 +1,5 @@
 #include "../common/gui.h"
-#include <source/objects/RenderObject.h>
+#include <source/components/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
 #include <iostream>
 

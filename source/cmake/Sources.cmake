@@ -1,3 +1,24 @@
+# Core Components - Low-level API wrappers
+set(VULKAN_ENGINE_SOURCES_CORE_COMPONENTS
+  # Command Buffer Management
+  components/core/commandBuffer/CommandBuffer.cpp
+  components/core/commandBuffer/CommandBuffer.h
+
+  # Instance Management
+  components/core/instance/DebugMessenger.cpp
+  components/core/instance/DebugMessenger.h
+  components/core/instance/Instance.cpp
+  components/core/instance/Instance.h
+
+  # Logical Device Management
+  components/core/logicalDevice/LogicalDevice.cpp
+  components/core/logicalDevice/LogicalDevice.h
+
+  # Physical Device Managements
+  components/core/physicalDevice/PhysicalDevice.cpp
+  components/core/physicalDevice/PhysicalDevice.h
+)
+
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Framebuffers
@@ -14,6 +35,12 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/lighting/LightingManager.cpp
   components/lighting/LightingManager.h
 
+  # Objects - Renderable objects and data structures
+  components/objects/Model.cpp
+  components/objects/Model.h
+  components/objects/RenderObject.cpp
+  components/objects/RenderObject.h
+
   # Textures
   components/textures/Texture.cpp
   components/textures/Texture.h
@@ -24,6 +51,12 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/textures/TextureCubemap.cpp
   components/textures/TextureCubemap.h
 
+  # Windows
+  components/window/SwapChain.cpp
+  components/window/SwapChain.h
+  components/window/Window.cpp
+  components/window/Window.h
+
   # Core Components
   components/Camera.cpp
   components/Camera.h
@@ -31,41 +64,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/ImGuiInstance.h
   components/MousePicker.cpp
   components/MousePicker.h
-  components/SwapChain.cpp
-  components/SwapChain.h
-  components/Window.cpp
-  components/Window.h
-)
-
-# Core - Low-level Vulkan API wrappers
-set(VULKAN_ENGINE_SOURCES_CORE
-  # Command Buffer Management
-  core/commandBuffer/CommandBuffer.cpp
-  core/commandBuffer/CommandBuffer.h
-
-  # Instance Management
-  core/instance/DebugMessenger.cpp
-  core/instance/DebugMessenger.h
-  core/instance/Instance.cpp
-  core/instance/Instance.h
-
-  # Logical Device Management
-  core/logicalDevice/LogicalDevice.cpp
-  core/logicalDevice/LogicalDevice.h
-
-  # Physical Device Managements
-  core/physicalDevice/PhysicalDevice.cpp
-  core/physicalDevice/PhysicalDevice.h
-)
-
-# Objects - Renderable objects and data structures
-set(VULKAN_ENGINE_SOURCES_OBJECTS
-  objects/Model.cpp
-  objects/Model.h
-  objects/RenderObject.cpp
-  objects/RenderObject.h
-  objects/UniformBuffer.cpp
-  objects/UniformBuffer.h
+  components/UniformBuffer.cpp
+  components/UniformBuffer.h
 )
 
 # Pipeline Infrastructure
@@ -151,9 +151,8 @@ set(VULKAN_ENGINE_SOURCES_BASE
 
 # Combine all source groups
 set(VULKAN_ENGINE_SOURCES
+  ${VULKAN_ENGINE_SOURCES_CORE_COMPONENTS}
   ${VULKAN_ENGINE_SOURCES_COMPONENTS}
-  ${VULKAN_ENGINE_SOURCES_CORE}
-  ${VULKAN_ENGINE_SOURCES_OBJECTS}
   ${VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM}
   ${VULKAN_ENGINE_SOURCES_PIPELINES}
   ${VULKAN_ENGINE_SOURCES_UTILITIES}

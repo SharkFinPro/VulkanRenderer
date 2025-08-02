@@ -1,5 +1,5 @@
 #include "DescriptorSet.h"
-#include "../../../core/logicalDevice/LogicalDevice.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include <vector>
 
 DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,

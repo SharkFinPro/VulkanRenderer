@@ -1,10 +1,10 @@
 #include "RenderObject.h"
 #include "Model.h"
-#include "UniformBuffer.h"
-#include "../components/textures/Texture.h"
+#include "../UniformBuffer.h"
+#include "../textures/Texture.h"
 #include "../core/commandBuffer/CommandBuffer.h"
 #include "../core/logicalDevice/LogicalDevice.h"
-#include "../pipelines/custom/config/Uniforms.h"
+#include "../../pipelines/custom/config/Uniforms.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
 
