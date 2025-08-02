@@ -3,6 +3,7 @@
 
 #include "components/Window.h"
 #include "pipelines/custom/config/PipelineTypes.h"
+#include "pipelines/custom/BendyPipeline.h"
 #include "VulkanEngineOptions.h"
 #include <glm/mat4x4.hpp>
 #include <imgui.h>
@@ -11,9 +12,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "pipelines/custom/BendyPipeline.h"
-
-class BendyPipeline;
 class Camera;
 class CommandBuffer;
 class DotsPipeline;
