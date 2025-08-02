@@ -52,10 +52,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/ImGuiInstance.h
   components/MousePicker.cpp
   components/MousePicker.h
-  components/SwapChain.cpp
-  components/SwapChain.h
-  components/Window.cpp
-  components/Window.h
+  components/window/SwapChain.cpp
+  components/window/SwapChain.h
+  components/window/Window.cpp
+  components/window/Window.h
 )
 
 # Objects - Renderable objects and data structures

@@ -1,5 +1,5 @@
 #include "SwapchainFramebuffer.h"
-#include "../SwapChain.h"
+#include "../window/SwapChain.h"
 
 SwapchainFramebuffer::SwapchainFramebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            const std::shared_ptr<SwapChain>& swapChain,

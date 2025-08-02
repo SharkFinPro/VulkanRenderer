@@ -7,7 +7,7 @@
 #include "components/ImGuiInstance.h"
 #include "components/lighting/LightingManager.h"
 #include "components/MousePicker.h"
-#include "components/SwapChain.h"
+#include "components/window/SwapChain.h"
 
 #include "components/core/commandBuffer/CommandBuffer.h"
 #include "components/core/instance/Instance.h"

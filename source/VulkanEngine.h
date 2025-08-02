@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
-#include "components/Window.h"
+#include "components/window/Window.h"
 #include "pipelines/custom/config/PipelineTypes.h"
 #include "pipelines/custom/BendyPipeline.h"
 #include "VulkanEngineOptions.h"

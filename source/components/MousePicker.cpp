@@ -1,5 +1,5 @@
 #include "MousePicker.h"
-#include "Window.h"
+#include "window/Window.h"
 #include "framebuffers/StandardFramebuffer.h"
 #include "../components/core/commandBuffer/CommandBuffer.h"
 #include "../components/core/logicalDevice/LogicalDevice.h"

@@ -1,5 +1,5 @@
 #include "Framebuffer.h"
-#include "../SwapChain.h"
+#include "../window/SwapChain.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../components/core/physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/RenderPass.h"

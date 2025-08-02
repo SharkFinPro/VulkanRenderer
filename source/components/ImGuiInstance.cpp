@@ -1,6 +1,6 @@
 #include "ImGuiInstance.h"
 
-#include "../components/Window.h"
+#include "window/Window.h"
 #include "../components/core/commandBuffer/CommandBuffer.h"
 #include "../components/core/instance/Instance.h"
 #include "../components/core/physicalDevice/PhysicalDevice.h"
