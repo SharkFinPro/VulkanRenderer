@@ -113,7 +113,7 @@ void BendyPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
 void BendyPipeline::updateUniformVariables(const RenderInfo *renderInfo)
 {
   const VPTransformUniform transformUBO {
-    .vp = renderInfo->projectionMatrix * renderInfo->viewMatrix// * glm::translate(glm::mat4(1.0f), bendyPlant.position)
+    .vp = renderInfo->projectionMatrix * renderInfo->viewMatrix
   };
 
   m_transformUniform->update(renderInfo->currentFrame, &transformUBO);
