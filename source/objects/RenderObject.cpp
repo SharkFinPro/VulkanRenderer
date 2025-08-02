@@ -1,6 +1,6 @@
 #include "RenderObject.h"
 #include "Model.h"
-#include "UniformBuffer.h"
+#include "../components/UniformBuffer.h"
 #include "../components/textures/Texture.h"
 #include "../components/core/commandBuffer/CommandBuffer.h"
 #include "../components/core/logicalDevice/LogicalDevice.h"

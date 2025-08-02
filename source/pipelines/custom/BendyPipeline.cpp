@@ -5,7 +5,7 @@
 #include "../RenderPass.h"
 #include "../../components/textures/Texture2D.h"
 #include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../objects/UniformBuffer.h"
+#include "../../components/UniformBuffer.h"
 
 BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,

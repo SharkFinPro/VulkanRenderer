@@ -6,7 +6,7 @@
 #include "../RenderPass.h"
 #include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../objects/UniformBuffer.h"
+#include "../../components/UniformBuffer.h"
 
 TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,

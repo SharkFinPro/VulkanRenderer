@@ -6,7 +6,7 @@
 #include "../../components/textures/Texture3D.h"
 #include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../objects/UniformBuffer.h"
+#include "../../components/UniformBuffer.h"
 #include <imgui.h>
 
 BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,

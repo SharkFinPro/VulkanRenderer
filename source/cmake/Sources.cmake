@@ -45,6 +45,12 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/textures/TextureCubemap.cpp
   components/textures/TextureCubemap.h
 
+  # Windows
+  components/window/SwapChain.cpp
+  components/window/SwapChain.h
+  components/window/Window.cpp
+  components/window/Window.h
+
   # Core Components
   components/Camera.cpp
   components/Camera.h
@@ -52,10 +58,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/ImGuiInstance.h
   components/MousePicker.cpp
   components/MousePicker.h
-  components/window/SwapChain.cpp
-  components/window/SwapChain.h
-  components/window/Window.cpp
-  components/window/Window.h
+  components/UniformBuffer.cpp
+  components/UniformBuffer.h
 )
 
 # Objects - Renderable objects and data structures
@@ -64,8 +68,6 @@ set(VULKAN_ENGINE_SOURCES_OBJECTS
   objects/Model.h
   objects/RenderObject.cpp
   objects/RenderObject.h
-  objects/UniformBuffer.cpp
-  objects/UniformBuffer.h
 )
 
 # Pipeline Infrastructure

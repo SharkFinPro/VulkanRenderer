@@ -6,7 +6,7 @@
 #include "../RenderPass.h"
 #include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../objects/UniformBuffer.h"
+#include "../../components/UniformBuffer.h"
 #include <imgui.h>
 
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
