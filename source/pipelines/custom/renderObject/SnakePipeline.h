@@ -26,17 +26,10 @@ private:
   };
 
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
-  std::shared_ptr<DescriptorSet> m_snakeDescriptorSet;
-
-  std::shared_ptr<UniformBuffer> m_snakeUniform;
-
-  void createUniforms();
-
-  void createDescriptorSets(VkDescriptorPool descriptorPool);
-
-  void updateUniformVariables(const RenderInfo* renderInfo) override;
 
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
+
+  void updateUniformVariables(const RenderInfo* renderInfo) override;
 };
 
 

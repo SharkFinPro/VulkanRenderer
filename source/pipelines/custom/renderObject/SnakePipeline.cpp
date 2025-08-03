@@ -16,10 +16,6 @@ SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
   : GraphicsPipeline(logicalDevice),
     m_lightingDescriptorSet(lightingDescriptorSet)
 {
-  createUniforms();
-
-  createDescriptorSets(descriptorPool);
-
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
       .vertexShader = "assets/shaders/Snake.vert.spv",
@@ -36,10 +32,16 @@ SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .pushConstantRanges {
+      {
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        .offset = 0,
+        .size = sizeof(SnakeUniform)
+      }
+    },
     .descriptorSetLayouts {
-      m_snakeDescriptorSet->getDescriptorSetLayout(),
-      objectDescriptorSetLayout,
-      m_lightingDescriptorSet->getDescriptorSetLayout()
+      m_lightingDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -61,34 +63,14 @@ void SnakePipeline::displayGui()
   m_snakeUBO.wiggle = sin(w);
 }
 
-void SnakePipeline::createUniforms()
+void SnakePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
-  m_snakeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SnakeUniform));
-}
-
-void SnakePipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
-{
-  m_snakeDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::snakeLayoutBindings);
-  m_snakeDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
-  {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{{
-      m_snakeUniform->getDescriptorSet(4, descriptorSet, frame)
-    }};
-
-    return descriptorWrites;
-  });
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+                                                &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
 
 void SnakePipeline::updateUniformVariables(const RenderInfo* renderInfo)
 {
-  m_snakeUniform->update(renderInfo->currentFrame, &m_snakeUBO);
-}
-
-void SnakePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
-{
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &m_snakeDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
-
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
-                                                &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+  renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                           0, sizeof(SnakeUniform), &m_snakeUBO);
 }
