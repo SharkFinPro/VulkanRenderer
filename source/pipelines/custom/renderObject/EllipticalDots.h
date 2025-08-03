@@ -7,13 +7,11 @@
 
 class DescriptorSet;
 class RenderPass;
-class UniformBuffer;
 
 class EllipticalDots final : public GraphicsPipeline {
 public:
   EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  const std::shared_ptr<RenderPass>& renderPass,
-                 VkDescriptorPool descriptorPool,
                  VkDescriptorSetLayout objectDescriptorSetLayout,
                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
@@ -28,13 +26,6 @@ private:
   };
 
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
-  std::shared_ptr<DescriptorSet> m_ellipticalDotsDescriptorSet;
-
-  std::shared_ptr<UniformBuffer> m_ellipticalDotsUniform;
-
-  void createUniforms();
-
-  void createDescriptorSets(VkDescriptorPool descriptorPool);
 
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 

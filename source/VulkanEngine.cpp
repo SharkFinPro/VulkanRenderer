@@ -278,8 +278,7 @@ void VulkanEngine::initVulkan()
     m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout);
 
   m_pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
-    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
-    m_lightingManager->getLightingDescriptorSet());
+    m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout, m_lightingManager->getLightingDescriptorSet());
 
   m_pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
     m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, m_objectDescriptorSetLayout,
