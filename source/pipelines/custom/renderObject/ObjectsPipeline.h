@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_OBJECTSPIPELINE_H
 #define VULKANPROJECT_OBJECTSPIPELINE_H
 
-#include "../GraphicsPipeline.h"
+#include "../../GraphicsPipeline.h"
 #include <memory>
 
 class DescriptorSet;

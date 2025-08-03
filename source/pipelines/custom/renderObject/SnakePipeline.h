@@ -1,8 +1,8 @@
 #ifndef SNAKEPIPELINE_H
 #define SNAKEPIPELINE_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 

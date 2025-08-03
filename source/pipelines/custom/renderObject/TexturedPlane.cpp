@@ -1,12 +1,12 @@
 #include "TexturedPlane.h"
-#include "config/GraphicsPipelineStates.h"
-#include "config/Uniforms.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../config/Uniforms.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
 
 TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,

@@ -1,8 +1,8 @@
 #ifndef MAGNIFYWHIRLMOSAIC_H
 #define MAGNIFYWHIRLMOSAIC_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 

@@ -1,8 +1,8 @@
 #ifndef CUBEMAPPIPELINE_H
 #define CUBEMAPPIPELINE_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 
 class DescriptorSet;
 class RenderPass;

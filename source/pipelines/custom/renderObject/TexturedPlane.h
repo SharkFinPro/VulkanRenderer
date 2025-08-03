@@ -1,7 +1,7 @@
 #ifndef TEXTUREDPLANE_H
 #define TEXTUREDPLANE_H
 
-#include "../GraphicsPipeline.h"
+#include "../../GraphicsPipeline.h"
 #include <memory>
 
 class DescriptorSet;

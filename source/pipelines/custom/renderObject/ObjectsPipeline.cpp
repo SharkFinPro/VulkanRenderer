@@ -1,9 +1,9 @@
 #include "ObjectsPipeline.h"
-#include "config/GraphicsPipelineStates.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
 ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

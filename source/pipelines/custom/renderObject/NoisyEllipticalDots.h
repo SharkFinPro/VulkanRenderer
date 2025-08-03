@@ -1,8 +1,8 @@
 #ifndef NOISYELLIPTICALDOTS_H
 #define NOISYELLIPTICALDOTS_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 
 class DescriptorSet;
 class RenderPass;

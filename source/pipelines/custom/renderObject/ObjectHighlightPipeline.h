@@ -1,7 +1,7 @@
 #ifndef OBJECTHIGHLIGHTPIPELINE_H
 #define OBJECTHIGHLIGHTPIPELINE_H
 
-#include "../GraphicsPipeline.h"
+#include "../../GraphicsPipeline.h"
 
 class RenderPass;
 
@@ -14,7 +14,7 @@ public:
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
 private:
-  VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   void loadGraphicsShaders() override;
 

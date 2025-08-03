@@ -1,12 +1,12 @@
 #include "MagnifyWhirlMosaicPipeline.h"
-#include "config/GraphicsPipelineStates.h"
-#include "config/Uniforms.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../config/Uniforms.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

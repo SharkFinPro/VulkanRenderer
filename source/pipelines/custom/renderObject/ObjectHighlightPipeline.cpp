@@ -1,14 +1,14 @@
 #include "ObjectHighlightPipeline.h"
-#include "config/GraphicsPipelineStates.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/objects/RenderObject.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/objects/RenderObject.h"
 
 ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                  const std::shared_ptr<RenderPass>& renderPass,
                                                  VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice), m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
   createPipeline(renderPass->getRenderPass());
 }
@@ -41,7 +41,7 @@ void ObjectHighlightPipeline::loadGraphicsShaders()
 
 void ObjectHighlightPipeline::loadGraphicsDescriptorSetLayouts()
 {
-  loadDescriptorSetLayout(objectDescriptorSetLayout);
+  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }
 
 void ObjectHighlightPipeline::defineStates()
