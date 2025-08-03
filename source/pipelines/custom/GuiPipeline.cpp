@@ -42,8 +42,6 @@ void GuiPipeline::render(const RenderInfo* renderInfo)
 {
   GraphicsPipeline::render(renderInfo, nullptr);
 
-  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-
   ImGui::Render();
   ImGuiInstance::renderDrawData(renderInfo->commandBuffer);
 }
