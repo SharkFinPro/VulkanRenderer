@@ -2,7 +2,7 @@
 #define MOUSEPICKER_H
 
 #include "../pipelines/custom/config/PipelineTypes.h"
-#include "../pipelines/custom/MousePickingPipeline.h"
+#include "../pipelines/custom/renderObject/MousePickingPipeline.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>

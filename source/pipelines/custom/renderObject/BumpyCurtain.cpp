@@ -1,12 +1,12 @@
 #include "BumpyCurtain.h"
-#include "config/GraphicsPipelineStates.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/textures/Texture3D.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/textures/Texture3D.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -23,7 +23,30 @@ BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/Curtain.vert.spv",
+      .fragmentShader = "assets/shaders/BumpyCurtain.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_bumpyCurtainDescriptorSet->getDescriptorSetLayout(),
+      m_objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 }
 
 void BumpyCurtain::displayGui()
@@ -40,31 +63,6 @@ void BumpyCurtain::displayGui()
   ImGui::SliderFloat("Noise Frequency", &m_noiseOptionsUBO.frequency, 0.1f, 10.0f);
 
   ImGui::End();
-}
-
-void BumpyCurtain::loadGraphicsShaders()
-{
-  createShader("assets/shaders/Curtain.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/BumpyCurtain.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void BumpyCurtain::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_bumpyCurtainDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
-}
-
-void BumpyCurtain::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)

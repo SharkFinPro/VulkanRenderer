@@ -1,49 +1,46 @@
 #include "TexturedPlane.h"
-#include "config/GraphicsPipelineStates.h"
-#include "config/Uniforms.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../config/Uniforms.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
 
 TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
                              const VkDescriptorPool descriptorPool,
                              const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice)
 {
   createUniforms();
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
-}
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/TexturedPlane.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_texturedPlaneDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
 
-void TexturedPlane::loadGraphicsShaders()
-{
-  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/TexturedPlane.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void TexturedPlane::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_texturedPlaneDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-}
-
-void TexturedPlane::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
+  createPipeline(graphicsPipelineOptions);
 }
 
 void TexturedPlane::createUniforms()

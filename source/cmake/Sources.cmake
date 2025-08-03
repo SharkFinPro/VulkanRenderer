@@ -84,40 +84,43 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
 
 # Custom Pipeline Implementations
 set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
+  # RenderObject Pipelines
+  pipelines/custom/renderObject/BumpyCurtain.cpp
+  pipelines/custom/renderObject/BumpyCurtain.h
+  pipelines/custom/renderObject/CrossesPipeline.cpp
+  pipelines/custom/renderObject/CrossesPipeline.h
+  pipelines/custom/renderObject/CubeMapPipeline.cpp
+  pipelines/custom/renderObject/CubeMapPipeline.h
+  pipelines/custom/renderObject/CurtainPipeline.cpp
+  pipelines/custom/renderObject/CurtainPipeline.h
+  pipelines/custom/renderObject/EllipticalDots.cpp
+  pipelines/custom/renderObject/EllipticalDots.h
+  pipelines/custom/renderObject/MagnifyWhirlMosaicPipeline.cpp
+  pipelines/custom/renderObject/MagnifyWhirlMosaicPipeline.h
+  pipelines/custom/renderObject/MousePickingPipeline.cpp
+  pipelines/custom/renderObject/MousePickingPipeline.h
+  pipelines/custom/renderObject/NoisyEllipticalDots.cpp
+  pipelines/custom/renderObject/NoisyEllipticalDots.h
+  pipelines/custom/renderObject/ObjectHighlightPipeline.cpp
+  pipelines/custom/renderObject/ObjectHighlightPipeline.h
+  pipelines/custom/renderObject/ObjectsPipeline.cpp
+  pipelines/custom/renderObject/ObjectsPipeline.h
+  pipelines/custom/renderObject/SnakePipeline.cpp
+  pipelines/custom/renderObject/SnakePipeline.h
+  pipelines/custom/renderObject/TexturedPlane.cpp
+  pipelines/custom/renderObject/TexturedPlane.h
+
+  # Other Pipelines
   pipelines/custom/BendyPipeline.cpp
   pipelines/custom/BendyPipeline.h
-  pipelines/custom/BumpyCurtain.cpp
-  pipelines/custom/BumpyCurtain.h
-  pipelines/custom/CrossesPipeline.cpp
-  pipelines/custom/CrossesPipeline.h
-  pipelines/custom/CubeMapPipeline.cpp
-  pipelines/custom/CubeMapPipeline.h
-  pipelines/custom/CurtainPipeline.cpp
-  pipelines/custom/CurtainPipeline.h
   pipelines/custom/DotsPipeline.cpp
   pipelines/custom/DotsPipeline.h
-  pipelines/custom/EllipticalDots.cpp
-  pipelines/custom/EllipticalDots.h
   pipelines/custom/GuiPipeline.cpp
   pipelines/custom/GuiPipeline.h
   pipelines/custom/LinePipeline.cpp
   pipelines/custom/LinePipeline.h
-  pipelines/custom/MagnifyWhirlMosaicPipeline.cpp
-  pipelines/custom/MagnifyWhirlMosaicPipeline.h
-  pipelines/custom/MousePickingPipeline.cpp
-  pipelines/custom/MousePickingPipeline.h
-  pipelines/custom/NoisyEllipticalDots.cpp
-  pipelines/custom/NoisyEllipticalDots.h
-  pipelines/custom/ObjectHighlightPipeline.cpp
-  pipelines/custom/ObjectHighlightPipeline.h
-  pipelines/custom/ObjectsPipeline.cpp
-  pipelines/custom/ObjectsPipeline.h
   pipelines/custom/SmokePipeline.cpp
   pipelines/custom/SmokePipeline.h
-  pipelines/custom/SnakePipeline.cpp
-  pipelines/custom/SnakePipeline.h
-  pipelines/custom/TexturedPlane.cpp
-  pipelines/custom/TexturedPlane.h
 
   # Configuration and State Headers
   pipelines/custom/config/GraphicsPipelineStates.h

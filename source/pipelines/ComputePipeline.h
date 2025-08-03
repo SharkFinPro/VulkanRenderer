@@ -14,6 +14,8 @@ public:
 protected:
   std::unique_ptr<ShaderModule> m_shaderModule;
 
+  std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
+
   void createShader(const char* filename);
 
   virtual void loadComputeShaders() = 0;

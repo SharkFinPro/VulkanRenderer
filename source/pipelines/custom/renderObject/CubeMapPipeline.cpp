@@ -1,13 +1,13 @@
 #include "CubeMapPipeline.h"
-#include "config/GraphicsPipelineStates.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/textures/TextureCubemap.h"
-#include "../../components/textures/Texture3D.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/textures/TextureCubemap.h"
+#include "../../../components/textures/Texture3D.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -15,14 +15,35 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const VkCommandPool& commandPool,
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice)
 {
   createUniforms(commandPool);
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/CubeMap.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_cubeMapDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 }
 
 void CubeMapPipeline::displayGui()
@@ -39,30 +60,6 @@ void CubeMapPipeline::displayGui()
   ImGui::SliderFloat("Noise Frequency", &m_noiseOptionsUBO.frequency, 0.0f, 0.5f);
 
   ImGui::End();
-}
-
-void CubeMapPipeline::loadGraphicsShaders()
-{
-  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/CubeMap.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void CubeMapPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_cubeMapDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-}
-
-void CubeMapPipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)

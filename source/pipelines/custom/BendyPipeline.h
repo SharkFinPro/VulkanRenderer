@@ -48,14 +48,6 @@ private:
 
   std::vector<BendyPlant> m_bendyPlantsToRender;
 
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
-
-  void definePushConstants();
-
   void createUniforms(const VkCommandPool& commandPool);
 
   void createDescriptorSets(VkDescriptorPool descriptorPool);

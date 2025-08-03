@@ -1,11 +1,11 @@
 #include "CurtainPipeline.h"
-#include "config/GraphicsPipelineStates.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -14,14 +14,36 @@ CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
                                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms();
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/Curtain.vert.spv",
+      .fragmentShader = "assets/shaders/Curtain.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_curtainDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 }
 
 void CurtainPipeline::displayGui()
@@ -33,31 +55,6 @@ void CurtainPipeline::displayGui()
   ImGui::SliderFloat("Shininess", &m_curtainUBO.shininess, 1.0f, 100.0f);
 
   ImGui::End();
-}
-
-void CurtainPipeline::loadGraphicsShaders()
-{
-  createShader("assets/shaders/Curtain.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/Curtain.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void CurtainPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_curtainDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
-}
-
-void CurtainPipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void CurtainPipeline::createUniforms()

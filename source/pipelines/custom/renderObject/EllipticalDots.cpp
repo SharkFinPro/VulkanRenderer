@@ -1,11 +1,11 @@
 #include "EllipticalDots.h"
-#include "config/GraphicsPipelineStates.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -14,14 +14,36 @@ EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevi
                                const VkDescriptorSetLayout objectDescriptorSetLayout,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms();
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/EllipticalDots.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_ellipticalDotsDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 }
 
 void EllipticalDots::displayGui()
@@ -34,31 +56,6 @@ void EllipticalDots::displayGui()
   ImGui::SliderFloat("blendFactor", &m_ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
 
   ImGui::End();
-}
-
-void EllipticalDots::loadGraphicsShaders()
-{
-  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/EllipticalDots.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void EllipticalDots::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_ellipticalDotsDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
-}
-
-void EllipticalDots::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void EllipticalDots::createUniforms()

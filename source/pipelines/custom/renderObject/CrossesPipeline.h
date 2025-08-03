@@ -1,8 +1,8 @@
 #ifndef CROSSESPIPELINE_H
 #define CROSSESPIPELINE_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 
@@ -41,17 +41,9 @@ private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
   std::shared_ptr<DescriptorSet> m_crossesDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_crossesUniform;
 
   std::shared_ptr<UniformBuffer> m_chromaDepthUniform;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms();
 

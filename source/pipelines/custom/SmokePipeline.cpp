@@ -66,7 +66,30 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
   createDescriptorSets(descriptorPool);
 
   ComputePipeline::createPipeline();
-  GraphicsPipeline::createPipeline(renderPass);
+
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/Smoke.vert.spv",
+      .fragmentShader = "assets/shaders/Smoke.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendStateSmoke,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStatePointList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateSmokeParticle,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_smokeDescriptorSet->getDescriptorSetLayout(),
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
+    .renderPass = renderPass
+  };
+
+  GraphicsPipeline::createPipeline(graphicsPipelineOptions);
 }
 
 SmokePipeline::~SmokePipeline()
@@ -118,30 +141,6 @@ void SmokePipeline::loadComputeShaders()
 void SmokePipeline::loadComputeDescriptorSetLayouts()
 {
   ComputePipeline::loadDescriptorSetLayout(m_smokeDescriptorSet->getDescriptorSetLayout());
-}
-
-void SmokePipeline::loadGraphicsDescriptorSetLayouts()
-{
-  GraphicsPipeline::loadDescriptorSetLayout(m_smokeDescriptorSet->getDescriptorSetLayout());
-  GraphicsPipeline::loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
-}
-
-void SmokePipeline::loadGraphicsShaders()
-{
-  GraphicsPipeline::createShader("assets/shaders/Smoke.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  GraphicsPipeline::createShader("assets/shaders/Smoke.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void SmokePipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendStateSmoke);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStatePointList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateSmokeParticle);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void SmokePipeline::createUniforms()

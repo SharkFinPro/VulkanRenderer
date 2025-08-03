@@ -1,8 +1,8 @@
 #ifndef CUBEMAPPIPELINE_H
 #define CUBEMAPPIPELINE_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 
 class DescriptorSet;
 class RenderPass;
@@ -34,8 +34,6 @@ private:
 
   std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_cameraUniform;
   std::shared_ptr<UniformBuffer> m_cubeMapUniform;
   std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
@@ -43,12 +41,6 @@ private:
 
   std::shared_ptr<TextureCubemap> m_reflectUnit;
   std::shared_ptr<TextureCubemap> m_refractUnit;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms(const VkCommandPool& commandPool);
 

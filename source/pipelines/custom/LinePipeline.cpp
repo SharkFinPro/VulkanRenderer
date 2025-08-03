@@ -19,7 +19,28 @@ LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/Line.vert.spv",
+      .fragmentShader = "assets/shaders/Line.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateLineList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateLineVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_lineDescriptorSet->getDescriptorSetLayout()
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 
   createVertexBuffer();
 }
@@ -59,29 +80,6 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
   renderInfo->commandBuffer->bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
 
   renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-}
-
-void LinePipeline::loadGraphicsShaders()
-{
-  createShader("assets/shaders/Line.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/Line.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void LinePipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_lineDescriptorSet->getDescriptorSetLayout());
-}
-
-void LinePipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateLineList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateLineVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void LinePipeline::createUniforms()

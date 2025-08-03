@@ -1,8 +1,8 @@
 #ifndef BUMPYCURTAIN_H
 #define BUMPYCURTAIN_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 
@@ -42,12 +42,6 @@ private:
   std::shared_ptr<UniformBuffer> m_curtainUniform;
   std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
   std::shared_ptr<Texture3D> m_noiseTexture;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms(const VkCommandPool& commandPool);
 

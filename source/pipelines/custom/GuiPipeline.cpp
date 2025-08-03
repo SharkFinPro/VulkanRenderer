@@ -10,7 +10,25 @@ GuiPipeline::GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<RenderPass>& renderPass, const uint32_t maxImGuiTextures)
   : GraphicsPipeline(logicalDevice)
 {
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/ui.vert.spv",
+      .fragmentShader = "assets/shaders/ui.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 
   createDescriptorPool(maxImGuiTextures);
 }
@@ -28,24 +46,6 @@ void GuiPipeline::render(const RenderInfo* renderInfo)
 
   ImGui::Render();
   ImGuiInstance::renderDrawData(renderInfo->commandBuffer);
-}
-
-void GuiPipeline::loadGraphicsShaders()
-{
-  createShader("assets/shaders/ui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/ui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void GuiPipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void GuiPipeline::createDescriptorPool(const uint32_t maxImGuiTextures)

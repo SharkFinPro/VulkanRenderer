@@ -1,8 +1,8 @@
 #ifndef ELLIPTICALDOTS_H
 #define ELLIPTICALDOTS_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 #include <memory>
 
 class DescriptorSet;
@@ -30,15 +30,7 @@ private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
   std::shared_ptr<DescriptorSet> m_ellipticalDotsDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_ellipticalDotsUniform;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms();
 

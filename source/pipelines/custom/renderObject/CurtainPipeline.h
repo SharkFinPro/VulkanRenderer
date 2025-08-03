@@ -1,8 +1,8 @@
 #ifndef CURTAINPIPELINE_H
 #define CURTAINPIPELINE_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 
 class DescriptorSet;
 class RenderPass;
@@ -28,15 +28,7 @@ private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
   std::shared_ptr<DescriptorSet> m_curtainDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_curtainUniform;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms();
 

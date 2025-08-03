@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_OBJECTSPIPELINE_H
 #define VULKANPROJECT_OBJECTSPIPELINE_H
 
-#include "../GraphicsPipeline.h"
+#include "../../GraphicsPipeline.h"
 #include <memory>
 
 class DescriptorSet;
@@ -17,13 +17,6 @@ public:
 
 private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };

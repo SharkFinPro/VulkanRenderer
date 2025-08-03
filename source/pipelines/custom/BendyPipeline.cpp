@@ -13,13 +13,39 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
                              VkDescriptorPool descriptorPool)
   : GraphicsPipeline(logicalDevice), m_previousTime(std::chrono::steady_clock::now())
 {
-  definePushConstants();
-
   createUniforms(commandPool);
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/Bendy.vert.spv",
+      .fragmentShader = "assets/shaders/Bendy.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendStateBendy,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
+      .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .pushConstantRanges {
+      {
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .offset = 0,
+        .size = sizeof(BendyPlantInfo)
+      }
+    },
+    .descriptorSetLayouts {
+      m_BendyPipelineDescriptorSet->getDescriptorSetLayout(),
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 }
 
 void BendyPipeline::render(const RenderInfo* renderInfo)
@@ -50,40 +76,6 @@ void BendyPipeline::renderBendyPlant(const BendyPlant& bendyPlant)
 void BendyPipeline::clearBendyPlantsToRender()
 {
   m_bendyPlantsToRender.clear();
-}
-
-void BendyPipeline::loadGraphicsShaders()
-{
-  createShader("assets/shaders/Bendy.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/Bendy.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void BendyPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_BendyPipelineDescriptorSet->getDescriptorSetLayout());
-}
-
-void BendyPipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendStateBendy);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleStrip);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleStateAlpha(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateRaw);
-  defineViewportState(GraphicsPipelineStates::viewportState);
-}
-
-void BendyPipeline::definePushConstants()
-{
-  constexpr VkPushConstantRange bendyPlantPushConstant {
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-    .offset = 0,
-    .size = sizeof(BendyPlantInfo)
-  };
-
-  definePushConstantRange(bendyPlantPushConstant);
 }
 
 void BendyPipeline::createUniforms(const VkCommandPool& commandPool)

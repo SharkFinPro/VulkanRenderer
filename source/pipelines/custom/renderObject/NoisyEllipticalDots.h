@@ -1,8 +1,8 @@
 #ifndef NOISYELLIPTICALDOTS_H
 #define NOISYELLIPTICALDOTS_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 
 class DescriptorSet;
 class RenderPass;
@@ -36,17 +36,9 @@ private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
   std::shared_ptr<DescriptorSet> m_noisyEllipticalDotsDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_ellipticalDotsUniform;
   std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
   std::shared_ptr<Texture3D> m_noiseTexture;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms(const VkCommandPool& commandPool);
 

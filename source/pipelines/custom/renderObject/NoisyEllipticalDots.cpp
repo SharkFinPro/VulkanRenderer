@@ -1,12 +1,12 @@
 #include "NoisyEllipticalDots.h"
-#include "config/GraphicsPipelineStates.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
-#include "../../components/textures/Texture3D.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/UniformBuffer.h"
+#include "../../../components/textures/Texture3D.h"
 #include <imgui.h>
 
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -16,14 +16,36 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& l
                                          const VkDescriptorSetLayout objectDescriptorSetLayout,
                                          const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms(commandPool);
 
   createDescriptorSets(descriptorPool);
 
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/NoisyEllipticalDots.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_noisyEllipticalDotsDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 }
 
 void NoisyEllipticalDots::displayGui()
@@ -41,31 +63,6 @@ void NoisyEllipticalDots::displayGui()
   ImGui::SliderFloat("Noise Frequency", &m_noiseOptionsUBO.frequency, 0.0f, 10.0f);
 
   ImGui::End();
-}
-
-void NoisyEllipticalDots::loadGraphicsShaders()
-{
-  createShader("assets/shaders/StandardObject.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/NoisyEllipticalDots.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void NoisyEllipticalDots::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_noisyEllipticalDotsDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
-}
-
-void NoisyEllipticalDots::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)

@@ -1,8 +1,8 @@
 #ifndef MAGNIFYWHIRLMOSAIC_H
 #define MAGNIFYWHIRLMOSAIC_H
 
-#include "config/Uniforms.h"
-#include "../GraphicsPipeline.h"
+#include "../config/Uniforms.h"
+#include "../../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 
@@ -31,16 +31,8 @@ private:
 
   std::shared_ptr<DescriptorSet> m_magnifyWhirlMosaicDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_cameraUniform;
   std::shared_ptr<UniformBuffer> m_magnifyWhirlMosaicUniform;
-
-  void loadGraphicsShaders() override;
-
-  void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms();
 
