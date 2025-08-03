@@ -4,9 +4,7 @@
 #include "../../GraphicsPipeline.h"
 #include <memory>
 
-class DescriptorSet;
 class RenderPass;
-class UniformBuffer;
 
 class TexturedPlane final : public GraphicsPipeline {
 public:

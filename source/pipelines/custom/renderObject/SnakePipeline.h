@@ -8,7 +8,6 @@
 
 class DescriptorSet;
 class RenderPass;
-class UniformBuffer;
 
 class SnakePipeline final : public GraphicsPipeline {
 public:
