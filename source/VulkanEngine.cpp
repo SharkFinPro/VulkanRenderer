@@ -297,7 +297,7 @@ void VulkanEngine::initVulkan()
     m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, m_objectDescriptorSetLayout);
 
   m_pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
-    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout);
+    m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout);
 
   m_pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
     m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout);
