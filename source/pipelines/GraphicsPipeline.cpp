@@ -1,5 +1,4 @@
 #include "GraphicsPipeline.h"
-#include "ShaderModule.h"
 #include "../components/core/commandBuffer/CommandBuffer.h"
 #include "../components/core/logicalDevice/LogicalDevice.h"
 #include "../components/objects/RenderObject.h"
