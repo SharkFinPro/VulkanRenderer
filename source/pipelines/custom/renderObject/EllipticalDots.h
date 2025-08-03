@@ -34,11 +34,7 @@ private:
 
   std::shared_ptr<UniformBuffer> m_ellipticalDotsUniform;
 
-  void loadGraphicsShaders() override;
-
   void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms();
 

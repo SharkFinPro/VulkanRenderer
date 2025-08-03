@@ -16,11 +16,7 @@ public:
 private:
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  void loadGraphicsShaders() override;
-
   void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 };
 
 

@@ -17,22 +17,23 @@
 #include "components/objects/Model.h"
 #include "components/objects/RenderObject.h"
 
-#include "pipelines/custom/BendyPipeline.h"
 #include "pipelines/custom/renderObject/BumpyCurtain.h"
 #include "pipelines/custom/renderObject/CrossesPipeline.h"
 #include "pipelines/custom/renderObject/CubeMapPipeline.h"
 #include "pipelines/custom/renderObject/CurtainPipeline.h"
-#include "pipelines/custom/DotsPipeline.h"
 #include "pipelines/custom/renderObject/EllipticalDots.h"
-#include "pipelines/custom/GuiPipeline.h"
-#include "pipelines/custom/LinePipeline.h"
 #include "pipelines/custom/renderObject/MagnifyWhirlMosaicPipeline.h"
 #include "pipelines/custom/renderObject/NoisyEllipticalDots.h"
 #include "pipelines/custom/renderObject/ObjectHighlightPipeline.h"
 #include "pipelines/custom/renderObject/ObjectsPipeline.h"
-#include "pipelines/custom/SmokePipeline.h"
 #include "pipelines/custom/renderObject/SnakePipeline.h"
 #include "pipelines/custom/renderObject/TexturedPlane.h"
+
+#include "pipelines/custom/BendyPipeline.h"
+#include "pipelines/custom/DotsPipeline.h"
+#include "pipelines/custom/GuiPipeline.h"
+#include "pipelines/custom/LinePipeline.h"
+#include "pipelines/custom/SmokePipeline.h"
 
 #include "pipelines/RenderPass.h"
 

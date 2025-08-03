@@ -11,9 +11,32 @@ MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>&
                                            VkDescriptorSetLayout objectDescriptorSetLayout)
   : GraphicsPipeline(logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
-  definePushConstants();
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/MousePicking.vert.spv",
+      .fragmentShader = "assets/shaders/MousePicking.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendState,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::multisampleStateNone,
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .pushConstantRanges {
+      {
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .offset = 0,
+        .size = sizeof(MousePickingID)
+      }
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
 
-  createPipeline(renderPass->getRenderPass());
+  createPipeline(graphicsPipelineOptions);
 }
 
 void MousePickingPipeline::render(const RenderInfo* renderInfo,
@@ -43,36 +66,7 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
   }
 }
 
-void MousePickingPipeline::loadGraphicsShaders()
-{
-  createShader("assets/shaders/MousePicking.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/MousePicking.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
 void MousePickingPipeline::loadGraphicsDescriptorSetLayouts()
 {
   loadDescriptorSetLayout(objectDescriptorSetLayout);
-}
-
-void MousePickingPipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendState);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::multisampleStateNone);
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
-}
-
-void MousePickingPipeline::definePushConstants()
-{
-  constexpr VkPushConstantRange objectID {
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-    .offset = 0,
-    .size = sizeof(MousePickingID)
-  };
-
-  definePushConstantRange(objectID);
 }

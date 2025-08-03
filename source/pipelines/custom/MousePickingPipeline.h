@@ -16,13 +16,7 @@ public:
 private:
   VkDescriptorSetLayout objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  void loadGraphicsShaders() override;
-
   void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
-
-  void definePushConstants();
 };
 
 

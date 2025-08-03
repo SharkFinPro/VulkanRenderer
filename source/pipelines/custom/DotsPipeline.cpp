@@ -46,7 +46,33 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
   createDescriptorSets(descriptorPool);
 
   ComputePipeline::createPipeline();
-  GraphicsPipeline::createPipeline(renderPass);
+
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/dots.vert.spv",
+      .fragmentShader = "assets/shaders/dots.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendStateDots,
+      .depthStencilState = GraphicsPipelineStates::depthStencilStateNone,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStatePointList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateParticle,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(MousePickingID)
+        }
+    },
+    .renderPass = renderPass
+  };
+
+  GraphicsPipeline::createPipeline(graphicsPipelineOptions);
 }
 
 DotsPipeline::~DotsPipeline()
@@ -85,24 +111,6 @@ void DotsPipeline::loadComputeShaders()
 void DotsPipeline::loadComputeDescriptorSetLayouts()
 {
   ComputePipeline::loadDescriptorSetLayout(m_dotsDescriptorSet->getDescriptorSetLayout());
-}
-
-void DotsPipeline::loadGraphicsShaders()
-{
-  GraphicsPipeline::createShader("assets/shaders/dots.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  GraphicsPipeline::createShader("assets/shaders/dots.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
-void DotsPipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendStateDots);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilStateNone);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStatePointList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateNoCull);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateParticle);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }
 
 void DotsPipeline::createUniforms()

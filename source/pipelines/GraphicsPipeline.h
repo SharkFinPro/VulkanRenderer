@@ -8,10 +8,10 @@
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <string>
 #include <vector>
 
 class CommandBuffer;
-class Light;
 class RenderObject;
 
 struct RenderInfo {
@@ -42,6 +42,75 @@ struct RenderInfo {
   }
 };
 
+struct GraphicsPipelineOptions {
+  struct {
+    std::string vertexShader;
+    std::string geometryShader;
+    std::string tesselationControlShader;
+    std::string tesselationEvaluationShader;
+    std::string fragmentShader;
+
+    [[nodiscard]] std::vector<ShaderModule> getShaderModules(const std::shared_ptr<LogicalDevice>& logicalDevice) const
+    {
+      std::vector<ShaderModule> shaderModules;
+      if (!vertexShader.empty())
+      {
+        shaderModules.emplace_back(logicalDevice, vertexShader.c_str(), VK_SHADER_STAGE_VERTEX_BIT);
+      }
+
+      if (!fragmentShader.empty())
+      {
+        shaderModules.emplace_back(logicalDevice, fragmentShader.c_str(), VK_SHADER_STAGE_FRAGMENT_BIT);
+      }
+
+      if (!geometryShader.empty())
+      {
+        shaderModules.emplace_back(logicalDevice, geometryShader.c_str(), VK_SHADER_STAGE_GEOMETRY_BIT);
+      }
+
+      if (!tesselationControlShader.empty())
+      {
+        shaderModules.emplace_back(logicalDevice, tesselationControlShader.c_str(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
+      }
+
+      if (!tesselationEvaluationShader.empty())
+      {
+        shaderModules.emplace_back(logicalDevice, tesselationEvaluationShader.c_str(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
+      }
+
+      return std::move(shaderModules);
+    }
+
+    static std::vector<VkPipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
+    {
+      std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
+
+      for (const auto& shaderModule : shaderModules)
+      {
+        pipelineShaderStageCreateInfos.push_back(shaderModule.getShaderStageCreateInfo());
+      }
+
+      return std::move(pipelineShaderStageCreateInfos);
+    }
+  } shaders;
+
+  struct {
+    VkPipelineColorBlendStateCreateInfo colorBlendState{};
+    VkPipelineDepthStencilStateCreateInfo depthStencilState{};
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
+    VkPipelineMultisampleStateCreateInfo multisampleState{};
+    VkPipelineRasterizationStateCreateInfo rasterizationState{};
+    VkPipelineTessellationStateCreateInfo tessellationState{};
+    VkPipelineVertexInputStateCreateInfo vertexInputState{};
+    VkPipelineViewportStateCreateInfo viewportState{};
+  } states;
+
+  std::vector<VkPushConstantRange> pushConstantRanges;
+
+  VkRenderPass renderPass;
+};
+
 class GraphicsPipeline : public Pipeline {
 public:
   explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
@@ -49,59 +118,16 @@ public:
   virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects);
 
 protected:
-  std::vector<std::unique_ptr<ShaderModule>> m_shaderModules;
-
-  void createShader(const char* filename, VkShaderStageFlagBits stage);
-
-  virtual void loadGraphicsShaders() = 0;
-
   void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
   virtual void loadGraphicsDescriptorSetLayouts() {}
 
-  void createPipelineLayout();
+  void createPipelineLayout(const std::vector<VkPushConstantRange>& pushConstantRanges);
 
-  void createPipeline(const VkRenderPass& renderPass);
-
-  void defineColorBlendState(const VkPipelineColorBlendStateCreateInfo& state);
-
-  void defineDepthStencilState(const VkPipelineDepthStencilStateCreateInfo& state);
-
-  void defineDynamicState(const VkPipelineDynamicStateCreateInfo& state);
-
-  void defineInputAssemblyState(const VkPipelineInputAssemblyStateCreateInfo& state);
-
-  void defineMultisampleState(const VkPipelineMultisampleStateCreateInfo& state);
-
-  void defineRasterizationState(const VkPipelineRasterizationStateCreateInfo& state);
-
-  void defineTessellationState(const VkPipelineTessellationStateCreateInfo& state);
-
-  void defineVertexInputState(const VkPipelineVertexInputStateCreateInfo& state);
-
-  void defineViewportState(const VkPipelineViewportStateCreateInfo& state);
-
-  virtual void defineStates() = 0;
+  void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
   virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
 
   virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
-
-  void definePushConstantRange(VkPushConstantRange range);
-
-private:
-  std::unique_ptr<VkPipelineColorBlendStateCreateInfo> m_colorBlendState{};
-  std::unique_ptr<VkPipelineDepthStencilStateCreateInfo> m_depthStencilState{};
-  std::unique_ptr<VkPipelineDynamicStateCreateInfo> m_dynamicState{};
-  std::unique_ptr<VkPipelineInputAssemblyStateCreateInfo> m_inputAssemblyState{};
-  std::unique_ptr<VkPipelineMultisampleStateCreateInfo> m_multisampleState{};
-  std::unique_ptr<VkPipelineRasterizationStateCreateInfo> m_rasterizationState{};
-  std::unique_ptr<VkPipelineTessellationStateCreateInfo> m_tessellationState{};
-  std::unique_ptr<VkPipelineVertexInputStateCreateInfo> m_vertexInputState{};
-  std::unique_ptr<VkPipelineViewportStateCreateInfo> m_viewportState{};
-
-  std::vector<VkPushConstantRange> m_pushConstantRanges{};
-
-  void destroyStates();
 };
 
 

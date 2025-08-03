@@ -44,11 +44,7 @@ private:
   std::shared_ptr<TextureCubemap> m_reflectUnit;
   std::shared_ptr<TextureCubemap> m_refractUnit;
 
-  void loadGraphicsShaders() override;
-
   void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms(const VkCommandPool& commandPool);
 

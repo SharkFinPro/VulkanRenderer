@@ -12,6 +12,14 @@ public:
   ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename, VkShaderStageFlagBits stage);
   ~ShaderModule();
 
+  ShaderModule(ShaderModule&& other) noexcept
+    : m_logicalDevice(other.m_logicalDevice),
+      m_stage(other.m_stage),
+      m_module(other.m_module)
+  {
+    other.m_module = VK_NULL_HANDLE;
+  }
+
   [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
 
 private:

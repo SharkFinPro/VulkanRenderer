@@ -22,10 +22,6 @@ public:
 private:
   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
-  void loadGraphicsShaders() override;
-
-  void defineStates() override;
-
   void createDescriptorPool(uint32_t maxImGuiTextures);
 };
 

@@ -10,7 +10,25 @@ ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDe
                                                  VkDescriptorSetLayout objectDescriptorSetLayout)
   : GraphicsPipeline(logicalDevice), m_objectDescriptorSetLayout(objectDescriptorSetLayout)
 {
-  createPipeline(renderPass->getRenderPass());
+  const GraphicsPipelineOptions graphicsPipelineOptions {
+    .shaders {
+      .vertexShader = "assets/shaders/ObjectHighlight.vert.spv",
+      .fragmentShader = "assets/shaders/ObjectHighlight.frag.spv"
+    },
+    .states {
+      .colorBlendState = GraphicsPipelineStates::colorBlendStateDots,
+      .depthStencilState = GraphicsPipelineStates::depthStencilState,
+      .dynamicState = GraphicsPipelineStates::dynamicState,
+      .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+      .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+      .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .renderPass = renderPass->getRenderPass()
+  };
+
+  createPipeline(graphicsPipelineOptions);
 }
 
 void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
@@ -33,25 +51,7 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
   }
 }
 
-void ObjectHighlightPipeline::loadGraphicsShaders()
-{
-  createShader("assets/shaders/ObjectHighlight.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  createShader("assets/shaders/ObjectHighlight.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-}
-
 void ObjectHighlightPipeline::loadGraphicsDescriptorSetLayouts()
 {
   loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-}
-
-void ObjectHighlightPipeline::defineStates()
-{
-  defineColorBlendState(GraphicsPipelineStates::colorBlendStateDots);
-  defineDepthStencilState(GraphicsPipelineStates::depthStencilState);
-  defineDynamicState(GraphicsPipelineStates::dynamicState);
-  defineInputAssemblyState(GraphicsPipelineStates::inputAssemblyStateTriangleList);
-  defineMultisampleState(GraphicsPipelineStates::getMultsampleState(m_logicalDevice));
-  defineRasterizationState(GraphicsPipelineStates::rasterizationStateCullBack);
-  defineVertexInputState(GraphicsPipelineStates::vertexInputStateVertex);
-  defineViewportState(GraphicsPipelineStates::viewportState);
 }

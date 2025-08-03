@@ -32,11 +32,7 @@ private:
   VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
   VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
-  void loadGraphicsShaders() override;
-
   void loadGraphicsDescriptorSetLayouts() override;
-
-  void defineStates() override;
 
   void createUniforms();
 

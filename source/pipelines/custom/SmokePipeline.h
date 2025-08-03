@@ -62,10 +62,6 @@ private:
 
   void loadGraphicsDescriptorSetLayouts() override;
 
-  void loadGraphicsShaders() override;
-
-  void defineStates() override;
-
   void createUniforms();
 
   void createShaderStorageBuffers(const VkCommandPool& commandPool);
