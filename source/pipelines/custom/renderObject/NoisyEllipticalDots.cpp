@@ -16,8 +16,7 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& l
                                          const VkDescriptorSetLayout objectDescriptorSetLayout,
                                          const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms(commandPool);
 
@@ -37,6 +36,11 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& l
       .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_noisyEllipticalDotsDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -59,13 +63,6 @@ void NoisyEllipticalDots::displayGui()
   ImGui::SliderFloat("Noise Frequency", &m_noiseOptionsUBO.frequency, 0.0f, 10.0f);
 
   ImGui::End();
-}
-
-void NoisyEllipticalDots::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_noisyEllipticalDotsDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)

@@ -43,8 +43,6 @@ private:
   std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
   std::shared_ptr<Texture3D> m_noiseTexture;
 
-  void loadGraphicsDescriptorSetLayouts() override;
-
   void createUniforms(const VkCommandPool& commandPool);
 
   void createDescriptorSets(VkDescriptorPool descriptorPool);

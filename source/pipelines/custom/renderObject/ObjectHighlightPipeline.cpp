@@ -8,7 +8,7 @@
 ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                  const std::shared_ptr<RenderPass>& renderPass,
                                                  VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice)
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
@@ -24,6 +24,9 @@ ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDe
       .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      objectDescriptorSetLayout
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -49,9 +52,4 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
       object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
     }
   }
-}
-
-void ObjectHighlightPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }

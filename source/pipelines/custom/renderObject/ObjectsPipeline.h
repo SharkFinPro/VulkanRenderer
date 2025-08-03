@@ -17,9 +17,6 @@ public:
 
 private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
-  void loadGraphicsDescriptorSetLayouts() override;
 
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };

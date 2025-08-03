@@ -15,8 +15,7 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const VkCommandPool& commandPool,
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice)
 {
   createUniforms(commandPool);
 
@@ -36,6 +35,10 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_cubeMapDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -57,12 +60,6 @@ void CubeMapPipeline::displayGui()
   ImGui::SliderFloat("Noise Frequency", &m_noiseOptionsUBO.frequency, 0.0f, 0.5f);
 
   ImGui::End();
-}
-
-void CubeMapPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_cubeMapDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }
 
 void CubeMapPipeline::createUniforms(const VkCommandPool &commandPool)

@@ -18,11 +18,7 @@ public:
 private:
   std::shared_ptr<DescriptorSet> m_texturedPlaneDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_cameraUniform;
-
-  void loadGraphicsDescriptorSetLayouts() override;
 
   void createUniforms();
 

@@ -27,31 +27,22 @@ void GraphicsPipeline::render(const RenderInfo* renderInfo, const std::vector<st
   }
 }
 
-void GraphicsPipeline::loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout)
+void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions)
 {
-  m_descriptorSetLayouts.emplace_back(descriptorSetLayout);
-}
-
-void GraphicsPipeline::createPipelineLayout(const std::vector<VkPushConstantRange>& pushConstantRanges)
-{
-  loadGraphicsDescriptorSetLayouts();
-
   const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-    .setLayoutCount = static_cast<uint32_t>(m_descriptorSetLayouts.size()),
-    .pSetLayouts = m_descriptorSetLayouts.data(),
-    .pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size()),
-    .pPushConstantRanges = pushConstantRanges.empty() ? nullptr : pushConstantRanges.data()
+    .setLayoutCount = static_cast<uint32_t>(graphicsPipelineOptions.descriptorSetLayouts.size()),
+    .pSetLayouts = graphicsPipelineOptions.descriptorSetLayouts.data(),
+    .pushConstantRangeCount = static_cast<uint32_t>(graphicsPipelineOptions.pushConstantRanges.size()),
+    .pPushConstantRanges = graphicsPipelineOptions.pushConstantRanges.empty() ? nullptr : graphicsPipelineOptions.pushConstantRanges.data()
   };
 
   m_pipelineLayout = m_logicalDevice->createPipelineLayout(pipelineLayoutInfo);
-
-  m_descriptorSetLayouts.clear();
 }
 
 void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions)
 {
-  createPipelineLayout(graphicsPipelineOptions.pushConstantRanges);
+  createPipelineLayout(graphicsPipelineOptions);
 
   const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(m_logicalDevice);
   const auto shaderStages = graphicsPipelineOptions.shaders.getShaderStages(shaderModules);

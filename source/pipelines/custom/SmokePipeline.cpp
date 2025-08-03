@@ -82,6 +82,10 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
       .vertexInputState = GraphicsPipelineStates::vertexInputStateSmokeParticle,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_smokeDescriptorSet->getDescriptorSetLayout(),
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
     .renderPass = renderPass
   };
 
@@ -137,12 +141,6 @@ void SmokePipeline::loadComputeShaders()
 void SmokePipeline::loadComputeDescriptorSetLayouts()
 {
   ComputePipeline::loadDescriptorSetLayout(m_smokeDescriptorSet->getDescriptorSetLayout());
-}
-
-void SmokePipeline::loadGraphicsDescriptorSetLayouts()
-{
-  GraphicsPipeline::loadDescriptorSetLayout(m_smokeDescriptorSet->getDescriptorSetLayout());
-  GraphicsPipeline::loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void SmokePipeline::createUniforms()

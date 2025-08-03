@@ -31,12 +31,8 @@ private:
 
   std::shared_ptr<DescriptorSet> m_magnifyWhirlMosaicDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_cameraUniform;
   std::shared_ptr<UniformBuffer> m_magnifyWhirlMosaicUniform;
-
-  void loadGraphicsDescriptorSetLayouts() override;
 
   void createUniforms();
 

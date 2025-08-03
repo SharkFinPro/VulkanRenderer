@@ -60,8 +60,6 @@ private:
 
   void loadComputeDescriptorSetLayouts() override;
 
-  void loadGraphicsDescriptorSetLayouts() override;
-
   void createUniforms();
 
   void createShaderStorageBuffers(const VkCommandPool& commandPool);

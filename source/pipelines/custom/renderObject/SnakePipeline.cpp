@@ -14,8 +14,7 @@ SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
                              const VkDescriptorSetLayout objectDescriptorSetLayout,
                              const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms();
 
@@ -37,6 +36,11 @@ SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_snakeDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
@@ -55,13 +59,6 @@ void SnakePipeline::displayGui()
   w += 0.025f;
 
   m_snakeUBO.wiggle = sin(w);
-}
-
-void SnakePipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_snakeDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void SnakePipeline::createUniforms()

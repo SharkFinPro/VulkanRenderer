@@ -48,8 +48,6 @@ private:
 
   std::vector<BendyPlant> m_bendyPlantsToRender;
 
-  void loadGraphicsDescriptorSetLayouts() override;
-
   void createUniforms(const VkCommandPool& commandPool);
 
   void createDescriptorSets(VkDescriptorPool descriptorPool);

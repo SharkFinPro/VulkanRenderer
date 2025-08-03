@@ -14,8 +14,7 @@ EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevi
                                const VkDescriptorSetLayout objectDescriptorSetLayout,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms();
 
@@ -36,6 +35,11 @@ EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevi
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_ellipticalDotsDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
@@ -52,13 +56,6 @@ void EllipticalDots::displayGui()
   ImGui::SliderFloat("blendFactor", &m_ellipticalDotsUBO.blendFactor, 0.0f, 1.0f);
 
   ImGui::End();
-}
-
-void EllipticalDots::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_ellipticalDotsDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void EllipticalDots::createUniforms()

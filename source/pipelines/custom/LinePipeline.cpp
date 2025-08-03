@@ -34,6 +34,9 @@ LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateLineVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_lineDescriptorSet->getDescriptorSetLayout()
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
@@ -77,11 +80,6 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
   renderInfo->commandBuffer->bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
 
   renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-}
-
-void LinePipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_lineDescriptorSet->getDescriptorSetLayout());
 }
 
 void LinePipeline::createUniforms()

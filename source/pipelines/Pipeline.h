@@ -20,8 +20,6 @@ protected:
 
   VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
   VkPipeline m_pipeline = VK_NULL_HANDLE;
-
-  std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
 };
 
 

@@ -14,8 +14,7 @@ CrossesPipeline::CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
                                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms();
 
@@ -36,6 +35,11 @@ CrossesPipeline::CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_crossesDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -66,13 +70,6 @@ void CrossesPipeline::displayGui()
   ImGui::SliderFloat("Red Depth", &m_chromaDepthUBO.redDepth, 0.0f, 50.0f);
 
   ImGui::End();
-}
-
-void CrossesPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_crossesDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void CrossesPipeline::createUniforms()

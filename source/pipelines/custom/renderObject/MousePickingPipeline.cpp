@@ -1,15 +1,15 @@
 #include "MousePickingPipeline.h"
-#include "config/GraphicsPipelineStates.h"
-#include "config/Uniforms.h"
-#include "../RenderPass.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/objects/RenderObject.h"
+#include "../config/GraphicsPipelineStates.h"
+#include "../config/Uniforms.h"
+#include "../../RenderPass.h"
+#include "../../../components/core/commandBuffer/CommandBuffer.h"
+#include "../../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../../components/objects/RenderObject.h"
 
 MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            const std::shared_ptr<RenderPass>& renderPass,
                                            VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice), objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice)
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
@@ -32,6 +32,9 @@ MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>&
         .offset = 0,
         .size = sizeof(MousePickingID)
       }
+    },
+    .descriptorSetLayouts {
+      objectDescriptorSetLayout
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -64,9 +67,4 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
       objects->at(i).first->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
     }
   }
-}
-
-void MousePickingPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(objectDescriptorSetLayout);
 }

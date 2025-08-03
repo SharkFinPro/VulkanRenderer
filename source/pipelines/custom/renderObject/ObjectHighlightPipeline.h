@@ -12,11 +12,6 @@ public:
                           VkDescriptorSetLayout objectDescriptorSetLayout);
 
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
-
-private:
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
-  void loadGraphicsDescriptorSetLayouts() override;
 };
 
 

@@ -97,6 +97,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
   pipelines/custom/renderObject/EllipticalDots.h
   pipelines/custom/renderObject/MagnifyWhirlMosaicPipeline.cpp
   pipelines/custom/renderObject/MagnifyWhirlMosaicPipeline.h
+  pipelines/custom/renderObject/MousePickingPipeline.cpp
+  pipelines/custom/renderObject/MousePickingPipeline.h
   pipelines/custom/renderObject/NoisyEllipticalDots.cpp
   pipelines/custom/renderObject/NoisyEllipticalDots.h
   pipelines/custom/renderObject/ObjectHighlightPipeline.cpp
@@ -117,8 +119,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
   pipelines/custom/GuiPipeline.h
   pipelines/custom/LinePipeline.cpp
   pipelines/custom/LinePipeline.h
-  pipelines/custom/MousePickingPipeline.cpp
-  pipelines/custom/MousePickingPipeline.h
   pipelines/custom/SmokePipeline.cpp
   pipelines/custom/SmokePipeline.h
 

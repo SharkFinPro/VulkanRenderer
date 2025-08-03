@@ -32,8 +32,6 @@ private:
   VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
   VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
-  void loadGraphicsDescriptorSetLayouts() override;
-
   void createUniforms();
 
   void createDescriptorSets(VkDescriptorPool descriptorPool);

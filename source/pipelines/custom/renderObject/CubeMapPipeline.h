@@ -34,8 +34,6 @@ private:
 
   std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_cameraUniform;
   std::shared_ptr<UniformBuffer> m_cubeMapUniform;
   std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
@@ -43,8 +41,6 @@ private:
 
   std::shared_ptr<TextureCubemap> m_reflectUnit;
   std::shared_ptr<TextureCubemap> m_refractUnit;
-
-  void loadGraphicsDescriptorSetLayouts() override;
 
   void createUniforms(const VkCommandPool& commandPool);
 

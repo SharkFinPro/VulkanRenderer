@@ -13,8 +13,7 @@ MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<Log
                                                        const std::shared_ptr<RenderPass>& renderPass,
                                                        VkDescriptorPool descriptorPool,
                                                        VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice)
 {
   createUniforms();
 
@@ -34,6 +33,10 @@ MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<Log
       .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
+    },
+    .descriptorSetLayouts {
+      m_magnifyWhirlMosaicDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -56,12 +59,6 @@ void MagnifyWhirlMosaicPipeline::displayGui()
   ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicUBO.mosaic, 0.001f, 0.1f);
 
   ImGui::End();
-}
-
-void MagnifyWhirlMosaicPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_magnifyWhirlMosaicDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }
 
 void MagnifyWhirlMosaicPipeline::createUniforms()

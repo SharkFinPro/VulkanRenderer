@@ -39,6 +39,9 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
         .size = sizeof(BendyPlantInfo)
       }
     },
+    .descriptorSetLayouts {
+      m_BendyPipelineDescriptorSet->getDescriptorSetLayout(),
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
@@ -73,11 +76,6 @@ void BendyPipeline::renderBendyPlant(const BendyPlant& bendyPlant)
 void BendyPipeline::clearBendyPlantsToRender()
 {
   m_bendyPlantsToRender.clear();
-}
-
-void BendyPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_BendyPipelineDescriptorSet->getDescriptorSetLayout());
 }
 
 void BendyPipeline::createUniforms(const VkCommandPool& commandPool)

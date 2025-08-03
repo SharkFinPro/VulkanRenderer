@@ -28,11 +28,7 @@ private:
   std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
   std::shared_ptr<DescriptorSet> m_snakeDescriptorSet;
 
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
   std::shared_ptr<UniformBuffer> m_snakeUniform;
-
-  void loadGraphicsDescriptorSetLayouts() override;
 
   void createUniforms();
 

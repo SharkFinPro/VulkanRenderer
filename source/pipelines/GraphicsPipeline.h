@@ -108,6 +108,8 @@ struct GraphicsPipelineOptions {
 
   std::vector<VkPushConstantRange> pushConstantRanges;
 
+  std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+
   VkRenderPass renderPass;
 };
 
@@ -118,10 +120,7 @@ public:
   virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects);
 
 protected:
-  void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
-  virtual void loadGraphicsDescriptorSetLayouts() {}
-
-  void createPipelineLayout(const std::vector<VkPushConstantRange>& pushConstantRanges);
+  void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
   void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
 

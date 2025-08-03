@@ -12,8 +12,7 @@ TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice
                              const std::shared_ptr<RenderPass>& renderPass,
                              const VkDescriptorPool descriptorPool,
                              const VkDescriptorSetLayout objectDescriptorSetLayout)
-  : GraphicsPipeline(logicalDevice),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+  : GraphicsPipeline(logicalDevice)
 {
   createUniforms();
 
@@ -34,16 +33,14 @@ TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_texturedPlaneDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
   createPipeline(graphicsPipelineOptions);
-}
-
-void TexturedPlane::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_texturedPlaneDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }
 
 void TexturedPlane::createUniforms()

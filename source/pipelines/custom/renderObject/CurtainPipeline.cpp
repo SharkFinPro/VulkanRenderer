@@ -14,8 +14,7 @@ CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
                                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   createUniforms();
 
@@ -36,6 +35,11 @@ CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_curtainDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
@@ -51,13 +55,6 @@ void CurtainPipeline::displayGui()
   ImGui::SliderFloat("Shininess", &m_curtainUBO.shininess, 1.0f, 100.0f);
 
   ImGui::End();
-}
-
-void CurtainPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_curtainDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void CurtainPipeline::createUniforms()

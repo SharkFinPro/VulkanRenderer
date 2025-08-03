@@ -11,8 +11,7 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
                                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
-    m_lightingDescriptorSet(lightingDescriptorSet),
-    m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+    m_lightingDescriptorSet(lightingDescriptorSet)
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
@@ -29,16 +28,14 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_lightingDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
   createPipeline(graphicsPipelineOptions);
-}
-
-void ObjectsPipeline::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
 }
 
 void ObjectsPipeline::bindDescriptorSet(const RenderInfo* renderInfo)

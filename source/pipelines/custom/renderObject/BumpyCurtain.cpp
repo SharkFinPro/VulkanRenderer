@@ -38,6 +38,11 @@ BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .descriptorSetLayouts {
+      m_bumpyCurtainDescriptorSet->getDescriptorSetLayout(),
+      m_objectDescriptorSetLayout,
+      m_lightingDescriptorSet->getDescriptorSetLayout()
+    },
     .renderPass = renderPass->getRenderPass()
   };
 
@@ -58,13 +63,6 @@ void BumpyCurtain::displayGui()
   ImGui::SliderFloat("Noise Frequency", &m_noiseOptionsUBO.frequency, 0.1f, 10.0f);
 
   ImGui::End();
-}
-
-void BumpyCurtain::loadGraphicsDescriptorSetLayouts()
-{
-  loadDescriptorSetLayout(m_bumpyCurtainDescriptorSet->getDescriptorSetLayout());
-  loadDescriptorSetLayout(m_objectDescriptorSetLayout);
-  loadDescriptorSetLayout(m_lightingDescriptorSet->getDescriptorSetLayout());
 }
 
 void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
