@@ -1,7 +1,6 @@
 #include "ObjectHighlightPipeline.h"
 #include "../config/GraphicsPipelineStates.h"
 #include "../../RenderPass.h"
-#include "../../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/objects/RenderObject.h"
 
@@ -37,19 +36,12 @@ ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDe
 void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
                                      const std::vector<std::shared_ptr<RenderObject>>* objects)
 {
-  updateUniformVariables(renderInfo);
+  GraphicsPipeline::render(renderInfo, nullptr);
 
-  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-
-  bindDescriptorSet(renderInfo);
-
-  if (objects)
+  for (const auto& object : *objects)
   {
-    for (const auto& object : *objects)
-    {
-      object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+    object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
-    }
+    object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
   }
 }

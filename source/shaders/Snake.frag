@@ -2,26 +2,26 @@
 #extension GL_GOOGLE_include_directive : require
 #include "common/Lighting.glsl"
 
-layout(set = 2, binding = 0) uniform PointLightsMetadata {
+layout(set = 0, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 2, binding = 1) readonly buffer PointLights {
+layout(set = 0, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 2, binding = 2) readonly buffer SpotLights {
+layout(set = 0, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 2, binding = 3) uniform Camera {
+layout(set = 0, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 0, binding = 4) uniform Snake {
+layout(push_constant) uniform PushConstants {
   float wiggle;
-} snake;
+};
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
@@ -54,7 +54,7 @@ void main()
 
   vec3 color = hsvToRgb(mix(1.0 / 6.0, 5.0 / 6.0, p), 1, 1);
 
-  float tension = abs(sin(fragPos.x * 0.5) * snake.wiggle);
+  float tension = abs(sin(fragPos.x * 0.5) * wiggle);
   color.g -= tension;
   color.b -= tension;
   color.r += tension;

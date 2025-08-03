@@ -1,25 +1,18 @@
 #include "EllipticalDots.h"
 #include "../config/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../descriptorSets/LayoutBindings.h"
 #include "../../RenderPass.h"
 #include "../../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
-                               const VkDescriptorPool descriptorPool,
                                const VkDescriptorSetLayout objectDescriptorSetLayout,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
     m_lightingDescriptorSet(lightingDescriptorSet)
 {
-  createUniforms();
-
-  createDescriptorSets(descriptorPool);
-
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
       .vertexShader = "assets/shaders/StandardObject.vert.spv",
@@ -35,10 +28,16 @@ EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevi
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
+    .pushConstantRanges {
+      {
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .offset = 0,
+        .size = sizeof(EllipticalDotsUniform)
+      }
+    },
     .descriptorSetLayouts {
-      m_ellipticalDotsDescriptorSet->getDescriptorSetLayout(),
-      objectDescriptorSetLayout,
-      m_lightingDescriptorSet->getDescriptorSetLayout()
+      m_lightingDescriptorSet->getDescriptorSetLayout(),
+      objectDescriptorSetLayout
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -58,34 +57,14 @@ void EllipticalDots::displayGui()
   ImGui::End();
 }
 
-void EllipticalDots::createUniforms()
-{
-  m_ellipticalDotsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(EllipticalDotsUniform));
-}
-
-void EllipticalDots::createDescriptorSets(VkDescriptorPool descriptorPool)
-{
-  m_ellipticalDotsDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::ellipticalDotsLayoutBindings);
-  m_ellipticalDotsDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
-  {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{{
-      m_ellipticalDotsUniform->getDescriptorSet(4, descriptorSet, frame)
-    }};
-
-    return descriptorWrites;
-  });
-}
-
 void EllipticalDots::updateUniformVariables(const RenderInfo* renderInfo)
 {
-  m_ellipticalDotsUniform->update(renderInfo->currentFrame, &m_ellipticalDotsUBO);
+  renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                                           sizeof(EllipticalDotsUniform), &m_ellipticalDotsUBO);
 }
 
 void EllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &m_ellipticalDotsDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
-
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }

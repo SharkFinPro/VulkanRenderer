@@ -2,7 +2,6 @@
 #include "config/GraphicsPipelineStates.h"
 #include "../RenderPass.h"
 #include "../../components/ImGuiInstance.h"
-#include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
@@ -41,8 +40,6 @@ GuiPipeline::~GuiPipeline()
 void GuiPipeline::render(const RenderInfo* renderInfo)
 {
   GraphicsPipeline::render(renderInfo, nullptr);
-
-  renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
   ImGui::Render();
   ImGuiInstance::renderDrawData(renderInfo->commandBuffer);

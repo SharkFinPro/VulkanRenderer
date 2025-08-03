@@ -1,14 +1,10 @@
 #version 450
 
-layout(set = 1, binding = 0) uniform Transform {
+layout(set = 0, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;
 } transform;
-
-layout(push_constant) uniform PushConstants {
-  float wiggle;
-};
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -20,10 +16,9 @@ layout(location = 2) out vec3 fragNormal;
 
 void main()
 {
-  vec3 pos = inPosition;
-  pos.z += sin(pos.x * 0.5) * wiggle;
-
-  fragPos = vec3(transform.model * vec4(pos, 1.0));
+  fragPos = vec3(transform.model * vec4(inPosition, 1.0));
   fragTexCoord = inTexCoord;
   fragNormal = mat3(transpose(inverse(transform.model))) * inNormal;
+
+  gl_Position = transform.proj * transform.view * transform.model * vec4(inPosition, 1.0);
 }

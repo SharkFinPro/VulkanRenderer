@@ -278,8 +278,7 @@ void VulkanEngine::initVulkan()
     m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout);
 
   m_pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
-    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
-    m_lightingManager->getLightingDescriptorSet());
+    m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout, m_lightingManager->getLightingDescriptorSet());
 
   m_pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
     m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, m_objectDescriptorSetLayout,
@@ -297,7 +296,7 @@ void VulkanEngine::initVulkan()
     m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, m_objectDescriptorSetLayout);
 
   m_pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
-    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout);
+    m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout);
 
   m_pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
     m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout);
@@ -319,7 +318,7 @@ void VulkanEngine::initVulkan()
                                                     m_renderPass->getRenderPass(), m_swapChain->getExtent(), m_descriptorPool);
   }
 
-  m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
+  m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, m_renderPass);
 
   m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice, m_renderPass, m_guiPipeline,
                                                     m_vulkanEngineOptions.USE_DOCKSPACE);

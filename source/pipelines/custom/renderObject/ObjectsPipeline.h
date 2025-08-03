@@ -6,7 +6,6 @@
 
 class DescriptorSet;
 class RenderPass;
-class UniformBuffer;
 
 class ObjectsPipeline final : public GraphicsPipeline {
 public:
