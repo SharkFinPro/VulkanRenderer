@@ -319,7 +319,7 @@ void VulkanEngine::initVulkan()
                                                     m_renderPass->getRenderPass(), m_swapChain->getExtent(), m_descriptorPool);
   }
 
-  m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
+  m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, m_renderPass);
 
   m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice, m_renderPass, m_guiPipeline,
                                                     m_vulkanEngineOptions.USE_DOCKSPACE);

@@ -11,14 +11,9 @@
 #include <stdexcept>
 
 LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const std::shared_ptr<RenderPass>& renderPass,
-                           VkDescriptorPool descriptorPool)
+                           const std::shared_ptr<RenderPass>& renderPass)
   : GraphicsPipeline(logicalDevice)
 {
-  createUniforms();
-
-  createDescriptorSets(descriptorPool);
-
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
       .vertexShader = "assets/shaders/Line.vert.spv",
@@ -34,8 +29,12 @@ LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateLineVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
-    .descriptorSetLayouts {
-      m_lineDescriptorSet->getDescriptorSetLayout()
+    .pushConstantRanges {
+      {
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .offset = 0,
+        .size = sizeof(MVPTransformUniform)
+      }
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -79,42 +78,11 @@ void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& com
   constexpr VkDeviceSize offsets[] = {0};
   renderInfo->commandBuffer->bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
 
+  const MVPTransformUniform transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
+  renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                                           sizeof(MVPTransformUniform), &transformUBO);
+
   renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-}
-
-void LinePipeline::createUniforms()
-{
-  m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(TransformUniform));
-}
-
-void LinePipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
-{
-  m_lineDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lineLayoutBindings);
-  m_lineDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
-  {
-    std::vector<VkWriteDescriptorSet> descriptorWrites{{
-      m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
-    }};
-
-    return descriptorWrites;
-  });
-}
-
-void LinePipeline::updateUniformVariables(const RenderInfo* renderInfo)
-{
-  const TransformUniform transformUBO {
-    .model = glm::mat4(1.0f),
-    .view = renderInfo->viewMatrix,
-    .proj = renderInfo->projectionMatrix
-  };
-
-  m_transformUniform->update(renderInfo->currentFrame, &transformUBO);
-}
-
-void LinePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
-{
-  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                &m_lineDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
 
 void LinePipeline::createVertexBuffer()

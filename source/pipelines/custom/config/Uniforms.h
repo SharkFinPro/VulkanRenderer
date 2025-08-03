@@ -76,9 +76,9 @@ struct TransformUniform {
   alignas(16) glm::mat4 proj;
 };
 
-struct VPTransformUniform {
-  alignas(16) glm::mat4 vp;
-};
+using VPTransformUniform = glm::mat4;
+
+using MVPTransformUniform = glm::mat4;
 
 struct ViewProjTransformUniform {
   alignas(16) glm::mat4 view;
