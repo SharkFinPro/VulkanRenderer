@@ -509,7 +509,6 @@ void VulkanEngine::recreateSwapChain()
     m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
   }
 
-
   if (m_vulkanEngineOptions.USE_DOCKSPACE)
   {
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
