@@ -25,8 +25,6 @@ struct ComputePipelineOptions {
   std::vector<VkPushConstantRange> pushConstantRanges;
 
   std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-
-  VkRenderPass renderPass;
 };
 
 class ComputePipeline : public Pipeline {
