@@ -44,6 +44,8 @@ public:
 
   static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
+  static ImGuiContext* getImGuiContext();
+
 private:
   bool m_dockNeedsUpdate = true;
 

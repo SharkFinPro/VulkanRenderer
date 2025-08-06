@@ -147,11 +147,6 @@ std::shared_ptr<Window> VulkanEngine::getWindow() const
   return m_window;
 }
 
-ImGuiContext* VulkanEngine::getImGuiContext()
-{
-  return ImGui::GetCurrentContext();
-}
-
 bool VulkanEngine::sceneIsFocused() const
 {
   return m_isSceneFocused || !m_vulkanEngineOptions.USE_DOCKSPACE;

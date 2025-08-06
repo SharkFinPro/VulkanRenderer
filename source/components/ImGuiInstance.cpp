@@ -215,3 +215,8 @@ void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& command
     nullptr
   );
 }
+
+ImGuiContext* ImGuiInstance::getImGuiContext()
+{
+  return ImGui::GetCurrentContext();
+}

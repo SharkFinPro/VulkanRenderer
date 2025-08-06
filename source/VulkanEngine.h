@@ -56,8 +56,6 @@ public:
 
   [[nodiscard]] std::shared_ptr<Window> getWindow() const;
 
-  static ImGuiContext* getImGuiContext();
-
   [[nodiscard]] bool sceneIsFocused() const;
 
   void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);

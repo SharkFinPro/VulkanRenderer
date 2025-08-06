@@ -33,7 +33,7 @@ int main()
     VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
+    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
 
     std::vector<MousePickingObject> objects;
     std::vector<std::shared_ptr<Light>> lights;

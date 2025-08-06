@@ -25,7 +25,7 @@ int main()
     VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
+    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
 
     const auto texture = renderer.loadTexture("assets/textures/container.png");
     const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
