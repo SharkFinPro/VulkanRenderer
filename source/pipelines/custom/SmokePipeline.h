@@ -56,10 +56,6 @@ private:
 
   bool m_ran = false;
 
-  void loadComputeShaders() override;
-
-  void loadComputeDescriptorSetLayouts() override;
-
   void createUniforms();
 
   void createShaderStorageBuffers(const VkCommandPool& commandPool);

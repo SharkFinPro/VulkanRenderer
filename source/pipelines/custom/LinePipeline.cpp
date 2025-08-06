@@ -2,11 +2,9 @@
 #include "config/GraphicsPipelineStates.h"
 #include "config/Uniforms.h"
 #include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
 #include "../RenderPass.h"
 #include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/UniformBuffer.h"
 #include "../../utilities/Buffers.h"
 #include <stdexcept>
 

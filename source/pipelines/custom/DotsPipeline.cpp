@@ -45,7 +45,16 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
   createDescriptorSets(descriptorPool);
 
-  ComputePipeline::createPipeline();
+  const ComputePipelineOptions computePipelineOptions {
+    .shaders {
+      .computeShader = "assets/shaders/dots.comp.spv",
+    },
+    .descriptorSetLayouts {
+      m_dotsDescriptorSet->getDescriptorSetLayout()
+    },
+  };
+
+  ComputePipeline::createPipeline(computePipelineOptions);
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
@@ -63,11 +72,11 @@ DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
       .viewportState = GraphicsPipelineStates::viewportState
     },
     .pushConstantRanges {
-        {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-          .offset = 0,
-          .size = sizeof(MousePickingID)
-        }
+      {
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .offset = 0,
+        .size = sizeof(MousePickingID)
+      }
     },
     .renderPass = renderPass
   };
@@ -101,16 +110,6 @@ void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::s
   renderInfo->commandBuffer->bindVertexBuffers(0, 1, &m_shaderStorageBuffers[renderInfo->currentFrame], offsets);
 
   renderInfo->commandBuffer->draw(PARTICLE_COUNT, 1, 0, 0);
-}
-
-void DotsPipeline::loadComputeShaders()
-{
-  ComputePipeline::createShader("assets/shaders/dots.comp.spv");
-}
-
-void DotsPipeline::loadComputeDescriptorSetLayouts()
-{
-  ComputePipeline::loadDescriptorSetLayout(m_dotsDescriptorSet->getDescriptorSetLayout());
 }
 
 void DotsPipeline::createUniforms()

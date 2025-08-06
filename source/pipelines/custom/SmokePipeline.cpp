@@ -65,7 +65,16 @@ SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
 
   createDescriptorSets(descriptorPool);
 
-  ComputePipeline::createPipeline();
+  const ComputePipelineOptions computePipelineOptions {
+    .shaders {
+      .computeShader = "assets/shaders/Smoke.comp.spv",
+    },
+    .descriptorSetLayouts {
+      m_smokeDescriptorSet->getDescriptorSetLayout()
+    },
+  };
+
+  ComputePipeline::createPipeline(computePipelineOptions);
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
@@ -131,16 +140,6 @@ void SmokePipeline::displayGui()
   ImGui::SliderFloat("Max Spread Distance", &m_smokeUBO.maxSpreadDistance, 0.0f, 20.0f);
 
   ImGui::SliderFloat("Wind Strength", &m_smokeUBO.windStrength, 0.0f, 3.0f);
-}
-
-void SmokePipeline::loadComputeShaders()
-{
-  ComputePipeline::createShader("assets/shaders/Smoke.comp.spv");
-}
-
-void SmokePipeline::loadComputeDescriptorSetLayouts()
-{
-  ComputePipeline::loadDescriptorSetLayout(m_smokeDescriptorSet->getDescriptorSetLayout());
 }
 
 void SmokePipeline::createUniforms()

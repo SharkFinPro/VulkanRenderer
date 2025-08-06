@@ -2,31 +2,39 @@
 #define COMPUTEPIPELINE_H
 
 #include "Pipeline.h"
+#include "ShaderModule.h"
 #include <vulkan/vulkan.h>
+#include <cassert>
 #include <memory>
+#include <string>
 
-class ShaderModule;
+struct ComputePipelineOptions {
+  struct {
+    std::string computeShader;
+
+    [[nodiscard]] ShaderModule getShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice) const
+    {
+      assert(!computeShader.empty());
+
+      auto shaderModule = ShaderModule(logicalDevice, computeShader.c_str(), VK_SHADER_STAGE_COMPUTE_BIT);
+
+      return std::move(shaderModule);
+    }
+  } shaders;
+
+  std::vector<VkPushConstantRange> pushConstantRanges;
+
+  std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+};
 
 class ComputePipeline : public Pipeline {
 public:
   explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
 protected:
-  std::unique_ptr<ShaderModule> m_shaderModule;
+  void createPipelineLayout(const ComputePipelineOptions& computePipelineOptions);
 
-  std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
-
-  void createShader(const char* filename);
-
-  virtual void loadComputeShaders() = 0;
-
-  void loadDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout);
-
-  virtual void loadComputeDescriptorSetLayouts() {}
-
-  void createPipelineLayout();
-
-  void createPipeline();
+  void createPipeline(const ComputePipelineOptions& computePipelineOptions);
 };
 
 

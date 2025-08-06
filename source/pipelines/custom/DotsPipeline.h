@@ -39,10 +39,6 @@ private:
   float m_dotSpeed;
   std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
-  void loadComputeShaders() override;
-
-  void loadComputeDescriptorSetLayouts() override;
-
   void createUniforms();
   void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
 

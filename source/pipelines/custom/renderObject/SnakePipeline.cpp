@@ -1,16 +1,13 @@
 #include "SnakePipeline.h"
 #include "../config/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../descriptorSets/LayoutBindings.h"
 #include "../../RenderPass.h"
 #include "../../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
-                             const VkDescriptorPool descriptorPool,
                              const VkDescriptorSetLayout objectDescriptorSetLayout,
                              const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
