@@ -41,7 +41,7 @@ int main()
 
     while (renderer.isActive())
     {
-      if (renderer.getMousePicker()->canMousePick() && renderer.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+      if (renderer.getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
       {
         for (auto& [_, hovering, selected] : objects)
         {

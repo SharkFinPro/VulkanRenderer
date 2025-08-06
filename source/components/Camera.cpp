@@ -89,7 +89,7 @@ void Camera::handleMovement(const std::shared_ptr<Window>& window)
 
 void Camera::handleRotation(const std::shared_ptr<Window>& window)
 {
-  if (window->buttonDown(GLFW_MOUSE_BUTTON_RIGHT))
+  if (window->buttonIsPressed(GLFW_MOUSE_BUTTON_RIGHT))
   {
     double mx, my, omx, omy;
     window->getCursorPos(mx, my);

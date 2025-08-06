@@ -93,7 +93,7 @@ bool Window::keyIsPressed(const int key) const
   return false;
 }
 
-bool Window::buttonDown(const int button) const
+bool Window::buttonIsPressed(const int button) const
 {
   return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
 }

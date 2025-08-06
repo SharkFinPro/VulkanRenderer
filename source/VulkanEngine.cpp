@@ -142,19 +142,14 @@ std::shared_ptr<MousePicker> VulkanEngine::getMousePicker() const
   return m_mousePicker;
 }
 
+std::shared_ptr<Window> VulkanEngine::getWindow() const
+{
+  return m_window;
+}
+
 ImGuiContext* VulkanEngine::getImGuiContext()
 {
   return ImGui::GetCurrentContext();
-}
-
-bool VulkanEngine::keyIsPressed(const int key) const
-{
-  return m_window->keyIsPressed(key);
-}
-
-bool VulkanEngine::buttonIsPressed(const int button) const
-{
-  return m_window->buttonDown(button);
 }
 
 bool VulkanEngine::sceneIsFocused() const

@@ -54,11 +54,9 @@ public:
 
   [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
 
+  [[nodiscard]] std::shared_ptr<Window> getWindow() const;
+
   static ImGuiContext* getImGuiContext();
-
-  [[nodiscard]] bool keyIsPressed(int key) const;
-
-  [[nodiscard]] bool buttonIsPressed(int button) const;
 
   [[nodiscard]] bool sceneIsFocused() const;
 
