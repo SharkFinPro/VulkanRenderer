@@ -19,8 +19,6 @@ public:
   void render(const RenderInfo* renderInfo, const VkCommandPool& commandPool, const std::vector<LineVertex>& vertices);
 
 private:
-  std::shared_ptr<DescriptorSet> m_lineDescriptorSet;
-
   VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
   VkDeviceMemory m_vertexBufferMemory = VK_NULL_HANDLE;
   size_t m_maxVertexBufferSize = sizeof(LineVertex) * 20'000;
