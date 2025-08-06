@@ -302,8 +302,7 @@ void VulkanEngine::initVulkan()
     m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout);
 
   m_pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
-    m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
-    m_lightingManager->getLightingDescriptorSet());
+    m_logicalDevice, m_renderPass, m_objectDescriptorSetLayout, m_lightingManager->getLightingDescriptorSet());
 
   m_pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
     m_logicalDevice, m_renderPass, m_descriptorPool, m_objectDescriptorSetLayout,
