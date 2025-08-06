@@ -52,6 +52,8 @@ public:
 
   [[nodiscard]] std::shared_ptr<LightingManager> getLightingManager() const;
 
+  [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
+
   static ImGuiContext* getImGuiContext();
 
   [[nodiscard]] bool keyIsPressed(int key) const;
@@ -76,8 +78,6 @@ public:
                                                    uint32_t numParticles = 5'000'000);
 
   void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
-
-  [[nodiscard]] bool canMousePick() const;
 
 private:
   std::shared_ptr<Instance> m_instance;
@@ -139,7 +139,7 @@ private:
 
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<MousePicker> m_mousePicker;
+  std::shared_ptr<MousePicker> m_mousePicker;
 
   std::unique_ptr<BendyPipeline> m_bendyPipeline;
 

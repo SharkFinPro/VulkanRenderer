@@ -137,6 +137,11 @@ std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
   return m_lightingManager;
 }
 
+std::shared_ptr<MousePicker> VulkanEngine::getMousePicker() const
+{
+  return m_mousePicker;
+}
+
 ImGuiContext* VulkanEngine::getImGuiContext()
 {
   return ImGui::GetCurrentContext();
@@ -224,11 +229,6 @@ void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smok
 
   m_logicalDevice->waitIdle();
   m_smokeSystems.erase(system);
-}
-
-bool VulkanEngine::canMousePick() const
-{
-  return m_mousePicker->canMousePick();
 }
 
 void VulkanEngine::initVulkan()
@@ -325,7 +325,7 @@ void VulkanEngine::initVulkan()
                                                                    m_swapChain->getExtent());
   }
 
-  m_mousePicker = std::make_unique<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
+  m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
   if (!m_vulkanEngineOptions.USE_DOCKSPACE)
   {
     m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());

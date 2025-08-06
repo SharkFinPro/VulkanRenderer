@@ -1,4 +1,6 @@
 #include "../common/gui.h"
+#include <source/components/lighting/LightingManager.h>
+#include <source/components/MousePicker.h>
 #include <source/components/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -39,7 +41,7 @@ int main()
 
     while (renderer.isActive())
     {
-      if (renderer.canMousePick() && renderer.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+      if (renderer.getMousePicker()->canMousePick() && renderer.buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
       {
         for (auto& [_, hovering, selected] : objects)
         {
@@ -79,15 +81,15 @@ void setupScene(VulkanEngine& renderer, std::vector<MousePickingObject>& objects
   objects.push_back({ object3 });
 
 
-  lights.push_back(renderer.createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
+  lights.push_back(renderer.getLightingManager()->createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
-  lights.push_back(renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
+  lights.push_back(renderer.getLightingManager()->createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
 
-  lights.push_back(renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+  lights.push_back(renderer.getLightingManager()->createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
-  lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
+  lights.push_back(renderer.getLightingManager()->createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
 
-  lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+  lights.push_back(renderer.getLightingManager()->createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
 
 void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui, std::vector<MousePickingObject>& objects,
@@ -132,7 +134,7 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
 
   for (const auto& light : lights)
   {
-    renderer.renderLight(light);
+    renderer.getLightingManager()->renderLight(light);
   }
 
   // Render Frame
