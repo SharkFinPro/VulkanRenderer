@@ -17,7 +17,6 @@ class CommandBuffer;
 class DotsPipeline;
 class GuiPipeline;
 class ImGuiInstance;
-class Light;
 class LightingManager;
 class LinePipeline;
 struct LineVertex;
@@ -51,7 +50,7 @@ public:
                                                                const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>&);
 
-  std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f) const;
+  [[nodiscard]] std::shared_ptr<LightingManager> getLightingManager() const;
 
   static ImGuiContext* getImGuiContext();
 
@@ -62,7 +61,6 @@ public:
   [[nodiscard]] bool sceneIsFocused() const;
 
   void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);
-  void renderLight(const std::shared_ptr<Light>& light) const;
   void renderLine(glm::vec3 start, glm::vec3 end);
 
   void renderBendyPlant(const BendyPlant& bendyPlant) const;
@@ -87,7 +85,7 @@ private:
   std::shared_ptr<PhysicalDevice> m_physicalDevice;
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  std::unique_ptr<LightingManager> m_lightingManager;
+  std::shared_ptr<LightingManager> m_lightingManager;
 
   std::shared_ptr<SwapChain> m_swapChain;
   std::shared_ptr<RenderPass> m_renderPass;

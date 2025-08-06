@@ -18,7 +18,7 @@ std::shared_ptr<Light> LightingManager::createLight(glm::vec3 position,
                                                     glm::vec3 color,
                                                     float ambient,
                                                     float diffuse,
-                                                    float specular)
+                                                    float specular = 1.0f)
 {
   auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
 

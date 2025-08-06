@@ -1,4 +1,5 @@
 #include "../common/gui.h"
+#include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -33,15 +34,15 @@ int main()
 
     std::vector<std::shared_ptr<Light>> lights;
 
-    lights.push_back(renderer.createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
+    lights.push_back(renderer.getLightingManager()->createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.getLightingManager()->createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.getLightingManager()->createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.getLightingManager()->createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
 
-    lights.push_back(renderer.createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+    lights.push_back(renderer.getLightingManager()->createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 
     while (renderer.isActive())
     {
@@ -68,7 +69,7 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
 
   for (const auto& light : lights)
   {
-    renderer.renderLight(light);
+    renderer.getLightingManager()->renderLight(light);
   }
 
   // Render lines

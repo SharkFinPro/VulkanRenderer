@@ -132,10 +132,9 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
   return renderObject;
 }
 
-std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                                                 const float diffuse, const float specular) const
+std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
 {
-  return m_lightingManager->createLight(position, color, ambient, diffuse, specular);
+  return m_lightingManager;
 }
 
 ImGuiContext* VulkanEngine::getImGuiContext()
@@ -169,11 +168,6 @@ void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObjec
   }
 
   m_mousePicker->renderObject(renderObject, mousePicked);
-}
-
-void VulkanEngine::renderLight(const std::shared_ptr<Light>& light) const
-{
-  m_lightingManager->renderLight(light);
 }
 
 void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
@@ -257,7 +251,7 @@ void VulkanEngine::initVulkan()
 
   createDescriptorPool();
 
-  m_lightingManager = std::make_unique<LightingManager>(m_logicalDevice, m_descriptorPool);
+  m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool);
 
   createObjectDescriptorSetLayout();
 
