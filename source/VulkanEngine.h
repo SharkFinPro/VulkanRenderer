@@ -63,9 +63,6 @@ public:
 
   void renderBendyPlant(const BendyPlant& bendyPlant) const;
 
-  void enableCamera();
-  void disableCamera();
-
   void setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix);
 
   [[nodiscard]] std::shared_ptr<ImGuiInstance> getImGuiInstance() const;
@@ -127,7 +124,6 @@ private:
 
   ImVec2 m_offscreenViewportPos{0, 0};
 
-  bool m_useCamera;
   glm::vec3 m_viewPosition{};
   glm::mat4 m_viewMatrix{};
 

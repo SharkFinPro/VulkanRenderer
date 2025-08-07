@@ -47,8 +47,7 @@ constexpr bool enableValidationLayers = true;
 #endif
 
 VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
-  : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_isSceneFocused(false),
-    m_useCamera(true)
+  : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_isSceneFocused(false)
 {
   glfwInit();
   initVulkan();
@@ -79,7 +78,7 @@ void VulkanEngine::render()
 {
   m_window->update();
 
-  if (sceneIsFocused() && m_useCamera)
+  if (sceneIsFocused() && m_camera->isEnabled())
   {
     m_camera->processInput(m_window);
     setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
@@ -174,16 +173,6 @@ void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
 void VulkanEngine::renderBendyPlant(const BendyPlant& bendyPlant) const
 {
   m_bendyPipeline->renderBendyPlant(bendyPlant);
-}
-
-void VulkanEngine::enableCamera()
-{
-  m_useCamera = true;
-}
-
-void VulkanEngine::disableCamera()
-{
-  m_useCamera = false;
 }
 
 void VulkanEngine::setCameraParameters(const glm::vec3 position, const glm::mat4& viewMatrix)

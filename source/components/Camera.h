@@ -19,7 +19,15 @@ public:
 
   void processInput(const std::shared_ptr<Window>& window);
 
+  void enable();
+
+  void disable();
+
+  bool isEnabled() const;
+
 private:
+  bool m_enabled;
+
   glm::vec3 m_position;
   glm::vec3 m_direction;
 
@@ -36,9 +44,8 @@ private:
   } m_rotation;
 
   std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
-  float m_dt = 0;
 
-  void handleMovement(const std::shared_ptr<Window>& window);
+  void handleMovement(const std::shared_ptr<Window>& window, float dt);
   void handleRotation(const std::shared_ptr<Window>& window);
   void handleZoom(const std::shared_ptr<Window>& window);
 };

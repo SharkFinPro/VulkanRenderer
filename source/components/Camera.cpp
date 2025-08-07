@@ -5,7 +5,7 @@
 constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(const glm::vec3 initialPosition)
-  : m_position(initialPosition), m_direction(0, 0, -1),
+  : m_enabled(true), m_position(initialPosition), m_direction(0, 0, -1),
     m_speedSettings {
       .speed = 0,
       .cameraSpeed = 0,
@@ -41,17 +41,32 @@ void Camera::setSpeed(const float cameraSpeed)
 void Camera::processInput(const std::shared_ptr<Window>& window)
 {
   const auto currentTime = std::chrono::steady_clock::now();
-  m_dt = std::chrono::duration<float>(currentTime - m_previousTime).count() * 1000.0f;
+  const auto dt = std::chrono::duration<float>(currentTime - m_previousTime).count() * 1000.0f;
   m_previousTime = currentTime;
 
   handleRotation(window);
 
   handleZoom(window);
 
-  handleMovement(window);
+  handleMovement(window, dt);
 }
 
-void Camera::handleMovement(const std::shared_ptr<Window>& window)
+void Camera::enable()
+{
+  m_enabled = true;
+}
+
+void Camera::disable()
+{
+  m_enabled = false;
+}
+
+bool Camera::isEnabled() const
+{
+  return m_enabled;
+}
+
+void Camera::handleMovement(const std::shared_ptr<Window>& window, float dt)
 {
   const auto pDirection = normalize(glm::vec3(
     -std::sin(glm::radians(m_rotation.yaw)),
@@ -61,29 +76,29 @@ void Camera::handleMovement(const std::shared_ptr<Window>& window)
 
   if (window->keyIsPressed(GLFW_KEY_W))
   {
-    m_position += m_speedSettings.cameraSpeed * m_direction * m_dt;
+    m_position += m_speedSettings.cameraSpeed * m_direction * dt;
   }
   if (window->keyIsPressed(GLFW_KEY_S))
   {
-    m_position -= m_speedSettings.cameraSpeed * m_direction * m_dt;
+    m_position -= m_speedSettings.cameraSpeed * m_direction * dt;
   }
 
   if (window->keyIsPressed(GLFW_KEY_A))
   {
-    m_position -= m_speedSettings.cameraSpeed * pDirection * m_dt;
+    m_position -= m_speedSettings.cameraSpeed * pDirection * dt;
   }
   if (window->keyIsPressed(GLFW_KEY_D))
   {
-    m_position += m_speedSettings.cameraSpeed * pDirection * m_dt;
+    m_position += m_speedSettings.cameraSpeed * pDirection * dt;
   }
 
   if (window->keyIsPressed(GLFW_KEY_SPACE))
   {
-    m_position += m_speedSettings.cameraSpeed * UP * m_dt;
+    m_position += m_speedSettings.cameraSpeed * UP * dt;
   }
   if (window->keyIsPressed(GLFW_KEY_LEFT_SHIFT))
   {
-    m_position -= m_speedSettings.cameraSpeed * UP * m_dt;
+    m_position -= m_speedSettings.cameraSpeed * UP * dt;
   }
 }
 
