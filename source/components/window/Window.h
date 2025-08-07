@@ -23,7 +23,7 @@ public:
 
   [[nodiscard]] bool keyIsPressed(int key) const;
 
-  [[nodiscard]] bool buttonDown(int button) const;
+  [[nodiscard]] bool buttonIsPressed(int button) const;
 
   void getCursorPos(double& xpos, double& ypos) const;
 

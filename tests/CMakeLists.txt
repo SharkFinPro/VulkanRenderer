@@ -12,3 +12,23 @@ add_subdirectory(plants)
 add_subdirectory(smoke)
 add_subdirectory(snake)
 add_subdirectory(spotLight)
+
+# Create a custom target that builds all projects
+add_custom_target(build_all
+  DEPENDS
+  bumpyCurtain
+  crosses
+  cube
+  cubeMap
+  curtain
+  ellipticalDots
+  magicLens
+  mousePicking
+  noisyEllipticalDots
+  objectLoading
+  plants
+  smoke
+  snake
+  spotLight
+  COMMENT "Building all tests"
+)

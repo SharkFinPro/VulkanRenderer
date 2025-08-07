@@ -17,7 +17,6 @@ class CommandBuffer;
 class DotsPipeline;
 class GuiPipeline;
 class ImGuiInstance;
-class Light;
 class LightingManager;
 class LinePipeline;
 struct LineVertex;
@@ -51,24 +50,18 @@ public:
                                                                const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>&);
 
-  std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular = 1.0f) const;
+  [[nodiscard]] std::shared_ptr<LightingManager> getLightingManager() const;
 
-  static ImGuiContext* getImGuiContext();
+  [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
 
-  [[nodiscard]] bool keyIsPressed(int key) const;
-
-  [[nodiscard]] bool buttonIsPressed(int button) const;
+  [[nodiscard]] std::shared_ptr<Window> getWindow() const;
 
   [[nodiscard]] bool sceneIsFocused() const;
 
   void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);
-  void renderLight(const std::shared_ptr<Light>& light) const;
   void renderLine(glm::vec3 start, glm::vec3 end);
 
   void renderBendyPlant(const BendyPlant& bendyPlant) const;
-
-  void enableCamera();
-  void disableCamera();
 
   void setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix);
 
@@ -79,15 +72,13 @@ public:
 
   void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
 
-  [[nodiscard]] bool canMousePick() const;
-
 private:
   std::shared_ptr<Instance> m_instance;
   std::shared_ptr<Window> m_window;
   std::shared_ptr<PhysicalDevice> m_physicalDevice;
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  std::unique_ptr<LightingManager> m_lightingManager;
+  std::shared_ptr<LightingManager> m_lightingManager;
 
   std::shared_ptr<SwapChain> m_swapChain;
   std::shared_ptr<RenderPass> m_renderPass;
@@ -127,13 +118,12 @@ private:
 
   bool m_framebufferResized;
 
-  bool m_isSceneFocused;
+  bool m_sceneIsFocused;
 
   VkExtent2D m_offscreenViewportExtent{};
 
   ImVec2 m_offscreenViewportPos{0, 0};
 
-  bool m_useCamera;
   glm::vec3 m_viewPosition{};
   glm::mat4 m_viewMatrix{};
 
@@ -141,7 +131,7 @@ private:
 
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
-  std::unique_ptr<MousePicker> m_mousePicker;
+  std::shared_ptr<MousePicker> m_mousePicker;
 
   std::unique_ptr<BendyPipeline> m_bendyPipeline;
 

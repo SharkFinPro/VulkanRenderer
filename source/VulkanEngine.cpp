@@ -47,8 +47,7 @@ constexpr bool enableValidationLayers = true;
 #endif
 
 VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
-  : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_isSceneFocused(false),
-    m_useCamera(true)
+  : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_sceneIsFocused(false)
 {
   glfwInit();
   initVulkan();
@@ -79,7 +78,7 @@ void VulkanEngine::render()
 {
   m_window->update();
 
-  if (sceneIsFocused() && m_useCamera)
+  if (sceneIsFocused() && m_camera->isEnabled())
   {
     m_camera->processInput(m_window);
     setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
@@ -132,30 +131,24 @@ std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_p
   return renderObject;
 }
 
-std::shared_ptr<Light> VulkanEngine::createLight(const glm::vec3 position, const glm::vec3 color, const float ambient,
-                                                 const float diffuse, const float specular) const
+std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
 {
-  return m_lightingManager->createLight(position, color, ambient, diffuse, specular);
+  return m_lightingManager;
 }
 
-ImGuiContext* VulkanEngine::getImGuiContext()
+std::shared_ptr<MousePicker> VulkanEngine::getMousePicker() const
 {
-  return ImGui::GetCurrentContext();
+  return m_mousePicker;
 }
 
-bool VulkanEngine::keyIsPressed(const int key) const
+std::shared_ptr<Window> VulkanEngine::getWindow() const
 {
-  return m_window->keyIsPressed(key);
-}
-
-bool VulkanEngine::buttonIsPressed(const int button) const
-{
-  return m_window->buttonDown(button);
+  return m_window;
 }
 
 bool VulkanEngine::sceneIsFocused() const
 {
-  return m_isSceneFocused || !m_vulkanEngineOptions.USE_DOCKSPACE;
+  return m_sceneIsFocused || !m_vulkanEngineOptions.USE_DOCKSPACE;
 }
 
 void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType,
@@ -171,11 +164,6 @@ void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObjec
   m_mousePicker->renderObject(renderObject, mousePicked);
 }
 
-void VulkanEngine::renderLight(const std::shared_ptr<Light>& light) const
-{
-  m_lightingManager->renderLight(light);
-}
-
 void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
 {
   m_lineVerticesToRender.push_back({start});
@@ -185,16 +173,6 @@ void VulkanEngine::renderLine(const glm::vec3 start, const glm::vec3 end)
 void VulkanEngine::renderBendyPlant(const BendyPlant& bendyPlant) const
 {
   m_bendyPipeline->renderBendyPlant(bendyPlant);
-}
-
-void VulkanEngine::enableCamera()
-{
-  m_useCamera = true;
-}
-
-void VulkanEngine::disableCamera()
-{
-  m_useCamera = false;
 }
 
 void VulkanEngine::setCameraParameters(const glm::vec3 position, const glm::mat4& viewMatrix)
@@ -232,11 +210,6 @@ void VulkanEngine::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smok
   m_smokeSystems.erase(system);
 }
 
-bool VulkanEngine::canMousePick() const
-{
-  return m_mousePicker->canMousePick();
-}
-
 void VulkanEngine::initVulkan()
 {
   m_instance = std::make_shared<Instance>();
@@ -257,7 +230,7 @@ void VulkanEngine::initVulkan()
 
   createDescriptorPool();
 
-  m_lightingManager = std::make_unique<LightingManager>(m_logicalDevice, m_descriptorPool);
+  m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool);
 
   createObjectDescriptorSetLayout();
 
@@ -331,7 +304,7 @@ void VulkanEngine::initVulkan()
                                                                    m_swapChain->getExtent());
   }
 
-  m_mousePicker = std::make_unique<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
+  m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
   if (!m_vulkanEngineOptions.USE_DOCKSPACE)
   {
     m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
@@ -520,7 +493,6 @@ void VulkanEngine::recreateSwapChain()
     m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
   }
 
-
   if (m_vulkanEngineOptions.USE_DOCKSPACE)
   {
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
@@ -546,7 +518,7 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
   ImGui::Begin(m_vulkanEngineOptions.SCENE_VIEW_NAME);
 
-  m_isSceneFocused = ImGui::IsWindowFocused();
+  m_sceneIsFocused = ImGui::IsWindowFocused();
 
   const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 

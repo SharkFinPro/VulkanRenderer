@@ -25,7 +25,7 @@ int main()
     VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
+    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
 
     std::shared_ptr<RenderObject> object = nullptr;
     std::vector<std::shared_ptr<RenderObject>> walls;

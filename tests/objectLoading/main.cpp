@@ -1,4 +1,5 @@
 #include "../common/gui.h"
+#include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
 #include <source/VulkanEngine.h>
 #include <iostream>
@@ -17,7 +18,7 @@ int main()
     VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(VulkanEngine::getImGuiContext());
+    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
 
     const auto texture = renderer.loadTexture("assets/textures/viking_room.png");
     const auto specular = renderer.loadTexture("assets/textures/blank_specular.png");
@@ -27,13 +28,13 @@ int main()
     object->setPosition({ 0, -1.0f, 5.0f });
     object->setScale(2.0f);
 
-    const auto light = renderer.createLight({0, 3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
+    const auto light = renderer.getLightingManager()->createLight({0, 3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
 
     while (renderer.isActive())
     {
       displayGui(gui, { light }, { object });
 
-      renderer.renderLight(light);
+      renderer.getLightingManager()->renderLight(light);
 
       renderer.renderObject(object, PipelineType::object);
 
