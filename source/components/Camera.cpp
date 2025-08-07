@@ -66,7 +66,7 @@ bool Camera::isEnabled() const
   return m_enabled;
 }
 
-void Camera::handleMovement(const std::shared_ptr<Window>& window, float dt)
+void Camera::handleMovement(const std::shared_ptr<Window>& window, const float dt)
 {
   const auto pDirection = normalize(glm::vec3(
     -std::sin(glm::radians(m_rotation.yaw)),
