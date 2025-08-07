@@ -52,7 +52,7 @@ void BendyPipeline::render(const RenderInfo* renderInfo)
 {
   GraphicsPipeline::render(renderInfo, nullptr);
 
-  for (const auto bendyPlant : m_bendyPlantsToRender)
+  for (const auto& bendyPlant : m_bendyPlantsToRender)
   {
     BendyPlantInfo bendyPlantInfo {
       .model = glm::translate(glm::mat4(1.0f), bendyPlant.position),
