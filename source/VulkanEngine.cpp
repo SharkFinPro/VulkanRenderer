@@ -47,7 +47,7 @@ constexpr bool enableValidationLayers = true;
 #endif
 
 VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
-  : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_isSceneFocused(false)
+  : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_sceneIsFocused(false)
 {
   glfwInit();
   initVulkan();
@@ -148,7 +148,7 @@ std::shared_ptr<Window> VulkanEngine::getWindow() const
 
 bool VulkanEngine::sceneIsFocused() const
 {
-  return m_isSceneFocused || !m_vulkanEngineOptions.USE_DOCKSPACE;
+  return m_sceneIsFocused || !m_vulkanEngineOptions.USE_DOCKSPACE;
 }
 
 void VulkanEngine::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType,
@@ -518,7 +518,7 @@ void VulkanEngine::renderGuiScene(const uint32_t imageIndex)
 
   ImGui::Begin(m_vulkanEngineOptions.SCENE_VIEW_NAME);
 
-  m_isSceneFocused = ImGui::IsWindowFocused();
+  m_sceneIsFocused = ImGui::IsWindowFocused();
 
   const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 

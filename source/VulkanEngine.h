@@ -118,7 +118,7 @@ private:
 
   bool m_framebufferResized;
 
-  bool m_isSceneFocused;
+  bool m_sceneIsFocused;
 
   VkExtent2D m_offscreenViewportExtent{};
 
