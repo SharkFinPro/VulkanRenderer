@@ -43,6 +43,4 @@ void main()
   }
 
   outColor = vec4(result, texColor.a);
-//  outColor = vec4(texColor.rgb, 1.0);
-//  outColor = vec4(0.2, 0.8, 0.2, 1.0);
 }
