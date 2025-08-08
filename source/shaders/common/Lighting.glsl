@@ -171,9 +171,9 @@ vec3 SmokeSpotLightAffect(SpotLight light, vec3 color, vec3 fragPos)
   if (!isInSpotlight(light, fragPos))
   {
     // Combined Output
-    return (light.ambient) * light.color * light.color * attenuation; // Color * Color for brighter color
+    return (light.ambient) * color * light.color * attenuation; // Color * Color for brighter color
   }
 
   // Combined Output
-  return (light.ambient + light.diffuse) * light.color * light.color * attenuation; // Color * Color for brighter color
+  return (light.ambient + light.diffuse) * color * light.color * attenuation; // Color * Color for brighter color
 }
