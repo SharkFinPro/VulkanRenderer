@@ -25,6 +25,8 @@ public:
 
   [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
 
+  static bool validationLayersEnabled();
+
   friend class ImGuiInstance;
 
 private:
