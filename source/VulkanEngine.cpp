@@ -40,12 +40,6 @@
 #include <ranges>
 #include <stdexcept>
 
-#ifdef NDEBUG
-constexpr bool enableValidationLayers = false;
-#else
-constexpr bool enableValidationLayers = true;
-#endif
-
 VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
   : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0), m_framebufferResized(false), m_sceneIsFocused(false)
 {
