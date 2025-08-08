@@ -16,6 +16,7 @@ layout(push_constant) uniform PushConstants {
 };
 
 layout(location = 0) out vec2 fragTexCoord;
+layout(location = 1) out vec3 fragPos;
 
 const float YAW_DEGREES_PER_INSTANCE = 65.0;
 const float PITCH_OFFSET_PER_INSTANCE = 2.5;
@@ -56,4 +57,6 @@ void main()
 
   // Transform to clip space
   gl_Position = transform.vp * model * vec4(position, 1.0);
+
+  fragPos = (model * vec4(position, 1.0)).xyz;
 }
