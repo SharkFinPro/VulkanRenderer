@@ -5,12 +5,6 @@
 #include <stdexcept>
 #include <cstring>
 
-#ifdef NDEBUG
-constexpr bool enableValidationLayers = false;
-#else
-constexpr bool enableValidationLayers = true;
-#endif
-
 #ifdef __APPLE__
 #define IS_MAC 1
 #else
@@ -19,7 +13,7 @@ constexpr bool enableValidationLayers = true;
 
 Instance::Instance()
 {
-  if (enableValidationLayers && !checkValidationLayerSupport())
+  if (validationLayersEnabled() && !checkValidationLayerSupport())
   {
     throw std::runtime_error("validation layers requested, but not available!");
   }
@@ -36,18 +30,18 @@ Instance::Instance()
   const auto extensions = getRequiredExtensions();
 
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  if (enableValidationLayers)
+  if (validationLayersEnabled())
   {
     DebugMessenger::populateCreateInfo(debugCreateInfo);
   }
 
   const VkInstanceCreateInfo createInfo {
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-    .pNext = enableValidationLayers ? &debugCreateInfo : nullptr,
+    .pNext = validationLayersEnabled() ? &debugCreateInfo : nullptr,
     .flags = IS_MAC ? VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR : 0,
     .pApplicationInfo = &appInfo,
-    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
-    .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
+    .enabledLayerCount = validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
+    .ppEnabledLayerNames = validationLayersEnabled() ? validationLayers.data() : nullptr,
     .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
     .ppEnabledExtensionNames = extensions.data()
   };
@@ -57,7 +51,7 @@ Instance::Instance()
     throw std::runtime_error("failed to create instance!");
   }
 
-  if (enableValidationLayers)
+  if (validationLayersEnabled())
   {
     createDebugUtilsMessenger();
   }
@@ -140,6 +134,15 @@ std::vector<VkPhysicalDevice> Instance::getPhysicalDevices() const
   return devices;
 }
 
+bool Instance::validationLayersEnabled()
+{
+#ifdef NDEBUG
+  return false;
+#else
+  return true;
+#endif
+}
+
 bool Instance::checkValidationLayerSupport()
 {
   uint32_t layerCount;
@@ -177,7 +180,7 @@ std::vector<const char*> Instance::getRequiredExtensions()
 
   std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-  if (enableValidationLayers)
+  if (validationLayersEnabled())
   {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }

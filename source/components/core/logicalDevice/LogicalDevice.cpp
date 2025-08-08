@@ -5,12 +5,6 @@
 #include <set>
 #include <stdexcept>
 
-#ifdef NDEBUG
-constexpr bool enableValidationLayers = false;
-#else
-constexpr bool enableValidationLayers = true;
-#endif
-
 LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
   : m_physicalDevice(physicalDevice)
 {
@@ -640,8 +634,8 @@ void LogicalDevice::createDevice()
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
     .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
     .pQueueCreateInfos = queueCreateInfos.data(),
-    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
-    .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
+    .enabledLayerCount = Instance::validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
+    .ppEnabledLayerNames = Instance::validationLayersEnabled() ? validationLayers.data() : nullptr,
     .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
     .ppEnabledExtensionNames = deviceExtensions.data(),
     .pEnabledFeatures = &deviceFeatures
