@@ -10,8 +10,11 @@
 BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
                              const VkCommandPool& commandPool,
-                             VkDescriptorPool descriptorPool)
-  : GraphicsPipeline(logicalDevice), m_previousTime(std::chrono::steady_clock::now())
+                             VkDescriptorPool descriptorPool,
+                             const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
+  : GraphicsPipeline(logicalDevice),
+    m_lightingDescriptorSet(lightingDescriptorSet),
+    m_previousTime(std::chrono::steady_clock::now())
 {
   createUniforms(commandPool);
 
@@ -41,6 +44,7 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
     },
     .descriptorSetLayouts {
       m_BendyPipelineDescriptorSet->getDescriptorSetLayout(),
+      m_lightingDescriptorSet->getDescriptorSetLayout(),
     },
     .renderPass = renderPass->getRenderPass()
   };
@@ -121,4 +125,7 @@ void BendyPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
 {
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &m_BendyPipelineDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+
+  renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
+                                                &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }

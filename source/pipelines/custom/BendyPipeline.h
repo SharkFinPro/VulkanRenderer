@@ -24,7 +24,8 @@ public:
   BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
                 const VkCommandPool& commandPool,
-                VkDescriptorPool descriptorPool);
+                VkDescriptorPool descriptorPool,
+                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
   void render(const RenderInfo* renderInfo);
 
@@ -41,6 +42,7 @@ private:
   std::shared_ptr<UniformBuffer> m_bendyUniform;
 
   std::shared_ptr<DescriptorSet> m_BendyPipelineDescriptorSet;
+  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
   std::shared_ptr<Texture2D> m_texture;
 

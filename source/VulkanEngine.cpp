@@ -304,7 +304,8 @@ void VulkanEngine::initVulkan()
     m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
   }
 
-  m_bendyPipeline = std::make_unique<BendyPipeline>(m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool);
+  m_bendyPipeline = std::make_unique<BendyPipeline>(m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool,
+                                                    m_lightingManager->getLightingDescriptorSet());
 }
 
 void VulkanEngine::createCommandPool()
