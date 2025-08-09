@@ -182,7 +182,7 @@ void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
     m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
     const LightMetadataUniform lightMetadataUBO {
-      .numPointLights = static_cast<int>(m_spotLightsToRender.size()),
+      .numPointLights = static_cast<int>(m_pointLightsToRender.size()),
       .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
     };
 
