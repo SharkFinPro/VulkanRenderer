@@ -233,10 +233,7 @@ void RenderingManager::recreateSwapChain()
       return;
     }
 
-    m_offscreenFramebuffer.reset();
-
-    m_offscreenFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_renderPass,
-                                                                   m_offscreenViewportExtent);
+    resetOffscreenFramebuffer();
 
     m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
   }
