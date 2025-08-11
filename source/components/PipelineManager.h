@@ -1,7 +1,6 @@
 #ifndef PIPELINEMANAGER_H
 #define PIPELINEMANAGER_H
 
-// #include "../pipelines/custom/config/PipelineTypes.h"
 #include "../pipelines/custom/BendyPipeline.h"
 #include "../pipelines/custom/LinePipeline.h"
 #include <vulkan/vulkan.h>
