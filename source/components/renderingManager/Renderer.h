@@ -5,11 +5,14 @@
 #include <memory>
 
 class CommandBuffer;
+class LogicalDevice;
 class RenderPass;
 class SwapChain;
 
 class Renderer {
 public:
+  explicit Renderer(const std::shared_ptr<LogicalDevice>& logicalDevice);
+
   virtual ~Renderer() = default;
 
   [[nodiscard]] virtual std::shared_ptr<RenderPass> getRenderPass() const = 0;
@@ -27,6 +30,9 @@ public:
                                        std::shared_ptr<CommandBuffer> commandBuffer) = 0;
 
   virtual void endRendering(std::shared_ptr<CommandBuffer> commandBuffer) = 0;
+
+protected:
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
 };
 
 

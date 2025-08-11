@@ -42,8 +42,11 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/objects/RenderObject.h
 
   # Rendering Manager
+  components/renderingManager/DynamicRenderer.cpp
+  components/renderingManager/DynamicRenderer.h
   components/renderingManager/LegacyRenderer.cpp
   components/renderingManager/LegacyRenderer.h
+  components/renderingManager/Renderer.cpp
   components/renderingManager/Renderer.h
   components/renderingManager/RenderingManager.cpp
   components/renderingManager/RenderingManager.h

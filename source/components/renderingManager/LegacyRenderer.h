@@ -4,7 +4,6 @@
 #include "Renderer.h"
 #include <memory>
 
-class LogicalDevice;
 class RenderPass;
 class StandardFramebuffer;
 class SwapChain;
@@ -32,8 +31,6 @@ public:
   void endRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
 
 private:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
-
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
   std::shared_ptr<SwapchainFramebuffer> m_framebuffer;
