@@ -6,7 +6,6 @@
 #include "core/physicalDevice/PhysicalDevice.h"
 #include "core/logicalDevice/LogicalDevice.h"
 #include "RenderPass.h"
-#include "../pipelines/custom/GuiPipeline.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
@@ -16,15 +15,17 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                              const std::shared_ptr<Instance>& instance,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
-                             const std::shared_ptr<GuiPipeline>& guiPipeline,
-                             const bool useDockSpace)
-  : m_useDockSpace(useDockSpace)
+                             const bool useDockSpace,
+                             const uint32_t maxImGuiTextures)
+  : m_logicalDevice(logicalDevice), m_useDockSpace(useDockSpace)
 {
+  createDescriptorPool(maxImGuiTextures);
+
   ImGui::CreateContext();
 
   window->initImGui();
 
-  const SwapChainSupportDetails swapChainSupport = logicalDevice->getPhysicalDevice()->getSwapChainSupport();
+  const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
   if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
@@ -34,14 +35,14 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
 
   ImGui_ImplVulkan_InitInfo initInfo {
     .Instance = instance->m_instance,
-    .PhysicalDevice = logicalDevice->getPhysicalDevice()->m_physicalDevice,
-    .Device = logicalDevice->m_device,
-    .Queue = logicalDevice->getGraphicsQueue(),
-    .DescriptorPool = guiPipeline->getPool(),
+    .PhysicalDevice = m_logicalDevice->getPhysicalDevice()->m_physicalDevice,
+    .Device = m_logicalDevice->m_device,
+    .Queue = m_logicalDevice->getGraphicsQueue(),
+    .DescriptorPool = descriptorPool,
     .RenderPass = renderPass->getRenderPass(),
     .MinImageCount = imageCount,
     .ImageCount = imageCount,
-    .MSAASamples = logicalDevice->getPhysicalDevice()->getMsaaSamples()
+    .MSAASamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
   };
 
   ImGui_ImplVulkan_Init(&initInfo);
@@ -59,6 +60,8 @@ ImGuiInstance::~ImGuiInstance()
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+
+  m_logicalDevice->destroyDescriptorPool(descriptorPool);
 }
 
 void ImGuiInstance::createNewFrame()
@@ -219,4 +222,32 @@ void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& command
 ImGuiContext* ImGuiInstance::getImGuiContext()
 {
   return ImGui::GetCurrentContext();
+}
+
+void ImGuiInstance::createDescriptorPool(const uint32_t maxImGuiTextures)
+{
+  const std::array<VkDescriptorPoolSize, 11> poolSizes {
+    {
+      {VK_DESCRIPTOR_TYPE_SAMPLER, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures},
+      {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, m_logicalDevice->getMaxFramesInFlight()},
+      {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, m_logicalDevice->getMaxFramesInFlight()}
+    }};
+
+  const VkDescriptorPoolCreateInfo poolCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+    .maxSets = m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures,
+    .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+    .pPoolSizes = poolSizes.data()
+  };
+
+  descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
 }

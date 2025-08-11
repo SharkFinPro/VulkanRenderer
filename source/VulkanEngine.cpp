@@ -165,13 +165,12 @@ void VulkanEngine::initVulkan()
 
   m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderPass(),
                                                         m_lightingManager, m_mousePicker, m_objectDescriptorSetLayout,
-                                                        m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS,
-                                                        m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
+                                                        m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS);
 
   m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
                                                     m_renderingManager->getRenderPass(),
-                                                    m_pipelineManager->getGuiPipeline(),
-                                                    m_vulkanEngineOptions.USE_DOCKSPACE);
+                                                    m_vulkanEngineOptions.USE_DOCKSPACE,
+                                                    m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
   m_renderingManager->recreateSwapChain();
 

@@ -35,13 +35,12 @@ PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDe
                                  VkDescriptorSetLayout objectDescriptorSetLayout,
                                  VkDescriptorPool descriptorPool,
                                  VkCommandPool commandPool,
-                                 const bool shouldDoDots,
-                                 const uint32_t maxImGuiTextures)
+                                 const bool shouldDoDots)
   : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
     m_renderPass(renderPass), m_lightingManager(lightingManager), m_mousePicker(mousePicker),
     m_shouldDoDots(shouldDoDots)
 {
-  createPipelines(objectDescriptorSetLayout, maxImGuiTextures);
+  createPipelines(objectDescriptorSetLayout);
 }
 
 void PipelineManager::createNewFrame()
@@ -168,7 +167,7 @@ std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Pi
   return m_renderObjectsToRender;
 }
 
-void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout, uint32_t maxImGuiTextures)
+void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout)
 {
   m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
     m_logicalDevice, m_renderPass, objectDescriptorSetLayout,
@@ -208,7 +207,7 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
     m_logicalDevice, m_renderPass, m_descriptorPool, objectDescriptorSetLayout,
     m_lightingManager->getLightingDescriptorSet());
 
-  m_guiPipeline = std::make_shared<GuiPipeline>(m_logicalDevice, m_renderPass, maxImGuiTextures);
+  m_guiPipeline = std::make_shared<GuiPipeline>(m_logicalDevice, m_renderPass);
 
   if (m_shouldDoDots)
   {

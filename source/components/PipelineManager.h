@@ -26,8 +26,7 @@ public:
                   VkDescriptorSetLayout objectDescriptorSetLayout,
                   VkDescriptorPool descriptorPool,
                   VkCommandPool commandPool,
-                  bool shouldDoDots,
-                  uint32_t maxImGuiTextures);
+                  bool shouldDoDots);
 
   void createNewFrame();
 
@@ -83,7 +82,7 @@ private:
 
   bool m_shouldDoDots;
 
-  void createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout, uint32_t maxImGuiTextures);
+  void createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout);
 
   void renderRenderObjects(const RenderInfo& renderInfo) const;
 
