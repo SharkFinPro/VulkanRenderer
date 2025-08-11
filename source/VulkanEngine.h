@@ -59,6 +59,8 @@ private:
   std::shared_ptr<PhysicalDevice> m_physicalDevice;
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
+  std::shared_ptr<MousePicker> m_mousePicker;
+
   std::shared_ptr<ImGuiInstance> m_imGuiInstance;
 
   std::shared_ptr<LightingManager> m_lightingManager;
@@ -66,8 +68,6 @@ private:
   std::shared_ptr<PipelineManager> m_pipelineManager;
 
   std::shared_ptr<RenderingManager> m_renderingManager;
-
-  std::shared_ptr<MousePicker> m_mousePicker;
 
   std::shared_ptr<Camera> m_camera;
 
