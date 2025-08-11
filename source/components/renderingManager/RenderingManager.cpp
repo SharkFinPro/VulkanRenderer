@@ -282,8 +282,7 @@ void RenderingManager::renderGuiScene(const uint32_t imageIndex)
   m_offscreenViewportPos = ImGui::GetCursorScreenPos();
   m_mousePicker->setViewportPos(m_offscreenViewportPos);
 
-  ImGui::Image(reinterpret_cast<ImTextureID>(getOffscreenImageDescriptorSet(imageIndex)),
-              contentRegionAvailable);
+  ImGui::Image(getOffscreenImageDescriptorSet(imageIndex), contentRegionAvailable);
 
   ImGui::End();
 }
