@@ -1,7 +1,6 @@
 #ifndef MOUSEPICKER_H
 #define MOUSEPICKER_H
 
-#include "../pipelines/custom/config/PipelineTypes.h"
 #include "../pipelines/custom/renderObject/MousePickingPipeline.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
@@ -11,6 +10,7 @@
 
 class LogicalDevice;
 class CommandBuffer;
+enum class PipelineType;
 class StandardFramebuffer;
 class RenderObject;
 class RenderPass;

@@ -1,12 +1,13 @@
 #include "Window.h"
 #include "../../VulkanEngine.h"
 #include "../core/instance/Instance.h"
+#include "../renderingManager/RenderingManager.h"
 #include <backends/imgui_impl_glfw.h>
 #include <stdexcept>
 
 Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
-               const bool fullscreen)
-  : m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
+               const bool fullscreen, VulkanEngine* engine)
+  : m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0), m_engine(engine)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -134,8 +135,8 @@ void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset,
 
 void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
 {
-  const auto app = static_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
-  app->m_framebufferResized = true;
+  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+  app->m_engine->getRenderingManager()->markFramebufferResized();
 }
 
 void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,

@@ -1,12 +1,14 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/PipelineManager.h>
+#include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
 
 void createLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights);
-void createSmokeSystems(VulkanEngine& renderer);
+void createSmokeSystems(const VulkanEngine& renderer);
 
 int main()
 {
@@ -41,7 +43,7 @@ int main()
     {
       displayGui(gui, lights, { object });
 
-      renderer.renderObject(object, PipelineType::object);
+      renderer.getPipelineManager()->renderObject(object, PipelineType::object);
 
       for (const auto& light : lights)
       {
@@ -73,13 +75,13 @@ void createLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Ligh
   lights.push_back(renderer.getLightingManager()->createLight({-5.0f, 1.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
 
-void createSmokeSystems(VulkanEngine& renderer)
+void createSmokeSystems(const VulkanEngine& renderer)
 {
   constexpr uint32_t numParticles = 2'500'000;
 
-  renderer.createSmokeSystem({0, 0.95f, 0}, numParticles);
-  renderer.createSmokeSystem({-5, 0.95f, -5}, numParticles * 2);
-  renderer.createSmokeSystem({-5, 0.95f, 5}, numParticles / 2);
-  renderer.createSmokeSystem({5, .95f, 5}, numParticles * 2);
-  renderer.createSmokeSystem({5, 0.95f, -5}, numParticles / 2);
+  renderer.getPipelineManager()->createSmokeSystem({0, 0.95f, 0}, numParticles);
+  renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, -5}, numParticles * 2);
+  renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, 5}, numParticles / 2);
+  renderer.getPipelineManager()->createSmokeSystem({5, .95f, 5}, numParticles * 2);
+  renderer.getPipelineManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2);
 }

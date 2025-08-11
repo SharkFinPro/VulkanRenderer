@@ -1,6 +1,8 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/PipelineManager.h>
+#include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <iostream>
 
@@ -36,7 +38,7 @@ int main()
 
       renderer.getLightingManager()->renderLight(light);
 
-      renderer.renderObject(object, PipelineType::object);
+      renderer.getPipelineManager()->renderObject(object, PipelineType::object);
 
       renderer.render();
     }

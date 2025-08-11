@@ -1,7 +1,7 @@
 #include "TexturedPlane.h"
 #include "../config/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../../RenderPass.h"
+#include "../../../components/RenderPass.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/objects/RenderObject.h"
 

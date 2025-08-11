@@ -1,6 +1,8 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/PipelineManager.h>
+#include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
@@ -39,7 +41,7 @@ int main()
       displayGui(gui, lights, { object });
 
       // Render Objects
-      renderer.renderObject(object, PipelineType::crosses);
+      renderer.getPipelineManager()->renderObject(object, PipelineType::crosses);
 
       for (const auto& light : lights)
       {

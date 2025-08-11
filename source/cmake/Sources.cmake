@@ -41,6 +41,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/objects/RenderObject.cpp
   components/objects/RenderObject.h
 
+  # Rendering Manager
+  components/renderingManager/RenderingManager.cpp
+  components/renderingManager/RenderingManager.h
+
   # Textures
   components/textures/Texture.cpp
   components/textures/Texture.h
@@ -64,6 +68,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/ImGuiInstance.h
   components/MousePicker.cpp
   components/MousePicker.h
+  components/PipelineManager.cpp
+  components/PipelineManager.h
+  components/RenderPass.cpp
+  components/RenderPass.h
   components/UniformBuffer.cpp
   components/UniformBuffer.h
 )
@@ -76,8 +84,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   pipelines/GraphicsPipeline.h
   pipelines/Pipeline.cpp
   pipelines/Pipeline.h
-  pipelines/RenderPass.cpp
-  pipelines/RenderPass.h
   pipelines/ShaderModule.cpp
   pipelines/ShaderModule.h
 )

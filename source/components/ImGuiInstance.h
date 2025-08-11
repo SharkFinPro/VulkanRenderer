@@ -18,7 +18,7 @@ public:
                 const std::shared_ptr<Instance>& instance,
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
-                const std::unique_ptr<GuiPipeline>& guiPipeline,
+                const std::shared_ptr<GuiPipeline>& guiPipeline,
                 bool useDockSpace);
   ~ImGuiInstance();
 

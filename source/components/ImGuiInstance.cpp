@@ -1,11 +1,11 @@
 #include "ImGuiInstance.h"
 
 #include "window/Window.h"
-#include "../components/core/commandBuffer/CommandBuffer.h"
-#include "../components/core/instance/Instance.h"
-#include "../components/core/physicalDevice/PhysicalDevice.h"
-#include "../components/core/logicalDevice/LogicalDevice.h"
-#include "../pipelines/RenderPass.h"
+#include "core/commandBuffer/CommandBuffer.h"
+#include "core/instance/Instance.h"
+#include "core/physicalDevice/PhysicalDevice.h"
+#include "core/logicalDevice/LogicalDevice.h"
+#include "RenderPass.h"
 #include "../pipelines/custom/GuiPipeline.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -16,7 +16,7 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                              const std::shared_ptr<Instance>& instance,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass,
-                             const std::unique_ptr<GuiPipeline>& guiPipeline,
+                             const std::shared_ptr<GuiPipeline>& guiPipeline,
                              const bool useDockSpace)
   : m_useDockSpace(useDockSpace)
 {

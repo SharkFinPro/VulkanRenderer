@@ -1,6 +1,8 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/PipelineManager.h>
+#include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
@@ -69,7 +71,7 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
   displayGui(gui, lights, { object });
 
   // Render Objects
-  renderer.renderObject(object, PipelineType::object);
+  renderer.getPipelineManager()->renderObject(object, PipelineType::object);
 
   for (const auto& light : lights)
   {
