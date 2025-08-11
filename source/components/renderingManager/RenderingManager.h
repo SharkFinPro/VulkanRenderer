@@ -51,7 +51,7 @@ public:
 
   void markFramebufferResized();
 
-  bool isSceneFocused() const;
+  [[nodiscard]] bool isSceneFocused() const;
 
   void recreateSwapChain();
 
