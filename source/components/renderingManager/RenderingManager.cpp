@@ -1,4 +1,6 @@
 #include "RenderingManager.h"
+#include "LegacyRenderer.h"
+#include "Renderer.h"
 #include "../PipelineManager.h"
 #include "../core/commandBuffer/CommandBuffer.h"
 #include "../core/logicalDevice/LogicalDevice.h"
@@ -10,12 +12,6 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>
-
-/* Begin Deprecated */
-#include "../framebuffers/StandardFramebuffer.h"
-#include "../framebuffers/SwapchainFramebuffer.h"
-#include "../RenderPass.h"
-/* End Deprecated */
 
 RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                    const std::shared_ptr<Window>& window,
@@ -32,19 +28,7 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
 
   m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window);
 
-  /* Begin Deprecated */
-
-  m_renderPass = std::make_shared<RenderPass>(m_logicalDevice, m_swapChain->getImageFormat(),
-                                              m_logicalDevice->getPhysicalDevice()->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
-  m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
-                                                       m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-                                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-  m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
-                                                         m_swapChain->getExtent());
-
-  /* End Deprecated */
+  m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
 }
 
 void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -59,12 +43,12 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
       return;
     }
 
-    m_offscreenRenderPass->begin(m_offscreenFramebuffer->getFramebuffer(imageIndex), m_offscreenViewportExtent, m_offscreenCommandBuffer);
+    m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
     pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
                                                currentFrame, m_viewPosition, m_viewMatrix);
 
-    m_offscreenCommandBuffer->endRenderPass();
+    m_renderer->endRendering(m_offscreenCommandBuffer);
   });
 }
 
@@ -81,7 +65,7 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
       .extent = m_swapChain->getExtent()
     };
 
-    m_renderPass->begin(m_framebuffer->getFramebuffer(imageIndex), m_swapChain->getExtent(), renderInfo.commandBuffer);
+    m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer);
 
     if (!m_shouldRenderOffscreen)
     {
@@ -107,7 +91,7 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
 
     pipelineManager->getGuiPipeline()->render(&renderInfo);
 
-    renderInfo.commandBuffer->endRenderPass();
+    m_renderer->endRendering(renderInfo.commandBuffer);
   });
 }
 
@@ -171,27 +155,15 @@ std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
   return m_swapChain;
 }
 
-void RenderingManager::resetOffscreenFramebuffer()
-{
-  m_offscreenFramebuffer.reset();
-  m_offscreenFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_renderPass,
-                                                                 m_offscreenViewportExtent);
-}
-
 void RenderingManager::setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix)
 {
   m_viewPosition = position;
   m_viewMatrix = viewMatrix;
 }
 
-std::shared_ptr<RenderPass> RenderingManager::getRenderPass() const
+std::shared_ptr<Renderer> RenderingManager::getRenderer() const
 {
-  return m_renderPass;
-}
-
-VkDescriptorSet& RenderingManager::getOffscreenImageDescriptorSet(const uint32_t imageIndex) const
-{
-  return m_offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex);
+  return m_renderer;
 }
 
 void RenderingManager::markFramebufferResized()
@@ -222,9 +194,7 @@ void RenderingManager::recreateSwapChain()
 
   m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window);
 
-  m_framebuffer.reset();
-  m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
-                                                         m_swapChain->getExtent());
+  m_renderer->resetSwapchainImageResources(m_swapChain);
 
   if (m_shouldRenderOffscreen)
   {
@@ -233,7 +203,7 @@ void RenderingManager::recreateSwapChain()
       return;
     }
 
-    resetOffscreenFramebuffer();
+    m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
     m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
   }
@@ -274,7 +244,8 @@ void RenderingManager::renderGuiScene(const uint32_t imageIndex)
     m_offscreenViewportExtent = currentOffscreenViewportExtent;
 
     m_logicalDevice->waitIdle();
-    resetOffscreenFramebuffer();
+
+    m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
     m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
   }
@@ -282,7 +253,7 @@ void RenderingManager::renderGuiScene(const uint32_t imageIndex)
   m_offscreenViewportPos = ImGui::GetCursorScreenPos();
   m_mousePicker->setViewportPos(m_offscreenViewportPos);
 
-  ImGui::Image(getOffscreenImageDescriptorSet(imageIndex), contentRegionAvailable);
+  ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(imageIndex), contentRegionAvailable);
 
   ImGui::End();
 }

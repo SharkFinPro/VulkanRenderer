@@ -7,19 +7,14 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
-class MousePicker;
-class LightingManager;
-class Window;
-class PipelineManager;
-class LogicalDevice;
 class CommandBuffer;
+class LightingManager;
+class LogicalDevice;
+class MousePicker;
+class PipelineManager;
+class Renderer;
 class SwapChain;
-
-/* Begin Deprecated */
-class RenderPass;
-class StandardFramebuffer;
-class SwapchainFramebuffer;
-/* End Deprecated */
+class Window;
 
 class RenderingManager {
 public:
@@ -42,13 +37,9 @@ public:
 
   [[nodiscard]] std::shared_ptr<SwapChain> getSwapChain() const;
 
-  void resetOffscreenFramebuffer();
-
   void setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix);
 
-  [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const;
-
-  [[nodiscard]] VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) const;
+  [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
 
   void markFramebufferResized();
 
@@ -62,6 +53,8 @@ private:
   std::shared_ptr<Window> m_window;
 
   std::shared_ptr<MousePicker> m_mousePicker;
+
+  std::shared_ptr<Renderer> m_renderer;
 
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
@@ -84,14 +77,6 @@ private:
   ImVec2 m_offscreenViewportPos{0, 0};
 
   const char* m_sceneViewName;
-
-  /* Begin Deprecated */
-  std::shared_ptr<SwapchainFramebuffer> m_framebuffer;
-  std::shared_ptr<StandardFramebuffer> m_offscreenFramebuffer;
-
-  std::shared_ptr<RenderPass> m_renderPass;
-  std::shared_ptr<RenderPass> m_offscreenRenderPass;
-  /* End Deprecated */
 
   void renderGuiScene(uint32_t imageIndex);
 };

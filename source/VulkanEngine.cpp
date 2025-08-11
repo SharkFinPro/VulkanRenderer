@@ -14,8 +14,8 @@
 
 #include "components/objects/Model.h"
 #include "components/objects/RenderObject.h"
+#include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
-#include "components/window/SwapChain.h"
 
 #include "pipelines/custom/DotsPipeline.h"
 #include "pipelines/custom/SmokePipeline.h"
@@ -163,12 +163,12 @@ void VulkanEngine::initVulkan()
                                                           m_vulkanEngineOptions.USE_DOCKSPACE,
                                                           m_vulkanEngineOptions.SCENE_VIEW_NAME);
 
-  m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderPass(),
+  m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer()->getRenderPass(),
                                                         m_lightingManager, m_mousePicker, m_objectDescriptorSetLayout,
                                                         m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS);
 
   m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
-                                                    m_renderingManager->getRenderPass(),
+                                                    m_renderingManager->getRenderer()->getRenderPass(),
                                                     m_vulkanEngineOptions.USE_DOCKSPACE,
                                                     m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 }
