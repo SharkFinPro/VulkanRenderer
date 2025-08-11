@@ -60,7 +60,7 @@ void VulkanEngine::render()
 
   doComputing();
 
-  m_renderingManager->doRendering(m_pipelineManager, m_currentFrame);
+  m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
 
   createNewFrame();
 }
@@ -159,8 +159,7 @@ void VulkanEngine::initVulkan()
 
   m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
 
-  m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_window, m_lightingManager,
-                                                          m_mousePicker, m_commandPool,
+  m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_window, m_mousePicker, m_commandPool,
                                                           m_vulkanEngineOptions.USE_DOCKSPACE,
                                                           m_vulkanEngineOptions.SCENE_VIEW_NAME);
 

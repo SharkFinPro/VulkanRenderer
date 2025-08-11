@@ -25,7 +25,6 @@ class RenderingManager {
 public:
   RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                    const std::shared_ptr<Window>& window,
-                   const std::shared_ptr<LightingManager>& lightingManager,
                    const std::shared_ptr<MousePicker>& mousePicker,
                    VkCommandPool commandPool,
                    bool useOffscreenFramebuffer,
@@ -37,7 +36,9 @@ public:
   void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
                                     uint32_t imageIndex) const;
 
-  void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t& currentFrame);
+  void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
+                   const std::shared_ptr<LightingManager>& lightingManager,
+                   uint32_t& currentFrame);
 
   [[nodiscard]] std::shared_ptr<SwapChain> getSwapChain() const;
 
@@ -59,8 +60,6 @@ private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
   std::shared_ptr<Window> m_window;
-
-  std::shared_ptr<LightingManager> m_lightingManager;
 
   std::shared_ptr<MousePicker> m_mousePicker;
 

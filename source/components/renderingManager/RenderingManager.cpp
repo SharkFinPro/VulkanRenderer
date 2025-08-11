@@ -19,13 +19,12 @@
 
 RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                    const std::shared_ptr<Window>& window,
-                                   const std::shared_ptr<LightingManager>& lightingManager,
                                    const std::shared_ptr<MousePicker>& mousePicker,
                                    VkCommandPool commandPool,
                                    const bool useOffscreenFramebuffer,
                                    const char* sceneViewName)
   : m_logicalDevice(logicalDevice), m_window(window),
-    m_lightingManager(lightingManager), m_mousePicker(mousePicker), m_commandPool(commandPool),
+    m_mousePicker(mousePicker), m_commandPool(commandPool),
     m_useOffscreenFramebuffer(useOffscreenFramebuffer), m_sceneViewName(sceneViewName)
 {
   m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -118,7 +117,9 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
   });
 }
 
-void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t& currentFrame)
+void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                   const std::shared_ptr<LightingManager>& lightingManager,
+                                   uint32_t& currentFrame)
 {
   m_logicalDevice->waitForGraphicsFences(currentFrame);
 
@@ -141,7 +142,7 @@ void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipel
 
   m_logicalDevice->resetGraphicsFences(currentFrame);
 
-  m_lightingManager->update(currentFrame, m_viewPosition);
+  lightingManager->update(currentFrame, m_viewPosition);
 
   m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix,
                                 pipelineManager->getRenderObjectsToRender());
