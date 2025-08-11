@@ -21,11 +21,11 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
                                    const std::shared_ptr<Window>& window,
                                    const std::shared_ptr<MousePicker>& mousePicker,
                                    VkCommandPool commandPool,
-                                   const bool useOffscreenFramebuffer,
+                                   const bool shouldRenderOffscreen,
                                    const char* sceneViewName)
   : m_logicalDevice(logicalDevice), m_window(window),
     m_mousePicker(mousePicker), m_commandPool(commandPool),
-    m_useOffscreenFramebuffer(useOffscreenFramebuffer), m_sceneViewName(sceneViewName)
+    m_shouldRenderOffscreen(shouldRenderOffscreen), m_sceneViewName(sceneViewName)
 {
   m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
   m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -52,7 +52,7 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
 {
   m_offscreenCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
   {
-    if (!m_useOffscreenFramebuffer ||
+    if (!m_shouldRenderOffscreen ||
         m_offscreenViewportExtent.width == 0 ||
         m_offscreenViewportExtent.height == 0)
     {
@@ -83,7 +83,7 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
 
     m_renderPass->begin(m_framebuffer->getFramebuffer(imageIndex), m_swapChain->getExtent(), renderInfo.commandBuffer);
 
-    if (!m_useOffscreenFramebuffer)
+    if (!m_shouldRenderOffscreen)
     {
       pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
                                                  currentFrame, m_viewPosition, m_viewMatrix);
@@ -201,7 +201,7 @@ void RenderingManager::markFramebufferResized()
 
 bool RenderingManager::isSceneFocused() const
 {
-  return m_sceneIsFocused || !m_useOffscreenFramebuffer;
+  return m_sceneIsFocused || !m_shouldRenderOffscreen;
 }
 
 void RenderingManager::recreateSwapChain()
@@ -226,7 +226,7 @@ void RenderingManager::recreateSwapChain()
   m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
                                                          m_swapChain->getExtent());
 
-  if (m_useOffscreenFramebuffer)
+  if (m_shouldRenderOffscreen)
   {
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
@@ -245,7 +245,7 @@ void RenderingManager::recreateSwapChain()
 
 void RenderingManager::renderGuiScene(const uint32_t imageIndex)
 {
-  if (!m_useOffscreenFramebuffer)
+  if (!m_shouldRenderOffscreen)
   {
     return;
   }

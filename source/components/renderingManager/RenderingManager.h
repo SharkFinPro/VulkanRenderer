@@ -27,7 +27,7 @@ public:
                    const std::shared_ptr<Window>& window,
                    const std::shared_ptr<MousePicker>& mousePicker,
                    VkCommandPool commandPool,
-                   bool useOffscreenFramebuffer,
+                   bool shouldRenderOffscreen,
                    const char* sceneViewName);
 
   void recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
@@ -73,7 +73,7 @@ private:
   glm::vec3 m_viewPosition{};
   glm::mat4 m_viewMatrix{};
 
-  bool m_useOffscreenFramebuffer;
+  bool m_shouldRenderOffscreen;
 
   bool m_framebufferResized = false;
 
