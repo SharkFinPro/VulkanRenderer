@@ -216,12 +216,13 @@ void RenderingManager::recreateSwapChain()
 
   m_logicalDevice->waitIdle();
 
-  m_framebuffer.reset();
   m_swapChain.reset();
 
   m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
   m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window);
+
+  m_framebuffer.reset();
   m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
                                                          m_swapChain->getExtent());
 
