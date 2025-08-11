@@ -62,6 +62,16 @@ void CommandBuffer::endRenderPass() const
   vkCmdEndRenderPass(m_commandBuffers[m_currentFrame]);
 }
 
+void CommandBuffer::beginRendering(const VkRenderingInfo &renderingInfo) const
+{
+  vkCmdBeginRendering(m_commandBuffers[m_currentFrame], &renderingInfo);
+}
+
+void CommandBuffer::endRendering() const
+{
+  vkCmdEndRendering(m_commandBuffers[m_currentFrame]);
+}
+
 void CommandBuffer::bindPipeline(const VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) const
 {
   vkCmdBindPipeline(m_commandBuffers[m_currentFrame], pipelineBindPoint, pipeline);
