@@ -18,7 +18,6 @@ public:
   DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const VkCommandPool& commandPool,
                const VkRenderPass& renderPass,
-               const VkExtent2D& swapChainExtent,
                VkDescriptorPool descriptorPool);
 
   ~DotsPipeline() override;
@@ -40,7 +39,7 @@ private:
   std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
   void createUniforms();
-  void createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent);
+  void createShaderStorageBuffers(const VkCommandPool& commandPool);
 
   void createDescriptorSets(VkDescriptorPool descriptorPool);
 

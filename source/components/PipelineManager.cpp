@@ -211,9 +211,8 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
 
   if (m_shouldDoDots)
   {
-    // TODO
-    // m_dotsPipeline = std::make_shared<DotsPipeline>(m_logicalDevice, m_commandPool,
-                                                    // m_renderPass->getRenderPass(), m_swapChain->getExtent(), m_descriptorPool);
+    m_dotsPipeline = std::make_shared<DotsPipeline>(m_logicalDevice, m_commandPool, m_renderPass->getRenderPass(),
+                                                    m_descriptorPool);
   }
 
   m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, m_renderPass);
