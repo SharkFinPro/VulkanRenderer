@@ -62,8 +62,8 @@ private:
 
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-  VkBuffer m_stagingBuffer;
-  VkDeviceMemory m_stagingBufferMemory;
+  VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
   void recordMousePickingCommandBuffer(uint32_t imageIndex,
                                        uint32_t currentFrame,

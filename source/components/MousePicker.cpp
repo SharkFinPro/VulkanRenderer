@@ -23,9 +23,6 @@ MousePicker::MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
   m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(m_logicalDevice, m_mousePickingRenderPass,
                                                                   objectDescriptorSetLayout);
 
-  // m_mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool,
-                                                                    // m_mousePickingRenderPass, m_viewportExtent, true);
-
   constexpr VkDeviceSize bufferSize = 4;
   Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
