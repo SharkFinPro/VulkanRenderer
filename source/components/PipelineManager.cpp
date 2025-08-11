@@ -57,7 +57,7 @@ void PipelineManager::createNewFrame()
 }
 
 void PipelineManager::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType,
-                                   bool *mousePicked)
+                                   bool* mousePicked)
 {
   m_renderObjectsToRender[pipelineType].push_back(renderObject);
 
@@ -69,7 +69,7 @@ void PipelineManager::renderObject(const std::shared_ptr<RenderObject>& renderOb
   m_mousePicker->renderObject(renderObject, mousePicked);
 }
 
-void PipelineManager::renderLine(glm::vec3 start, glm::vec3 end)
+void PipelineManager::renderLine(const glm::vec3 start, const glm::vec3 end)
 {
   m_lineVerticesToRender.push_back({start});
   m_lineVerticesToRender.push_back({end});
