@@ -3,8 +3,6 @@
 
 #include "components/window/Window.h"
 #include "VulkanEngineOptions.h"
-#include <glm/mat4x4.hpp>
-#include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <vector>
