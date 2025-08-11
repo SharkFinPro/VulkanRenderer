@@ -63,9 +63,9 @@ private:
 
   std::shared_ptr<LightingManager> m_lightingManager;
 
-  std::shared_ptr<RenderingManager> m_renderingManager;
-
   std::shared_ptr<PipelineManager> m_pipelineManager;
+
+  std::shared_ptr<RenderingManager> m_renderingManager;
 
   std::shared_ptr<MousePicker> m_mousePicker;
 
