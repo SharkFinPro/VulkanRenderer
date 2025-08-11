@@ -171,13 +171,6 @@ void VulkanEngine::initVulkan()
                                                     m_renderingManager->getRenderPass(),
                                                     m_vulkanEngineOptions.USE_DOCKSPACE,
                                                     m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
-
-  m_renderingManager->recreateSwapChain();
-
-  if (!m_vulkanEngineOptions.USE_DOCKSPACE)
-  {
-    m_mousePicker->recreateFramebuffer(m_renderingManager->getSwapChain()->getExtent());
-  }
 }
 
 void VulkanEngine::createCommandPool()

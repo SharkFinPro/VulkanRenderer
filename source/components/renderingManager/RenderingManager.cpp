@@ -41,14 +41,8 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
                                                        m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
                                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  // m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
-  //                                                        m_swapChain->getExtent());
-  //
-  // if (m_useOffscreenFramebuffer)
-  // {
-  //   m_offscreenFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_renderPass,
-  //                                                                  m_swapChain->getExtent());
-  // }
+  m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, m_swapChain, m_commandPool, m_renderPass,
+                                                         m_swapChain->getExtent());
 
   /* End Deprecated */
 }
