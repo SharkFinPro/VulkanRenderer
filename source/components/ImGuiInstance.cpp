@@ -49,7 +49,6 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
   {
     initInfo.UseDynamicRendering = true;
 
-    // TODO: Use proper formats
     constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
 
     initInfo.PipelineRenderingCreateInfo = {

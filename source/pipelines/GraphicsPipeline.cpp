@@ -48,7 +48,6 @@ void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPip
   const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(m_logicalDevice);
   const auto shaderStages = graphicsPipelineOptions.shaders.getShaderStages(shaderModules);
 
-  // TODO: Use proper formats
   constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
 
   const VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
