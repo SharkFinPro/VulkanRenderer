@@ -62,7 +62,7 @@ void CommandBuffer::endRenderPass() const
   vkCmdEndRenderPass(m_commandBuffers[m_currentFrame]);
 }
 
-void CommandBuffer::beginRendering(const VkRenderingInfo &renderingInfo) const
+void CommandBuffer::beginRendering(const VkRenderingInfo& renderingInfo) const
 {
   vkCmdBeginRendering(m_commandBuffers[m_currentFrame], &renderingInfo);
 }
