@@ -40,7 +40,7 @@ void LegacyRenderer::resetSwapchainImageResources(std::shared_ptr<SwapChain> swa
                                                          swapChain->getExtent());
 }
 
-void LegacyRenderer::resetOffscreenImageResources(VkExtent2D offscreenViewportExtent)
+void LegacyRenderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
 {
   m_offscreenFramebuffer.reset();
   m_offscreenFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_renderPass,
