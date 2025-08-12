@@ -16,7 +16,7 @@ public:
 
   [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
 
-  [[nodiscard]] VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) const override;
+  [[nodiscard]] VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
 
   void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) override;
 

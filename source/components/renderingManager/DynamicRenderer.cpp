@@ -19,16 +19,21 @@ std::shared_ptr<RenderPass> DynamicRenderer::getRenderPass() const
   return nullptr;
 }
 
-VkDescriptorSet& DynamicRenderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex) const
+VkDescriptorSet& DynamicRenderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
 {
+  return m_offscreenImageDescriptorSets[imageIndex];
 }
 
 void DynamicRenderer::resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain)
 {
+  cleanupSwapchainImageResources();
+  createSwapchainImageResources();
 }
 
 void DynamicRenderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
 {
+  cleanupOffscreenImageResources();
+  createOffscreenImageResources();
 }
 
 void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex, const VkExtent2D extent,
@@ -124,4 +129,12 @@ void DynamicRenderer::cleanupOffscreenImageResources()
     m_logicalDevice->freeMemory(m_offscreenDepthImageMemory[i]);
     m_logicalDevice->destroyImage(m_offscreenDepthImages[i]);
   }
+}
+
+void DynamicRenderer::createSwapchainImageResources()
+{
+}
+
+void DynamicRenderer::createOffscreenImageResources()
+{
 }

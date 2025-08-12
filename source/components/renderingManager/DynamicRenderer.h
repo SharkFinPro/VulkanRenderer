@@ -8,11 +8,11 @@ class DynamicRenderer final : public Renderer {
 public:
   explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
-  ~DynamicRenderer();
+  ~DynamicRenderer() override;
 
   [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
 
-  [[nodiscard]] VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) const override;
+  [[nodiscard]] VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
 
   void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) override;
 
@@ -53,6 +53,10 @@ private:
   void cleanupSwapchainImageResources();
 
   void cleanupOffscreenImageResources();
+
+  void createSwapchainImageResources();
+
+  void createOffscreenImageResources();
 };
 
 

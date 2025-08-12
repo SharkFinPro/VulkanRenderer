@@ -17,7 +17,7 @@ public:
 
   [[nodiscard]] virtual std::shared_ptr<RenderPass> getRenderPass() const = 0;
 
-  [[nodiscard]] virtual VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) const = 0;
+  [[nodiscard]] virtual VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) = 0;
 
   virtual void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) = 0;
 
