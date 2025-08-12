@@ -11,7 +11,7 @@ class SwapchainFramebuffer;
 
 class LegacyRenderer final : public Renderer {
 public:
-  LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, std::shared_ptr<SwapChain> swapChain,
+  LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<SwapChain>& swapChain,
                  VkCommandPool commandPool);
 
   [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;

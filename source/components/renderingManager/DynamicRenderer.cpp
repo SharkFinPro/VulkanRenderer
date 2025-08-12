@@ -160,8 +160,9 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
   commandBuffer->beginRendering(renderingInfo);
 }
 
-void DynamicRenderer::endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
-                                            std::shared_ptr<SwapChain> swapChain)
+void DynamicRenderer::endSwapchainRendering(const uint32_t imageIndex,
+                                            const std::shared_ptr<CommandBuffer> commandBuffer,
+                                            const std::shared_ptr<SwapChain> swapChain)
 {
   commandBuffer->endRendering();
 
@@ -192,7 +193,7 @@ void DynamicRenderer::endSwapchainRendering(uint32_t imageIndex, std::shared_ptr
   );
 }
 
-void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer)
+void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex, const std::shared_ptr<CommandBuffer> commandBuffer)
 {
   commandBuffer->endRendering();
 }

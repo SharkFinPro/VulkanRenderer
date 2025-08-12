@@ -8,7 +8,7 @@
 #include "../RenderPass.h"
 
 LegacyRenderer::LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                               std::shared_ptr<SwapChain> swapChain,
+                               const std::shared_ptr<SwapChain>& swapChain,
                                VkCommandPool commandPool)
   : Renderer(logicalDevice, commandPool)
 {
