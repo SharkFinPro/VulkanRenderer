@@ -8,6 +8,8 @@ class DynamicRenderer final : public Renderer {
 public:
   explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
+  ~DynamicRenderer();
+
   [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
 
   [[nodiscard]] VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) const override;
@@ -25,6 +27,8 @@ public:
   void endRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
 
 private:
+  size_t m_numImages = 3;
+
   std::vector<VkImage> m_offscreenImages;
   std::vector<VkImageView> m_offscreenImageViews;
   std::vector<VkDeviceMemory> m_offscreenImageMemory;
@@ -45,6 +49,10 @@ private:
   std::vector<VkImage> m_offscreenDepthImages;
   std::vector<VkImageView> m_offscreenDepthImageViews;
   std::vector<VkDeviceMemory> m_offscreenDepthImageMemory;
+
+  void cleanupSwapchainImageResources();
+
+  void cleanupOffscreenImageResources();
 };
 
 
