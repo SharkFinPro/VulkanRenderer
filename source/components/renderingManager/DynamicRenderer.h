@@ -6,7 +6,8 @@
 
 class DynamicRenderer final : public Renderer {
 public:
-  explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice);
+  explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<SwapChain>& swapChain,
+                           VkCommandPool commandPool);
 
   ~DynamicRenderer() override;
 
@@ -29,6 +30,8 @@ public:
 private:
   size_t m_numImages = 3;
 
+  VkSampler m_sampler = VK_NULL_HANDLE;
+
   std::vector<VkImage> m_offscreenImages;
   std::vector<VkImageView> m_offscreenImageViews;
   std::vector<VkDeviceMemory> m_offscreenImageMemory;
@@ -50,13 +53,24 @@ private:
   std::vector<VkImageView> m_offscreenDepthImageViews;
   std::vector<VkDeviceMemory> m_offscreenDepthImageMemory;
 
+  void createSampler();
+
   void cleanupSwapchainImageResources();
 
   void cleanupOffscreenImageResources();
 
-  void createSwapchainImageResources();
+  void createSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
-  void createOffscreenImageResources();
+  void createOffscreenImageResources(VkExtent2D extent);
+
+  void createColorImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory, VkFormat format,
+                                VkExtent2D extent) const;
+
+  void createDepthImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory, VkFormat format,
+                                VkExtent2D extent) const;
+
+  void createImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
+                           VkDescriptorSet& imageDescriptorSet, VkExtent2D extent) const;
 };
 
 

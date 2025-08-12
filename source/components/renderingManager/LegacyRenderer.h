@@ -31,8 +31,6 @@ public:
   void endRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
 
 private:
-  VkCommandPool m_commandPool = VK_NULL_HANDLE;
-
   std::shared_ptr<SwapchainFramebuffer> m_framebuffer;
   std::shared_ptr<StandardFramebuffer> m_offscreenFramebuffer;
 

@@ -11,7 +11,7 @@ class SwapChain;
 
 class Renderer {
 public:
-  explicit Renderer(const std::shared_ptr<LogicalDevice>& logicalDevice);
+  explicit Renderer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool);
 
   virtual ~Renderer() = default;
 
@@ -33,6 +33,8 @@ public:
 
 protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+  VkCommandPool m_commandPool = VK_NULL_HANDLE;
 };
 
 

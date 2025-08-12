@@ -10,7 +10,7 @@
 LegacyRenderer::LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                std::shared_ptr<SwapChain> swapChain,
                                VkCommandPool commandPool)
-  : Renderer(logicalDevice), m_commandPool(commandPool)
+  : Renderer(logicalDevice, commandPool)
 {
   m_renderPass = std::make_shared<RenderPass>(m_logicalDevice, swapChain->getImageFormat(),
                                               m_logicalDevice->getPhysicalDevice()->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
