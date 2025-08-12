@@ -20,7 +20,8 @@ public:
   void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
 
   void beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
-                               std::shared_ptr<CommandBuffer> commandBuffer) override;
+                               std::shared_ptr<CommandBuffer> commandBuffer,
+                               std::shared_ptr<SwapChain> swapChain) override;
 
   void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
                                std::shared_ptr<CommandBuffer> commandBuffer) override;

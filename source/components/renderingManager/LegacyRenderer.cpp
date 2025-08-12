@@ -48,7 +48,8 @@ void LegacyRenderer::resetOffscreenImageResources(const VkExtent2D offscreenView
 }
 
 void LegacyRenderer::beginSwapchainRendering(const uint32_t imageIndex, const VkExtent2D extent,
-                                             const std::shared_ptr<CommandBuffer> commandBuffer)
+                                             const std::shared_ptr<CommandBuffer> commandBuffer,
+                                             [[maybe_unused]] std::shared_ptr<SwapChain> swapChain)
 {
   m_renderPass->begin(m_framebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
 }

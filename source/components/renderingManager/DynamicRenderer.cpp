@@ -48,12 +48,16 @@ void DynamicRenderer::resetOffscreenImageResources(const VkExtent2D offscreenVie
 }
 
 void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex, const VkExtent2D extent,
-                                              const std::shared_ptr<CommandBuffer> commandBuffer)
+                                              const std::shared_ptr<CommandBuffer> commandBuffer,
+                                              const std::shared_ptr<SwapChain> swapChain)
 {
   VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
     .imageView = m_swapchainColorImageViews[imageIndex],
-    .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+    .resolveImageView = swapChain->getImageViews()[imageIndex],
+    .resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .clearValue = {
@@ -64,7 +68,7 @@ void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex, const V
   VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
     .imageView = m_swapchainDepthImageViews[imageIndex],
-    .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
     .clearValue = {
@@ -93,7 +97,10 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
   VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
     .imageView = m_offscreenColorImageViews[imageIndex],
-    .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+    .resolveImageView = m_offscreenImageViews[imageIndex],
+    .resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .clearValue = {
@@ -104,7 +111,7 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
   VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
     .imageView = m_offscreenDepthImageViews[imageIndex],
-    .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
     .clearValue = {
@@ -259,6 +266,9 @@ void DynamicRenderer::createColorImageResource(VkImage& image, VkImageView& imag
 
   imageView = Images::createImageView(m_logicalDevice, image, format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                                              VK_IMAGE_VIEW_TYPE_2D, 1);
+
+  Images::transitionImageLayout(m_logicalDevice, m_commandPool, image, format, VK_IMAGE_LAYOUT_UNDEFINED,
+                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 1);
 }
 
 void DynamicRenderer::createDepthImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,

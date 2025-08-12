@@ -67,7 +67,7 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
       .extent = m_swapChain->getExtent()
     };
 
-    m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer);
+    m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
 
     if (!m_shouldRenderOffscreen)
     {
