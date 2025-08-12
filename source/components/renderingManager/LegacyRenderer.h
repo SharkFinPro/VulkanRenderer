@@ -29,7 +29,10 @@ public:
   void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
                                std::shared_ptr<CommandBuffer> commandBuffer) override;
 
-  void endRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
+  void endSwapchainRendering(std::shared_ptr<CommandBuffer> commandBuffer,
+                             std::shared_ptr<SwapChain> swapChain) override;
+
+  void endOffscreenRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
 
 private:
   std::shared_ptr<SwapchainFramebuffer> m_framebuffer;
@@ -37,6 +40,8 @@ private:
 
   std::shared_ptr<RenderPass> m_renderPass;
   std::shared_ptr<RenderPass> m_offscreenRenderPass;
+
+  static void endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
 };
 
 

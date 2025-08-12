@@ -50,7 +50,7 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
     pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
                                                currentFrame, m_viewPosition, m_viewMatrix);
 
-    m_renderer->endRendering(m_offscreenCommandBuffer);
+    m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
   });
 }
 
@@ -93,7 +93,7 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
 
     pipelineManager->getGuiPipeline()->render(&renderInfo);
 
-    m_renderer->endRendering(renderInfo.commandBuffer);
+    m_renderer->endSwapchainRendering(renderInfo.commandBuffer, m_swapChain);
   });
 }
 
