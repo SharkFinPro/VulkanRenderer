@@ -29,10 +29,10 @@ public:
   void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
                                std::shared_ptr<CommandBuffer> commandBuffer) override;
 
-  void endSwapchainRendering(std::shared_ptr<CommandBuffer> commandBuffer,
+  void endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
                              std::shared_ptr<SwapChain> swapChain) override;
 
-  void endOffscreenRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
+  void endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer) override;
 
 private:
   std::shared_ptr<SwapchainFramebuffer> m_framebuffer;

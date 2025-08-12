@@ -60,13 +60,13 @@ void LegacyRenderer::beginOffscreenRendering(const uint32_t imageIndex, const Vk
   m_offscreenRenderPass->begin(m_offscreenFramebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
 }
 
-void LegacyRenderer::endSwapchainRendering(const std::shared_ptr<CommandBuffer> commandBuffer,
+void LegacyRenderer::endSwapchainRendering(uint32_t imageIndex, const std::shared_ptr<CommandBuffer> commandBuffer,
                                            [[maybe_unused]] std::shared_ptr<SwapChain> swapChain)
 {
   endRendering(commandBuffer);
 }
 
-void LegacyRenderer::endOffscreenRendering(const std::shared_ptr<CommandBuffer> commandBuffer)
+void LegacyRenderer::endOffscreenRendering(uint32_t imageIndex, const std::shared_ptr<CommandBuffer> commandBuffer)
 {
   endRendering(commandBuffer);
 }

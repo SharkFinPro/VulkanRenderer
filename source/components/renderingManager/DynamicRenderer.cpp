@@ -51,6 +51,32 @@ void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex, const V
                                               const std::shared_ptr<CommandBuffer> commandBuffer,
                                               const std::shared_ptr<SwapChain> swapChain)
 {
+  const VkImageMemoryBarrier imageMemoryBarrier {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .srcAccessMask = VK_ACCESS_NONE,
+    .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .image = swapChain->getImages()[imageIndex],
+    .subresourceRange = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .baseMipLevel = 0,
+      .levelCount = 1,
+      .baseArrayLayer = 0,
+      .layerCount = 1,
+    }
+  };
+
+  vkCmdPipelineBarrier(
+      *commandBuffer->getCommandBuffer(),
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+      0,
+      0, nullptr,
+      0, nullptr,
+      1, &imageMemoryBarrier
+  );
+
   VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
     .imageView = m_swapchainColorImageViews[imageIndex],
@@ -134,13 +160,39 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
   commandBuffer->beginRendering(renderingInfo);
 }
 
-void DynamicRenderer::endSwapchainRendering(std::shared_ptr<CommandBuffer> commandBuffer,
+void DynamicRenderer::endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
                                             std::shared_ptr<SwapChain> swapChain)
 {
   commandBuffer->endRendering();
+
+  const VkImageMemoryBarrier imageMemoryBarrier {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    .dstAccessMask = VK_ACCESS_NONE,
+    .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    .image = swapChain->getImages()[imageIndex],
+    .subresourceRange = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .baseMipLevel = 0,
+      .levelCount = 1,
+      .baseArrayLayer = 0,
+      .layerCount = 1,
+    }
+  };
+
+  vkCmdPipelineBarrier(
+      *commandBuffer->getCommandBuffer(),
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+      0,
+      0, nullptr,
+      0, nullptr,
+      1, &imageMemoryBarrier
+  );
 }
 
-void DynamicRenderer::endOffscreenRendering(std::shared_ptr<CommandBuffer> commandBuffer)
+void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer)
 {
   commandBuffer->endRendering();
 }

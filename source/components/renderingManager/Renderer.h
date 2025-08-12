@@ -30,10 +30,10 @@ public:
   virtual void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
                                        std::shared_ptr<CommandBuffer> commandBuffer) = 0;
 
-  virtual void endSwapchainRendering(std::shared_ptr<CommandBuffer> commandBuffer,
+  virtual void endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
                                      std::shared_ptr<SwapChain> swapChain) = 0;
 
-  virtual void endOffscreenRendering(std::shared_ptr<CommandBuffer> commandBuffer) = 0;
+  virtual void endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer) = 0;
 
 protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
