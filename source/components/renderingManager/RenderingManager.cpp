@@ -157,7 +157,7 @@ std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
   return m_swapChain;
 }
 
-void RenderingManager::setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix)
+void RenderingManager::setCameraParameters(const glm::vec3 position, const glm::mat4& viewMatrix)
 {
   m_viewPosition = position;
   m_viewMatrix = viewMatrix;
