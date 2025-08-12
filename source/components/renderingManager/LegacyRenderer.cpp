@@ -10,15 +10,14 @@
 LegacyRenderer::LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<SwapChain>& swapChain,
                                VkCommandPool commandPool)
-  : Renderer(logicalDevice, commandPool)
-{
-  m_renderPass = std::make_shared<RenderPass>(m_logicalDevice, swapChain->getImageFormat(),
-                                              m_logicalDevice->getPhysicalDevice()->getMsaaSamples(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
-  m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
+  : Renderer(logicalDevice, commandPool),
+    m_renderPass(std::make_shared<RenderPass>(m_logicalDevice, swapChain->getImageFormat(),
+                                              m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
+                                              VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)),
+    m_offscreenRenderPass(std::make_shared<RenderPass>(m_logicalDevice, VK_FORMAT_B8G8R8A8_UNORM,
                                                        m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-                                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
+                                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL))
+{
   m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, swapChain, m_commandPool, m_renderPass,
                                                          swapChain->getExtent());
 }
