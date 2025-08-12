@@ -27,6 +27,7 @@
 #include "RenderPass.h"
 
 #include <imgui.h>
+#include <ranges>
 
 PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
