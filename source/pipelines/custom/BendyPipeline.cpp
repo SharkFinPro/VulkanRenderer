@@ -8,7 +8,7 @@
 #include "../../components/UniformBuffer.h"
 
 BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<RenderPass>& renderPass,
+                             std::shared_ptr<RenderPass> renderPass,
                              const VkCommandPool& commandPool,
                              VkDescriptorPool descriptorPool,
                              const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
@@ -46,7 +46,7 @@ BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
       m_BendyPipelineDescriptorSet->getDescriptorSetLayout(),
       m_lightingDescriptorSet->getDescriptorSetLayout(),
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

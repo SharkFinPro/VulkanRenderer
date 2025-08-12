@@ -21,6 +21,8 @@ DynamicRenderer::~DynamicRenderer()
   cleanupSwapchainImageResources();
 
   cleanupOffscreenImageResources();
+
+  m_logicalDevice->destroySampler(m_sampler);
 }
 
 std::shared_ptr<RenderPass> DynamicRenderer::getRenderPass() const
@@ -48,12 +50,38 @@ void DynamicRenderer::resetOffscreenImageResources(const VkExtent2D offscreenVie
 void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex, const VkExtent2D extent,
                                               const std::shared_ptr<CommandBuffer> commandBuffer)
 {
+  VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
+    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    .imageView = m_swapchainColorImageViews[imageIndex],
+    .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+    .clearValue = {
+      .color = {0.0f, 0.0f, 0.0f, 1.0f}
+    }
+  };
+
+  VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
+    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    .imageView = m_swapchainDepthImageViews[imageIndex],
+    .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+    .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+    .clearValue = {
+      .depthStencil = {1.0f, 0}
+    }
+  };
+
   const VkRenderingInfo renderingInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
     .renderArea = {
       .offset = {0, 0},
       .extent = extent,
-    }
+    },
+    .layerCount = 1,
+    .colorAttachmentCount = 1,
+    .pColorAttachments = &colorRenderingAttachmentInfo,
+    .pDepthAttachment = &depthRenderingAttachmentInfo,
   };
 
   commandBuffer->beginRendering(renderingInfo);
@@ -146,6 +174,11 @@ void DynamicRenderer::cleanupSwapchainImageResources()
 
 void DynamicRenderer::cleanupOffscreenImageResources()
 {
+  if (m_offscreenImages.empty())
+  {
+    return;
+  }
+
   for (int i = 0; i < m_numImages; ++i)
   {
     ImGui_ImplVulkan_RemoveTexture(m_offscreenImageDescriptorSets[i]);
@@ -179,13 +212,12 @@ void DynamicRenderer::createSwapchainImageResources(const std::shared_ptr<SwapCh
     createColorImageResource(m_swapchainColorImages[i], m_swapchainColorImageViews[i],
                              m_swapchainColorImageMemory[i], swapChain->getImageFormat(), swapChain->getExtent());
 
-    // TODO: Fix Format
     createDepthImageResource(m_swapchainDepthImages[i], m_swapchainDepthImageViews[i],
-                             m_swapchainDepthImageMemory[i], swapChain->getImageFormat(), swapChain->getExtent());
+                             m_swapchainDepthImageMemory[i], swapChain->getExtent());
   }
 }
 
-void DynamicRenderer::createOffscreenImageResources(VkExtent2D extent)
+void DynamicRenderer::createOffscreenImageResources(const VkExtent2D extent)
 {
   m_offscreenImageDescriptorSets.resize(m_numImages);
   m_offscreenImageViews.resize(m_numImages);
@@ -200,7 +232,6 @@ void DynamicRenderer::createOffscreenImageResources(VkExtent2D extent)
   m_offscreenDepthImageMemory.resize(m_numImages);
   m_offscreenDepthImages.resize(m_numImages);
 
-  // const auto imageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
   constexpr auto imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
 
   for (int i = 0; i < m_numImages; ++i)
@@ -211,27 +242,19 @@ void DynamicRenderer::createOffscreenImageResources(VkExtent2D extent)
     createColorImageResource(m_offscreenColorImages[i], m_offscreenColorImageViews[i],
                              m_offscreenColorImageMemory[i], imageFormat, extent);
 
-    // TODO: Fix Format
     createDepthImageResource(m_offscreenDepthImages[i], m_offscreenDepthImageViews[i],
-                             m_offscreenDepthImageMemory[i], imageFormat, extent);
+                             m_offscreenDepthImageMemory[i], extent);
   }
 }
 
 void DynamicRenderer::createColorImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
                                                const VkFormat format, const VkExtent2D extent) const
 {
-  // const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
-  const VkSampleCountFlagBits samples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
-
-  // const auto colorFormat = getColorFormat();
+  const auto samples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
 
   Images::createImage(m_logicalDevice, 0, extent.width, extent.height, 1,
                       1, samples, format, VK_IMAGE_TILING_OPTIMAL,
-                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                      // TODO: Fix
-                      // (m_mousePicking ? VK_IMAGE_USAGE_TRANSFER_SRC_BIT : VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT),
-                      (VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT),
-                      //
+                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, imageMemory, VK_IMAGE_TYPE_2D, 1);
 
   imageView = Images::createImageView(m_logicalDevice, image, format, VK_IMAGE_ASPECT_COLOR_BIT, 1,
@@ -239,10 +262,11 @@ void DynamicRenderer::createColorImageResource(VkImage& image, VkImageView& imag
 }
 
 void DynamicRenderer::createDepthImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
-                                               const VkFormat format, const VkExtent2D extent) const
+                                               const VkExtent2D extent) const
 {
-  // const VkSampleCountFlagBits samples = m_mousePicking ? VK_SAMPLE_COUNT_1_BIT : m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
-  const VkSampleCountFlagBits samples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
+  const auto samples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
+
+  const auto format = m_logicalDevice->getPhysicalDevice()->findDepthFormat();
 
   Images::createImage(m_logicalDevice, 0, extent.width, extent.height, 1, 1, samples,
                       format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -258,18 +282,17 @@ void DynamicRenderer::createDepthImageResource(VkImage& image, VkImageView& imag
 void DynamicRenderer::createImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
                                           VkDescriptorSet& imageDescriptorSet, const VkExtent2D extent) const
 {
-  // const auto framebufferImageFormat = m_mousePicking ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
-  constexpr auto framebufferImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+  constexpr auto imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
 
   Images::createImage(m_logicalDevice, 0, extent.width, extent.height, 1, 1,
-                      VK_SAMPLE_COUNT_1_BIT, framebufferImageFormat, VK_IMAGE_TILING_OPTIMAL,
+                      VK_SAMPLE_COUNT_1_BIT, imageFormat, VK_IMAGE_TILING_OPTIMAL,
                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, imageMemory, VK_IMAGE_TYPE_2D, 1);
 
-  imageView = Images::createImageView(m_logicalDevice, image, framebufferImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
+  imageView = Images::createImageView(m_logicalDevice, image, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1,
                                       VK_IMAGE_VIEW_TYPE_2D, 1);
 
-  Images::transitionImageLayout(m_logicalDevice, m_commandPool, image, framebufferImageFormat,
+  Images::transitionImageLayout(m_logicalDevice, m_commandPool, image, imageFormat,
                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 1);
 
   imageDescriptorSet = ImGui_ImplVulkan_AddTexture(m_sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

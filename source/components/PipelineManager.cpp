@@ -81,9 +81,8 @@ void PipelineManager::renderBendyPlant(const BendyPlant& bendyPlant) const
 
 std::shared_ptr<SmokePipeline> PipelineManager::createSmokeSystem(glm::vec3 position, uint32_t numParticles)
 {
-  auto system = std::make_shared<SmokePipeline>(m_logicalDevice, m_commandPool, m_renderPass->getRenderPass(),
-                                                m_descriptorPool, position, numParticles,
-                                                m_lightingManager->getLightingDescriptorSet());
+  auto system = std::make_shared<SmokePipeline>(m_logicalDevice, m_commandPool, m_renderPass, m_descriptorPool,
+                                                position, numParticles, m_lightingManager->getLightingDescriptorSet());
 
   m_smokeSystems.push_back(system);
 
@@ -211,7 +210,7 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
 
   if (m_shouldDoDots)
   {
-    m_dotsPipeline = std::make_shared<DotsPipeline>(m_logicalDevice, m_commandPool, m_renderPass->getRenderPass(),
+    m_dotsPipeline = std::make_shared<DotsPipeline>(m_logicalDevice, m_commandPool, m_renderPass,
                                                     m_descriptorPool);
   }
 

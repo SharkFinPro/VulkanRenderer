@@ -13,6 +13,7 @@
 
 class CommandBuffer;
 class RenderObject;
+class RenderPass;
 
 struct RenderInfo {
   std::shared_ptr<CommandBuffer> commandBuffer;
@@ -110,7 +111,7 @@ struct GraphicsPipelineOptions {
 
   std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
-  VkRenderPass renderPass;
+  std::shared_ptr<RenderPass>& renderPass;
 };
 
 class GraphicsPipeline : public Pipeline {

@@ -7,7 +7,7 @@
 #include "../../../components/objects/RenderObject.h"
 
 MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                           const std::shared_ptr<RenderPass>& renderPass,
+                                           std::shared_ptr<RenderPass> renderPass,
                                            VkDescriptorSetLayout objectDescriptorSetLayout)
   : GraphicsPipeline(logicalDevice)
 {
@@ -36,7 +36,7 @@ MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>&
     .descriptorSetLayouts {
       objectDescriptorSetLayout
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

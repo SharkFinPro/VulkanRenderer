@@ -39,11 +39,26 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
     .Device = m_logicalDevice->m_device,
     .Queue = m_logicalDevice->getGraphicsQueue(),
     .DescriptorPool = descriptorPool,
-    .RenderPass = renderPass->getRenderPass(),
+    .RenderPass = renderPass ? renderPass->getRenderPass() : nullptr,
     .MinImageCount = imageCount,
     .ImageCount = imageCount,
     .MSAASamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
   };
+
+  if (renderPass == nullptr)
+  {
+    initInfo.UseDynamicRendering = true;
+
+    // TODO: Use proper formats
+    constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
+    initInfo.PipelineRenderingCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+      .colorAttachmentCount = 1,
+      .pColorAttachmentFormats = &colorFormat,
+      .depthAttachmentFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat()
+    };
+  }
 
   ImGui_ImplVulkan_Init(&initInfo);
 

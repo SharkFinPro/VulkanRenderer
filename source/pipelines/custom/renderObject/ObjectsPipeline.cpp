@@ -6,7 +6,7 @@
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 
 ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 std::shared_ptr<RenderPass> renderPass,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
                                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
   : GraphicsPipeline(logicalDevice),
@@ -31,7 +31,7 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       m_lightingDescriptorSet->getDescriptorSetLayout(),
       objectDescriptorSetLayout
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

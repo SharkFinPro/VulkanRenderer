@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const std::shared_ptr<RenderPass>& renderPass)
+                           std::shared_ptr<RenderPass> renderPass)
   : GraphicsPipeline(logicalDevice)
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
@@ -34,7 +34,7 @@ LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
         .size = sizeof(MVPTransformUniform)
       }
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

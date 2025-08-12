@@ -10,7 +10,7 @@
 #include <imgui.h>
 
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                       const std::shared_ptr<RenderPass>& renderPass,
+                                                       std::shared_ptr<RenderPass> renderPass,
                                                        VkDescriptorPool descriptorPool,
                                                        VkDescriptorSetLayout objectDescriptorSetLayout)
   : GraphicsPipeline(logicalDevice)
@@ -38,7 +38,7 @@ MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<Log
       m_magnifyWhirlMosaicDescriptorSet->getDescriptorSetLayout(),
       objectDescriptorSetLayout
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

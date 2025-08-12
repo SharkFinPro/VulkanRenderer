@@ -9,7 +9,7 @@
 #include <imgui.h>
 
 CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 std::shared_ptr<RenderPass> renderPass,
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
                                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
@@ -40,7 +40,7 @@ CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       objectDescriptorSetLayout,
       m_lightingDescriptorSet->getDescriptorSetLayout()
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

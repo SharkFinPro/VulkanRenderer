@@ -6,7 +6,7 @@
 #include <imgui.h>
 
 GuiPipeline::GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const std::shared_ptr<RenderPass>& renderPass)
+                         std::shared_ptr<RenderPass> renderPass)
   : GraphicsPipeline(logicalDevice)
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
@@ -24,7 +24,7 @@ GuiPipeline::GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
       .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
       .viewportState = GraphicsPipelineStates::viewportState
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

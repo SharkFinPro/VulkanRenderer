@@ -13,7 +13,7 @@ class TextureCubemap;
 class CubeMapPipeline final : public GraphicsPipeline {
 public:
   CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass,
+                  std::shared_ptr<RenderPass> renderPass,
                   const VkCommandPool& commandPool,
                   VkDescriptorPool descriptorPool,
                   VkDescriptorSetLayout objectDescriptorSetLayout);

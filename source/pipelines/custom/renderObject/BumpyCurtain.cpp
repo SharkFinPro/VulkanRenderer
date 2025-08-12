@@ -10,7 +10,7 @@
 #include <imgui.h>
 
 BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const std::shared_ptr<RenderPass>& renderPass,
+                           std::shared_ptr<RenderPass> renderPass,
                            const VkCommandPool& commandPool,
                            const VkDescriptorPool descriptorPool,
                            const VkDescriptorSetLayout objectDescriptorSetLayout,
@@ -43,7 +43,7 @@ BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
       m_objectDescriptorSetLayout,
       m_lightingDescriptorSet->getDescriptorSetLayout()
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

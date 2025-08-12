@@ -12,7 +12,7 @@ class RenderPass;
 class SnakePipeline final : public GraphicsPipeline {
 public:
   SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<RenderPass>& renderPass,
+                std::shared_ptr<RenderPass> renderPass,
                 VkDescriptorSetLayout objectDescriptorSetLayout,
                 const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 

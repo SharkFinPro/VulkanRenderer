@@ -33,7 +33,7 @@ void Framebuffer::initializeFramebuffer(const VkCommandPool& commandPool,
 {
   createColorResources(extent);
 
-  createDepthResources(commandPool, renderPass->findDepthFormat(), extent);
+  createDepthResources(commandPool, m_logicalDevice->getPhysicalDevice()->findDepthFormat(), extent);
 
   createFrameBuffers(renderPass->getRenderPass(), extent);
 }

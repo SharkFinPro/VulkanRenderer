@@ -22,7 +22,7 @@ struct BendyPlant {
 class BendyPipeline final : public GraphicsPipeline {
 public:
   BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<RenderPass>& renderPass,
+                std::shared_ptr<RenderPass> renderPass,
                 const VkCommandPool& commandPool,
                 VkDescriptorPool descriptorPool,
                 const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);

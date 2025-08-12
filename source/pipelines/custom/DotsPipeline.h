@@ -17,7 +17,7 @@ class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
 public:
   DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const VkCommandPool& commandPool,
-               const VkRenderPass& renderPass,
+               std::shared_ptr<RenderPass> renderPass,
                VkDescriptorPool descriptorPool);
 
   ~DotsPipeline() override;

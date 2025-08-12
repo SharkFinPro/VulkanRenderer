@@ -8,7 +8,7 @@ class RenderPass;
 class GuiPipeline final : public GraphicsPipeline {
 public:
   GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-              const std::shared_ptr<RenderPass>& renderPass);
+              std::shared_ptr<RenderPass> renderPass);
 
   void render(const RenderInfo* renderInfo);
 };

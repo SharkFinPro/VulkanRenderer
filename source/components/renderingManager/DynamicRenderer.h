@@ -66,7 +66,7 @@ private:
   void createColorImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory, VkFormat format,
                                 VkExtent2D extent) const;
 
-  void createDepthImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory, VkFormat format,
+  void createDepthImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
                                 VkExtent2D extent) const;
 
   void createImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,

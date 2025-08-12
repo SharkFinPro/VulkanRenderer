@@ -34,7 +34,7 @@ const std::vector<VkDescriptorSetLayoutBinding> layoutBindings {{
 
 DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkCommandPool& commandPool,
-                           const VkRenderPass& renderPass,
+                           std::shared_ptr<RenderPass> renderPass,
                            const VkDescriptorPool descriptorPool)
   : ComputePipeline(logicalDevice), GraphicsPipeline(logicalDevice),
     m_dotSpeed(1000.0f), m_previousTime(std::chrono::steady_clock::now())

@@ -13,7 +13,7 @@ class UniformBuffer;
 class MagnifyWhirlMosaicPipeline final : public GraphicsPipeline {
 public:
   MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<RenderPass>& renderPass,
+                             std::shared_ptr<RenderPass> renderPass,
                              VkDescriptorPool descriptorPool,
                              VkDescriptorSetLayout objectDescriptorSetLayout);
 

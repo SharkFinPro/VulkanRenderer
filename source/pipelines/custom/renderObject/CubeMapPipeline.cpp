@@ -11,7 +11,7 @@
 #include <imgui.h>
 
 CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 std::shared_ptr<RenderPass> renderPass,
                                  const VkCommandPool& commandPool,
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
@@ -40,7 +40,7 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       m_cubeMapDescriptorSet->getDescriptorSetLayout(),
       objectDescriptorSetLayout,
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

@@ -61,6 +61,12 @@ public:
 
   [[nodiscard]] VkDevice createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const;
 
+  [[nodiscard]] VkFormat findDepthFormat() const;
+
+  [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                             VkImageTiling tiling,
+                                             VkFormatFeatureFlags features) const;
+
   friend class ImGuiInstance;
 
 private:
