@@ -75,6 +75,10 @@ private:
 
   void createImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
                            VkDescriptorSet& imageDescriptorSet, VkExtent2D extent) const;
+
+  static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
+
+  static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
 };
 
 
