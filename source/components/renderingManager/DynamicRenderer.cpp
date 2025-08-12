@@ -59,9 +59,8 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
     .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-    .clearValue {
-      .color = {0.0f, 0.0f, 0.0f, 1.0f},
-      .depthStencil = {1.0f, 0}
+    .clearValue = {
+      .color = {0.0f, 0.0f, 0.0f, 1.0f}
     }
   };
 
@@ -71,8 +70,7 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
     .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .clearValue {
-      .color = {0.0f, 0.0f, 0.0f, 1.0f},
+    .clearValue = {
       .depthStencil = {1.0f, 0}
     }
   };
