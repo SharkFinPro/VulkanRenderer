@@ -1,7 +1,9 @@
 #include "GraphicsPipeline.h"
 #include "../components/core/commandBuffer/CommandBuffer.h"
 #include "../components/core/logicalDevice/LogicalDevice.h"
+#include "../components/core/physicalDevice/PhysicalDevice.h"
 #include "../components/objects/RenderObject.h"
+#include "../components/RenderPass.h"
 
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(logicalDevice)
@@ -46,8 +48,18 @@ void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPip
   const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(m_logicalDevice);
   const auto shaderStages = graphicsPipelineOptions.shaders.getShaderStages(shaderModules);
 
+  constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
+  const VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+    .colorAttachmentCount = 1,
+    .pColorAttachmentFormats = &colorFormat,
+    .depthAttachmentFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat()
+  };
+
   const VkGraphicsPipelineCreateInfo pipelineInfo {
     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+    .pNext = graphicsPipelineOptions.renderPass ? nullptr : &pipelineRenderingCreateInfo,
     .stageCount = static_cast<uint32_t>(shaderStages.size()),
     .pStages = shaderStages.data(),
     .pVertexInputState = &graphicsPipelineOptions.states.vertexInputState,
@@ -60,7 +72,7 @@ void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPip
     .pColorBlendState = &graphicsPipelineOptions.states.colorBlendState,
     .pDynamicState = &graphicsPipelineOptions.states.dynamicState,
     .layout = m_pipelineLayout,
-    .renderPass = graphicsPipelineOptions.renderPass,
+    .renderPass = graphicsPipelineOptions.renderPass ? graphicsPipelineOptions.renderPass->getRenderPass() : VK_NULL_HANDLE,
     .subpass = 0,
     .basePipelineHandle = VK_NULL_HANDLE,
     .basePipelineIndex = -1

@@ -24,7 +24,7 @@ Instance::Instance()
     .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
     .pEngineName = "No Engine",
     .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-    .apiVersion = VK_API_VERSION_1_1
+    .apiVersion = VK_API_VERSION_1_3
   };
 
   const auto extensions = getRequiredExtensions();

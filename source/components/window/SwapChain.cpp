@@ -151,3 +151,8 @@ std::vector<VkImageView>& SwapChain::getImageViews()
 {
   return m_swapChainImageViews;
 }
+
+std::vector<VkImage>& SwapChain::getImages()
+{
+  return m_swapChainImages;
+}

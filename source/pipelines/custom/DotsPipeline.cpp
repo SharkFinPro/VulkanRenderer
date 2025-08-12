@@ -34,14 +34,13 @@ const std::vector<VkDescriptorSetLayoutBinding> layoutBindings {{
 
 DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkCommandPool& commandPool,
-                           const VkRenderPass& renderPass,
-                           const VkExtent2D& swapChainExtent,
+                           std::shared_ptr<RenderPass> renderPass,
                            const VkDescriptorPool descriptorPool)
   : ComputePipeline(logicalDevice), GraphicsPipeline(logicalDevice),
     m_dotSpeed(1000.0f), m_previousTime(std::chrono::steady_clock::now())
 {
   createUniforms();
-  createShaderStorageBuffers(commandPool, swapChainExtent);
+  createShaderStorageBuffers(commandPool);
 
   createDescriptorSets(descriptorPool);
 
@@ -117,7 +116,7 @@ void DotsPipeline::createUniforms()
   m_deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(DeltaTimeUniform));
 }
 
-void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, const VkExtent2D& swapChainExtent)
+void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
 {
   m_shaderStorageBuffers.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
   m_shaderStorageBuffersMemory.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
@@ -131,7 +130,7 @@ void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool, 
   {
     const float r = sqrtf(distribution(randomEngine)) * 0.25f;
     const float theta = distribution(randomEngine) * 2.0f * 3.14159265358979323846f;
-    const float x = r * std::cos(theta) * static_cast<float>(swapChainExtent.height) / static_cast<float>(swapChainExtent.width);
+    const float x = r * std::cos(theta);
     const float y = r * std::sin(theta);
     position = glm::vec2(x * largeDistribution(randomEngine), y * largeDistribution(randomEngine));
     velocity = glm::normalize(glm::vec2(x, y)) * 0.00025f;

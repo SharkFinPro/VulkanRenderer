@@ -2,7 +2,7 @@
 #include "../config/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../descriptorSets/LayoutBindings.h"
-#include "../../RenderPass.h"
+#include "../../../components/RenderPass.h"
 #include "../../../components/textures/TextureCubemap.h"
 #include "../../../components/textures/Texture3D.h"
 #include "../../../components/core/commandBuffer/CommandBuffer.h"
@@ -11,7 +11,7 @@
 #include <imgui.h>
 
 CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 std::shared_ptr<RenderPass> renderPass,
                                  const VkCommandPool& commandPool,
                                  const VkDescriptorPool descriptorPool,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
@@ -40,7 +40,7 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       m_cubeMapDescriptorSet->getDescriptorSetLayout(),
       objectDescriptorSetLayout,
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

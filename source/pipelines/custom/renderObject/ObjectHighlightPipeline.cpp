@@ -1,11 +1,11 @@
 #include "ObjectHighlightPipeline.h"
 #include "../config/GraphicsPipelineStates.h"
-#include "../../RenderPass.h"
+#include "../../../components/RenderPass.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/objects/RenderObject.h"
 
 ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                 const std::shared_ptr<RenderPass>& renderPass,
+                                                 std::shared_ptr<RenderPass> renderPass,
                                                  VkDescriptorSetLayout objectDescriptorSetLayout)
   : GraphicsPipeline(logicalDevice)
 {
@@ -27,7 +27,7 @@ ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDe
     .descriptorSetLayouts {
       objectDescriptorSetLayout
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

@@ -1,12 +1,12 @@
 #include "TexturedPlane.h"
 #include "../config/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../../RenderPass.h"
+#include "../../../components/RenderPass.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/objects/RenderObject.h"
 
 TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<RenderPass>& renderPass,
+                             std::shared_ptr<RenderPass> renderPass,
                              const VkDescriptorSetLayout objectDescriptorSetLayout)
   : GraphicsPipeline(logicalDevice)
 {
@@ -28,7 +28,7 @@ TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice
     .descriptorSetLayouts {
       objectDescriptorSetLayout
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

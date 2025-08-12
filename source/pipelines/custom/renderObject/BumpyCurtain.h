@@ -14,7 +14,7 @@ class Texture3D;
 class BumpyCurtain final : public GraphicsPipeline {
 public:
   BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const std::shared_ptr<RenderPass>& renderPass,
+               std::shared_ptr<RenderPass> renderPass,
                const VkCommandPool& commandPool,
                VkDescriptorPool descriptorPool,
                VkDescriptorSetLayout objectDescriptorSetLayout,

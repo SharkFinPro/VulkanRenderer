@@ -2,7 +2,7 @@
 #include "../window/SwapChain.h"
 #include "../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../components/core/physicalDevice/PhysicalDevice.h"
-#include "../../pipelines/RenderPass.h"
+#include "../RenderPass.h"
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
@@ -33,7 +33,7 @@ void Framebuffer::initializeFramebuffer(const VkCommandPool& commandPool,
 {
   createColorResources(extent);
 
-  createDepthResources(commandPool, renderPass->findDepthFormat(), extent);
+  createDepthResources(commandPool, m_logicalDevice->getPhysicalDevice()->findDepthFormat(), extent);
 
   createFrameBuffers(renderPass->getRenderPass(), extent);
 }

@@ -11,7 +11,7 @@ class RenderPass;
 class EllipticalDots final : public GraphicsPipeline {
 public:
   EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 const std::shared_ptr<RenderPass>& renderPass,
+                 std::shared_ptr<RenderPass> renderPass,
                  VkDescriptorSetLayout objectDescriptorSetLayout,
                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 

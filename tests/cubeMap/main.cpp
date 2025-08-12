@@ -1,5 +1,7 @@
 #include "../common/gui.h"
 #include <source/components/objects/RenderObject.h>
+#include <source/components/PipelineManager.h>
+#include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
@@ -59,11 +61,11 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
   displayObjectGuis({ object });
 
   // Render Objects
-  renderer.renderObject(object, PipelineType::cubeMap);
+  renderer.getPipelineManager()->renderObject(object, PipelineType::cubeMap);
 
   for (auto& wall : walls)
   {
-    renderer.renderObject(wall, PipelineType::texturedPlane);
+    renderer.getPipelineManager()->renderObject(wall, PipelineType::texturedPlane);
   }
 
   // Render Frame

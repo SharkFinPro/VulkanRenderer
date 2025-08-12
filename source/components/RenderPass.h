@@ -18,8 +18,6 @@ public:
 
   VkRenderPass& getRenderPass();
 
-  [[nodiscard]] VkFormat findDepthFormat() const;
-
   void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
 private:
@@ -28,8 +26,6 @@ private:
   VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
   void createRenderPass(VkFormat imageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
-
-  [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 };
 
 

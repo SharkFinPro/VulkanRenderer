@@ -3,14 +3,14 @@
 #include "../config/Uniforms.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../descriptorSets/LayoutBindings.h"
-#include "../../RenderPass.h"
+#include "../../../components/RenderPass.h"
 #include "../../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
 MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                       const std::shared_ptr<RenderPass>& renderPass,
+                                                       std::shared_ptr<RenderPass> renderPass,
                                                        VkDescriptorPool descriptorPool,
                                                        VkDescriptorSetLayout objectDescriptorSetLayout)
   : GraphicsPipeline(logicalDevice)
@@ -38,7 +38,7 @@ MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<Log
       m_magnifyWhirlMosaicDescriptorSet->getDescriptorSetLayout(),
       objectDescriptorSetLayout
     },
-    .renderPass = renderPass->getRenderPass()
+    .renderPass = renderPass
   };
 
   createPipeline(graphicsPipelineOptions);

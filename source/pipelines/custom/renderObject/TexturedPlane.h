@@ -9,7 +9,7 @@ class RenderPass;
 class TexturedPlane final : public GraphicsPipeline {
 public:
   TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<RenderPass>& renderPass,
+                std::shared_ptr<RenderPass> renderPass,
                 VkDescriptorSetLayout objectDescriptorSetLayout);
 
 private:

@@ -624,21 +624,30 @@ void LogicalDevice::createDevice()
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  constexpr VkPhysicalDeviceFeatures deviceFeatures {
-    .geometryShader = VK_TRUE,
-    .fillModeNonSolid = VK_TRUE,
-    .samplerAnisotropy = VK_TRUE
+  VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures {
+    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
+    .dynamicRendering = VK_TRUE
+  };
+
+  VkPhysicalDeviceFeatures2 deviceFeatures2 {
+    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+    .pNext = &dynamicRenderingFeatures,
+    .features {
+      .geometryShader = VK_TRUE,
+      .fillModeNonSolid = VK_TRUE,
+      .samplerAnisotropy = VK_TRUE
+    }
   };
 
   const VkDeviceCreateInfo createInfo {
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .pNext = &deviceFeatures2,
     .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
     .pQueueCreateInfos = queueCreateInfos.data(),
     .enabledLayerCount = Instance::validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
     .ppEnabledLayerNames = Instance::validationLayersEnabled() ? validationLayers.data() : nullptr,
     .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
-    .ppEnabledExtensionNames = deviceExtensions.data(),
-    .pEnabledFeatures = &deviceFeatures
+    .ppEnabledExtensionNames = deviceExtensions.data()
   };
 
   m_device = m_physicalDevice->createLogicalDevice(createInfo);

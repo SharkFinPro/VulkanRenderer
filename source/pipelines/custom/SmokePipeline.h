@@ -17,7 +17,7 @@ class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
 public:
   SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const VkCommandPool& commandPool,
-                const VkRenderPass& renderPass,
+                std::shared_ptr<RenderPass> renderPass,
                 VkDescriptorPool descriptorPool,
                 glm::vec3 position,
                 uint32_t numParticles,

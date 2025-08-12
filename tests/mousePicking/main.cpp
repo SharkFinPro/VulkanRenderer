@@ -2,6 +2,8 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/MousePicker.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/PipelineManager.h>
+#include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
@@ -124,11 +126,11 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
   // Render Objects
   for (auto& [object, hovering, selected] : objects)
   {
-    renderer.renderObject(object, PipelineType::object, &hovering);
+    renderer.getPipelineManager()->renderObject(object, PipelineType::object, &hovering);
 
     if (selected)
     {
-      renderer.renderObject(object, PipelineType::objectHighlight);
+      renderer.getPipelineManager()->renderObject(object, PipelineType::objectHighlight);
     }
   }
 

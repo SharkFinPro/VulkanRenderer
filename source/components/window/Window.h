@@ -6,11 +6,13 @@
 #include <memory>
 #include <unordered_map>
 
+class VulkanEngine;
 class Instance;
 
 class Window {
 public:
-  Window(int width, int height, const char* title, const std::shared_ptr<Instance>& instance, bool fullscreen);
+  Window(int width, int height, const char* title, const std::shared_ptr<Instance>& instance, bool fullscreen,
+         VulkanEngine* engine);
   ~Window();
 
   [[nodiscard]] bool isOpen() const;
@@ -38,6 +40,8 @@ public:
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 private:
+  VulkanEngine* m_engine;
+
   GLFWwindow* m_window;
 
   std::shared_ptr<Instance> m_instance;

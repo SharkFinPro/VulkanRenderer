@@ -1,8 +1,9 @@
 #ifndef VULKANPROJECT_IMGUIINSTANCE_H
 #define VULKANPROJECT_IMGUIINSTANCE_H
 
-#include <memory>
 #include <imgui.h>
+#include <vulkan/vulkan.h>
+#include <memory>
 
 class CommandBuffer;
 class Window;
@@ -10,7 +11,6 @@ class Instance;
 class PhysicalDevice;
 class LogicalDevice;
 class RenderPass;
-class GuiPipeline;
 
 class ImGuiInstance {
 public:
@@ -18,8 +18,8 @@ public:
                 const std::shared_ptr<Instance>& instance,
                 const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const std::shared_ptr<RenderPass>& renderPass,
-                const std::unique_ptr<GuiPipeline>& guiPipeline,
-                bool useDockSpace);
+                bool useDockSpace,
+                uint32_t maxImGuiTextures);
   ~ImGuiInstance();
 
   void createNewFrame();
@@ -47,6 +47,10 @@ public:
   static ImGuiContext* getImGuiContext();
 
 private:
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+  VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+
   bool m_dockNeedsUpdate = true;
 
   bool m_useDockSpace;
@@ -62,6 +66,8 @@ private:
   ImGuiID m_leftDock = 0;
   ImGuiID m_rightDock = 0;
   ImGuiID m_centerDock = 0;
+
+  void createDescriptorPool(uint32_t maxImGuiTextures);
 };
 
 

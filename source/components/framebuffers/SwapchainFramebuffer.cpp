@@ -9,6 +9,8 @@ SwapchainFramebuffer::SwapchainFramebuffer(const std::shared_ptr<LogicalDevice>&
   : Framebuffer(logicalDevice), m_swapChain(swapChain)
 {
   initializeFramebuffer(commandPool, renderPass, extent);
+
+  m_swapChain.reset();
 }
 
 VkFormat SwapchainFramebuffer::getColorFormat()

@@ -13,7 +13,7 @@ class UniformBuffer;
 class CrossesPipeline final : public GraphicsPipeline {
 public:
   CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass,
+                  std::shared_ptr<RenderPass> renderPass,
                   VkDescriptorPool descriptorPool,
                   VkDescriptorSetLayout objectDescriptorSetLayout,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);

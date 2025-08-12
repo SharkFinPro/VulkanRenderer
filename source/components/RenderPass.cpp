@@ -1,7 +1,7 @@
 #include "RenderPass.h"
-#include "../components/core/commandBuffer/CommandBuffer.h"
-#include "../components/core/logicalDevice/LogicalDevice.h"
-#include "../components/core/physicalDevice/PhysicalDevice.h"
+#include "core/commandBuffer/CommandBuffer.h"
+#include "core/logicalDevice/LogicalDevice.h"
+#include "core/physicalDevice/PhysicalDevice.h"
 #include <array>
 #include <stdexcept>
 
@@ -44,7 +44,7 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
   };
 
   const VkAttachmentDescription depthAttachment {
-    .format = findDepthFormat(),
+    .format = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
     .samples = msaaSamples,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -113,33 +113,6 @@ void RenderPass::createRenderPass(const VkFormat imageFormat, const VkSampleCoun
   };
 
   m_renderPass = m_logicalDevice->createRenderPass(renderPassInfo);
-}
-
-VkFormat RenderPass::findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                         VkImageTiling tiling,
-                                         VkFormatFeatureFlags features) const
-{
-  for (const auto& format : candidates)
-  {
-    const VkFormatProperties formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(format);
-
-    if ((tiling == VK_IMAGE_TILING_LINEAR && (formatProperties.linearTilingFeatures & features) == features) ||
-        (tiling == VK_IMAGE_TILING_OPTIMAL && (formatProperties.optimalTilingFeatures & features) == features))
-    {
-      return format;
-    }
-  }
-
-  throw std::runtime_error("failed to find supported format!");
-}
-
-VkFormat RenderPass::findDepthFormat() const
-{
-  return findSupportedFormat(
-    {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-    VK_IMAGE_TILING_OPTIMAL,
-    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-  );
 }
 
 void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent,

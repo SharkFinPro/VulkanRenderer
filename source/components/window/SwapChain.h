@@ -18,6 +18,8 @@ public:
 
   [[nodiscard]] std::vector<VkImageView>& getImageViews();
 
+  [[nodiscard]] std::vector<VkImage>& getImages();
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
   std::shared_ptr<Window> m_window;

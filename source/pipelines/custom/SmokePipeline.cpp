@@ -46,7 +46,7 @@ const std::vector<VkDescriptorSetLayoutBinding> layoutBindings {{
 
 SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const VkCommandPool& commandPool,
-                             const VkRenderPass& renderPass,
+                             std::shared_ptr<RenderPass> renderPass,
                              const VkDescriptorPool descriptorPool,
                              const glm::vec3 position,
                              const uint32_t numParticles,

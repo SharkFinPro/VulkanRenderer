@@ -28,6 +28,10 @@ public:
 
   void endRenderPass() const;
 
+  void beginRendering(const VkRenderingInfo& renderingInfo) const;
+
+  void endRendering() const;
+
   void bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) const;
 
   void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet,

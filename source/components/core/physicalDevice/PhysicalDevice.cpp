@@ -78,6 +78,32 @@ VkDevice PhysicalDevice::createLogicalDevice(const VkDeviceCreateInfo& deviceCre
   return logicalDevice;
 }
 
+VkFormat PhysicalDevice::findDepthFormat() const
+{
+  return findSupportedFormat(
+    {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+    VK_IMAGE_TILING_OPTIMAL,
+    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+  );
+}
+
+VkFormat PhysicalDevice::findSupportedFormat(const std::vector<VkFormat> &candidates, const VkImageTiling tiling,
+                                             const VkFormatFeatureFlags features) const
+{
+  for (const auto& format : candidates)
+  {
+    const VkFormatProperties formatProperties = getFormatProperties(format);
+
+    if ((tiling == VK_IMAGE_TILING_LINEAR && (formatProperties.linearTilingFeatures & features) == features) ||
+        (tiling == VK_IMAGE_TILING_OPTIMAL && (formatProperties.optimalTilingFeatures & features) == features))
+    {
+      return format;
+    }
+  }
+
+  throw std::runtime_error("failed to find supported format!");
+}
+
 void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
 {
   for (const auto& device : instance->getPhysicalDevices())

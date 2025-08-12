@@ -10,13 +10,15 @@
 class Instance;
 
 #ifdef __APPLE__
-constexpr std::array<const char*, 2> deviceExtensions {
+constexpr std::array<const char*, 3> deviceExtensions {
   VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+  VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
   "VK_KHR_portability_subset"
 };
 #else
-constexpr std::array<const char*, 1> deviceExtensions {
-  VK_KHR_SWAPCHAIN_EXTENSION_NAME
+constexpr std::array<const char*, 2> deviceExtensions {
+  VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+  VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
 };
 #endif
 
@@ -58,6 +60,12 @@ public:
   [[nodiscard]] VkPhysicalDeviceProperties getDeviceProperties() const;
 
   [[nodiscard]] VkDevice createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const;
+
+  [[nodiscard]] VkFormat findDepthFormat() const;
+
+  [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                             VkImageTiling tiling,
+                                             VkFormatFeatureFlags features) const;
 
   friend class ImGuiInstance;
 
