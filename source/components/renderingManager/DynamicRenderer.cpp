@@ -92,7 +92,7 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
   commandBuffer->beginRendering(renderingInfo);
 }
 
-void DynamicRenderer::endRendering(std::shared_ptr<CommandBuffer> commandBuffer)
+void DynamicRenderer::endRendering(const std::shared_ptr<CommandBuffer> commandBuffer)
 {
   commandBuffer->endRendering();
 }
