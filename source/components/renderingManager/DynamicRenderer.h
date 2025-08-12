@@ -2,6 +2,7 @@
 #define DYNAMICRENDERER_H
 
 #include "Renderer.h"
+#include <vector>
 
 class DynamicRenderer final : public Renderer {
 public:
@@ -22,6 +23,28 @@ public:
                                std::shared_ptr<CommandBuffer> commandBuffer) override;
 
   void endRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
+
+private:
+  std::vector<VkImage> m_offscreenImages;
+  std::vector<VkImageView> m_offscreenImageViews;
+  std::vector<VkDeviceMemory> m_offscreenImageMemory;
+  std::vector<VkDescriptorSet> m_offscreenImageDescriptorSets;
+
+  std::vector<VkImage> m_swapchainColorImages;
+  std::vector<VkImageView> m_swapchainColorImageViews;
+  std::vector<VkDeviceMemory> m_swapchainColorImageMemory;
+
+  std::vector<VkImage> m_offscreenColorImages;
+  std::vector<VkImageView> m_offscreenColorImageViews;
+  std::vector<VkDeviceMemory> m_offscreenColorImageMemory;
+
+  std::vector<VkImage> m_swapchainDepthImages;
+  std::vector<VkImageView> m_swapchainDepthImageViews;
+  std::vector<VkDeviceMemory> m_swapchainDepthImageMemory;
+
+  std::vector<VkImage> m_offscreenDepthImages;
+  std::vector<VkImageView> m_offscreenDepthImageViews;
+  std::vector<VkDeviceMemory> m_offscreenDepthImageMemory;
 };
 
 

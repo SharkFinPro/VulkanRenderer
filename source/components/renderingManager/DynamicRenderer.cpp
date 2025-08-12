@@ -41,7 +41,7 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
 {
   VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-    .imageView = VK_NULL_HANDLE,
+    .imageView = m_offscreenColorImageViews[imageIndex],
     .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -53,7 +53,7 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
 
   VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-    .imageView = VK_NULL_HANDLE,
+    .imageView = m_offscreenDepthImageViews[imageIndex],
     .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
