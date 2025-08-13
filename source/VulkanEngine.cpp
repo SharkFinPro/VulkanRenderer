@@ -22,7 +22,7 @@ VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
 
   createPools();
 
-  createManagers();
+  createComponents();
 
   createCamera();
 }
@@ -120,7 +120,7 @@ void VulkanEngine::createPools()
   createDescriptorPool();
 }
 
-void VulkanEngine::createManagers()
+void VulkanEngine::createComponents()
 {
   m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool);
 

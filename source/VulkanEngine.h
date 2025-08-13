@@ -79,7 +79,7 @@ private:
 
   void createPools();
 
-  void createManagers();
+  void createComponents();
 
   void createCamera();
 
