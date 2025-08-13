@@ -2,6 +2,7 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/MousePicker.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/window/Window.h>
 #include <source/components/AssetManager.h>
 #include <source/components/PipelineManager.h>
 #include <source/pipelines/custom/config/PipelineTypes.h>
