@@ -5,7 +5,6 @@
 #include "VulkanEngineOptions.h"
 #include <vulkan/vulkan.h>
 #include <memory>
-#include <vector>
 
 class AssetManager;
 class Camera;
