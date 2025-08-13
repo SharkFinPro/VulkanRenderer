@@ -7,9 +7,8 @@
 #include <memory>
 #include <vector>
 
-class ComputingManager;
 class Camera;
-class CommandBuffer;
+class ComputingManager;
 class ImGuiInstance;
 class LightingManager;
 class LogicalDevice;
@@ -26,7 +25,7 @@ class Texture2D;
 class VulkanEngine {
 public:
   explicit VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions);
-  
+
   ~VulkanEngine();
 
   [[nodiscard]] bool isActive() const;
