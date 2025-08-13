@@ -80,8 +80,6 @@ private:
 
   void createNewFrame() const;
 
-  friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
-
   void createDescriptorPool();
 };
 
