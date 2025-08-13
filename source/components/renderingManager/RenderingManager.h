@@ -25,12 +25,6 @@ public:
                    bool shouldRenderOffscreen,
                    const char* sceneViewName);
 
-  void recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
-                                    uint32_t imageIndex) const;
-
-  void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
-                                    uint32_t imageIndex) const;
-
   void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
                    const std::shared_ptr<LightingManager>& lightingManager,
                    uint32_t& currentFrame);
@@ -79,6 +73,12 @@ private:
   const char* m_sceneViewName;
 
   void renderGuiScene(uint32_t imageIndex);
+
+  void recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
+                                    uint32_t imageIndex) const;
+
+  void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
+                                    uint32_t imageIndex) const;
 };
 
 

@@ -33,70 +33,6 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
   m_renderer = std::make_shared<DynamicRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
 }
 
-void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                    uint32_t currentFrame, const uint32_t imageIndex) const
-{
-  m_offscreenCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
-  {
-    if (!m_shouldRenderOffscreen ||
-        m_offscreenViewportExtent.width == 0 ||
-        m_offscreenViewportExtent.height == 0)
-    {
-      return;
-    }
-
-    m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
-
-    pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
-                                               currentFrame, m_viewPosition, m_viewMatrix);
-
-    m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
-  });
-}
-
-void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                    uint32_t currentFrame, const uint32_t imageIndex) const
-{
-  m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
-  {
-    const RenderInfo renderInfo {
-      .commandBuffer = m_swapchainCommandBuffer,
-      .currentFrame = currentFrame,
-      .viewPosition = m_viewPosition,
-      .viewMatrix = m_viewMatrix,
-      .extent = m_swapChain->getExtent()
-    };
-
-    m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
-
-    if (!m_shouldRenderOffscreen)
-    {
-      pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
-                                                 currentFrame, m_viewPosition, m_viewMatrix);
-    }
-
-    const VkViewport viewport = {
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(renderInfo.extent.width),
-      .height = static_cast<float>(renderInfo.extent.height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f
-    };
-    renderInfo.commandBuffer->setViewport(viewport);
-
-    const VkRect2D scissor = {
-      .offset = {0, 0},
-      .extent = renderInfo.extent
-    };
-    renderInfo.commandBuffer->setScissor(scissor);
-
-    pipelineManager->getGuiPipeline()->render(&renderInfo);
-
-    m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
-  });
-}
-
 void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
                                    const std::shared_ptr<LightingManager>& lightingManager,
                                    uint32_t& currentFrame)
@@ -258,4 +194,68 @@ void RenderingManager::renderGuiScene(const uint32_t imageIndex)
   ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(imageIndex), contentRegionAvailable);
 
   ImGui::End();
+}
+
+void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                    uint32_t currentFrame, const uint32_t imageIndex) const
+{
+  m_offscreenCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
+  {
+    if (!m_shouldRenderOffscreen ||
+        m_offscreenViewportExtent.width == 0 ||
+        m_offscreenViewportExtent.height == 0)
+    {
+      return;
+    }
+
+    m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
+
+    pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
+                                               currentFrame, m_viewPosition, m_viewMatrix);
+
+    m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
+  });
+}
+
+void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                    uint32_t currentFrame, const uint32_t imageIndex) const
+{
+  m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
+  {
+    const RenderInfo renderInfo {
+      .commandBuffer = m_swapchainCommandBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = m_swapChain->getExtent()
+    };
+
+    m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
+
+    if (!m_shouldRenderOffscreen)
+    {
+      pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
+                                                 currentFrame, m_viewPosition, m_viewMatrix);
+    }
+
+    const VkViewport viewport = {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(renderInfo.extent.width),
+      .height = static_cast<float>(renderInfo.extent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    renderInfo.commandBuffer->setViewport(viewport);
+
+    const VkRect2D scissor = {
+      .offset = {0, 0},
+      .extent = renderInfo.extent
+    };
+    renderInfo.commandBuffer->setScissor(scissor);
+
+    pipelineManager->getGuiPipeline()->render(&renderInfo);
+
+    m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
+  });
 }
