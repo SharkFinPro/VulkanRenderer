@@ -1,33 +1,30 @@
 #include "VulkanEngine.h"
-
-#include "components/textures/Texture2D.h"
-#include "components/Camera.h"
-#include "components/ImGuiInstance.h"
-#include "components/lighting/LightingManager.h"
-#include "components/MousePicker.h"
-#include "components/PipelineManager.h"
-
-#include "components/core/commandBuffer/CommandBuffer.h"
+#include "components/AssetManager.h"
+#include "components/computingManager/ComputingManager.h"
 #include "components/core/instance/Instance.h"
 #include "components/core/logicalDevice/LogicalDevice.h"
 #include "components/core/physicalDevice/PhysicalDevice.h"
-
-#include "components/objects/Model.h"
-#include "components/objects/RenderObject.h"
+#include "components/lighting/LightingManager.h"
 #include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
-
-#include "pipelines/custom/DotsPipeline.h"
-#include "pipelines/custom/SmokePipeline.h"
+#include "components/window/Window.h"
+#include "components/Camera.h"
+#include "components/ImGuiInstance.h"
+#include "components/MousePicker.h"
+#include "components/PipelineManager.h"
 
 VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
   : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0)
 {
   glfwInit();
-  initVulkan();
 
-  m_camera = std::make_shared<Camera>(m_vulkanEngineOptions.CAMERA_POSITION);
-  m_camera->setSpeed(m_vulkanEngineOptions.CAMERA_SPEED);
+  initializeVulkanAndWindow();
+
+  createPools();
+
+  createComponents();
+
+  createCamera();
 }
 
 VulkanEngine::~VulkanEngine()
@@ -35,8 +32,6 @@ VulkanEngine::~VulkanEngine()
   m_logicalDevice->waitIdle();
 
   m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
-
-  m_logicalDevice->destroyDescriptorSetLayout(m_objectDescriptorSetLayout);
 
   m_logicalDevice->destroyCommandPool(m_commandPool);
 
@@ -58,51 +53,26 @@ void VulkanEngine::render()
     m_renderingManager->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
   }
 
-  doComputing();
+  m_computingManager->doComputing(m_pipelineManager, m_currentFrame);
 
   m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
 
   createNewFrame();
 }
 
-std::shared_ptr<Texture2D> VulkanEngine::loadTexture(const char* path, const bool repeat)
+std::shared_ptr<AssetManager> VulkanEngine::getAssetManager() const
 {
-  auto texture = std::make_shared<Texture2D>(m_logicalDevice, m_commandPool, path,
-                                             repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-  m_textures.push_back(texture);
-
-  return texture;
+  return m_assetManager;
 }
 
-std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotation)
+std::shared_ptr<Camera> VulkanEngine::getCamera() const
 {
-  auto model = std::make_shared<Model>(
-    m_logicalDevice,
-    m_commandPool,
-    path,
-    rotation
-  );
-
-  m_models.push_back(model);
-
-  return model;
+  return m_camera;
 }
 
-std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture2D>& texture,
-                                                             const std::shared_ptr<Texture2D>& specularMap,
-                                                             const std::shared_ptr<Model>& model)
+std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
 {
-  auto renderObject = std::make_shared<RenderObject>(
-    m_logicalDevice,
-    m_objectDescriptorSetLayout,
-    texture,
-    specularMap,
-    model
-  );
-
-  m_renderObjects.push_back(renderObject);
-
-  return renderObject;
+  return m_imGuiInstance;
 }
 
 std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
@@ -115,11 +85,6 @@ std::shared_ptr<MousePicker> VulkanEngine::getMousePicker() const
   return m_mousePicker;
 }
 
-std::shared_ptr<Window> VulkanEngine::getWindow() const
-{
-  return m_window;
-}
-
 std::shared_ptr<PipelineManager> VulkanEngine::getPipelineManager() const
 {
   return m_pipelineManager;
@@ -130,12 +95,12 @@ std::shared_ptr<RenderingManager> VulkanEngine::getRenderingManager() const
   return m_renderingManager;
 }
 
-std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
+std::shared_ptr<Window> VulkanEngine::getWindow() const
 {
-  return m_imGuiInstance;
+  return m_window;
 }
 
-void VulkanEngine::initVulkan()
+void VulkanEngine::initializeVulkanAndWindow()
 {
   m_instance = std::make_shared<Instance>();
 
@@ -146,31 +111,45 @@ void VulkanEngine::initVulkan()
   m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_window->getSurface());
 
   m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
+}
 
+void VulkanEngine::createPools()
+{
   createCommandPool();
 
-  m_computeCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
-
   createDescriptorPool();
+}
 
+void VulkanEngine::createComponents()
+{
   m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool);
 
-  createObjectDescriptorSetLayout();
+  m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_commandPool);
 
-  m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
+  m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
+                                                m_assetManager->getObjectDescriptorSetLayout());
 
   m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_window, m_mousePicker, m_commandPool,
                                                           m_vulkanEngineOptions.USE_DOCKSPACE,
                                                           m_vulkanEngineOptions.SCENE_VIEW_NAME);
 
   m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer()->getRenderPass(),
-                                                        m_lightingManager, m_mousePicker, m_objectDescriptorSetLayout,
+                                                        m_lightingManager, m_mousePicker,
+                                                        m_assetManager->getObjectDescriptorSetLayout(),
                                                         m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS);
 
   m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
                                                     m_renderingManager->getRenderer()->getRenderPass(),
                                                     m_vulkanEngineOptions.USE_DOCKSPACE,
                                                     m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
+
+  m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice, m_commandPool);
+}
+
+void VulkanEngine::createCamera()
+{
+  m_camera = std::make_shared<Camera>(m_vulkanEngineOptions.CAMERA_POSITION);
+  m_camera->setSpeed(m_vulkanEngineOptions.CAMERA_SPEED);
 }
 
 void VulkanEngine::createCommandPool()
@@ -184,46 +163,6 @@ void VulkanEngine::createCommandPool()
   };
 
   m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
-}
-
-void VulkanEngine::recordComputeCommandBuffer() const
-{
-  m_computeCommandBuffer->record([this]()
-  {
-    if (m_vulkanEngineOptions.DO_DOTS)
-    {
-      m_pipelineManager->getDotsPipeline()->compute(m_computeCommandBuffer, m_currentFrame);
-    }
-
-    for (const auto& system : m_pipelineManager->getSmokeSystems())
-    {
-      system->compute(m_computeCommandBuffer, m_currentFrame);
-    }
-  });
-}
-
-void VulkanEngine::doComputing() const
-{
-  m_logicalDevice->waitForComputeFences(m_currentFrame);
-
-  m_logicalDevice->resetComputeFences(m_currentFrame);
-
-  m_computeCommandBuffer->setCurrentFrame(m_currentFrame);
-  m_computeCommandBuffer->resetCommandBuffer();
-  recordComputeCommandBuffer();
-
-  m_logicalDevice->submitComputeQueue(m_currentFrame, m_computeCommandBuffer->getCommandBuffer());
-}
-
-void VulkanEngine::createNewFrame() const
-{
-  m_imGuiInstance->createNewFrame();
-
-  m_lightingManager->clearLightsToRender();
-
-  m_mousePicker->clearObjectsToMousePick();
-
-  m_pipelineManager->createNewFrame();
 }
 
 void VulkanEngine::createDescriptorPool()
@@ -244,40 +183,15 @@ void VulkanEngine::createDescriptorPool()
   m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
-void VulkanEngine::createObjectDescriptorSetLayout()
+void VulkanEngine::createNewFrame()
 {
-  constexpr VkDescriptorSetLayoutBinding transformLayout {
-    .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-  };
+  m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
 
-  constexpr VkDescriptorSetLayoutBinding textureLayout {
-    .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
+  m_imGuiInstance->createNewFrame();
 
-  constexpr VkDescriptorSetLayoutBinding specularLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
+  m_lightingManager->clearLightsToRender();
 
-  constexpr std::array objectBindings {
-    transformLayout,
-    textureLayout,
-    specularLayout
-  };
+  m_mousePicker->clearObjectsToMousePick();
 
-  const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(objectBindings.size()),
-    .pBindings = objectBindings.data()
-  };
-
-  m_objectDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
+  m_pipelineManager->createNewFrame();
 }

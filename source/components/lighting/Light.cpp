@@ -108,7 +108,7 @@ void Light::setDirection(const glm::vec3& direction)
   m_direction = direction;
 }
 
-void Light::setConeAngle(float coneAngle)
+void Light::setConeAngle(const float coneAngle)
 {
   m_coneAngle = coneAngle;
 }

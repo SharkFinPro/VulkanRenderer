@@ -21,6 +21,10 @@ set(VULKAN_ENGINE_SOURCES_CORE_COMPONENTS
 
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
+  # Computing
+  components/computingManager/ComputingManager.cpp
+  components/computingManager/ComputingManager.h
+
   # Framebuffers
   components/framebuffers/Framebuffer.cpp
   components/framebuffers/Framebuffer.h
@@ -68,6 +72,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
+  components/AssetManager.cpp
+  components/AssetManager.h
   components/Camera.cpp
   components/Camera.h
   components/ImGuiInstance.cpp

@@ -7,7 +7,7 @@
 
 Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
                const bool fullscreen, VulkanEngine* engine)
-  : m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0), m_engine(engine)
+  : m_engine(engine), m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
