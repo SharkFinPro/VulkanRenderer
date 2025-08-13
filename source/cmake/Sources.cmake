@@ -72,6 +72,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
+  components/AssetManager.cpp
+  components/AssetManager.h
   components/Camera.cpp
   components/Camera.h
   components/ImGuiInstance.cpp

@@ -1,14 +1,12 @@
 #include "VulkanEngine.h"
+#include "components/AssetManager.h"
 #include "components/computingManager/ComputingManager.h"
 #include "components/core/instance/Instance.h"
 #include "components/core/logicalDevice/LogicalDevice.h"
 #include "components/core/physicalDevice/PhysicalDevice.h"
 #include "components/lighting/LightingManager.h"
-#include "components/objects/Model.h"
-#include "components/objects/RenderObject.h"
 #include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
-#include "components/textures/Texture2D.h"
 #include "components/Camera.h"
 #include "components/ImGuiInstance.h"
 #include "components/MousePicker.h"
@@ -29,8 +27,6 @@ VulkanEngine::~VulkanEngine()
   m_logicalDevice->waitIdle();
 
   m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
-
-  m_logicalDevice->destroyDescriptorSetLayout(m_objectDescriptorSetLayout);
 
   m_logicalDevice->destroyCommandPool(m_commandPool);
 
@@ -57,46 +53,6 @@ void VulkanEngine::render()
   m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
 
   createNewFrame();
-}
-
-std::shared_ptr<Texture2D> VulkanEngine::loadTexture(const char* path, const bool repeat)
-{
-  auto texture = std::make_shared<Texture2D>(m_logicalDevice, m_commandPool, path,
-                                             repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-  m_textures.push_back(texture);
-
-  return texture;
-}
-
-std::shared_ptr<Model> VulkanEngine::loadModel(const char* path, glm::vec3 rotation)
-{
-  auto model = std::make_shared<Model>(
-    m_logicalDevice,
-    m_commandPool,
-    path,
-    rotation
-  );
-
-  m_models.push_back(model);
-
-  return model;
-}
-
-std::shared_ptr<RenderObject> VulkanEngine::loadRenderObject(const std::shared_ptr<Texture2D>& texture,
-                                                             const std::shared_ptr<Texture2D>& specularMap,
-                                                             const std::shared_ptr<Model>& model)
-{
-  auto renderObject = std::make_shared<RenderObject>(
-    m_logicalDevice,
-    m_objectDescriptorSetLayout,
-    texture,
-    specularMap,
-    model
-  );
-
-  m_renderObjects.push_back(renderObject);
-
-  return renderObject;
 }
 
 std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
@@ -129,6 +85,11 @@ std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
   return m_imGuiInstance;
 }
 
+std::shared_ptr<AssetManager> VulkanEngine::getAssetManager() const
+{
+  return m_assetManager;
+}
+
 void VulkanEngine::initVulkan()
 {
   m_instance = std::make_shared<Instance>();
@@ -147,16 +108,18 @@ void VulkanEngine::initVulkan()
 
   m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool);
 
-  createObjectDescriptorSetLayout();
+  m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_commandPool);
 
-  m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool, m_objectDescriptorSetLayout);
+  m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
+                                                m_assetManager->getObjectDescriptorSetLayout());
 
   m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_window, m_mousePicker, m_commandPool,
                                                           m_vulkanEngineOptions.USE_DOCKSPACE,
                                                           m_vulkanEngineOptions.SCENE_VIEW_NAME);
 
   m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer()->getRenderPass(),
-                                                        m_lightingManager, m_mousePicker, m_objectDescriptorSetLayout,
+                                                        m_lightingManager, m_mousePicker,
+                                                        m_assetManager->getObjectDescriptorSetLayout(),
                                                         m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS);
 
   m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
@@ -207,42 +170,4 @@ void VulkanEngine::createDescriptorPool()
   };
 
   m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
-}
-
-void VulkanEngine::createObjectDescriptorSetLayout()
-{
-  constexpr VkDescriptorSetLayoutBinding transformLayout {
-    .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding textureLayout {
-    .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr VkDescriptorSetLayoutBinding specularLayout {
-    .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-  };
-
-  constexpr std::array objectBindings {
-    transformLayout,
-    textureLayout,
-    specularLayout
-  };
-
-  const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(objectBindings.size()),
-    .pBindings = objectBindings.data()
-  };
-
-  m_objectDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
 }

@@ -2,6 +2,7 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/MousePicker.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/AssetManager.h>
 #include <source/components/PipelineManager.h>
 #include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
@@ -66,19 +67,19 @@ int main()
 void setupScene(VulkanEngine& renderer, std::vector<MousePickingObject>& objects,
                 std::vector<std::shared_ptr<Light>>& lights)
 {
-  const auto texture = renderer.loadTexture("assets/textures/white.png");
-  const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-  const auto model = renderer.loadModel("assets/models/square.glb");
+  const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
+  const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
+  const auto model = renderer.getAssetManager()->loadModel("assets/models/square.glb");
 
-  const auto object1 = renderer.loadRenderObject(texture, specularMap, model);
+  const auto object1 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object1->setPosition({ 0, -5, 0 });
   objects.push_back({ object1 });
 
-  const auto object2 = renderer.loadRenderObject(texture, specularMap, model);
+  const auto object2 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object2->setPosition({ -5, -10, 0 });
   objects.push_back({ object2 });
 
-  const auto object3 = renderer.loadRenderObject(texture, specularMap, model);
+  const auto object3 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object3->setPosition({ 10, 0, 15 });
   objects.push_back({ object3 });
 

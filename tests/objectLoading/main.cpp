@@ -1,6 +1,7 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/AssetManager.h>
 #include <source/components/PipelineManager.h>
 #include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
@@ -22,11 +23,11 @@ int main()
 
     ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
 
-    const auto texture = renderer.loadTexture("assets/textures/viking_room.png");
-    const auto specular = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/viking_room.obj", { -90, 0, 0 });
+    const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/viking_room.png");
+    const auto specular = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
+    const auto model = renderer.getAssetManager()->loadModel("assets/models/viking_room.obj", { -90, 0, 0 });
 
-    const auto object = renderer.loadRenderObject(texture, specular, model);
+    const auto object = renderer.getAssetManager()->loadRenderObject(texture, specular, model);
     object->setPosition({ 0, -1.0f, 5.0f });
     object->setScale(2.0f);
 

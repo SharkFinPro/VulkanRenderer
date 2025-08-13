@@ -7,20 +7,17 @@
 #include <memory>
 #include <vector>
 
+class AssetManager;
 class Camera;
 class ComputingManager;
 class ImGuiInstance;
 class LightingManager;
 class LogicalDevice;
-class Model;
 class MousePicker;
 class PhysicalDevice;
 class PipelineManager;
-class RenderObject;
 struct RenderInfo;
 class RenderingManager;
-class Texture;
-class Texture2D;
 
 class VulkanEngine {
 public:
@@ -31,14 +28,6 @@ public:
   [[nodiscard]] bool isActive() const;
 
   void render();
-
-  std::shared_ptr<Texture2D> loadTexture(const char* path, bool repeat = true);
-
-  std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
-
-  [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
-                                                               const std::shared_ptr<Texture2D>& specularMap,
-                                                               const std::shared_ptr<Model>&);
 
   [[nodiscard]] std::shared_ptr<LightingManager> getLightingManager() const;
 
@@ -51,6 +40,8 @@ public:
   [[nodiscard]] std::shared_ptr<RenderingManager> getRenderingManager() const;
 
   [[nodiscard]] std::shared_ptr<ImGuiInstance> getImGuiInstance() const;
+
+  [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
 
 private:
   VulkanEngineOptions m_vulkanEngineOptions;
@@ -72,19 +63,15 @@ private:
 
   std::shared_ptr<ComputingManager> m_computingManager;
 
-  std::shared_ptr<Camera> m_camera;
+  std::shared_ptr<AssetManager> m_assetManager;
 
-  std::vector<std::shared_ptr<Texture>> m_textures;
-  std::vector<std::shared_ptr<Model>> m_models;
-  std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
+  std::shared_ptr<Camera> m_camera;
 
   uint32_t m_currentFrame;
 
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
   VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-
-  VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   void initVulkan();
 
@@ -95,8 +82,6 @@ private:
   friend void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
   void createDescriptorPool();
-
-  void createObjectDescriptorSetLayout();
 };
 
 

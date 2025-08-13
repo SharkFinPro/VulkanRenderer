@@ -1,6 +1,7 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/AssetManager.h>
 #include <source/components/PipelineManager.h>
 #include <source/pipelines/custom/config/PipelineTypes.h>
 #include <source/VulkanEngine.h>
@@ -28,11 +29,11 @@ int main()
 
     ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
 
-    const auto texture = renderer.loadTexture("assets/textures/white.png");
-    const auto specularMap = renderer.loadTexture("assets/textures/blank_specular.png");
-    const auto model = renderer.loadModel("assets/models/curtain.glb");
+    const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
+    const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
+    const auto model = renderer.getAssetManager()->loadModel("assets/models/curtain.glb");
 
-    const auto object = renderer.loadRenderObject(texture, specularMap, model);
+    const auto object = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
 
     std::vector<std::shared_ptr<Light>> lights;
 
