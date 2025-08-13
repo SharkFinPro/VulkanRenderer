@@ -7,6 +7,7 @@
 #include "components/lighting/LightingManager.h"
 #include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
+#include "components/window/Window.h"
 #include "components/Camera.h"
 #include "components/ImGuiInstance.h"
 #include "components/MousePicker.h"

@@ -1,7 +1,6 @@
 #ifndef VULKANPROJECT_VULKANENGINE_H
 #define VULKANPROJECT_VULKANENGINE_H
 
-#include "components/window/Window.h"
 #include "VulkanEngineOptions.h"
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -10,6 +9,7 @@ class AssetManager;
 class Camera;
 class ComputingManager;
 class ImGuiInstance;
+class Instance;
 class LightingManager;
 class LogicalDevice;
 class MousePicker;
@@ -17,6 +17,7 @@ class PhysicalDevice;
 class PipelineManager;
 struct RenderInfo;
 class RenderingManager;
+class Window;
 
 class VulkanEngine {
 public:
