@@ -29,21 +29,21 @@ public:
 
   void render();
 
+  [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
+
+  [[nodiscard]] std::shared_ptr<Camera> getCamera() const;
+
+  [[nodiscard]] std::shared_ptr<ImGuiInstance> getImGuiInstance() const;
+
   [[nodiscard]] std::shared_ptr<LightingManager> getLightingManager() const;
 
   [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
-
-  [[nodiscard]] std::shared_ptr<Window> getWindow() const;
 
   [[nodiscard]] std::shared_ptr<PipelineManager> getPipelineManager() const;
 
   [[nodiscard]] std::shared_ptr<RenderingManager> getRenderingManager() const;
 
-  [[nodiscard]] std::shared_ptr<ImGuiInstance> getImGuiInstance() const;
-
-  [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
-
-  [[nodiscard]] std::shared_ptr<Camera> getCamera() const;
+  [[nodiscard]] std::shared_ptr<Window> getWindow() const;
 
 private:
   VulkanEngineOptions m_vulkanEngineOptions;

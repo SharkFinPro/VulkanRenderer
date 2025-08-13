@@ -55,6 +55,21 @@ void VulkanEngine::render()
   createNewFrame();
 }
 
+std::shared_ptr<AssetManager> VulkanEngine::getAssetManager() const
+{
+  return m_assetManager;
+}
+
+std::shared_ptr<Camera> VulkanEngine::getCamera() const
+{
+  return m_camera;
+}
+
+std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
+{
+  return m_imGuiInstance;
+}
+
 std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
 {
   return m_lightingManager;
@@ -63,11 +78,6 @@ std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
 std::shared_ptr<MousePicker> VulkanEngine::getMousePicker() const
 {
   return m_mousePicker;
-}
-
-std::shared_ptr<Window> VulkanEngine::getWindow() const
-{
-  return m_window;
 }
 
 std::shared_ptr<PipelineManager> VulkanEngine::getPipelineManager() const
@@ -80,19 +90,9 @@ std::shared_ptr<RenderingManager> VulkanEngine::getRenderingManager() const
   return m_renderingManager;
 }
 
-std::shared_ptr<ImGuiInstance> VulkanEngine::getImGuiInstance() const
+std::shared_ptr<Window> VulkanEngine::getWindow() const
 {
-  return m_imGuiInstance;
-}
-
-std::shared_ptr<AssetManager> VulkanEngine::getAssetManager() const
-{
-  return m_assetManager;
-}
-
-std::shared_ptr<Camera> VulkanEngine::getCamera() const
-{
-  return m_camera;
+  return m_window;
 }
 
 void VulkanEngine::initVulkan()
