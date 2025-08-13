@@ -43,6 +43,8 @@ public:
 
   [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
 
+  [[nodiscard]] std::shared_ptr<Camera> getCamera() const;
+
 private:
   VulkanEngineOptions m_vulkanEngineOptions;
 

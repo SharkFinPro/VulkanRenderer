@@ -90,6 +90,11 @@ std::shared_ptr<AssetManager> VulkanEngine::getAssetManager() const
   return m_assetManager;
 }
 
+std::shared_ptr<Camera> VulkanEngine::getCamera() const
+{
+  return m_camera;
+}
+
 void VulkanEngine::initVulkan()
 {
   m_instance = std::make_shared<Instance>();
