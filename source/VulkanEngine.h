@@ -26,6 +26,7 @@ class Texture2D;
 class VulkanEngine {
 public:
   explicit VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions);
+  
   ~VulkanEngine();
 
   [[nodiscard]] bool isActive() const;
@@ -33,7 +34,9 @@ public:
   void render();
 
   std::shared_ptr<Texture2D> loadTexture(const char* path, bool repeat = true);
+
   std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
+
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
                                                                const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>&);
@@ -85,7 +88,7 @@ private:
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   void initVulkan();
-  
+
   void createCommandPool();
 
   void createNewFrame() const;
