@@ -75,7 +75,7 @@ private:
 
   VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
-  void initVulkan();
+  void initializeEngine();
 
   void createCommandPool();
 

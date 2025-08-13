@@ -17,10 +17,8 @@ VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
   : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0)
 {
   glfwInit();
-  initVulkan();
 
-  m_camera = std::make_shared<Camera>(m_vulkanEngineOptions.CAMERA_POSITION);
-  m_camera->setSpeed(m_vulkanEngineOptions.CAMERA_SPEED);
+  initializeEngine();
 }
 
 VulkanEngine::~VulkanEngine()
@@ -96,7 +94,7 @@ std::shared_ptr<Window> VulkanEngine::getWindow() const
   return m_window;
 }
 
-void VulkanEngine::initVulkan()
+void VulkanEngine::initializeEngine()
 {
   m_instance = std::make_shared<Instance>();
 
@@ -134,6 +132,9 @@ void VulkanEngine::initVulkan()
                                                     m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
 
   m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice, m_commandPool);
+
+  m_camera = std::make_shared<Camera>(m_vulkanEngineOptions.CAMERA_POSITION);
+  m_camera->setSpeed(m_vulkanEngineOptions.CAMERA_SPEED);
 }
 
 void VulkanEngine::createCommandPool()
