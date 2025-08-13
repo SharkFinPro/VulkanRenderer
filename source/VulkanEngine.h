@@ -75,7 +75,13 @@ private:
 
   VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
-  void initializeEngine();
+  void initializeVulkanAndWindow();
+
+  void createPools();
+
+  void createManagers();
+
+  void createCamera();
 
   void createCommandPool();
 
