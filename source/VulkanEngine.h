@@ -87,7 +87,7 @@ private:
 
   void createDescriptorPool();
 
-  void createNewFrame() const;
+  void createNewFrame();
 };
 
 

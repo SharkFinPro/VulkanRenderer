@@ -183,8 +183,10 @@ void VulkanEngine::createDescriptorPool()
   m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
 }
 
-void VulkanEngine::createNewFrame() const
+void VulkanEngine::createNewFrame()
 {
+  m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
+
   m_imGuiInstance->createNewFrame();
 
   m_lightingManager->clearLightsToRender();

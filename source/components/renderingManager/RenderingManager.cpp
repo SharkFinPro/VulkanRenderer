@@ -35,7 +35,7 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
 
 void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
                                    const std::shared_ptr<LightingManager>& lightingManager,
-                                   uint32_t& currentFrame)
+                                   const uint32_t currentFrame)
 {
   m_logicalDevice->waitForGraphicsFences(currentFrame);
 
@@ -84,8 +84,6 @@ void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipel
   {
     throw std::runtime_error("failed to present swap chain image!");
   }
-
-  currentFrame = (currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
 }
 
 std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
