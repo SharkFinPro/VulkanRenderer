@@ -1,24 +1,18 @@
 #include "VulkanEngine.h"
-
-#include "components/textures/Texture2D.h"
-#include "components/Camera.h"
-#include "components/ImGuiInstance.h"
-#include "components/lighting/LightingManager.h"
-#include "components/MousePicker.h"
-#include "components/PipelineManager.h"
-
-#include "components/core/commandBuffer/CommandBuffer.h"
+#include "components/computingManager/ComputingManager.h"
 #include "components/core/instance/Instance.h"
 #include "components/core/logicalDevice/LogicalDevice.h"
 #include "components/core/physicalDevice/PhysicalDevice.h"
-
+#include "components/lighting/LightingManager.h"
 #include "components/objects/Model.h"
 #include "components/objects/RenderObject.h"
 #include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
-
-#include "pipelines/custom/DotsPipeline.h"
-#include "pipelines/custom/SmokePipeline.h"
+#include "components/textures/Texture2D.h"
+#include "components/Camera.h"
+#include "components/ImGuiInstance.h"
+#include "components/MousePicker.h"
+#include "components/PipelineManager.h"
 
 VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
   : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0)
@@ -58,7 +52,7 @@ void VulkanEngine::render()
     m_renderingManager->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
   }
 
-  doComputing();
+  m_computingManager->doComputing(m_pipelineManager, m_currentFrame);
 
   m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
 
@@ -149,8 +143,6 @@ void VulkanEngine::initVulkan()
 
   createCommandPool();
 
-  m_computeCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
-
   createDescriptorPool();
 
   m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool);
@@ -171,6 +163,8 @@ void VulkanEngine::initVulkan()
                                                     m_renderingManager->getRenderer()->getRenderPass(),
                                                     m_vulkanEngineOptions.USE_DOCKSPACE,
                                                     m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
+
+  m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice, m_commandPool);
 }
 
 void VulkanEngine::createCommandPool()
@@ -184,35 +178,6 @@ void VulkanEngine::createCommandPool()
   };
 
   m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
-}
-
-void VulkanEngine::recordComputeCommandBuffer() const
-{
-  m_computeCommandBuffer->record([this]()
-  {
-    if (m_vulkanEngineOptions.DO_DOTS)
-    {
-      m_pipelineManager->getDotsPipeline()->compute(m_computeCommandBuffer, m_currentFrame);
-    }
-
-    for (const auto& system : m_pipelineManager->getSmokeSystems())
-    {
-      system->compute(m_computeCommandBuffer, m_currentFrame);
-    }
-  });
-}
-
-void VulkanEngine::doComputing() const
-{
-  m_logicalDevice->waitForComputeFences(m_currentFrame);
-
-  m_logicalDevice->resetComputeFences(m_currentFrame);
-
-  m_computeCommandBuffer->setCurrentFrame(m_currentFrame);
-  m_computeCommandBuffer->resetCommandBuffer();
-  recordComputeCommandBuffer();
-
-  m_logicalDevice->submitComputeQueue(m_currentFrame, m_computeCommandBuffer->getCommandBuffer());
 }
 
 void VulkanEngine::createNewFrame() const

@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+class ComputingManager;
 class Camera;
 class CommandBuffer;
 class ImGuiInstance;
@@ -67,6 +68,8 @@ private:
 
   std::shared_ptr<RenderingManager> m_renderingManager;
 
+  std::shared_ptr<ComputingManager> m_computingManager;
+
   std::shared_ptr<Camera> m_camera;
 
   std::vector<std::shared_ptr<Texture>> m_textures;
@@ -77,18 +80,12 @@ private:
 
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-  std::shared_ptr<CommandBuffer> m_computeCommandBuffer;
-
   VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   void initVulkan();
   void createCommandPool();
-
-  void recordComputeCommandBuffer() const;
-
-  void doComputing() const;
 
   void createNewFrame() const;
 
