@@ -85,9 +85,9 @@ private:
 
   void createCommandPool();
 
-  void createNewFrame() const;
-
   void createDescriptorPool();
+
+  void createNewFrame() const;
 };
 
 

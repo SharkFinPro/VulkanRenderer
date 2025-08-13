@@ -165,17 +165,6 @@ void VulkanEngine::createCommandPool()
   m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
 }
 
-void VulkanEngine::createNewFrame() const
-{
-  m_imGuiInstance->createNewFrame();
-
-  m_lightingManager->clearLightsToRender();
-
-  m_mousePicker->clearObjectsToMousePick();
-
-  m_pipelineManager->createNewFrame();
-}
-
 void VulkanEngine::createDescriptorPool()
 {
   const std::array<VkDescriptorPoolSize, 3> poolSizes {{
@@ -192,4 +181,15 @@ void VulkanEngine::createDescriptorPool()
   };
 
   m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+}
+
+void VulkanEngine::createNewFrame() const
+{
+  m_imGuiInstance->createNewFrame();
+
+  m_lightingManager->clearLightsToRender();
+
+  m_mousePicker->clearObjectsToMousePick();
+
+  m_pipelineManager->createNewFrame();
 }
