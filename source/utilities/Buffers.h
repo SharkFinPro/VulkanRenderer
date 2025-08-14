@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class LogicalDevice;
 
 namespace Buffers {
@@ -20,6 +22,8 @@ namespace Buffers {
   void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool,
                              VkQueue queue, VkCommandBuffer commandBuffer);
 }
+
+} // namespace vke
 
 
 #endif //VULKANPROJECT_BUFFERS_H

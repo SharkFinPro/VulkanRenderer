@@ -5,6 +5,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class AssetManager;
 class Camera;
 class ComputingManager;
@@ -90,5 +92,6 @@ private:
   void createNewFrame();
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_VULKANENGINE_H

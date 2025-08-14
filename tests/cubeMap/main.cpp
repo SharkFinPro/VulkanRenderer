@@ -7,17 +7,17 @@
 #include <imgui.h>
 #include <iostream>
 
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject> &object, std::vector<std::shared_ptr<RenderObject>>& walls);
+void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject> &object, std::vector<std::shared_ptr<vke::RenderObject>>& walls);
 
-void setupScene(VulkanEngine& renderer, std::shared_ptr<RenderObject>& object,
-                std::vector<std::shared_ptr<RenderObject>>& walls);
+void setupScene(vke::VulkanEngine& renderer, std::shared_ptr<vke::RenderObject>& object,
+                std::vector<std::shared_ptr<vke::RenderObject>>& walls);
 
 int main()
 {
   try
   {
-    constexpr VulkanEngineOptions vulkanEngineOptions {
+    constexpr vke::VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Cube Map",
@@ -25,13 +25,13 @@ int main()
       .DO_DOTS = false
     };
 
-    VulkanEngine renderer(vulkanEngineOptions);
+    vke::VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
+    ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
-    std::shared_ptr<RenderObject> object = nullptr;
-    std::vector<std::shared_ptr<RenderObject>> walls;
+    std::shared_ptr<vke::RenderObject> object = nullptr;
+    std::vector<std::shared_ptr<vke::RenderObject>> walls;
 
     setupScene(renderer, object, walls);
 
@@ -49,8 +49,8 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject> &object, std::vector<std::shared_ptr<RenderObject>>& walls)
+void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject> &object, std::vector<std::shared_ptr<vke::RenderObject>>& walls)
 {
   gui->dockCenter("SceneView");
   gui->dockBottom("Objects");
@@ -62,19 +62,19 @@ void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& g
   displayObjectGuis({ object });
 
   // Render Objects
-  renderer.getPipelineManager()->renderObject(object, PipelineType::cubeMap);
+  renderer.getPipelineManager()->renderObject(object, vke::PipelineType::cubeMap);
 
   for (auto& wall : walls)
   {
-    renderer.getPipelineManager()->renderObject(wall, PipelineType::texturedPlane);
+    renderer.getPipelineManager()->renderObject(wall, vke::PipelineType::texturedPlane);
   }
 
   // Render Frame
   renderer.render();
 }
 
-void setupScene(VulkanEngine& renderer, std::shared_ptr<RenderObject>& object,
-                std::vector<std::shared_ptr<RenderObject>>& walls)
+void setupScene(vke::VulkanEngine& renderer, std::shared_ptr<vke::RenderObject>& object,
+                std::vector<std::shared_ptr<vke::RenderObject>>& walls)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");

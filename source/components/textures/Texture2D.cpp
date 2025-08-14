@@ -9,6 +9,8 @@
 #include <cmath>
 #include <stdexcept>
 
+namespace vke {
+
 Texture2D::Texture2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const VkCommandPool& commandPool,
                      const char* path,
@@ -76,3 +78,5 @@ void Texture2D::createImageView()
 
   m_imageInfo.imageView = m_textureImageView;
 }
+
+} // namespace vke

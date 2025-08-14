@@ -6,6 +6,8 @@
 #include <array>
 #include <vector>
 
+namespace vke {
+
 constexpr std::array<const char*, 1> validationLayers {
   "VK_LAYER_KHRONOS_validation"
 };
@@ -39,5 +41,6 @@ private:
   static std::vector<const char*> getRequiredExtensions();
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_INSTANCE_H

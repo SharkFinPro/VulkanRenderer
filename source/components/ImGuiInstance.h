@@ -5,6 +5,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class CommandBuffer;
 class Window;
 class Instance;
@@ -70,5 +72,6 @@ private:
   void createDescriptorPool(uint32_t maxImGuiTextures);
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_IMGUIINSTANCE_H

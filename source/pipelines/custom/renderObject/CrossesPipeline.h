@@ -6,6 +6,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class DescriptorSet;
 class RenderPass;
 class UniformBuffer;
@@ -54,6 +56,6 @@ private:
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };
 
-
+} // namespace vke
 
 #endif //CROSSESPIPELINE_H

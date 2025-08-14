@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
 
+namespace vke {
+
 RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const VkDescriptorSetLayout& descriptorSetLayout,
                            const std::shared_ptr<Texture>& texture,
@@ -151,3 +153,5 @@ glm::mat4 RenderObject::createModelMatrix() const
 
   return model;
 }
+
+} // namespace vke

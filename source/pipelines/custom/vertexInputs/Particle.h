@@ -6,6 +6,8 @@
 #include <vulkan/vulkan.h>
 #include <array>
 
+namespace vke {
+
 struct Particle {
   glm::vec2 position;
   glm::vec2 velocity;
@@ -39,5 +41,6 @@ struct Particle {
   }
 };
 
+} // namespace vke
 
 #endif //PARTICLE_H

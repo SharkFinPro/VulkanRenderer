@@ -6,6 +6,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class DescriptorSet;
 class RenderPass;
 
@@ -30,6 +32,6 @@ private:
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 };
 
-
+} // namespace vke
 
 #endif //SNAKEPIPELINE_H

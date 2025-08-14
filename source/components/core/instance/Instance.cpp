@@ -11,6 +11,8 @@
 #define IS_MAC 0
 #endif
 
+namespace vke {
+
 Instance::Instance()
 {
   if (validationLayersEnabled() && !checkValidationLayerSupport())
@@ -192,3 +194,5 @@ std::vector<const char*> Instance::getRequiredExtensions()
 
   return extensions;
 }
+
+} // namespace vke

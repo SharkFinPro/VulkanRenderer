@@ -3,6 +3,8 @@
 
 #include "Texture.h"
 
+namespace vke {
+
 class Texture3D final : public Texture {
 public:
   Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -16,6 +18,6 @@ private:
   void createImageView() override;
 };
 
-
+} // namespace vke
 
 #endif //TEXTURE3D_H

@@ -1,6 +1,8 @@
 #include "SwapchainFramebuffer.h"
 #include "../window/SwapChain.h"
 
+namespace vke {
+
 SwapchainFramebuffer::SwapchainFramebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            const std::shared_ptr<SwapChain>& swapChain,
                                            const VkCommandPool& commandPool,
@@ -22,3 +24,5 @@ const std::vector<VkImageView>& SwapchainFramebuffer::getImageViews()
 {
   return m_swapChain->getImageViews();
 }
+
+} // namespace vke

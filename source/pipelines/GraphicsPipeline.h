@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+namespace vke {
+
 class CommandBuffer;
 class RenderObject;
 class RenderPass;
@@ -130,6 +132,6 @@ protected:
   virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
 };
 
-
+} // namespace vke
 
 #endif //GRAPHICSPIPELINE_H

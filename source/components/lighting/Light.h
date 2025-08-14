@@ -3,6 +3,8 @@
 
 #include <glm/vec3.hpp>
 
+namespace vke {
+
 struct alignas(16) PointLightUniform {
   glm::vec3 position;
   float padding1;
@@ -66,6 +68,6 @@ private:
   float m_coneAngle = 15;
 };
 
-
+} // namespace vke
 
 #endif //LIGHT_H

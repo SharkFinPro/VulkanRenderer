@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class LogicalDevice;
 class Model;
 class RenderObject;
@@ -42,6 +44,6 @@ private:
   void createObjectDescriptorSetLayout();
 };
 
-
+} // namespace vke
 
 #endif //ASSETMANAGER_H

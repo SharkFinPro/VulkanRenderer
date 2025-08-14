@@ -6,6 +6,8 @@
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
+namespace vke {
+
 Framebuffer::Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const bool mousePicking)
   : m_logicalDevice(logicalDevice), m_mousePicking(mousePicking)
@@ -111,3 +113,5 @@ void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass, const VkExt
     m_framebuffers[i] = m_logicalDevice->createFramebuffer(framebufferInfo);
   }
 }
+
+} // namespace vke

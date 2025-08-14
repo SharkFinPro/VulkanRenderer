@@ -5,6 +5,8 @@
 #include "../../pipelines/custom/DotsPipeline.h"
 #include "../../pipelines/custom/SmokePipeline.h"
 
+namespace vke {
+
 ComputingManager::ComputingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
   : m_logicalDevice(logicalDevice)
 {
@@ -41,3 +43,5 @@ void ComputingManager::recordComputeCommandBuffer(const std::shared_ptr<Pipeline
     }
   });
 }
+
+} // namespace vke

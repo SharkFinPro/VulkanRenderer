@@ -4,6 +4,8 @@
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/objects/RenderObject.h"
 
+namespace vke {
+
 ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                  std::shared_ptr<RenderPass> renderPass,
                                                  VkDescriptorSetLayout objectDescriptorSetLayout)
@@ -45,3 +47,5 @@ void ObjectHighlightPipeline::render(const RenderInfo* renderInfo,
     object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
   }
 }
+
+} // namespace vke

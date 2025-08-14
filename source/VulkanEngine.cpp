@@ -13,6 +13,8 @@
 #include "components/MousePicker.h"
 #include "components/PipelineManager.h"
 
+namespace vke {
+
 VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
   : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0)
 {
@@ -195,3 +197,5 @@ void VulkanEngine::createNewFrame()
 
   m_pipelineManager->createNewFrame();
 }
+
+} // namespace vke

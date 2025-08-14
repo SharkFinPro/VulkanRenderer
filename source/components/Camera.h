@@ -7,6 +7,8 @@
 #include <chrono>
 #include <memory>
 
+namespace vke {
+
 class Camera {
 public:
   explicit Camera(glm::vec3 initialPosition = { 0, 0, 0 });
@@ -49,5 +51,7 @@ private:
   void handleRotation(const std::shared_ptr<Window>& window);
   void handleZoom(const std::shared_ptr<Window>& window);
 };
+
+} // namespace vke
 
 #endif //VULKANPROJECT_CAMERA_H

@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class DescriptorSet;
 class Light;
 class LogicalDevice;
@@ -54,6 +56,6 @@ private:
   void updateSpotLightUniforms(uint32_t currentFrame);
 };
 
-
+} // namespace vke
 
 #endif //LIGHTINGMANAGER_H

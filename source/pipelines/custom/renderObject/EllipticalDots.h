@@ -5,6 +5,8 @@
 #include "../../GraphicsPipeline.h"
 #include <memory>
 
+namespace vke {
+
 class DescriptorSet;
 class RenderPass;
 
@@ -32,6 +34,6 @@ private:
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };
 
-
+} // namespace vke
 
 #endif //ELLIPTICALDOTS_H

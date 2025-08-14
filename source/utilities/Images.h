@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class LogicalDevice;
 class PhysicalDevice;
 
@@ -29,6 +31,8 @@ namespace Images {
 
   bool hasStencilComponent(VkFormat format);
 }
+
+} // namespace vke
 
 
 #endif //VULKANPROJECT_IMAGES_H

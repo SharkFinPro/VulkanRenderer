@@ -7,6 +7,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class CommandBuffer;
 class LightingManager;
 class LogicalDevice;
@@ -81,6 +83,6 @@ private:
                                     uint32_t imageIndex) const;
 };
 
-
+} // namespace vke
 
 #endif //RENDERINGMANAGER_H

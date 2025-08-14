@@ -2,6 +2,8 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include <stdexcept>
 
+namespace vke {
+
 CommandBuffer::CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
   : m_logicalDevice(logicalDevice)
 {
@@ -132,3 +134,5 @@ void CommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)
 
   m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers.data());
 }
+
+} // namespace vke

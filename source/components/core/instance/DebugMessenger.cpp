@@ -1,6 +1,8 @@
 #include "DebugMessenger.h"
 #include <iostream>
 
+namespace vke {
+
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(
   const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
   [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -42,3 +44,5 @@ const char* DebugMessenger::readMessageSeverity(const VkDebugUtilsMessageSeverit
       return "unknown";
   }
 }
+
+} // namespace vke

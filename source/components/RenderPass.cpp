@@ -5,6 +5,8 @@
 #include <array>
 #include <stdexcept>
 
+namespace vke {
+
 RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const VkFormat imageFormat,
                        const VkSampleCountFlagBits msaaSamples,
@@ -137,3 +139,5 @@ void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& exten
 
   commandBuffer->beginRenderPass(renderPassInfo);
 }
+
+} // namespace vke

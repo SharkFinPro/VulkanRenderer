@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <set>
 
+namespace vke {
+
 PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface)
   : m_surface(surface), m_msaaSamples(VK_SAMPLE_COUNT_1_BIT)
 {
@@ -255,3 +257,5 @@ VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount() const
 
   return VK_SAMPLE_COUNT_1_BIT;
 }
+
+} // namespace vke

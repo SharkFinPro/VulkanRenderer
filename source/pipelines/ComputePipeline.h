@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 
+namespace vke {
+
 struct ComputePipelineOptions {
   struct {
     std::string computeShader;
@@ -37,6 +39,6 @@ protected:
   void createPipeline(const ComputePipelineOptions& computePipelineOptions);
 };
 
-
+} // namespace vke
 
 #endif //COMPUTEPIPELINE_H

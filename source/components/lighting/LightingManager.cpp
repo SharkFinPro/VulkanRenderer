@@ -6,6 +6,8 @@
 #include "../../pipelines/custom/descriptorSets/LayoutBindings.h"
 #include "../UniformBuffer.h"
 
+namespace vke {
+
 LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDescriptorPool descriptorPool)
   : m_logicalDevice(logicalDevice)
 {
@@ -216,3 +218,5 @@ void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
 
   m_spotLightsUniform->update(currentFrame, lightUniforms.data());
 }
+
+} // namespace vke

@@ -7,6 +7,8 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
+namespace vke {
+
 class SwapChain {
 public:
   SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<Window>& window);
@@ -38,5 +40,6 @@ private:
   void createImageViews();
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_SWAPCHAIN_H

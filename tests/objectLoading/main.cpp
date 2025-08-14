@@ -11,17 +11,17 @@ int main()
 {
   try
   {
-    constexpr VulkanEngineOptions vulkanEngineOptions {
+    constexpr vke::VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Object Loading",
       .CAMERA_SPEED = 0.5f
     };
 
-    VulkanEngine renderer(vulkanEngineOptions);
+    vke::VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
+    ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
     const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/viking_room.png");
     const auto specular = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -39,7 +39,7 @@ int main()
 
       renderer.getLightingManager()->renderLight(light);
 
-      renderer.getPipelineManager()->renderObject(object, PipelineType::object);
+      renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
 
       renderer.render();
     }

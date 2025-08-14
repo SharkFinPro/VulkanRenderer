@@ -5,6 +5,8 @@
 #include "../../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 
+namespace vke {
+
 ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  std::shared_ptr<RenderPass> renderPass,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout,
@@ -42,3 +44,5 @@ void ObjectsPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
+
+} // namespace vke

@@ -7,6 +7,8 @@
 #include "../window/SwapChain.h"
 #include "../RenderPass.h"
 
+namespace vke {
+
 LegacyRenderer::LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<SwapChain>& swapChain,
                                VkCommandPool commandPool)
@@ -74,3 +76,5 @@ void LegacyRenderer::endRendering(const std::shared_ptr<CommandBuffer>& commandB
 {
   commandBuffer->endRenderPass();
 }
+
+} // namespace vke

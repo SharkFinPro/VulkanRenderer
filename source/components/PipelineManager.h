@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace vke {
+
 class MousePicker;
 class LightingManager;
 class DotsPipeline;
@@ -89,6 +91,6 @@ private:
   void renderSmokeSystems(const RenderInfo& renderInfo) const;
 };
 
-
+} // namespace vke
 
 #endif //PIPELINEMANAGER_H

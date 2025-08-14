@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class LogicalDevice;
 
 class UniformBuffer {
@@ -31,5 +33,6 @@ protected:
   VkDeviceSize m_bufferSize;
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_UNIFORMBUFFER_H

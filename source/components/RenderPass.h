@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 
+namespace vke {
+
 class CommandBuffer;
 class LogicalDevice;
 
@@ -28,5 +30,6 @@ private:
   void createRenderPass(VkFormat imageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_RENDERPASS_H

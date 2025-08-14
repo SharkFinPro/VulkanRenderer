@@ -4,6 +4,8 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
+namespace vke {
+
 struct LightMetadataUniform {
   int numPointLights;
   int numSpotLights;
@@ -106,5 +108,7 @@ struct BendyPlantInfo {
   float pitch;
   float bendStrength;
 };
+
+} // namespace vke
 
 #endif //VULKANPROJECT_UNIFORMS_H

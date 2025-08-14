@@ -11,6 +11,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+namespace vke {
+
 ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                              const std::shared_ptr<Instance>& instance,
                              const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -265,3 +267,5 @@ void ImGuiInstance::createDescriptorPool(const uint32_t maxImGuiTextures)
 
   descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
 }
+
+} // namespace vke

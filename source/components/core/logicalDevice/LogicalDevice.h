@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class PhysicalDevice;
 
 class LogicalDevice {
@@ -154,5 +156,6 @@ private:
   void createSyncObjects();
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_LOGICALDEVICE_H

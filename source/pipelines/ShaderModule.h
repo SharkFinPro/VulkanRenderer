@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class LogicalDevice;
 
 class ShaderModule {
@@ -33,5 +35,6 @@ private:
   void createShaderModule(const char* file);
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_SHADERMODULE_H

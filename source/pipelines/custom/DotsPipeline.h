@@ -8,6 +8,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class DescriptorSet;
 class UniformBuffer;
 
@@ -46,5 +48,6 @@ private:
   void updateUniformVariables(const RenderInfo* renderInfo) override;
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_COMPUTEPIPELINE_H

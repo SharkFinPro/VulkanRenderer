@@ -3,6 +3,8 @@
 
 #include "Framebuffer.h"
 
+namespace vke {
+
 class SwapChain;
 
 class SwapchainFramebuffer final : public Framebuffer {
@@ -20,5 +22,7 @@ private:
 
   [[nodiscard]] const std::vector<VkImageView>& getImageViews() override;
 };
+
+} // namespace vke
 
 #endif //SWAPCHAINFRAMEBUFFER_H

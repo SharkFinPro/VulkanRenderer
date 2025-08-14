@@ -11,6 +11,8 @@
 #include <random>
 #include <cstring>
 
+namespace vke {
+
 const std::vector<VkDescriptorSetLayoutBinding> layoutBindings {{
   { // DT
     .binding = 0,
@@ -287,3 +289,5 @@ void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::m_pipelineLayout, 1, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
+
+} // namespace vke

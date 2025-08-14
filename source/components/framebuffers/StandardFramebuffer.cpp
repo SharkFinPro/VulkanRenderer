@@ -3,6 +3,8 @@
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
+namespace vke {
+
 StandardFramebuffer::StandardFramebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          const VkCommandPool& commandPool,
                                          const std::shared_ptr<RenderPass>& renderPass,
@@ -119,3 +121,5 @@ void StandardFramebuffer::createImageResource(const size_t imageIndex)
                                                                              m_framebufferImageViews[imageIndex],
                                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
+
+} // namespace vke

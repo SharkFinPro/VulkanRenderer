@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class LogicalDevice;
 
 class DescriptorSet final {
@@ -34,6 +36,6 @@ protected:
   void allocateDescriptorSets(VkDescriptorPool descriptorPool);
 };
 
-
+} // namespace vke
 
 #endif //DESCRIPTORSET_H

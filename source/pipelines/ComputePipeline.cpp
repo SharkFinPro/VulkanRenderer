@@ -1,6 +1,8 @@
 #include "ComputePipeline.h"
 #include "../components/core/logicalDevice/LogicalDevice.h"
 
+namespace vke {
+
 ComputePipeline::ComputePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(logicalDevice)
 {}
@@ -32,3 +34,5 @@ void ComputePipeline::createPipeline(const ComputePipelineOptions& computePipeli
 
   m_pipeline = m_logicalDevice->createPipeline(computePipelineCreateInfo);
 }
+
+} // namespace vke

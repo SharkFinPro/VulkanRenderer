@@ -6,6 +6,8 @@
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
+namespace vke {
+
 SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              const VkDescriptorSetLayout objectDescriptorSetLayout,
@@ -71,3 +73,5 @@ void SnakePipeline::updateUniformVariables(const RenderInfo* renderInfo)
   renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                            0, sizeof(SnakeUniform), &m_snakeUBO);
 }
+
+} // namespace vke

@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 
+namespace vke {
+
 class Instance;
 
 #ifdef __APPLE__
@@ -93,5 +95,6 @@ private:
   [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_PHYSICALDEVICE_H

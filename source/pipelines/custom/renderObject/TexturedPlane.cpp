@@ -5,6 +5,8 @@
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/objects/RenderObject.h"
 
+namespace vke {
+
 TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              const VkDescriptorSetLayout objectDescriptorSetLayout)
@@ -45,3 +47,5 @@ void TexturedPlane::render(const RenderInfo *renderInfo, const std::vector<std::
     object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
   }
 }
+
+} // namespace vke

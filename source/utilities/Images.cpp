@@ -4,6 +4,8 @@
 #include "../components/core/physicalDevice/PhysicalDevice.h"
 #include <stdexcept>
 
+namespace vke {
+
 namespace Images {
   void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkImageCreateFlags flags,
                    const uint32_t width, const uint32_t height, const uint32_t depth, const uint32_t mipLevels,
@@ -248,3 +250,5 @@ namespace Images {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
   }
 }
+
+} // namespace vke

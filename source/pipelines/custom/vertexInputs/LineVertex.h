@@ -5,6 +5,8 @@
 #include <glm/vec3.hpp>
 #include <array>
 
+namespace vke {
+
 struct LineVertex {
   glm::vec3 pos;
 
@@ -29,5 +31,7 @@ struct LineVertex {
     }};
   }
 };
+
+} // namespace vke
 
 #endif //LINEVERTEX_H

@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class LogicalDevice;
 
 class Pipeline {
@@ -21,6 +23,6 @@ protected:
   VkPipeline m_pipeline = VK_NULL_HANDLE;
 };
 
-
+} // namespace vke
 
 #endif //PIPELINE_H

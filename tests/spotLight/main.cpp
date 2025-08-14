@@ -8,14 +8,14 @@
 #include <imgui.h>
 #include <iostream>
 
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights);
+void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights);
 
 int main()
 {
   try
   {
-    constexpr VulkanEngineOptions vulkanEngineOptions {
+    constexpr vke::VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Spotlight",
@@ -23,10 +23,10 @@ int main()
       .DO_DOTS = false
     };
 
-    VulkanEngine renderer(vulkanEngineOptions);
+    vke::VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
+    ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
     const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -35,7 +35,7 @@ int main()
     const auto object = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
     object->setPosition({ 0, -5, 0 });
 
-    std::vector<std::shared_ptr<Light>> lights;
+    std::vector<std::shared_ptr<vke::Light>> lights;
 
     lights.push_back(renderer.getLightingManager()->createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
     lights.back()->setSpotLight(true);
@@ -66,13 +66,13 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void renderScene(VulkanEngine& renderer, const std::shared_ptr<ImGuiInstance>& gui,
-                 const std::shared_ptr<RenderObject>& object, const std::vector<std::shared_ptr<Light>>& lights)
+void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   displayGui(gui, lights, { object });
 
   // Render Objects
-  renderer.getPipelineManager()->renderObject(object, PipelineType::object);
+  renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
 
   for (const auto& light : lights)
   {
