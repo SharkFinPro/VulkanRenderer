@@ -8,9 +8,9 @@
 #include <imgui.h>
 #include <iostream>
 
-void populateLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights);
+void populateLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights);
 
-constexpr VulkanEngineOptions vulkanEngineOptions {
+constexpr vke::VulkanEngineOptions vulkanEngineOptions {
   .WINDOW_WIDTH = 800,
   .WINDOW_HEIGHT = 600,
   .WINDOW_TITLE = "Snake",
@@ -22,9 +22,9 @@ int main()
 {
   try
   {
-    VulkanEngine renderer(vulkanEngineOptions);
+    vke::VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
-    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
+    ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
     const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -33,7 +33,7 @@ int main()
     const auto object = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
     object->setPosition({ 0, 0, 0 });
 
-    std::vector<std::shared_ptr<Light>> lights;
+    std::vector<std::shared_ptr<vke::Light>> lights;
     populateLights(renderer, lights);
 
     while (renderer.isActive())
@@ -45,7 +45,7 @@ int main()
       displayGui(gui, lights, { object });
 
       // Render Objects
-      renderer.getPipelineManager()->renderObject(object, PipelineType::snake);
+      renderer.getPipelineManager()->renderObject(object, vke::PipelineType::snake);
 
       for (const auto& light : lights)
       {
@@ -65,7 +65,7 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void populateLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights)
+void populateLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   lights.push_back(renderer.getLightingManager()->createLight({0, 15.0f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 

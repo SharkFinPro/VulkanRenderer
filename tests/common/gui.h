@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-inline void displayBendyPlantGui(BendyPlant& bendyPlant, const int id)
+inline void displayBendyPlantGui(vke::BendyPlant& bendyPlant, const int id)
 {
   ImGui::PushID(id);
 
@@ -26,7 +26,7 @@ inline void displayBendyPlantGui(BendyPlant& bendyPlant, const int id)
   ImGui::PopID();
 }
 
-inline void displayBendyPlantGuis(std::vector<BendyPlant>& bendyPlants)
+inline void displayBendyPlantGuis(std::vector<vke::BendyPlant>& bendyPlants)
 {
   ImGui::Begin("Bendy Plants");
   for (int i = 0; i < bendyPlants.size(); i++)
@@ -36,7 +36,7 @@ inline void displayBendyPlantGuis(std::vector<BendyPlant>& bendyPlants)
   ImGui::End();
 }
 
-inline void displayObjectGui(const std::shared_ptr<RenderObject>& object, const int id)
+inline void displayObjectGui(const std::shared_ptr<vke::RenderObject>& object, const int id)
 {
   ImGui::PushID(id);
 
@@ -58,7 +58,7 @@ inline void displayObjectGui(const std::shared_ptr<RenderObject>& object, const 
   ImGui::PopID();
 }
 
-inline void displayLightGui(const std::shared_ptr<Light>& light, const int id)
+inline void displayLightGui(const std::shared_ptr<vke::Light>& light, const int id)
 {
   glm::vec3 position = light->getPosition();
   glm::vec3 color = light->getColor();
@@ -96,7 +96,7 @@ inline void displayLightGui(const std::shared_ptr<Light>& light, const int id)
   light->setConeAngle(coneAngle);
 }
 
-inline void displayLightGuis(const std::vector<std::shared_ptr<Light>>& lights)
+inline void displayLightGuis(const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   ImGui::Begin("Lights");
   for (int i = 0; i < lights.size(); i++)
@@ -106,7 +106,7 @@ inline void displayLightGuis(const std::vector<std::shared_ptr<Light>>& lights)
   ImGui::End();
 }
 
-inline void displayObjectGuis(const std::vector<std::shared_ptr<RenderObject>>& objects)
+inline void displayObjectGuis(const std::vector<std::shared_ptr<vke::RenderObject>>& objects)
 {
   ImGui::Begin("Objects");
   for (int i = 0; i < objects.size(); i++)
@@ -116,7 +116,7 @@ inline void displayObjectGuis(const std::vector<std::shared_ptr<RenderObject>>& 
   ImGui::End();
 }
 
-inline void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui)
+inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
 {
   gui->dockCenter("SceneView");
 
@@ -137,8 +137,8 @@ inline void setDockOptions(const std::shared_ptr<ImGuiInstance>& gui)
   gui->setBottomDockPercent(0.3);
 }
 
-inline void displayGui(const std::shared_ptr<ImGuiInstance>& gui, const std::vector<std::shared_ptr<Light>>& lights,
-                const std::vector<std::shared_ptr<RenderObject>>& objects)
+inline void displayGui(const std::shared_ptr<vke::ImGuiInstance>& gui, const std::vector<std::shared_ptr<vke::Light>>& lights,
+                const std::vector<std::shared_ptr<vke::RenderObject>>& objects)
 {
   setDockOptions(gui);
 

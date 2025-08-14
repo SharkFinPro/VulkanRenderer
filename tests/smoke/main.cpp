@@ -8,14 +8,14 @@
 #include <imgui.h>
 #include <iostream>
 
-void createLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights);
-void createSmokeSystems(const VulkanEngine& renderer);
+void createLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights);
+void createSmokeSystems(const vke::VulkanEngine& renderer);
 
 int main()
 {
   try
   {
-    constexpr VulkanEngineOptions vulkanEngineOptions {
+    constexpr vke::VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Smoke",
@@ -23,10 +23,10 @@ int main()
       .DO_DOTS = false
     };
 
-    VulkanEngine renderer(vulkanEngineOptions);
+    vke::VulkanEngine renderer(vulkanEngineOptions);
     const auto gui = renderer.getImGuiInstance();
 
-    ImGui::SetCurrentContext(ImGuiInstance::getImGuiContext());
+    ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
     const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
     const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -35,7 +35,7 @@ int main()
     const auto object = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
     object->setPosition({ 0, 0, 0 });
 
-    std::vector<std::shared_ptr<Light>> lights;
+    std::vector<std::shared_ptr<vke::Light>> lights;
     createLights(renderer, lights);
 
     createSmokeSystems(renderer);
@@ -44,7 +44,7 @@ int main()
     {
       displayGui(gui, lights, { object });
 
-      renderer.getPipelineManager()->renderObject(object, PipelineType::object);
+      renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
 
       for (const auto& light : lights)
       {
@@ -63,7 +63,7 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void createLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Light>>& lights)
+void createLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   lights.push_back(renderer.getLightingManager()->createLight({0, 1.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
@@ -76,7 +76,7 @@ void createLights(const VulkanEngine& renderer, std::vector<std::shared_ptr<Ligh
   lights.push_back(renderer.getLightingManager()->createLight({-5.0f, 1.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
 
-void createSmokeSystems(const VulkanEngine& renderer)
+void createSmokeSystems(const vke::VulkanEngine& renderer)
 {
   constexpr uint32_t numParticles = 2'500'000;
 
