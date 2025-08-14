@@ -6,6 +6,8 @@
 #include <vector>
 #include <memory>
 
+namespace vke {
+
 class DescriptorSet;
 class RenderPass;
 
@@ -29,6 +31,6 @@ private:
   void createVertexBuffer();
 };
 
-
+} // namespace vke
 
 #endif //LINEPIPELINE_H

@@ -5,6 +5,8 @@
 #include <vulkan/vulkan.h>
 #include <array>
 
+namespace vke {
+
 struct SmokeParticle {
   glm::vec4 positionTtl;
   glm::vec4 velocityColor;
@@ -36,5 +38,7 @@ struct SmokeParticle {
     }};
   }
 };
+
+} // namespace vke
 
 #endif //SMOKEPARTICLE_H

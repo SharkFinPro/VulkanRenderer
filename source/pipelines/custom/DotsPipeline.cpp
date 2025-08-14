@@ -11,6 +11,8 @@
 #include <random>
 #include <cstring>
 
+namespace vke {
+
 const std::vector<VkDescriptorSetLayoutBinding> layoutBindings {{
   {
     .binding = 0,
@@ -214,3 +216,5 @@ void DotsPipeline::updateUniformVariables(const RenderInfo* renderInfo)
 
   m_deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO);
 }
+
+} // namespace vke

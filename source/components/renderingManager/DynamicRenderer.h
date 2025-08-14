@@ -4,6 +4,8 @@
 #include "Renderer.h"
 #include <vector>
 
+namespace vke {
+
 class DynamicRenderer final : public Renderer {
 public:
   explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<SwapChain>& swapChain,
@@ -81,6 +83,6 @@ private:
   static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
 };
 
-
+} // namespace vke
 
 #endif //DYNAMICRENDERER_H

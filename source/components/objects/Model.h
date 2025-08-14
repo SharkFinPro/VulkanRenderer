@@ -1,13 +1,15 @@
 #ifndef VULKANPROJECT_MODEL_H
 #define VULKANPROJECT_MODEL_H
 
-#include <vulkan/vulkan.h>
-#include <vector>
-#include <memory>
-#include <glm/vec3.hpp>
+#include <assimp/mesh.h>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/vec3.hpp>
+#include <vulkan/vulkan.h>
+#include <memory>
+#include <vector>
 
-struct aiMesh;
+namespace vke {
+
 class CommandBuffer;
 class LogicalDevice;
 struct Vertex;
@@ -53,5 +55,6 @@ private:
   void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_MODEL_H

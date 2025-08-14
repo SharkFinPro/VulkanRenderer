@@ -4,6 +4,8 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+namespace vke {
+
 namespace LayoutBindings {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 0,
@@ -202,5 +204,7 @@ namespace LayoutBindings {
     cameraLayout
   };
 }
+
+} // namespace vke
 
 #endif //LAYOUTBINDINGS_H

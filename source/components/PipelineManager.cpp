@@ -29,6 +29,8 @@
 #include <imgui.h>
 #include <ranges>
 
+namespace vke {
+
 PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<RenderPass>& renderPass,
                                  const std::shared_ptr<LightingManager>& lightingManager,
@@ -265,3 +267,5 @@ void PipelineManager::renderSmokeSystems(const RenderInfo& renderInfo) const
     ImGui::End();
   }
 }
+
+} // namespace vke

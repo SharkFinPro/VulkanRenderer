@@ -4,6 +4,8 @@
 #include "Renderer.h"
 #include <memory>
 
+namespace vke {
+
 class RenderPass;
 class StandardFramebuffer;
 class SwapChain;
@@ -44,6 +46,6 @@ private:
   static void endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
 };
 
-
+} // namespace vke
 
 #endif //LEGACYRENDERER_H

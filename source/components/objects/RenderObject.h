@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class CommandBuffer;
 class Model;
 class Texture;
@@ -65,5 +67,6 @@ private:
   [[nodiscard]] glm::mat4 createModelMatrix() const;
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_RENDEROBJECT_H

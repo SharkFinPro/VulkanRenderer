@@ -8,6 +8,8 @@
 #include "../../utilities/Buffers.h"
 #include <stdexcept>
 
+namespace vke {
+
 LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            std::shared_ptr<RenderPass> renderPass)
   : GraphicsPipeline(logicalDevice)
@@ -93,3 +95,5 @@ void LinePipeline::createVertexBuffer()
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         m_stagingBuffer, m_stagingBufferMemory);
 }
+
+} // namespace vke

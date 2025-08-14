@@ -2,6 +2,8 @@
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include <vector>
 
+namespace vke {
+
 DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              VkDescriptorPool descriptorPool,
                              const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
@@ -61,3 +63,5 @@ void DescriptorSet::allocateDescriptorSets(VkDescriptorPool descriptorPool)
   m_descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
   m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
 }
+
+} // namespace vke

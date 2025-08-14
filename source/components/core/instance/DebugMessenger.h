@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+namespace vke {
+
 class DebugMessenger {
 public:
   static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -16,5 +18,6 @@ public:
   static const char* readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity);
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_DEBUGMESSENGER_H

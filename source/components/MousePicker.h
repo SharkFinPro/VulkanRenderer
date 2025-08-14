@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace vke {
+
 class LogicalDevice;
 class CommandBuffer;
 enum class PipelineType;
@@ -80,6 +82,6 @@ private:
                                 std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
 };
 
-
+} // namespace vke
 
 #endif //MOUSEPICKER_H

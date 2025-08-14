@@ -8,6 +8,8 @@
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 
+namespace vke {
+
 MousePicker::MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<Window>& window,
                          const VkCommandPool& commandPool,
@@ -237,3 +239,5 @@ void MousePicker::handleMousePickingResult(const uint32_t objectID,
     }
   }
 }
+
+} // namespace vke

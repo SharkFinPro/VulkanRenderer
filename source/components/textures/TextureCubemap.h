@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 
+namespace vke {
+
 class LogicalDevice;
 
 class TextureCubemap final : public Texture {
@@ -27,6 +29,6 @@ private:
   void createImageView() override;
 };
 
-
+} // namespace vke
 
 #endif //CUBEMAPTEXTURE_H

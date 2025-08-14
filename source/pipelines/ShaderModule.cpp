@@ -2,6 +2,8 @@
 #include "../components/core/logicalDevice/LogicalDevice.h"
 #include <fstream>
 
+namespace vke {
+
 ShaderModule::ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename,
                            const VkShaderStageFlagBits stage)
   : m_logicalDevice(logicalDevice), m_stage(stage)
@@ -58,3 +60,5 @@ void ShaderModule::createShaderModule(const char* file)
 
   m_module = m_logicalDevice->createShaderModule(shaderModuleCreateInfo);
 }
+
+} // namespace vke

@@ -5,6 +5,8 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <stdexcept>
 
+namespace vke {
+
 Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkSamplerAddressMode samplerAddressMode)
   : m_logicalDevice(logicalDevice), m_mipLevels(1)
 {
@@ -198,3 +200,5 @@ void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
 
   m_imageInfo.sampler = m_textureSampler;
 }
+
+} // namespace vke

@@ -3,6 +3,8 @@
 
 #include "../../GraphicsPipeline.h"
 
+namespace vke {
+
 class RenderPass;
 
 class MousePickingPipeline final : public GraphicsPipeline {
@@ -14,6 +16,6 @@ public:
   void render(const RenderInfo* renderInfo, const std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>>* objects);
 };
 
-
+} // namespace vke
 
 #endif //MOUSEPICKINGPIPELINE_H

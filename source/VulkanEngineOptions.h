@@ -3,6 +3,8 @@
 
 #include <glm/vec3.hpp>
 
+namespace vke {
+
 struct VulkanEngineOptions {
   uint32_t WINDOW_WIDTH;
   uint32_t WINDOW_HEIGHT;
@@ -21,5 +23,7 @@ struct VulkanEngineOptions {
 
   uint32_t MAX_IMGUI_TEXTURES = 5;
 };
+
+} // namespace vke
 
 #endif //VULKANPROJECT_VULKANENGINEOPTIONS_H

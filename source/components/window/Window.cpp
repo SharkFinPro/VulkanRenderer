@@ -5,6 +5,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <stdexcept>
 
+namespace vke {
+
 Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
                const bool fullscreen, VulkanEngine* engine)
   : m_engine(engine), m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
@@ -146,3 +148,5 @@ void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int
 
   app->m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
 }
+
+} // namespace vke

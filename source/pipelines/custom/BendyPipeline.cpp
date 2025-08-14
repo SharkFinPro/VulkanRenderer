@@ -7,6 +7,8 @@
 #include "../../components/core/commandBuffer/CommandBuffer.h"
 #include "../../components/UniformBuffer.h"
 
+namespace vke {
+
 BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              const VkCommandPool& commandPool,
@@ -129,3 +131,5 @@ void BendyPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
+
+} // namespace vke

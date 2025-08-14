@@ -9,6 +9,8 @@
 #include "../../../components/textures/Texture3D.h"
 #include <imgui.h>
 
+namespace vke {
+
 NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          std::shared_ptr<RenderPass> renderPass,
                                          const VkCommandPool& commandPool,
@@ -105,3 +107,5 @@ void NoisyEllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
+
+} // namespace vke

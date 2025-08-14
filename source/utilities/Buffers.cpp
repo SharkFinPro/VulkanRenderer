@@ -3,6 +3,8 @@
 #include "../components/core/physicalDevice/PhysicalDevice.h"
 #include <stdexcept>
 
+namespace vke {
+
 namespace Buffers {
   void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkDeviceSize size,
                     const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, VkBuffer& buffer,
@@ -100,3 +102,5 @@ namespace Buffers {
     logicalDevice->freeCommandBuffers(commandPool, 1, &commandBuffer);
   }
 }
+
+} // namespace vke

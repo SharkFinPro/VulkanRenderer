@@ -5,6 +5,8 @@
 #include "../../components/core/logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
+namespace vke {
+
 GuiPipeline::GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          std::shared_ptr<RenderPass> renderPass)
   : GraphicsPipeline(logicalDevice)
@@ -37,3 +39,5 @@ void GuiPipeline::render(const RenderInfo* renderInfo)
   ImGui::Render();
   ImGuiInstance::renderDrawData(renderInfo->commandBuffer);
 }
+
+} // namespace vke

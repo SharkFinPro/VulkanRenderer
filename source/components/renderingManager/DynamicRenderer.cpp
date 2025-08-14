@@ -6,6 +6,8 @@
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
+namespace vke {
+
 DynamicRenderer::DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  const std::shared_ptr<SwapChain>& swapChain,
                                  VkCommandPool commandPool)
@@ -379,3 +381,5 @@ void DynamicRenderer::transitionSwapchainImagePostRender(const std::shared_ptr<C
       1, &imageMemoryBarrier
   );
 }
+
+} // namespace vke

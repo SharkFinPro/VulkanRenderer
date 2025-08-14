@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class LogicalDevice;
 
 class CommandBuffer {
@@ -64,6 +66,6 @@ private:
   void allocateCommandBuffers(VkCommandPool commandPool);
 };
 
-
+} // namespace vke
 
 #endif //COMMANDBUFFER_H

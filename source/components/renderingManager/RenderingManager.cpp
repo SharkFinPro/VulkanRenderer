@@ -14,6 +14,8 @@
 #include <vulkan/vulkan.h>
 #include <stdexcept>
 
+namespace vke {
+
 RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                    const std::shared_ptr<Window>& window,
                                    const std::shared_ptr<MousePicker>& mousePicker,
@@ -257,3 +259,5 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
     m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
   });
 }
+
+} // namespace vke

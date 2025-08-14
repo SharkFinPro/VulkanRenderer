@@ -3,6 +3,8 @@
 
 #include "../GraphicsPipeline.h"
 
+namespace vke {
+
 class RenderPass;
 
 class GuiPipeline final : public GraphicsPipeline {
@@ -13,5 +15,6 @@ public:
   void render(const RenderInfo* renderInfo);
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_GUIPIPELINE_H

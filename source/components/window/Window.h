@@ -6,6 +6,8 @@
 #include <memory>
 #include <unordered_map>
 
+namespace vke {
+
 class VulkanEngine;
 class Instance;
 
@@ -60,5 +62,6 @@ private:
   static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_WINDOW_H

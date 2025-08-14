@@ -8,6 +8,8 @@
 #include "../../../components/UniformBuffer.h"
 #include <imgui.h>
 
+namespace vke {
+
 CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  std::shared_ptr<RenderPass> renderPass,
                                  const VkDescriptorPool descriptorPool,
@@ -88,3 +90,5 @@ void CurtainPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
+
+} // namespace vke

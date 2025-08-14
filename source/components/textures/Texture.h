@@ -5,6 +5,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class LogicalDevice;
 
 class Texture {
@@ -41,5 +43,6 @@ protected:
   virtual void createImageView() = 0;
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_TEXTURE_H

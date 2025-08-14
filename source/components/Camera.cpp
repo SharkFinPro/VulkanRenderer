@@ -2,6 +2,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
+namespace vke {
+
 constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(const glm::vec3 initialPosition)
@@ -130,3 +132,5 @@ void Camera::handleZoom(const std::shared_ptr<Window>& window)
 {
   m_position += static_cast<float>(window->getScroll()) * m_speedSettings.scrollSpeed * m_direction;
 }
+
+} // namespace vke

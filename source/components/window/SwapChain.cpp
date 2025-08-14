@@ -3,6 +3,8 @@
 #include <limits>
 #include <algorithm>
 
+namespace vke {
+
 SwapChain::SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<Window>& window)
   : m_logicalDevice(logicalDevice), m_window(window)
 {
@@ -156,3 +158,5 @@ std::vector<VkImage>& SwapChain::getImages()
 {
   return m_swapChainImages;
 }
+
+} // namespace vke

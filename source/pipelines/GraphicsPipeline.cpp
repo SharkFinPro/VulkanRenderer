@@ -5,6 +5,8 @@
 #include "../components/objects/RenderObject.h"
 #include "../components/RenderPass.h"
 
+namespace vke {
+
 GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
   : Pipeline(logicalDevice)
 {}
@@ -80,3 +82,5 @@ void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPip
 
   m_pipeline = m_logicalDevice->createPipeline(pipelineInfo);
 }
+
+} // namespace vke

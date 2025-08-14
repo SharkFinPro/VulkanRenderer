@@ -6,6 +6,8 @@
 #include <stb_image.h>
 #include <stdexcept>
 
+namespace vke {
+
 TextureCubemap::TextureCubemap(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const VkCommandPool& commandPool,
                                const std::array<std::string, 6>& paths)
@@ -107,3 +109,5 @@ void TextureCubemap::createImageView()
 
   m_imageInfo.imageView = m_textureImageView;
 }
+
+} // namespace vke

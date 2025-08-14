@@ -5,6 +5,8 @@
 #include <set>
 #include <stdexcept>
 
+namespace vke {
+
 LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice)
   : m_physicalDevice(physicalDevice)
 {
@@ -699,3 +701,5 @@ void LogicalDevice::createSyncObjects()
     }
   }
 }
+
+} // namespace vke

@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <cstdio>
 
+namespace vke {
+
 unsigned char* ReadTexture3D(const char* filename, int* width, int* height, int* depth)
 {
   FILE *fp = fopen(filename, "rb");
@@ -90,3 +92,5 @@ void Texture3D::createImageView()
 
   m_imageInfo.imageView = m_textureImageView;
 }
+
+} // namespace vke

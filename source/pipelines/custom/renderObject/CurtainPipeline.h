@@ -4,6 +4,8 @@
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
 
+namespace vke {
+
 class DescriptorSet;
 class RenderPass;
 class UniformBuffer;
@@ -38,5 +40,7 @@ private:
 
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };
+
+} // namespace vke
 
 #endif //CURTAINPIPELINE_H

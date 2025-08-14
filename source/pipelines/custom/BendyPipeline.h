@@ -6,6 +6,8 @@
 #include <glm/vec3.hpp>
 #include <chrono>
 
+namespace vke {
+
 class UniformBuffer;
 class DescriptorSet;
 class RenderPass;
@@ -59,6 +61,6 @@ private:
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };
 
-
+} // namespace vke
 
 #endif //BENDYPIPELINE_H

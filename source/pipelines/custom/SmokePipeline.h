@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class DescriptorSet;
 class UniformBuffer;
 struct SmokeParticle;
@@ -69,6 +71,6 @@ private:
   void bindDescriptorSet(const RenderInfo* renderInfo) override;
 };
 
-
+} // namespace vke
 
 #endif //SMOKEPIPELINE_H

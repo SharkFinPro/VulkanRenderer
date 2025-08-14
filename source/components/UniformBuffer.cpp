@@ -3,6 +3,8 @@
 #include "../utilities/Buffers.h"
 #include <cstring>
 
+namespace vke {
+
 UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkDeviceSize bufferSize)
   : m_logicalDevice(logicalDevice), m_bufferSize(bufferSize)
 {
@@ -69,3 +71,5 @@ void UniformBuffer::update(const uint32_t frame, const void* data) const
 {
   memcpy(m_uniformBuffersMapped[frame], data, m_bufferSize);
 }
+
+} // namespace vke

@@ -6,6 +6,8 @@
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include "../../../components/objects/RenderObject.h"
 
+namespace vke {
+
 MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            std::shared_ptr<RenderPass> renderPass,
                                            VkDescriptorSetLayout objectDescriptorSetLayout)
@@ -68,3 +70,5 @@ void MousePickingPipeline::render(const RenderInfo* renderInfo,
     }
   }
 }
+
+} // namespace vke

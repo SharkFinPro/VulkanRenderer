@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class CommandBuffer;
 class LogicalDevice;
 class RenderPass;
@@ -41,6 +43,6 @@ protected:
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
 };
 
-
+} // namespace vke
 
 #endif //RENDERER_H

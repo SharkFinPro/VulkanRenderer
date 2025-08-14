@@ -3,6 +3,8 @@
 
 #include "Framebuffer.h"
 
+namespace vke {
+
 class StandardFramebuffer final : public Framebuffer {
 public:
   StandardFramebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -37,5 +39,7 @@ private:
 
   void createImageResource(size_t imageIndex);
 };
+
+} // namespace vke
 
 #endif //STANDARDFRAMEBUFFER_H

@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+namespace vke {
+
 class LogicalDevice;
 class RenderPass;
 
@@ -43,5 +45,7 @@ protected:
   [[nodiscard]] virtual VkFormat getColorFormat() = 0;
   [[nodiscard]] virtual const std::vector<VkImageView>& getImageViews() = 0;
 };
+
+} // namespace vke
 
 #endif //VULKANPROJECT_FRAMEBUFFER_H

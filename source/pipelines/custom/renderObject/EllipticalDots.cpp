@@ -6,6 +6,8 @@
 #include "../../../components/core/logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
+namespace vke {
+
 EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                std::shared_ptr<RenderPass> renderPass,
                                const VkDescriptorSetLayout objectDescriptorSetLayout,
@@ -68,3 +70,5 @@ void EllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
   renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
                                                 &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 }
+
+} // namespace vke

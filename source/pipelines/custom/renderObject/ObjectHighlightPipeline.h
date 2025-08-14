@@ -3,6 +3,8 @@
 
 #include "../../GraphicsPipeline.h"
 
+namespace vke {
+
 class RenderPass;
 
 class ObjectHighlightPipeline final : public GraphicsPipeline {
@@ -14,6 +16,6 @@ public:
   void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 };
 
-
+} // namespace vke
 
 #endif //OBJECTHIGHLIGHTPIPELINE_H

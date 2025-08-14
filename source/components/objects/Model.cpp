@@ -8,6 +8,8 @@
 #include <assimp/scene.h>
 #include <stdexcept>
 
+namespace vke {
+
 Model::Model(const std::shared_ptr<LogicalDevice> &logicalDevice,
              const VkCommandPool& commandPool,
              const char* path,
@@ -162,3 +164,5 @@ void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
 
   commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
 }
+
+} // namespace vke

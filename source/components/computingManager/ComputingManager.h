@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+namespace vke {
+
 class CommandBuffer;
 class LogicalDevice;
 class PipelineManager;
@@ -22,6 +24,6 @@ private:
   void recordComputeCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame) const;
 };
 
-
+} // namespace vke
 
 #endif //COMPUTINGMANAGER_H

@@ -6,6 +6,8 @@
 #include <vulkan/vulkan.h>
 #include <array>
 
+namespace vke {
+
 struct Vertex {
   glm::vec3 pos;
   glm::vec3 normal;
@@ -45,5 +47,6 @@ struct Vertex {
   }
 };
 
+} // namespace vke
 
 #endif //VULKANPROJECT_VERTEX_H

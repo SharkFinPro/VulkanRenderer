@@ -5,6 +5,8 @@
 #include "textures/Texture2D.h"
 #include <array>
 
+namespace vke {
+
 AssetManager::AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
   : m_logicalDevice(logicalDevice), m_commandPool(commandPool)
 {
@@ -99,3 +101,5 @@ void AssetManager::createObjectDescriptorSetLayout()
 
   m_objectDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
 }
+
+} // namespace vke
