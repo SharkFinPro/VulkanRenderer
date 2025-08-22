@@ -1,5 +1,5 @@
-#ifndef PIPELINEMANAGER_H
-#define PIPELINEMANAGER_H
+#ifndef VKE_PIPELINEMANAGER_H
+#define VKE_PIPELINEMANAGER_H
 
 #include "../pipelines/custom/BendyPipeline.h"
 #include "../pipelines/custom/LinePipeline.h"
@@ -93,4 +93,4 @@ private:
 
 } // namespace vke
 
-#endif //PIPELINEMANAGER_H
+#endif //VKE_PIPELINEMANAGER_H

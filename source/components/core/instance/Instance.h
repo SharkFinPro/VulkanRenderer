@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_INSTANCE_H
-#define VULKANPROJECT_INSTANCE_H
+#ifndef VKE_INSTANCE_H
+#define VKE_INSTANCE_H
 
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
@@ -43,4 +43,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_INSTANCE_H
+#endif //VKE_INSTANCE_H

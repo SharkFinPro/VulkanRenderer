@@ -1,5 +1,5 @@
-#ifndef LAYOUTBINDINGS_H
-#define LAYOUTBINDINGS_H
+#ifndef VKE_LAYOUTBINDINGS_H
+#define VKE_LAYOUTBINDINGS_H
 
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -207,4 +207,4 @@ namespace LayoutBindings {
 
 } // namespace vke
 
-#endif //LAYOUTBINDINGS_H
+#endif //VKE_LAYOUTBINDINGS_H

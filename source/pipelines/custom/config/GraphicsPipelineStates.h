@@ -1,5 +1,5 @@
-#ifndef GRAPHICSPIPELINESTATES_H
-#define GRAPHICSPIPELINESTATES_H
+#ifndef VKE_GRAPHICSPIPELINESTATES_H
+#define VKE_GRAPHICSPIPELINESTATES_H
 
 #include "../vertexInputs/LineVertex.h"
 #include "../vertexInputs/Particle.h"
@@ -273,4 +273,4 @@ namespace GraphicsPipelineStates {
 
 } // namespace vke
 
-#endif //GRAPHICSPIPELINESTATES_H
+#endif //VKE_GRAPHICSPIPELINESTATES_H

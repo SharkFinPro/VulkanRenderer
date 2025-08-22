@@ -1,5 +1,5 @@
-#ifndef DYNAMICRENDERER_H
-#define DYNAMICRENDERER_H
+#ifndef VKE_DYNAMICRENDERER_H
+#define VKE_DYNAMICRENDERER_H
 
 #include "Renderer.h"
 #include <vector>
@@ -85,4 +85,4 @@ private:
 
 } // namespace vke
 
-#endif //DYNAMICRENDERER_H
+#endif //VKE_DYNAMICRENDERER_H

@@ -1,5 +1,5 @@
-#ifndef LEGACYRENDERER_H
-#define LEGACYRENDERER_H
+#ifndef VKE_LEGACYRENDERER_H
+#define VKE_LEGACYRENDERER_H
 
 #include "Renderer.h"
 #include <memory>
@@ -48,4 +48,4 @@ private:
 
 } // namespace vke
 
-#endif //LEGACYRENDERER_H
+#endif //VKE_LEGACYRENDERER_H

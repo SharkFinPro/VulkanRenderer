@@ -1,5 +1,5 @@
-#ifndef LINEPIPELINE_H
-#define LINEPIPELINE_H
+#ifndef VKE_LINEPIPELINE_H
+#define VKE_LINEPIPELINE_H
 
 #include "../GraphicsPipeline.h"
 #include "vertexInputs/LineVertex.h"
@@ -33,4 +33,4 @@ private:
 
 } // namespace vke
 
-#endif //LINEPIPELINE_H
+#endif //VKE_LINEPIPELINE_H

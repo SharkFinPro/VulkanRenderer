@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_SHADERMODULE_H
-#define VULKANPROJECT_SHADERMODULE_H
+#ifndef VKE_SHADERMODULE_H
+#define VKE_SHADERMODULE_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -37,4 +37,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_SHADERMODULE_H
+#endif //VKE_SHADERMODULE_H

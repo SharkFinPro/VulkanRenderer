@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_IMGUIINSTANCE_H
-#define VULKANPROJECT_IMGUIINSTANCE_H
+#ifndef VKE_IMGUIINSTANCE_H
+#define VKE_IMGUIINSTANCE_H
 
 #include <imgui.h>
 #include <vulkan/vulkan.h>
@@ -74,4 +74,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_IMGUIINSTANCE_H
+#endif //VKE_IMGUIINSTANCE_H

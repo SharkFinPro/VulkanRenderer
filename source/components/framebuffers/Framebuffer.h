@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_FRAMEBUFFER_H
-#define VULKANPROJECT_FRAMEBUFFER_H
+#ifndef VKE_FRAMEBUFFER_H
+#define VKE_FRAMEBUFFER_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -48,4 +48,4 @@ protected:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_FRAMEBUFFER_H
+#endif //VKE_FRAMEBUFFER_H

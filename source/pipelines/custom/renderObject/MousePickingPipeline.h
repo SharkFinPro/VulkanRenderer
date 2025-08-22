@@ -1,5 +1,5 @@
-#ifndef MOUSEPICKINGPIPELINE_H
-#define MOUSEPICKINGPIPELINE_H
+#ifndef VKE_MOUSEPICKINGPIPELINE_H
+#define VKE_MOUSEPICKINGPIPELINE_H
 
 #include "../../GraphicsPipeline.h"
 
@@ -18,4 +18,4 @@ public:
 
 } // namespace vke
 
-#endif //MOUSEPICKINGPIPELINE_H
+#endif //VKE_MOUSEPICKINGPIPELINE_H

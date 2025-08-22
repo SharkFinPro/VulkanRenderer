@@ -1,5 +1,5 @@
-#ifndef SNAKEPIPELINE_H
-#define SNAKEPIPELINE_H
+#ifndef VKE_SNAKEPIPELINE_H
+#define VKE_SNAKEPIPELINE_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -34,4 +34,4 @@ private:
 
 } // namespace vke
 
-#endif //SNAKEPIPELINE_H
+#endif //VKE_SNAKEPIPELINE_H

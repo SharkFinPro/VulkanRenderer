@@ -1,5 +1,5 @@
-#ifndef TEXTUREDPLANE_H
-#define TEXTUREDPLANE_H
+#ifndef VKE_TEXTUREDPLANE_H
+#define VKE_TEXTUREDPLANE_H
 
 #include "../../GraphicsPipeline.h"
 #include <memory>
@@ -20,4 +20,4 @@ private:
 
 } // namespace vke
 
-#endif //TEXTUREDPLANE_H
+#endif //VKE_TEXTUREDPLANE_H

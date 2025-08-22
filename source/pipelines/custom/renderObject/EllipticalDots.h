@@ -1,5 +1,5 @@
-#ifndef ELLIPTICALDOTS_H
-#define ELLIPTICALDOTS_H
+#ifndef VKE_ELLIPTICALDOTS_H
+#define VKE_ELLIPTICALDOTS_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -36,4 +36,4 @@ private:
 
 } // namespace vke
 
-#endif //ELLIPTICALDOTS_H
+#endif //VKE_ELLIPTICALDOTS_H

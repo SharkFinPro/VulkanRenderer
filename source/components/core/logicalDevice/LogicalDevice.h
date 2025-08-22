@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_LOGICALDEVICE_H
-#define VULKANPROJECT_LOGICALDEVICE_H
+#ifndef VKE_LOGICALDEVICE_H
+#define VKE_LOGICALDEVICE_H
 
 #include <vulkan/vulkan.h>
 #include <functional>
@@ -158,4 +158,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_LOGICALDEVICE_H
+#endif //VKE_LOGICALDEVICE_H

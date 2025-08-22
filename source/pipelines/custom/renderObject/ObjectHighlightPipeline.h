@@ -1,5 +1,5 @@
-#ifndef OBJECTHIGHLIGHTPIPELINE_H
-#define OBJECTHIGHLIGHTPIPELINE_H
+#ifndef VKE_OBJECTHIGHLIGHTPIPELINE_H
+#define VKE_OBJECTHIGHLIGHTPIPELINE_H
 
 #include "../../GraphicsPipeline.h"
 
@@ -18,4 +18,4 @@ public:
 
 } // namespace vke
 
-#endif //OBJECTHIGHLIGHTPIPELINE_H
+#endif //VKE_OBJECTHIGHLIGHTPIPELINE_H

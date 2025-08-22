@@ -1,5 +1,5 @@
-#ifndef CURTAINPIPELINE_H
-#define CURTAINPIPELINE_H
+#ifndef VKE_CURTAINPIPELINE_H
+#define VKE_CURTAINPIPELINE_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -43,4 +43,4 @@ private:
 
 } // namespace vke
 
-#endif //CURTAINPIPELINE_H
+#endif //VKE_CURTAINPIPELINE_H

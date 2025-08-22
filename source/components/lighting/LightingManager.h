@@ -1,5 +1,5 @@
-#ifndef LIGHTINGMANAGER_H
-#define LIGHTINGMANAGER_H
+#ifndef VKE_LIGHTINGMANAGER_H
+#define VKE_LIGHTINGMANAGER_H
 
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
@@ -58,4 +58,4 @@ private:
 
 } // namespace vke
 
-#endif //LIGHTINGMANAGER_H
+#endif //VKE_LIGHTINGMANAGER_H

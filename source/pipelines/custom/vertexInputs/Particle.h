@@ -1,5 +1,5 @@
-#ifndef PARTICLE_H
-#define PARTICLE_H
+#ifndef VKE_PARTICLE_H
+#define VKE_PARTICLE_H
 
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
@@ -43,4 +43,4 @@ struct Particle {
 
 } // namespace vke
 
-#endif //PARTICLE_H
+#endif //VKE_PARTICLE_H

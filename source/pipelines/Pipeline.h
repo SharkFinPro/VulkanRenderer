@@ -1,5 +1,5 @@
-#ifndef PIPELINE_H
-#define PIPELINE_H
+#ifndef VKE_PIPELINE_H
+#define VKE_PIPELINE_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -25,4 +25,4 @@ protected:
 
 } // namespace vke
 
-#endif //PIPELINE_H
+#endif //VKE_PIPELINE_H

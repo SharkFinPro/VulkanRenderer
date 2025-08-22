@@ -1,5 +1,5 @@
-#ifndef CROSSESPIPELINE_H
-#define CROSSESPIPELINE_H
+#ifndef VKE_CROSSESPIPELINE_H
+#define VKE_CROSSESPIPELINE_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -58,4 +58,4 @@ private:
 
 } // namespace vke
 
-#endif //CROSSESPIPELINE_H
+#endif //VKE_CROSSESPIPELINE_H

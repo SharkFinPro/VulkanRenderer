@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_BUFFERS_H
-#define VULKANPROJECT_BUFFERS_H
+#ifndef VKE_BUFFERS_H
+#define VKE_BUFFERS_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -26,4 +26,4 @@ namespace Buffers {
 } // namespace vke
 
 
-#endif //VULKANPROJECT_BUFFERS_H
+#endif //VKE_BUFFERS_H

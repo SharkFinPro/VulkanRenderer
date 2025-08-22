@@ -1,5 +1,5 @@
-#ifndef GRAPHICSPIPELINE_H
-#define GRAPHICSPIPELINE_H
+#ifndef VKE_GRAPHICSPIPELINE_H
+#define VKE_GRAPHICSPIPELINE_H
 
 #include "Pipeline.h"
 #include "ShaderModule.h"
@@ -134,4 +134,4 @@ protected:
 
 } // namespace vke
 
-#endif //GRAPHICSPIPELINE_H
+#endif //VKE_GRAPHICSPIPELINE_H

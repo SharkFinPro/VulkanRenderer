@@ -1,5 +1,5 @@
-#ifndef BUMPYCURTAIN_H
-#define BUMPYCURTAIN_H
+#ifndef VKE_BUMPYCURTAIN_H
+#define VKE_BUMPYCURTAIN_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -56,4 +56,4 @@ private:
 
 } // namespace vke
 
-#endif //BUMPYCURTAIN_H
+#endif //VKE_BUMPYCURTAIN_H

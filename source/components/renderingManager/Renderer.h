@@ -1,5 +1,5 @@
-#ifndef RENDERER_H
-#define RENDERER_H
+#ifndef VKE_RENDERER_H
+#define VKE_RENDERER_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -45,4 +45,4 @@ protected:
 
 } // namespace vke
 
-#endif //RENDERER_H
+#endif //VKE_RENDERER_H

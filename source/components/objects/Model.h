@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_MODEL_H
-#define VULKANPROJECT_MODEL_H
+#ifndef VKE_MODEL_H
+#define VKE_MODEL_H
 
 #include <assimp/mesh.h>
 #include <glm/gtc/quaternion.hpp>
@@ -57,4 +57,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_MODEL_H
+#endif //VKE_MODEL_H

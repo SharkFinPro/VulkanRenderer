@@ -1,5 +1,5 @@
-#ifndef LIGHT_H
-#define LIGHT_H
+#ifndef VKE_LIGHT_H
+#define VKE_LIGHT_H
 
 #include <glm/vec3.hpp>
 
@@ -70,4 +70,4 @@ private:
 
 } // namespace vke
 
-#endif //LIGHT_H
+#endif //VKE_LIGHT_H

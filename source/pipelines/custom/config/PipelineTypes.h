@@ -1,5 +1,5 @@
-#ifndef PIPELINETYPES_H
-#define PIPELINETYPES_H
+#ifndef VKE_PIPELINETYPES_H
+#define VKE_PIPELINETYPES_H
 
 namespace vke {
 
@@ -19,4 +19,4 @@ enum class PipelineType {
 
 } // namespace vke
 
-#endif //PIPELINETYPES_H
+#endif //VKE_PIPELINETYPES_H

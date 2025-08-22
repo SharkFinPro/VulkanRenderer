@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_VERTEX_H
-#define VULKANPROJECT_VERTEX_H
+#ifndef VKE_VERTEX_H
+#define VKE_VERTEX_H
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -49,4 +49,4 @@ struct Vertex {
 
 } // namespace vke
 
-#endif //VULKANPROJECT_VERTEX_H
+#endif //VKE_VERTEX_H

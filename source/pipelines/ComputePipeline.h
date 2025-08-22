@@ -1,5 +1,5 @@
-#ifndef COMPUTEPIPELINE_H
-#define COMPUTEPIPELINE_H
+#ifndef VKE_COMPUTEPIPELINE_H
+#define VKE_COMPUTEPIPELINE_H
 
 #include "Pipeline.h"
 #include "ShaderModule.h"
@@ -41,4 +41,4 @@ protected:
 
 } // namespace vke
 
-#endif //COMPUTEPIPELINE_H
+#endif //VKE_COMPUTEPIPELINE_H

@@ -1,5 +1,5 @@
-#ifndef CUBEMAPPIPELINE_H
-#define CUBEMAPPIPELINE_H
+#ifndef VKE_CUBEMAPPIPELINE_H
+#define VKE_CUBEMAPPIPELINE_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -55,4 +55,4 @@ private:
 
 } // namespace vke
 
-#endif //CUBEMAPPIPELINE_H
+#endif //VKE_CUBEMAPPIPELINE_H
