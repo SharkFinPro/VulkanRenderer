@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_SWAPCHAIN_H
-#define VULKANPROJECT_SWAPCHAIN_H
+#ifndef VKE_SWAPCHAIN_H
+#define VKE_SWAPCHAIN_H
 
 #include "../core/physicalDevice/PhysicalDevice.h"
 #include "../core/logicalDevice/LogicalDevice.h"
@@ -42,4 +42,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_SWAPCHAIN_H
+#endif //VKE_SWAPCHAIN_H

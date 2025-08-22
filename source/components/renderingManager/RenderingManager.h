@@ -1,5 +1,5 @@
-#ifndef RENDERINGMANAGER_H
-#define RENDERINGMANAGER_H
+#ifndef VKE_RENDERINGMANAGER_H
+#define VKE_RENDERINGMANAGER_H
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
@@ -85,4 +85,4 @@ private:
 
 } // namespace vke
 
-#endif //RENDERINGMANAGER_H
+#endif //VKE_RENDERINGMANAGER_H

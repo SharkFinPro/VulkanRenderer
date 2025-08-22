@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_GUIPIPELINE_H
-#define VULKANPROJECT_GUIPIPELINE_H
+#ifndef VKE_GUIPIPELINE_H
+#define VKE_GUIPIPELINE_H
 
 #include "../GraphicsPipeline.h"
 
@@ -17,4 +17,4 @@ public:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_GUIPIPELINE_H
+#endif //VKE_GUIPIPELINE_H

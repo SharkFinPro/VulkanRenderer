@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_OBJECTSPIPELINE_H
-#define VULKANPROJECT_OBJECTSPIPELINE_H
+#ifndef VKE_OBJECTSPIPELINE_H
+#define VKE_OBJECTSPIPELINE_H
 
 #include "../../GraphicsPipeline.h"
 #include <memory>
@@ -24,4 +24,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_OBJECTSPIPELINE_H
+#endif //VKE_OBJECTSPIPELINE_H

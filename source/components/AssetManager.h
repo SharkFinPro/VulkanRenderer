@@ -1,5 +1,5 @@
-#ifndef ASSETMANAGER_H
-#define ASSETMANAGER_H
+#ifndef VKE_ASSETMANAGER_H
+#define VKE_ASSETMANAGER_H
 
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
@@ -46,4 +46,4 @@ private:
 
 } // namespace vke
 
-#endif //ASSETMANAGER_H
+#endif //VKE_ASSETMANAGER_H

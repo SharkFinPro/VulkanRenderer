@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_VULKANENGINE_H
-#define VULKANPROJECT_VULKANENGINE_H
+#ifndef VKE_VULKANENGINE_H
+#define VKE_VULKANENGINE_H
 
 #include "VulkanEngineOptions.h"
 #include <vulkan/vulkan.h>
@@ -94,4 +94,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_VULKANENGINE_H
+#endif //VKE_VULKANENGINE_H

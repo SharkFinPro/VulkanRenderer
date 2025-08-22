@@ -1,5 +1,5 @@
-#ifndef CUBEMAPTEXTURE_H
-#define CUBEMAPTEXTURE_H
+#ifndef VKE_CUBEMAPTEXTURE_H
+#define VKE_CUBEMAPTEXTURE_H
 
 #include "Texture.h"
 #include <vulkan/vulkan.h>
@@ -31,4 +31,4 @@ private:
 
 } // namespace vke
 
-#endif //CUBEMAPTEXTURE_H
+#endif //VKE_CUBEMAPTEXTURE_H

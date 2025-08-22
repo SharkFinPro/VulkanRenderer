@@ -1,5 +1,5 @@
-#ifndef SMOKEPIPELINE_H
-#define SMOKEPIPELINE_H
+#ifndef VKE_SMOKEPIPELINE_H
+#define VKE_SMOKEPIPELINE_H
 
 #include "config/Uniforms.h"
 #include "../ComputePipeline.h"
@@ -73,4 +73,4 @@ private:
 
 } // namespace vke
 
-#endif //SMOKEPIPELINE_H
+#endif //VKE_SMOKEPIPELINE_H

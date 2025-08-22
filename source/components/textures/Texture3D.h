@@ -1,5 +1,5 @@
-#ifndef TEXTURE3D_H
-#define TEXTURE3D_H
+#ifndef VKE_TEXTURE3D_H
+#define VKE_TEXTURE3D_H
 
 #include "Texture.h"
 
@@ -20,4 +20,4 @@ private:
 
 } // namespace vke
 
-#endif //TEXTURE3D_H
+#endif //VKE_TEXTURE3D_H

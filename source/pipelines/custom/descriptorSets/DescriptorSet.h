@@ -1,5 +1,5 @@
-#ifndef DESCRIPTORSET_H
-#define DESCRIPTORSET_H
+#ifndef VKE_DESCRIPTORSET_H
+#define VKE_DESCRIPTORSET_H
 
 #include <vulkan/vulkan.h>
 #include <functional>
@@ -38,4 +38,4 @@ protected:
 
 } // namespace vke
 
-#endif //DESCRIPTORSET_H
+#endif //VKE_DESCRIPTORSET_H

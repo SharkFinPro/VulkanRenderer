@@ -1,5 +1,5 @@
-#ifndef MAGNIFYWHIRLMOSAIC_H
-#define MAGNIFYWHIRLMOSAIC_H
+#ifndef VKE_MAGNIFYWHIRLMOSAIC_H
+#define VKE_MAGNIFYWHIRLMOSAIC_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -47,4 +47,4 @@ private:
 
 } // namespace vke
 
-#endif //MAGNIFYWHIRLMOSAIC_H
+#endif //VKE_MAGNIFYWHIRLMOSAIC_H

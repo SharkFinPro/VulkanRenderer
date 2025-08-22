@@ -1,5 +1,5 @@
-#ifndef STANDARDFRAMEBUFFER_H
-#define STANDARDFRAMEBUFFER_H
+#ifndef VKE_STANDARDFRAMEBUFFER_H
+#define VKE_STANDARDFRAMEBUFFER_H
 
 #include "Framebuffer.h"
 
@@ -42,4 +42,4 @@ private:
 
 } // namespace vke
 
-#endif //STANDARDFRAMEBUFFER_H
+#endif //VKE_STANDARDFRAMEBUFFER_H

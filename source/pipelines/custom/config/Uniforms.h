@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_UNIFORMS_H
-#define VULKANPROJECT_UNIFORMS_H
+#ifndef VKE_UNIFORMS_H
+#define VKE_UNIFORMS_H
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
@@ -111,4 +111,4 @@ struct BendyPlantInfo {
 
 } // namespace vke
 
-#endif //VULKANPROJECT_UNIFORMS_H
+#endif //VKE_UNIFORMS_H

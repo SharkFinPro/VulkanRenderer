@@ -1,5 +1,5 @@
-#ifndef LINEVERTEX_H
-#define LINEVERTEX_H
+#ifndef VKE_LINEVERTEX_H
+#define VKE_LINEVERTEX_H
 
 #include <vulkan/vulkan.h>
 #include <glm/vec3.hpp>
@@ -34,4 +34,4 @@ struct LineVertex {
 
 } // namespace vke
 
-#endif //LINEVERTEX_H
+#endif //VKE_LINEVERTEX_H

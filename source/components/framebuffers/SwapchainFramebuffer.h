@@ -1,5 +1,5 @@
-#ifndef SWAPCHAINFRAMEBUFFER_H
-#define SWAPCHAINFRAMEBUFFER_H
+#ifndef VKE_SWAPCHAINFRAMEBUFFER_H
+#define VKE_SWAPCHAINFRAMEBUFFER_H
 
 #include "Framebuffer.h"
 
@@ -25,4 +25,4 @@ private:
 
 } // namespace vke
 
-#endif //SWAPCHAINFRAMEBUFFER_H
+#endif //VKE_SWAPCHAINFRAMEBUFFER_H

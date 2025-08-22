@@ -1,5 +1,5 @@
-#ifndef SMOKEPARTICLE_H
-#define SMOKEPARTICLE_H
+#ifndef VKE_SMOKEPARTICLE_H
+#define VKE_SMOKEPARTICLE_H
 
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan.h>
@@ -41,4 +41,4 @@ struct SmokeParticle {
 
 } // namespace vke
 
-#endif //SMOKEPARTICLE_H
+#endif //VKE_SMOKEPARTICLE_H

@@ -1,5 +1,5 @@
-#ifndef MOUSEPICKER_H
-#define MOUSEPICKER_H
+#ifndef VKE_MOUSEPICKER_H
+#define VKE_MOUSEPICKER_H
 
 #include "../pipelines/custom/renderObject/MousePickingPipeline.h"
 #include <imgui.h>
@@ -84,4 +84,4 @@ private:
 
 } // namespace vke
 
-#endif //MOUSEPICKER_H
+#endif //VKE_MOUSEPICKER_H

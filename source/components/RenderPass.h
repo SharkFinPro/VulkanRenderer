@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_RENDERPASS_H
-#define VULKANPROJECT_RENDERPASS_H
+#ifndef VKE_RENDERPASS_H
+#define VKE_RENDERPASS_H
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -32,4 +32,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_RENDERPASS_H
+#endif //VKE_RENDERPASS_H

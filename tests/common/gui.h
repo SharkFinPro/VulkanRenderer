@@ -1,5 +1,5 @@
-#ifndef GUI_H
-#define GUI_H
+#ifndef VKE_TESTS_GUI_H
+#define VKE_TESTS_GUI_H
 
 #include <source/components/lighting/Light.h>
 #include <source/components/ImGuiInstance.h>
@@ -147,4 +147,4 @@ inline void displayGui(const std::shared_ptr<vke::ImGuiInstance>& gui, const std
   displayLightGuis(lights);
 }
 
-#endif //GUI_H
+#endif //VKE_TESTS_GUI_H

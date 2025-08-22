@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_DEBUGMESSENGER_H
-#define VULKANPROJECT_DEBUGMESSENGER_H
+#ifndef VKE_DEBUGMESSENGER_H
+#define VKE_DEBUGMESSENGER_H
 
 #include <vulkan/vulkan.h>
 
@@ -20,4 +20,4 @@ public:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_DEBUGMESSENGER_H
+#endif //VKE_DEBUGMESSENGER_H

@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_COMPUTEPIPELINE_H
-#define VULKANPROJECT_COMPUTEPIPELINE_H
+#ifndef VKE_DOTSPIPELINE_H
+#define VKE_DOTSPIPELINE_H
 
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
@@ -50,4 +50,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_COMPUTEPIPELINE_H
+#endif //VKE_DOTSPIPELINE_H

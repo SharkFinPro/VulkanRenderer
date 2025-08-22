@@ -1,5 +1,5 @@
-#ifndef BENDYPIPELINE_H
-#define BENDYPIPELINE_H
+#ifndef VKE_BENDYPIPELINE_H
+#define VKE_BENDYPIPELINE_H
 
 #include "config/Uniforms.h"
 #include "../GraphicsPipeline.h"
@@ -63,4 +63,4 @@ private:
 
 } // namespace vke
 
-#endif //BENDYPIPELINE_H
+#endif //VKE_BENDYPIPELINE_H

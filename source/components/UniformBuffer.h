@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_UNIFORMBUFFER_H
-#define VULKANPROJECT_UNIFORMBUFFER_H
+#ifndef VKE_UNIFORMBUFFER_H
+#define VKE_UNIFORMBUFFER_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -35,4 +35,4 @@ protected:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_UNIFORMBUFFER_H
+#endif //VKE_UNIFORMBUFFER_H

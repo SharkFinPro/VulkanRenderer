@@ -1,5 +1,5 @@
-#ifndef COMPUTINGMANAGER_H
-#define COMPUTINGMANAGER_H
+#ifndef VKE_COMPUTINGMANAGER_H
+#define VKE_COMPUTINGMANAGER_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -26,4 +26,4 @@ private:
 
 } // namespace vke
 
-#endif //COMPUTINGMANAGER_H
+#endif //VKE_COMPUTINGMANAGER_H

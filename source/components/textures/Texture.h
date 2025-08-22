@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_TEXTURE_H
-#define VULKANPROJECT_TEXTURE_H
+#ifndef VKE_TEXTURE_H
+#define VKE_TEXTURE_H
 
 #include <imgui.h>
 #include <vulkan/vulkan.h>
@@ -45,4 +45,4 @@ protected:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_TEXTURE_H
+#endif //VKE_TEXTURE_H

@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_RENDEROBJECT_H
-#define VULKANPROJECT_RENDEROBJECT_H
+#ifndef VKE_RENDEROBJECT_H
+#define VKE_RENDEROBJECT_H
 
 #include <glm/gtc/quaternion.hpp>
 #include <vulkan/vulkan.h>
@@ -69,4 +69,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_RENDEROBJECT_H
+#endif //VKE_RENDEROBJECT_H

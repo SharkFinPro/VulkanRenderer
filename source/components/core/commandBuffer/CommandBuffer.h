@@ -1,5 +1,5 @@
-#ifndef COMMANDBUFFER_H
-#define COMMANDBUFFER_H
+#ifndef VKE_COMMANDBUFFER_H
+#define VKE_COMMANDBUFFER_H
 
 #include <vulkan/vulkan.h>
 #include <functional>
@@ -68,4 +68,4 @@ private:
 
 } // namespace vke
 
-#endif //COMMANDBUFFER_H
+#endif //VKE_COMMANDBUFFER_H

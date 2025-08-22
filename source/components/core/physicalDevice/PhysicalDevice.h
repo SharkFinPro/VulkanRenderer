@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_PHYSICALDEVICE_H
-#define VULKANPROJECT_PHYSICALDEVICE_H
+#ifndef VKE_PHYSICALDEVICE_H
+#define VKE_PHYSICALDEVICE_H
 
 #include <vulkan/vulkan.h>
 #include <optional>
@@ -97,4 +97,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_PHYSICALDEVICE_H
+#endif //VKE_PHYSICALDEVICE_H

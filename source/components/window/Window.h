@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_WINDOW_H
-#define VULKANPROJECT_WINDOW_H
+#ifndef VKE_WINDOW_H
+#define VKE_WINDOW_H
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -64,4 +64,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_WINDOW_H
+#endif //VKE_WINDOW_H

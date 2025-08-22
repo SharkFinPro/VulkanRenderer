@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_CAMERA_H
-#define VULKANPROJECT_CAMERA_H
+#ifndef VKE_CAMERA_H
+#define VKE_CAMERA_H
 
 #include "window/Window.h"
 #include <glm/mat4x4.hpp>
@@ -54,4 +54,4 @@ private:
 
 } // namespace vke
 
-#endif //VULKANPROJECT_CAMERA_H
+#endif //VKE_CAMERA_H

@@ -1,5 +1,5 @@
-#ifndef NOISYELLIPTICALDOTS_H
-#define NOISYELLIPTICALDOTS_H
+#ifndef VKE_NOISYELLIPTICALDOTS_H
+#define VKE_NOISYELLIPTICALDOTS_H
 
 #include "../config/Uniforms.h"
 #include "../../GraphicsPipeline.h"
@@ -53,4 +53,4 @@ private:
 
 } // namespace vke
 
-#endif //NOISYELLIPTICALDOTS_H
+#endif //VKE_NOISYELLIPTICALDOTS_H

@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_IMAGES_H
-#define VULKANPROJECT_IMAGES_H
+#ifndef VKE_IMAGES_H
+#define VKE_IMAGES_H
 
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -35,4 +35,4 @@ namespace Images {
 } // namespace vke
 
 
-#endif //VULKANPROJECT_IMAGES_H
+#endif //VKE_IMAGES_H
