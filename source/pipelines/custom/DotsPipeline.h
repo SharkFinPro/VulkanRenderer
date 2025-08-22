@@ -1,5 +1,5 @@
-#ifndef VKE_COMPUTEPIPELINE_H
-#define VKE_COMPUTEPIPELINE_H
+#ifndef VKE_DOTSPIPELINE_H
+#define VKE_DOTSPIPELINE_H
 
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
@@ -50,4 +50,4 @@ private:
 
 } // namespace vke
 
-#endif //VKE_COMPUTEPIPELINE_H
+#endif //VKE_DOTSPIPELINE_H
