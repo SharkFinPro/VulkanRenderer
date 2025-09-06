@@ -41,9 +41,9 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
     .Device = m_logicalDevice->m_device,
     .Queue = m_logicalDevice->getGraphicsQueue(),
     .DescriptorPool = descriptorPool,
-    .RenderPass = renderPass ? renderPass->getRenderPass() : nullptr,
     .MinImageCount = imageCount,
     .ImageCount = imageCount,
+    .RenderPass = renderPass ? renderPass->getRenderPass() : nullptr,
     .MSAASamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
   };
 
