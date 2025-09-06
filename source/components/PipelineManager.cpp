@@ -234,6 +234,11 @@ void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const
 
     if (auto it = m_pipelines.find(type); it != m_pipelines.end())
     {
+      if (it->first == PipelineType::objectHighlight)
+      {
+        continue;
+      }
+
       if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get()))
       {
         graphicsPipeline->displayGui();
@@ -245,6 +250,24 @@ void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const
     }
 
     throw std::runtime_error("Pipeline for object type does not exist");
+  }
+
+  auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
+  auto highlightPipelineIt = m_pipelines.find(PipelineType::objectHighlight);
+
+  if (highlightObjectsIt != m_renderObjectsToRender.end() &&
+      highlightPipelineIt != m_pipelines.end())
+  {
+    auto& highlightObjects = highlightObjectsIt->second;
+
+    if (!highlightObjects.empty())
+    {
+      if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(highlightPipelineIt->second.get()))
+      {
+        graphicsPipeline->displayGui();
+        graphicsPipeline->render(&renderInfo, &highlightObjects);
+      }
+    }
   }
 }
 
