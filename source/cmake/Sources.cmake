@@ -133,6 +133,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
   pipelines/custom/BendyPipeline.h
   pipelines/custom/DotsPipeline.cpp
   pipelines/custom/DotsPipeline.h
+  pipelines/custom/GridPipeline.cpp
+  pipelines/custom/GridPipeline.h
   pipelines/custom/GuiPipeline.cpp
   pipelines/custom/GuiPipeline.h
   pipelines/custom/LinePipeline.cpp

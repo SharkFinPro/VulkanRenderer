@@ -161,6 +161,8 @@ void PipelineManager::renderGraphicsPipelines(const std::shared_ptr<CommandBuffe
 
   m_bendyPipeline->render(&renderInfo);
 
+  m_gridPipeline->render(&renderInfo);
+
   renderSmokeSystems(renderInfo);
 }
 
@@ -221,6 +223,8 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
 
   m_bendyPipeline = std::make_unique<BendyPipeline>(m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool,
                                                     m_lightingManager->getLightingDescriptorSet());
+
+  m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, m_renderPass);
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const

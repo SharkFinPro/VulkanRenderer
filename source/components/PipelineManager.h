@@ -2,6 +2,7 @@
 #define VKE_PIPELINEMANAGER_H
 
 #include "../pipelines/custom/BendyPipeline.h"
+#include "../pipelines/custom/GridPipeline.h"
 #include "../pipelines/custom/LinePipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -24,7 +25,7 @@ public:
   PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
                   const std::shared_ptr<LightingManager>& lightingManager,
-                   const std::shared_ptr<MousePicker>& mousePicker,
+                  const std::shared_ptr<MousePicker>& mousePicker,
                   VkDescriptorSetLayout objectDescriptorSetLayout,
                   VkDescriptorPool descriptorPool,
                   VkCommandPool commandPool,
@@ -81,6 +82,8 @@ private:
   std::vector<LineVertex> m_lineVerticesToRender;
 
   std::unique_ptr<BendyPipeline> m_bendyPipeline;
+
+  std::unique_ptr<GridPipeline> m_gridPipeline;
 
   bool m_shouldDoDots;
 
