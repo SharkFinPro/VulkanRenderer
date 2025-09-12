@@ -109,6 +109,11 @@ struct BendyPlantInfo {
   float bendStrength;
 };
 
+struct GridUniform {
+  alignas(16) glm::mat4 view;
+  alignas(16) glm::mat4 proj;
+};
+
 } // namespace vke
 
 #endif //VKE_UNIFORMS_H
