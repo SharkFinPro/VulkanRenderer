@@ -13,35 +13,44 @@ layout(location = 0) out vec4 outColor;
 
 vec4 gridColor(vec3 position, int minor, int major)
 {
-  float lineWidth = 0.5;
-  float axisWidth = 1.0;
+  float lineWidth = 1.0;
+  float axisWidth = 2.0;
 
+  // Axis Highlights
   vec2 axisDistance = abs(position.xz) / fwidth(position.xz);
 
-  if (axisDistance.y < axisWidth)
+  float axisAlphaX = 1.0 - smoothstep(0.0, axisWidth, axisDistance.y);
+  if (axisAlphaX > 0.0)
   {
-    return vec4(1, 0, 0, 0.9);
+    return vec4(1, 0, 0, 0.9 * axisAlphaX);
   }
 
-  if (axisDistance.x < axisWidth)
+  float axisAlphaZ = 1.0 - smoothstep(0.0, axisWidth, axisDistance.x);
+  if (axisAlphaZ > 0.0)
   {
-    return vec4(0, 0, 1, 0.9);
+    return vec4(0, 0, 1, 0.9 * axisAlphaZ);
   }
 
-  vec2 majorGrid = abs(fract(position.xz / (minor * major) - 0.5) - 0.5) / fwidth(position.xz / (minor * major));
+  // Major Grid
+  vec2 majorPos = position.xz / (minor * major);
+  vec2 majorGrid = abs(fract(majorPos - 0.5) - 0.5) / fwidth(majorPos);
   float majorLine = min(majorGrid.x, majorGrid.y);
+  float majorAlpha = 1.0 - smoothstep(0.0, lineWidth, majorLine);
 
-  if (majorLine < lineWidth)
+  if (majorAlpha > 0.0)
   {
-    return vec4(1, 1, 1, 0.3); // Bright white for major grid lines
+    return vec4(1, 1, 1, 0.3 * majorAlpha);
   }
 
-  vec2 minorGrid = abs(fract(position.xz / minor - 0.5) - 0.5) / fwidth(position.xz / minor);
+  // Minor Grid
+  vec2 minorPos = position.xz / minor;
+  vec2 minorGrid = abs(fract(minorPos - 0.5) - 0.5) / fwidth(minorPos);
   float minorLine = min(minorGrid.x, minorGrid.y);
+  float minorAlpha = 1.0 - smoothstep(0.0, lineWidth, minorLine);
 
-  if (minorLine < lineWidth)
+  if (minorAlpha > 0.0)
   {
-    return vec4(1, 1, 1, 0.1); // Dimmer gray for minor grid lines
+    return vec4(1, 1, 1, 0.1 * minorAlpha);
   }
 
   return vec4(0, 0, 0, 0);
