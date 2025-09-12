@@ -55,6 +55,12 @@ FetchContent_MakeAvailable(
   imgui
 )
 
+# Ensure GLFW's X11 dependencies are properly linked on Linux
+if(UNIX AND NOT APPLE)
+  find_package(X11 REQUIRED)
+  target_link_libraries(glfw INTERFACE ${X11_LIBRARIES})
+endif()
+
 add_library(imgui STATIC
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_draw.cpp
