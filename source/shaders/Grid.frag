@@ -20,12 +20,12 @@ vec4 gridColor(vec3 position, int minor, int major)
 
   if (axisDistance.y < axisWidth)
   {
-    return vec4(1, 0, 0, 1);
+    return vec4(1, 0, 0, 0.9);
   }
 
   if (axisDistance.x < axisWidth)
   {
-    return vec4(0, 0, 1, 1);
+    return vec4(0, 0, 1, 0.9);
   }
 
   vec2 majorGrid = abs(fract(position.xz / (minor * major) - 0.5) - 0.5) / fwidth(position.xz / (minor * major));
@@ -60,5 +60,8 @@ void main() {
   vec4 clipSpacePosition = grid.proj * grid.view * vec4(fragPosition.xyz, 1.0);
   gl_FragDepth = clipSpacePosition.z / clipSpacePosition.w;
 
-  outColor = gridColor(fragPosition, 1, 10);
+  float dist = distance(fragPosition, grid.viewPosition);
+  float fadeout = exp(-dist * 0.0025);
+
+  outColor = gridColor(fragPosition, 1, 10) * fadeout;
 }

@@ -19,7 +19,7 @@ int main()
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Grid",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
+      .CAMERA_POSITION = { 0.0f, 5.0f, -20.0f },
       .DO_DOTS = false
     };
 
