@@ -76,7 +76,7 @@ void renderScene(vke::VulkanEngine& renderer,
                  std::vector<vke::BendyPlant>& bendyPlants)
 {
   // Render GUI
-  displayGui(gui, lights, { object });
+  displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
   // Render Objects
   renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);

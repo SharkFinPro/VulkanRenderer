@@ -69,7 +69,7 @@ void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiIn
                  bool& useNoisyEllipticalDots)
 {
   // Render GUI
-  displayGui(gui, lights, { object });
+  displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
   ImGui::Begin("Rendering");
   ImGui::Checkbox("Use Noisy Elliptical Dots", &useNoisyEllipticalDots);

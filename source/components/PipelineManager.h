@@ -53,7 +53,8 @@ public:
                                VkExtent2D extent,
                                uint32_t currentFrame,
                                const glm::vec3& viewPosition,
-                               const glm::mat4& viewMatrix) const;
+                               const glm::mat4& viewMatrix,
+                               bool shouldRenderGrid) const;
 
   [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
 

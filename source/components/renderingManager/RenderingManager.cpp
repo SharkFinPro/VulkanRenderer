@@ -151,6 +151,21 @@ void RenderingManager::recreateSwapChain()
   }
 }
 
+void RenderingManager::enableGrid()
+{
+  m_shouldRenderGrid = true;
+}
+
+void RenderingManager::disableGrid()
+{
+  m_shouldRenderGrid = false;
+}
+
+bool RenderingManager::isGridEnabled() const
+{
+  return m_shouldRenderGrid;
+}
+
 void RenderingManager::renderGuiScene(const uint32_t imageIndex)
 {
   if (!m_shouldRenderOffscreen)
@@ -211,7 +226,7 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
     m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
     pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
-                                               currentFrame, m_viewPosition, m_viewMatrix);
+                                             currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
 
     m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
   });
@@ -235,7 +250,7 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
     if (!m_shouldRenderOffscreen)
     {
       pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
-                                                 currentFrame, m_viewPosition, m_viewMatrix);
+                                               currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
     }
 
     const VkViewport viewport = {

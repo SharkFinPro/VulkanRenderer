@@ -35,7 +35,7 @@ int main()
 
     while (renderer.isActive())
     {
-      displayGui(gui, { light }, { object });
+      displayGui(gui, { light }, { object }, renderer.getRenderingManager());
 
       renderer.getLightingManager()->renderLight(light);
 
