@@ -4,6 +4,7 @@ add_subdirectory(cube)
 add_subdirectory(cubeMap)
 add_subdirectory(curtain)
 add_subdirectory(ellipticalDots)
+add_subdirectory(grid)
 add_subdirectory(magicLens)
 add_subdirectory(mousePicking)
 add_subdirectory(noisyEllipticalDots)
@@ -22,6 +23,7 @@ add_custom_target(build_all
   cubeMap
   curtain
   ellipticalDots
+  grid
   magicLens
   mousePicking
   noisyEllipticalDots

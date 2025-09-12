@@ -72,7 +72,7 @@ void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiIn
                  const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights,
                  bool& useMagicLens)
 {
-  displayGui(gui, lights, { object });
+  displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
   ImGui::Begin("Rendering");
   ImGui::Checkbox("Use Magic Lens", &useMagicLens);

@@ -43,6 +43,12 @@ public:
 
   void recreateSwapChain();
 
+  void enableGrid();
+
+  void disableGrid();
+
+  [[nodiscard]] bool isGridEnabled() const;
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -73,6 +79,8 @@ private:
   ImVec2 m_offscreenViewportPos{0, 0};
 
   const char* m_sceneViewName;
+
+  bool m_shouldRenderGrid = true;
 
   void renderGuiScene(uint32_t imageIndex);
 

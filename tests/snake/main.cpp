@@ -42,7 +42,7 @@ int main()
       x += 0.025f;
       object->setPosition({x, 0, 0});
 
-      displayGui(gui, lights, { object });
+      displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
       // Render Objects
       renderer.getPipelineManager()->renderObject(object, vke::PipelineType::snake);

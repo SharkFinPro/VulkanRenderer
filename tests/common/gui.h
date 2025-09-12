@@ -4,6 +4,7 @@
 #include <source/components/lighting/Light.h>
 #include <source/components/ImGuiInstance.h>
 #include <source/components/objects/RenderObject.h>
+#include <source/components/renderingManager/RenderingManager.h>
 #include <source/pipelines/custom/BendyPipeline.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
@@ -120,6 +121,8 @@ inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
 {
   gui->dockCenter("SceneView");
 
+  gui->dockBottom("Scene Options");
+
   gui->dockBottom("Bendy Plants");
   gui->dockBottom("Bumpy Curtain");
   gui->dockBottom("Chroma Depth");
@@ -137,14 +140,39 @@ inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
   gui->setBottomDockPercent(0.3);
 }
 
-inline void displayGui(const std::shared_ptr<vke::ImGuiInstance>& gui, const std::vector<std::shared_ptr<vke::Light>>& lights,
-                const std::vector<std::shared_ptr<vke::RenderObject>>& objects)
+inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& renderingManager)
+{
+  ImGui::Begin("Scene Options");
+
+  bool showGrid = renderingManager->isGridEnabled();
+
+  if (ImGui::Checkbox("Show Grid", &showGrid))
+  {
+    if (showGrid)
+    {
+      renderingManager->enableGrid();
+    }
+    else
+    {
+      renderingManager->disableGrid();
+    }
+  }
+
+  ImGui::End();
+}
+
+inline void displayGui(const std::shared_ptr<vke::ImGuiInstance>& gui,
+                       const std::vector<std::shared_ptr<vke::Light>>& lights,
+                       const std::vector<std::shared_ptr<vke::RenderObject>>& objects,
+                       const std::shared_ptr<vke::RenderingManager>& renderingManager)
 {
   setDockOptions(gui);
 
   displayObjectGuis(objects);
 
   displayLightGuis(lights);
+
+  displaySceneOptions(renderingManager);
 }
 
 #endif //VKE_TESTS_GUI_H

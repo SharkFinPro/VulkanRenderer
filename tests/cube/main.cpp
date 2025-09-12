@@ -65,7 +65,7 @@ void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiIn
                  const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   // Render GUI
-  displayGui(gui, lights, { object });
+  displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
   // Render Objects
   renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);

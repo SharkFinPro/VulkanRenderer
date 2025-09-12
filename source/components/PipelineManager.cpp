@@ -124,7 +124,8 @@ void PipelineManager::renderGraphicsPipelines(const std::shared_ptr<CommandBuffe
                                               const VkExtent2D extent,
                                               const uint32_t currentFrame,
                                               const glm::vec3& viewPosition,
-                                              const glm::mat4& viewMatrix) const
+                                              const glm::mat4& viewMatrix,
+                                              const bool shouldRenderGrid) const
 {
   const RenderInfo renderInfo {
     .commandBuffer = commandBuffer,
@@ -162,6 +163,11 @@ void PipelineManager::renderGraphicsPipelines(const std::shared_ptr<CommandBuffe
   m_bendyPipeline->render(&renderInfo);
 
   renderSmokeSystems(renderInfo);
+
+  if (shouldRenderGrid)
+  {
+    m_gridPipeline->render(&renderInfo);
+  }
 }
 
 std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& PipelineManager::getRenderObjectsToRender()
@@ -221,6 +227,8 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
 
   m_bendyPipeline = std::make_unique<BendyPipeline>(m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool,
                                                     m_lightingManager->getLightingDescriptorSet());
+
+  m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const

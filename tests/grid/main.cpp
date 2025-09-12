@@ -9,8 +9,7 @@
 #include <iostream>
 
 void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights,
-                 bool& useNoisyEllipticalDots);
+                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights);
 
 int main()
 {
@@ -19,8 +18,8 @@ int main()
     constexpr vke::VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Noisy Elliptical Dots",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
+      .WINDOW_TITLE = "Grid",
+      .CAMERA_POSITION = { 0.0f, 5.0f, -20.0f },
       .DO_DOTS = false
     };
 
@@ -40,19 +39,9 @@ int main()
 
     lights.push_back(renderer.getLightingManager()->createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
-    lights.push_back(renderer.getLightingManager()->createLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.getLightingManager()->createLight({-5.0f, -3.5f, -5.0f}, {0.5f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.getLightingManager()->createLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
-
-    lights.push_back(renderer.getLightingManager()->createLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
-
-    bool useNoisyEllipticalDots = true;
-
     while (renderer.isActive())
     {
-      renderScene(renderer, gui, object, lights, useNoisyEllipticalDots);
+      renderScene(renderer, gui, object, lights);
     }
   }
   catch (const std::exception& e)
@@ -65,18 +54,13 @@ int main()
 }
 
 void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights,
-                 bool& useNoisyEllipticalDots)
+                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   // Render GUI
   displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
-  ImGui::Begin("Rendering");
-  ImGui::Checkbox("Use Noisy Elliptical Dots", &useNoisyEllipticalDots);
-  ImGui::End();
-
   // Render Objects
-  renderer.getPipelineManager()->renderObject(object, useNoisyEllipticalDots ? vke::PipelineType::noisyEllipticalDots : vke::PipelineType::object);
+  renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
 
   for (const auto& light : lights)
   {

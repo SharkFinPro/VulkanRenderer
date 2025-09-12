@@ -42,7 +42,7 @@ int main()
 
     while (renderer.isActive())
     {
-      displayGui(gui, lights, { object });
+      displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
       renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
 
