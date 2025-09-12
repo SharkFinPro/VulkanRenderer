@@ -50,10 +50,15 @@ vec4 gridColor(vec3 position, int minor, int major)
 void main() {
   float t = -nearPoint.y / (farPoint.y - nearPoint.y);
 
+  if (t <= 0)
+  {
+    discard;
+  }
+
   vec3 fragPosition = nearPoint + t * (farPoint - nearPoint);
 
   vec4 clipSpacePosition = grid.proj * grid.view * vec4(fragPosition.xyz, 1.0);
   gl_FragDepth = clipSpacePosition.z / clipSpacePosition.w;
 
-  outColor = gridColor(fragPosition, 1, 10) * float(t > 0);
+  outColor = gridColor(fragPosition, 1, 10);
 }
