@@ -21,7 +21,7 @@ namespace vke {
         .fragmentShader = "assets/shaders/Grid.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .colorBlendState = GraphicsPipelineStates::colorBlendStateDots,
         .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
         .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
