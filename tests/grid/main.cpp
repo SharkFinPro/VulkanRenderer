@@ -67,11 +67,6 @@ void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiIn
     renderer.getLightingManager()->renderLight(light);
   }
 
-  // Render lines
-  renderer.getPipelineManager()->renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
-  renderer.getPipelineManager()->renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
-  renderer.getPipelineManager()->renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
-
   // Render Frame
   renderer.render();
 }
