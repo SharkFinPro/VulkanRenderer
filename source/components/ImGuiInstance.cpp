@@ -43,8 +43,10 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
     .DescriptorPool = descriptorPool,
     .MinImageCount = imageCount,
     .ImageCount = imageCount,
-    .RenderPass = renderPass ? renderPass->getRenderPass() : nullptr,
-    .MSAASamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
+    .PipelineInfoMain {
+      .RenderPass = renderPass ? renderPass->getRenderPass() : nullptr,
+      .MSAASamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
+    }
   };
 
   if (renderPass == nullptr)
@@ -53,7 +55,7 @@ ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
 
     constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
 
-    initInfo.PipelineRenderingCreateInfo = {
+    initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
       .colorAttachmentCount = 1,
       .pColorAttachmentFormats = &colorFormat,
