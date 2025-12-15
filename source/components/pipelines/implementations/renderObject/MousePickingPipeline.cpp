@@ -3,7 +3,7 @@
 #include "../common/Uniforms.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../../assetManager/objects/RenderObject.h"
+#include "../../../assets/objects/RenderObject.h"
 
 namespace vke {
 

@@ -1,6 +1,6 @@
 #include "../common/gui.h"
-#include <source/components/assetManager/objects/RenderObject.h>
-#include <source/components/assetManager/AssetManager.h>
+#include <source/components/assets/objects/RenderObject.h>
+#include <source/components/assets/AssetManager.h>
 #include <source/components/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>

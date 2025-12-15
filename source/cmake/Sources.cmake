@@ -2,13 +2,13 @@
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Asset Manager
     # Objects - Renderable objects and data structures
-    components/assetManager/objects/Model.cpp
-    components/assetManager/objects/Model.h
-    components/assetManager/objects/RenderObject.cpp
-    components/assetManager/objects/RenderObject.h
+    components/assets/objects/Model.cpp
+    components/assets/objects/Model.h
+    components/assets/objects/RenderObject.cpp
+    components/assets/objects/RenderObject.h
 
-  components/assetManager/AssetManager.cpp
-  components/assetManager/AssetManager.h
+  components/assets/AssetManager.cpp
+  components/assets/AssetManager.h
 
   # Camera
   components/camera/Camera.cpp

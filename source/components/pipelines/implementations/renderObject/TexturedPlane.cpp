@@ -2,7 +2,7 @@
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../../assetManager/objects/RenderObject.h"
+#include "../../../assets/objects/RenderObject.h"
 
 namespace vke {
 
