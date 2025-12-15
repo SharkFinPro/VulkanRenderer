@@ -1,7 +1,7 @@
 #ifndef VKE_CAMERA_H
 #define VKE_CAMERA_H
 
-#include "window/Window.h"
+#include "../window/Window.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <chrono>

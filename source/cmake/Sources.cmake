@@ -4,6 +4,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/assetManager/AssetManager.cpp
   components/assetManager/AssetManager.h
 
+  # Camera
+  components/camera/Camera.cpp
+  components/camera/Camera.h
+
   # Command Buffer Management
   components/commandBuffer/CommandBuffer.cpp
   components/commandBuffer/CommandBuffer.h
@@ -73,8 +77,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
-  components/Camera.cpp
-  components/Camera.h
   components/ImGuiInstance.cpp
   components/ImGuiInstance.h
   components/MousePicker.cpp
