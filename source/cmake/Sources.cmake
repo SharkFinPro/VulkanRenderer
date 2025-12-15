@@ -16,14 +16,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/computingManager/ComputingManager.cpp
   components/computingManager/ComputingManager.h
 
-  # Framebuffers
-  components/framebuffers/Framebuffer.cpp
-  components/framebuffers/Framebuffer.h
-  components/framebuffers/StandardFramebuffer.cpp
-  components/framebuffers/StandardFramebuffer.h
-  components/framebuffers/SwapchainFramebuffer.cpp
-  components/framebuffers/SwapchainFramebuffer.h
-
   # ImGui
   components/imGui/ImGuiInstance.cpp
   components/imGui/ImGuiInstance.h
@@ -63,8 +55,18 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/pipelineManager/PipelineManager.h
 
   # Rendering Manager
-  components/renderingManager/legacyRenderer/LegacyRenderer.cpp
-  components/renderingManager/legacyRenderer/LegacyRenderer.h
+    # Legacy Renderer
+    components/renderingManager/legacyRenderer/LegacyRenderer.cpp
+    components/renderingManager/legacyRenderer/LegacyRenderer.h
+
+    # Framebuffers
+    components/renderingManager/legacyRenderer/framebuffers/Framebuffer.cpp
+    components/renderingManager/legacyRenderer/framebuffers/Framebuffer.h
+    components/renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.cpp
+    components/renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.h
+    components/renderingManager/legacyRenderer/framebuffers/SwapchainFramebuffer.cpp
+    components/renderingManager/legacyRenderer/framebuffers/SwapchainFramebuffer.h
+
   components/renderingManager/DynamicRenderer.cpp
   components/renderingManager/DynamicRenderer.h
   components/renderingManager/Renderer.cpp

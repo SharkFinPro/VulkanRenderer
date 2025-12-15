@@ -1,7 +1,7 @@
 #include "MousePicker.h"
 #include "../renderPass/RenderPass.h"
 #include "../window/Window.h"
-#include "../framebuffers/StandardFramebuffer.h"
+#include "../renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/PipelineTypes.h"
