@@ -1,6 +1,6 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
-#include <source/components/MousePicker.h>
+#include <source/components/mousePicker/MousePicker.h>
 #include <source/components/objects/RenderObject.h>
 #include <source/components/window/Window.h>
 #include <source/components/assetManager/AssetManager.h>

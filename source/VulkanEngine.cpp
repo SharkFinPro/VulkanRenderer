@@ -10,7 +10,7 @@
 #include "components/window/Window.h"
 #include "components/camera/Camera.h"
 #include "components/imGui/ImGuiInstance.h"
-#include "components/MousePicker.h"
+#include "components/mousePicker/MousePicker.h"
 #include "components/PipelineManager.h"
 
 namespace vke {

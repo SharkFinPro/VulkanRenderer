@@ -1,12 +1,12 @@
 #include "MousePicker.h"
-#include "RenderPass.h"
-#include "window/Window.h"
-#include "framebuffers/StandardFramebuffer.h"
-#include "../components/commandBuffer/CommandBuffer.h"
-#include "../components/logicalDevice/LogicalDevice.h"
-#include "pipelines/implementations/common/PipelineTypes.h"
-#include "../utilities/Buffers.h"
-#include "../utilities/Images.h"
+#include "../RenderPass.h"
+#include "../window/Window.h"
+#include "../framebuffers/StandardFramebuffer.h"
+#include "../commandBuffer/CommandBuffer.h"
+#include "../logicalDevice/LogicalDevice.h"
+#include "../pipelines/implementations/common/PipelineTypes.h"
+#include "../../utilities/Buffers.h"
+#include "../../utilities/Images.h"
 
 namespace vke {
 

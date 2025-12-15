@@ -1,8 +1,8 @@
 #include "PipelineManager.h"
 #include "commandBuffer/CommandBuffer.h"
 #include "logicalDevice/LogicalDevice.h"
-
 #include "lighting/LightingManager.h"
+#include "mousePicker/MousePicker.h"
 
 #include "pipelines/implementations/common/PipelineTypes.h"
 
@@ -23,7 +23,6 @@
 #include "pipelines/implementations/GuiPipeline.h"
 #include "pipelines/implementations/SmokePipeline.h"
 
-#include "MousePicker.h"
 #include "RenderPass.h"
 
 #include <imgui.h>

@@ -8,7 +8,7 @@
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../lighting/LightingManager.h"
 #include "../window/SwapChain.h"
-#include "../MousePicker.h"
+#include "../mousePicker/MousePicker.h"
 #include "../pipelines/implementations/GuiPipeline.h"
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>

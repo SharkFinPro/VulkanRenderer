@@ -44,6 +44,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/logicalDevice/LogicalDevice.cpp
   components/logicalDevice/LogicalDevice.h
 
+  # Mouse Picking
+  components/mousePicker/MousePicker.cpp
+  components/mousePicker/MousePicker.h
+
   # Objects - Renderable objects and data structures
   components/objects/Model.cpp
   components/objects/Model.h
@@ -81,8 +85,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
-  components/MousePicker.cpp
-  components/MousePicker.h
   components/PipelineManager.cpp
   components/PipelineManager.h
   components/RenderPass.cpp
