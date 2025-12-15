@@ -1,7 +1,7 @@
 #include "AssetManager.h"
 #include "../logicalDevice/LogicalDevice.h"
-#include "../objects/Model.h"
-#include "../objects/RenderObject.h"
+#include "objects/Model.h"
+#include "objects/RenderObject.h"
 #include "../textures/Texture2D.h"
 #include <array>
 

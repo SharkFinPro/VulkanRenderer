@@ -1,6 +1,12 @@
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Asset Manager
+    # Objects - Renderable objects and data structures
+    components/assetManager/objects/Model.cpp
+    components/assetManager/objects/Model.h
+    components/assetManager/objects/RenderObject.cpp
+    components/assetManager/objects/RenderObject.h
+
   components/assetManager/AssetManager.cpp
   components/assetManager/AssetManager.h
 
@@ -39,12 +45,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Mouse Picking
   components/mousePicker/MousePicker.cpp
   components/mousePicker/MousePicker.h
-
-  # Objects - Renderable objects and data structures
-  components/objects/Model.cpp
-  components/objects/Model.h
-  components/objects/RenderObject.cpp
-  components/objects/RenderObject.h
 
   # Physical Device Management
   components/physicalDevice/PhysicalDevice.cpp

@@ -1,9 +1,9 @@
 #ifndef VKE_TESTS_GUI_H
 #define VKE_TESTS_GUI_H
 
+#include <source/components/assetManager/objects/RenderObject.h>
 #include <source/components/lighting/Light.h>
 #include <source/components/imGui/ImGuiInstance.h>
-#include <source/components/objects/RenderObject.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
 #include <glm/gtc/type_ptr.hpp>

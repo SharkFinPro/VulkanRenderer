@@ -1,7 +1,7 @@
 #include "ObjectHighlightPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../../objects/RenderObject.h"
+#include "../../../assetManager/objects/RenderObject.h"
 
 namespace vke {
 

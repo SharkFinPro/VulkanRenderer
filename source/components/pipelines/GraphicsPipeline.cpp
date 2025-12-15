@@ -2,7 +2,7 @@
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../objects/RenderObject.h"
+#include "../assetManager/objects/RenderObject.h"
 #include "../renderingManager/legacyRenderer/renderPass/RenderPass.h"
 
 namespace vke {
