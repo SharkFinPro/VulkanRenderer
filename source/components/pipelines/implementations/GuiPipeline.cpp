@@ -1,6 +1,6 @@
 #include "GuiPipeline.h"
 #include "common/GraphicsPipelineStates.h"
-#include "../../RenderPass.h"
+#include "../../renderPass/RenderPass.h"
 #include "../../imGui/ImGuiInstance.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include <imgui.h>

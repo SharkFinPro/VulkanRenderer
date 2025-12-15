@@ -1,7 +1,7 @@
 #include "MousePickingPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
 #include "../common/Uniforms.h"
-#include "../../../RenderPass.h"
+#include "../../../renderPass/RenderPass.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../objects/RenderObject.h"

@@ -2,7 +2,7 @@
 #include "../common/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../descriptorSets/LayoutBindings.h"
-#include "../../../RenderPass.h"
+#include "../../../renderPass/RenderPass.h"
 #include "../../../textures/TextureCubemap.h"
 #include "../../../textures/Texture3D.h"
 #include "../../../commandBuffer/CommandBuffer.h"

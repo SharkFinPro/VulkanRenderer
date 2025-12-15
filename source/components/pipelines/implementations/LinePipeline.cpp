@@ -2,7 +2,7 @@
 #include "common/GraphicsPipelineStates.h"
 #include "common/Uniforms.h"
 #include "descriptorSets/DescriptorSet.h"
-#include "../../RenderPass.h"
+#include "../../renderPass/RenderPass.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"

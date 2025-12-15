@@ -72,6 +72,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/renderingManager/RenderingManager.cpp
   components/renderingManager/RenderingManager.h
 
+  # Render Pass
+  components/renderPass/RenderPass.cpp
+  components/renderPass/RenderPass.h
+
   # Textures
   components/textures/Texture.cpp
   components/textures/Texture.h
@@ -89,8 +93,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
-  components/RenderPass.cpp
-  components/RenderPass.h
   components/UniformBuffer.cpp
   components/UniformBuffer.h
 )

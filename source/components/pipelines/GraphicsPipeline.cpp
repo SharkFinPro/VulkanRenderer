@@ -3,7 +3,7 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../objects/RenderObject.h"
-#include "../RenderPass.h"
+#include "../renderPass/RenderPass.h"
 
 namespace vke {
 

@@ -1,7 +1,7 @@
 #include "EllipticalDots.h"
 #include "../common/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../../../RenderPass.h"
+#include "../../../renderPass/RenderPass.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include <imgui.h>

@@ -5,7 +5,7 @@
 #include "../instance/Instance.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../logicalDevice/LogicalDevice.h"
-#include "../RenderPass.h"
+#include "../renderPass/RenderPass.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
