@@ -1,8 +1,8 @@
 #ifndef VKE_SWAPCHAIN_H
 #define VKE_SWAPCHAIN_H
 
-#include "../core/physicalDevice/PhysicalDevice.h"
-#include "../core/logicalDevice/LogicalDevice.h"
+#include "../physicalDevice/PhysicalDevice.h"
+#include "../logicalDevice/LogicalDevice.h"
 #include "Window.h"
 #include <vulkan/vulkan.h>
 #include <vector>

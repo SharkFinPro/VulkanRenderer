@@ -1,9 +1,9 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
-#include <source/components/objects/RenderObject.h>
-#include <source/components/AssetManager.h>
-#include <source/components/PipelineManager.h>
-#include <source/pipelines/custom/config/PipelineTypes.h>
+#include <source/components/assets/objects/RenderObject.h>
+#include <source/components/assets/AssetManager.h>
+#include <source/components/pipelines/pipelineManager/PipelineManager.h>
+#include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>

@@ -1,7 +1,7 @@
 #include "Images.h"
 #include "Buffers.h"
-#include "../components/core/logicalDevice/LogicalDevice.h"
-#include "../components/core/physicalDevice/PhysicalDevice.h"
+#include "../components/logicalDevice/LogicalDevice.h"
+#include "../components/physicalDevice/PhysicalDevice.h"
 #include <stdexcept>
 
 namespace vke {
