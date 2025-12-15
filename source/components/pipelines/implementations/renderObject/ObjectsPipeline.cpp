@@ -1,7 +1,6 @@
 #include "ObjectsPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
-#include "../../../renderPass/RenderPass.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 

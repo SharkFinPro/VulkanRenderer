@@ -67,16 +67,16 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/legacyRenderer/framebuffers/SwapchainFramebuffer.cpp
     components/renderingManager/legacyRenderer/framebuffers/SwapchainFramebuffer.h
 
+    # Render Pass
+    components/renderingManager/legacyRenderer/renderPass/RenderPass.cpp
+    components/renderingManager/legacyRenderer/renderPass/RenderPass.h
+
   components/renderingManager/DynamicRenderer.cpp
   components/renderingManager/DynamicRenderer.h
   components/renderingManager/Renderer.cpp
   components/renderingManager/Renderer.h
   components/renderingManager/RenderingManager.cpp
   components/renderingManager/RenderingManager.h
-
-  # Render Pass
-  components/renderPass/RenderPass.cpp
-  components/renderPass/RenderPass.h
 
   # Textures
   components/textures/Texture.cpp

@@ -1,6 +1,5 @@
 #include "ObjectHighlightPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
-#include "../../../renderPass/RenderPass.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../objects/RenderObject.h"
 

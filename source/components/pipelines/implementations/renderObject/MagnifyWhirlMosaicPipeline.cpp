@@ -3,7 +3,6 @@
 #include "../common/Uniforms.h"
 #include "../../descriptorSets/DescriptorSet.h"
 #include "../../descriptorSets/LayoutBindings.h"
-#include "../../../renderPass/RenderPass.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../pipelines/uniformBuffers/UniformBuffer.h"

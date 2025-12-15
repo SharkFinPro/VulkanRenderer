@@ -2,7 +2,6 @@
 #include "common/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../descriptorSets/LayoutBindings.h"
-#include "../../renderPass/RenderPass.h"
 #include "../../textures/Texture2D.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../uniformBuffers/UniformBuffer.h"

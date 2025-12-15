@@ -23,8 +23,6 @@
 #include "../pipelines/implementations/GuiPipeline.h"
 #include "../pipelines/implementations/SmokePipeline.h"
 
-#include "../renderPass/RenderPass.h"
-
 #include <imgui.h>
 #include <ranges>
 
