@@ -2,8 +2,8 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../uniformBuffer/UniformBuffer.h"
 #include "common/GraphicsPipelineStates.h"
-#include "descriptorSets/DescriptorSet.h"
-#include "descriptorSets/LayoutBindings.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/LayoutBindings.h"
 
 namespace vke {
   GridPipeline::GridPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

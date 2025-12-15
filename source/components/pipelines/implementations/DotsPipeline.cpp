@@ -1,7 +1,7 @@
 #include "DotsPipeline.h"
 #include "common/GraphicsPipelineStates.h"
 #include "common/Uniforms.h"
-#include "descriptorSets/DescriptorSet.h"
+#include "../descriptorSets/DescriptorSet.h"
 #include "vertexInputs/Particle.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"

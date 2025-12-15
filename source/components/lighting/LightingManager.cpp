@@ -2,8 +2,8 @@
 #include "Light.h"
 #include "../../components/logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/Uniforms.h"
-#include "../pipelines/implementations/descriptorSets/DescriptorSet.h"
-#include "../pipelines/implementations/descriptorSets/LayoutBindings.h"
+#include "../pipelines/descriptorSets/DescriptorSet.h"
+#include "../pipelines/descriptorSets/LayoutBindings.h"
 #include "../uniformBuffer/UniformBuffer.h"
 
 namespace vke {

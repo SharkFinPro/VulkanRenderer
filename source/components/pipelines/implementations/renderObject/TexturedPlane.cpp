@@ -1,6 +1,6 @@
 #include "TexturedPlane.h"
 #include "../common/GraphicsPipelineStates.h"
-#include "../descriptorSets/DescriptorSet.h"
+#include "../../descriptorSets/DescriptorSet.h"
 #include "../../../renderPass/RenderPass.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../objects/RenderObject.h"
