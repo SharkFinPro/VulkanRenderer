@@ -17,7 +17,17 @@ class LightingManager {
 public:
   LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDescriptorPool descriptorPool);
 
-  [[nodiscard]] std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular);
+  [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
+                                                        glm::vec3 color,
+                                                        float ambient,
+                                                        float diffuse,
+                                                        float specular);
+
+  [[nodiscard]] std::shared_ptr<Light> createSpotLight(glm::vec3 position,
+                                                       glm::vec3 color,
+                                                       float ambient,
+                                                       float diffuse,
+                                                       float specular);
 
   void renderLight(const std::shared_ptr<Light>& light);
 

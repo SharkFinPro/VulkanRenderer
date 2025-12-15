@@ -1,5 +1,7 @@
 #include "LightingManager.h"
 #include "lights/Light.h"
+#include "lights/PointLight.h"
+#include "lights/SpotLight.h"
 #include "../../components/logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/Uniforms.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
@@ -16,13 +18,26 @@ LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDe
   createDescriptorSet(descriptorPool);
 }
 
-std::shared_ptr<Light> LightingManager::createLight(glm::vec3 position,
-                                                    glm::vec3 color,
-                                                    float ambient,
-                                                    float diffuse,
-                                                    float specular = 1.0f)
+  std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
+                                                           glm::vec3 color,
+                                                           float ambient,
+                                                           float diffuse,
+                                                           float specular = 1.0f)
 {
-  auto light = std::make_shared<Light>(position, color, ambient, diffuse, specular);
+  auto light = std::make_shared<PointLight>(position, color, ambient, diffuse, specular);
+
+  m_lights.push_back(light);
+
+  return light;
+}
+
+  std::shared_ptr<Light> LightingManager::createSpotLight(glm::vec3 position,
+                                                          glm::vec3 color,
+                                                          float ambient,
+                                                          float diffuse,
+                                                          float specular = 1.0f)
+{
+  auto light = std::make_shared<SpotLight>(position, color, ambient, diffuse, specular);
 
   m_lights.push_back(light);
 
@@ -31,11 +46,13 @@ std::shared_ptr<Light> LightingManager::createLight(glm::vec3 position,
 
 void LightingManager::renderLight(const std::shared_ptr<Light>& light)
 {
-  if (light->isSpotLight())
+  const auto lightType = light->getLightType();
+
+  if (lightType == LightType::spotLight)
   {
     m_spotLightsToRender.push_back(light);
   }
-  else
+  else if (lightType == LightType::pointLight)
   {
     m_pointLightsToRender.push_back(light);
   }
@@ -153,7 +170,7 @@ void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
   lightUniforms.resize(m_pointLightsToRender.size());
   for (int i = 0; i < m_pointLightsToRender.size(); i++)
   {
-    lightUniforms[i] = m_pointLightsToRender[i]->getPointLightUniform();
+    lightUniforms[i] = std::get<PointLightUniform>(m_pointLightsToRender[i]->getUniform());
   }
 
   m_pointLightsUniform->update(currentFrame, lightUniforms.data());
@@ -213,7 +230,7 @@ void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
   lightUniforms.resize(m_spotLightsToRender.size());
   for (int i = 0; i < m_spotLightsToRender.size(); i++)
   {
-    lightUniforms[i] = m_spotLightsToRender[i]->getSpotLightUniform();
+    lightUniforms[i] = std::get<SpotLightUniform>(m_spotLightsToRender[i]->getUniform());
   }
 
   m_spotLightsUniform->update(currentFrame, lightUniforms.data());

@@ -1,5 +1,4 @@
 #include "Light.h"
-#include <glm/detail/func_trigonometric.inl>
 
 namespace vke {
 
@@ -10,40 +9,6 @@ Light::Light(const glm::vec3& position,
              const float specular)
   : m_position(position), m_color(color), m_ambient(ambient), m_diffuse(diffuse), m_specular(specular)
 {}
-
-PointLightUniform Light::getPointLightUniform() const
-{
-  return {
-    .position = m_position,
-    .color = m_color,
-    .ambient = m_ambient,
-    .diffuse = m_diffuse,
-    .specular = m_specular
-  };
-}
-
-SpotLightUniform Light::getSpotLightUniform() const
-{
-  return {
-    .position = m_position,
-    .ambient = m_ambient,
-    .color = m_color,
-    .diffuse = m_diffuse,
-    .direction = m_direction,
-    .specular = m_specular,
-    .coneAngle = glm::radians(m_coneAngle)
-  };
-}
-
-bool Light::isSpotLight() const
-{
-  return m_isSpotLight;
-}
-
-void Light::setSpotLight(const bool isSpotLight)
-{
-  m_isSpotLight = isSpotLight;
-}
 
 glm::vec3 Light::getPosition() const
 {
@@ -70,16 +35,6 @@ float Light::getSpecular() const
   return m_specular;
 }
 
-glm::vec3 Light::getDirection() const
-{
-  return m_direction;
-}
-
-float Light::getConeAngle() const
-{
-  return m_coneAngle;
-}
-
 void Light::setPosition(const glm::vec3& position)
 {
   m_position = position;
@@ -103,16 +58,6 @@ void Light::setDiffuse(const float diffuse)
 void Light::setSpecular(const float specular)
 {
   m_specular = specular;
-}
-
-void Light::setDirection(const glm::vec3& direction)
-{
-  m_direction = direction;
-}
-
-void Light::setConeAngle(const float coneAngle)
-{
-  m_coneAngle = coneAngle;
 }
 
 } // namespace vke

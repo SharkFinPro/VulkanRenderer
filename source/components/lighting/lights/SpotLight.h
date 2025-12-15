@@ -1,8 +1,30 @@
 #ifndef VULKANPROJECT_SPOTLIGHT_H
 #define VULKANPROJECT_SPOTLIGHT_H
 
+#include "Light.h"
+
 namespace vke {
-  class SpotLight {
+  class SpotLight : public Light {
+  public:
+    SpotLight(const glm::vec3& position,
+              const glm::vec3& color,
+              float ambient,
+              float diffuse,
+              float specular);
+
+    [[nodiscard]] glm::vec3 getDirection() const;
+    [[nodiscard]] float getConeAngle() const;
+
+    void setDirection(const glm::vec3& direction);
+    void setConeAngle(float coneAngle);
+
+    [[nodiscard]] LightType getLightType() const override;
+
+    [[nodiscard]] LightUniform getUniform() const override;
+
+  private:
+    glm::vec3 m_direction = glm::vec3(0, -1, 0);
+    float m_coneAngle = 15;
   };
 } // vke
 
