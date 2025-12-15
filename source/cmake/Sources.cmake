@@ -7,6 +7,16 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/objects/RenderObject.cpp
     components/assets/objects/RenderObject.h
 
+    # Textures
+    components/assets/textures/Texture.cpp
+    components/assets/textures/Texture.h
+    components/assets/textures/Texture2D.cpp
+    components/assets/textures/Texture2D.h
+    components/assets/textures/Texture3D.cpp
+    components/assets/textures/Texture3D.h
+    components/assets/textures/TextureCubemap.cpp
+    components/assets/textures/TextureCubemap.h
+
   components/assets/AssetManager.cpp
   components/assets/AssetManager.h
 
@@ -77,16 +87,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/renderingManager/Renderer.h
   components/renderingManager/RenderingManager.cpp
   components/renderingManager/RenderingManager.h
-
-  # Textures
-  components/textures/Texture.cpp
-  components/textures/Texture.h
-  components/textures/Texture2D.cpp
-  components/textures/Texture2D.h
-  components/textures/Texture3D.cpp
-  components/textures/Texture3D.h
-  components/textures/TextureCubemap.cpp
-  components/textures/TextureCubemap.h
 
   # Windows
   components/window/SwapChain.cpp

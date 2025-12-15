@@ -1,7 +1,7 @@
 #include "Texture3D.h"
-#include "../../components/logicalDevice/LogicalDevice.h"
-#include "../../utilities/Buffers.h"
-#include "../../utilities/Images.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../../utilities/Buffers.h"
+#include "../../../utilities/Images.h"
 #include <stdexcept>
 #include <cstdio>
 

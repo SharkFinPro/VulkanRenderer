@@ -5,7 +5,7 @@
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../uniformBuffers/UniformBuffer.h"
-#include "../../../textures/Texture3D.h"
+#include "../../../assets/textures/Texture3D.h"
 #include <imgui.h>
 
 namespace vke {

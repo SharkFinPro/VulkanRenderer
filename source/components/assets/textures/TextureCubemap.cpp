@@ -1,8 +1,8 @@
 #include "TextureCubemap.h"
-#include "../../components/logicalDevice/LogicalDevice.h"
-#include "../../components/physicalDevice/PhysicalDevice.h"
-#include "../../utilities/Buffers.h"
-#include "../../utilities/Images.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
+#include "../../../utilities/Buffers.h"
+#include "../../../utilities/Images.h"
 #include <stb_image.h>
 #include <stdexcept>
 

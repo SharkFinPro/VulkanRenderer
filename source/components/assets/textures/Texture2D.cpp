@@ -1,7 +1,7 @@
 #include "Texture2D.h"
-#include "../../components/logicalDevice/LogicalDevice.h"
-#include "../../utilities/Buffers.h"
-#include "../../utilities/Images.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../../utilities/Buffers.h"
+#include "../../../utilities/Images.h"
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #endif
