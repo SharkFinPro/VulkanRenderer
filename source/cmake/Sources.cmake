@@ -24,6 +24,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/framebuffers/SwapchainFramebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.h
 
+  # ImGui
+  components/imGui/ImGuiInstance.cpp
+  components/imGui/ImGuiInstance.h
+
   # Instance Management
   components/instance/DebugMessenger.cpp
   components/instance/DebugMessenger.h
@@ -77,8 +81,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
-  components/ImGuiInstance.cpp
-  components/ImGuiInstance.h
   components/MousePicker.cpp
   components/MousePicker.h
   components/PipelineManager.cpp
