@@ -1,11 +1,11 @@
 #include "LegacyRenderer.h"
-#include "../logicalDevice/LogicalDevice.h"
-#include "../physicalDevice/PhysicalDevice.h"
-#include "../commandBuffer/CommandBuffer.h"
-#include "../framebuffers/StandardFramebuffer.h"
-#include "../framebuffers/SwapchainFramebuffer.h"
-#include "../window/SwapChain.h"
-#include "../renderPass/RenderPass.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
+#include "../../commandBuffer/CommandBuffer.h"
+#include "../../framebuffers/StandardFramebuffer.h"
+#include "../../framebuffers/SwapchainFramebuffer.h"
+#include "../../window/SwapChain.h"
+#include "../../renderPass/RenderPass.h"
 
 namespace vke {
 

@@ -1,6 +1,6 @@
 #include "RenderingManager.h"
 #include "DynamicRenderer.h"
-#include "LegacyRenderer.h"
+#include "legacyRenderer/LegacyRenderer.h"
 #include "Renderer.h"
 #include "../pipelineManager/PipelineManager.h"
 #include "../commandBuffer/CommandBuffer.h"

@@ -1,7 +1,7 @@
 #ifndef VKE_LEGACYRENDERER_H
 #define VKE_LEGACYRENDERER_H
 
-#include "Renderer.h"
+#include "../Renderer.h"
 #include <memory>
 
 namespace vke {
