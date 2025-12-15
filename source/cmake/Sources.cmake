@@ -43,6 +43,11 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/instance/Instance.h
 
   # Lighting
+    # Lights
+    components/lighting/PointLight.cpp
+    components/lighting/PointLight.h
+    components/lighting/SpotLight.cpp
+    components/lighting/SpotLight.h
   components/lighting/Light.cpp
   components/lighting/Light.h
   components/lighting/LightingManager.cpp
