@@ -1,5 +1,5 @@
 #include "ShaderModule.h"
-#include "../logicalDevice/LogicalDevice.h"
+#include "../../logicalDevice/LogicalDevice.h"
 #include <fstream>
 
 namespace vke {

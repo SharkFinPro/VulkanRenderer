@@ -103,13 +103,15 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   components/pipelines/GraphicsPipeline.h
   components/pipelines/Pipeline.cpp
   components/pipelines/Pipeline.h
-  components/pipelines/ShaderModule.cpp
-  components/pipelines/ShaderModule.h
 
   # Descriptor Sets
   components/pipelines/descriptorSets/DescriptorSet.cpp
   components/pipelines/descriptorSets/DescriptorSet.h
   components/pipelines/descriptorSets/LayoutBindings.h
+
+  # Shader Modules
+  components/pipelines/shaderModules/ShaderModule.cpp
+  components/pipelines/shaderModules/ShaderModule.h
 
   # Uniform Buffers
   components/pipelines/uniformBuffers/UniformBuffer.cpp

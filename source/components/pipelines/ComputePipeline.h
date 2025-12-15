@@ -2,7 +2,7 @@
 #define VKE_COMPUTEPIPELINE_H
 
 #include "Pipeline.h"
-#include "ShaderModule.h"
+#include "shaderModules/ShaderModule.h"
 #include <vulkan/vulkan.h>
 #include <cassert>
 #include <memory>
