@@ -6,7 +6,7 @@
 #include "../../../renderPass/RenderPass.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../../uniformBuffer/UniformBuffer.h"
+#include "../../../pipelines/uniformBuffers/UniformBuffer.h"
 #include <imgui.h>
 
 namespace vke {

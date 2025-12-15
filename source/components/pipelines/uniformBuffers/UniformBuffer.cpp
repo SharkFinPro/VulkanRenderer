@@ -1,6 +1,6 @@
-#include "../uniformBuffer/UniformBuffer.h"
-#include "../logicalDevice/LogicalDevice.h"
-#include "../../utilities/Buffers.h"
+#include "UniformBuffer.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../../utilities/Buffers.h"
 #include <cstring>
 
 namespace vke {

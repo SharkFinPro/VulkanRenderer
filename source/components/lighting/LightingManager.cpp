@@ -4,7 +4,7 @@
 #include "../pipelines/implementations/common/Uniforms.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
 #include "../pipelines/descriptorSets/LayoutBindings.h"
-#include "../uniformBuffer/UniformBuffer.h"
+#include "../pipelines/uniformBuffers/UniformBuffer.h"
 
 namespace vke {
 

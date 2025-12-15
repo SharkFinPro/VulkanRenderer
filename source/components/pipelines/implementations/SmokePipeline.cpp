@@ -5,7 +5,7 @@
 #include "vertexInputs/SmokeParticle.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../uniformBuffer/UniformBuffer.h"
+#include "../uniformBuffers/UniformBuffer.h"
 #include "../../../utilities/Buffers.h"
 #include <imgui.h>
 #include <random>

@@ -86,10 +86,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/textures/TextureCubemap.cpp
   components/textures/TextureCubemap.h
 
-  # Uniform Buffer
-  components/uniformBuffer/UniformBuffer.cpp
-  components/uniformBuffer/UniformBuffer.h
-
   # Windows
   components/window/SwapChain.cpp
   components/window/SwapChain.h
@@ -112,6 +108,10 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   components/pipelines/descriptorSets/DescriptorSet.cpp
   components/pipelines/descriptorSets/DescriptorSet.h
   components/pipelines/descriptorSets/LayoutBindings.h
+
+  # Uniform Buffers
+  components/pipelines/uniformBuffers/UniformBuffer.cpp
+  components/pipelines/uniformBuffers/UniformBuffer.h
 )
 
 # implementations Pipeline Implementations
