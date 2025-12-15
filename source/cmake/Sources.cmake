@@ -86,15 +86,15 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/textures/TextureCubemap.cpp
   components/textures/TextureCubemap.h
 
+  # Uniform Buffer
+  components/uniformBuffer/UniformBuffer.cpp
+  components/uniformBuffer/UniformBuffer.h
+
   # Windows
   components/window/SwapChain.cpp
   components/window/SwapChain.h
   components/window/Window.cpp
   components/window/Window.h
-
-  # Core Components
-  components/UniformBuffer.cpp
-  components/UniformBuffer.h
 )
 
 # Pipeline Infrastructure

@@ -5,7 +5,7 @@
 #include "../../../renderPass/RenderPass.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../../UniformBuffer.h"
+#include "../../../uniformBuffer/UniformBuffer.h"
 #include "../../../textures/Texture3D.h"
 #include <imgui.h>
 

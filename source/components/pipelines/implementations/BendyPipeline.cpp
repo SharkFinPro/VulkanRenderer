@@ -5,7 +5,7 @@
 #include "../../renderPass/RenderPass.h"
 #include "../../textures/Texture2D.h"
 #include "../../commandBuffer/CommandBuffer.h"
-#include "../../UniformBuffer.h"
+#include "../../uniformBuffer/UniformBuffer.h"
 
 namespace vke {
 
