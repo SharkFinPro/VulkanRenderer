@@ -11,7 +11,7 @@
 #include "components/camera/Camera.h"
 #include "components/imGui/ImGuiInstance.h"
 #include "components/mousePicker/MousePicker.h"
-#include "components/PipelineManager.h"
+#include "components/pipelineManager/PipelineManager.h"
 
 namespace vke {
 

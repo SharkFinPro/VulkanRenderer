@@ -2,7 +2,7 @@
 #include "DynamicRenderer.h"
 #include "LegacyRenderer.h"
 #include "Renderer.h"
-#include "../PipelineManager.h"
+#include "../pipelineManager/PipelineManager.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"

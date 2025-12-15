@@ -54,9 +54,13 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/objects/RenderObject.cpp
   components/objects/RenderObject.h
 
-  # Physical Device Managements
+  # Physical Device Management
   components/physicalDevice/PhysicalDevice.cpp
   components/physicalDevice/PhysicalDevice.h
+
+  # Pipeline Management
+  components/pipelineManager/PipelineManager.cpp
+  components/pipelineManager/PipelineManager.h
 
   # Rendering Manager
   components/renderingManager/DynamicRenderer.cpp
@@ -85,8 +89,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
-  components/PipelineManager.cpp
-  components/PipelineManager.h
   components/RenderPass.cpp
   components/RenderPass.h
   components/UniformBuffer.cpp
