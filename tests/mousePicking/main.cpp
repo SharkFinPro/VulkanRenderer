@@ -3,7 +3,7 @@
 #include <source/components/MousePicker.h>
 #include <source/components/objects/RenderObject.h>
 #include <source/components/window/Window.h>
-#include <source/components/AssetManager.h>
+#include <source/components/assetManager/AssetManager.h>
 #include <source/components/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>

@@ -1,5 +1,5 @@
 #include "VulkanEngine.h"
-#include "components/AssetManager.h"
+#include "components/assetManager/AssetManager.h"
 #include "components/computingManager/ComputingManager.h"
 #include "components/instance/Instance.h"
 #include "components/logicalDevice/LogicalDevice.h"

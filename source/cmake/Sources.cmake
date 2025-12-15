@@ -1,5 +1,9 @@
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
+  # Asset Manager
+  components/assetManager/AssetManager.cpp
+  components/assetManager/AssetManager.h
+
   # Command Buffer Management
   components/commandBuffer/CommandBuffer.cpp
   components/commandBuffer/CommandBuffer.h
@@ -69,8 +73,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/Window.h
 
   # Core Components
-  components/AssetManager.cpp
-  components/AssetManager.h
   components/Camera.cpp
   components/Camera.h
   components/ImGuiInstance.cpp
