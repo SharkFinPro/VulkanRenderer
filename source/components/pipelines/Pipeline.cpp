@@ -1,5 +1,5 @@
 #include "Pipeline.h"
-#include "../core/logicalDevice/LogicalDevice.h"
+#include "../logicalDevice/LogicalDevice.h"
 
 namespace vke {
 

@@ -4,7 +4,7 @@
 #include "descriptorSets/LayoutBindings.h"
 #include "../../RenderPass.h"
 #include "../../textures/Texture2D.h"
-#include "../../core/commandBuffer/CommandBuffer.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../UniformBuffer.h"
 
 namespace vke {

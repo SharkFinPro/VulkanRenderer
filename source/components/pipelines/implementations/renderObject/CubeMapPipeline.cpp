@@ -5,8 +5,8 @@
 #include "../../../RenderPass.h"
 #include "../../../textures/TextureCubemap.h"
 #include "../../../textures/Texture3D.h"
-#include "../../../core/commandBuffer/CommandBuffer.h"
-#include "../../../core/logicalDevice/LogicalDevice.h"
+#include "../../../commandBuffer/CommandBuffer.h"
+#include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../UniformBuffer.h"
 #include <imgui.h>
 

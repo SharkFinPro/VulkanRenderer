@@ -1,5 +1,5 @@
 #include "GridPipeline.h"
-#include "../../core/commandBuffer/CommandBuffer.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../UniformBuffer.h"
 #include "common/GraphicsPipelineStates.h"
 #include "descriptorSets/DescriptorSet.h"

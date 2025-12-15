@@ -1,6 +1,6 @@
 #include "TextureCubemap.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
-#include "../../components/core/physicalDevice/PhysicalDevice.h"
+#include "../../components/logicalDevice/LogicalDevice.h"
+#include "../../components/physicalDevice/PhysicalDevice.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
 #include <stb_image.h>

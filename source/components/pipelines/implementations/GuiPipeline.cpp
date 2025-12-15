@@ -2,7 +2,7 @@
 #include "common/GraphicsPipelineStates.h"
 #include "../../RenderPass.h"
 #include "../../ImGuiInstance.h"
-#include "../../core/logicalDevice/LogicalDevice.h"
+#include "../../logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
 namespace vke {

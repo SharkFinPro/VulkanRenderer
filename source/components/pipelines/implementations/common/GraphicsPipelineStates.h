@@ -5,8 +5,8 @@
 #include "../vertexInputs/Particle.h"
 #include "../vertexInputs/Vertex.h"
 #include "../vertexInputs/SmokeParticle.h"
-#include "../../../core/logicalDevice/LogicalDevice.h"
-#include "../../../core/physicalDevice/PhysicalDevice.h"
+#include "../../../logicalDevice/LogicalDevice.h"
+#include "../../../physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
 #include <array>
 #include <memory>

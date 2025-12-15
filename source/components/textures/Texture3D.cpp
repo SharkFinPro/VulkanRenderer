@@ -1,5 +1,5 @@
 #include "Texture3D.h"
-#include "../../components/core/logicalDevice/LogicalDevice.h"
+#include "../../components/logicalDevice/LogicalDevice.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
 #include <stdexcept>

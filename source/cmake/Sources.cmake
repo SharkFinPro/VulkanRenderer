@@ -1,26 +1,9 @@
-# Core Components - Low-level API wrappers
-set(VULKAN_ENGINE_SOURCES_CORE_COMPONENTS
-  # Command Buffer Management
-  components/core/commandBuffer/CommandBuffer.cpp
-  components/core/commandBuffer/CommandBuffer.h
-
-  # Instance Management
-  components/core/instance/DebugMessenger.cpp
-  components/core/instance/DebugMessenger.h
-  components/core/instance/Instance.cpp
-  components/core/instance/Instance.h
-
-  # Logical Device Management
-  components/core/logicalDevice/LogicalDevice.cpp
-  components/core/logicalDevice/LogicalDevice.h
-
-  # Physical Device Managements
-  components/core/physicalDevice/PhysicalDevice.cpp
-  components/core/physicalDevice/PhysicalDevice.h
-)
-
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
+  # Command Buffer Management
+  components/commandBuffer/CommandBuffer.cpp
+  components/commandBuffer/CommandBuffer.h
+
   # Computing
   components/computingManager/ComputingManager.cpp
   components/computingManager/ComputingManager.h
@@ -33,17 +16,31 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/framebuffers/SwapchainFramebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.h
 
+  # Instance Management
+  components/instance/DebugMessenger.cpp
+  components/instance/DebugMessenger.h
+  components/instance/Instance.cpp
+  components/instance/Instance.h
+
   # Lighting
   components/lighting/Light.cpp
   components/lighting/Light.h
   components/lighting/LightingManager.cpp
   components/lighting/LightingManager.h
 
+  # Logical Device Management
+  components/logicalDevice/LogicalDevice.cpp
+  components/logicalDevice/LogicalDevice.h
+
   # Objects - Renderable objects and data structures
   components/objects/Model.cpp
   components/objects/Model.h
   components/objects/RenderObject.cpp
   components/objects/RenderObject.h
+
+  # Physical Device Managements
+  components/physicalDevice/PhysicalDevice.cpp
+  components/physicalDevice/PhysicalDevice.h
 
   # Rendering Manager
   components/renderingManager/DynamicRenderer.cpp
@@ -174,7 +171,6 @@ set(VULKAN_ENGINE_SOURCES_BASE
 
 # Combine all source groups
 set(VULKAN_ENGINE_SOURCES
-  ${VULKAN_ENGINE_SOURCES_CORE_COMPONENTS}
   ${VULKAN_ENGINE_SOURCES_COMPONENTS}
   ${VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS}
   ${VULKAN_ENGINE_SOURCES_PIPELINES}

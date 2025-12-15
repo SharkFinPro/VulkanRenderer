@@ -1,10 +1,10 @@
 #include "ImGuiInstance.h"
 
 #include "window/Window.h"
-#include "core/commandBuffer/CommandBuffer.h"
-#include "core/instance/Instance.h"
-#include "core/physicalDevice/PhysicalDevice.h"
-#include "core/logicalDevice/LogicalDevice.h"
+#include "commandBuffer/CommandBuffer.h"
+#include "instance/Instance.h"
+#include "physicalDevice/PhysicalDevice.h"
+#include "logicalDevice/LogicalDevice.h"
 #include "RenderPass.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>

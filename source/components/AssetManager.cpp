@@ -1,5 +1,5 @@
 #include "AssetManager.h"
-#include "core/logicalDevice/LogicalDevice.h"
+#include "logicalDevice/LogicalDevice.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "textures/Texture2D.h"

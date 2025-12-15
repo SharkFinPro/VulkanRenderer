@@ -1,6 +1,6 @@
 #include "ComputingManager.h"
-#include "../core/commandBuffer/CommandBuffer.h"
-#include "../core/logicalDevice/LogicalDevice.h"
+#include "../commandBuffer/CommandBuffer.h"
+#include "../logicalDevice/LogicalDevice.h"
 #include "../PipelineManager.h"
 #include "../pipelines/implementations/DotsPipeline.h"
 #include "../pipelines/implementations/SmokePipeline.h"

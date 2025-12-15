@@ -2,8 +2,8 @@
 #include "../common/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../../../RenderPass.h"
-#include "../../../core/commandBuffer/CommandBuffer.h"
-#include "../../../core/logicalDevice/LogicalDevice.h"
+#include "../../../commandBuffer/CommandBuffer.h"
+#include "../../../logicalDevice/LogicalDevice.h"
 
 namespace vke {
 

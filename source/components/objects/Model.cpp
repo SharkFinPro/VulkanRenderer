@@ -1,6 +1,6 @@
 #include "Model.h"
-#include "../core/commandBuffer/CommandBuffer.h"
-#include "../core/logicalDevice/LogicalDevice.h"
+#include "../commandBuffer/CommandBuffer.h"
+#include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/vertexInputs/Vertex.h"
 #include "../../utilities/Buffers.h"
 #include <assimp/Importer.hpp>
