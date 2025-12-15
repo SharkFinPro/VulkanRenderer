@@ -1,7 +1,7 @@
 #ifndef VKE_MOUSEPICKER_H
 #define VKE_MOUSEPICKER_H
 
-#include "../pipelines/custom/renderObject/MousePickingPipeline.h"
+#include "pipelines/implementations/renderObject/MousePickingPipeline.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>

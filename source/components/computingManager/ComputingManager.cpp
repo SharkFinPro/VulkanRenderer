@@ -2,8 +2,8 @@
 #include "../core/commandBuffer/CommandBuffer.h"
 #include "../core/logicalDevice/LogicalDevice.h"
 #include "../PipelineManager.h"
-#include "../../pipelines/custom/DotsPipeline.h"
-#include "../../pipelines/custom/SmokePipeline.h"
+#include "../pipelines/implementations/DotsPipeline.h"
+#include "../pipelines/implementations/SmokePipeline.h"
 
 namespace vke {
 

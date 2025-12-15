@@ -90,71 +90,71 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
 
 # Pipeline Infrastructure
 set(VULKAN_ENGINE_SOURCES_PIPELINES
-  pipelines/ComputePipeline.cpp
-  pipelines/ComputePipeline.h
-  pipelines/GraphicsPipeline.cpp
-  pipelines/GraphicsPipeline.h
-  pipelines/Pipeline.cpp
-  pipelines/Pipeline.h
-  pipelines/ShaderModule.cpp
-  pipelines/ShaderModule.h
+  components/pipelines/ComputePipeline.cpp
+  components/pipelines/ComputePipeline.h
+  components/pipelines/GraphicsPipeline.cpp
+  components/pipelines/GraphicsPipeline.h
+  components/pipelines/Pipeline.cpp
+  components/pipelines/Pipeline.h
+  components/pipelines/ShaderModule.cpp
+  components/pipelines/ShaderModule.h
 )
 
-# Custom Pipeline Implementations
-set(VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM
+# implementations Pipeline Implementations
+set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   # RenderObject Pipelines
-  pipelines/custom/renderObject/BumpyCurtain.cpp
-  pipelines/custom/renderObject/BumpyCurtain.h
-  pipelines/custom/renderObject/CrossesPipeline.cpp
-  pipelines/custom/renderObject/CrossesPipeline.h
-  pipelines/custom/renderObject/CubeMapPipeline.cpp
-  pipelines/custom/renderObject/CubeMapPipeline.h
-  pipelines/custom/renderObject/CurtainPipeline.cpp
-  pipelines/custom/renderObject/CurtainPipeline.h
-  pipelines/custom/renderObject/EllipticalDots.cpp
-  pipelines/custom/renderObject/EllipticalDots.h
-  pipelines/custom/renderObject/MagnifyWhirlMosaicPipeline.cpp
-  pipelines/custom/renderObject/MagnifyWhirlMosaicPipeline.h
-  pipelines/custom/renderObject/MousePickingPipeline.cpp
-  pipelines/custom/renderObject/MousePickingPipeline.h
-  pipelines/custom/renderObject/NoisyEllipticalDots.cpp
-  pipelines/custom/renderObject/NoisyEllipticalDots.h
-  pipelines/custom/renderObject/ObjectHighlightPipeline.cpp
-  pipelines/custom/renderObject/ObjectHighlightPipeline.h
-  pipelines/custom/renderObject/ObjectsPipeline.cpp
-  pipelines/custom/renderObject/ObjectsPipeline.h
-  pipelines/custom/renderObject/SnakePipeline.cpp
-  pipelines/custom/renderObject/SnakePipeline.h
-  pipelines/custom/renderObject/TexturedPlane.cpp
-  pipelines/custom/renderObject/TexturedPlane.h
+  components/pipelines/implementations/renderObject/BumpyCurtain.cpp
+  components/pipelines/implementations/renderObject/BumpyCurtain.h
+  components/pipelines/implementations/renderObject/CrossesPipeline.cpp
+  components/pipelines/implementations/renderObject/CrossesPipeline.h
+  components/pipelines/implementations/renderObject/CubeMapPipeline.cpp
+  components/pipelines/implementations/renderObject/CubeMapPipeline.h
+  components/pipelines/implementations/renderObject/CurtainPipeline.cpp
+  components/pipelines/implementations/renderObject/CurtainPipeline.h
+  components/pipelines/implementations/renderObject/EllipticalDots.cpp
+  components/pipelines/implementations/renderObject/EllipticalDots.h
+  components/pipelines/implementations/renderObject/MagnifyWhirlMosaicPipeline.cpp
+  components/pipelines/implementations/renderObject/MagnifyWhirlMosaicPipeline.h
+  components/pipelines/implementations/renderObject/MousePickingPipeline.cpp
+  components/pipelines/implementations/renderObject/MousePickingPipeline.h
+  components/pipelines/implementations/renderObject/NoisyEllipticalDots.cpp
+  components/pipelines/implementations/renderObject/NoisyEllipticalDots.h
+  components/pipelines/implementations/renderObject/ObjectHighlightPipeline.cpp
+  components/pipelines/implementations/renderObject/ObjectHighlightPipeline.h
+  components/pipelines/implementations/renderObject/ObjectsPipeline.cpp
+  components/pipelines/implementations/renderObject/ObjectsPipeline.h
+  components/pipelines/implementations/renderObject/SnakePipeline.cpp
+  components/pipelines/implementations/renderObject/SnakePipeline.h
+  components/pipelines/implementations/renderObject/TexturedPlane.cpp
+  components/pipelines/implementations/renderObject/TexturedPlane.h
 
   # Other Pipelines
-  pipelines/custom/BendyPipeline.cpp
-  pipelines/custom/BendyPipeline.h
-  pipelines/custom/DotsPipeline.cpp
-  pipelines/custom/DotsPipeline.h
-  pipelines/custom/GridPipeline.cpp
-  pipelines/custom/GridPipeline.h
-  pipelines/custom/GuiPipeline.cpp
-  pipelines/custom/GuiPipeline.h
-  pipelines/custom/LinePipeline.cpp
-  pipelines/custom/LinePipeline.h
-  pipelines/custom/SmokePipeline.cpp
-  pipelines/custom/SmokePipeline.h
+  components/pipelines/implementations/BendyPipeline.cpp
+  components/pipelines/implementations/BendyPipeline.h
+  components/pipelines/implementations/DotsPipeline.cpp
+  components/pipelines/implementations/DotsPipeline.h
+  components/pipelines/implementations/GridPipeline.cpp
+  components/pipelines/implementations/GridPipeline.h
+  components/pipelines/implementations/GuiPipeline.cpp
+  components/pipelines/implementations/GuiPipeline.h
+  components/pipelines/implementations/LinePipeline.cpp
+  components/pipelines/implementations/LinePipeline.h
+  components/pipelines/implementations/SmokePipeline.cpp
+  components/pipelines/implementations/SmokePipeline.h
 
   # Configuration and State Headers
-  pipelines/custom/config/GraphicsPipelineStates.h
-  pipelines/custom/config/PipelineTypes.h
-  pipelines/custom/config/Uniforms.h
-  pipelines/custom/descriptorSets/DescriptorSet.cpp
-  pipelines/custom/descriptorSets/DescriptorSet.h
-  pipelines/custom/descriptorSets/LayoutBindings.h
+  components/pipelines/implementations/common/GraphicsPipelineStates.h
+  components/pipelines/implementations/common/PipelineTypes.h
+  components/pipelines/implementations/common/Uniforms.h
+  components/pipelines/implementations/descriptorSets/DescriptorSet.cpp
+  components/pipelines/implementations/descriptorSets/DescriptorSet.h
+  components/pipelines/implementations/descriptorSets/LayoutBindings.h
 
   # Vertex Input States
-  pipelines/custom/vertexInputs/LineVertex.h
-  pipelines/custom/vertexInputs/Particle.h
-  pipelines/custom/vertexInputs/SmokeParticle.h
-  pipelines/custom/vertexInputs/Vertex.h
+  components/pipelines/implementations/vertexInputs/LineVertex.h
+  components/pipelines/implementations/vertexInputs/Particle.h
+  components/pipelines/implementations/vertexInputs/SmokeParticle.h
+  components/pipelines/implementations/vertexInputs/Vertex.h
 )
 
 # Utilities - Helper functions and common operations
@@ -176,7 +176,7 @@ set(VULKAN_ENGINE_SOURCES_BASE
 set(VULKAN_ENGINE_SOURCES
   ${VULKAN_ENGINE_SOURCES_CORE_COMPONENTS}
   ${VULKAN_ENGINE_SOURCES_COMPONENTS}
-  ${VULKAN_ENGINE_SOURCES_PIPELINES_CUSTOM}
+  ${VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS}
   ${VULKAN_ENGINE_SOURCES_PIPELINES}
   ${VULKAN_ENGINE_SOURCES_UTILITIES}
   ${VULKAN_ENGINE_SOURCES_BASE}

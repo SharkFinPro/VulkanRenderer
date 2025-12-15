@@ -3,7 +3,7 @@
 #include <source/components/objects/RenderObject.h>
 #include <source/components/AssetManager.h>
 #include <source/components/PipelineManager.h>
-#include <source/pipelines/custom/config/PipelineTypes.h>
+#include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <iostream>
 

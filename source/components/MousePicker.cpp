@@ -4,7 +4,7 @@
 #include "framebuffers/StandardFramebuffer.h"
 #include "../components/core/commandBuffer/CommandBuffer.h"
 #include "../components/core/logicalDevice/LogicalDevice.h"
-#include "../pipelines/custom/config/PipelineTypes.h"
+#include "pipelines/implementations/common/PipelineTypes.h"
 #include "../utilities/Buffers.h"
 #include "../utilities/Images.h"
 

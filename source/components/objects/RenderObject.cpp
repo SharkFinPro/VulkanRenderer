@@ -4,7 +4,7 @@
 #include "../textures/Texture.h"
 #include "../core/commandBuffer/CommandBuffer.h"
 #include "../core/logicalDevice/LogicalDevice.h"
-#include "../../pipelines/custom/config/Uniforms.h"
+#include "../pipelines/implementations/common/Uniforms.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
 
