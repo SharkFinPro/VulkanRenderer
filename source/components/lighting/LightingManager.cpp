@@ -1,5 +1,5 @@
 #include "LightingManager.h"
-#include "Light.h"
+#include "lights/Light.h"
 #include "../../components/logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/Uniforms.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"

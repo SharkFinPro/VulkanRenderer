@@ -1,4 +1,4 @@
-#include "../SpotLight.h"
+#include "SpotLight.h"
 
 namespace vke {
 } // vke
