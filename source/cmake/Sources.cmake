@@ -60,10 +60,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/physicalDevice/PhysicalDevice.cpp
   components/physicalDevice/PhysicalDevice.h
 
-  # Pipeline Management
-  components/pipelineManager/PipelineManager.cpp
-  components/pipelineManager/PipelineManager.h
-
   # Rendering Manager
     # Legacy Renderer
     components/renderingManager/legacyRenderer/LegacyRenderer.cpp
@@ -108,6 +104,10 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   components/pipelines/descriptorSets/DescriptorSet.cpp
   components/pipelines/descriptorSets/DescriptorSet.h
   components/pipelines/descriptorSets/LayoutBindings.h
+
+  # Pipeline Management
+  components/pipelines/pipelineManager/PipelineManager.cpp
+  components/pipelines/pipelineManager/PipelineManager.h
 
   # Shader Modules
   components/pipelines/shaderModules/ShaderModule.cpp

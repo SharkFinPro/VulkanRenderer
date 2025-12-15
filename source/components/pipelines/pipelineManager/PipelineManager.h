@@ -1,9 +1,9 @@
 #ifndef VKE_PIPELINEMANAGER_H
 #define VKE_PIPELINEMANAGER_H
 
-#include "../pipelines/implementations/BendyPipeline.h"
-#include "../pipelines/implementations/GridPipeline.h"
-#include "../pipelines/implementations/LinePipeline.h"
+#include "../implementations/BendyPipeline.h"
+#include "../implementations/GridPipeline.h"
+#include "../implementations/LinePipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>
