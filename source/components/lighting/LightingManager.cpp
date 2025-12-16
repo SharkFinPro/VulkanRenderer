@@ -18,13 +18,20 @@ LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDe
   createUniforms();
 
   createDescriptorSet(descriptorPool);
+
+  createShadowMapSampler();
 }
 
-  std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
-                                                           glm::vec3 color,
-                                                           float ambient,
-                                                           float diffuse,
-                                                           float specular = 1.0f)
+LightingManager::~LightingManager()
+{
+  destroyShadowMapSampler();
+}
+
+std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
+                                                         glm::vec3 color,
+                                                         float ambient,
+                                                         float diffuse,
+                                                         float specular = 1.0f)
 {
   auto light = std::make_shared<PointLight>(m_logicalDevice, position, color, ambient, diffuse, specular);
 
@@ -238,4 +245,31 @@ void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
   m_spotLightsUniform->update(currentFrame, lightUniforms.data());
 }
 
+void LightingManager::createShadowMapSampler()
+{
+  constexpr VkSamplerCreateInfo samplerInfo {
+    .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+    .magFilter = VK_FILTER_LINEAR,
+    .minFilter = VK_FILTER_LINEAR,
+    .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+    .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+    .mipLodBias = 0.0f,
+    .anisotropyEnable = VK_FALSE,
+    .compareEnable = VK_TRUE,
+    .compareOp = VK_COMPARE_OP_LESS,
+    .minLod = 0.0f,
+    .maxLod = 0.0f,
+    .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+    .unnormalizedCoordinates = VK_FALSE
+  };
+
+  m_shadowMapSampler = m_logicalDevice->createSampler(samplerInfo);
+}
+
+void LightingManager::destroyShadowMapSampler()
+{
+  m_logicalDevice->destroySampler(m_shadowMapSampler);
+}
 } // namespace vke

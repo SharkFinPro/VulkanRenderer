@@ -50,6 +50,7 @@ namespace vke {
   LightUniform SpotLight::getUniform() const
   {
     return SpotLightUniform {
+      .lightViewProjection = getLightViewProjectionMatrix(),
       .position = m_position,
       .ambient = m_ambient,
       .color = m_color,

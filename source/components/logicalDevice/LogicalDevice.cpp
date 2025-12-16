@@ -364,6 +364,11 @@ VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo &samplerCreateI
 
 void LogicalDevice::destroySampler(VkSampler& sampler) const
 {
+  if (sampler == VK_NULL_HANDLE)
+  {
+    return;
+  }
+
   vkDestroySampler(m_device, sampler, nullptr);
 
   sampler = VK_NULL_HANDLE;

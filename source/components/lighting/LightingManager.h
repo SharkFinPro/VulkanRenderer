@@ -19,6 +19,8 @@ public:
                   VkDescriptorPool descriptorPool,
                   VkCommandPool commandPool);
 
+  ~LightingManager();
+
   [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
                                                         glm::vec3 color,
                                                         float ambient,
@@ -59,6 +61,8 @@ private:
 
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
+  VkSampler m_shadowMapSampler = VK_NULL_HANDLE;
+
   void createUniforms();
 
   void createDescriptorSet(VkDescriptorPool descriptorPool);
@@ -68,6 +72,10 @@ private:
   void updatePointLightUniforms(uint32_t currentFrame);
 
   void updateSpotLightUniforms(uint32_t currentFrame);
+
+  void createShadowMapSampler();
+
+  void destroyShadowMapSampler();
 };
 
 } // namespace vke
