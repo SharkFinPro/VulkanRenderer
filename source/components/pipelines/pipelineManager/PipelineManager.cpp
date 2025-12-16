@@ -226,6 +226,8 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
                                                     m_lightingManager->getLightingDescriptorSet());
 
   m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
+
+  m_shadowPipeline = std::make_unique<ShadowPipeline>(m_logicalDevice, m_renderPass, objectDescriptorSetLayout);
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const

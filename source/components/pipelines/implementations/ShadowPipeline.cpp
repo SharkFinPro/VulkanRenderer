@@ -5,7 +5,8 @@
 
 namespace vke {
   ShadowPipeline::ShadowPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 std::shared_ptr<RenderPass> renderPass)
+                                 std::shared_ptr<RenderPass> renderPass,
+                                 const VkDescriptorSetLayout objectDescriptorSetLayout)
     : GraphicsPipeline(logicalDevice)
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
@@ -29,10 +30,13 @@ namespace vke {
           .size = sizeof(glm::mat4)
         }
       },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout
+      },
       .renderPass = renderPass
     };
 
-    createPipeline(graphicsPipelineOptions);
+    createPipeline(graphicsPipelineOptions, false);
   }
 
   void ShadowPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)

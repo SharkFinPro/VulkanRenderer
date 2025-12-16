@@ -4,6 +4,7 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
+#include "../implementations/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>
@@ -85,6 +86,8 @@ private:
   std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
   std::unique_ptr<GridPipeline> m_gridPipeline;
+
+  std::unique_ptr<ShadowPipeline> m_shadowPipeline;
 
   bool m_shouldDoDots;
 
