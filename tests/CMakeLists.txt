@@ -10,6 +10,7 @@ add_subdirectory(mousePicking)
 add_subdirectory(noisyEllipticalDots)
 add_subdirectory(objectLoading)
 add_subdirectory(plants)
+add_subdirectory(shadows)
 add_subdirectory(smoke)
 add_subdirectory(snake)
 add_subdirectory(spotLight)
@@ -29,6 +30,7 @@ add_custom_target(build_all
   noisyEllipticalDots
   objectLoading
   plants
+  shadows
   smoke
   snake
   spotLight
