@@ -114,4 +114,24 @@ namespace vke {
     m_logicalDevice->destroyImageView(m_shadowMapView);
     m_logicalDevice->freeMemory(m_shadowMapMemory);
   }
+
+  VkImage SpotLight::getShadowMap() const
+  {
+    return m_shadowMap;
+  }
+
+  VkImageView SpotLight::getShadowMapView() const
+  {
+    return m_shadowMapView;
+  }
+
+  uint32_t SpotLight::getShadowMapSize() const
+  {
+    return m_shadowMapSize;
+  }
+
+  bool SpotLight::castsShadows() const
+  {
+    return m_castsShadows;
+  }
 } // vke

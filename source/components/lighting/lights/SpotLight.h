@@ -31,6 +31,11 @@ namespace vke {
 
     void destroyShadowMap();
 
+    [[nodiscard]] VkImage getShadowMap() const;
+    [[nodiscard]] VkImageView getShadowMapView() const;
+    [[nodiscard]] uint32_t getShadowMapSize() const;
+    [[nodiscard]] bool castsShadows() const;
+
   private:
     VkImage m_shadowMap = VK_NULL_HANDLE;
     VkImageView m_shadowMapView = VK_NULL_HANDLE;
