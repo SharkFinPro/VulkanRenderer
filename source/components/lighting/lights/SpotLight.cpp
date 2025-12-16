@@ -1,7 +1,8 @@
 #include "SpotLight.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Images.h"
-#include <glm/detail/func_trigonometric.inl>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace vke {
   SpotLight::SpotLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -133,5 +134,30 @@ namespace vke {
   bool SpotLight::castsShadows() const
   {
     return m_castsShadows;
+  }
+
+  glm::mat4 SpotLight::getLightViewProjectionMatrix() const
+  {
+    const glm::vec3 up = std::abs(m_direction.y) > 0.99f
+                         ? glm::vec3(1, 0, 0)
+                         : glm::vec3(0, 1, 0);
+
+    const glm::mat4 view = glm::lookAt(
+      m_position,
+      m_position + m_direction,
+      up
+    );
+
+    const float fov = m_coneAngle * 2.0f;
+    glm::mat4 proj = glm::perspective(
+      glm::radians(fov),
+      1.0f,
+      0.1f,
+      100.0f
+    );
+
+    proj[1][1] *= -1;
+
+    return proj * view;
   }
 } // vke

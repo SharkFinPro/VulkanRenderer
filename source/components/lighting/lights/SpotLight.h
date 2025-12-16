@@ -2,6 +2,7 @@
 #define VULKANPROJECT_SPOTLIGHT_H
 
 #include "Light.h"
+#include <glm/mat4x4.hpp>
 #include <vulkan/vulkan.h>
 
 namespace vke {
@@ -35,6 +36,8 @@ namespace vke {
     [[nodiscard]] VkImageView getShadowMapView() const;
     [[nodiscard]] uint32_t getShadowMapSize() const;
     [[nodiscard]] bool castsShadows() const;
+
+    [[nodiscard]] glm::mat4 getLightViewProjectionMatrix() const;
 
   private:
     VkImage m_shadowMap = VK_NULL_HANDLE;
