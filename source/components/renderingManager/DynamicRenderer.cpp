@@ -149,7 +149,7 @@ void DynamicRenderer::beginShadowRendering(uint32_t imageIndex,
     .imageView = spotLight->getShadowMapView(),
     .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-    .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .clearValue = {
       .depthStencil = {1.0f, 0}
     }
