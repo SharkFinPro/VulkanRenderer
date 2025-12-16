@@ -10,6 +10,7 @@ struct PointLight {
 };
 
 struct SpotLight {
+  mat4 lightViewProjection;
   vec3 position;
   float ambient;
   vec3 color;

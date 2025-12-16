@@ -4,9 +4,13 @@
 #include "lights/SpotLight.h"
 #include "../../components/logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/Uniforms.h"
+#include "../pipelines/implementations/renderObject/ShadowPipeline.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
 #include "../pipelines/descriptorSets/LayoutBindings.h"
+#include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
+#include "../renderingManager/Renderer.h"
+#include "../commandBuffer/CommandBuffer.h"
 
 namespace vke {
 
@@ -81,6 +85,53 @@ void LightingManager::clearLightsToRender()
 void LightingManager::update(const uint32_t currentFrame, const glm::vec3 viewPosition)
 {
   updateUniforms(currentFrame, viewPosition);
+}
+
+void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                       const std::shared_ptr<PipelineManager>& pipelineManager,
+                                       const std::shared_ptr<Renderer>& renderer,
+                                       const uint32_t currentFrame) const
+{
+  for (auto& light : m_spotLightsToRender)
+  {
+    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
+    if (!spotLight->castsShadows())
+    {
+      continue;
+    }
+
+    const VkExtent2D shadowExtent {
+      .width = spotLight->getShadowMapSize(),
+      .height = spotLight->getShadowMapSize()
+    };
+
+    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, spotLight);
+
+    VkViewport viewport {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(shadowExtent.width),
+      .height = static_cast<float>(shadowExtent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    commandBuffer->setViewport(viewport);
+
+    VkRect2D scissor = {{0, 0}, shadowExtent};
+    commandBuffer->setScissor(scissor);
+
+    RenderInfo shadowRenderInfo = {
+      .commandBuffer = commandBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = spotLight->getPosition(),
+      .viewMatrix = spotLight->getLightViewProjectionMatrix(),
+      .extent = shadowExtent
+    };
+
+    pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
+
+    renderer->endShadowRendering(0, commandBuffer, spotLight);
+  }
 }
 
 void LightingManager::createUniforms()

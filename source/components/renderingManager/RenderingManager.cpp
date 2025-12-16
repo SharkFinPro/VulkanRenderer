@@ -67,7 +67,7 @@ void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipel
 
   m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
   m_offscreenCommandBuffer->resetCommandBuffer();
-  recordOffscreenCommandBuffer(pipelineManager, currentFrame, imageIndex);
+  recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame, imageIndex);
   m_logicalDevice->submitOffscreenGraphicsQueue(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
 
   m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
@@ -212,9 +212,11 @@ void RenderingManager::renderGuiScene(const uint32_t imageIndex)
 }
 
 void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                    uint32_t currentFrame, const uint32_t imageIndex) const
+                                                    const std::shared_ptr<LightingManager>& lightingManager,
+                                                    uint32_t currentFrame,
+                                                    const uint32_t imageIndex) const
 {
-  m_offscreenCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
+  m_offscreenCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex, lightingManager]()
   {
     if (!m_shouldRenderOffscreen ||
         m_offscreenViewportExtent.width == 0 ||
@@ -222,6 +224,8 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
     {
       return;
     }
+
+    lightingManager->renderShadowMaps(m_offscreenCommandBuffer, pipelineManager, m_renderer, currentFrame);
 
     m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 

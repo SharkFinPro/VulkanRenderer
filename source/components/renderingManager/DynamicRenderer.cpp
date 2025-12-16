@@ -184,7 +184,9 @@ void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex, const std::shar
   commandBuffer->endRendering();
 }
 
-void DynamicRenderer::endShadowRendering(uint32_t imageIndex, const std::shared_ptr<CommandBuffer> commandBuffer)
+void DynamicRenderer::endShadowRendering(uint32_t imageIndex,
+                                         const std::shared_ptr<CommandBuffer> commandBuffer,
+                                         const std::shared_ptr<SpotLight>& spotLight)
 {
   commandBuffer->endRendering();
 }

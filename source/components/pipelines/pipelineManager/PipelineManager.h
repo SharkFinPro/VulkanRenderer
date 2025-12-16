@@ -59,6 +59,9 @@ public:
 
   [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
 
+  void renderShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                            const RenderInfo& renderInfo);
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 

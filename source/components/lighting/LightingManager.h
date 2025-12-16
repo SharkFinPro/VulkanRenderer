@@ -7,10 +7,17 @@
 #include <vector>
 
 namespace vke {
+  class ShadowPipeline;
+}
 
+namespace vke {
+
+class CommandBuffer;
 class DescriptorSet;
 class Light;
 class LogicalDevice;
+class PipelineManager;
+class Renderer;
 class UniformBuffer;
 
 class LightingManager {
@@ -40,6 +47,11 @@ public:
   void clearLightsToRender();
 
   void update(uint32_t currentFrame, glm::vec3 viewPosition);
+
+  void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                        const std::shared_ptr<PipelineManager>& pipelineManager,
+                        const std::shared_ptr<Renderer>& renderer,
+                        uint32_t currentFrame) const;
 
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
