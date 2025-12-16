@@ -73,7 +73,6 @@ void setupScene(const vke::VulkanEngine& renderer,
   object3->setPosition({ 10, 0, 15 });
   objects.push_back(object3);
 
-
   lights.push_back(renderer.getLightingManager()->createSpotLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
   lights.push_back(renderer.getLightingManager()->createSpotLight({5.0f, 3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
