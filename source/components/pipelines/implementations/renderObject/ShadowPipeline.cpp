@@ -1,7 +1,7 @@
 #include "ShadowPipeline.h"
-#include "common/GraphicsPipelineStates.h"
-#include "../../assets/objects/RenderObject.h"
-#include "../../commandBuffer/CommandBuffer.h"
+#include "../common/GraphicsPipelineStates.h"
+#include "../../../assets/objects/RenderObject.h"
+#include "../../../commandBuffer/CommandBuffer.h"
 
 namespace vke {
   ShadowPipeline::ShadowPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,

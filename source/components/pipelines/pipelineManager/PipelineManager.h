@@ -4,7 +4,7 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
-#include "../implementations/ShadowPipeline.h"
+#include "../implementations/renderObject/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>

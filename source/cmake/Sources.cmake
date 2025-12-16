@@ -147,6 +147,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/ObjectHighlightPipeline.h
   components/pipelines/implementations/renderObject/ObjectsPipeline.cpp
   components/pipelines/implementations/renderObject/ObjectsPipeline.h
+  components/pipelines/implementations/renderObject/ShadowPipeline.cpp
+  components/pipelines/implementations/renderObject/ShadowPipeline.h
   components/pipelines/implementations/renderObject/SnakePipeline.cpp
   components/pipelines/implementations/renderObject/SnakePipeline.h
   components/pipelines/implementations/renderObject/TexturedPlane.cpp
@@ -163,8 +165,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/GuiPipeline.h
   components/pipelines/implementations/LinePipeline.cpp
   components/pipelines/implementations/LinePipeline.h
-  components/pipelines/implementations/ShadowPipeline.cpp
-  components/pipelines/implementations/ShadowPipeline.h
   components/pipelines/implementations/SmokePipeline.cpp
   components/pipelines/implementations/SmokePipeline.h
 

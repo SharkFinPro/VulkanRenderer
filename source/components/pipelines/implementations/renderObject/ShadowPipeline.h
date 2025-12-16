@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_SHADOWPIPELINE_H
 #define VULKANPROJECT_SHADOWPIPELINE_H
 
-#include "../GraphicsPipeline.h"
+#include "../../GraphicsPipeline.h"
 
 namespace vke {
   class ShadowPipeline : public GraphicsPipeline {
