@@ -6,6 +6,8 @@
 
 namespace vke {
 
+  constexpr uint32_t MAX_SHADOW_MAPS = 16;
+
 namespace LayoutBindings {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 0,
@@ -25,6 +27,13 @@ namespace LayoutBindings {
     .binding = 2,
     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
     .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  constexpr VkDescriptorSetLayoutBinding spotLightsSamplerLayout {
+    .binding = 4,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = MAX_SHADOW_MAPS,
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
@@ -150,7 +159,8 @@ namespace LayoutBindings {
     lightMetadataLayout,
     pointLightsLayout,
     spotLightsLayout,
-    cameraLayout
+    cameraLayout,
+    spotLightsSamplerLayout
   };
 
   inline std::vector<VkDescriptorSetLayoutBinding> bumpyCurtainLayoutBindings {

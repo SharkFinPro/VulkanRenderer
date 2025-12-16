@@ -294,6 +294,53 @@ void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
   }
 
   m_spotLightsUniform->update(currentFrame, lightUniforms.data());
+
+  updateSpotLightShadowMaps(currentFrame);
+
+  updateSpotLightShadowMaps(currentFrame);
+}
+
+void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) const
+{
+  std::vector<VkDescriptorImageInfo> imageInfos;
+  imageInfos.reserve(MAX_SHADOW_MAPS);
+
+  for (auto& light : m_spotLightsToRender)
+  {
+    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
+    if (!spotLight || !spotLight->castsShadows())
+    {
+      continue;
+    }
+
+    imageInfos.push_back({
+      m_shadowMapSampler,
+      spotLight->getShadowMapView(),
+      VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+    });
+
+    if (imageInfos.size() >= MAX_SHADOW_MAPS)
+    {
+      break;
+    }
+  }
+
+  if (imageInfos.empty())
+  {
+    return;
+  }
+
+  const VkWriteDescriptorSet samplerWrite {
+    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
+    .dstBinding = 4,
+    .dstArrayElement = 0,
+    .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .pImageInfo = imageInfos.data(),
+  };
+
+  m_logicalDevice->updateDescriptorSets(1, &samplerWrite);
 }
 
 void LightingManager::createShadowMapSampler()

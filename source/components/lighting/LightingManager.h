@@ -85,6 +85,8 @@ private:
 
   void updateSpotLightUniforms(uint32_t currentFrame);
 
+  void updateSpotLightShadowMaps(uint32_t currentFrame) const;
+
   void createShadowMapSampler();
 
   void destroyShadowMapSampler();
