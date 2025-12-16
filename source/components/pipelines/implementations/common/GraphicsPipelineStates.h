@@ -92,6 +92,14 @@ namespace GraphicsPipelineStates {
     .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
   };
 
+  inline VkPipelineColorBlendStateCreateInfo colorBlendStateShadow {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+    .logicOpEnable = VK_FALSE,
+    .attachmentCount = 0,
+    .pAttachments = nullptr,
+    .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}
+  };
+
   inline VkPipelineDepthStencilStateCreateInfo depthStencilState {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
     .depthTestEnable = VK_TRUE,
