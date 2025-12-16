@@ -15,7 +15,9 @@ class UniformBuffer;
 
 class LightingManager {
 public:
-  LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDescriptorPool descriptorPool);
+  LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                  VkDescriptorPool descriptorPool,
+                  VkCommandPool commandPool);
 
   [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
                                                         glm::vec3 color,
@@ -54,6 +56,8 @@ private:
 
   std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
   std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
+
+  VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
   void createUniforms();
 

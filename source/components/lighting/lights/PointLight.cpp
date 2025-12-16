@@ -1,12 +1,13 @@
 #include "PointLight.h"
 
 namespace vke {
-  PointLight::PointLight(const glm::vec3& position,
+  PointLight::PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                         const glm::vec3& position,
                          const glm::vec3& color,
                          const float ambient,
                          const float diffuse,
                          const float specular)
-    : Light(position, color, ambient, diffuse, specular)
+    : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {}
 
   LightType PointLight::getLightType() const

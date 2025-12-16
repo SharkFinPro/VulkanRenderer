@@ -402,6 +402,11 @@ VkImage LogicalDevice::createImage(const VkImageCreateInfo& imageCreateInfo) con
 
 void LogicalDevice::destroyImage(VkImage& image) const
 {
+  if (image == VK_NULL_HANDLE)
+  {
+    return;
+  }
+  
   vkDestroyImage(m_device, image, nullptr);
 
   image = VK_NULL_HANDLE;

@@ -124,7 +124,7 @@ void VulkanEngine::createPools()
 
 void VulkanEngine::createComponents()
 {
-  m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool);
+  m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool, m_commandPool);
 
   m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_commandPool);
 

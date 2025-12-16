@@ -10,8 +10,10 @@
 
 namespace vke {
 
-LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDescriptorPool descriptorPool)
-  : m_logicalDevice(logicalDevice)
+LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                 VkDescriptorPool descriptorPool,
+                                 VkCommandPool commandPool)
+  : m_logicalDevice(logicalDevice), m_commandPool(commandPool)
 {
   createUniforms();
 
@@ -24,7 +26,7 @@ LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDe
                                                            float diffuse,
                                                            float specular = 1.0f)
 {
-  auto light = std::make_shared<PointLight>(position, color, ambient, diffuse, specular);
+  auto light = std::make_shared<PointLight>(m_logicalDevice, position, color, ambient, diffuse, specular);
 
   m_lights.push_back(light);
 
@@ -37,7 +39,7 @@ LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDe
                                                           float diffuse,
                                                           float specular = 1.0f)
 {
-  auto light = std::make_shared<SpotLight>(position, color, ambient, diffuse, specular);
+  auto light = std::make_shared<SpotLight>(m_logicalDevice, position, color, ambient, diffuse, specular, m_commandPool);
 
   m_lights.push_back(light);
 

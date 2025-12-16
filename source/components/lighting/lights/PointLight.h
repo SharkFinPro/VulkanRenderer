@@ -6,7 +6,8 @@
 namespace vke {
   class PointLight : public Light {
   public:
-    PointLight(const glm::vec3& position,
+    PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
+               const glm::vec3& position,
                const glm::vec3& color,
                float ambient,
                float diffuse,

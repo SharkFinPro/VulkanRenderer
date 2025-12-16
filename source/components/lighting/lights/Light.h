@@ -2,9 +2,12 @@
 #define VKE_LIGHT_H
 
 #include <glm/vec3.hpp>
+#include <memory>
 #include <variant>
 
 namespace vke {
+
+  class LogicalDevice;
 
   struct alignas(16) PointLightUniform {
     glm::vec3 position;
@@ -37,7 +40,12 @@ namespace vke {
 
 class Light {
 public:
-  Light(const glm::vec3& position, const glm::vec3& color, float ambient, float diffuse, float specular);
+  Light(const std::shared_ptr<LogicalDevice>& logicalDevice,
+        const glm::vec3& position,
+        const glm::vec3& color,
+        float ambient,
+        float diffuse,
+        float specular);
 
   virtual ~Light() = default;
 
@@ -58,6 +66,8 @@ public:
   [[nodiscard]] virtual LightUniform getUniform() const = 0;
 
 protected:
+  std::shared_ptr<LogicalDevice> m_logicalDevice;
+
   glm::vec3 m_position;
   glm::vec3 m_color;
   float m_ambient;
