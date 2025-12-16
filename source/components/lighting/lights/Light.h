@@ -2,6 +2,7 @@
 #define VKE_LIGHT_H
 
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <memory>
 #include <variant>
 
@@ -22,6 +23,7 @@ namespace vke {
   };
 
   struct alignas(16) SpotLightUniform {
+    glm::mat4 lightViewProjection;
     glm::vec3 position;
     float ambient;
     glm::vec3 color;

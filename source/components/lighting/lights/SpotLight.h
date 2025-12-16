@@ -2,7 +2,6 @@
 #define VULKANPROJECT_SPOTLIGHT_H
 
 #include "Light.h"
-#include <glm/mat4x4.hpp>
 #include <vulkan/vulkan.h>
 
 namespace vke {
