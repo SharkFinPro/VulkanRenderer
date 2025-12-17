@@ -197,6 +197,50 @@ void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
   }
 
   m_pointLightsUniform->update(currentFrame, lightUniforms.data());
+
+  updatePointLightShadowMaps(currentFrame);
+}
+
+void LightingManager::updatePointLightShadowMaps(const uint32_t currentFrame) const
+{
+  std::vector<VkDescriptorImageInfo> imageInfos;
+  imageInfos.reserve(MAX_SHADOW_MAPS);
+
+  for (auto& light : m_pointLightsToRender)
+  {
+    if (!light->castsShadows())
+    {
+      continue;
+    }
+
+    imageInfos.push_back({
+      m_shadowMapSampler,
+      light->getShadowMapView(),
+      VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+    });
+
+    if (imageInfos.size() >= MAX_SHADOW_MAPS)
+    {
+      break;
+    }
+  }
+
+  if (imageInfos.empty())
+  {
+    return;
+  }
+
+  const VkWriteDescriptorSet samplerWrite {
+    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
+    .dstBinding = 5,
+    .dstArrayElement = 0,
+    .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .pImageInfo = imageInfos.data(),
+  };
+
+  m_logicalDevice->updateDescriptorSets(1, &samplerWrite);
 }
 
 void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
@@ -268,15 +312,14 @@ void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) con
 
   for (auto& light : m_spotLightsToRender)
   {
-    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
-    if (!spotLight || !spotLight->castsShadows())
+    if (!light->castsShadows())
     {
       continue;
     }
 
     imageInfos.push_back({
       m_shadowMapSampler,
-      spotLight->getShadowMapView(),
+      light->getShadowMapView(),
       VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
     });
 

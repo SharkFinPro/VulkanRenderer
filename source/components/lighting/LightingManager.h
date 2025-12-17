@@ -83,6 +83,8 @@ private:
 
   void updatePointLightUniforms(uint32_t currentFrame);
 
+  void updatePointLightShadowMaps(uint32_t currentFrame) const;
+
   void updateSpotLightUniforms(uint32_t currentFrame);
 
   void updateSpotLightShadowMaps(uint32_t currentFrame) const;
