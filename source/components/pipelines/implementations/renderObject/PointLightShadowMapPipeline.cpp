@@ -1,14 +1,22 @@
 #include "PointLightShadowMapPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
+#include "../../descriptorSets/DescriptorSet.h"
+#include "../../descriptorSets/LayoutBindings.h"
+#include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../assets/objects/RenderObject.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 
 namespace vke {
   PointLightShadowMapPipeline::PointLightShadowMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                            std::shared_ptr<RenderPass> renderPass,
-                                                           VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                           VkDescriptorSetLayout objectDescriptorSetLayout,
+                                                           VkDescriptorPool descriptorPool)
     : GraphicsPipeline(logicalDevice)
   {
+    createUniforms();
+
+    createDescriptorSet(descriptorPool);
+
     const GraphicsPipelineOptions graphicsPipelineOptions{
       .shaders{
         .vertexShader = "assets/shaders/ShadowCubeMap.vert.spv",
@@ -24,7 +32,8 @@ namespace vke {
         .viewportState = GraphicsPipelineStates::viewportState
       },
       .descriptorSetLayouts{
-        objectDescriptorSetLayout
+        objectDescriptorSetLayout,
+        m_shadowMapDescriptorSet->getDescriptorSetLayout()
       },
       .renderPass = renderPass
     };
@@ -48,6 +57,24 @@ namespace vke {
         object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
       }
     }
+  }
+
+  void PointLightShadowMapPipeline::createUniforms()
+  {
+    m_shadowMapUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(glm::mat4) * 6);
+  }
+
+  void PointLightShadowMapPipeline::createDescriptorSet(VkDescriptorPool descriptorPool)
+  {
+    m_shadowMapDescriptorSet = std::make_shared<DescriptorSet>(GraphicsPipeline::m_logicalDevice, descriptorPool, LayoutBindings::pointLightShadowMapBindings);
+    m_shadowMapDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    {
+      const std::vector<VkWriteDescriptorSet> writeDescriptorSets {{
+        m_shadowMapUniform->getDescriptorSet(0, descriptorSet, frame)
+      }};
+
+      return writeDescriptorSets;
+    });
   }
 
   void PointLightShadowMapPipeline::updateUniformVariables(const RenderInfo* renderInfo)
