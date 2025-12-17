@@ -16,7 +16,7 @@ namespace vke {
                        const VkCommandPool& commandPool)
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
-    createShadowMap(commandPool);
+    SpotLight::createShadowMap(commandPool);
   }
 
   glm::vec3 SpotLight::getDirection() const

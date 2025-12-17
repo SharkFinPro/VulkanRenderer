@@ -11,7 +11,7 @@ namespace vke {
                          const VkCommandPool& commandPool)
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
-    createShadowMap(commandPool);
+    PointLight::createShadowMap(commandPool);
   }
 
   LightType PointLight::getLightType() const
