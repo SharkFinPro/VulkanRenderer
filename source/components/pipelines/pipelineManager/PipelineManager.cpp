@@ -186,14 +186,14 @@ void PipelineManager::renderShadowPipeline(const std::shared_ptr<CommandBuffer>&
 
 void PipelineManager::renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                         const RenderInfo& renderInfo,
-                                                        const std::shared_ptr<PointLight>& light)
+                                                        const std::array<glm::mat4, 6>& lightViewProjectionMatrices)
 {
   for (const auto& [_, renderObjects] : m_renderObjectsToRender)
   {
     m_pointLightShadowMapPipeline->render(
       &renderInfo,
       &renderObjects,
-      light
+      lightViewProjectionMatrices
     );
   }
 }

@@ -65,7 +65,7 @@ public:
 
   void renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const RenderInfo& renderInfo,
-                                         const std::shared_ptr<PointLight>& light);
+                                         const std::array<glm::mat4, 6>& lightViewProjectionMatrices);
 
 
 private:

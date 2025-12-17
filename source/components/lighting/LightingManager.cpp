@@ -416,7 +416,7 @@ void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBu
       .extent = shadowExtent
     };
 
-    pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight);
+    pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight->getLightViewProjectionMatrices());
 
     renderer->endShadowRendering(0, commandBuffer);
   }
