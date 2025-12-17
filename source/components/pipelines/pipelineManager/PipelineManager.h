@@ -4,6 +4,7 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
+#include "../implementations/renderObject/PointLightShadowMapPipeline.h"
 #include "../implementations/renderObject/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -62,6 +63,11 @@ public:
   void renderShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                             const RenderInfo& renderInfo);
 
+  void renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                         const RenderInfo& renderInfo,
+                                         const std::array<glm::mat4, 6>& lightViewProjectionMatrices);
+
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -89,6 +95,8 @@ private:
   std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
   std::unique_ptr<GridPipeline> m_gridPipeline;
+
+  std::unique_ptr<PointLightShadowMapPipeline> m_pointLightShadowMapPipeline;
 
   std::unique_ptr<ShadowPipeline> m_shadowPipeline;
 

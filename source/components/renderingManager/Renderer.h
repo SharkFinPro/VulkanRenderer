@@ -7,9 +7,9 @@
 namespace vke {
 
 class CommandBuffer;
+class Light;
 class LogicalDevice;
 class RenderPass;
-class SpotLight;
 class SwapChain;
 
 class Renderer {
@@ -36,7 +36,7 @@ public:
   virtual void beginShadowRendering(uint32_t imageIndex,
                                     VkExtent2D extent,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                    const std::shared_ptr<SpotLight>& spotLight) = 0;
+                                    const std::shared_ptr<Light>& light) = 0;
 
   virtual void endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
                                      std::shared_ptr<SwapChain> swapChain) = 0;

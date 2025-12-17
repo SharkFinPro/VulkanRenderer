@@ -142,11 +142,11 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
 void DynamicRenderer::beginShadowRendering(uint32_t imageIndex,
                                            const VkExtent2D extent,
                                            const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           const std::shared_ptr<SpotLight>& spotLight)
+                                           const std::shared_ptr<Light>& light)
 {
   VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-    .imageView = spotLight->getShadowMapView(),
+    .imageView = light->getShadowMapView(),
     .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,

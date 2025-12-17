@@ -29,6 +29,8 @@ namespace vke {
     void createDescriptorSet(VkDescriptorPool descriptorPool);
 
     void updateUniformVariables(const RenderInfo* renderInfo, const std::array<glm::mat4, 6>& lightViewProjectionMatrices) const;
+
+    void bindDescriptorSet(const RenderInfo* renderInfo) override;
   };
 } // vke
 

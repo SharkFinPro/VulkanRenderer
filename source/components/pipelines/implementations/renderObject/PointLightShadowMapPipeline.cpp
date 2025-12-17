@@ -4,6 +4,7 @@
 #include "../../descriptorSets/LayoutBindings.h"
 #include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../assets/objects/RenderObject.h"
+#include "../../../commandBuffer/CommandBuffer.h"
 
 namespace vke {
   PointLightShadowMapPipeline::PointLightShadowMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -81,5 +82,11 @@ namespace vke {
                                                            const std::array<glm::mat4, 6>& lightViewProjectionMatrices) const
   {
     m_shadowMapUniform->update(renderInfo->currentFrame, &lightViewProjectionMatrices);
+  }
+
+  void PointLightShadowMapPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
+  {
+    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
+                                                  &m_shadowMapDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
   }
 } // vke

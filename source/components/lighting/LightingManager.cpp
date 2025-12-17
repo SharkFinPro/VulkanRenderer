@@ -92,46 +92,9 @@ void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& com
                                        const std::shared_ptr<Renderer>& renderer,
                                        const uint32_t currentFrame) const
 {
-  for (auto& light : m_spotLightsToRender)
-  {
-    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
-    if (!spotLight->castsShadows())
-    {
-      continue;
-    }
+  renderPointLightShadowMaps(commandBuffer, pipelineManager, renderer, currentFrame);
 
-    const VkExtent2D shadowExtent {
-      .width = spotLight->getShadowMapSize(),
-      .height = spotLight->getShadowMapSize()
-    };
-
-    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, spotLight);
-
-    VkViewport viewport {
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(shadowExtent.width),
-      .height = static_cast<float>(shadowExtent.height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f
-    };
-    commandBuffer->setViewport(viewport);
-
-    VkRect2D scissor = {{0, 0}, shadowExtent};
-    commandBuffer->setScissor(scissor);
-
-    RenderInfo shadowRenderInfo = {
-      .commandBuffer = commandBuffer,
-      .currentFrame = currentFrame,
-      .viewPosition = spotLight->getPosition(),
-      .viewMatrix = spotLight->getLightViewProjectionMatrix(),
-      .extent = shadowExtent
-    };
-
-    pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
-
-    renderer->endShadowRendering(0, commandBuffer);
-  }
+  renderSpotLightShadowMaps(commandBuffer, pipelineManager, renderer, currentFrame);
 }
 
 void LightingManager::createUniforms()
@@ -367,5 +330,99 @@ void LightingManager::createShadowMapSampler()
 void LightingManager::destroyShadowMapSampler()
 {
   m_logicalDevice->destroySampler(m_shadowMapSampler);
+}
+
+void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                 const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                 const std::shared_ptr<Renderer>& renderer,
+                                                 const uint32_t currentFrame) const
+{
+  for (auto& light : m_pointLightsToRender)
+  {
+    const auto pointLight = std::dynamic_pointer_cast<PointLight>(light);
+    if (!pointLight->castsShadows())
+    {
+      continue;
+    }
+
+    const VkExtent2D shadowExtent {
+      .width = light->getShadowMapSize(),
+      .height = light->getShadowMapSize()
+    };
+
+    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+
+    VkViewport viewport {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(shadowExtent.width),
+      .height = static_cast<float>(shadowExtent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    commandBuffer->setViewport(viewport);
+
+    VkRect2D scissor = {{0, 0}, shadowExtent};
+    commandBuffer->setScissor(scissor);
+
+    RenderInfo shadowRenderInfo = {
+      .commandBuffer = commandBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = pointLight->getPosition(),
+      .viewMatrix = glm::mat4(1.0),
+      .extent = shadowExtent
+    };
+
+    pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight->getLightViewProjectionMatrices());
+
+    renderer->endShadowRendering(0, commandBuffer);
+  }
+}
+
+void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                const std::shared_ptr<Renderer>& renderer,
+                                                const uint32_t currentFrame) const
+{
+  for (auto& light : m_spotLightsToRender)
+  {
+    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
+    if (!spotLight->castsShadows())
+    {
+      continue;
+    }
+
+    const VkExtent2D shadowExtent {
+      .width = light->getShadowMapSize(),
+      .height = light->getShadowMapSize()
+    };
+
+    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+
+    VkViewport viewport {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(shadowExtent.width),
+      .height = static_cast<float>(shadowExtent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    commandBuffer->setViewport(viewport);
+
+    VkRect2D scissor = {{0, 0}, shadowExtent};
+    commandBuffer->setScissor(scissor);
+
+    RenderInfo shadowRenderInfo = {
+      .commandBuffer = commandBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = light->getPosition(),
+      .viewMatrix = spotLight->getLightViewProjectionMatrix(),
+      .extent = shadowExtent
+    };
+
+    pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
+
+    renderer->endShadowRendering(0, commandBuffer);
+  }
 }
 } // namespace vke

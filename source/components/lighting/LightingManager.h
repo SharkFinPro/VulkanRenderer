@@ -90,6 +90,16 @@ private:
   void createShadowMapSampler();
 
   void destroyShadowMapSampler();
+
+  void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                  const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const std::shared_ptr<Renderer>& renderer,
+                                  uint32_t currentFrame) const;
+
+  void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                 const std::shared_ptr<PipelineManager>& pipelineManager,
+                                 const std::shared_ptr<Renderer>& renderer,
+                                 uint32_t currentFrame) const;
 };
 
 } // namespace vke
