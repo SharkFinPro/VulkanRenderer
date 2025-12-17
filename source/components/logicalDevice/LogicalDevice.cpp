@@ -636,8 +636,14 @@ void LogicalDevice::createDevice()
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
+  VkPhysicalDeviceMultiviewFeatures multiviewFeatures {
+    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
+    .multiview = VK_TRUE
+  };
+
   VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures {
     .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
+    .pNext = &multiviewFeatures,
     .dynamicRendering = VK_TRUE
   };
 

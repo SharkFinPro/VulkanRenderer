@@ -1,6 +1,11 @@
 #include "PointLight.h"
 #include "../../../utilities/Images.h"
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_RIGHT_HANDED
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 namespace vke {
   PointLight::PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const glm::vec3& position,
@@ -27,6 +32,36 @@ namespace vke {
       .ambient = m_ambient,
       .diffuse = m_diffuse,
       .specular = m_specular
+    };
+  }
+
+  std::array<glm::mat4, 6> PointLight::getLightViewProjectionMatrices() const
+  {
+    glm::mat4 projection = glm::perspective(
+      glm::radians(90.0f),
+      1.0f,
+      0.1f,
+      100.0f
+    );
+
+    projection[1][1] *= -1;
+
+    const std::array<glm::mat4, 6> viewMatrices {
+      glm::lookAt(m_position, m_position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)),
+      glm::lookAt(m_position, m_position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)),
+      glm::lookAt(m_position, m_position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+      glm::lookAt(m_position, m_position + glm::vec3(0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0)),
+      glm::lookAt(m_position, m_position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0,-1.0, 0.0)),
+      glm::lookAt(m_position, m_position + glm::vec3(0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0))
+    };
+
+    return {
+      projection * viewMatrices[0],
+      projection * viewMatrices[1],
+      projection * viewMatrices[2],
+      projection * viewMatrices[3],
+      projection * viewMatrices[4],
+      projection * viewMatrices[5],
     };
   }
 

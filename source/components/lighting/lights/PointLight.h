@@ -2,6 +2,7 @@
 #define VULKANPROJECT_POINTLIGHT_H
 
 #include "Light.h"
+#include <array>
 
 namespace vke {
   class PointLight : public Light {
@@ -17,6 +18,8 @@ namespace vke {
     [[nodiscard]] LightType getLightType() const override;
 
     [[nodiscard]] LightUniform getUniform() const override;
+
+    [[nodiscard]] std::array<glm::mat4, 6> getLightViewProjectionMatrices() const;
 
   private:
     void createShadowMap(const VkCommandPool& commandPool) override;
