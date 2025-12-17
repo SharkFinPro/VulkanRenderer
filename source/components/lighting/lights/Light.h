@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan.h>
+#include <array>
 #include <memory>
 #include <variant>
 
@@ -12,6 +13,7 @@ namespace vke {
   class LogicalDevice;
 
   struct alignas(16) PointLightUniform {
+    std::array<glm::mat4, 6> lightViewProjections;
     glm::vec3 position;
     float padding1;
     glm::vec3 color;

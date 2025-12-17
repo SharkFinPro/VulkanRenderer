@@ -27,6 +27,7 @@ namespace vke {
   LightUniform PointLight::getUniform() const
   {
     return PointLightUniform {
+      .lightViewProjections = getLightViewProjectionMatrices(),
       .position = m_position,
       .color = m_color,
       .ambient = m_ambient,

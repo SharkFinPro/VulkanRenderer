@@ -1,4 +1,5 @@
 struct PointLight {
+  mat4[6] lightViewProjections;
   vec3 position;
   float padding1; // Padding to ensure alignment
   vec3 color;
