@@ -53,15 +53,6 @@ void main()
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
-    if (projCoords.z > 1.0 ||
-    projCoords.x < 0.0 || projCoords.x > 1.0 ||
-    projCoords.y < 0.0 || projCoords.y > 1.0)
-    {
-      // Outside shadow map = not shadowed
-      result += getStandardAmbient(spotLights[i].ambient, texColor);
-      continue;
-    }
-
     float bias = 0.0001;
     projCoords.z -= bias;
 
