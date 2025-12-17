@@ -296,8 +296,6 @@ void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
   m_spotLightsUniform->update(currentFrame, lightUniforms.data());
 
   updateSpotLightShadowMaps(currentFrame);
-
-  updateSpotLightShadowMaps(currentFrame);
 }
 
 void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) const
