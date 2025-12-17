@@ -30,6 +30,8 @@ layout(set = 0, binding = 3) uniform Camera {
 
 layout(set = 0, binding = 4) uniform sampler2DShadow[16] spotLightShadowMaps;
 
+layout(set = 0, binding = 5) uniform samplerCubeShadow[16] pointLightShadowMaps;
+
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
