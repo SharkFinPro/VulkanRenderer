@@ -27,10 +27,6 @@ namespace vke {
 
     [[nodiscard]] LightUniform getUniform() const override;
 
-    void createShadowMap(const VkCommandPool& commandPool);
-
-    void destroyShadowMap();
-
     [[nodiscard]] VkImage getShadowMap() const;
     [[nodiscard]] VkImageView getShadowMapView() const;
     [[nodiscard]] uint32_t getShadowMapSize() const;
@@ -48,6 +44,10 @@ namespace vke {
 
     glm::vec3 m_direction = glm::vec3(0, -1, 0);
     float m_coneAngle = 15;
+
+    void createShadowMap(const VkCommandPool& commandPool);
+
+    void destroyShadowMap();
   };
 } // vke
 

@@ -64,6 +64,51 @@ namespace vke {
     };
   }
 
+  VkImage SpotLight::getShadowMap() const
+  {
+    return m_shadowMap;
+  }
+
+  VkImageView SpotLight::getShadowMapView() const
+  {
+    return m_shadowMapView;
+  }
+
+  uint32_t SpotLight::getShadowMapSize() const
+  {
+    return m_shadowMapSize;
+  }
+
+  bool SpotLight::castsShadows() const
+  {
+    return m_castsShadows;
+  }
+
+  glm::mat4 SpotLight::getLightViewProjectionMatrix() const
+  {
+    const glm::vec3 up = std::abs(m_direction.y) > 0.99f
+                         ? glm::vec3(1, 0, 0)
+                         : glm::vec3(0, 1, 0);
+
+    const glm::mat4 view = glm::lookAt(
+      m_position,
+      m_position + m_direction,
+      up
+    );
+
+    const float fov = m_coneAngle * 2.0f;
+    glm::mat4 proj = glm::perspective(
+      glm::radians(fov),
+      1.0f,
+      0.1f,
+      100.0f
+    );
+
+    proj[1][1] *= -1;
+
+    return proj * view;
+  }
+
   void SpotLight::createShadowMap(const VkCommandPool& commandPool)
   {
     if (!m_castsShadows)
@@ -118,50 +163,5 @@ namespace vke {
     m_logicalDevice->destroyImage(m_shadowMap);
     m_logicalDevice->destroyImageView(m_shadowMapView);
     m_logicalDevice->freeMemory(m_shadowMapMemory);
-  }
-
-  VkImage SpotLight::getShadowMap() const
-  {
-    return m_shadowMap;
-  }
-
-  VkImageView SpotLight::getShadowMapView() const
-  {
-    return m_shadowMapView;
-  }
-
-  uint32_t SpotLight::getShadowMapSize() const
-  {
-    return m_shadowMapSize;
-  }
-
-  bool SpotLight::castsShadows() const
-  {
-    return m_castsShadows;
-  }
-
-  glm::mat4 SpotLight::getLightViewProjectionMatrix() const
-  {
-    const glm::vec3 up = std::abs(m_direction.y) > 0.99f
-                         ? glm::vec3(1, 0, 0)
-                         : glm::vec3(0, 1, 0);
-
-    const glm::mat4 view = glm::lookAt(
-      m_position,
-      m_position + m_direction,
-      up
-    );
-
-    const float fov = m_coneAngle * 2.0f;
-    glm::mat4 proj = glm::perspective(
-      glm::radians(fov),
-      1.0f,
-      0.1f,
-      100.0f
-    );
-
-    proj[1][1] *= -1;
-
-    return proj * view;
   }
 } // vke
