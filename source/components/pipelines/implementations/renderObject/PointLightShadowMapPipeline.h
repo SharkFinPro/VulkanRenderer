@@ -6,6 +6,7 @@
 namespace vke {
 
   class DescriptorSet;
+  class PointLight;
   class UniformBuffer;
 
   class PointLightShadowMapPipeline : public GraphicsPipeline {
@@ -17,18 +18,21 @@ namespace vke {
 
     void render(const RenderInfo* renderInfo,
                 const std::vector<std::shared_ptr<RenderObject>>* objects,
-                const std::array<glm::mat4, 6>& lightViewProjectionMatrices);
+                const std::shared_ptr<PointLight>& light);
 
   private:
     std::shared_ptr<DescriptorSet> m_shadowMapDescriptorSet;
 
     std::shared_ptr<UniformBuffer> m_shadowMapUniform;
 
+    std::shared_ptr<UniformBuffer> m_lightUniform;
+
     void createUniforms();
 
     void createDescriptorSet(VkDescriptorPool descriptorPool);
 
-    void updateUniformVariables(const RenderInfo* renderInfo, const std::array<glm::mat4, 6>& lightViewProjectionMatrices) const;
+    void updateUniformVariables(const RenderInfo* renderInfo,
+                                const std::shared_ptr<PointLight>& light) const;
 
     void bindDescriptorSet(const RenderInfo* renderInfo) override;
   };
