@@ -1,5 +1,4 @@
 #include "SpotLight.h"
-#include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Images.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -18,11 +17,6 @@ namespace vke {
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
     createShadowMap(commandPool);
-  }
-
-  SpotLight::~SpotLight()
-  {
-    destroyShadowMap();
   }
 
   glm::vec3 SpotLight::getDirection() const
@@ -156,12 +150,5 @@ namespace vke {
       1,
       1
     );
-  }
-
-  void SpotLight::destroyShadowMap()
-  {
-    m_logicalDevice->destroyImage(m_shadowMap);
-    m_logicalDevice->destroyImageView(m_shadowMapView);
-    m_logicalDevice->freeMemory(m_shadowMapMemory);
   }
 } // vke

@@ -3,6 +3,7 @@
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include <vulkan/vulkan.h>
 #include <memory>
 #include <variant>
 
@@ -49,7 +50,7 @@ public:
         float diffuse,
         float specular);
 
-  virtual ~Light() = default;
+  virtual ~Light();
 
   [[nodiscard]] glm::vec3 getPosition() const;
   [[nodiscard]] glm::vec3 getColor() const;
@@ -70,11 +71,22 @@ public:
 protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
+  VkImage m_shadowMap = VK_NULL_HANDLE;
+  VkImageView m_shadowMapView = VK_NULL_HANDLE;
+  VkDeviceMemory m_shadowMapMemory = VK_NULL_HANDLE;
+
+  bool m_castsShadows = true;
+  uint32_t m_shadowMapSize = 1024;
+
   glm::vec3 m_position;
   glm::vec3 m_color;
   float m_ambient;
   float m_diffuse;
   float m_specular;
+
+  virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
+
+  void destroyShadowMap();
 };
 
 } // namespace vke

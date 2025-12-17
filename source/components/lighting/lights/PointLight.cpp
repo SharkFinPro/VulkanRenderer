@@ -1,5 +1,4 @@
 #include "PointLight.h"
-#include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Images.h"
 
 namespace vke {
@@ -13,11 +12,6 @@ namespace vke {
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
     createShadowMap(commandPool);
-  }
-
-  PointLight::~PointLight()
-  {
-    destroyShadowMap();
   }
 
   LightType PointLight::getLightType() const
@@ -83,12 +77,5 @@ namespace vke {
       1,
       6
     );
-  }
-
-  void PointLight::destroyShadowMap()
-  {
-    m_logicalDevice->destroyImage(m_shadowMap);
-    m_logicalDevice->destroyImageView(m_shadowMapView);
-    m_logicalDevice->freeMemory(m_shadowMapMemory);
   }
 } // vke
