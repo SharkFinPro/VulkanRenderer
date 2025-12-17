@@ -13,12 +13,9 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out vec3 fragNormal;
-layout(location = 3) out vec3 v_inPosition;
 
 void main()
 {
-  v_inPosition = inPosition;
-
   fragPos = vec3(transform.model * vec4(inPosition, 1.0));
   fragTexCoord = inTexCoord;
   fragNormal = mat3(transpose(inverse(transform.model))) * inNormal;

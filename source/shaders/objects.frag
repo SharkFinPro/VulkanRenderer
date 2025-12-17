@@ -33,7 +33,6 @@ layout(set = 0, binding = 4) uniform sampler2DShadow[16] spotLightShadowMaps;
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
-layout(location = 3) in vec3 v_inPosition;
 
 layout(location = 0) out vec4 outColor;
 
@@ -50,9 +49,23 @@ void main()
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    vec4 fragPosLightSpace = spotLights[i].lightViewProjection * transform.model * vec4(v_inPosition, 1.0);
+    vec4 fragPosLightSpace = spotLights[i].lightViewProjection * vec4(fragPos, 1.0);
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
+
+    if (projCoords.z > 1.0 ||
+    projCoords.x < 0.0 || projCoords.x > 1.0 ||
+    projCoords.y < 0.0 || projCoords.y > 1.0)
+    {
+      // Outside shadow map = not shadowed
+      result += getStandardAmbient(spotLights[i].ambient, texColor);
+      continue;
+    }
+
+    vec3 normal = normalize(fragNormal);
+    float bias = max(0.001 * (1.0 - dot(normal, spotLights[i].direction)), 0.0005);
+
+    projCoords.z -= bias;
 
     float shadow = texture(spotLightShadowMaps[i], projCoords);
     bool visible = shadow > 0.5;
