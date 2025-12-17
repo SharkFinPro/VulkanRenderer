@@ -37,7 +37,7 @@ std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
                                                          float diffuse,
                                                          float specular = 1.0f)
 {
-  auto light = std::make_shared<PointLight>(m_logicalDevice, position, color, ambient, diffuse, specular);
+  auto light = std::make_shared<PointLight>(m_logicalDevice, position, color, ambient, diffuse, specular, m_commandPool);
 
   m_lights.push_back(light);
 
