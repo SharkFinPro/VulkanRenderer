@@ -142,8 +142,8 @@ namespace vke {
     glm::mat4 proj = glm::perspective(
       glm::radians(fov),
       1.0f,
-      0.5f,
-      20.0f
+      0.1f,
+      100.0f
     );
 
     proj[1][1] *= -1;
