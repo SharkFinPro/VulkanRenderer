@@ -356,7 +356,7 @@ void LightingManager::createShadowMapSampler()
     .mipLodBias = 0.0f,
     .anisotropyEnable = VK_FALSE,
     .compareEnable = VK_TRUE,
-    .compareOp = VK_COMPARE_OP_LESS,
+    .compareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
     .minLod = 0.0f,
     .maxLod = 0.0f,
     .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,

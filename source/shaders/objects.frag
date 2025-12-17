@@ -51,7 +51,7 @@ void main()
   {
     vec4 fragPosLightSpace = spotLights[i].lightViewProjection * vec4(fragPos, 1.0);
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
+    projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
     if (projCoords.z > 1.0 ||
     projCoords.x < 0.0 || projCoords.x > 1.0 ||

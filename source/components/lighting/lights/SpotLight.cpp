@@ -1,6 +1,9 @@
 #include "SpotLight.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Images.h"
+
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_RIGHT_HANDED
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
