@@ -1,6 +1,6 @@
 #include "DynamicRenderer.h"
 #include "../commandBuffer/CommandBuffer.h"
-#include "../lighting/lights/SpotLight.h"
+#include "../lighting/lights/Light.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../window/SwapChain.h"
@@ -162,6 +162,7 @@ void DynamicRenderer::beginShadowRendering(uint32_t imageIndex,
       .extent = extent,
     },
     .layerCount = 1,
+    .viewMask = light->getLightType() == LightType::pointLight ? 0x3Fu : 0,
     .colorAttachmentCount = 0,
     .pColorAttachments = nullptr,
     .pDepthAttachment = &depthRenderingAttachmentInfo,

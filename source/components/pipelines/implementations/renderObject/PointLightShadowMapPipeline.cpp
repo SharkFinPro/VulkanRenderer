@@ -38,7 +38,7 @@ namespace vke {
       .renderPass = renderPass
     };
 
-    createPipeline(graphicsPipelineOptions, false);
+    createPipeline(graphicsPipelineOptions, false, true);
   }
 
   void PointLightShadowMapPipeline::render(const RenderInfo* renderInfo,
