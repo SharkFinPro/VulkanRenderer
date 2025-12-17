@@ -4,6 +4,7 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
+#include "../implementations/renderObject/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>
@@ -58,6 +59,9 @@ public:
 
   [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
 
+  void renderShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                            const RenderInfo& renderInfo);
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -85,6 +89,8 @@ private:
   std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
   std::unique_ptr<GridPipeline> m_gridPipeline;
+
+  std::unique_ptr<ShadowPipeline> m_shadowPipeline;
 
   bool m_shouldDoDots;
 

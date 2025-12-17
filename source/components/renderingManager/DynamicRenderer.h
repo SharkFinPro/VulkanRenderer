@@ -28,10 +28,18 @@ public:
   void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
                                std::shared_ptr<CommandBuffer> commandBuffer) override;
 
+  void beginShadowRendering(uint32_t imageIndex,
+                            VkExtent2D extent,
+                            const std::shared_ptr<CommandBuffer>& commandBuffer,
+                            const std::shared_ptr<SpotLight>& spotLight) override;
+
   void endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
                              std::shared_ptr<SwapChain> swapChain) override;
 
   void endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer) override;
+
+  void endShadowRendering(uint32_t imageIndex,
+                          const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
 private:
   size_t m_numImages = 3;

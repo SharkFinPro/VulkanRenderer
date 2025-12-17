@@ -37,7 +37,7 @@ int main()
 
     std::vector<std::shared_ptr<vke::Light>> lights;
 
-    lights.push_back(renderer.getLightingManager()->createLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
+    lights.push_back(renderer.getLightingManager()->createPointLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
     while (renderer.isActive())
     {

@@ -172,6 +172,18 @@ std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Pi
   return m_renderObjectsToRender;
 }
 
+void PipelineManager::renderShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           const RenderInfo& renderInfo)
+{
+  for (const auto& [_, renderObjects] : m_renderObjectsToRender)
+  {
+    m_shadowPipeline->render(
+      &renderInfo,
+      &renderObjects
+    );
+  }
+}
+
 void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout)
 {
   m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
@@ -226,6 +238,8 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
                                                     m_lightingManager->getLightingDescriptorSet());
 
   m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
+
+  m_shadowPipeline = std::make_unique<ShadowPipeline>(m_logicalDevice, m_renderPass, objectDescriptorSetLayout);
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const

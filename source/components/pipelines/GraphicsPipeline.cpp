@@ -43,7 +43,7 @@ void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graph
   m_pipelineLayout = m_logicalDevice->createPipelineLayout(pipelineLayoutInfo);
 }
 
-void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions)
+void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions, const bool useColorAttachment)
 {
   createPipelineLayout(graphicsPipelineOptions);
 
@@ -52,11 +52,11 @@ void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPip
 
   constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
 
-  const VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
+  VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-    .colorAttachmentCount = 1,
-    .pColorAttachmentFormats = &colorFormat,
-    .depthAttachmentFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat()
+    .colorAttachmentCount = static_cast<uint32_t>(useColorAttachment ? 1 : 0),
+    .pColorAttachmentFormats = useColorAttachment ? &colorFormat : nullptr,
+    .depthAttachmentFormat = useColorAttachment ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : VK_FORMAT_D32_SFLOAT
   };
 
   const VkGraphicsPipelineCreateInfo pipelineInfo {

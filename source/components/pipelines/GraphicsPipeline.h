@@ -125,7 +125,7 @@ public:
 protected:
   void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
-  void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
+  void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions, bool useColorAttachment = true);
 
   virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
 

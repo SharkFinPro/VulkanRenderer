@@ -1,5 +1,6 @@
 #include "DynamicRenderer.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../lighting/lights/SpotLight.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../window/SwapChain.h"
@@ -138,6 +139,37 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
   commandBuffer->beginRendering(renderingInfo);
 }
 
+void DynamicRenderer::beginShadowRendering(uint32_t imageIndex,
+                                           const VkExtent2D extent,
+                                           const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           const std::shared_ptr<SpotLight>& spotLight)
+{
+  VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
+    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    .imageView = spotLight->getShadowMapView(),
+    .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+    .clearValue = {
+      .depthStencil = {1.0f, 0}
+    }
+  };
+
+  const VkRenderingInfo renderingInfo {
+    .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+    .renderArea = {
+      .offset = {0, 0},
+      .extent = extent,
+    },
+    .layerCount = 1,
+    .colorAttachmentCount = 0,
+    .pColorAttachments = nullptr,
+    .pDepthAttachment = &depthRenderingAttachmentInfo,
+  };
+
+  commandBuffer->beginRendering(renderingInfo);
+}
+
 void DynamicRenderer::endSwapchainRendering(const uint32_t imageIndex,
                                             const std::shared_ptr<CommandBuffer> commandBuffer,
                                             const std::shared_ptr<SwapChain> swapChain)
@@ -148,6 +180,12 @@ void DynamicRenderer::endSwapchainRendering(const uint32_t imageIndex,
 }
 
 void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex, const std::shared_ptr<CommandBuffer> commandBuffer)
+{
+  commandBuffer->endRendering();
+}
+
+void DynamicRenderer::endShadowRendering(uint32_t imageIndex,
+                                         const std::shared_ptr<CommandBuffer>& commandBuffer)
 {
   commandBuffer->endRendering();
 }

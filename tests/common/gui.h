@@ -2,7 +2,7 @@
 #define VKE_TESTS_GUI_H
 
 #include <source/components/assets/objects/RenderObject.h>
-#include <source/components/lighting/Light.h>
+#include <source/components/lighting/lights/Light.h>
 #include <source/components/imGui/ImGuiInstance.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
@@ -10,6 +10,7 @@
 #include <imgui.h>
 #include <memory>
 #include <string>
+#include <source/components/lighting/lights/SpotLight.h>
 
 inline void displayBendyPlantGui(vke::BendyPlant& bendyPlant, const int id)
 {
@@ -61,14 +62,22 @@ inline void displayObjectGui(const std::shared_ptr<vke::RenderObject>& object, c
 
 inline void displayLightGui(const std::shared_ptr<vke::Light>& light, const int id)
 {
+  std::shared_ptr<vke::SpotLight> spotLight = nullptr;
+
   glm::vec3 position = light->getPosition();
   glm::vec3 color = light->getColor();
   float ambient = light->getAmbient();
   float diffuse = light->getDiffuse();
   float specular = light->getSpecular();
-  bool isSpotLight = light->isSpotLight();
-  glm::vec3 direction = light->getDirection();
-  float coneAngle = light->getConeAngle();
+  bool isSpotLight = light->getLightType() == vke::LightType::spotLight;
+
+  if (isSpotLight)
+  {
+    spotLight = std::dynamic_pointer_cast<vke::SpotLight>(light);
+  }
+
+  glm::vec3 direction = isSpotLight ? spotLight->getDirection() : glm::vec3(0.0f);
+  float coneAngle = isSpotLight ? spotLight->getConeAngle() : 0.0f;
 
   ImGui::PushID(id);
 
@@ -92,9 +101,11 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light, const int 
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
-  light->setSpotLight(isSpotLight);
-  light->setDirection(direction);
-  light->setConeAngle(coneAngle);
+  if (isSpotLight)
+  {
+    spotLight->setDirection(direction);
+    spotLight->setConeAngle(coneAngle);
+  }
 }
 
 inline void displayLightGuis(const std::vector<std::shared_ptr<vke::Light>>& lights)

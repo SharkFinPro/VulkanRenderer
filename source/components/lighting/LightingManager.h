@@ -7,17 +7,38 @@
 #include <vector>
 
 namespace vke {
+  class ShadowPipeline;
+}
 
+namespace vke {
+
+class CommandBuffer;
 class DescriptorSet;
 class Light;
 class LogicalDevice;
+class PipelineManager;
+class Renderer;
 class UniformBuffer;
 
 class LightingManager {
 public:
-  LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDescriptorPool descriptorPool);
+  LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                  VkDescriptorPool descriptorPool,
+                  VkCommandPool commandPool);
 
-  [[nodiscard]] std::shared_ptr<Light> createLight(glm::vec3 position, glm::vec3 color, float ambient, float diffuse, float specular);
+  ~LightingManager();
+
+  [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
+                                                        glm::vec3 color,
+                                                        float ambient,
+                                                        float diffuse,
+                                                        float specular);
+
+  [[nodiscard]] std::shared_ptr<Light> createSpotLight(glm::vec3 position,
+                                                       glm::vec3 color,
+                                                       float ambient,
+                                                       float diffuse,
+                                                       float specular);
 
   void renderLight(const std::shared_ptr<Light>& light);
 
@@ -26,6 +47,11 @@ public:
   void clearLightsToRender();
 
   void update(uint32_t currentFrame, glm::vec3 viewPosition);
+
+  void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                        const std::shared_ptr<PipelineManager>& pipelineManager,
+                        const std::shared_ptr<Renderer>& renderer,
+                        uint32_t currentFrame) const;
 
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -45,6 +71,10 @@ private:
   std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
   std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
 
+  VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+  VkSampler m_shadowMapSampler = VK_NULL_HANDLE;
+
   void createUniforms();
 
   void createDescriptorSet(VkDescriptorPool descriptorPool);
@@ -54,6 +84,12 @@ private:
   void updatePointLightUniforms(uint32_t currentFrame);
 
   void updateSpotLightUniforms(uint32_t currentFrame);
+
+  void updateSpotLightShadowMaps(uint32_t currentFrame) const;
+
+  void createShadowMapSampler();
+
+  void destroyShadowMapSampler();
 };
 
 } // namespace vke

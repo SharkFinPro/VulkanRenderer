@@ -364,6 +364,11 @@ VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo &samplerCreateI
 
 void LogicalDevice::destroySampler(VkSampler& sampler) const
 {
+  if (sampler == VK_NULL_HANDLE)
+  {
+    return;
+  }
+
   vkDestroySampler(m_device, sampler, nullptr);
 
   sampler = VK_NULL_HANDLE;
@@ -402,6 +407,11 @@ VkImage LogicalDevice::createImage(const VkImageCreateInfo& imageCreateInfo) con
 
 void LogicalDevice::destroyImage(VkImage& image) const
 {
+  if (image == VK_NULL_HANDLE)
+  {
+    return;
+  }
+  
   vkDestroyImage(m_device, image, nullptr);
 
   image = VK_NULL_HANDLE;
