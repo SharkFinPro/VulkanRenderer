@@ -24,11 +24,6 @@ namespace vke {
 
     [[nodiscard]] LightUniform getUniform() const override;
 
-    [[nodiscard]] VkImage getShadowMap() const;
-    [[nodiscard]] VkImageView getShadowMapView() const;
-    [[nodiscard]] uint32_t getShadowMapSize() const;
-    [[nodiscard]] bool castsShadows() const;
-
     [[nodiscard]] glm::mat4 getLightViewProjectionMatrix() const;
 
   private:

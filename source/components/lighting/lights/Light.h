@@ -64,6 +64,14 @@ public:
   void setDiffuse(float diffuse);
   void setSpecular(float specular);
 
+  [[nodiscard]] VkImage getShadowMap() const;
+
+  [[nodiscard]] VkImageView getShadowMapView() const;
+
+  [[nodiscard]] uint32_t getShadowMapSize() const;
+
+  [[nodiscard]] bool castsShadows() const;
+
   [[nodiscard]] virtual LightType getLightType() const = 0;
 
   [[nodiscard]] virtual LightUniform getUniform() const = 0;

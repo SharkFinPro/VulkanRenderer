@@ -68,6 +68,26 @@ void Light::setSpecular(const float specular)
   m_specular = specular;
 }
 
+VkImage Light::getShadowMap() const
+{
+  return m_shadowMap;
+}
+
+VkImageView Light::getShadowMapView() const
+{
+  return m_shadowMapView;
+}
+
+uint32_t Light::getShadowMapSize() const
+{
+  return m_shadowMapSize;
+}
+
+bool Light::castsShadows() const
+{
+  return m_castsShadows;
+}
+
 void Light::destroyShadowMap()
 {
   m_logicalDevice->destroyImage(m_shadowMap);
