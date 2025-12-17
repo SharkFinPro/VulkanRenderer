@@ -50,7 +50,7 @@ namespace vke {
     {
       for (const auto& object : *objects)
       {
-        object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+        object->updateUniformBuffer(renderInfo->currentFrame, {1.0}, {1.0});
 
         object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
       }
