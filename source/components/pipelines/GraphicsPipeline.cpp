@@ -56,7 +56,7 @@ void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPip
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
     .colorAttachmentCount = static_cast<uint32_t>(useColorAttachment ? 1 : 0),
     .pColorAttachmentFormats = useColorAttachment ? &colorFormat : nullptr,
-    .depthAttachmentFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat()
+    .depthAttachmentFormat = useColorAttachment ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : VK_FORMAT_D32_SFLOAT
   };
 
   const VkGraphicsPipelineCreateInfo pipelineInfo {
