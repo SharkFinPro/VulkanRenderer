@@ -62,9 +62,7 @@ void main()
       continue;
     }
 
-    vec3 normal = normalize(fragNormal);
-    float bias = max(0.001 * (1.0 - dot(normal, spotLights[i].direction)), 0.0005);
-
+    float bias = 0.0001;
     projCoords.z -= bias;
 
     float shadow = texture(spotLightShadowMaps[i], projCoords);
