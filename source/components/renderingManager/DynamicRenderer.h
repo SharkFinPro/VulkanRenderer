@@ -39,8 +39,7 @@ public:
   void endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer) override;
 
   void endShadowRendering(uint32_t imageIndex,
-                          std::shared_ptr<CommandBuffer> commandBuffer,
-                          const std::shared_ptr<SpotLight>& spotLight) override;
+                          const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
 private:
   size_t m_numImages = 3;

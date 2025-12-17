@@ -130,7 +130,7 @@ void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& com
 
     pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
 
-    renderer->endShadowRendering(0, commandBuffer, spotLight);
+    renderer->endShadowRendering(0, commandBuffer);
   }
 }
 

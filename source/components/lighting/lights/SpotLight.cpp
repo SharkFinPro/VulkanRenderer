@@ -100,6 +100,17 @@ namespace vke {
       VK_IMAGE_VIEW_TYPE_2D,
       1
     );
+
+    Images::transitionImageLayout(
+      m_logicalDevice,
+      commandPool,
+      m_shadowMap,
+      depthFormat,
+      VK_IMAGE_LAYOUT_UNDEFINED,
+      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+      1,
+      1
+    );
   }
 
   void SpotLight::destroyShadowMap()
