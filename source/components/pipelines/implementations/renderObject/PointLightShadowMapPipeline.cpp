@@ -4,7 +4,6 @@
 #include "../../descriptorSets/LayoutBindings.h"
 #include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../assets/objects/RenderObject.h"
-#include "../../../commandBuffer/CommandBuffer.h"
 
 namespace vke {
   PointLightShadowMapPipeline::PointLightShadowMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -42,11 +41,12 @@ namespace vke {
   }
 
   void PointLightShadowMapPipeline::render(const RenderInfo* renderInfo,
-                                           const std::vector<std::shared_ptr<RenderObject>>* objects)
+                                           const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                           const std::array<glm::mat4, 6>& lightViewProjectionMatrices)
   {
     GraphicsPipeline::render(renderInfo, nullptr);
 
-    updateUniformVariables(renderInfo);
+    updateUniformVariables(renderInfo, lightViewProjectionMatrices);
 
     if (objects)
     {
@@ -77,8 +77,9 @@ namespace vke {
     });
   }
 
-  void PointLightShadowMapPipeline::updateUniformVariables(const RenderInfo* renderInfo)
+  void PointLightShadowMapPipeline::updateUniformVariables(const RenderInfo* renderInfo,
+                                                           const std::array<glm::mat4, 6>& lightViewProjectionMatrices) const
   {
-    // TODO: Update cube map images uniform
+    m_shadowMapUniform->update(renderInfo->currentFrame, &lightViewProjectionMatrices);
   }
 } // vke

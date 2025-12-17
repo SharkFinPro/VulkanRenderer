@@ -15,8 +15,6 @@ namespace vke {
                                 VkDescriptorSetLayout objectDescriptorSetLayout,
                                 VkDescriptorPool descriptorPool);
 
-    void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
-
     void render(const RenderInfo* renderInfo,
                 const std::vector<std::shared_ptr<RenderObject>>* objects,
                 const std::array<glm::mat4, 6>& lightViewProjectionMatrices);
@@ -30,7 +28,7 @@ namespace vke {
 
     void createDescriptorSet(VkDescriptorPool descriptorPool);
 
-    void updateUniformVariables(const RenderInfo* renderInfo) override;
+    void updateUniformVariables(const RenderInfo* renderInfo, const std::array<glm::mat4, 6>& lightViewProjectionMatrices) const;
   };
 } // vke
 
