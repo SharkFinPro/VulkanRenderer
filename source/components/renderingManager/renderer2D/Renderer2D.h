@@ -7,6 +7,25 @@
 
 namespace vke {
   class Renderer2D {
+  public:
+    void fill(float r,
+              float g,
+              float b,
+              float a = 255.0f);
+
+    void rotate(float angle);
+
+    void translate(float x,
+                   float y);
+
+    void scale(float xy);
+
+    void scale(float x,
+               float y);
+
+    void pushMatrix();
+
+    void popMatrix();
 
   private:
     glm::vec4 m_currentFill = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
