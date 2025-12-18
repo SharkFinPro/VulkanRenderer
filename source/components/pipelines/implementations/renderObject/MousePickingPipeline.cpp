@@ -24,7 +24,7 @@ MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>&
       .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
       .multisampleState = GraphicsPipelineStates::multisampleStateNone,
       .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionOnly,
       .viewportState = GraphicsPipelineStates::viewportState
     },
     .pushConstantRanges {

@@ -34,7 +34,7 @@ CrossesPipeline::CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
       .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
       .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
       .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionAndNormal,
       .viewportState = GraphicsPipelineStates::viewportState
     },
     .descriptorSetLayouts {

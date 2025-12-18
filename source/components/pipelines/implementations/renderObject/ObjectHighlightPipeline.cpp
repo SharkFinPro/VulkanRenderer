@@ -22,7 +22,7 @@ ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDe
       .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
       .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
       .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+      .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionOnly,
       .viewportState = GraphicsPipelineStates::viewportState
     },
     .descriptorSetLayouts {
