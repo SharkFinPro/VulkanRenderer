@@ -23,8 +23,8 @@ CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/Curtain.vert.spv",
-      .fragmentShader = "assets/shaders/Curtain.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/Curtain.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/Curtain.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

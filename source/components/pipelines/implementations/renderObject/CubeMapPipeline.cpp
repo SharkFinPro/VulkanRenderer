@@ -24,8 +24,8 @@ CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/StandardObject.vert.spv",
-      .fragmentShader = "assets/shaders/CubeMap.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/CubeMap.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

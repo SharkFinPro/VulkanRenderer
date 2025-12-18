@@ -22,8 +22,8 @@ MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<Log
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/StandardObject.vert.spv",
-      .fragmentShader = "assets/shaders/MagnifyWhirlMosaic.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/MagnifyWhirlMosaic.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

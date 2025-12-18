@@ -26,8 +26,8 @@ BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/Curtain.vert.spv",
-      .fragmentShader = "assets/shaders/BumpyCurtain.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/Curtain.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/BumpyCurtain.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

@@ -14,8 +14,8 @@ namespace vke {
   {
     const GraphicsPipelineOptions graphicsPipelineOptions{
       .shaders{
-        .vertexShader = "assets/shaders/ShadowCubeMap.vert.spv",
-        .fragmentShader = "assets/shaders/ShadowCubeMap.frag.spv"
+        .vertexShader = "assets/shaders/renderObject/ShadowCubeMap.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/ShadowCubeMap.frag.spv"
       },
       .states{
         .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,

@@ -1,6 +1,6 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
-#include "common/Lighting.glsl"
+#include "../common/Lighting.glsl"
 
 layout(set = 2, binding = 0) uniform PointLightsMetadata {
   int numPointLights;

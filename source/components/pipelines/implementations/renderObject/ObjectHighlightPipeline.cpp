@@ -12,8 +12,8 @@ ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDe
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/ObjectHighlight.vert.spv",
-      .fragmentShader = "assets/shaders/ObjectHighlight.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/ObjectHighlight.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/ObjectHighlight.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendStateDots,

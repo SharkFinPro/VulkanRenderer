@@ -23,9 +23,9 @@ CrossesPipeline::CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/Crosses.vert.spv",
-      .geometryShader = "assets/shaders/Crosses.geom.spv",
-      .fragmentShader = "assets/shaders/Crosses.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/Crosses.vert.spv",
+      .geometryShader = "assets/shaders/renderObject/Crosses.geom.spv",
+      .fragmentShader = "assets/shaders/renderObject/Crosses.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,
