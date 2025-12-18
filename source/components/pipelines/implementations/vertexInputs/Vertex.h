@@ -57,6 +57,24 @@ struct Vertex {
       }
     }};
   }
+
+  static constexpr std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptionsPositionAndNormal()
+  {
+    return {{
+      {
+        .location = 0,
+        .binding = 0,
+        .format = VK_FORMAT_R32G32B32_SFLOAT,
+        .offset = offsetof(Vertex, pos)
+      },
+      {
+        .location = 1,
+        .binding = 0,
+        .format = VK_FORMAT_R32G32B32_SFLOAT,
+        .offset = offsetof(Vertex, normal)
+      }
+    }};
+  }
 };
 
 } // namespace vke

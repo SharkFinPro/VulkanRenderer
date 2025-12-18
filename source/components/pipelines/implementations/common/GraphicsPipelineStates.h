@@ -249,6 +249,16 @@ namespace GraphicsPipelineStates {
     .pVertexAttributeDescriptions = vertexAttributeDescriptionsPositionOnly.data()
   };
 
+  inline std::array vertexAttributeDescriptionsPositionAndNormal = Vertex::getAttributeDescriptionsPositionAndNormal();
+
+  inline VkPipelineVertexInputStateCreateInfo vertexInputStateVertexPositionAndNormal {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .vertexBindingDescriptionCount = 1,
+    .pVertexBindingDescriptions = &vertexBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptionsPositionAndNormal.size()),
+    .pVertexAttributeDescriptions = vertexAttributeDescriptionsPositionAndNormal.data()
+  };
+
   inline VkVertexInputBindingDescription lineVertexBindingDescription = LineVertex::getBindingDescription();
   inline std::array lineVertexAttributeDescriptions = LineVertex::getAttributeDescriptions();
 
