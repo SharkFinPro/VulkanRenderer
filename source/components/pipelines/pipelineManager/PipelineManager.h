@@ -4,6 +4,7 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
+#include "../implementations/renderObject/PointLightShadowMapPipeline.h"
 #include "../implementations/renderObject/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -16,6 +17,7 @@ class MousePicker;
 class LightingManager;
 class DotsPipeline;
 class GuiPipeline;
+class PointLight;
 class Pipeline;
 enum class PipelineType;
 class RenderObject;
@@ -62,6 +64,11 @@ public:
   void renderShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                             const RenderInfo& renderInfo);
 
+  void renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                         const RenderInfo& renderInfo,
+                                         const std::shared_ptr<PointLight>& pointLight);
+
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -89,6 +96,8 @@ private:
   std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
   std::unique_ptr<GridPipeline> m_gridPipeline;
+
+  std::unique_ptr<PointLightShadowMapPipeline> m_pointLightShadowMapPipeline;
 
   std::unique_ptr<ShadowPipeline> m_shadowPipeline;
 

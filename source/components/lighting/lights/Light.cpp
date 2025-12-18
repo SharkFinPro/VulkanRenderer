@@ -1,4 +1,5 @@
 #include "Light.h"
+#include "../../logicalDevice/LogicalDevice.h"
 
 namespace vke {
 
@@ -11,6 +12,11 @@ Light::Light(const std::shared_ptr<LogicalDevice>& logicalDevice,
   : m_logicalDevice(logicalDevice), m_position(position), m_color(color), m_ambient(ambient), m_diffuse(diffuse),
     m_specular(specular)
 {}
+
+Light::~Light()
+{
+  destroyShadowMap();
+}
 
 glm::vec3 Light::getPosition() const
 {
@@ -62,4 +68,30 @@ void Light::setSpecular(const float specular)
   m_specular = specular;
 }
 
+VkImage Light::getShadowMap() const
+{
+  return m_shadowMap;
+}
+
+VkImageView Light::getShadowMapView() const
+{
+  return m_shadowMapView;
+}
+
+uint32_t Light::getShadowMapSize() const
+{
+  return m_shadowMapSize;
+}
+
+bool Light::castsShadows() const
+{
+  return m_castsShadows;
+}
+
+void Light::destroyShadowMap()
+{
+  m_logicalDevice->destroyImage(m_shadowMap);
+  m_logicalDevice->destroyImageView(m_shadowMapView);
+  m_logicalDevice->freeMemory(m_shadowMapMemory);
+}
 } // namespace vke

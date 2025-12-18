@@ -3,6 +3,8 @@
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include <vulkan/vulkan.h>
+#include <array>
 #include <memory>
 #include <variant>
 
@@ -11,6 +13,7 @@ namespace vke {
   class LogicalDevice;
 
   struct alignas(16) PointLightUniform {
+    std::array<glm::mat4, 6> lightViewProjections;
     glm::vec3 position;
     float padding1;
     glm::vec3 color;
@@ -49,7 +52,7 @@ public:
         float diffuse,
         float specular);
 
-  virtual ~Light() = default;
+  virtual ~Light();
 
   [[nodiscard]] glm::vec3 getPosition() const;
   [[nodiscard]] glm::vec3 getColor() const;
@@ -63,6 +66,14 @@ public:
   void setDiffuse(float diffuse);
   void setSpecular(float specular);
 
+  [[nodiscard]] VkImage getShadowMap() const;
+
+  [[nodiscard]] VkImageView getShadowMapView() const;
+
+  [[nodiscard]] uint32_t getShadowMapSize() const;
+
+  [[nodiscard]] bool castsShadows() const;
+
   [[nodiscard]] virtual LightType getLightType() const = 0;
 
   [[nodiscard]] virtual LightUniform getUniform() const = 0;
@@ -70,11 +81,22 @@ public:
 protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
+  VkImage m_shadowMap = VK_NULL_HANDLE;
+  VkImageView m_shadowMapView = VK_NULL_HANDLE;
+  VkDeviceMemory m_shadowMapMemory = VK_NULL_HANDLE;
+
+  bool m_castsShadows = true;
+  uint32_t m_shadowMapSize = 1024;
+
   glm::vec3 m_position;
   glm::vec3 m_color;
   float m_ambient;
   float m_diffuse;
   float m_specular;
+
+  virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
+
+  void destroyShadowMap();
 };
 
 } // namespace vke

@@ -147,6 +147,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/ObjectHighlightPipeline.h
   components/pipelines/implementations/renderObject/ObjectsPipeline.cpp
   components/pipelines/implementations/renderObject/ObjectsPipeline.h
+  components/pipelines/implementations/renderObject/PointLightShadowMapPipeline.cpp
+  components/pipelines/implementations/renderObject/PointLightShadowMapPipeline.h
   components/pipelines/implementations/renderObject/ShadowPipeline.cpp
   components/pipelines/implementations/renderObject/ShadowPipeline.h
   components/pipelines/implementations/renderObject/SnakePipeline.cpp

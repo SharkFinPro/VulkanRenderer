@@ -37,6 +37,13 @@ namespace LayoutBindings {
     .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
   };
 
+  constexpr VkDescriptorSetLayoutBinding pointLightsSamplerLayout {
+    .binding = 5,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = MAX_SHADOW_MAPS,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
   constexpr VkDescriptorSetLayoutBinding cameraLayout {
     .binding = 3,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -160,7 +167,8 @@ namespace LayoutBindings {
     pointLightsLayout,
     spotLightsLayout,
     cameraLayout,
-    spotLightsSamplerLayout
+    spotLightsSamplerLayout,
+    pointLightsSamplerLayout
   };
 
   inline std::vector<VkDescriptorSetLayoutBinding> bumpyCurtainLayoutBindings {
@@ -223,6 +231,15 @@ namespace LayoutBindings {
 
   inline std::vector<VkDescriptorSetLayoutBinding> gridLayoutBindings {
     gridLayout
+  };
+
+  inline std::vector<VkDescriptorSetLayoutBinding> pointLightShadowMapBindings {
+    {
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+    }
   };
 }
 

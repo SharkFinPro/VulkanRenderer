@@ -4,7 +4,6 @@
 #include "lights/SpotLight.h"
 #include "../../components/logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/Uniforms.h"
-#include "../pipelines/implementations/renderObject/ShadowPipeline.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
 #include "../pipelines/descriptorSets/LayoutBindings.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
@@ -17,11 +16,13 @@ namespace vke {
 LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  VkDescriptorPool descriptorPool,
                                  VkCommandPool commandPool)
-  : m_logicalDevice(logicalDevice), m_commandPool(commandPool)
+  : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool)
 {
+  createPointLightDescriptorSetLayout();
+
   createUniforms();
 
-  createDescriptorSet(descriptorPool);
+  createDescriptorSet();
 
   createShadowMapSampler();
 }
@@ -29,6 +30,8 @@ LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDe
 LightingManager::~LightingManager()
 {
   destroyShadowMapSampler();
+
+  m_logicalDevice->destroyDescriptorSetLayout(m_pointLightDescriptorSetLayout);
 }
 
 std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
@@ -37,7 +40,17 @@ std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
                                                          float diffuse,
                                                          float specular = 1.0f)
 {
-  auto light = std::make_shared<PointLight>(m_logicalDevice, position, color, ambient, diffuse, specular);
+  auto light = std::make_shared<PointLight>(
+    m_logicalDevice,
+    position,
+    color,
+    ambient,
+    diffuse,
+    specular,
+    m_commandPool,
+    m_descriptorPool,
+    m_pointLightDescriptorSetLayout
+  );
 
   m_lights.push_back(light);
 
@@ -92,46 +105,14 @@ void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& com
                                        const std::shared_ptr<Renderer>& renderer,
                                        const uint32_t currentFrame) const
 {
-  for (auto& light : m_spotLightsToRender)
-  {
-    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
-    if (!spotLight->castsShadows())
-    {
-      continue;
-    }
+  renderPointLightShadowMaps(commandBuffer, pipelineManager, renderer, currentFrame);
 
-    const VkExtent2D shadowExtent {
-      .width = spotLight->getShadowMapSize(),
-      .height = spotLight->getShadowMapSize()
-    };
+  renderSpotLightShadowMaps(commandBuffer, pipelineManager, renderer, currentFrame);
+}
 
-    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, spotLight);
-
-    VkViewport viewport {
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(shadowExtent.width),
-      .height = static_cast<float>(shadowExtent.height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f
-    };
-    commandBuffer->setViewport(viewport);
-
-    VkRect2D scissor = {{0, 0}, shadowExtent};
-    commandBuffer->setScissor(scissor);
-
-    RenderInfo shadowRenderInfo = {
-      .commandBuffer = commandBuffer,
-      .currentFrame = currentFrame,
-      .viewPosition = spotLight->getPosition(),
-      .viewMatrix = spotLight->getLightViewProjectionMatrix(),
-      .extent = shadowExtent
-    };
-
-    pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
-
-    renderer->endShadowRendering(0, commandBuffer);
-  }
+VkDescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
+{
+  return m_pointLightDescriptorSetLayout;
 }
 
 void LightingManager::createUniforms()
@@ -145,9 +126,9 @@ void LightingManager::createUniforms()
   m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 }
 
-void LightingManager::createDescriptorSet(VkDescriptorPool descriptorPool)
+void LightingManager::createDescriptorSet()
 {
-  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, LayoutBindings::lightingLayoutBindings);
   m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{{
@@ -234,6 +215,50 @@ void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
   }
 
   m_pointLightsUniform->update(currentFrame, lightUniforms.data());
+
+  updatePointLightShadowMaps(currentFrame);
+}
+
+void LightingManager::updatePointLightShadowMaps(const uint32_t currentFrame) const
+{
+  std::vector<VkDescriptorImageInfo> imageInfos;
+  imageInfos.reserve(MAX_SHADOW_MAPS);
+
+  for (auto& light : m_pointLightsToRender)
+  {
+    if (!light->castsShadows())
+    {
+      continue;
+    }
+
+    imageInfos.push_back({
+      m_shadowMapSampler,
+      light->getShadowMapView(),
+      VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+    });
+
+    if (imageInfos.size() >= MAX_SHADOW_MAPS)
+    {
+      break;
+    }
+  }
+
+  if (imageInfos.empty())
+  {
+    return;
+  }
+
+  const VkWriteDescriptorSet samplerWrite {
+    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
+    .dstBinding = 5,
+    .dstArrayElement = 0,
+    .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .pImageInfo = imageInfos.data(),
+  };
+
+  m_logicalDevice->updateDescriptorSets(1, &samplerWrite);
 }
 
 void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
@@ -305,15 +330,14 @@ void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) con
 
   for (auto& light : m_spotLightsToRender)
   {
-    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
-    if (!spotLight || !spotLight->castsShadows())
+    if (!light->castsShadows())
     {
       continue;
     }
 
     imageInfos.push_back({
       m_shadowMapSampler,
-      spotLight->getShadowMapView(),
+      light->getShadowMapView(),
       VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
     });
 
@@ -367,5 +391,112 @@ void LightingManager::createShadowMapSampler()
 void LightingManager::destroyShadowMapSampler()
 {
   m_logicalDevice->destroySampler(m_shadowMapSampler);
+}
+
+void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                 const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                 const std::shared_ptr<Renderer>& renderer,
+                                                 const uint32_t currentFrame) const
+{
+  for (auto& light : m_pointLightsToRender)
+  {
+    const auto pointLight = std::dynamic_pointer_cast<PointLight>(light);
+    if (!pointLight->castsShadows())
+    {
+      continue;
+    }
+
+    const VkExtent2D shadowExtent {
+      .width = light->getShadowMapSize(),
+      .height = light->getShadowMapSize()
+    };
+
+    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+
+    VkViewport viewport {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(shadowExtent.width),
+      .height = static_cast<float>(shadowExtent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    commandBuffer->setViewport(viewport);
+
+    VkRect2D scissor = {{0, 0}, shadowExtent};
+    commandBuffer->setScissor(scissor);
+
+    RenderInfo shadowRenderInfo = {
+      .commandBuffer = commandBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = pointLight->getPosition(),
+      .viewMatrix = glm::mat4(1.0),
+      .extent = shadowExtent
+    };
+
+    pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight);
+
+    renderer->endShadowRendering(0, commandBuffer);
+  }
+}
+
+void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                const std::shared_ptr<Renderer>& renderer,
+                                                const uint32_t currentFrame) const
+{
+  for (auto& light : m_spotLightsToRender)
+  {
+    const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
+    if (!spotLight->castsShadows())
+    {
+      continue;
+    }
+
+    const VkExtent2D shadowExtent {
+      .width = light->getShadowMapSize(),
+      .height = light->getShadowMapSize()
+    };
+
+    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+
+    VkViewport viewport {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(shadowExtent.width),
+      .height = static_cast<float>(shadowExtent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    commandBuffer->setViewport(viewport);
+
+    VkRect2D scissor = {{0, 0}, shadowExtent};
+    commandBuffer->setScissor(scissor);
+
+    RenderInfo shadowRenderInfo = {
+      .commandBuffer = commandBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = light->getPosition(),
+      .viewMatrix = spotLight->getLightViewProjectionMatrix(),
+      .extent = shadowExtent
+    };
+
+    pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
+
+    renderer->endShadowRendering(0, commandBuffer);
+  }
+}
+
+void LightingManager::createPointLightDescriptorSetLayout()
+{
+  const auto layoutBindings = LayoutBindings::pointLightShadowMapBindings;
+
+  const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
+    .pBindings = layoutBindings.data()
+  };
+
+  m_pointLightDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 }
 } // namespace vke

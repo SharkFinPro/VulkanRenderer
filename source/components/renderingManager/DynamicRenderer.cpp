@@ -1,6 +1,6 @@
 #include "DynamicRenderer.h"
 #include "../commandBuffer/CommandBuffer.h"
-#include "../lighting/lights/SpotLight.h"
+#include "../lighting/lights/Light.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../window/SwapChain.h"
@@ -142,11 +142,11 @@ void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const V
 void DynamicRenderer::beginShadowRendering(uint32_t imageIndex,
                                            const VkExtent2D extent,
                                            const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           const std::shared_ptr<SpotLight>& spotLight)
+                                           const std::shared_ptr<Light>& light)
 {
   VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-    .imageView = spotLight->getShadowMapView(),
+    .imageView = light->getShadowMapView(),
     .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -162,6 +162,7 @@ void DynamicRenderer::beginShadowRendering(uint32_t imageIndex,
       .extent = extent,
     },
     .layerCount = 1,
+    .viewMask = light->getLightType() == LightType::pointLight ? 0x3Fu : 0,
     .colorAttachmentCount = 0,
     .pColorAttachments = nullptr,
     .pDepthAttachment = &depthRenderingAttachmentInfo,

@@ -184,6 +184,20 @@ void PipelineManager::renderShadowPipeline(const std::shared_ptr<CommandBuffer>&
   }
 }
 
+void PipelineManager::renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                        const RenderInfo& renderInfo,
+                                                        const std::shared_ptr<PointLight>& pointLight)
+{
+  for (const auto& [_, renderObjects] : m_renderObjectsToRender)
+  {
+    m_pointLightShadowMapPipeline->render(
+      &renderInfo,
+      &renderObjects,
+      pointLight
+    );
+  }
+}
+
 void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout)
 {
   m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
@@ -240,6 +254,9 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
   m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
 
   m_shadowPipeline = std::make_unique<ShadowPipeline>(m_logicalDevice, m_renderPass, objectDescriptorSetLayout);
+
+  m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
+    m_logicalDevice, m_renderPass, objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const

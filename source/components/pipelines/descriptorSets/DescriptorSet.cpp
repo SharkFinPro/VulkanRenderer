@@ -14,9 +14,20 @@ DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice
   allocateDescriptorSets(descriptorPool);
 }
 
+DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice> &logicalDevice,
+                             VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout)
+  : m_logicalDevice(logicalDevice), m_descriptorSetLayout(descriptorSetLayout)
+{
+  allocateDescriptorSets(descriptorPool);
+}
+
 DescriptorSet::~DescriptorSet()
 {
-  m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+  if (m_ownsLayout)
+  {
+    m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+  }
 }
 
 void DescriptorSet::updateDescriptorSets(const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const
@@ -48,6 +59,8 @@ void DescriptorSet::createDescriptorSetLayout(const std::vector<VkDescriptorSetL
   };
 
   m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+
+  m_ownsLayout = true;
 }
 
 void DescriptorSet::allocateDescriptorSets(VkDescriptorPool descriptorPool)

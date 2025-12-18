@@ -53,6 +53,8 @@ public:
                         const std::shared_ptr<Renderer>& renderer,
                         uint32_t currentFrame) const;
 
+  [[nodiscard]] VkDescriptorSetLayout getPointLightDescriptorSetLayout() const;
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -72,16 +74,21 @@ private:
   std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
 
   VkCommandPool m_commandPool = VK_NULL_HANDLE;
+  VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
   VkSampler m_shadowMapSampler = VK_NULL_HANDLE;
 
+  VkDescriptorSetLayout m_pointLightDescriptorSetLayout = VK_NULL_HANDLE;
+
   void createUniforms();
 
-  void createDescriptorSet(VkDescriptorPool descriptorPool);
+  void createDescriptorSet();
 
   void updateUniforms(uint32_t currentFrame, glm::vec3 viewPosition);
 
   void updatePointLightUniforms(uint32_t currentFrame);
+
+  void updatePointLightShadowMaps(uint32_t currentFrame) const;
 
   void updateSpotLightUniforms(uint32_t currentFrame);
 
@@ -90,6 +97,18 @@ private:
   void createShadowMapSampler();
 
   void destroyShadowMapSampler();
+
+  void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                  const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const std::shared_ptr<Renderer>& renderer,
+                                  uint32_t currentFrame) const;
+
+  void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                 const std::shared_ptr<PipelineManager>& pipelineManager,
+                                 const std::shared_ptr<Renderer>& renderer,
+                                 uint32_t currentFrame) const;
+
+  void createPointLightDescriptorSetLayout();
 };
 
 } // namespace vke
