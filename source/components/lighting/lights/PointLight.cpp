@@ -1,5 +1,10 @@
 #include "PointLight.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
+#include "../../pipelines/GraphicsPipeline.h"
+#include "../../pipelines/descriptorSets/DescriptorSet.h"
+#include "../../pipelines/descriptorSets/LayoutBindings.h"
+#include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../../../utilities/Images.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -14,10 +19,16 @@ namespace vke {
                          const float ambient,
                          const float diffuse,
                          const float specular,
-                         const VkCommandPool& commandPool)
+                         const VkCommandPool& commandPool,
+                         VkDescriptorPool descriptorPool,
+                         VkDescriptorSetLayout descriptorSetLayout)
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
     PointLight::createShadowMap(commandPool);
+
+    createUniform();
+
+    createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
   LightType PointLight::getLightType() const
@@ -70,6 +81,25 @@ namespace vke {
     };
   }
 
+  void PointLight::updateUniform(const uint32_t currentFrame) const
+  {
+    const auto matrices = getLightViewProjectionMatrices();
+    m_viewProjectionUniform->update(currentFrame, &matrices);
+  }
+
+  void PointLight::bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                     const VkPipelineLayout& pipelineLayout,
+                                     const uint32_t currentFrame) const
+  {
+    commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      pipelineLayout,
+      1,
+      1,
+      &m_descriptorSet->getDescriptorSet(currentFrame)
+    );
+  }
+
   void PointLight::createShadowMap(const VkCommandPool& commandPool)
   {
     if (!m_castsShadows)
@@ -117,5 +147,24 @@ namespace vke {
       1,
       6
     );
+  }
+
+  void PointLight::createUniform()
+  {
+    m_viewProjectionUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(glm::mat4) * 6);
+  }
+
+  void PointLight::createDescriptorSet(VkDescriptorPool descriptorPool,
+                                       VkDescriptorSetLayout descriptorSetLayout)
+  {
+    m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
+    m_descriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_viewProjectionUniform->getDescriptorSet(0, descriptorSet, frame)
+      }};
+
+      return descriptorWrites;
+    });
   }
 } // vke

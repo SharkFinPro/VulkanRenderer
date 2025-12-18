@@ -5,6 +5,12 @@
 #include <array>
 
 namespace vke {
+
+  class CommandBuffer;
+  class DescriptorSet;
+  struct RenderInfo;
+  class UniformBuffer;
+
   class PointLight : public Light {
   public:
     PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -13,7 +19,9 @@ namespace vke {
                float ambient,
                float diffuse,
                float specular,
-               const VkCommandPool& commandPool);
+               const VkCommandPool& commandPool,
+               VkDescriptorPool descriptorPool,
+               VkDescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] LightType getLightType() const override;
 
@@ -21,8 +29,23 @@ namespace vke {
 
     [[nodiscard]] std::array<glm::mat4, 6> getLightViewProjectionMatrices() const;
 
+    void updateUniform(uint32_t currentFrame) const;
+
+    void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                           const VkPipelineLayout& pipelineLayout,
+                           uint32_t currentFrame) const;
+
   private:
+    std::shared_ptr<DescriptorSet> m_descriptorSet;
+
+    std::shared_ptr<UniformBuffer> m_viewProjectionUniform;
+
     void createShadowMap(const VkCommandPool& commandPool) override;
+
+    void createUniform();
+
+    void createDescriptorSet(VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout);
   };
 } // vke
 

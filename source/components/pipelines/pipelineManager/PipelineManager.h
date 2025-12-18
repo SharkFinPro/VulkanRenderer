@@ -17,6 +17,7 @@ class MousePicker;
 class LightingManager;
 class DotsPipeline;
 class GuiPipeline;
+class PointLight;
 class Pipeline;
 enum class PipelineType;
 class RenderObject;
@@ -65,7 +66,7 @@ public:
 
   void renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const RenderInfo& renderInfo,
-                                         const std::array<glm::mat4, 6>& lightViewProjectionMatrices);
+                                         const std::shared_ptr<PointLight>& pointLight);
 
 
 private:

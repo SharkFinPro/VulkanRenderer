@@ -1,22 +1,17 @@
 #include "PointLightShadowMapPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
-#include "../../descriptorSets/LayoutBindings.h"
-#include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../assets/objects/RenderObject.h"
 #include "../../../commandBuffer/CommandBuffer.h"
+#include "../../../lighting/lights/PointLight.h"
 
 namespace vke {
   PointLightShadowMapPipeline::PointLightShadowMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                            std::shared_ptr<RenderPass> renderPass,
                                                            VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                           VkDescriptorPool descriptorPool)
+                                                           VkDescriptorSetLayout pointLightDescriptorSetLayout)
     : GraphicsPipeline(logicalDevice)
   {
-    createUniforms();
-
-    createDescriptorSet(descriptorPool);
-
     const GraphicsPipelineOptions graphicsPipelineOptions{
       .shaders{
         .vertexShader = "assets/shaders/ShadowCubeMap.vert.spv",
@@ -41,7 +36,7 @@ namespace vke {
       },
       .descriptorSetLayouts{
         objectDescriptorSetLayout,
-        m_shadowMapDescriptorSet->getDescriptorSetLayout()
+        pointLightDescriptorSetLayout
       },
       .renderPass = renderPass
     };
@@ -51,14 +46,16 @@ namespace vke {
 
   void PointLightShadowMapPipeline::render(const RenderInfo* renderInfo,
                                            const std::vector<std::shared_ptr<RenderObject>>* objects,
-                                           const std::array<glm::mat4, 6>& lightViewProjectionMatrices)
+                                           const std::shared_ptr<PointLight>& pointLight)
   {
     GraphicsPipeline::render(renderInfo, nullptr);
 
-    updateUniformVariables(renderInfo, lightViewProjectionMatrices);
-
     renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                                              sizeof(glm::vec3), &renderInfo->viewPosition);
+
+    pointLight->updateUniform(renderInfo->currentFrame);
+
+    pointLight->bindDescriptorSet(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame);
 
     if (objects)
     {
@@ -69,35 +66,5 @@ namespace vke {
         object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
       }
     }
-  }
-
-  void PointLightShadowMapPipeline::createUniforms()
-  {
-    m_shadowMapUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(glm::mat4) * 6);
-  }
-
-  void PointLightShadowMapPipeline::createDescriptorSet(VkDescriptorPool descriptorPool)
-  {
-    m_shadowMapDescriptorSet = std::make_shared<DescriptorSet>(GraphicsPipeline::m_logicalDevice, descriptorPool, LayoutBindings::pointLightShadowMapBindings);
-    m_shadowMapDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
-    {
-      const std::vector<VkWriteDescriptorSet> writeDescriptorSets {{
-        m_shadowMapUniform->getDescriptorSet(0, descriptorSet, frame)
-      }};
-
-      return writeDescriptorSets;
-    });
-  }
-
-  void PointLightShadowMapPipeline::updateUniformVariables(const RenderInfo* renderInfo,
-                                                           const std::array<glm::mat4, 6>& lightViewProjectionMatrices) const
-  {
-    m_shadowMapUniform->update(renderInfo->currentFrame, &lightViewProjectionMatrices);
-  }
-
-  void PointLightShadowMapPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
-  {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
-                                                  &m_shadowMapDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
   }
 } // vke

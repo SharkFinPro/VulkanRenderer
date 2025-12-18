@@ -4,7 +4,6 @@
 #include "lights/SpotLight.h"
 #include "../../components/logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/Uniforms.h"
-#include "../pipelines/implementations/renderObject/ShadowPipeline.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
 #include "../pipelines/descriptorSets/LayoutBindings.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
@@ -17,11 +16,13 @@ namespace vke {
 LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  VkDescriptorPool descriptorPool,
                                  VkCommandPool commandPool)
-  : m_logicalDevice(logicalDevice), m_commandPool(commandPool)
+  : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool)
 {
+  createPointLightDescriptorSetLayout();
+
   createUniforms();
 
-  createDescriptorSet(descriptorPool);
+  createDescriptorSet();
 
   createShadowMapSampler();
 }
@@ -29,6 +30,8 @@ LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDe
 LightingManager::~LightingManager()
 {
   destroyShadowMapSampler();
+
+  m_logicalDevice->destroyDescriptorSetLayout(m_pointLightDescriptorSetLayout);
 }
 
 std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
@@ -37,7 +40,17 @@ std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
                                                          float diffuse,
                                                          float specular = 1.0f)
 {
-  auto light = std::make_shared<PointLight>(m_logicalDevice, position, color, ambient, diffuse, specular, m_commandPool);
+  auto light = std::make_shared<PointLight>(
+    m_logicalDevice,
+    position,
+    color,
+    ambient,
+    diffuse,
+    specular,
+    m_commandPool,
+    m_descriptorPool,
+    m_pointLightDescriptorSetLayout
+  );
 
   m_lights.push_back(light);
 
@@ -97,6 +110,11 @@ void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& com
   renderSpotLightShadowMaps(commandBuffer, pipelineManager, renderer, currentFrame);
 }
 
+VkDescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
+{
+  return m_pointLightDescriptorSetLayout;
+}
+
 void LightingManager::createUniforms()
 {
   m_lightMetadataUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
@@ -108,9 +126,9 @@ void LightingManager::createUniforms()
   m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
 }
 
-void LightingManager::createDescriptorSet(VkDescriptorPool descriptorPool)
+void LightingManager::createDescriptorSet()
 {
-  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::lightingLayoutBindings);
+  m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, LayoutBindings::lightingLayoutBindings);
   m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
   {
     std::vector<VkWriteDescriptorSet> descriptorWrites{{
@@ -416,7 +434,7 @@ void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBu
       .extent = shadowExtent
     };
 
-    pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight->getLightViewProjectionMatrices());
+    pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight);
 
     renderer->endShadowRendering(0, commandBuffer);
   }
@@ -467,5 +485,18 @@ void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuf
 
     renderer->endShadowRendering(0, commandBuffer);
   }
+}
+
+void LightingManager::createPointLightDescriptorSetLayout()
+{
+  const auto layoutBindings = LayoutBindings::pointLightShadowMapBindings;
+
+  const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
+    .pBindings = layoutBindings.data()
+  };
+
+  m_pointLightDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 }
 } // namespace vke
