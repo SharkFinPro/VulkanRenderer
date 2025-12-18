@@ -1,4 +1,5 @@
 #include "PointLight.h"
+#include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Images.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -17,6 +18,11 @@ namespace vke {
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
     PointLight::createShadowMap(commandPool);
+  }
+
+  PointLight::~PointLight()
+  {
+    m_logicalDevice->destroyImageView(m_shadowMapRenderView);
   }
 
   LightType PointLight::getLightType() const
@@ -50,8 +56,11 @@ namespace vke {
     const std::array<glm::mat4, 6> viewMatrices {
       glm::lookAt(m_position, m_position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)),
       glm::lookAt(m_position, m_position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)),
-      glm::lookAt(m_position, m_position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+
+      // Y direction order must be swapped for point light shadow maps
       glm::lookAt(m_position, m_position + glm::vec3(0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0)),
+      glm::lookAt(m_position, m_position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+
       glm::lookAt(m_position, m_position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0,-1.0, 0.0)),
       glm::lookAt(m_position, m_position + glm::vec3(0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0))
     };
@@ -64,6 +73,11 @@ namespace vke {
       projection * viewMatrices[4],
       projection * viewMatrices[5],
     };
+  }
+
+  VkImageView PointLight::getShadowMapRenderView() const
+  {
+    return m_shadowMapRenderView;
   }
 
   void PointLight::createShadowMap(const VkCommandPool& commandPool)
@@ -103,6 +117,8 @@ namespace vke {
       6
     );
 
+    createShadowMapRenderView();
+
     Images::transitionImageLayout(
       m_logicalDevice,
       commandPool,
@@ -111,6 +127,21 @@ namespace vke {
       VK_IMAGE_LAYOUT_UNDEFINED,
       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
       1,
+      6
+    );
+  }
+
+  void PointLight::createShadowMapRenderView()
+  {
+    constexpr VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
+
+    m_shadowMapRenderView = Images::createImageView(
+      m_logicalDevice,
+      m_shadowMap,
+      depthFormat,
+      VK_IMAGE_ASPECT_DEPTH_BIT,
+      1,
+      VK_IMAGE_VIEW_TYPE_2D_ARRAY,
       6
     );
   }

@@ -20,6 +20,7 @@ namespace vke {
     const GraphicsPipelineOptions graphicsPipelineOptions{
       .shaders{
         .vertexShader = "assets/shaders/ShadowCubeMap.vert.spv",
+        .fragmentShader = "assets/shaders/ShadowCubeMap.frag.spv"
       },
       .states{
         .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,
@@ -30,6 +31,13 @@ namespace vke {
         .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
         .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
         .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(glm::vec3)
+        }
       },
       .descriptorSetLayouts{
         objectDescriptorSetLayout,
@@ -48,6 +56,9 @@ namespace vke {
     GraphicsPipeline::render(renderInfo, nullptr);
 
     updateUniformVariables(renderInfo, lightViewProjectionMatrices);
+
+    renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                                             sizeof(glm::vec3), &renderInfo->viewPosition);
 
     if (objects)
     {

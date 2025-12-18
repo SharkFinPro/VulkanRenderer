@@ -1,6 +1,6 @@
 #include "DynamicRenderer.h"
 #include "../commandBuffer/CommandBuffer.h"
-#include "../lighting/lights/Light.h"
+#include "../lighting/lights/PointLight.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../window/SwapChain.h"
@@ -146,7 +146,8 @@ void DynamicRenderer::beginShadowRendering(uint32_t imageIndex,
 {
   VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-    .imageView = light->getShadowMapView(),
+    .imageView = light->getLightType() == LightType::pointLight ?
+                 std::dynamic_pointer_cast<PointLight>(light)->getShadowMapRenderView() : light->getShadowMapView(),
     .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,

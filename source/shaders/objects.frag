@@ -46,7 +46,27 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
   {
-    result += SpecularMapPointLightAffect(pointLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
+    PointLight light = pointLights[i];
+
+    vec3 fragToLight = light.position - fragPos;
+    fragToLight.xz *= -1.0;
+
+    float currentDist = length(fragToLight);
+    float ref = currentDist / 100.0;
+
+    float bias = 0.001;
+    ref -= bias;
+
+    float shadow = texture(pointLightShadowMaps[i], vec4(fragToLight, ref));
+
+    if (shadow > 0.5)
+    {
+      result += SpecularMapPointLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
+    }
+    else
+    {
+      result += getStandardAmbient(light.ambient, texColor);
+    }
   }
 
   for (int i = 0; i < numSpotLights; i++)
@@ -59,9 +79,8 @@ void main()
     projCoords.z -= bias;
 
     float shadow = texture(spotLightShadowMaps[i], projCoords);
-    bool visible = shadow > 0.5;
 
-    if (visible)
+    if (shadow > 0.5)
     {
       result += SpecularMapSpotLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
