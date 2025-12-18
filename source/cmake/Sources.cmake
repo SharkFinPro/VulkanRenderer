@@ -83,6 +83,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/legacyRenderer/renderPass/RenderPass.cpp
     components/renderingManager/legacyRenderer/renderPass/RenderPass.h
 
+    # Renderer2D
+    components/renderingManager/renderer2D/Renderer2D.cpp
+    components/renderingManager/renderer2D/Renderer2D.h
+
   components/renderingManager/DynamicRenderer.cpp
   components/renderingManager/DynamicRenderer.h
   components/renderingManager/Renderer.cpp
