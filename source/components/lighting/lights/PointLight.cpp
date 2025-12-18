@@ -20,11 +20,6 @@ namespace vke {
     PointLight::createShadowMap(commandPool);
   }
 
-  PointLight::~PointLight()
-  {
-    m_logicalDevice->destroyImageView(m_shadowMapRenderView);
-  }
-
   LightType PointLight::getLightType() const
   {
     return LightType::pointLight;
@@ -75,11 +70,6 @@ namespace vke {
     };
   }
 
-  VkImageView PointLight::getShadowMapRenderView() const
-  {
-    return m_shadowMapRenderView;
-  }
-
   void PointLight::createShadowMap(const VkCommandPool& commandPool)
   {
     if (!m_castsShadows)
@@ -117,8 +107,6 @@ namespace vke {
       6
     );
 
-    createShadowMapRenderView();
-
     Images::transitionImageLayout(
       m_logicalDevice,
       commandPool,
@@ -127,21 +115,6 @@ namespace vke {
       VK_IMAGE_LAYOUT_UNDEFINED,
       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
       1,
-      6
-    );
-  }
-
-  void PointLight::createShadowMapRenderView()
-  {
-    constexpr VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-
-    m_shadowMapRenderView = Images::createImageView(
-      m_logicalDevice,
-      m_shadowMap,
-      depthFormat,
-      VK_IMAGE_ASPECT_DEPTH_BIT,
-      1,
-      VK_IMAGE_VIEW_TYPE_2D_ARRAY,
       6
     );
   }

@@ -15,22 +15,14 @@ namespace vke {
                float specular,
                const VkCommandPool& commandPool);
 
-    ~PointLight() override;
-
     [[nodiscard]] LightType getLightType() const override;
 
     [[nodiscard]] LightUniform getUniform() const override;
 
     [[nodiscard]] std::array<glm::mat4, 6> getLightViewProjectionMatrices() const;
 
-    [[nodiscard]] VkImageView getShadowMapRenderView() const;
-
   private:
-    VkImageView m_shadowMapRenderView = VK_NULL_HANDLE;
-
     void createShadowMap(const VkCommandPool& commandPool) override;
-
-    void createShadowMapRenderView();
   };
 } // vke
 
