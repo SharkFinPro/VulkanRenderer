@@ -28,7 +28,7 @@ int main()
     const auto r2d = renderer.getRenderingManager()->getRenderer2D();
 
     const auto assetManager = renderer.getAssetManager();
-    const auto font = assetManager->loadFont("assets/fonts/Roboto-VariableFont_wdth,wght.ttf", 64);
+    const auto font = assetManager->loadFont("assets/fonts/Roboto-VariableFont_wdth,wght.ttf", 32);
     r2d->font(font);
 
     while (renderer.isActive())
@@ -44,7 +44,7 @@ int main()
       r2d->fill(50, 100, 200);
       r2d->rect(250, 100, 100, 100);
 
-      r2d->text("Hello, World!", 200, 300);
+      r2d->text("Hello, World!", 400, 200);
 
       renderScene(renderer, gui);
     }
