@@ -10,6 +10,7 @@ set(VULKAN_ENGINE_LINK_LIBRARIES
   glfw
   assimp
   imgui
+  freetype
 )
 
 set(VULKAN_ENGINE_INCLUDE_DIRECTORIES

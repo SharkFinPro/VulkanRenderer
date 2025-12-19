@@ -47,12 +47,20 @@ FetchContent_Declare(
   GIT_TAG docking
 )
 
+# Freetype
+FetchContent_Declare(
+  freetype
+  GIT_REPOSITORY https://github.com/freetype/freetype.git
+  GIT_TAG VER-2-14-1
+)
+
 FetchContent_MakeAvailable(
   glfw
   glm
   assimp
   stb
   imgui
+  freetype
 )
 
 # Ensure GLFW's X11 dependencies are properly linked on Linux
