@@ -1,6 +1,10 @@
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Asset Manager
+    # Fonts
+    components/assets/fonts/Font.cpp
+    components/assets/fonts/Font.h
+
     # Objects - Renderable objects and data structures
     components/assets/objects/Model.cpp
     components/assets/objects/Model.h
