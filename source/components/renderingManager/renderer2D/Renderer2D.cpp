@@ -2,6 +2,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace vke {
+  void Renderer2D::createNewFrame()
+  {
+    m_rectsToRender.clear();
+  }
+
   void Renderer2D::fill(const float r,
                         const float g,
                         const float b,
@@ -51,5 +56,13 @@ namespace vke {
 
     m_currentTransform = m_transformStack.back();
     m_transformStack.pop_back();
+  }
+
+  void Renderer2D::rect(const float x,
+                        const float y,
+                        const float w,
+                        const float h)
+  {
+    m_rectsToRender.emplace_back(glm::vec4(x, y, w, h), m_currentFill, m_currentTransform);
   }
 } // vke

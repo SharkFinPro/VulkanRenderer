@@ -15,6 +15,8 @@ namespace vke {
 
   class Renderer2D {
   public:
+    void createNewFrame();
+
     void fill(float r,
               float g,
               float b,
@@ -33,6 +35,11 @@ namespace vke {
     void pushMatrix();
 
     void popMatrix();
+
+    void rect(float x,
+              float y,
+              float w,
+              float h);
 
   private:
     glm::vec4 m_currentFill = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
