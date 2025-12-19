@@ -4,10 +4,12 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace vke {
 
+  class Font;
   class PipelineManager;
   struct RenderInfo;
 
@@ -55,6 +57,10 @@ namespace vke {
               float w,
               float h);
 
+    void text(const std::string& text,
+              float x,
+              float y);
+
   private:
     glm::vec4 m_currentFill = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -65,6 +71,8 @@ namespace vke {
     std::vector<Rect> m_rectsToRender;
 
     std::vector<Glyph> m_glyphsToRender;
+
+    std::shared_ptr<Font> m_currentFont;
   };
 } // vke
 

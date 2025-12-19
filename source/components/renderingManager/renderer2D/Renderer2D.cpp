@@ -1,4 +1,5 @@
 #include "Renderer2D.h"
+#include "../../assets/fonts/Font.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -77,5 +78,39 @@ namespace vke {
       .color = m_currentFill,
       .transform = m_currentTransform
     });
+  }
+
+  void Renderer2D::text(const std::string& text,
+                        const float x,
+                        const float y)
+  {
+    const float maxGlyphHeight = m_currentFont->getMaxGlyphHeight();
+
+    float currentX = x;
+
+    for (const auto& character : text)
+    {
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(character))
+      {
+        m_glyphsToRender.push_back({
+          .bounds = glm::vec4(
+            x + glyphInfo->bearingX,
+            y - glyphInfo->bearingY + maxGlyphHeight,
+            glyphInfo->width,
+            glyphInfo->height
+          ),
+          .color = m_currentFill,
+          .transform = m_currentTransform,
+          .uv = glm::vec4(
+            glyphInfo->u0,
+            glyphInfo->v0,
+            glyphInfo->u1,
+            glyphInfo->v1
+          )
+        });
+
+        currentX += glyphInfo->advance;
+      }
+    }
   }
 } // vke

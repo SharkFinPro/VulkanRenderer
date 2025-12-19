@@ -21,6 +21,18 @@ namespace vke {
     createGlyphAtlas(commandPool, fontBuffer, fontBufferSize, fontSize);
   }
 
+  GlyphInfo* Font::getGlyphInfo(const char character)
+  {
+    const auto it = m_glyphMap.find(character);
+
+    return it != m_glyphMap.end() ? &it->second : nullptr;
+  }
+
+  float Font::getMaxGlyphHeight() const
+  {
+    return m_maxGlyphHeight;
+  }
+
   void Font::loadFontFromFile(const std::string& fileName,
                               std::unique_ptr<uint8_t[]>& fontBuffer,
                               size_t& fontBufferSize)

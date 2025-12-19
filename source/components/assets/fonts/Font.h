@@ -27,6 +27,10 @@ namespace vke {
          uint32_t fontSize,
          VkCommandPool commandPool);
 
+    [[nodiscard]] GlyphInfo* getGlyphInfo(char character);
+
+    [[nodiscard]] float getMaxGlyphHeight() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
