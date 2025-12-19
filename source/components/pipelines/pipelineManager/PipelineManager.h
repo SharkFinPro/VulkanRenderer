@@ -17,6 +17,7 @@ class MousePicker;
 class LightingManager;
 class DotsPipeline;
 class FontPipeline;
+struct Glyph;
 class GuiPipeline;
 class PointLight;
 class Pipeline;
@@ -74,6 +75,10 @@ public:
 
   void renderRectPipeline(const RenderInfo* renderInfo,
                           const std::vector<Rect>* rects) const;
+
+  void renderFontPipeline(const RenderInfo* renderInfo,
+                          const std::vector<Glyph>* glyphs,
+                          VkDescriptorSet descriptorSet) const;
 
 
 private:

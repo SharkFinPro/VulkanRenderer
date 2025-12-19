@@ -38,6 +38,11 @@ namespace vke {
     return m_maxGlyphHeight;
   }
 
+  VkDescriptorSet Font::getDescriptorSet(const uint32_t currentFrame) const
+  {
+    return m_descriptorSet->getDescriptorSet(currentFrame);
+  }
+
   void Font::loadFontFromFile(const std::string& fileName,
                               std::unique_ptr<uint8_t[]>& fontBuffer,
                               size_t& fontBufferSize)

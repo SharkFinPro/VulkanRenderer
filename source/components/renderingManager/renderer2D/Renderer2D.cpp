@@ -8,6 +8,8 @@ namespace vke {
                           const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
     pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
+
+    pipelineManager->renderFontPipeline(renderInfo, &m_glyphsToRender, m_currentFont->getDescriptorSet(renderInfo->currentFrame));
   }
 
   void Renderer2D::createNewFrame()
@@ -99,7 +101,7 @@ namespace vke {
       {
         m_glyphsToRender.push_back({
           .bounds = glm::vec4(
-            x + glyphInfo->bearingX,
+            currentX + glyphInfo->bearingX,
             y - glyphInfo->bearingY + maxGlyphHeight,
             glyphInfo->width,
             glyphInfo->height

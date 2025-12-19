@@ -34,6 +34,8 @@ namespace vke {
 
     [[nodiscard]] float getMaxGlyphHeight() const;
 
+    [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

@@ -208,6 +208,13 @@ void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
   m_rectPipeline->render(renderInfo, rects);
 }
 
+void PipelineManager::renderFontPipeline(const RenderInfo* renderInfo,
+                                         const std::vector<Glyph>* glyphs,
+                                         VkDescriptorSet descriptorSet) const
+{
+  m_fontPipeline->render(renderInfo, glyphs, descriptorSet);
+}
+
 void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
                                       VkDescriptorSetLayout fontDescriptorSetLayout)
 {

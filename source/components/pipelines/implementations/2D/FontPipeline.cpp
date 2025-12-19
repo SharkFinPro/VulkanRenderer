@@ -41,9 +41,18 @@ namespace vke {
   }
 
   void FontPipeline::render(const RenderInfo* renderInfo,
-                            const std::vector<Glyph>* glyphs)
+                            const std::vector<Glyph>* glyphs,
+                            VkDescriptorSet descriptorSet)
   {
     GraphicsPipeline::render(renderInfo, nullptr);
+
+    renderInfo->commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipelineLayout,
+      0,
+      1,
+      &descriptorSet
+    );
 
     for (const auto& glyph : *glyphs)
     {

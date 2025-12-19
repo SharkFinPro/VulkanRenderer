@@ -31,7 +31,8 @@ namespace vke {
                  VkDescriptorSetLayout fontDescriptorSetLayout);
 
     void render(const RenderInfo* renderInfo,
-                const std::vector<Glyph>* glyphs);
+                const std::vector<Glyph>* glyphs,
+                VkDescriptorSet descriptorSet);
 
   private:
     void renderGlyph(const RenderInfo* renderInfo, const Glyph& glyph) const;
