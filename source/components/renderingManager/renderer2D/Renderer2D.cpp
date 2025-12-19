@@ -68,6 +68,11 @@ namespace vke {
     m_transformStack.pop_back();
   }
 
+  void Renderer2D::font(std::shared_ptr<Font> font)
+  {
+    m_currentFont = std::move(font);
+  }
+
   void Renderer2D::rect(const float x,
                         const float y,
                         const float w,

@@ -52,6 +52,8 @@ namespace vke {
 
     void popMatrix();
 
+    void font(std::shared_ptr<Font> font);
+
     void rect(float x,
               float y,
               float w,

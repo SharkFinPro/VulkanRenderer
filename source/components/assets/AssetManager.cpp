@@ -1,8 +1,9 @@
 #include "AssetManager.h"
-#include "../logicalDevice/LogicalDevice.h"
+#include "fonts/Font.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "../assets/textures/Texture2D.h"
+#include "../logicalDevice/LogicalDevice.h"
 #include <array>
 
 namespace vke {
@@ -57,6 +58,13 @@ std::shared_ptr<RenderObject> AssetManager::loadRenderObject(const std::shared_p
 
   return renderObject;
 
+}
+
+std::shared_ptr<Font> AssetManager::loadFont(std::string path, uint32_t fontSize)
+{
+  auto font = std::make_shared<Font>(m_logicalDevice, path, fontSize, m_commandPool);
+
+  return font;
 }
 
 VkDescriptorSetLayout AssetManager::getObjectDescriptorSetLayout() const

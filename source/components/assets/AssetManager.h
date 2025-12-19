@@ -4,10 +4,12 @@
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace vke {
 
+class Font;
 class LogicalDevice;
 class Model;
 class RenderObject;
@@ -27,6 +29,8 @@ public:
   [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
                                                                const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>& model);
+
+  [[nodiscard]] std::shared_ptr<Font> loadFont(std::string path, uint32_t fontSize);
 
   [[nodiscard]] VkDescriptorSetLayout getObjectDescriptorSetLayout() const;
 
