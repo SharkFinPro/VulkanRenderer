@@ -11,6 +11,13 @@ namespace vke {
   class PipelineManager;
   struct RenderInfo;
 
+  struct Glyph {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+    glm::vec4 uv;
+  };
+
   struct Rect {
     glm::vec4 bounds;
     glm::vec4 color;

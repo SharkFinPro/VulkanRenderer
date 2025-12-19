@@ -1,8 +1,38 @@
 #ifndef VULKANPROJECT_FONTPIPELINE_H
 #define VULKANPROJECT_FONTPIPELINE_H
 
+#include "../../GraphicsPipeline.h"
+#include <glm/mat4x4.hpp>
+
 namespace vke {
-  class FontPipeline {
+
+  struct Glyph;
+
+  struct GlyphPushConstant {
+    glm::mat4 transform;
+    int screenWidth;
+    int screenHeight;
+    float x;
+    float y;
+    float width;
+    float height;
+    float u0, v0;
+    float u1, v1;
+    float r;
+    float g;
+    float b;
+    float a;
+  };
+
+  class FontPipeline final : public GraphicsPipeline {
+    FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                 std::shared_ptr<RenderPass> renderPass);
+
+    void render(const RenderInfo* renderInfo,
+                const std::vector<Glyph>* glyphs);
+
+  private:
+    void renderGlyph(const RenderInfo* renderInfo, const Glyph& glyph) const;
   };
 } // vke
 
