@@ -63,6 +63,8 @@ namespace vke {
     std::vector<glm::mat4> m_transformStack;
 
     std::vector<Rect> m_rectsToRender;
+
+    std::vector<Glyph> m_glyphsToRender;
   };
 } // vke
 

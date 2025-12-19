@@ -12,6 +12,8 @@ namespace vke {
   void Renderer2D::createNewFrame()
   {
     m_rectsToRender.clear();
+
+    m_glyphsToRender.clear();
   }
 
   void Renderer2D::fill(const float r,
