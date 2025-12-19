@@ -8,8 +8,10 @@
 
 namespace vke {
 
-AssetManager::AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
-  : m_logicalDevice(logicalDevice), m_commandPool(commandPool)
+AssetManager::AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           VkCommandPool commandPool,
+                           VkDescriptorPool descriptorPool)
+  : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool)
 {
   createDescriptorSetLayouts();
 }
@@ -64,7 +66,7 @@ std::shared_ptr<RenderObject> AssetManager::loadRenderObject(const std::shared_p
 
 std::shared_ptr<Font> AssetManager::loadFont(std::string path, uint32_t fontSize)
 {
-  auto font = std::make_shared<Font>(m_logicalDevice, path, fontSize, m_commandPool);
+  auto font = std::make_shared<Font>(m_logicalDevice, path, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
 
   return font;
 }

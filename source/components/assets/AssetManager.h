@@ -18,7 +18,9 @@ class Texture2D;
 
 class AssetManager {
 public:
-  AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool);
+  AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+               VkCommandPool commandPool,
+               VkDescriptorPool descriptorPool);
 
   ~AssetManager();
 
@@ -44,6 +46,8 @@ private:
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
   VkDescriptorSetLayout m_fontDescriptorSetLayout = VK_NULL_HANDLE;
+
+  VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
   std::vector<std::shared_ptr<Texture>> m_textures;
   std::vector<std::shared_ptr<Model>> m_models;

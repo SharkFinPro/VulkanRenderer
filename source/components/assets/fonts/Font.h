@@ -9,6 +9,7 @@
 
 namespace vke {
 
+  class DescriptorSet;
   class LogicalDevice;
   class TextureGlyph;
 
@@ -25,7 +26,9 @@ namespace vke {
     Font(std::shared_ptr<LogicalDevice> logicalDevice,
          const std::string& fileName,
          uint32_t fontSize,
-         VkCommandPool commandPool);
+         VkCommandPool commandPool,
+         VkDescriptorPool descriptorPool,
+         VkDescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] GlyphInfo* getGlyphInfo(char character);
 
@@ -39,6 +42,8 @@ namespace vke {
     std::unordered_map<char, GlyphInfo> m_glyphMap;
 
     float m_maxGlyphHeight = 0.0f;
+
+    std::shared_ptr<DescriptorSet> m_descriptorSet;
 
     static void loadFontFromFile(const std::string& fileName,
                           std::unique_ptr<uint8_t[]>& fontBuffer,
@@ -67,6 +72,9 @@ namespace vke {
                              uint32_t glyphsPerRow,
                              uint32_t atlasWidth,
                              uint32_t atlasHeight);
+
+    void createDescriptorSet(VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout);
   };
 } // vke
 

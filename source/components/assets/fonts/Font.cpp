@@ -1,5 +1,6 @@
 #include "Font.h"
 #include "../textures/TextureGlyph.h"
+#include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include <fstream>
 #include <stdexcept>
 #include <utility>
@@ -10,7 +11,9 @@ namespace vke {
   Font::Font(std::shared_ptr<LogicalDevice> logicalDevice,
              const std::string& fileName,
              const uint32_t fontSize,
-             VkCommandPool commandPool)
+             VkCommandPool commandPool,
+             VkDescriptorPool descriptorPool,
+             VkDescriptorSetLayout descriptorSetLayout)
     : m_logicalDevice(std::move(logicalDevice))
   {
     std::unique_ptr<uint8_t[]> fontBuffer;
@@ -19,6 +22,8 @@ namespace vke {
     loadFontFromFile(fileName, fontBuffer, fontBufferSize);
 
     createGlyphAtlas(commandPool, fontBuffer, fontBufferSize, fontSize);
+
+    createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
   GlyphInfo* Font::getGlyphInfo(const char character)
@@ -205,5 +210,19 @@ namespace vke {
         y += maxGlyphHeight;
       }
     }
+  }
+
+  void Font::createDescriptorSet(VkDescriptorPool descriptorPool,
+                                 VkDescriptorSetLayout descriptorSetLayout)
+  {
+    m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
+    m_descriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_glyphTexture->getDescriptorSet(0, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
   }
 } // vke
