@@ -138,6 +138,7 @@ void VulkanEngine::createComponents()
   m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer()->getRenderPass(),
                                                         m_lightingManager, m_mousePicker,
                                                         m_assetManager->getObjectDescriptorSetLayout(),
+                                                        m_assetManager->getFontDescriptorSetLayout(),
                                                         m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS);
 
   m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,

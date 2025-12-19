@@ -25,8 +25,10 @@ namespace vke {
   };
 
   class FontPipeline final : public GraphicsPipeline {
+  public:
     FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 std::shared_ptr<RenderPass> renderPass);
+                 std::shared_ptr<RenderPass> renderPass,
+                 VkDescriptorSetLayout fontDescriptorSetLayout);
 
     void render(const RenderInfo* renderInfo,
                 const std::vector<Glyph>* glyphs);

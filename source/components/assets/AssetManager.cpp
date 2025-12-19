@@ -11,12 +11,14 @@ namespace vke {
 AssetManager::AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
   : m_logicalDevice(logicalDevice), m_commandPool(commandPool)
 {
-  createObjectDescriptorSetLayout();
+  createDescriptorSetLayouts();
 }
 
 AssetManager::~AssetManager()
 {
   m_logicalDevice->destroyDescriptorSetLayout(m_objectDescriptorSetLayout);
+
+  m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
 }
 
 std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path, bool repeat)
@@ -72,6 +74,18 @@ VkDescriptorSetLayout AssetManager::getObjectDescriptorSetLayout() const
   return m_objectDescriptorSetLayout;
 }
 
+VkDescriptorSetLayout AssetManager::getFontDescriptorSetLayout() const
+{
+  return m_fontDescriptorSetLayout;
+}
+
+void AssetManager::createDescriptorSetLayouts()
+{
+  createObjectDescriptorSetLayout();
+
+  createFontDescriptorSetLayout();
+}
+
 void AssetManager::createObjectDescriptorSetLayout()
 {
   constexpr VkDescriptorSetLayoutBinding transformLayout {
@@ -110,4 +124,25 @@ void AssetManager::createObjectDescriptorSetLayout()
   m_objectDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
 }
 
+void AssetManager::createFontDescriptorSetLayout()
+{
+  constexpr VkDescriptorSetLayoutBinding glyphDescriptorSetLayoutBinding {
+    .binding = 0,
+    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorCount = 1,
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+
+  std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings {
+    glyphDescriptorSetLayoutBinding
+  };
+
+  const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
+    .pBindings = descriptorSetLayoutBindings.data()
+  };
+
+  m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+}
 } // namespace vke

@@ -34,6 +34,8 @@ public:
 
   [[nodiscard]] VkDescriptorSetLayout getObjectDescriptorSetLayout() const;
 
+  [[nodiscard]] VkDescriptorSetLayout getFontDescriptorSetLayout() const;
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -41,11 +43,17 @@ private:
 
   VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
+  VkDescriptorSetLayout m_fontDescriptorSetLayout = VK_NULL_HANDLE;
+
   std::vector<std::shared_ptr<Texture>> m_textures;
   std::vector<std::shared_ptr<Model>> m_models;
   std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
 
+  void createDescriptorSetLayouts();
+
   void createObjectDescriptorSetLayout();
+
+  void createFontDescriptorSetLayout();
 };
 
 } // namespace vke

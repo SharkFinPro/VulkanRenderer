@@ -5,13 +5,14 @@
 
 namespace vke {
   FontPipeline::FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             std::shared_ptr<RenderPass> renderPass)
+                             std::shared_ptr<RenderPass> renderPass,
+                             VkDescriptorSetLayout fontDescriptorSetLayout)
     : GraphicsPipeline(logicalDevice)
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
-        .vertexShader = "shaders/2D/Font.vert.spv",
-        .fragmentShader = "shaders/2D/Font.frag.spv"
+        .vertexShader = "assets/shaders/2D/Font.vert.spv",
+        .fragmentShader = "assets/shaders/2D/Font.frag.spv"
       },
       .states {
         .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
@@ -29,6 +30,9 @@ namespace vke {
           .offset = 0,
           .size = sizeof(GlyphPushConstant)
         }
+      },
+      .descriptorSetLayouts {
+        fontDescriptorSetLayout
       },
       .renderPass = renderPass
     };
