@@ -2,8 +2,6 @@
 #define VULKANPROJECT_RECTPIPELINE_H
 
 #include "../../GraphicsPipeline.h"
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
 namespace vke {
@@ -12,9 +10,16 @@ namespace vke {
 
   struct RectPushConstant {
     glm::mat4 transform;
-    glm::vec2 screenSize;
-    glm::vec4 bounds;
-    glm::vec4 color;
+    int screenWidth;
+    int screenHeight;
+    float x;
+    float y;
+    float width;
+    float height;
+    float r;
+    float g;
+    float b;
+    float a;
   };
 
   class RectPipeline final : public GraphicsPipeline {

@@ -51,12 +51,16 @@ namespace vke {
   {
     const RectPushConstant rectPC {
       .transform = rect.transform,
-      .screenSize = {
-        renderInfo->extent.width,
-        renderInfo->extent.height
-      },
-      .bounds = rect.bounds,
-      .color = rect.color
+      .screenWidth = static_cast<int>(renderInfo->extent.width),
+      .screenHeight = static_cast<int>(renderInfo->extent.height),
+      .x = rect.bounds.x,
+      .y = rect.bounds.y,
+      .width = rect.bounds.z,
+      .height = rect.bounds.w,
+      .r = rect.color.r,
+      .g = rect.color.g,
+      .b = rect.color.b,
+      .a = rect.color.a
     };
 
     renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

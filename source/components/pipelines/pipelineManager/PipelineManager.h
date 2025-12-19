@@ -20,6 +20,8 @@ class GuiPipeline;
 class PointLight;
 class Pipeline;
 enum class PipelineType;
+struct Rect;
+class RectPipeline;
 class RenderObject;
 class SmokePipeline;
 
@@ -68,6 +70,9 @@ public:
                                          const RenderInfo& renderInfo,
                                          const std::shared_ptr<PointLight>& pointLight);
 
+  void renderRectPipeline(const RenderInfo* renderInfo,
+                          const std::vector<Rect>* rects) const;
+
 
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -100,6 +105,8 @@ private:
   std::unique_ptr<PointLightShadowMapPipeline> m_pointLightShadowMapPipeline;
 
   std::unique_ptr<ShadowPipeline> m_shadowPipeline;
+
+  std::shared_ptr<RectPipeline> m_rectPipeline;
 
   bool m_shouldDoDots;
 

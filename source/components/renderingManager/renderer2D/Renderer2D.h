@@ -3,9 +3,13 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
+#include <memory>
 #include <vector>
 
 namespace vke {
+
+  class PipelineManager;
+  struct RenderInfo;
 
   struct Rect {
     glm::vec4 bounds;
@@ -15,6 +19,9 @@ namespace vke {
 
   class Renderer2D {
   public:
+    void render(const RenderInfo* renderInfo,
+                const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
     void createNewFrame();
 
     void fill(float r,

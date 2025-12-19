@@ -1,9 +1,13 @@
 #version 450
 
-layout(push_constant) uniform QuadPC {
-  mat4 transformation;
-  vec2 screenSize;
-  vec4 bounds;
+layout(push_constant) uniform RectPC {
+  mat4 transform;
+  int screenWidth;
+  int screenHeight;
+  float x;
+  float y;
+  float width;
+  float height;
 } pc;
 
 void main()
@@ -11,26 +15,26 @@ void main()
   vec2 pos = vec2(0, 0);
   if (gl_VertexIndex == 0)
   {
-    pos = vec2(pc.bounds.r, pc.bounds.g);
+    pos = vec2(pc.x, pc.y);
   }
   else if (gl_VertexIndex == 1)
   {
-    pos = vec2(pc.bounds.r + pc.bounds.b, pc.bounds.g);
+    pos = vec2(pc.x + pc.width, pc.y);
   }
   else if (gl_VertexIndex == 2)
   {
-    pos = vec2(pc.bounds.r, pc.bounds.g + pc.bounds.a);
+    pos = vec2(pc.x, pc.y + pc.height);
   }
   else
   {
-    pos = vec2(pc.bounds.r + pc.bounds.b, pc.bounds.g + pc.bounds.a);
+    pos = vec2(pc.x + pc.width, pc.y + pc.height);
   }
 
-  pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
+  pos = (pc.transform * vec4(pos, 0.0, 1.0)).xy;
 
   vec2 ndc;
-  ndc.x = 2.0 * pos.x / float(pc.screenSize.x)  - 1.0;
-  ndc.y = 2.0 * pos.y / float(pc.screenSize.y) - 1.0;
+  ndc.x = 2.0 * pos.x / float(pc.screenWidth)  - 1.0;
+  ndc.y = 2.0 * pos.y / float(pc.screenHeight) - 1.0;
 
   gl_Position = vec4(ndc, 0.0, 1.0);
 }

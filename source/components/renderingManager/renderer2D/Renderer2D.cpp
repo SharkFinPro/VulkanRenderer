@@ -1,7 +1,14 @@
 #include "Renderer2D.h"
+#include "../../pipelines/pipelineManager/PipelineManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace vke {
+  void Renderer2D::render(const RenderInfo* renderInfo,
+                          const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
+  }
+
   void Renderer2D::createNewFrame()
   {
     m_rectsToRender.clear();

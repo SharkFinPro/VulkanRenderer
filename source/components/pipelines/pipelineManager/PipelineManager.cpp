@@ -6,6 +6,8 @@
 
 #include "../implementations/common/PipelineTypes.h"
 
+#include "../implementations/2D/RectPipeline.h"
+
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
 #include "../implementations/renderObject/CubeMapPipeline.h"
@@ -198,6 +200,12 @@ void PipelineManager::renderPointLightShadowMapPipeline(const std::shared_ptr<Co
   }
 }
 
+void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
+                                         const std::vector<Rect>* rects) const
+{
+  m_rectPipeline->render(renderInfo, rects);
+}
+
 void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout)
 {
   m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
@@ -257,6 +265,8 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
 
   m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
     m_logicalDevice, m_renderPass, objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
+
+  m_rectPipeline = std::make_shared<RectPipeline>(m_logicalDevice, m_renderPass);
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const
