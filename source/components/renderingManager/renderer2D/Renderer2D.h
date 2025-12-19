@@ -6,6 +6,13 @@
 #include <vector>
 
 namespace vke {
+
+  struct Rect {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+  };
+
   class Renderer2D {
   public:
     void fill(float r,
@@ -33,6 +40,8 @@ namespace vke {
     glm::mat4 m_currentTransform = glm::mat4(1.0f);
 
     std::vector<glm::mat4> m_transformStack;
+
+    std::vector<Rect> m_rectsToRender;
   };
 } // vke
 
