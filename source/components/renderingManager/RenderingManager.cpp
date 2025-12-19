@@ -25,7 +25,8 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
                                    const char* sceneViewName)
   : m_logicalDevice(logicalDevice), m_window(window),
     m_mousePicker(mousePicker), m_commandPool(commandPool),
-    m_shouldRenderOffscreen(shouldRenderOffscreen), m_sceneViewName(sceneViewName)
+    m_shouldRenderOffscreen(shouldRenderOffscreen), m_sceneViewName(sceneViewName),
+    m_renderer2D(std::make_shared<Renderer2D>())
 {
   m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
   m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -34,8 +35,6 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
 
   // m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
   m_renderer = std::make_shared<DynamicRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
-
-  m_renderer2D = std::make_shared<Renderer2D>();
 }
 
 void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
