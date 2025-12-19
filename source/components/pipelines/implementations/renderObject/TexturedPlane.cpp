@@ -13,8 +13,8 @@ TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/TexturedPlane.vert.spv",
-      .fragmentShader = "assets/shaders/TexturedPlane.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/TexturedPlane.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/TexturedPlane.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

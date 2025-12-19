@@ -83,6 +83,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/legacyRenderer/renderPass/RenderPass.cpp
     components/renderingManager/legacyRenderer/renderPass/RenderPass.h
 
+    # Renderer2D
+    components/renderingManager/renderer2D/Renderer2D.cpp
+    components/renderingManager/renderer2D/Renderer2D.h
+
   components/renderingManager/DynamicRenderer.cpp
   components/renderingManager/DynamicRenderer.h
   components/renderingManager/Renderer.cpp
@@ -126,6 +130,10 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
 
 # implementations Pipeline Implementations
 set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
+  # 2D Pipelines
+  components/pipelines/implementations/2D/RectPipeline.cpp
+  components/pipelines/implementations/2D/RectPipeline.h
+
   # RenderObject Pipelines
   components/pipelines/implementations/renderObject/BumpyCurtain.cpp
   components/pipelines/implementations/renderObject/BumpyCurtain.h

@@ -26,8 +26,11 @@ function(compile_shaders)
     get_filename_component(DIR_PATH ${REL_PATH} DIRECTORY)
     get_filename_component(FILENAME ${SHADER} NAME)
 
-    # Set the output SPIR-V file path
-    set(SPV_FILE "${shadersDst}/${FILENAME}.spv")
+    # Set the output SPIR-V file path preserving directory structure
+    set(SPV_FILE "${shadersDst}/${DIR_PATH}/${FILENAME}.spv")
+
+    # Create the output directory if it doesn't exist
+    file(MAKE_DIRECTORY "${shadersDst}/${DIR_PATH}")
 
     # Append to the list of SPIR-V files
     list(APPEND SPV_FILES ${SPV_FILE})

@@ -2,6 +2,7 @@
 #include "DynamicRenderer.h"
 #include "legacyRenderer/LegacyRenderer.h"
 #include "Renderer.h"
+#include "renderer2D/Renderer2D.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -24,7 +25,8 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
                                    const char* sceneViewName)
   : m_logicalDevice(logicalDevice), m_window(window),
     m_mousePicker(mousePicker), m_commandPool(commandPool),
-    m_shouldRenderOffscreen(shouldRenderOffscreen), m_sceneViewName(sceneViewName)
+    m_shouldRenderOffscreen(shouldRenderOffscreen), m_sceneViewName(sceneViewName),
+    m_renderer2D(std::make_shared<Renderer2D>())
 {
   m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
   m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -166,6 +168,16 @@ bool RenderingManager::isGridEnabled() const
   return m_shouldRenderGrid;
 }
 
+void RenderingManager::createNewFrame() const
+{
+  m_renderer2D->createNewFrame();
+}
+
+std::shared_ptr<Renderer2D> RenderingManager::getRenderer2D() const
+{
+  return m_renderer2D;
+}
+
 void RenderingManager::renderGuiScene(const uint32_t imageIndex)
 {
   if (!m_shouldRenderOffscreen)
@@ -232,6 +244,16 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
     pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
                                              currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
 
+    const RenderInfo renderInfo {
+      .commandBuffer = m_offscreenCommandBuffer,
+      .currentFrame = currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = m_offscreenViewportExtent
+    };
+
+    m_renderer2D->render(&renderInfo, pipelineManager);
+
     m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
   });
 }
@@ -255,6 +277,8 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
     {
       pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
                                                currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
+
+      m_renderer2D->render(&renderInfo, pipelineManager);
     }
 
     const VkViewport viewport = {

@@ -16,8 +16,8 @@ EllipticalDots::EllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevi
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/StandardObject.vert.spv",
-      .fragmentShader = "assets/shaders/EllipticalDots.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/EllipticalDots.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

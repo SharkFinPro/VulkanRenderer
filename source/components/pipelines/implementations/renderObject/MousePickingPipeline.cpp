@@ -14,8 +14,8 @@ MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>&
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/MousePicking.vert.spv",
-      .fragmentShader = "assets/shaders/MousePicking.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/MousePicking.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/MousePicking.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

@@ -11,7 +11,7 @@ namespace vke {
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
-        .vertexShader = "assets/shaders/Shadow.vert.spv",
+        .vertexShader = "assets/shaders/renderObject/Shadow.vert.spv",
       },
       .states {
         .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,

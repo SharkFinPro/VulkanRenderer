@@ -25,8 +25,8 @@ NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& l
 
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/StandardObject.vert.spv",
-      .fragmentShader = "assets/shaders/NoisyEllipticalDots.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/NoisyEllipticalDots.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

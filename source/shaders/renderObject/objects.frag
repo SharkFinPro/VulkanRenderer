@@ -1,6 +1,6 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
-#include "common/Lighting.glsl"
+#include "../common/Lighting.glsl"
 
 layout(set = 1, binding = 0) uniform Transform {
   mat4 model;

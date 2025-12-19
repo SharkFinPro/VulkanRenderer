@@ -16,9 +16,9 @@ SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/Snake.vert.spv",
-      .geometryShader = "assets/shaders/Snake.geom.spv",
-      .fragmentShader = "assets/shaders/Snake.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/Snake.vert.spv",
+      .geometryShader = "assets/shaders/renderObject/Snake.geom.spv",
+      .fragmentShader = "assets/shaders/renderObject/Snake.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

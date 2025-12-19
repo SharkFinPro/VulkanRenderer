@@ -1,3 +1,4 @@
+add_subdirectory(2D)
 add_subdirectory(bumpyCurtain)
 add_subdirectory(crosses)
 add_subdirectory(cube)
@@ -18,6 +19,7 @@ add_subdirectory(spotLight)
 # Create a custom target that builds all projects
 add_custom_target(build_all
   DEPENDS
+  2D
   bumpyCurtain
   crosses
   cube

@@ -196,6 +196,8 @@ void VulkanEngine::createNewFrame()
   m_mousePicker->clearObjectsToMousePick();
 
   m_pipelineManager->createNewFrame();
+
+  m_renderingManager->createNewFrame();
 }
 
 } // namespace vke

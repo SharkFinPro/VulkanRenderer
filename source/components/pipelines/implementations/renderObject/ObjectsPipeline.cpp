@@ -15,8 +15,8 @@ ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDe
 {
   const GraphicsPipelineOptions graphicsPipelineOptions {
     .shaders {
-      .vertexShader = "assets/shaders/StandardObject.vert.spv",
-      .fragmentShader = "assets/shaders/objects.frag.spv"
+      .vertexShader = "assets/shaders/renderObject/StandardObject.vert.spv",
+      .fragmentShader = "assets/shaders/renderObject/objects.frag.spv"
     },
     .states {
       .colorBlendState = GraphicsPipelineStates::colorBlendState,

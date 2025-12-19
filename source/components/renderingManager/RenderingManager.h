@@ -15,6 +15,7 @@ class LogicalDevice;
 class MousePicker;
 class PipelineManager;
 class Renderer;
+class Renderer2D;
 class SwapChain;
 class Window;
 
@@ -49,6 +50,10 @@ public:
 
   [[nodiscard]] bool isGridEnabled() const;
 
+  void createNewFrame() const;
+
+  [[nodiscard]] std::shared_ptr<Renderer2D> getRenderer2D() const;
+
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -81,6 +86,8 @@ private:
   const char* m_sceneViewName;
 
   bool m_shouldRenderGrid = true;
+
+  std::shared_ptr<Renderer2D> m_renderer2D;
 
   void renderGuiScene(uint32_t imageIndex);
 
