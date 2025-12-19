@@ -20,6 +20,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/textures/Texture3D.h
     components/assets/textures/TextureCubemap.cpp
     components/assets/textures/TextureCubemap.h
+    components/assets/textures/TextureGlyph.cpp
+    components/assets/textures/TextureGlyph.h
 
   components/assets/AssetManager.cpp
   components/assets/AssetManager.h
