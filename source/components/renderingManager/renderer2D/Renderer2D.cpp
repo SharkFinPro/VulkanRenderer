@@ -70,6 +70,10 @@ namespace vke {
                         const float w,
                         const float h)
   {
-    m_rectsToRender.emplace_back(glm::vec4(x, y, w, h), m_currentFill, m_currentTransform);
+    m_rectsToRender.push_back({
+      .bounds = glm::vec4(x, y, w, h),
+      .color = m_currentFill,
+      .transform = m_currentTransform
+    });
   }
 } // vke
