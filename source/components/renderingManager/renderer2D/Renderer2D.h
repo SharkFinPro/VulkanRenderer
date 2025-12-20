@@ -28,6 +28,14 @@ namespace vke {
     glm::mat4 transform;
   };
 
+  struct Triangle {
+    glm::vec2 p1;
+    glm::vec2 p2;
+    glm::vec2 p3;
+    glm::vec4 color;
+    glm::mat4 transform;
+  };
+
   class Renderer2D {
   public:
     explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
