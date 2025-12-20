@@ -21,6 +21,10 @@ namespace vke {
 
   void Renderer2D::createNewFrame()
   {
+    m_transformStack.clear();
+    resetMatrix();
+    fill(255, 255, 255, 255);
+
     m_rectsToRender.clear();
 
     m_glyphsToRender.clear();
@@ -77,6 +81,11 @@ namespace vke {
 
     m_currentTransform = m_transformStack.back();
     m_transformStack.pop_back();
+  }
+
+  void Renderer2D::resetMatrix()
+  {
+    m_currentTransform = glm::mat4(1.0f);
   }
 
   void Renderer2D::textFont(const std::string& font)

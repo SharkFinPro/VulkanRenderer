@@ -64,6 +64,8 @@ namespace vke {
 
     void popMatrix();
 
+    void resetMatrix();
+
     void textFont(const std::string& font);
 
     void textFont(const std::string& font,
