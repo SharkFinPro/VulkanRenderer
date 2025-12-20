@@ -1,6 +1,8 @@
 #include "Font.h"
 #include "../textures/TextureGlyph.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
+#include <cmath>
+#include <cstring>
 #include <fstream>
 #include <stdexcept>
 #include <utility>
