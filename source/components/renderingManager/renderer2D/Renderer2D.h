@@ -36,6 +36,12 @@ namespace vke {
     glm::mat4 transform;
   };
 
+  struct Ellipse {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+  };
+
   class Renderer2D {
   public:
     explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
@@ -75,8 +81,8 @@ namespace vke {
 
     void rect(float x,
               float y,
-              float w,
-              float h);
+              float width,
+              float height);
 
     void triangle(float x1,
                   float y1,
@@ -84,6 +90,11 @@ namespace vke {
                   float y2,
                   float x3,
                   float y3);
+
+    void ellipse(float x,
+                 float y,
+                 float width,
+                 float height);
 
     void text(const std::string& text,
               float x,
@@ -101,6 +112,8 @@ namespace vke {
     std::vector<Rect> m_rectsToRender;
 
     std::vector<Triangle> m_trianglesToRender;
+
+    std::vector<Ellipse> m_ellipsesToRender;
 
     std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>> m_glyphsToRender;
 

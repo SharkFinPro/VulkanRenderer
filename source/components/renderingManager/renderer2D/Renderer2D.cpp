@@ -27,9 +27,11 @@ namespace vke {
 
     m_rectsToRender.clear();
 
-    m_glyphsToRender.clear();
-
     m_trianglesToRender.clear();
+
+    m_ellipsesToRender.clear();
+
+    m_glyphsToRender.clear();
   }
 
   void Renderer2D::fill(const float r,
@@ -113,11 +115,11 @@ namespace vke {
 
   void Renderer2D::rect(const float x,
                         const float y,
-                        const float w,
-                        const float h)
+                        const float width,
+                        const float height)
   {
     m_rectsToRender.push_back({
-      .bounds = glm::vec4(x, y, w, h),
+      .bounds = glm::vec4(x, y, width, height),
       .color = m_currentFill,
       .transform = m_currentTransform
     });
@@ -134,6 +136,18 @@ namespace vke {
       .p1 = glm::vec2(x1, y1),
       .p2 = glm::vec2(x2, y2),
       .p3 = glm::vec2(x3, y3),
+      .color = m_currentFill,
+      .transform = m_currentTransform
+    });
+  }
+
+  void Renderer2D::ellipse(const float x,
+                           const float y,
+                           const float width,
+                           const float height)
+  {
+    m_ellipsesToRender.push_back({
+      .bounds = glm::vec4(x, y, width, height),
       .color = m_currentFill,
       .transform = m_currentTransform
     });
