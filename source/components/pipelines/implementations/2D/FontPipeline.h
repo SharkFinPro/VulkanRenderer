@@ -3,9 +3,11 @@
 
 #include "../../GraphicsPipeline.h"
 #include <glm/mat4x4.hpp>
+#include <unordered_map>
 
 namespace vke {
 
+  class AssetManager;
   struct Glyph;
 
   struct GlyphPushConstant {
@@ -31,8 +33,8 @@ namespace vke {
                  VkDescriptorSetLayout fontDescriptorSetLayout);
 
     void render(const RenderInfo* renderInfo,
-                const std::vector<Glyph>* glyphs,
-                VkDescriptorSet descriptorSet);
+                const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
+                const std::shared_ptr<AssetManager>& assetManager);
 
   private:
     void renderGlyph(const RenderInfo* renderInfo, const Glyph& glyph) const;

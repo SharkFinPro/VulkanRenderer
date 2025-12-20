@@ -5,6 +5,7 @@
 #include <glm/vec4.hpp>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace vke {
@@ -82,7 +83,7 @@ namespace vke {
 
     std::vector<Rect> m_rectsToRender;
 
-    std::vector<Glyph> m_glyphsToRender;
+    std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>> m_glyphsToRender;
 
     std::shared_ptr<Font> m_currentFont;
     std::string m_currentFontName = "";

@@ -1,5 +1,7 @@
 #include "FontPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
+#include "../../../assets/AssetManager.h"
+#include "../../../assets/fonts/Font.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../renderingManager/renderer2D/Renderer2D.h"
 
@@ -41,22 +43,30 @@ namespace vke {
   }
 
   void FontPipeline::render(const RenderInfo* renderInfo,
-                            const std::vector<Glyph>* glyphs,
-                            VkDescriptorSet descriptorSet)
+                            const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
+                            const std::shared_ptr<AssetManager>& assetManager)
   {
     GraphicsPipeline::render(renderInfo, nullptr);
 
-    renderInfo->commandBuffer->bindDescriptorSets(
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
-      m_pipelineLayout,
-      0,
-      1,
-      &descriptorSet
-    );
-
-    for (const auto& glyph : *glyphs)
+    for (const auto& [fontName, fontSizes] : *glyphs)
     {
-      renderGlyph(renderInfo, glyph);
+      for (const auto& [fontSize, text] : fontSizes)
+      {
+        auto descriptorSet = assetManager->getFont(fontName, fontSize)->getDescriptorSet(renderInfo->currentFrame);
+
+        renderInfo->commandBuffer->bindDescriptorSets(
+          VK_PIPELINE_BIND_POINT_GRAPHICS,
+          m_pipelineLayout,
+          0,
+          1,
+          &descriptorSet
+        );
+
+        for (const auto& glyph : text)
+        {
+          renderGlyph(renderInfo, glyph);
+        }
+      }
     }
   }
 

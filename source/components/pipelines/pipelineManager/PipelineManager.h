@@ -13,6 +13,7 @@
 
 namespace vke {
 
+class AssetManager;
 class MousePicker;
 class LightingManager;
 class DotsPipeline;
@@ -77,8 +78,8 @@ public:
                           const std::vector<Rect>* rects) const;
 
   void renderFontPipeline(const RenderInfo* renderInfo,
-                          const std::vector<Glyph>* glyphs,
-                          VkDescriptorSet descriptorSet) const;
+                          const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
+                          const std::shared_ptr<AssetManager>& assetManager) const;
 
 
 private:

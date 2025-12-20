@@ -209,10 +209,10 @@ void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
 }
 
 void PipelineManager::renderFontPipeline(const RenderInfo* renderInfo,
-                                         const std::vector<Glyph>* glyphs,
-                                         VkDescriptorSet descriptorSet) const
+                                         const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
+                                         const std::shared_ptr<AssetManager>& assetManager) const
 {
-  m_fontPipeline->render(renderInfo, glyphs, descriptorSet);
+  m_fontPipeline->render(renderInfo, glyphs, assetManager);
 }
 
 void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,

@@ -14,7 +14,7 @@ namespace vke {
   {
     pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
 
-    pipelineManager->renderFontPipeline(renderInfo, &m_glyphsToRender, m_currentFont->getDescriptorSet(renderInfo->currentFrame));
+    pipelineManager->renderFontPipeline(renderInfo, &m_glyphsToRender, m_assetManager);
   }
 
   void Renderer2D::createNewFrame()
@@ -122,7 +122,7 @@ namespace vke {
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(character))
       {
-        m_glyphsToRender.push_back({
+        m_glyphsToRender[m_currentFontName][m_currentFontSize].push_back({
           .bounds = glm::vec4(
             currentX + glyphInfo->bearingX,
             y - glyphInfo->bearingY + maxGlyphHeight,
