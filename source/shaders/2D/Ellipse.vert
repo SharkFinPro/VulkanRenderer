@@ -14,6 +14,8 @@ layout(push_constant) uniform EllipsePC {
   float a;
 } pc;
 
+layout(location = 0) out vec2 fragPos;
+
 void main()
 {
   vec2 pos = vec2(0, 0);
@@ -35,6 +37,8 @@ void main()
   }
 
   pos = (pc.transform * vec4(pos, 0.0, 1.0)).xy;
+
+  fragPos = pos;
 
   vec2 ndc;
   ndc.x = 2.0 * pos.x / float(pc.screenWidth)  - 1.0;
