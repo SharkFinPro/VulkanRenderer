@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace vke {
@@ -32,7 +33,9 @@ public:
                                                                const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>& model);
 
-  [[nodiscard]] std::shared_ptr<Font> loadFont(std::string path, uint32_t fontSize);
+  void registerFont(std::string fontName, std::string fontPath);
+
+  [[nodiscard]] std::shared_ptr<Font> getFont(const std::string& fontName, uint32_t fontSize);
 
   [[nodiscard]] VkDescriptorSetLayout getObjectDescriptorSetLayout() const;
 
@@ -53,11 +56,16 @@ private:
   std::vector<std::shared_ptr<Model>> m_models;
   std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
 
+  std::unordered_map<std::string, std::string> m_fontNames;
+  std::unordered_map<std::string, std::unordered_map<uint32_t, std::shared_ptr<Font>>> m_fonts;
+
   void createDescriptorSetLayouts();
 
   void createObjectDescriptorSetLayout();
 
   void createFontDescriptorSetLayout();
+
+  void loadFont(const std::string& fontName, uint32_t fontSize);
 };
 
 } // namespace vke

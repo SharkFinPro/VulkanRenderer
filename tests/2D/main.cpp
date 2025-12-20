@@ -28,7 +28,10 @@ int main()
     const auto r2d = renderer.getRenderingManager()->getRenderer2D();
 
     const auto assetManager = renderer.getAssetManager();
-    const auto font = assetManager->loadFont("assets/fonts/Roboto-VariableFont_wdth,wght.ttf", 32);
+
+    assetManager->registerFont("roboto", "assets/fonts/Roboto-VariableFont_wdth,wght.ttf");
+
+    const auto font = assetManager->getFont("roboto", 32);
     r2d->font(font);
 
     while (renderer.isActive())

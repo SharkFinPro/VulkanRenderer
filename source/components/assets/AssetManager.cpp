@@ -5,6 +5,7 @@
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include <array>
+#include <stdexcept>
 
 namespace vke {
 
@@ -64,11 +65,31 @@ std::shared_ptr<RenderObject> AssetManager::loadRenderObject(const std::shared_p
 
 }
 
-std::shared_ptr<Font> AssetManager::loadFont(std::string path, uint32_t fontSize)
+void AssetManager::registerFont(std::string fontName, std::string fontPath)
 {
-  auto font = std::make_shared<Font>(m_logicalDevice, path, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
+  m_fontNames.insert({fontName, fontPath});
+}
 
-  return font;
+std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName, const uint32_t fontSize)
+{
+  auto fontByName = m_fonts.find(fontName);
+
+  if (fontByName == m_fonts.end())
+  {
+    loadFont(fontName, fontSize);
+
+    fontByName = m_fonts.find(fontName);
+  }
+
+  auto fontBySize = fontByName->second.find(fontSize);
+  if (fontBySize == fontByName->second.end())
+  {
+    loadFont(fontName, fontSize);
+
+    fontBySize = fontByName->second.find(fontSize);
+  }
+
+  return fontBySize->second;
 }
 
 VkDescriptorSetLayout AssetManager::getObjectDescriptorSetLayout() const
@@ -146,5 +167,19 @@ void AssetManager::createFontDescriptorSetLayout()
   };
 
   m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+}
+
+void AssetManager::loadFont(const std::string& fontName, uint32_t fontSize)
+{
+  const auto fontPath = m_fontNames.find(fontName);
+
+  if (fontPath == m_fontNames.end())
+  {
+    throw std::runtime_error("Font not found!");
+  }
+
+  auto font = std::make_shared<Font>(m_logicalDevice, fontPath->second, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
+
+  m_fonts[fontName].insert({fontSize, font});
 }
 } // namespace vke
