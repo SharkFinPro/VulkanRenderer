@@ -1,6 +1,10 @@
 # Components - UI and rendering components
 set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Asset Manager
+    # Fonts
+    components/assets/fonts/Font.cpp
+    components/assets/fonts/Font.h
+
     # Objects - Renderable objects and data structures
     components/assets/objects/Model.cpp
     components/assets/objects/Model.h
@@ -16,6 +20,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/textures/Texture3D.h
     components/assets/textures/TextureCubemap.cpp
     components/assets/textures/TextureCubemap.h
+    components/assets/textures/TextureGlyph.cpp
+    components/assets/textures/TextureGlyph.h
 
   components/assets/AssetManager.cpp
   components/assets/AssetManager.h
@@ -133,6 +139,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   # 2D Pipelines
   components/pipelines/implementations/2D/RectPipeline.cpp
   components/pipelines/implementations/2D/RectPipeline.h
+  components/pipelines/implementations/2D/FontPipeline.cpp
+  components/pipelines/implementations/2D/FontPipeline.h
 
   # RenderObject Pipelines
   components/pipelines/implementations/renderObject/BumpyCurtain.cpp

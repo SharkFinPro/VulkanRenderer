@@ -1,9 +1,10 @@
 #include "../common/gui.h"
 #include <source/VulkanEngine.h>
+#include <source/components/assets/AssetManager.h>
+#include <source/components/renderingManager/renderer2D/Renderer2D.h>
 #include <imgui.h>
 #include <iostream>
 
-#include "source/components/renderingManager/renderer2D/Renderer2D.h"
 
 void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui);
 
@@ -26,6 +27,12 @@ int main()
 
     const auto r2d = renderer.getRenderingManager()->getRenderer2D();
 
+    const auto assetManager = renderer.getAssetManager();
+
+    assetManager->registerFont("roboto", "assets/fonts/Roboto-VariableFont_wdth,wght.ttf");
+
+    r2d->textFont("roboto");
+
     while (renderer.isActive())
     {
 
@@ -38,6 +45,12 @@ int main()
 
       r2d->fill(50, 100, 200);
       r2d->rect(250, 100, 100, 100);
+
+      r2d->textSize(25);
+      r2d->text("Hello, World!", 400, 200);
+
+      r2d->textSize(45);
+      r2d->text("Bigger!", 400, 250);
 
       renderScene(renderer, gui);
     }

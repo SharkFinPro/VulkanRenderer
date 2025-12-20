@@ -6,6 +6,7 @@
 
 #include "../implementations/common/PipelineTypes.h"
 
+#include "../implementations/2D/FontPipeline.h"
 #include "../implementations/2D/RectPipeline.h"
 
 #include "../implementations/renderObject/BumpyCurtain.h"
@@ -35,6 +36,7 @@ PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDe
                                  const std::shared_ptr<LightingManager>& lightingManager,
                                  const std::shared_ptr<MousePicker>& mousePicker,
                                  VkDescriptorSetLayout objectDescriptorSetLayout,
+                                 VkDescriptorSetLayout fontDescriptorSetLayout,
                                  VkDescriptorPool descriptorPool,
                                  VkCommandPool commandPool,
                                  const bool shouldDoDots)
@@ -42,7 +44,7 @@ PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDe
     m_renderPass(renderPass), m_lightingManager(lightingManager), m_mousePicker(mousePicker),
     m_shouldDoDots(shouldDoDots)
 {
-  createPipelines(objectDescriptorSetLayout);
+  createPipelines(objectDescriptorSetLayout, fontDescriptorSetLayout);
 }
 
 void PipelineManager::createNewFrame()
@@ -206,7 +208,15 @@ void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
   m_rectPipeline->render(renderInfo, rects);
 }
 
-void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout)
+void PipelineManager::renderFontPipeline(const RenderInfo* renderInfo,
+                                         const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
+                                         const std::shared_ptr<AssetManager>& assetManager) const
+{
+  m_fontPipeline->render(renderInfo, glyphs, assetManager);
+}
+
+void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
+                                      VkDescriptorSetLayout fontDescriptorSetLayout)
 {
   m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
     m_logicalDevice, m_renderPass, objectDescriptorSetLayout,
@@ -267,6 +277,8 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
     m_logicalDevice, m_renderPass, objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
 
   m_rectPipeline = std::make_shared<RectPipeline>(m_logicalDevice, m_renderPass);
+
+  m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderPass, fontDescriptorSetLayout);
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const

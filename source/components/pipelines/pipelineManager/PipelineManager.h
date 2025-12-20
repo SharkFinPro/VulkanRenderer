@@ -13,9 +13,12 @@
 
 namespace vke {
 
+class AssetManager;
 class MousePicker;
 class LightingManager;
 class DotsPipeline;
+class FontPipeline;
+struct Glyph;
 class GuiPipeline;
 class PointLight;
 class Pipeline;
@@ -32,6 +35,7 @@ public:
                   const std::shared_ptr<LightingManager>& lightingManager,
                   const std::shared_ptr<MousePicker>& mousePicker,
                   VkDescriptorSetLayout objectDescriptorSetLayout,
+                  VkDescriptorSetLayout fontDescriptorSetLayout,
                   VkDescriptorPool descriptorPool,
                   VkCommandPool commandPool,
                   bool shouldDoDots);
@@ -73,6 +77,10 @@ public:
   void renderRectPipeline(const RenderInfo* renderInfo,
                           const std::vector<Rect>* rects) const;
 
+  void renderFontPipeline(const RenderInfo* renderInfo,
+                          const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
+                          const std::shared_ptr<AssetManager>& assetManager) const;
+
 
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -108,9 +116,12 @@ private:
 
   std::shared_ptr<RectPipeline> m_rectPipeline;
 
+  std::shared_ptr<FontPipeline> m_fontPipeline;
+
   bool m_shouldDoDots;
 
-  void createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout);
+  void createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
+                       VkDescriptorSetLayout fontDescriptorSetLayout);
 
   void renderRenderObjects(const RenderInfo& renderInfo) const;
 
