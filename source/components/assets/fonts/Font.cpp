@@ -55,8 +55,7 @@ namespace vke {
     std::vector<uint8_t> buffer(fileSize);
 
     file.seekg(0);
-    // codacy:ignore
-    file.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(fileSize));
+    std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
     if (!file)
     {
