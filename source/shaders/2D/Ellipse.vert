@@ -19,19 +19,19 @@ void main()
   vec2 pos = vec2(0, 0);
   if (gl_VertexIndex == 0)
   {
-    pos = vec2(pc.x, pc.y);
+    pos = vec2(pc.x - pc.width / 2.0, pc.y - pc.height / 2.0);
   }
   else if (gl_VertexIndex == 1)
   {
-    pos = vec2(pc.x + pc.width, pc.y);
+    pos = vec2(pc.x + pc.width / 2.0, pc.y - pc.height / 2.0);
   }
   else if (gl_VertexIndex == 2)
   {
-    pos = vec2(pc.x, pc.y + pc.height);
+    pos = vec2(pc.x - pc.width / 2.0, pc.y + pc.height / 2.0);
   }
   else
   {
-    pos = vec2(pc.x + pc.width, pc.y + pc.height);
+    pos = vec2(pc.x + pc.width / 2.0, pc.y + pc.height / 2.0);
   }
 
   pos = (pc.transform * vec4(pos, 0.0, 1.0)).xy;
