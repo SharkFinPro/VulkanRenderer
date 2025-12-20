@@ -47,13 +47,10 @@ namespace vke {
 
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 
-    static void loadFontFromFile(const std::string& fileName,
-                          std::unique_ptr<uint8_t[]>& fontBuffer,
-                          size_t& fontBufferSize);
+    static std::vector<uint8_t> loadFontFromFile(const std::string& fileName);
 
     void createGlyphAtlas(VkCommandPool commandPool,
-                          const std::unique_ptr<uint8_t[]>& fontBuffer,
-                          const size_t& fontBufferSize,
+                          const std::vector<uint8_t>& fontBuffer,
                           uint32_t fontSize);
 
     static std::vector<FT_ULong> getCharset(FT_Face face);

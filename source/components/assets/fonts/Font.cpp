@@ -16,12 +16,9 @@ namespace vke {
              VkDescriptorSetLayout descriptorSetLayout)
     : m_logicalDevice(std::move(logicalDevice))
   {
-    std::unique_ptr<uint8_t[]> fontBuffer;
-    size_t fontBufferSize = 0;
+    const auto fontBuffer = loadFontFromFile(fileName);
 
-    loadFontFromFile(fileName, fontBuffer, fontBufferSize);
-
-    createGlyphAtlas(commandPool, fontBuffer, fontBufferSize, fontSize);
+    createGlyphAtlas(commandPool, fontBuffer, fontSize);
 
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
@@ -43,33 +40,33 @@ namespace vke {
     return m_descriptorSet->getDescriptorSet(currentFrame);
   }
 
-  void Font::loadFontFromFile(const std::string& fileName,
-                              std::unique_ptr<uint8_t[]>& fontBuffer,
-                              size_t& fontBufferSize)
+  std::vector<uint8_t> Font::loadFontFromFile(const std::string& fileName)
   {
-    std::ifstream file(fileName, std::ios::binary | std::ios::ate);
-    if (!file)
+    std::ifstream file(fileName, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open())
     {
-      throw std::runtime_error(std::string("Failed to open file: ") + fileName);
+      throw std::runtime_error("Failed to open file: " + fileName);
     }
 
-    fontBufferSize = file.tellg();
-    file.seekg(0, std::ios::beg);
+    const size_t fileSize = file.tellg();
+    std::vector<uint8_t> buffer(fileSize);
 
-    fontBuffer = std::make_unique<uint8_t[]>(fontBufferSize);
-    file.read(reinterpret_cast<char*>(fontBuffer.get()), static_cast<std::streamsize>(fontBufferSize));
+    file.seekg(0);
+    file.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(fileSize));
 
     if (!file)
     {
-      throw std::runtime_error(std::string("Failed to read file: ") + fileName);
+      throw std::runtime_error("Failed to read file: " + fileName);
     }
 
     file.close();
+
+    return buffer;
   }
 
   void Font::createGlyphAtlas(VkCommandPool commandPool,
-                              const std::unique_ptr<uint8_t[]>& fontBuffer,
-                              const size_t& fontBufferSize,
+                              const std::vector<uint8_t>& fontBuffer,
                               const uint32_t fontSize)
   {
     FT_Library ft;
@@ -79,7 +76,7 @@ namespace vke {
     }
 
     FT_Face face;
-    if (FT_New_Memory_Face(ft, fontBuffer.get(), static_cast<FT_Long>(fontBufferSize), 0, &face))
+    if (FT_New_Memory_Face(ft, fontBuffer.data(), fontBuffer.size(), 0, &face))
     {
       FT_Done_FreeType(ft);
       throw std::runtime_error("Failed to load font from memory");
@@ -180,17 +177,12 @@ namespace vke {
 
       for (uint32_t row = 0; row < bitmap.rows; ++row)
       {
-        for (uint32_t col = 0; col < bitmap.width; ++col)
-        {
-          const uint32_t atlasX = x + col;
-          const uint32_t atlasY = y + row;
-          const uint32_t atlasIndex = atlasY * atlasWidth + atlasX;
-          const uint32_t bitmapIndex = row * bitmap.width + col;
+        const uint32_t atlasOffset = (y + row) * atlasWidth + x;
+        const uint32_t bitmapOffset = row * bitmap.width;
 
-          if (atlasIndex < atlasBuffer.size())
-          {
-            atlasBuffer[atlasIndex] = bitmap.buffer[bitmapIndex];
-          }
+        if (atlasOffset + bitmap.width <= atlasBuffer.size())
+        {
+          std::memcpy(&atlasBuffer[atlasOffset], &bitmap.buffer[bitmapOffset], bitmap.width);
         }
       }
 
