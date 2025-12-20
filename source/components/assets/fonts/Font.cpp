@@ -51,37 +51,15 @@ namespace vke {
       throw std::runtime_error("Failed to open file: " + fileName);
     }
 
-    const std::streampos endPos = file.tellg();
-    if (endPos <= 0)
-    {
-      throw std::runtime_error("Invalid file size: " + fileName);
-    }
-
-    constexpr size_t MAX_FONT_SIZE = 10 * 1024 * 1024;
-    const auto fileSize = static_cast<size_t>(endPos);
-
-    if (fileSize > MAX_FONT_SIZE)
-    {
-      throw std::runtime_error("Font file too large: " + fileName);
-    }
-
+    const size_t fileSize = file.tellg();
     std::vector<uint8_t> buffer(fileSize);
 
-    file.seekg(0, std::ios::beg);
+    file.seekg(0);
+    file.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(fileSize));
 
-    const size_t bufferCapacity = buffer.size();
-    const std::streamsize readSize = static_cast<std::streamsize>(fileSize);
-
-    if (readSize > static_cast<std::streamsize>(bufferCapacity))
+    if (!file)
     {
-      throw std::runtime_error("Read would exceed buffer");
-    }
-
-    file.read(reinterpret_cast<char*>(buffer.data()), readSize);
-
-    if (file.gcount() != readSize)
-    {
-      throw std::runtime_error("Incomplete read: " + fileName);
+      throw std::runtime_error("Failed to read file: " + fileName);
     }
 
     file.close();
@@ -169,26 +147,11 @@ namespace vke {
     }
 
     glyphsPerRow = static_cast<uint32_t>(std::ceil(std::sqrt(charset.size())));
-
-    constexpr uint32_t MAX_ATLAS_DIMENSION = 8192;
-
-    if (glyphsPerRow > MAX_ATLAS_DIMENSION / maxGlyphWidth)
-    {
-      throw std::runtime_error("Atlas width would overflow");
-    }
-
-    if (glyphsPerRow > MAX_ATLAS_DIMENSION / maxGlyphHeight)
-    {
-      throw std::runtime_error("Atlas height would overflow");
-    }
-
-    atlasWidth = glyphsPerRow * maxGlyphWidth;
-    atlasHeight = glyphsPerRow * maxGlyphHeight;
-
     atlasWidth = glyphsPerRow * maxGlyphWidth;
     atlasHeight = glyphsPerRow * maxGlyphHeight;
 
     std::vector<uint8_t> atlasBuffer(atlasWidth * atlasHeight, 0);
+
     return atlasBuffer;
   }
 
@@ -219,12 +182,9 @@ namespace vke {
         const uint32_t atlasOffset = (y + row) * atlasWidth + x;
         const uint32_t bitmapOffset = row * bitmap.width;
 
-        const auto dstIndex = static_cast<size_t>(atlasOffset);
-        const auto copySize = static_cast<size_t>(bitmap.width);
-
-        if (dstIndex <= atlasBuffer.size() && copySize <= atlasBuffer.size() - dstIndex)
+        if (atlasOffset + bitmap.width <= atlasBuffer.size())
         {
-          std::memcpy(atlasBuffer.data() + dstIndex, bitmap.buffer + bitmapOffset, copySize);
+          std::memcpy(&atlasBuffer[atlasOffset], &bitmap.buffer[bitmapOffset], bitmap.width);
         }
       }
 
