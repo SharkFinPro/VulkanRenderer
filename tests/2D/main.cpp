@@ -31,8 +31,7 @@ int main()
 
     assetManager->registerFont("roboto", "assets/fonts/Roboto-VariableFont_wdth,wght.ttf");
 
-    const auto font = assetManager->getFont("roboto", 32);
-    r2d->font(font);
+    r2d->textFont("roboto", 32);
 
     while (renderer.isActive())
     {

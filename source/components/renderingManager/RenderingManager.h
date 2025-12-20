@@ -9,6 +9,7 @@
 
 namespace vke {
 
+class AssetManager;
 class CommandBuffer;
 class LightingManager;
 class LogicalDevice;
@@ -26,7 +27,8 @@ public:
                    const std::shared_ptr<MousePicker>& mousePicker,
                    VkCommandPool commandPool,
                    bool shouldRenderOffscreen,
-                   const char* sceneViewName);
+                   const char* sceneViewName,
+                   std::shared_ptr<AssetManager> assetManager);
 
   void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
                    const std::shared_ptr<LightingManager>& lightingManager,

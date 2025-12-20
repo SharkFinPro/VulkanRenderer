@@ -1,9 +1,14 @@
 #include "Renderer2D.h"
+#include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace vke {
+  Renderer2D::Renderer2D(std::shared_ptr<AssetManager> assetManager)
+    : m_assetManager(std::move(assetManager))
+  {}
+
   void Renderer2D::render(const RenderInfo* renderInfo,
                           const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
@@ -70,9 +75,27 @@ namespace vke {
     m_transformStack.pop_back();
   }
 
-  void Renderer2D::font(std::shared_ptr<Font> font)
+  void Renderer2D::textFont(const std::string& font)
   {
-    m_currentFont = std::move(font);
+    m_currentFontName = font;
+
+    updateCurrentFont();
+  }
+
+  void Renderer2D::textFont(const std::string& font,
+                            const uint32_t size)
+  {
+    m_currentFontName = font;
+    m_currentFontSize = size;
+
+    updateCurrentFont();
+  }
+
+  void Renderer2D::textSize(const uint32_t size)
+  {
+    m_currentFontSize = size;
+
+    updateCurrentFont();
   }
 
   void Renderer2D::rect(const float x,
@@ -119,5 +142,10 @@ namespace vke {
         currentX += glyphInfo->advance;
       }
     }
+  }
+
+  void Renderer2D::updateCurrentFont()
+  {
+    m_currentFont = m_assetManager->getFont(m_currentFontName, m_currentFontSize);
   }
 } // vke

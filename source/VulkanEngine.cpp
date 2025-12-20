@@ -133,7 +133,7 @@ void VulkanEngine::createComponents()
 
   m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_window, m_mousePicker, m_commandPool,
                                                           m_vulkanEngineOptions.USE_DOCKSPACE,
-                                                          m_vulkanEngineOptions.SCENE_VIEW_NAME);
+                                                          m_vulkanEngineOptions.SCENE_VIEW_NAME, m_assetManager);
 
   m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer()->getRenderPass(),
                                                         m_lightingManager, m_mousePicker,

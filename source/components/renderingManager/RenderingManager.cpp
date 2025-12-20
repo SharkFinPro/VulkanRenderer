@@ -22,11 +22,15 @@ RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logical
                                    const std::shared_ptr<MousePicker>& mousePicker,
                                    VkCommandPool commandPool,
                                    const bool shouldRenderOffscreen,
-                                   const char* sceneViewName)
-  : m_logicalDevice(logicalDevice), m_window(window),
-    m_mousePicker(mousePicker), m_commandPool(commandPool),
-    m_shouldRenderOffscreen(shouldRenderOffscreen), m_sceneViewName(sceneViewName),
-    m_renderer2D(std::make_shared<Renderer2D>())
+                                   const char* sceneViewName,
+                                   std::shared_ptr<AssetManager> assetManager)
+  : m_logicalDevice(logicalDevice),
+    m_window(window),
+    m_mousePicker(mousePicker),
+    m_commandPool(commandPool),
+    m_shouldRenderOffscreen(shouldRenderOffscreen),
+    m_sceneViewName(sceneViewName),
+    m_renderer2D(std::make_shared<Renderer2D>(assetManager))
 {
   m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
   m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
