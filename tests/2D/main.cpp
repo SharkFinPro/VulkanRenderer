@@ -49,6 +49,9 @@ int main()
       r2d->fill(200, 100, 200);
       r2d->triangle(200, 200, 200, 300, 300, 250);
 
+      r2d->fill(100, 200, 200);
+      r2d->ellipse(500, 100, 100, 100);
+
       r2d->textSize(25);
       r2d->text("Hello, World!", 400, 200);
 

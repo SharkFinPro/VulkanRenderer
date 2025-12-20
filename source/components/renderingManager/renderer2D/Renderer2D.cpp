@@ -16,6 +16,8 @@ namespace vke {
 
     pipelineManager->renderTrianglePipeline(renderInfo, &m_trianglesToRender);
 
+    pipelineManager->renderEllipsePipeline(renderInfo, &m_ellipsesToRender);
+
     pipelineManager->renderFontPipeline(renderInfo, &m_glyphsToRender, m_assetManager);
   }
 
