@@ -208,6 +208,18 @@ void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
   m_rectPipeline->render(renderInfo, rects);
 }
 
+void PipelineManager::renderTrianglePipeline(const RenderInfo* renderInfo,
+                                             const std::vector<Triangle>* triangles) const
+{
+  m_trianglePipeline->render(renderInfo, triangles);
+}
+
+void PipelineManager::renderEllipsePipeline(const RenderInfo* renderInfo,
+                                            const std::vector<Ellipse>* ellipses) const
+{
+  m_ellipsePipeline->render(renderInfo, ellipses);
+}
+
 void PipelineManager::renderFontPipeline(const RenderInfo* renderInfo,
                                          const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
                                          const std::shared_ptr<AssetManager>& assetManager) const
@@ -276,9 +288,13 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
   m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
     m_logicalDevice, m_renderPass, objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
 
-  m_rectPipeline = std::make_shared<RectPipeline>(m_logicalDevice, m_renderPass);
+  m_rectPipeline = std::make_unique<RectPipeline>(m_logicalDevice, m_renderPass);
 
-  m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderPass, fontDescriptorSetLayout);
+  m_trianglePipeline = std::make_unique<TrianglePipeline>(m_logicalDevice, m_renderPass);
+
+  m_ellipsePipeline = std::make_unique<EllipsePipeline>(m_logicalDevice, m_renderPass);
+
+  m_fontPipeline = std::make_unique<FontPipeline>(m_logicalDevice, m_renderPass, fontDescriptorSetLayout);
 }
 
 void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const

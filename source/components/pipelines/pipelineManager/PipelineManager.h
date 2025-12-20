@@ -4,6 +4,10 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
+#include "../implementations/2D/EllipsePipeline.h"
+#include "../implementations/2D/FontPipeline.h"
+#include "../implementations/2D/RectPipeline.h"
+#include "../implementations/2D/TrianglePipeline.h"
 #include "../implementations/renderObject/PointLightShadowMapPipeline.h"
 #include "../implementations/renderObject/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
@@ -17,14 +21,10 @@ class AssetManager;
 class MousePicker;
 class LightingManager;
 class DotsPipeline;
-class FontPipeline;
-struct Glyph;
 class GuiPipeline;
 class PointLight;
 class Pipeline;
 enum class PipelineType;
-struct Rect;
-class RectPipeline;
 class RenderObject;
 class SmokePipeline;
 
@@ -77,6 +77,12 @@ public:
   void renderRectPipeline(const RenderInfo* renderInfo,
                           const std::vector<Rect>* rects) const;
 
+  void renderTrianglePipeline(const RenderInfo* renderInfo,
+                              const std::vector<Triangle>* triangles) const;
+
+  void renderEllipsePipeline(const RenderInfo* renderInfo,
+                              const std::vector<Ellipse>* ellipses) const;
+
   void renderFontPipeline(const RenderInfo* renderInfo,
                           const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
                           const std::shared_ptr<AssetManager>& assetManager) const;
@@ -114,9 +120,13 @@ private:
 
   std::unique_ptr<ShadowPipeline> m_shadowPipeline;
 
-  std::shared_ptr<RectPipeline> m_rectPipeline;
+  std::unique_ptr<RectPipeline> m_rectPipeline;
 
-  std::shared_ptr<FontPipeline> m_fontPipeline;
+  std::unique_ptr<TrianglePipeline> m_trianglePipeline;
+
+  std::unique_ptr<EllipsePipeline> m_ellipsePipeline;
+
+  std::unique_ptr<FontPipeline> m_fontPipeline;
 
   bool m_shouldDoDots;
 

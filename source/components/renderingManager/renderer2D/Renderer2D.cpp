@@ -14,12 +14,24 @@ namespace vke {
   {
     pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
 
+    pipelineManager->renderTrianglePipeline(renderInfo, &m_trianglesToRender);
+
+    pipelineManager->renderEllipsePipeline(renderInfo, &m_ellipsesToRender);
+
     pipelineManager->renderFontPipeline(renderInfo, &m_glyphsToRender, m_assetManager);
   }
 
   void Renderer2D::createNewFrame()
   {
+    m_transformStack.clear();
+    resetMatrix();
+    fill(255, 255, 255, 255);
+
     m_rectsToRender.clear();
+
+    m_trianglesToRender.clear();
+
+    m_ellipsesToRender.clear();
 
     m_glyphsToRender.clear();
   }
@@ -75,6 +87,11 @@ namespace vke {
     m_transformStack.pop_back();
   }
 
+  void Renderer2D::resetMatrix()
+  {
+    m_currentTransform = glm::mat4(1.0f);
+  }
+
   void Renderer2D::textFont(const std::string& font)
   {
     m_currentFontName = font;
@@ -100,11 +117,39 @@ namespace vke {
 
   void Renderer2D::rect(const float x,
                         const float y,
-                        const float w,
-                        const float h)
+                        const float width,
+                        const float height)
   {
     m_rectsToRender.push_back({
-      .bounds = glm::vec4(x, y, w, h),
+      .bounds = glm::vec4(x, y, width, height),
+      .color = m_currentFill,
+      .transform = m_currentTransform
+    });
+  }
+
+  void Renderer2D::triangle(const float x1,
+                            const float y1,
+                            const float x2,
+                            const float y2,
+                            const float x3,
+                            const float y3)
+  {
+    m_trianglesToRender.push_back({
+      .p1 = glm::vec2(x1, y1),
+      .p2 = glm::vec2(x2, y2),
+      .p3 = glm::vec2(x3, y3),
+      .color = m_currentFill,
+      .transform = m_currentTransform
+    });
+  }
+
+  void Renderer2D::ellipse(const float x,
+                           const float y,
+                           const float width,
+                           const float height)
+  {
+    m_ellipsesToRender.push_back({
+      .bounds = glm::vec4(x, y, width, height),
       .color = m_currentFill,
       .transform = m_currentTransform
     });
