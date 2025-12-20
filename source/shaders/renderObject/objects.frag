@@ -59,7 +59,7 @@ void main()
 
     float shadow = texture(pointLightShadowMaps[i], vec4(fragToLight, ref));
 
-    if (shadow > 0.5)
+    if (shadow > 0.1)
     {
       result += SpecularMapPointLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
