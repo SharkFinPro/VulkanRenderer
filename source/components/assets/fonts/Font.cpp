@@ -51,9 +51,6 @@ namespace vke {
       throw std::runtime_error("Failed to open file: " + fileName);
     }
 
-    const size_t fileSize = file.tellg();
-    std::vector<uint8_t> buffer(fileSize);
-
     file.seekg(0);
     std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
