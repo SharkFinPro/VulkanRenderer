@@ -76,6 +76,13 @@ namespace vke {
               float w,
               float h);
 
+    void triangle(float x1,
+                  float y1,
+                  float x2,
+                  float y2,
+                  float x3,
+                  float y3);
+
     void text(const std::string& text,
               float x,
               float y);
@@ -90,6 +97,8 @@ namespace vke {
     std::vector<glm::mat4> m_transformStack;
 
     std::vector<Rect> m_rectsToRender;
+
+    std::vector<Triangle> m_trianglesToRender;
 
     std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>> m_glyphsToRender;
 
