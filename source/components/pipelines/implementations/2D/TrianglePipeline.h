@@ -1,0 +1,9 @@
+#ifndef VULKANPROJECT_TRIANGLEPIPELINE_H
+#define VULKANPROJECT_TRIANGLEPIPELINE_H
+
+namespace vke {
+  class TrianglePipeline {
+  };
+} // vke
+
+#endif //VULKANPROJECT_TRIANGLEPIPELINE_H

@@ -141,6 +141,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/2D/RectPipeline.h
   components/pipelines/implementations/2D/FontPipeline.cpp
   components/pipelines/implementations/2D/FontPipeline.h
+  components/pipelines/implementations/2D/TrianglePipeline.cpp
+  components/pipelines/implementations/2D/TrianglePipeline.h
 
   # RenderObject Pipelines
   components/pipelines/implementations/renderObject/BumpyCurtain.cpp
