@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "../../VulkanEngine.h"
+#include "../imGui/ImGuiInstance.h"
 #include "../instance/Instance.h"
 #include "../renderingManager/RenderingManager.h"
 #include <backends/imgui_impl_glfw.h>
@@ -161,6 +162,8 @@ void Window::contentScaleCallback(GLFWwindow* window, const float xscale, [[mayb
   ImGui::GetIO().FontGlobalScale = xscale;
 
   app->m_contentScale = xscale;
+
+  app->m_engine->getImGuiInstance()->markDockNeedsUpdate();
 }
 
 void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,

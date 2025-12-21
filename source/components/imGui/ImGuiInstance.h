@@ -44,6 +44,8 @@ public:
 
   void setRightDockPercent(float percent);
 
+  void markDockNeedsUpdate();
+
   static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
   static ImGuiContext* getImGuiContext();

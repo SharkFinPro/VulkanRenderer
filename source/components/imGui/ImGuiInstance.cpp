@@ -228,6 +228,11 @@ void ImGuiInstance::setRightDockPercent(const float percent)
   m_dockNeedsUpdate = true;
 }
 
+void ImGuiInstance::markDockNeedsUpdate()
+{
+  m_dockNeedsUpdate = true;
+}
+
 void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
 {
   ImGui_ImplVulkan_RenderDrawData(
