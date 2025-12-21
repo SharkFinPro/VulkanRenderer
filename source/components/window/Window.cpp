@@ -13,6 +13,8 @@ Window::Window(const int width, const int height, const char* title, const std::
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
+  glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+
   if (fullscreen)
   {
     glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
