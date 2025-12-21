@@ -46,6 +46,8 @@ Window::Window(const int width, const int height, const char* title, const std::
   m_surface = m_instance->createSurface(m_window);
 
   glfwSetKeyCallback(m_window, keyCallback);
+
+  glfwSetWindowContentScaleCallback(m_window, contentScaleCallback);
 }
 
 Window::~Window()
@@ -113,7 +115,7 @@ void Window::getPreviousCursorPos(double& xpos, double& ypos) const
   ypos = m_previousMouseY;
 }
 
-void Window::initImGui() const
+void Window::initImGui()
 {
   ImGui_ImplGlfw_InitForVulkan(m_window, true);
 
@@ -122,11 +124,18 @@ void Window::initImGui() const
 
   ImGui::GetStyle().ScaleAllSizes(xscale);
   ImGui::GetIO().FontGlobalScale = xscale;
+
+  m_contentScale = xscale;
 }
 
 double Window::getScroll() const
 {
   return m_scroll;
+}
+
+float Window::getContentScale() const
+{
+  return m_contentScale;
 }
 
 void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, const double yoffset)
@@ -139,6 +148,17 @@ void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int 
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
   app->m_engine->getRenderingManager()->markFramebufferResized();
+}
+
+void Window::contentScaleCallback(GLFWwindow* window, const float xscale, [[maybe_unused]] float yscale)
+{
+  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+  ImGui::GetStyle().ScaleAllSizes(1.0f / app->m_contentScale);
+  ImGui::GetStyle().ScaleAllSizes(xscale);
+  ImGui::GetIO().FontGlobalScale = xscale;
+
+  app->m_contentScale = xscale;
 }
 
 void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,

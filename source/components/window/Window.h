@@ -33,13 +33,17 @@ public:
 
   void getPreviousCursorPos(double& xpos, double& ypos) const;
 
-  void initImGui() const;
+  void initImGui();
 
   [[nodiscard]] double getScroll() const;
+
+  [[nodiscard]] float getContentScale() const;
 
   static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
   static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
+  static void contentScaleCallback(GLFWwindow* window, float xscale, float yscale);
 
 private:
   VulkanEngine* m_engine;
@@ -58,6 +62,8 @@ private:
   double m_scroll;
 
   std::unordered_map<int, bool> m_keysPressed;
+
+  float m_contentScale = 1.0f;
 
   static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };
