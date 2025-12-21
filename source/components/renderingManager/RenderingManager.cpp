@@ -253,7 +253,10 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
       .currentFrame = currentFrame,
       .viewPosition = m_viewPosition,
       .viewMatrix = m_viewMatrix,
-      .extent = m_offscreenViewportExtent
+      .extent = {
+        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
+        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
+      }
     };
 
     m_renderer2D->render(&renderInfo, pipelineManager);
@@ -282,7 +285,13 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
       pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
                                                currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
 
-      m_renderer2D->render(&renderInfo, pipelineManager);
+      RenderInfo renderInfo2D = renderInfo;
+      renderInfo2D.extent = {
+        static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
+        static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
+      };
+
+      m_renderer2D->render(&renderInfo2D, pipelineManager);
     }
 
     const VkViewport viewport = {
