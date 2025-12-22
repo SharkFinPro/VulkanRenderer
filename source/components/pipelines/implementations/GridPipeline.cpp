@@ -68,7 +68,7 @@ namespace vke {
   {
     const GridUniform gridUBO {
       .view = renderInfo->viewMatrix,
-      .proj = renderInfo->projectionMatrix,
+      .proj = renderInfo->getProjectionMatrix(),
       .viewPosition = renderInfo->viewPosition
     };
 
