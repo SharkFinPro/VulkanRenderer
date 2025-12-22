@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "../../VulkanEngine.h"
+#include "../imGui/ImGuiInstance.h"
 #include "../instance/Instance.h"
 #include "../renderingManager/RenderingManager.h"
 #include <backends/imgui_impl_glfw.h>
@@ -12,6 +13,8 @@ Window::Window(const int width, const int height, const char* title, const std::
   : m_engine(engine), m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
 {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+  glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
   if (fullscreen)
   {
@@ -46,6 +49,8 @@ Window::Window(const int width, const int height, const char* title, const std::
   m_surface = m_instance->createSurface(m_window);
 
   glfwSetKeyCallback(m_window, keyCallback);
+
+  glfwSetWindowContentScaleCallback(m_window, contentScaleCallback);
 }
 
 Window::~Window()
@@ -113,7 +118,7 @@ void Window::getPreviousCursorPos(double& xpos, double& ypos) const
   ypos = m_previousMouseY;
 }
 
-void Window::initImGui() const
+void Window::initImGui()
 {
   ImGui_ImplGlfw_InitForVulkan(m_window, true);
 
@@ -122,11 +127,18 @@ void Window::initImGui() const
 
   ImGui::GetStyle().ScaleAllSizes(xscale);
   ImGui::GetIO().FontGlobalScale = xscale;
+
+  m_contentScale = xscale;
 }
 
 double Window::getScroll() const
 {
   return m_scroll;
+}
+
+float Window::getContentScale() const
+{
+  return m_contentScale;
 }
 
 void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, const double yoffset)
@@ -139,6 +151,19 @@ void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int 
 {
   const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
   app->m_engine->getRenderingManager()->markFramebufferResized();
+}
+
+void Window::contentScaleCallback(GLFWwindow* window, const float xscale, [[maybe_unused]] float yscale)
+{
+  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+  ImGui::GetStyle().ScaleAllSizes(1.0f / app->m_contentScale);
+  ImGui::GetStyle().ScaleAllSizes(xscale);
+  ImGui::GetIO().FontGlobalScale = xscale;
+
+  app->m_contentScale = xscale;
+
+  app->m_engine->getImGuiInstance()->markDockNeedsUpdate();
 }
 
 void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,
