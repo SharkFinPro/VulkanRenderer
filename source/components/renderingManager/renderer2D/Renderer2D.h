@@ -51,7 +51,7 @@ namespace vke {
     explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
 
     void render(const RenderInfo* renderInfo,
-                const std::shared_ptr<PipelineManager>& pipelineManager) const;
+                const std::shared_ptr<PipelineManager>& pipelineManager);
 
     void createNewFrame();
 

@@ -10,8 +10,35 @@ namespace vke {
   {}
 
   void Renderer2D::render(const RenderInfo* renderInfo,
-                          const std::shared_ptr<PipelineManager>& pipelineManager) const
+                          const std::shared_ptr<PipelineManager>& pipelineManager)
   {
+
+    for (auto& rect : m_rectsToRender)
+    {
+      rect.z /= m_currentZ;
+    }
+
+    for (auto& triangle : m_trianglesToRender)
+    {
+      triangle.z /= m_currentZ;
+    }
+
+    for (auto& ellipse : m_ellipsesToRender)
+    {
+      ellipse.z /= m_currentZ;
+    }
+
+    for (auto& font : m_glyphsToRender)
+    {
+      for (auto& fontSize : font.second)
+      {
+        for (auto& glyph : fontSize.second)
+        {
+          glyph.z /= m_currentZ;
+        }
+      }
+    }
+
     pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
 
     pipelineManager->renderTrianglePipeline(renderInfo, &m_trianglesToRender);
