@@ -130,6 +130,8 @@ namespace vke {
     void updateCurrentFont();
 
     void increaseCurrentZ();
+
+    void normalizeZValues();
   };
 } // vke
 
