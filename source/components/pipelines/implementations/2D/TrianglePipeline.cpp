@@ -15,7 +15,7 @@ namespace vke {
       },
       .states {
         .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
-        .depthStencilState = GraphicsPipelineStates::depthStencilStateNone,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
         .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
         .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(m_logicalDevice),
@@ -58,6 +58,7 @@ namespace vke {
       .transform = triangle.transform,
       .screenWidth = static_cast<int>(renderInfo->extent.width),
       .screenHeight = static_cast<int>(renderInfo->extent.height),
+      .z = triangle.z,
       .x1 = triangle.p1.x,
       .y1 = triangle.p1.y,
       .x2 = triangle.p2.x,

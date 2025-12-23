@@ -12,6 +12,7 @@ namespace vke {
     glm::mat4 transform;
     int screenWidth;
     int screenHeight;
+    float z;
     float x;
     float y;
     float width;

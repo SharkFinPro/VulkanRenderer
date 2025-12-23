@@ -18,7 +18,7 @@ namespace vke {
       },
       .states {
         .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
-        .depthStencilState = GraphicsPipelineStates::depthStencilStateNone,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
         .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
         .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(m_logicalDevice),
@@ -77,6 +77,7 @@ namespace vke {
       .transform = glyph.transform,
       .screenWidth = static_cast<int>(renderInfo->extent.width),
       .screenHeight = static_cast<int>(renderInfo->extent.height),
+      .z = glyph.z,
       .x = glyph.bounds.x,
       .y = glyph.bounds.y,
       .width = glyph.bounds.z,

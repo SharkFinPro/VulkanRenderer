@@ -10,8 +10,10 @@ namespace vke {
   {}
 
   void Renderer2D::render(const RenderInfo* renderInfo,
-                          const std::shared_ptr<PipelineManager>& pipelineManager) const
+                          const std::shared_ptr<PipelineManager>& pipelineManager)
   {
+    normalizeZValues();
+
     pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
 
     pipelineManager->renderTrianglePipeline(renderInfo, &m_trianglesToRender);
@@ -26,6 +28,8 @@ namespace vke {
     m_transformStack.clear();
     resetMatrix();
     fill(255, 255, 255, 255);
+
+    m_currentZ = 0.0f;
 
     m_rectsToRender.clear();
 
@@ -123,8 +127,11 @@ namespace vke {
     m_rectsToRender.push_back({
       .bounds = glm::vec4(x, y, width, height),
       .color = m_currentFill,
-      .transform = m_currentTransform
+      .transform = m_currentTransform,
+      .z = m_currentZ
     });
+
+    increaseCurrentZ();
   }
 
   void Renderer2D::triangle(const float x1,
@@ -139,8 +146,11 @@ namespace vke {
       .p2 = glm::vec2(x2, y2),
       .p3 = glm::vec2(x3, y3),
       .color = m_currentFill,
-      .transform = m_currentTransform
+      .transform = m_currentTransform,
+      .z = m_currentZ
     });
+
+    increaseCurrentZ();
   }
 
   void Renderer2D::ellipse(const float x,
@@ -151,8 +161,11 @@ namespace vke {
     m_ellipsesToRender.push_back({
       .bounds = glm::vec4(x, y, width, height),
       .color = m_currentFill,
-      .transform = m_currentTransform
+      .transform = m_currentTransform,
+      .z = m_currentZ
     });
+
+    increaseCurrentZ();
   }
 
   void Renderer2D::text(const std::string& text,
@@ -181,16 +194,57 @@ namespace vke {
             glyphInfo->v0,
             glyphInfo->u1,
             glyphInfo->v1
-          )
+            ),
+          .z = m_currentZ
         });
 
         currentX += glyphInfo->advance;
       }
     }
+
+    increaseCurrentZ();
   }
 
   void Renderer2D::updateCurrentFont()
   {
     m_currentFont = m_assetManager->getFont(m_currentFontName, m_currentFontSize);
+  }
+
+  void Renderer2D::increaseCurrentZ()
+  {
+    m_currentZ++;
+  }
+
+  void Renderer2D::normalizeZValues()
+  {
+    for (auto& rect : m_rectsToRender)
+    {
+      rect.z /= m_currentZ;
+      rect.z = 1.0f - rect.z;
+    }
+
+    for (auto& triangle : m_trianglesToRender)
+    {
+      triangle.z /= m_currentZ;
+      triangle.z = 1.0f - triangle.z;
+    }
+
+    for (auto& ellipse : m_ellipsesToRender)
+    {
+      ellipse.z /= m_currentZ;
+      ellipse.z = 1.0f - ellipse.z;
+    }
+
+    for (auto& font : m_glyphsToRender)
+    {
+      for (auto& fontSize : font.second)
+      {
+        for (auto& glyph : fontSize.second)
+        {
+          glyph.z /= m_currentZ;
+          glyph.z = 1.0f - glyph.z;
+        }
+      }
+    }
   }
 } // vke

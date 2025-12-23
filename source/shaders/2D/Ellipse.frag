@@ -1,7 +1,7 @@
 #version 450
 
 layout(push_constant) uniform EllipsePC {
-  layout(offset = 72)
+  layout(offset = 76)
   float x;
   float y;
   float width;
