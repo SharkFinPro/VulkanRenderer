@@ -259,6 +259,8 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
       }
     };
 
+    resetDepthBuffer(*m_offscreenCommandBuffer->getCommandBuffer(), m_offscreenViewportExtent);
+
     m_renderer2D->render(&renderInfo, pipelineManager);
 
     m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
@@ -291,6 +293,8 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
         static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
       };
 
+      resetDepthBuffer(*m_swapchainCommandBuffer->getCommandBuffer(), m_swapChain->getExtent());
+
       m_renderer2D->render(&renderInfo2D, pipelineManager);
     }
 
@@ -316,4 +320,25 @@ void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<Pipeli
   });
 }
 
+void RenderingManager::resetDepthBuffer(VkCommandBuffer commandBuffer,
+                                        const VkExtent2D extent)
+{
+  constexpr VkClearAttachment clearAttachment{
+    .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+    .clearValue = {
+      .depthStencil = { 1.0f, 0 }
+    }
+  };
+
+  const VkClearRect clearRect{
+    .rect = {
+      .offset = { 0, 0 },
+      .extent = extent
+    },
+    .baseArrayLayer = 0,
+    .layerCount = 1
+  };
+
+  vkCmdClearAttachments(commandBuffer, 1, &clearAttachment, 1, &clearRect);
+}
 } // namespace vke

@@ -100,6 +100,9 @@ private:
 
   void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
                                     uint32_t imageIndex) const;
+
+  static void resetDepthBuffer(VkCommandBuffer commandBuffer,
+                               VkExtent2D extent);
 };
 
 } // namespace vke
