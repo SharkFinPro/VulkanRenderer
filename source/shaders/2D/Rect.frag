@@ -1,7 +1,7 @@
 #version 450
 
 layout(push_constant) uniform RectPC {
-  layout(offset = 88)
+  layout(offset = 92)
   float r;
   float g;
   float b;
