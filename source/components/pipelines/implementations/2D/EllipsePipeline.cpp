@@ -54,6 +54,7 @@ namespace vke {
       .transform = ellipse.transform,
       .screenWidth = static_cast<int>(renderInfo->extent.width),
       .screenHeight = static_cast<int>(renderInfo->extent.height),
+      .z = ellipse.z,
       .x = ellipse.bounds.x,
       .y = ellipse.bounds.y,
       .width = ellipse.bounds.z,

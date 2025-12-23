@@ -5,6 +5,7 @@ layout(push_constant) uniform TrianglePC {
   mat4 transform;
   int screenWidth;
   int screenHeight;
+  float z;
   float x1;
   float y1;
   float x2;
@@ -35,5 +36,5 @@ void main()
   ndc.x = 2.0 * pos.x / float(pc.screenWidth)  - 1.0;
   ndc.y = 2.0 * pos.y / float(pc.screenHeight) - 1.0;
 
-  gl_Position = vec4(ndc, 0.0, 1.0);
+  gl_Position = vec4(ndc, pc.z, 1.0);
 }

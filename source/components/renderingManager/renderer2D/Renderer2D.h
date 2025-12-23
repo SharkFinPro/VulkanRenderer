@@ -20,14 +20,14 @@ namespace vke {
     glm::vec4 color;
     glm::mat4 transform;
     glm::vec4 uv;
-    uint32_t z;
+    float z;
   };
 
   struct Rect {
     glm::vec4 bounds;
     glm::vec4 color;
     glm::mat4 transform;
-    uint32_t z;
+    float z;
   };
 
   struct Triangle {
@@ -36,14 +36,14 @@ namespace vke {
     glm::vec2 p3;
     glm::vec4 color;
     glm::mat4 transform;
-    uint32_t z;
+    float z;
   };
 
   struct Ellipse {
     glm::vec4 bounds;
     glm::vec4 color;
     glm::mat4 transform;
-    uint32_t z;
+    float z;
   };
 
   class Renderer2D {
@@ -125,7 +125,7 @@ namespace vke {
     std::string m_currentFontName = "";
     uint32_t m_currentFontSize = 12;
 
-    uint32_t m_currentZ = 0;
+    float m_currentZ = 0.0f;
 
     void updateCurrentFont();
 

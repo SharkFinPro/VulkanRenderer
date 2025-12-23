@@ -58,6 +58,7 @@ namespace vke {
       .transform = triangle.transform,
       .screenWidth = static_cast<int>(renderInfo->extent.width),
       .screenHeight = static_cast<int>(renderInfo->extent.height),
+      .z = triangle.z,
       .x1 = triangle.p1.x,
       .y1 = triangle.p1.y,
       .x2 = triangle.p2.x,

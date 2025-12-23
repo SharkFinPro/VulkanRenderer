@@ -53,6 +53,7 @@ namespace vke {
       .transform = rect.transform,
       .screenWidth = static_cast<int>(renderInfo->extent.width),
       .screenHeight = static_cast<int>(renderInfo->extent.height),
+      .z = rect.z,
       .x = rect.bounds.x,
       .y = rect.bounds.y,
       .width = rect.bounds.z,

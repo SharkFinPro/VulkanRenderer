@@ -27,7 +27,7 @@ namespace vke {
     resetMatrix();
     fill(255, 255, 255, 255);
 
-    m_currentZ = 0;
+    m_currentZ = 0.0f;
 
     m_rectsToRender.clear();
 

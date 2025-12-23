@@ -4,6 +4,7 @@ layout(push_constant) uniform GlyphPC {
   mat4 transformation;
   int screenWidth;
   int screenHeight;
+  float z;
   float x;
   float y;
   float width;
@@ -47,7 +48,7 @@ void main()
   ndc.x = 2.0 * pos.x / float(pc.screenWidth)  - 1.0;
   ndc.y = 2.0 * pos.y / float(pc.screenHeight) - 1.0;
 
-  gl_Position = vec4(ndc, 0.0, 1.0);
+  gl_Position = vec4(ndc, pc.z, 1.0);
 
   fragUV = mix(
     vec2(pc.u0, pc.v0),

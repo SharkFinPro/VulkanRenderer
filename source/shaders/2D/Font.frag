@@ -1,7 +1,7 @@
 #version 450
 
 layout(push_constant) uniform GlyphPC {
-  layout(offset = 104)
+  layout(offset = 108)
   float r;
   float g;
   float b;
