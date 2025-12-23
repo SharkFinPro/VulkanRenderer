@@ -55,6 +55,10 @@ int main()
       r2d->textSize(25);
       r2d->text("Hello, World!", 400, 200);
 
+      r2d->fill(139, 20, 70);
+      r2d->rect(400, 200, 100, 100);
+
+      r2d->fill(225, 225, 225);
       r2d->textSize(45);
       r2d->text("Bigger!", 400, 250);
 

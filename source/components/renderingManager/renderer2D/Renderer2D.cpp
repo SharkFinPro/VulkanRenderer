@@ -220,16 +220,19 @@ namespace vke {
     for (auto& rect : m_rectsToRender)
     {
       rect.z /= m_currentZ;
+      rect.z = 1.0f - rect.z;
     }
 
     for (auto& triangle : m_trianglesToRender)
     {
       triangle.z /= m_currentZ;
+      triangle.z = 1.0f - triangle.z;
     }
 
     for (auto& ellipse : m_ellipsesToRender)
     {
       ellipse.z /= m_currentZ;
+      ellipse.z = 1.0f - ellipse.z;
     }
 
     for (auto& font : m_glyphsToRender)
@@ -239,6 +242,7 @@ namespace vke {
         for (auto& glyph : fontSize.second)
         {
           glyph.z /= m_currentZ;
+          glyph.z = 1.0f - glyph.z;
         }
       }
     }

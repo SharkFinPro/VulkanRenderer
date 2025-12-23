@@ -15,7 +15,7 @@ namespace vke {
       },
       .states {
         .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
-        .depthStencilState = GraphicsPipelineStates::depthStencilStateNone,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
         .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
         .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(m_logicalDevice),
