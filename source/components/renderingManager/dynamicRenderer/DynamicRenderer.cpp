@@ -53,7 +53,8 @@ namespace vke {
     createOffscreenRenderTarget(offscreenViewportExtent);
   }
 
-  void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex, const VkExtent2D extent,
+  void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
+                                                const VkExtent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer,
                                                 const std::shared_ptr<SwapChain> swapChain)
   {
@@ -99,7 +100,8 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex, const VkExtent2D extent,
+  void DynamicRenderer::beginOffscreenRendering(const uint32_t imageIndex,
+                                                const VkExtent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
@@ -183,7 +185,8 @@ namespace vke {
     transitionSwapchainImagePostRender(commandBuffer, swapChain->getImages()[imageIndex]);
   }
 
-  void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex, const std::shared_ptr<CommandBuffer> commandBuffer)
+  void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex,
+                                              const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     commandBuffer->endRendering();
   }
