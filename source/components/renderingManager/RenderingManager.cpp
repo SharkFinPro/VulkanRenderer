@@ -1,5 +1,5 @@
 #include "RenderingManager.h"
-#include "DynamicRenderer.h"
+#include "dynamicRenderer/DynamicRenderer.h"
 #include "legacyRenderer/LegacyRenderer.h"
 #include "Renderer.h"
 #include "renderer2D/Renderer2D.h"

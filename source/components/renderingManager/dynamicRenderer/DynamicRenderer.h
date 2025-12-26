@@ -1,7 +1,7 @@
 #ifndef VKE_DYNAMICRENDERER_H
 #define VKE_DYNAMICRENDERER_H
 
-#include "Renderer.h"
+#include "../Renderer.h"
 #include <vector>
 
 namespace vke {
