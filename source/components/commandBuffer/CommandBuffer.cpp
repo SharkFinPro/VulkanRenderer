@@ -129,16 +129,16 @@ void CommandBuffer::pipelineBarrier(const VkPipelineStageFlags srcStageMask,
                                     const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const
 {
   vkCmdPipelineBarrier(
-      m_commandBuffers[m_currentFrame],
-      srcStageMask,
-      dstStageMask,
-      dependencyFlags,
-      memoryBarriers.size(),
-      memoryBarriers.data(),
-      bufferMemoryBarriers.size(),
-      bufferMemoryBarriers.data(),
-      imageMemoryBarriers.size(),
-      imageMemoryBarriers.data()
+    m_commandBuffers[m_currentFrame],
+    srcStageMask,
+    dstStageMask,
+    dependencyFlags,
+    memoryBarriers.size(),
+    memoryBarriers.data(),
+    bufferMemoryBarriers.size(),
+    bufferMemoryBarriers.data(),
+    imageMemoryBarriers.size(),
+    imageMemoryBarriers.data()
   );
 }
 
