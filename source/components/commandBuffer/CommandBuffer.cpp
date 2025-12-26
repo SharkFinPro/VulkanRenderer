@@ -121,6 +121,27 @@ void CommandBuffer::pushConstants(const VkPipelineLayout layout, const VkShaderS
   vkCmdPushConstants(m_commandBuffers[m_currentFrame], layout, stageFlags, offset, size, values);
 }
 
+void CommandBuffer::pipelineBarrier(const VkPipelineStageFlags srcStageMask,
+                                    const VkPipelineStageFlags dstStageMask,
+                                    const VkDependencyFlags dependencyFlags,
+                                    const std::vector<VkMemoryBarrier>& memoryBarriers,
+                                    const std::vector<VkBufferMemoryBarrier>& bufferMemoryBarriers,
+                                    const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const
+{
+  vkCmdPipelineBarrier(
+    m_commandBuffers[m_currentFrame],
+    srcStageMask,
+    dstStageMask,
+    dependencyFlags,
+    memoryBarriers.size(),
+    memoryBarriers.data(),
+    bufferMemoryBarriers.size(),
+    bufferMemoryBarriers.data(),
+    imageMemoryBarriers.size(),
+    imageMemoryBarriers.data()
+  );
+}
+
 void CommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)
 {
   m_commandBuffers.resize(m_logicalDevice->getMaxFramesInFlight());

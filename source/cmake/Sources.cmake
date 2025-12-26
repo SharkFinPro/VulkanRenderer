@@ -73,6 +73,14 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/physicalDevice/PhysicalDevice.h
 
   # Rendering Manager
+    # Dynamic Renderer
+    components/renderingManager/dynamicRenderer/DynamicRenderer.cpp
+    components/renderingManager/dynamicRenderer/DynamicRenderer.h
+    components/renderingManager/dynamicRenderer/ImageResource.cpp
+    components/renderingManager/dynamicRenderer/ImageResource.h
+    components/renderingManager/dynamicRenderer/RenderTarget.cpp
+    components/renderingManager/dynamicRenderer/RenderTarget.h
+
     # Legacy Renderer
     components/renderingManager/legacyRenderer/LegacyRenderer.cpp
     components/renderingManager/legacyRenderer/LegacyRenderer.h
@@ -93,8 +101,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/renderer2D/Renderer2D.cpp
     components/renderingManager/renderer2D/Renderer2D.h
 
-  components/renderingManager/DynamicRenderer.cpp
-  components/renderingManager/DynamicRenderer.h
   components/renderingManager/Renderer.cpp
   components/renderingManager/Renderer.h
   components/renderingManager/RenderingManager.cpp
