@@ -16,7 +16,7 @@ DynamicRenderer::DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDe
 {
   createSampler();
 
-  createSwapchainImageResources(swapChain);
+  createSwapchainRenderTarget(swapChain);
 }
 
 DynamicRenderer::~DynamicRenderer()
@@ -43,14 +43,14 @@ void DynamicRenderer::resetSwapchainImageResources(const std::shared_ptr<SwapCha
 {
   m_swapchainRenderTarget.reset();
 
-  createSwapchainImageResources(swapChain);
+  createSwapchainRenderTarget(swapChain);
 }
 
 void DynamicRenderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
 {
   m_offscreenRenderTarget.reset();
 
-  createOffscreenImageResources(offscreenViewportExtent);
+  createOffscreenRenderTarget(offscreenViewportExtent);
 }
 
 void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex, const VkExtent2D extent,
@@ -220,7 +220,7 @@ void DynamicRenderer::createSampler()
   m_sampler = m_logicalDevice->createSampler(samplerInfo);
 }
 
-void DynamicRenderer::createSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)
+void DynamicRenderer::createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain)
 {
   ImageResourceConfig imageResourceConfig {
     .logicalDevice = m_logicalDevice,
@@ -234,7 +234,7 @@ void DynamicRenderer::createSwapchainImageResources(const std::shared_ptr<SwapCh
   m_swapchainRenderTarget = std::make_unique<RenderTarget>(imageResourceConfig);
 }
 
-void DynamicRenderer::createOffscreenImageResources(const VkExtent2D extent)
+void DynamicRenderer::createOffscreenRenderTarget(const VkExtent2D extent)
 {
   ImageResourceConfig imageResourceConfig {
     .logicalDevice = m_logicalDevice,

@@ -50,9 +50,9 @@ private:
 
   void createSampler();
 
-  void createSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
+  void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
-  void createOffscreenImageResources(VkExtent2D extent);
+  void createOffscreenRenderTarget(VkExtent2D extent);
 
   static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
 
