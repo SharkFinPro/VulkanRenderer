@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_RENDERTARGET_H
 #define VULKANPROJECT_RENDERTARGET_H
 
+#include <cstdint>
 #include <vector>
 
 namespace vke {
