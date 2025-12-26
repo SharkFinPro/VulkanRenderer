@@ -11,11 +11,12 @@ namespace vke {
   enum class ImageResourceType {
     Color,
     Depth,
-    Resolve
+    Resolve,
+    Undefined
   };
 
   struct ImageResourceConfig {
-    ImageResourceType imageResourceType;
+    ImageResourceType imageResourceType = ImageResourceType::Undefined;
     std::shared_ptr<LogicalDevice> logicalDevice;
     VkExtent2D extent;
     VkCommandPool commandPool;
