@@ -1,10 +1,11 @@
 #ifndef VKE_DYNAMICRENDERER_H
 #define VKE_DYNAMICRENDERER_H
 
-#include "RenderTarget.h"
 #include "../Renderer.h"
 
 namespace vke {
+
+  class RenderTarget;
 
   class DynamicRenderer final : public Renderer {
   public:

@@ -1,5 +1,6 @@
 #include "DynamicRenderer.h"
 #include "ImageResource.h"
+#include "RenderTarget.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/lights/Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
