@@ -31,6 +31,11 @@ std::shared_ptr<RenderPass> DynamicRenderer::getRenderPass() const
 
 VkDescriptorSet DynamicRenderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
 {
+  if (!m_offscreenRenderTarget)
+  {
+    return VK_NULL_HANDLE;
+  }
+
   return m_offscreenRenderTarget->getResolveImageResource(imageIndex).getDescriptorSet();
 }
 
