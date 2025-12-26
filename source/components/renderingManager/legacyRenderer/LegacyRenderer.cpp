@@ -28,9 +28,14 @@ namespace vke {
     );
   }
 
-  std::shared_ptr<RenderPass> LegacyRenderer::getRenderPass() const
+  std::shared_ptr<RenderPass> LegacyRenderer::getSwapchainRenderPass() const
   {
     return m_swapchainRenderPass;
+  }
+
+  std::shared_ptr<RenderPass> LegacyRenderer::getOffscreenRenderPass() const
+  {
+    return m_offscreenRenderPass;
   }
 
   void LegacyRenderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)

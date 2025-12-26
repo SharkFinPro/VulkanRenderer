@@ -15,7 +15,9 @@ namespace vke {
     LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<SwapChain>& swapChain,
                    VkCommandPool commandPool);
 
-    [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
+    [[nodiscard]] std::shared_ptr<RenderPass> getSwapchainRenderPass() const override;
+
+    [[nodiscard]] std::shared_ptr<RenderPass> getOffscreenRenderPass() const override;
 
     void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain) override;
 

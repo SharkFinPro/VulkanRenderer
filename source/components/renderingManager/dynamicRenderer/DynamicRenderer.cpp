@@ -15,7 +15,12 @@ namespace vke {
     : Renderer(logicalDevice, swapChain, commandPool)
   {}
 
-  std::shared_ptr<RenderPass> DynamicRenderer::getRenderPass() const
+  std::shared_ptr<RenderPass> DynamicRenderer::getSwapchainRenderPass() const
+  {
+    return nullptr;
+  }
+
+  std::shared_ptr<RenderPass> DynamicRenderer::getOffscreenRenderPass() const
   {
     return nullptr;
   }
