@@ -12,7 +12,7 @@ namespace vke {
 LegacyRenderer::LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<SwapChain>& swapChain,
                                VkCommandPool commandPool)
-  : Renderer(logicalDevice, commandPool),
+  : Renderer(logicalDevice, swapChain, commandPool),
     m_renderPass(std::make_shared<RenderPass>(m_logicalDevice, swapChain->getImageFormat(),
                                               m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
                                               VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)),
@@ -34,7 +34,7 @@ VkDescriptorSet LegacyRenderer::getOffscreenImageDescriptorSet(const uint32_t im
   return m_offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex);
 }
 
-void LegacyRenderer::resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain)
+void LegacyRenderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)
 {
   m_framebuffer.reset();
   m_framebuffer = std::make_shared<SwapchainFramebuffer>(m_logicalDevice, swapChain, m_commandPool, m_renderPass,

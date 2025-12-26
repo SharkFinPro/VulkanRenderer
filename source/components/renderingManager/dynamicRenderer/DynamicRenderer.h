@@ -13,15 +13,7 @@ namespace vke {
                              const std::shared_ptr<SwapChain>& swapChain,
                              VkCommandPool commandPool);
 
-    ~DynamicRenderer() override;
-
     [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
-
-    [[nodiscard]] VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
-
-    void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) override;
-
-    void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
 
     void beginSwapchainRendering(uint32_t imageIndex,
                                  VkExtent2D extent,
@@ -48,18 +40,6 @@ namespace vke {
                             const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
   private:
-    VkSampler m_sampler = VK_NULL_HANDLE;
-
-    std::unique_ptr<RenderTarget> m_offscreenRenderTarget;
-
-    std::unique_ptr<RenderTarget> m_swapchainRenderTarget;
-
-    void createSampler();
-
-    void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
-
-    void createOffscreenRenderTarget(VkExtent2D extent);
-
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   VkImage image);
 

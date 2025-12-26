@@ -20,7 +20,7 @@ public:
 
   [[nodiscard]] VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
 
-  void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) override;
+  void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain) override;
 
   void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
 
