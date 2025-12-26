@@ -42,8 +42,6 @@ public:
                           const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
 private:
-  size_t m_numImages = 3;
-
   VkSampler m_sampler = VK_NULL_HANDLE;
 
   std::unique_ptr<RenderTarget> m_offscreenRenderTarget;
