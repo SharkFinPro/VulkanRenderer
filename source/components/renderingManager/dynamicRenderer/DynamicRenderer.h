@@ -6,58 +6,58 @@
 
 namespace vke {
 
-class DynamicRenderer final : public Renderer {
-public:
-  explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<SwapChain>& swapChain,
-                           VkCommandPool commandPool);
+  class DynamicRenderer final : public Renderer {
+  public:
+    explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<SwapChain>& swapChain,
+                             VkCommandPool commandPool);
 
-  ~DynamicRenderer() override;
+    ~DynamicRenderer() override;
 
-  [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
+    [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
 
-  [[nodiscard]] VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
+    [[nodiscard]] VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
 
-  void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) override;
+    void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) override;
 
-  void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
+    void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
 
-  void beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
-                               std::shared_ptr<CommandBuffer> commandBuffer,
+    void beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
+                                 std::shared_ptr<CommandBuffer> commandBuffer,
+                                 std::shared_ptr<SwapChain> swapChain) override;
+
+    void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
+                                 std::shared_ptr<CommandBuffer> commandBuffer) override;
+
+    void beginShadowRendering(uint32_t imageIndex,
+                              VkExtent2D extent,
+                              const std::shared_ptr<CommandBuffer>& commandBuffer,
+                              const std::shared_ptr<Light>& light) override;
+
+    void endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
                                std::shared_ptr<SwapChain> swapChain) override;
 
-  void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
-                               std::shared_ptr<CommandBuffer> commandBuffer) override;
+    void endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer) override;
 
-  void beginShadowRendering(uint32_t imageIndex,
-                            VkExtent2D extent,
-                            const std::shared_ptr<CommandBuffer>& commandBuffer,
-                            const std::shared_ptr<Light>& light) override;
+    void endShadowRendering(uint32_t imageIndex,
+                            const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
-  void endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
-                             std::shared_ptr<SwapChain> swapChain) override;
+  private:
+    VkSampler m_sampler = VK_NULL_HANDLE;
 
-  void endOffscreenRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer) override;
+    std::unique_ptr<RenderTarget> m_offscreenRenderTarget;
 
-  void endShadowRendering(uint32_t imageIndex,
-                          const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+    std::unique_ptr<RenderTarget> m_swapchainRenderTarget;
 
-private:
-  VkSampler m_sampler = VK_NULL_HANDLE;
+    void createSampler();
 
-  std::unique_ptr<RenderTarget> m_offscreenRenderTarget;
+    void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
-  std::unique_ptr<RenderTarget> m_swapchainRenderTarget;
+    void createOffscreenRenderTarget(VkExtent2D extent);
 
-  void createSampler();
+    static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
 
-  void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
-
-  void createOffscreenRenderTarget(VkExtent2D extent);
-
-  static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
-
-  static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
-};
+    static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
+  };
 
 } // namespace vke
 
