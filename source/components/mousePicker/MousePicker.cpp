@@ -2,8 +2,8 @@
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/common/PipelineTypes.h"
-#include "../renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.h"
-#include "../renderingManager/legacyRenderer/renderPass/RenderPass.h"
+// #include "../renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.h"
+#include "../renderingManager/legacyRenderer/RenderPass.h"
 #include "../window/Window.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
@@ -46,8 +46,8 @@ void MousePicker::recreateFramebuffer(const VkExtent2D viewportExtent)
   m_viewportExtent = viewportExtent;
 
   m_mousePickingFramebuffer.reset();
-  m_mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_mousePickingRenderPass,
-                                                                    m_viewportExtent, true);
+  // m_mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_mousePickingRenderPass,
+                                                                    // m_viewportExtent, true);
 }
 
 void MousePicker::doMousePicking(const uint32_t imageIndex,
@@ -123,7 +123,7 @@ void MousePicker::recordMousePickingCommandBuffer(const uint32_t imageIndex,
       .extent = m_viewportExtent
     };
 
-    m_mousePickingRenderPass->begin(m_mousePickingFramebuffer->getFramebuffer(imageIndex), m_viewportExtent, renderInfo.commandBuffer);
+    // m_mousePickingRenderPass->begin(m_mousePickingFramebuffer->getFramebuffer(imageIndex), m_viewportExtent, renderInfo.commandBuffer);
 
     const VkViewport viewport = {
       .x = 0.0f,
@@ -182,7 +182,7 @@ uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX, con
     .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
     .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .image = m_mousePickingFramebuffer->getColorImage(),
+    // .image = m_mousePickingFramebuffer->getColorImage(),
     .subresourceRange {
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
       .baseMipLevel = 0,
@@ -202,8 +202,8 @@ uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX, con
     1, &barrier
   );
 
-  Images::copyImageToBuffer(m_mousePickingFramebuffer->getColorImage(), { mouseX, mouseY, 0 },
-                            { 1, 1, 1 }, commandBuffer, m_stagingBuffer);
+  // Images::copyImageToBuffer(m_mousePickingFramebuffer->getColorImage(), { mouseX, mouseY, 0 },
+                            // { 1, 1, 1 }, commandBuffer, m_stagingBuffer);
 
   Buffers::endSingleTimeCommands(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
 

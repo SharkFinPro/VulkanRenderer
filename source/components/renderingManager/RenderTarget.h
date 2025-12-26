@@ -10,6 +10,8 @@ namespace vke {
   struct ImageResourceConfig;
   class LogicalDevice;
 
+  constexpr uint32_t NUM_IMAGES = 3;
+
   class RenderTarget {
   public:
     explicit RenderTarget(const ImageResourceConfig& imageResourceConfig);
@@ -19,6 +21,12 @@ namespace vke {
     [[nodiscard]] ImageResource& getDepthImageResource(uint32_t imageIndex);
 
     [[nodiscard]] ImageResource& getResolveImageResource(uint32_t imageIndex);
+
+    [[nodiscard]] uint32_t hasColorImageResource() const;
+
+    [[nodiscard]] uint32_t hasDepthImageResource() const;
+
+    [[nodiscard]] uint32_t hasResolveImageResource() const;
 
   private:
     std::vector<ImageResource> m_colorImageResources;

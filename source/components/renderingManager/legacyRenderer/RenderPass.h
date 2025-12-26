@@ -2,7 +2,6 @@
 #define VKE_RENDERPASS_H
 
 #include <vulkan/vulkan.h>
-#include <vector>
 #include <memory>
 
 namespace vke {
@@ -20,14 +19,18 @@ public:
 
   VkRenderPass& getRenderPass();
 
-  void begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent, const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+  void begin(const VkFramebuffer& framebuffer,
+             const VkExtent2D& extent,
+             const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
 private:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
   VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
-  void createRenderPass(VkFormat imageFormat, VkSampleCountFlagBits msaaSamples, VkImageLayout finalLayout);
+  void createRenderPass(VkFormat imageFormat,
+                        VkSampleCountFlagBits msaaSamples,
+                        VkImageLayout finalLayout);
 };
 
 } // namespace vke

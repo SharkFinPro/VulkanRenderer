@@ -1,8 +1,6 @@
 #include "RenderTarget.h"
 #include "ImageResource.h"
 
-constexpr uint32_t NUM_IMAGES = 3;
-
 namespace vke {
   RenderTarget::RenderTarget(const ImageResourceConfig& imageResourceConfig)
   {
@@ -46,5 +44,20 @@ namespace vke {
   ImageResource& RenderTarget::getResolveImageResource(const uint32_t imageIndex)
   {
     return m_resolveImageResources[imageIndex];
+  }
+
+  uint32_t RenderTarget::hasColorImageResource() const
+  {
+    return m_colorImageResources.size();
+  }
+
+  uint32_t RenderTarget::hasDepthImageResource() const
+  {
+    return m_depthImageResources.size();
+  }
+
+  uint32_t RenderTarget::hasResolveImageResource() const
+  {
+    return m_resolveImageResources.size();
   }
 } // vke

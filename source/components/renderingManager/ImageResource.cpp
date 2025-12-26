@@ -1,6 +1,6 @@
 #include "ImageResource.h"
-#include "../../logicalDevice/LogicalDevice.h"
-#include "../../../utilities/Images.h"
+#include "../logicalDevice/LogicalDevice.h"
+#include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
 namespace vke {
