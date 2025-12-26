@@ -29,7 +29,7 @@ std::shared_ptr<RenderPass> LegacyRenderer::getRenderPass() const
   return m_renderPass;
 }
 
-VkDescriptorSet& LegacyRenderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
+VkDescriptorSet LegacyRenderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
 {
   return m_offscreenFramebuffer->getFramebufferImageDescriptorSet(imageIndex);
 }

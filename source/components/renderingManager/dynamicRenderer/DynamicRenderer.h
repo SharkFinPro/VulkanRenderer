@@ -1,8 +1,8 @@
 #ifndef VKE_DYNAMICRENDERER_H
 #define VKE_DYNAMICRENDERER_H
 
+#include "RenderTarget.h"
 #include "../Renderer.h"
-#include <vector>
 
 namespace vke {
 
@@ -15,7 +15,7 @@ public:
 
   [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const override;
 
-  [[nodiscard]] VkDescriptorSet& getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
+  [[nodiscard]] VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) override;
 
   void resetSwapchainImageResources(std::shared_ptr<SwapChain> swapChain) override;
 
@@ -46,45 +46,15 @@ private:
 
   VkSampler m_sampler = VK_NULL_HANDLE;
 
-  std::vector<VkImage> m_offscreenImages;
-  std::vector<VkImageView> m_offscreenImageViews;
-  std::vector<VkDeviceMemory> m_offscreenImageMemory;
-  std::vector<VkDescriptorSet> m_offscreenImageDescriptorSets;
+  std::unique_ptr<RenderTarget> m_offscreenRenderTarget;
 
-  std::vector<VkImage> m_swapchainColorImages;
-  std::vector<VkImageView> m_swapchainColorImageViews;
-  std::vector<VkDeviceMemory> m_swapchainColorImageMemory;
-
-  std::vector<VkImage> m_offscreenColorImages;
-  std::vector<VkImageView> m_offscreenColorImageViews;
-  std::vector<VkDeviceMemory> m_offscreenColorImageMemory;
-
-  std::vector<VkImage> m_swapchainDepthImages;
-  std::vector<VkImageView> m_swapchainDepthImageViews;
-  std::vector<VkDeviceMemory> m_swapchainDepthImageMemory;
-
-  std::vector<VkImage> m_offscreenDepthImages;
-  std::vector<VkImageView> m_offscreenDepthImageViews;
-  std::vector<VkDeviceMemory> m_offscreenDepthImageMemory;
+  std::unique_ptr<RenderTarget> m_swapchainRenderTarget;
 
   void createSampler();
-
-  void cleanupSwapchainImageResources();
-
-  void cleanupOffscreenImageResources();
 
   void createSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
   void createOffscreenImageResources(VkExtent2D extent);
-
-  void createColorImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory, VkFormat format,
-                                VkExtent2D extent) const;
-
-  void createDepthImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
-                                VkExtent2D extent) const;
-
-  void createImageResource(VkImage& image, VkImageView& imageView, VkDeviceMemory& imageMemory,
-                           VkDescriptorSet& imageDescriptorSet, VkExtent2D extent) const;
 
   static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer, VkImage image);
 

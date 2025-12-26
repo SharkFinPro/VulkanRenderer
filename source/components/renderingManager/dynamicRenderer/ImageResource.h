@@ -20,7 +20,9 @@ namespace vke {
     std::shared_ptr<LogicalDevice> logicalDevice;
     VkExtent2D extent;
     VkCommandPool commandPool;
-    VkFormat format;
+    VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+    VkFormat depthFormat = VK_FORMAT_UNDEFINED;
+    VkFormat resolveFormat = VK_FORMAT_UNDEFINED;
     VkSampleCountFlagBits numSamples;
     VkSampler sampler = VK_NULL_HANDLE;
   };
@@ -51,6 +53,8 @@ namespace vke {
     void createImageView(const ImageResourceConfig& config);
 
     void transitionImageLayout(const ImageResourceConfig& config) const;
+
+    static VkFormat getFormat(const ImageResourceConfig& config);
   };
 } // vke
 

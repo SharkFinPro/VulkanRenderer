@@ -75,7 +75,7 @@ namespace vke {
         1,
         1,
         config.numSamples,
-        config.format,
+        getFormat(config),
         VK_IMAGE_TILING_OPTIMAL,
         imageUsageFlags,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -103,7 +103,7 @@ namespace vke {
       m_imageView = Images::createImageView(
         m_logicalDevice,
         m_image,
-        config.format,
+        getFormat(config),
         imageAspectFlags,
         1,
         VK_IMAGE_VIEW_TYPE_2D,
@@ -131,11 +131,31 @@ namespace vke {
       Images::transitionImageLayout(m_logicalDevice,
         config.commandPool,
         m_image,
-        config.format,
+        getFormat(config),
         VK_IMAGE_LAYOUT_UNDEFINED,
         imageLayout,
         1,
         1
       );
+    }
+
+    VkFormat ImageResource::getFormat(const ImageResourceConfig& config)
+    {
+      if (config.imageResourceType == ImageResourceType::Color)
+      {
+        return config.colorFormat;
+      }
+
+      if (config.imageResourceType == ImageResourceType::Depth)
+      {
+        return config.depthFormat;
+      }
+
+      if (config.imageResourceType == ImageResourceType::Resolve)
+      {
+        return config.resolveFormat;
+      }
+
+      return VK_FORMAT_UNDEFINED;
     }
 } // vke

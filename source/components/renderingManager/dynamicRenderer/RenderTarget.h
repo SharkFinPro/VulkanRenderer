@@ -13,6 +13,12 @@ namespace vke {
   public:
     explicit RenderTarget(const ImageResourceConfig& imageResourceConfig);
 
+    [[nodiscard]] ImageResource& getColorImageResource(uint32_t imageIndex);
+
+    [[nodiscard]] ImageResource& getDepthImageResource(uint32_t imageIndex);
+
+    [[nodiscard]] ImageResource& getResolveImageResource(uint32_t imageIndex);
+
   private:
     std::vector<ImageResource> m_colorImageResources;
     std::vector<ImageResource> m_depthImageResources;
