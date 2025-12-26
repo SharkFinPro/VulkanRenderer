@@ -73,6 +73,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/physicalDevice/PhysicalDevice.h
 
   # Rendering Manager
+    # Dynamic Renderer
+    components/renderingManager/dynamicRenderer/ImageResource.cpp
+    components/renderingManager/dynamicRenderer/ImageResource.h
+
     # Legacy Renderer
     components/renderingManager/legacyRenderer/LegacyRenderer.cpp
     components/renderingManager/legacyRenderer/LegacyRenderer.h
