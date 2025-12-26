@@ -56,7 +56,17 @@ namespace vke {
 
       if (config.imageResourceType == ImageResourceType::Color)
       {
-        imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+        imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        if (config.numSamples > VK_SAMPLE_COUNT_1_BIT)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+        }
+
+        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
       }
       else if (config.imageResourceType == ImageResourceType::Depth)
       {
@@ -65,6 +75,11 @@ namespace vke {
       else if (config.imageResourceType == ImageResourceType::Resolve)
       {
         imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
       }
 
       Images::createImage(

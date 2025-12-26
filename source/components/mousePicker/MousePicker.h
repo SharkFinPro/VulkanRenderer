@@ -12,10 +12,11 @@ namespace vke {
 
 class LogicalDevice;
 class CommandBuffer;
+class Framebuffer;
 enum class PipelineType;
-class StandardFramebuffer;
 class RenderObject;
 class RenderPass;
+class RenderTarget;
 class Window;
 
 class MousePicker {
@@ -55,7 +56,7 @@ private:
 
   std::shared_ptr<RenderPass> m_mousePickingRenderPass;
   std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
-  std::shared_ptr<StandardFramebuffer> m_mousePickingFramebuffer;
+  std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
 
   std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
   std::unordered_map<uint32_t, bool*> m_mousePickingItems;
@@ -66,6 +67,8 @@ private:
 
   VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
   VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
+
+  std::shared_ptr<RenderTarget> m_renderTarget;
 
   void recordMousePickingCommandBuffer(uint32_t imageIndex,
                                        uint32_t currentFrame,
