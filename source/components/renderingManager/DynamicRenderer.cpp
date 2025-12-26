@@ -379,16 +379,14 @@ void DynamicRenderer::transitionSwapchainImagePreRender(const std::shared_ptr<Co
     }
   };
 
-  vkCmdPipelineBarrier(
-      *commandBuffer->getCommandBuffer(),
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      0,
-      0, nullptr,
-      0, nullptr,
-      1, &imageMemoryBarrier
+  commandBuffer->pipelineBarrier(
+    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    0,
+    {},
+    {},
+    { imageMemoryBarrier }
   );
-
 }
 
 void DynamicRenderer::transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -410,14 +408,13 @@ void DynamicRenderer::transitionSwapchainImagePostRender(const std::shared_ptr<C
     }
   };
 
-  vkCmdPipelineBarrier(
-      *commandBuffer->getCommandBuffer(),
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-      0,
-      0, nullptr,
-      0, nullptr,
-      1, &imageMemoryBarrier
+  commandBuffer->pipelineBarrier(
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+    0,
+    {},
+    {},
+    { imageMemoryBarrier }
   );
 }
 

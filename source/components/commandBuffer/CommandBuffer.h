@@ -54,6 +54,13 @@ public:
   void pushConstants(VkPipelineLayout layout, VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size,
                      const void* values) const;
 
+  void pipelineBarrier(VkPipelineStageFlags srcStageMask,
+                       VkPipelineStageFlags dstStageMask,
+                       VkDependencyFlags dependencyFlags,
+                       const std::vector<VkMemoryBarrier>& memoryBarriers,
+                       const std::vector<VkBufferMemoryBarrier>& bufferMemoryBarriers,
+                       const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const;
+
   friend class ImGuiInstance;
 
 private:
