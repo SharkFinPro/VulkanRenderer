@@ -78,6 +78,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/dynamicRenderer/DynamicRenderer.h
     components/renderingManager/dynamicRenderer/ImageResource.cpp
     components/renderingManager/dynamicRenderer/ImageResource.h
+    components/renderingManager/dynamicRenderer/RenderTarget.cpp
+    components/renderingManager/dynamicRenderer/RenderTarget.h
 
     # Legacy Renderer
     components/renderingManager/legacyRenderer/LegacyRenderer.cpp
