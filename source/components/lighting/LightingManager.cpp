@@ -444,7 +444,7 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight);
+      pipelineManager->renderPointLightShadowMapPipeline(shadowRenderInfo, pointLight);
 
       m_renderer->endShadowRendering(0, commandBuffer);
     }
@@ -490,7 +490,7 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
+      pipelineManager->renderShadowPipeline(shadowRenderInfo);
 
       m_renderer->endShadowRendering(0, commandBuffer);
     }

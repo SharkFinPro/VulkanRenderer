@@ -4,20 +4,20 @@
 
 namespace vke {
 
-  DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
                                VkDescriptorPool descriptorPool,
                                const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
-    : m_logicalDevice(logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     createDescriptorSetLayout(layoutBindings);
 
     allocateDescriptorSets(descriptorPool);
   }
 
-  DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice> &logicalDevice,
+  DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
                                VkDescriptorPool descriptorPool,
                                VkDescriptorSetLayout descriptorSetLayout)
-    : m_logicalDevice(logicalDevice), m_descriptorSetLayout(descriptorSetLayout)
+    : m_logicalDevice(std::move(logicalDevice)), m_descriptorSetLayout(descriptorSetLayout)
   {
     allocateDescriptorSets(descriptorPool);
   }

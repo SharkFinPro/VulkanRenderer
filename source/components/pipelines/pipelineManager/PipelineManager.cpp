@@ -33,7 +33,7 @@
 
 namespace vke {
 
-  PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                    const std::shared_ptr<Renderer>& renderer,
                                    const std::shared_ptr<LightingManager>& lightingManager,
                                    const std::shared_ptr<MousePicker>& mousePicker,
@@ -42,7 +42,7 @@ namespace vke {
                                    VkDescriptorPool descriptorPool,
                                    VkCommandPool commandPool,
                                    const bool shouldDoDots)
-    : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
       m_renderPass(renderer->getSwapchainRenderPass()), m_lightingManager(lightingManager), m_mousePicker(mousePicker),
       m_shouldDoDots(shouldDoDots)
   {
@@ -61,7 +61,8 @@ namespace vke {
     m_bendyPipeline->clearBendyPlantsToRender();
   }
 
-  void PipelineManager::renderObject(const std::shared_ptr<RenderObject>& renderObject, const PipelineType pipelineType,
+  void PipelineManager::renderObject(const std::shared_ptr<RenderObject>& renderObject,
+                                     const PipelineType pipelineType,
                                      bool* mousePicked)
   {
     m_renderObjectsToRender[pipelineType].push_back(renderObject);
@@ -74,7 +75,8 @@ namespace vke {
     m_mousePicker->renderObject(renderObject, mousePicked);
   }
 
-  void PipelineManager::renderLine(const glm::vec3 start, const glm::vec3 end)
+  void PipelineManager::renderLine(const glm::vec3 start,
+                                   const glm::vec3 end)
   {
     m_lineVerticesToRender.push_back({start});
     m_lineVerticesToRender.push_back({end});
@@ -85,7 +87,8 @@ namespace vke {
     m_bendyPipeline->renderBendyPlant(bendyPlant);
   }
 
-  std::shared_ptr<SmokePipeline> PipelineManager::createSmokeSystem(glm::vec3 position, uint32_t numParticles)
+  std::shared_ptr<SmokePipeline> PipelineManager::createSmokeSystem(glm::vec3 position,
+                                                                    uint32_t numParticles)
   {
     auto system = std::make_shared<SmokePipeline>(m_logicalDevice, m_commandPool, m_renderPass, m_descriptorPool,
                                                   position, numParticles, m_lightingManager->getLightingDescriptorSet());
@@ -178,8 +181,7 @@ namespace vke {
     return m_renderObjectsToRender;
   }
 
-  void PipelineManager::renderShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                             const RenderInfo& renderInfo)
+  void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo)
   {
     for (const auto& [_, renderObjects] : m_renderObjectsToRender)
     {
@@ -190,8 +192,7 @@ namespace vke {
     }
   }
 
-  void PipelineManager::renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                          const RenderInfo& renderInfo,
+  void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo& renderInfo,
                                                           const std::shared_ptr<PointLight>& pointLight)
   {
     for (const auto& [_, renderObjects] : m_renderObjectsToRender)

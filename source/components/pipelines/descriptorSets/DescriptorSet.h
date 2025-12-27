@@ -12,11 +12,11 @@ namespace vke {
 
   class DescriptorSet final {
   public:
-    explicit DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    explicit DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
                            VkDescriptorPool descriptorPool,
                            const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
 
-    explicit DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    explicit DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
                            VkDescriptorPool descriptorPool,
                            VkDescriptorSetLayout descriptorSetLayout);
 

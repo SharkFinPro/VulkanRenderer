@@ -31,7 +31,7 @@ namespace vke {
 
   class PipelineManager {
   public:
-    PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                     const std::shared_ptr<Renderer>& renderer,
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<MousePicker>& mousePicker,
@@ -43,7 +43,10 @@ namespace vke {
 
     void createNewFrame();
 
-    void renderObject(const std::shared_ptr<RenderObject>& renderObject, PipelineType pipelineType, bool* mousePicked = nullptr);
+    void renderObject(const std::shared_ptr<RenderObject>& renderObject,
+                      PipelineType pipelineType,
+                      bool* mousePicked = nullptr);
+
     void renderLine(glm::vec3 start, glm::vec3 end);
 
     void renderBendyPlant(const BendyPlant& bendyPlant) const;
@@ -68,11 +71,9 @@ namespace vke {
 
     [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
 
-    void renderShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                              const RenderInfo& renderInfo);
+    void renderShadowPipeline(const RenderInfo& renderInfo);
 
-    void renderPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           const RenderInfo& renderInfo,
+    void renderPointLightShadowMapPipeline(const RenderInfo& renderInfo,
                                            const std::shared_ptr<PointLight>& pointLight);
 
     void renderRectPipeline(const RenderInfo* renderInfo,

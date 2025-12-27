@@ -4,9 +4,10 @@
 
 namespace vke {
 
-  ShaderModule::ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename,
+  ShaderModule::ShaderModule(std::shared_ptr<LogicalDevice> logicalDevice,
+                             const char* filename,
                              const VkShaderStageFlagBits stage)
-    : m_logicalDevice(logicalDevice), m_stage(stage)
+    : m_logicalDevice(std::move(logicalDevice)), m_stage(stage)
   {
     createShaderModule(filename);
   }

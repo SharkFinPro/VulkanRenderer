@@ -5,8 +5,9 @@
 
 namespace vke {
 
-  UniformBuffer::UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkDeviceSize bufferSize)
-    : m_logicalDevice(logicalDevice), m_bufferSize(bufferSize)
+  UniformBuffer::UniformBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+                               const VkDeviceSize bufferSize)
+    : m_logicalDevice(std::move(logicalDevice)), m_bufferSize(bufferSize)
   {
     const auto maxFramesInFlight = logicalDevice->getMaxFramesInFlight();
 
@@ -51,7 +52,8 @@ namespace vke {
     return m_poolSize;
   }
 
-  VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet,
+  VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding,
+                                                       const VkDescriptorSet& dstSet,
                                                        const size_t frame) const
   {
     const VkWriteDescriptorSet uniformDescriptorSet {
@@ -67,7 +69,8 @@ namespace vke {
     return uniformDescriptorSet;
   }
 
-  void UniformBuffer::update(const uint32_t frame, const void* data) const
+  void UniformBuffer::update(const uint32_t frame,
+                             const void* data) const
   {
     memcpy(m_uniformBuffersMapped[frame], data, m_bufferSize);
   }

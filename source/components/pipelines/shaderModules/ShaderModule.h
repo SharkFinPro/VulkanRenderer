@@ -11,7 +11,10 @@ namespace vke {
 
   class ShaderModule {
   public:
-    ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename, VkShaderStageFlagBits stage);
+    ShaderModule(std::shared_ptr<LogicalDevice> logicalDevice,
+                 const char* filename,
+                 VkShaderStageFlagBits stage);
+
     ~ShaderModule();
 
     ShaderModule(ShaderModule&& other) noexcept
