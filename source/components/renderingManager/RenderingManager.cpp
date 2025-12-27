@@ -17,16 +17,16 @@
 
 namespace vke {
 
-  RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                     const std::shared_ptr<Window>& window,
-                                     const std::shared_ptr<MousePicker>& mousePicker,
+  RenderingManager::RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                                     std::shared_ptr<Window> window,
+                                     std::shared_ptr<MousePicker> mousePicker,
                                      VkCommandPool commandPool,
                                      const bool shouldRenderOffscreen,
                                      const char* sceneViewName,
                                      std::shared_ptr<AssetManager> assetManager)
-    : m_logicalDevice(logicalDevice),
-      m_window(window),
-      m_mousePicker(mousePicker),
+    : m_logicalDevice(std::move(logicalDevice)),
+      m_window(std::move(window)),
+      m_mousePicker(std::move(mousePicker)),
       m_commandPool(commandPool),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
@@ -99,7 +99,8 @@ namespace vke {
     return m_swapChain;
   }
 
-  void RenderingManager::setCameraParameters(const glm::vec3 position, const glm::mat4& viewMatrix)
+  void RenderingManager::setCameraParameters(const glm::vec3 position,
+                                             const glm::mat4& viewMatrix)
   {
     m_viewPosition = position;
     m_viewMatrix = viewMatrix;
@@ -268,7 +269,8 @@ namespace vke {
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                      uint32_t currentFrame, const uint32_t imageIndex) const
+                                                      uint32_t currentFrame,
+                                                      const uint32_t imageIndex) const
   {
     m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
     {

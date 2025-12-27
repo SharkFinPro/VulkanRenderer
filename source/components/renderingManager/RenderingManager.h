@@ -22,9 +22,9 @@ namespace vke {
 
   class RenderingManager {
   public:
-    RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                     const std::shared_ptr<Window>& window,
-                     const std::shared_ptr<MousePicker>& mousePicker,
+    RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                     std::shared_ptr<Window> window,
+                     std::shared_ptr<MousePicker> mousePicker,
                      VkCommandPool commandPool,
                      bool shouldRenderOffscreen,
                      const char* sceneViewName,
@@ -36,7 +36,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<SwapChain> getSwapChain() const;
 
-    void setCameraParameters(glm::vec3 position, const glm::mat4& viewMatrix);
+    void setCameraParameters(glm::vec3 position,
+                             const glm::mat4& viewMatrix);
 
     [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
 
@@ -98,7 +99,8 @@ namespace vke {
                                       uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 
-    void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager, uint32_t currentFrame,
+    void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 
     static void resetDepthBuffer(VkCommandBuffer commandBuffer,

@@ -16,7 +16,7 @@ namespace vke {
 
   class Renderer {
   public:
-    explicit Renderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    explicit Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
                       const std::shared_ptr<SwapChain>& swapChain,
                       VkCommandPool commandPool);
 
@@ -36,11 +36,13 @@ namespace vke {
 
     virtual void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent);
 
-    virtual void beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
+    virtual void beginSwapchainRendering(uint32_t imageIndex,
+                                         VkExtent2D extent,
                                          std::shared_ptr<CommandBuffer> commandBuffer,
                                          std::shared_ptr<SwapChain> swapChain) = 0;
 
-    virtual void beginOffscreenRendering(uint32_t imageIndex, VkExtent2D extent,
+    virtual void beginOffscreenRendering(uint32_t imageIndex,
+                                         VkExtent2D extent,
                                          std::shared_ptr<CommandBuffer> commandBuffer) = 0;
 
     virtual void beginShadowRendering(uint32_t imageIndex,
