@@ -44,6 +44,23 @@ namespace vke {
                          int32_t texHeight,
                          uint32_t mipLevels) const;
 
+    static void blitImage(VkCommandBuffer commandBuffer,
+                          VkImage image,
+                          uint32_t mipLevel,
+                          int32_t mipWidth,
+                          int32_t mipHeight);
+
+    static void transitionMipLevelToTransferSrc(VkCommandBuffer commandBuffer,
+                                                VkImageMemoryBarrier& barrier,
+                                                uint32_t mipLevel);
+
+    static void transitionMipLevelToShaderRead(VkCommandBuffer commandBuffer,
+                                               VkImageMemoryBarrier& barrier);
+
+    static void transitionFinalMipLevelToShaderRead(VkCommandBuffer commandBuffer,
+                                                    VkImageMemoryBarrier& barrier,
+                                                    uint32_t mipLevel);
+
     void createTextureSampler(VkSamplerAddressMode addressMode);
 
     virtual void createImageView() = 0;
