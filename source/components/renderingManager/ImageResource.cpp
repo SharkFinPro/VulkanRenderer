@@ -143,7 +143,8 @@ namespace vke {
         imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       }
 
-      Images::transitionImageLayout(m_logicalDevice,
+      Images::transitionImageLayout(
+        m_logicalDevice,
         config.commandPool,
         m_image,
         getFormat(config),
