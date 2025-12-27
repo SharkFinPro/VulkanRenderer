@@ -28,6 +28,8 @@ namespace vke {
 
     [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowRenderPass() const = 0;
 
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowCubeRenderPass() const = 0;
+
     [[nodiscard]] virtual VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
 
     virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
@@ -56,7 +58,8 @@ namespace vke {
     virtual void endShadowRendering(uint32_t imageIndex,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
 
-    [[nodiscard]] virtual uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget);
+    [[nodiscard]] virtual uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget,
+                                                                 bool isCubeMap);
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;

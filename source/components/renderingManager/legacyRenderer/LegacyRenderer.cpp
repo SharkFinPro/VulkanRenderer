@@ -41,6 +41,11 @@ namespace vke {
     return m_shadowRenderPass;
   }
 
+  std::shared_ptr<RenderPass> LegacyRenderer::getShadowCubeRenderPass() const
+  {
+    return m_shadowCubeRenderPass;
+  }
+
   void LegacyRenderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)
   {
     m_swapchainFramebuffer.reset();
@@ -88,11 +93,22 @@ namespace vke {
                                             const std::shared_ptr<CommandBuffer>& commandBuffer,
                                             const std::shared_ptr<Light>& light)
   {
-    m_shadowRenderPass->begin(
-      m_shadowMapFramebuffers.at(light->getRendererShadowMapID())->getFramebuffer(imageIndex),
-      extent,
-      commandBuffer
-    );
+    if (light->getLightType() == LightType::spotLight)
+    {
+      m_shadowRenderPass->begin(
+        m_shadowMapFramebuffers.at(light->getRendererShadowMapID())->getFramebuffer(imageIndex),
+        extent,
+        commandBuffer
+      );
+    }
+    else if (light->getLightType() == LightType::pointLight)
+    {
+      m_shadowCubeRenderPass->begin(
+        m_shadowMapFramebuffers.at(light->getRendererShadowMapID())->getFramebuffer(imageIndex),
+        extent,
+        commandBuffer
+      );
+    }
   }
 
   void LegacyRenderer::endSwapchainRendering(uint32_t imageIndex,
@@ -114,14 +130,15 @@ namespace vke {
     endRendering(commandBuffer);
   }
 
-  uint32_t LegacyRenderer::registerShadowMapRenderTarget(const std::shared_ptr<RenderTarget> renderTarget)
+  uint32_t LegacyRenderer::registerShadowMapRenderTarget(const std::shared_ptr<RenderTarget> renderTarget,
+                                                         const bool isCubeMap)
   {
-    const uint32_t id = Renderer::registerShadowMapRenderTarget(renderTarget);
+    const uint32_t id = Renderer::registerShadowMapRenderTarget(renderTarget, isCubeMap);
 
     const auto framebuffer = std::make_shared<Framebuffer>(
       m_logicalDevice,
       renderTarget,
-      m_shadowRenderPass,
+      isCubeMap ? m_shadowCubeRenderPass : m_shadowRenderPass,
       renderTarget->getExtent()
     );
 
@@ -166,5 +183,9 @@ namespace vke {
       .hasResolveAttachment = false
     };
     m_shadowRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowRenderPassConfig);
+
+    RenderPassConfig shadowCubeRenderPassConfig = shadowRenderPassConfig;
+    shadowCubeRenderPassConfig.useMultiview = true;
+    m_shadowCubeRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowCubeRenderPassConfig);
   }
 } // namespace vke

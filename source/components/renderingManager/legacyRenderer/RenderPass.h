@@ -18,6 +18,7 @@ namespace vke {
     bool hasColorAttachment;
     bool hasDepthAttachment;
     bool hasResolveAttachment;
+    bool useMultiview = false;
   };
 
   struct AttachmentSetup {

@@ -91,8 +91,16 @@ uint32_t Light::getRendererShadowMapID() const
   return m_rendererShadowMapID;
 }
 
+std::shared_ptr<RenderTarget> Light::getShadowMapRenderTarget() const
+{
+  return m_shadowMapRenderTarget;
+}
+
 void Light::registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer)
 {
-  m_rendererShadowMapID = renderer->registerShadowMapRenderTarget(m_shadowMapRenderTarget);
+  m_rendererShadowMapID = renderer->registerShadowMapRenderTarget(
+    m_shadowMapRenderTarget,
+    getLightType() == LightType::pointLight
+  );
 }
 } // namespace vke

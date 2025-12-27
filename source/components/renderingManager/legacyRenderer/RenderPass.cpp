@@ -71,8 +71,20 @@ namespace vke {
       .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
     };
 
+    constexpr uint32_t viewMask = 0x3F;
+    constexpr uint32_t correlationMask = 0x3F;
+
+    const VkRenderPassMultiviewCreateInfo renderPassMultiviewCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
+      .subpassCount = 1,
+      .pViewMasks = &viewMask,
+      .correlationMaskCount = 1,
+      .pCorrelationMasks = &correlationMask
+    };
+
     const VkRenderPassCreateInfo renderPassInfo {
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+      .pNext = renderPassConfig.useMultiview ? &renderPassMultiviewCreateInfo : nullptr,
       .attachmentCount = static_cast<uint32_t>(attachmentSetup.attachments.size()),
       .pAttachments = attachmentSetup.attachments.data(),
       .subpassCount = 1,

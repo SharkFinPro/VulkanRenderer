@@ -289,7 +289,7 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
   m_shadowPipeline = std::make_unique<ShadowPipeline>(m_logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
 
   m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
-    m_logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
+    m_logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
 
   m_rectPipeline = std::make_unique<RectPipeline>(m_logicalDevice, m_renderPass);
 

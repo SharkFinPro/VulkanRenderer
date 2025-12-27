@@ -46,7 +46,8 @@ namespace vke {
     createOffscreenRenderTarget(offscreenViewportExtent);
   }
 
-  uint32_t Renderer::registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget)
+  uint32_t Renderer::registerShadowMapRenderTarget([[maybe_unused]] std::shared_ptr<RenderTarget> renderTarget,
+                                                   [[maybe_unused]] bool isCubeMap)
   {
     return ++m_currentShadowMapRenderTargetID;
   }

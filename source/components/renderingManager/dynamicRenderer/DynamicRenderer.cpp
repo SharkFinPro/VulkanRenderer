@@ -30,6 +30,11 @@ namespace vke {
     return nullptr;
   }
 
+  std::shared_ptr<RenderPass> DynamicRenderer::getShadowCubeRenderPass() const
+  {
+    return nullptr;
+  }
+
   void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
                                                 const VkExtent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer,

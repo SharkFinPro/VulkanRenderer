@@ -21,6 +21,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderPass> getShadowRenderPass() const override;
 
+    [[nodiscard]] std::shared_ptr<RenderPass> getShadowCubeRenderPass() const override;
+
     void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain) override;
 
     void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
@@ -45,7 +47,8 @@ namespace vke {
     void endShadowRendering(uint32_t imageIndex,
                             const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
-    [[nodiscard]] uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget) override;
+    [[nodiscard]] uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget,
+                                                         bool isCubeMap) override;
 
   private:
     std::shared_ptr<Framebuffer> m_swapchainFramebuffer;
@@ -54,6 +57,7 @@ namespace vke {
     std::shared_ptr<RenderPass> m_swapchainRenderPass;
     std::shared_ptr<RenderPass> m_offscreenRenderPass;
     std::shared_ptr<RenderPass> m_shadowRenderPass;
+    std::shared_ptr<RenderPass> m_shadowCubeRenderPass;
 
     std::unordered_map<uint32_t, std::shared_ptr<Framebuffer>> m_shadowMapFramebuffers;
 

@@ -82,6 +82,8 @@ public:
 
   [[nodiscard]] uint32_t getRendererShadowMapID() const;
 
+  [[nodiscard]] std::shared_ptr<RenderTarget> getShadowMapRenderTarget() const;
+
 protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
