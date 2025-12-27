@@ -9,7 +9,7 @@ namespace vke {
                                const VkDeviceSize bufferSize)
     : m_logicalDevice(std::move(logicalDevice)), m_bufferSize(bufferSize)
   {
-    const auto maxFramesInFlight = logicalDevice->getMaxFramesInFlight();
+    const auto maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
 
     m_uniformBuffers.resize(maxFramesInFlight);
     m_uniformBuffersMemory.resize(maxFramesInFlight);
@@ -17,12 +17,12 @@ namespace vke {
 
     for (size_t i = 0; i < maxFramesInFlight; i++)
     {
-      Buffers::createBuffer(logicalDevice, bufferSize,
+      Buffers::createBuffer(m_logicalDevice, bufferSize,
                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                             m_uniformBuffers[i], m_uniformBuffersMemory[i]);
 
-      logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, bufferSize, 0, &m_uniformBuffersMapped[i]);
+      m_logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, bufferSize, 0, &m_uniformBuffersMapped[i]);
 
       const VkDescriptorBufferInfo bufferInfo {
         .buffer = m_uniformBuffers[i],
