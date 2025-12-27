@@ -2,22 +2,22 @@
 #include "lights/Light.h"
 #include "lights/PointLight.h"
 #include "lights/SpotLight.h"
-#include "../../components/logicalDevice/LogicalDevice.h"
-#include "../pipelines/implementations/common/Uniforms.h"
+#include "../commandBuffer/CommandBuffer.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
 #include "../pipelines/descriptorSets/LayoutBindings.h"
+#include "../pipelines/implementations/common/Uniforms.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/Renderer.h"
-#include "../commandBuffer/CommandBuffer.h"
+#include "../../components/logicalDevice/LogicalDevice.h"
 
 namespace vke {
 
-  LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  LightingManager::LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                    VkDescriptorPool descriptorPool,
                                    VkCommandPool commandPool,
                                    std::shared_ptr<Renderer> renderer)
-    : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
       m_renderer(std::move(renderer))
   {
     createPointLightDescriptorSetLayout();
@@ -40,7 +40,7 @@ namespace vke {
                                                            glm::vec3 color,
                                                            float ambient,
                                                            float diffuse,
-                                                           float specular = 1.0f)
+                                                           float specular)
   {
     auto light = std::make_shared<PointLight>(
       m_logicalDevice,
@@ -64,7 +64,7 @@ namespace vke {
                                                           glm::vec3 color,
                                                           float ambient,
                                                           float diffuse,
-                                                          float specular = 1.0f)
+                                                          float specular)
   {
     auto light = std::make_shared<SpotLight>(
       m_logicalDevice,
@@ -156,7 +156,8 @@ namespace vke {
     });
   }
 
-  void LightingManager::updateUniforms(const uint32_t currentFrame, const glm::vec3 viewPosition)
+  void LightingManager::updateUniforms(const uint32_t currentFrame,
+                                       const glm::vec3 viewPosition)
   {
     const CameraUniform cameraUBO {
       .position = viewPosition

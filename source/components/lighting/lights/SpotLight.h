@@ -7,7 +7,7 @@ namespace vke {
 
   class SpotLight final : public Light {
   public:
-    SpotLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
               const glm::vec3& position,
               const glm::vec3& color,
               float ambient,

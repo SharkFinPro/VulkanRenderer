@@ -9,7 +9,7 @@
 
 namespace vke {
 
-  SpotLight::SpotLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  SpotLight::SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
                        const glm::vec3& position,
                        const glm::vec3& color,
                        const float ambient,
@@ -17,7 +17,7 @@ namespace vke {
                        const float specular,
                        const VkCommandPool& commandPool,
                        const std::shared_ptr<Renderer>& renderer)
-    : Light(logicalDevice, position, color, ambient, diffuse, specular)
+    : Light(std::move(logicalDevice), position, color, ambient, diffuse, specular)
   {
     SpotLight::createShadowMap(commandPool);
 

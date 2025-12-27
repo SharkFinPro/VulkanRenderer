@@ -47,7 +47,7 @@ namespace vke {
 
   class Light {
   public:
-    Light(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    Light(std::shared_ptr<LogicalDevice> logicalDevice,
           const glm::vec3& position,
           const glm::vec3& color,
           float ambient,

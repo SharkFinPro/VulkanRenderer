@@ -18,7 +18,7 @@ namespace vke {
 
   class LightingManager {
   public:
-    LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                     VkDescriptorPool descriptorPool,
                     VkCommandPool commandPool,
                     std::shared_ptr<Renderer> renderer);
@@ -29,13 +29,13 @@ namespace vke {
                                                           glm::vec3 color,
                                                           float ambient,
                                                           float diffuse,
-                                                          float specular);
+                                                          float specular = 1.0f);
 
     [[nodiscard]] std::shared_ptr<Light> createSpotLight(glm::vec3 position,
                                                          glm::vec3 color,
                                                          float ambient,
                                                          float diffuse,
-                                                         float specular);
+                                                         float specular = 1.0f);
 
     void renderLight(const std::shared_ptr<Light>& light);
 
@@ -82,7 +82,8 @@ namespace vke {
 
     void createDescriptorSet();
 
-    void updateUniforms(uint32_t currentFrame, glm::vec3 viewPosition);
+    void updateUniforms(uint32_t currentFrame,
+                        glm::vec3 viewPosition);
 
     void updatePointLightUniforms(uint32_t currentFrame);
 
