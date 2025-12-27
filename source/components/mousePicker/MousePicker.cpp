@@ -117,7 +117,8 @@ namespace vke {
     return m_canMousePick;
   }
 
-  void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked)
+  void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
+                                 bool* mousePicked)
   {
     uint32_t objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
     m_renderObjectsToMousePick.emplace_back( renderObject, objectID );
@@ -174,7 +175,8 @@ namespace vke {
     });
   }
 
-  bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY)
+  bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,
+                                                      int32_t& mouseY)
   {
     if (m_viewportExtent.width == 0 || m_viewportExtent.height == 0)
     {
@@ -197,7 +199,8 @@ namespace vke {
     return m_canMousePick;
   }
 
-  uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX, const int32_t mouseY) const
+  uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX,
+                                                         const int32_t mouseY) const
   {
     VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, m_commandPool);
 

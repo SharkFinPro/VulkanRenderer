@@ -10,9 +10,9 @@
 
 namespace vke {
 
-  class LogicalDevice;
   class CommandBuffer;
   class Framebuffer;
+  class LogicalDevice;
   enum class PipelineType;
   class RenderObject;
   class RenderPass;
@@ -75,9 +75,11 @@ namespace vke {
                                          glm::vec3 viewPosition,
                                          const glm::mat4& viewMatrix) const;
 
-    bool validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY);
+    bool validateMousePickingMousePosition(int32_t& mouseX,
+                                           int32_t& mouseY);
 
-    [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX, int32_t mouseY) const;
+    [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX,
+                                                            int32_t mouseY) const;
 
     [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
 
