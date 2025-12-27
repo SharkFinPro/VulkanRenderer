@@ -8,15 +8,12 @@ namespace vke::Images {
 
     void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const VkImageCreateFlags flags,
-                     const uint32_t width,
-                     const uint32_t height,
-                     const uint32_t depth,
+                     const VkExtent3D extent,
                      const uint32_t mipLevels,
                      const VkSampleCountFlagBits numSamples,
                      const VkFormat format,
                      const VkImageTiling tiling,
                      const VkImageUsageFlags usage,
-                     const VkMemoryPropertyFlags properties,
                      VkImage& image,
                      VkDeviceMemory& imageMemory,
                      const VkImageType imageType,
@@ -27,11 +24,7 @@ namespace vke::Images {
         .flags = flags,
         .imageType = imageType,
         .format = format,
-        .extent = {
-          .width = width,
-          .height = height,
-          .depth = depth
-        },
+        .extent = extent,
         .mipLevels = mipLevels,
         .arrayLayers = layerCount,
         .samples = numSamples,
@@ -48,7 +41,8 @@ namespace vke::Images {
       const VkMemoryAllocateInfo allocateInfo {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .allocationSize = memoryRequirements.size,
-        .memoryTypeIndex = logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits, properties)
+        .memoryTypeIndex = logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits,
+                                                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
       };
 
       logicalDevice->allocateMemory(allocateInfo, imageMemory);
