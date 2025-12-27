@@ -5,24 +5,24 @@
 
 namespace vke {
 
-struct VulkanEngineOptions {
-  uint32_t WINDOW_WIDTH;
-  uint32_t WINDOW_HEIGHT;
-  const char* WINDOW_TITLE;
+  struct VulkanEngineOptions {
+    uint32_t WINDOW_WIDTH;
+    uint32_t WINDOW_HEIGHT;
+    const char* WINDOW_TITLE;
 
-  glm::vec3 CAMERA_POSITION = { 0.0f, 0.0f, 0.0f };
-  float CAMERA_SPEED = 1.0f;
+    glm::vec3 CAMERA_POSITION = { 0.0f, 0.0f, 0.0f };
+    float CAMERA_SPEED = 1.0f;
 
-  bool FULLSCREEN = false;
+    bool FULLSCREEN = false;
 
-  bool DO_DOTS = false;
+    bool DO_DOTS = false;
 
-  bool USE_DOCKSPACE = true;
+    bool USE_DOCKSPACE = true;
 
-  const char* SCENE_VIEW_NAME = "SceneView";
+    const char* SCENE_VIEW_NAME = "SceneView";
 
-  uint32_t MAX_IMGUI_TEXTURES = 5;
-};
+    uint32_t MAX_IMGUI_TEXTURES = 5;
+  };
 
 } // namespace vke
 
