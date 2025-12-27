@@ -45,65 +45,65 @@ namespace vke {
     spotLight
   };
 
-class Light {
-public:
-  Light(const std::shared_ptr<LogicalDevice>& logicalDevice,
-        const glm::vec3& position,
-        const glm::vec3& color,
-        float ambient,
-        float diffuse,
-        float specular);
+  class Light {
+  public:
+    Light(const std::shared_ptr<LogicalDevice>& logicalDevice,
+          const glm::vec3& position,
+          const glm::vec3& color,
+          float ambient,
+          float diffuse,
+          float specular);
 
-  virtual ~Light() = default;
+    virtual ~Light() = default;
 
-  [[nodiscard]] glm::vec3 getPosition() const;
-  [[nodiscard]] glm::vec3 getColor() const;
-  [[nodiscard]] float getAmbient() const;
-  [[nodiscard]] float getDiffuse() const;
-  [[nodiscard]] float getSpecular() const;
+    [[nodiscard]] glm::vec3 getPosition() const;
+    [[nodiscard]] glm::vec3 getColor() const;
+    [[nodiscard]] float getAmbient() const;
+    [[nodiscard]] float getDiffuse() const;
+    [[nodiscard]] float getSpecular() const;
 
-  void setPosition(const glm::vec3& position);
-  void setColor(const glm::vec3& color);
-  void setAmbient(float ambient);
-  void setDiffuse(float diffuse);
-  void setSpecular(float specular);
+    void setPosition(const glm::vec3& position);
+    void setColor(const glm::vec3& color);
+    void setAmbient(float ambient);
+    void setDiffuse(float diffuse);
+    void setSpecular(float specular);
 
-  [[nodiscard]] VkImage getShadowMap() const;
+    [[nodiscard]] VkImage getShadowMap() const;
 
-  [[nodiscard]] VkImageView getShadowMapView() const;
+    [[nodiscard]] VkImageView getShadowMapView() const;
 
-  [[nodiscard]] uint32_t getShadowMapSize() const;
+    [[nodiscard]] uint32_t getShadowMapSize() const;
 
-  [[nodiscard]] bool castsShadows() const;
+    [[nodiscard]] bool castsShadows() const;
 
-  [[nodiscard]] virtual LightType getLightType() const = 0;
+    [[nodiscard]] virtual LightType getLightType() const = 0;
 
-  [[nodiscard]] virtual LightUniform getUniform() const = 0;
+    [[nodiscard]] virtual LightUniform getUniform() const = 0;
 
-  [[nodiscard]] uint32_t getRendererShadowMapID() const;
+    [[nodiscard]] uint32_t getRendererShadowMapID() const;
 
-  [[nodiscard]] std::shared_ptr<RenderTarget> getShadowMapRenderTarget() const;
+    [[nodiscard]] std::shared_ptr<RenderTarget> getShadowMapRenderTarget() const;
 
-protected:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
+  protected:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  std::shared_ptr<RenderTarget> m_shadowMapRenderTarget;
+    std::shared_ptr<RenderTarget> m_shadowMapRenderTarget;
 
-  bool m_castsShadows = true;
-  uint32_t m_shadowMapSize = 1024;
+    bool m_castsShadows = true;
+    uint32_t m_shadowMapSize = 1024;
 
-  uint32_t m_rendererShadowMapID = 0;
+    uint32_t m_rendererShadowMapID = 0;
 
-  glm::vec3 m_position;
-  glm::vec3 m_color;
-  float m_ambient;
-  float m_diffuse;
-  float m_specular;
+    glm::vec3 m_position;
+    glm::vec3 m_color;
+    float m_ambient;
+    float m_diffuse;
+    float m_specular;
 
-  virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
+    virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
 
-  void registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer);
-};
+    void registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer);
+  };
 
 } // namespace vke
 

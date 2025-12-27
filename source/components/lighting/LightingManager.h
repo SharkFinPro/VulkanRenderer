@@ -7,109 +7,105 @@
 #include <vector>
 
 namespace vke {
-  class ShadowPipeline;
-}
 
-namespace vke {
+  class CommandBuffer;
+  class DescriptorSet;
+  class Light;
+  class LogicalDevice;
+  class PipelineManager;
+  class Renderer;
+  class UniformBuffer;
 
-class CommandBuffer;
-class DescriptorSet;
-class Light;
-class LogicalDevice;
-class PipelineManager;
-class Renderer;
-class UniformBuffer;
+  class LightingManager {
+  public:
+    LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                    VkDescriptorPool descriptorPool,
+                    VkCommandPool commandPool,
+                    std::shared_ptr<Renderer> renderer);
 
-class LightingManager {
-public:
-  LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  VkDescriptorPool descriptorPool,
-                  VkCommandPool commandPool,
-                  std::shared_ptr<Renderer> renderer);
+    ~LightingManager();
 
-  ~LightingManager();
+    [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
+                                                          glm::vec3 color,
+                                                          float ambient,
+                                                          float diffuse,
+                                                          float specular);
 
-  [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
-                                                        glm::vec3 color,
-                                                        float ambient,
-                                                        float diffuse,
-                                                        float specular);
+    [[nodiscard]] std::shared_ptr<Light> createSpotLight(glm::vec3 position,
+                                                         glm::vec3 color,
+                                                         float ambient,
+                                                         float diffuse,
+                                                         float specular);
 
-  [[nodiscard]] std::shared_ptr<Light> createSpotLight(glm::vec3 position,
-                                                       glm::vec3 color,
-                                                       float ambient,
-                                                       float diffuse,
-                                                       float specular);
+    void renderLight(const std::shared_ptr<Light>& light);
 
-  void renderLight(const std::shared_ptr<Light>& light);
+    [[nodiscard]] std::shared_ptr<DescriptorSet> getLightingDescriptorSet() const;
 
-  [[nodiscard]] std::shared_ptr<DescriptorSet> getLightingDescriptorSet() const;
+    void clearLightsToRender();
 
-  void clearLightsToRender();
+    void update(uint32_t currentFrame, glm::vec3 viewPosition);
 
-  void update(uint32_t currentFrame, glm::vec3 viewPosition);
+    void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                          const std::shared_ptr<PipelineManager>& pipelineManager,
+                          uint32_t currentFrame) const;
 
-  void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                        const std::shared_ptr<PipelineManager>& pipelineManager,
-                        uint32_t currentFrame) const;
+    [[nodiscard]] VkDescriptorSetLayout getPointLightDescriptorSetLayout() const;
 
-  [[nodiscard]] VkDescriptorSetLayout getPointLightDescriptorSetLayout() const;
+  private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-private:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
+    std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
-  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
+    std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
+    std::shared_ptr<UniformBuffer> m_spotLightsUniform;
+    std::shared_ptr<UniformBuffer> m_pointLightsUniform;
+    std::shared_ptr<UniformBuffer> m_cameraUniform;
 
-  std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
-  std::shared_ptr<UniformBuffer> m_spotLightsUniform;
-  std::shared_ptr<UniformBuffer> m_pointLightsUniform;
-  std::shared_ptr<UniformBuffer> m_cameraUniform;
+    int m_prevNumPointLights = 0;
+    int m_prevNumSpotLights = 0;
 
-  int m_prevNumPointLights = 0;
-  int m_prevNumSpotLights = 0;
+    std::vector<std::shared_ptr<Light>> m_lights;
 
-  std::vector<std::shared_ptr<Light>> m_lights;
+    std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
+    std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
 
-  std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
-  std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
-  VkCommandPool m_commandPool = VK_NULL_HANDLE;
-  VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    VkSampler m_shadowMapSampler = VK_NULL_HANDLE;
 
-  VkSampler m_shadowMapSampler = VK_NULL_HANDLE;
+    VkDescriptorSetLayout m_pointLightDescriptorSetLayout = VK_NULL_HANDLE;
 
-  VkDescriptorSetLayout m_pointLightDescriptorSetLayout = VK_NULL_HANDLE;
+    std::shared_ptr<Renderer> m_renderer;
 
-  std::shared_ptr<Renderer> m_renderer;
+    void createUniforms();
 
-  void createUniforms();
+    void createDescriptorSet();
 
-  void createDescriptorSet();
+    void updateUniforms(uint32_t currentFrame, glm::vec3 viewPosition);
 
-  void updateUniforms(uint32_t currentFrame, glm::vec3 viewPosition);
+    void updatePointLightUniforms(uint32_t currentFrame);
 
-  void updatePointLightUniforms(uint32_t currentFrame);
+    void updatePointLightShadowMaps(uint32_t currentFrame) const;
 
-  void updatePointLightShadowMaps(uint32_t currentFrame) const;
+    void updateSpotLightUniforms(uint32_t currentFrame);
 
-  void updateSpotLightUniforms(uint32_t currentFrame);
+    void updateSpotLightShadowMaps(uint32_t currentFrame) const;
 
-  void updateSpotLightShadowMaps(uint32_t currentFrame) const;
+    void createShadowMapSampler();
 
-  void createShadowMapSampler();
+    void destroyShadowMapSampler();
 
-  void destroyShadowMapSampler();
+    void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                    const std::shared_ptr<PipelineManager>& pipelineManager,
+                                    uint32_t currentFrame) const;
 
-  void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                  const std::shared_ptr<PipelineManager>& pipelineManager,
-                                  uint32_t currentFrame) const;
+    void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   const std::shared_ptr<PipelineManager>& pipelineManager,
+                                   uint32_t currentFrame) const;
 
-  void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                 const std::shared_ptr<PipelineManager>& pipelineManager,
-                                 uint32_t currentFrame) const;
-
-  void createPointLightDescriptorSetLayout();
-};
+    void createPointLightDescriptorSetLayout();
+  };
 
 } // namespace vke
 

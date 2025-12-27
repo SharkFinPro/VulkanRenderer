@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace vke {
+
   PointLight::PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const glm::vec3& position,
                          const glm::vec3& color,
@@ -143,4 +144,5 @@ namespace vke {
       return descriptorWrites;
     });
   }
+
 } // vke

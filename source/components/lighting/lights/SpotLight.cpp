@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace vke {
+
   SpotLight::SpotLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const glm::vec3& position,
                        const glm::vec3& color,
@@ -107,4 +108,5 @@ namespace vke {
 
     m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
   }
+
 } // vke

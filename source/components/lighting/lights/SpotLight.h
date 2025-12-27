@@ -4,7 +4,8 @@
 #include "Light.h"
 
 namespace vke {
-  class SpotLight : public Light {
+
+  class SpotLight final : public Light {
   public:
     SpotLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
               const glm::vec3& position,
@@ -33,6 +34,7 @@ namespace vke {
 
     void createShadowMap(const VkCommandPool& commandPool) override;
   };
+
 } // vke
 
 #endif //VULKANPROJECT_SPOTLIGHT_H

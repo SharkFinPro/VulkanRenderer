@@ -11,7 +11,7 @@ namespace vke {
   struct RenderInfo;
   class UniformBuffer;
 
-  class PointLight : public Light {
+  class PointLight final : public Light {
   public:
     PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const glm::vec3& position,
@@ -48,6 +48,7 @@ namespace vke {
     void createDescriptorSet(VkDescriptorPool descriptorPool,
                              VkDescriptorSetLayout descriptorSetLayout);
   };
+
 } // vke
 
 #endif //VULKANPROJECT_POINTLIGHT_H
