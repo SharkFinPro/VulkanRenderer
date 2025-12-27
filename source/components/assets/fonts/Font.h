@@ -76,7 +76,7 @@ namespace vke {
     void createDescriptorSet(VkDescriptorPool descriptorPool,
                              VkDescriptorSetLayout descriptorSetLayout);
   };
-  
+
 } // vke
 
 #endif //VULKANPROJECT_FONT_H
