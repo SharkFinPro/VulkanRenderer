@@ -19,23 +19,27 @@ namespace vke {
 
   class AssetManager {
   public:
-    AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
                  VkCommandPool commandPool,
                  VkDescriptorPool descriptorPool);
 
     ~AssetManager();
 
-    [[nodiscard]] std::shared_ptr<Texture2D> loadTexture(const char* path, bool repeat = true);
+    [[nodiscard]] std::shared_ptr<Texture2D> loadTexture(const char* path,
+                                                         bool repeat = true);
 
-    [[nodiscard]] std::shared_ptr<Model> loadModel(const char* path, glm::vec3 rotation = { 0, 0, 0 });
+    [[nodiscard]] std::shared_ptr<Model> loadModel(const char* path,
+                                                   glm::vec3 rotation = { 0, 0, 0 });
 
     [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
                                                                  const std::shared_ptr<Texture2D>& specularMap,
                                                                  const std::shared_ptr<Model>& model);
 
-    void registerFont(std::string fontName, std::string fontPath);
+    void registerFont(std::string fontName,
+                      std::string fontPath);
 
-    [[nodiscard]] std::shared_ptr<Font> getFont(const std::string& fontName, uint32_t fontSize);
+    [[nodiscard]] std::shared_ptr<Font> getFont(const std::string& fontName,
+                                                uint32_t fontSize);
 
     [[nodiscard]] VkDescriptorSetLayout getObjectDescriptorSetLayout() const;
 
@@ -65,7 +69,8 @@ namespace vke {
 
     void createFontDescriptorSetLayout();
 
-    void loadFont(const std::string& fontName, uint32_t fontSize);
+    void loadFont(const std::string& fontName,
+                  uint32_t fontSize);
   };
 
 } // namespace vke

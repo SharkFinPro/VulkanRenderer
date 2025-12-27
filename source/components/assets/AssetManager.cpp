@@ -9,10 +9,10 @@
 
 namespace vke {
 
-  AssetManager::AssetManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
                              VkCommandPool commandPool,
                              VkDescriptorPool descriptorPool)
-    : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool)
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool), m_descriptorPool(descriptorPool)
   {
     createDescriptorSetLayouts();
   }
@@ -24,7 +24,8 @@ namespace vke {
     m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
   }
 
-  std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path, bool repeat)
+  std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path,
+                                                       const bool repeat)
   {
     auto texture = std::make_shared<Texture2D>(m_logicalDevice, m_commandPool, path,
                                                repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
@@ -33,7 +34,8 @@ namespace vke {
     return texture;
   }
 
-  std::shared_ptr<Model> AssetManager::loadModel(const char* path, glm::vec3 rotation)
+  std::shared_ptr<Model> AssetManager::loadModel(const char* path,
+                                                 glm::vec3 rotation)
   {
     auto model = std::make_shared<Model>(
       m_logicalDevice,
@@ -70,7 +72,8 @@ namespace vke {
     m_fontNames.insert({fontName, fontPath});
   }
 
-  std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName, const uint32_t fontSize)
+  std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName,
+                                              const uint32_t fontSize)
   {
     auto fontByName = m_fonts.find(fontName);
 
@@ -169,7 +172,8 @@ namespace vke {
     m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
-  void AssetManager::loadFont(const std::string& fontName, uint32_t fontSize)
+  void AssetManager::loadFont(const std::string& fontName,
+                              uint32_t fontSize)
   {
     const auto fontPath = m_fontNames.find(fontName);
 
