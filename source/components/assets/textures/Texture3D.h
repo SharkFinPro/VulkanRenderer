@@ -5,18 +5,18 @@
 
 namespace vke {
 
-class Texture3D final : public Texture {
-public:
-  Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-            const VkCommandPool& commandPool,
-            const char* path,
-            VkSamplerAddressMode samplerAddressMode);
+  class Texture3D final : public Texture {
+  public:
+    Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
+              const VkCommandPool& commandPool,
+              const char* path,
+              VkSamplerAddressMode samplerAddressMode);
 
-private:
-  void createTextureImage(const VkCommandPool& commandPool, const char* path);
+  private:
+    void createTextureImage(const VkCommandPool& commandPool, const char* path);
 
-  void createImageView() override;
-};
+    void createImageView() override;
+  };
 
 } // namespace vke
 

@@ -4,6 +4,7 @@
 #include "../../../utilities/Images.h"
 
 namespace vke {
+
   TextureGlyph::TextureGlyph(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const VkCommandPool& commandPool,
                              const unsigned char* pixelData,
@@ -158,4 +159,5 @@ namespace vke {
 
     m_imageInfo.imageView = m_textureImageView;
   }
+
 } // vke
