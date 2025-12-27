@@ -6,9 +6,9 @@
 
 namespace vke {
 
-  GuiPipeline::GuiPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  GuiPipeline::GuiPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                            std::shared_ptr<RenderPass> renderPass)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {

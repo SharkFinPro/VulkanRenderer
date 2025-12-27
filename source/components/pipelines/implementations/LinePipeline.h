@@ -1,8 +1,8 @@
 #ifndef VKE_LINEPIPELINE_H
 #define VKE_LINEPIPELINE_H
 
-#include "../GraphicsPipeline.h"
 #include "vertexInputs/LineVertex.h"
+#include "../GraphicsPipeline.h"
 #include <vector>
 #include <memory>
 
@@ -13,12 +13,14 @@ namespace vke {
 
   class LinePipeline final : public GraphicsPipeline {
   public:
-    LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    LinePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                  std::shared_ptr<RenderPass> renderPass);
 
     ~LinePipeline() override;
 
-    void render(const RenderInfo* renderInfo, const VkCommandPool& commandPool, const std::vector<LineVertex>& vertices);
+    void render(const RenderInfo* renderInfo,
+                const VkCommandPool& commandPool,
+                const std::vector<LineVertex>& vertices);
 
   private:
     VkBuffer m_vertexBuffer = VK_NULL_HANDLE;

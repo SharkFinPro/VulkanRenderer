@@ -1,15 +1,15 @@
 #include "DotsPipeline.h"
 #include "common/GraphicsPipelineStates.h"
 #include "common/Uniforms.h"
-#include "../descriptorSets/DescriptorSet.h"
 #include "vertexInputs/Particle.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../uniformBuffers/UniformBuffer.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../uniformBuffers/UniformBuffer.h"
 #include "../../../utilities/Buffers.h"
 #include <cmath>
-#include <random>
 #include <cstring>
+#include <random>
 
 namespace vke {
 
@@ -34,12 +34,12 @@ namespace vke {
     }
   }};
 
-  DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  DotsPipeline::DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                              const VkCommandPool& commandPool,
                              std::shared_ptr<RenderPass> renderPass,
                              const VkDescriptorPool descriptorPool)
-    : ComputePipeline(logicalDevice), GraphicsPipeline(logicalDevice),
-      m_dotSpeed(1000.0f), m_previousTime(std::chrono::steady_clock::now())
+    : ComputePipeline(std::move(logicalDevice)), GraphicsPipeline(std::move(logicalDevice)),
+      m_previousTime(std::chrono::steady_clock::now())
   {
     createUniforms();
     createShaderStorageBuffers(commandPool);
@@ -93,7 +93,8 @@ namespace vke {
     }
   }
 
-  void DotsPipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer, const uint32_t currentFrame) const
+  void DotsPipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                             const uint32_t currentFrame) const
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipeline);
 
@@ -103,7 +104,8 @@ namespace vke {
     commandBuffer->dispatch(PARTICLE_COUNT / 256, 1, 1);
   }
 
-  void DotsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+  void DotsPipeline::render(const RenderInfo* renderInfo,
+                            const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
     GraphicsPipeline::render(renderInfo, objects);
 

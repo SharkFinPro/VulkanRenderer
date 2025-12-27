@@ -23,7 +23,7 @@ namespace vke {
 
   class BendyPipeline final : public GraphicsPipeline {
   public:
-    BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                   std::shared_ptr<RenderPass> renderPass,
                   const VkCommandPool& commandPool,
                   VkDescriptorPool descriptorPool,

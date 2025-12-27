@@ -9,9 +9,9 @@
 
 namespace vke {
 
-  LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  LinePipeline::LinePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                              std::shared_ptr<RenderPass> renderPass)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -50,7 +50,8 @@ namespace vke {
     Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
   }
 
-  void LinePipeline::render(const RenderInfo* renderInfo, const VkCommandPool& commandPool,
+  void LinePipeline::render(const RenderInfo* renderInfo,
+                            const VkCommandPool& commandPool,
                             const std::vector<LineVertex>& vertices)
   {
     if (vertices.empty())

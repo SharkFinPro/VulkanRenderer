@@ -17,7 +17,7 @@ namespace vke {
 
   class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
-    SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                   const VkCommandPool& commandPool,
                   std::shared_ptr<RenderPass> renderPass,
                   VkDescriptorPool descriptorPool,
@@ -27,9 +27,11 @@ namespace vke {
 
     ~SmokePipeline() override;
 
-    void compute(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t currentFrame) const;
+    void compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                 uint32_t currentFrame) const;
 
-    void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+    void render(const RenderInfo* renderInfo,
+                const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
     void displayGui() override;
 
@@ -62,7 +64,8 @@ namespace vke {
 
     void createShaderStorageBuffers(const VkCommandPool& commandPool);
 
-    void uploadShaderStorageBuffers(const VkCommandPool& commandPool, const std::vector<SmokeParticle>& particles);
+    void uploadShaderStorageBuffers(const VkCommandPool& commandPool,
+                                    const std::vector<SmokeParticle>& particles);
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 

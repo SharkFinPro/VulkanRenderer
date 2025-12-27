@@ -1,11 +1,11 @@
 #include "SmokePipeline.h"
 #include "common/GraphicsPipelineStates.h"
 #include "common/Uniforms.h"
-#include "../descriptorSets/DescriptorSet.h"
 #include "vertexInputs/SmokeParticle.h"
+#include "../descriptorSets/DescriptorSet.h"
+#include "../uniformBuffers/UniformBuffer.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../uniformBuffers/UniformBuffer.h"
 #include "../../../utilities/Buffers.h"
 #include <imgui.h>
 #include <random>
@@ -46,15 +46,15 @@ namespace vke {
     }
   }};
 
-  SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  SmokePipeline::SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                const VkCommandPool& commandPool,
                                std::shared_ptr<RenderPass> renderPass,
                                const VkDescriptorPool descriptorPool,
                                const glm::vec3 position,
                                const uint32_t numParticles,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : ComputePipeline(logicalDevice),
-      GraphicsPipeline(logicalDevice),
+    : ComputePipeline(std::move(logicalDevice)),
+      GraphicsPipeline(std::move(logicalDevice)),
       m_lightingDescriptorSet(lightingDescriptorSet),
       m_dotSpeed(0.75f),
       m_previousTime(std::chrono::steady_clock::now()),
@@ -111,7 +111,8 @@ namespace vke {
     }
   }
 
-  void SmokePipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer, const uint32_t currentFrame) const
+  void SmokePipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                              const uint32_t currentFrame) const
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipeline);
 
@@ -121,7 +122,8 @@ namespace vke {
     commandBuffer->dispatch(m_numParticles / 256, 1, 1);
   }
 
-  void SmokePipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+  void SmokePipeline::render(const RenderInfo* renderInfo,
+                             const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
     GraphicsPipeline::render(renderInfo, objects);
 

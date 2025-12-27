@@ -17,16 +17,18 @@ namespace vke {
 
   class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
-    DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkCommandPool& commandPool,
                  std::shared_ptr<RenderPass> renderPass,
                  VkDescriptorPool descriptorPool);
 
     ~DotsPipeline() override;
 
-    void compute(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t currentFrame) const;
+    void compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                 uint32_t currentFrame) const;
 
-    void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+    void render(const RenderInfo* renderInfo,
+                const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
   private:
     std::vector<VkBuffer> m_shaderStorageBuffers;
@@ -37,7 +39,7 @@ namespace vke {
 
     std::unique_ptr<UniformBuffer> m_deltaTimeUniform;
 
-    float m_dotSpeed;
+    float m_dotSpeed = 1000.0f;
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
     void createUniforms();

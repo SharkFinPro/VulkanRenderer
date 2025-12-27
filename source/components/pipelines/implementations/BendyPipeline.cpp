@@ -2,19 +2,18 @@
 #include "common/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../descriptorSets/LayoutBindings.h"
+#include "../uniformBuffers/UniformBuffer.h"
 #include "../../assets/textures/Texture2D.h"
 #include "../../commandBuffer/CommandBuffer.h"
-#include "../uniformBuffers/UniformBuffer.h"
 
 namespace vke {
 
-  BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  BendyPipeline::BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                std::shared_ptr<RenderPass> renderPass,
                                const VkCommandPool& commandPool,
                                VkDescriptorPool descriptorPool,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : GraphicsPipeline(logicalDevice),
-      m_lightingDescriptorSet(lightingDescriptorSet),
+    : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet),
       m_previousTime(std::chrono::steady_clock::now())
   {
     createUniforms(commandPool);
@@ -107,7 +106,7 @@ namespace vke {
     });
   }
 
-  void BendyPipeline::updateUniformVariables(const RenderInfo *renderInfo)
+  void BendyPipeline::updateUniformVariables(const RenderInfo* renderInfo)
   {
     const VPTransformUniform transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
 
