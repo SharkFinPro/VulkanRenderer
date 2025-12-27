@@ -8,9 +8,13 @@
 #include <imgui.h>
 #include <iostream>
 
-void createLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights);
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights,
+void createLights(const vke::VulkanEngine& renderer,
+                  std::vector<std::shared_ptr<vke::Light>>& lights);
+
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object,
+                 const std::vector<std::shared_ptr<vke::Light>>& lights,
                  bool& useMagicLens);
 
 int main()
@@ -68,8 +72,10 @@ void createLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr
   lights.push_back(renderer.getLightingManager()->createPointLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights,
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object,
+                 const std::vector<std::shared_ptr<vke::Light>>& lights,
                  bool& useMagicLens)
 {
   displayGui(gui, lights, { object }, renderer.getRenderingManager());

@@ -8,8 +8,10 @@
 #include <imgui.h>
 #include <iostream>
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights,
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object,
+                 const std::vector<std::shared_ptr<vke::Light>>& lights,
                  bool& useCurtain);
 
 int main()
@@ -63,8 +65,10 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject>& object, const std::vector<std::shared_ptr<vke::Light>>& lights,
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object,
+                 const std::vector<std::shared_ptr<vke::Light>>& lights,
                  bool& useCurtain)
 {
   // Render GUI

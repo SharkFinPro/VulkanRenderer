@@ -12,7 +12,8 @@
 #include <string>
 #include <source/components/lighting/lights/SpotLight.h>
 
-inline void displayBendyPlantGui(vke::BendyPlant& bendyPlant, const int id)
+inline void displayBendyPlantGui(vke::BendyPlant& bendyPlant,
+                                 const int id)
 {
   ImGui::PushID(id);
 
@@ -38,7 +39,8 @@ inline void displayBendyPlantGuis(std::vector<vke::BendyPlant>& bendyPlants)
   ImGui::End();
 }
 
-inline void displayObjectGui(const std::shared_ptr<vke::RenderObject>& object, const int id)
+inline void displayObjectGui(const std::shared_ptr<vke::RenderObject>& object,
+                             const int id)
 {
   ImGui::PushID(id);
 
@@ -60,7 +62,8 @@ inline void displayObjectGui(const std::shared_ptr<vke::RenderObject>& object, c
   ImGui::PopID();
 }
 
-inline void displayLightGui(const std::shared_ptr<vke::Light>& light, const int id)
+inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
+                            const int id)
 {
   std::shared_ptr<vke::SpotLight> spotLight = nullptr;
 

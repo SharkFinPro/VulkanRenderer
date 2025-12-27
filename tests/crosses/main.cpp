@@ -8,7 +8,8 @@
 #include <imgui.h>
 #include <iostream>
 
-void populateLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights);
+void populateLights(const vke::VulkanEngine& renderer,
+                    std::vector<std::shared_ptr<vke::Light>>& lights);
 
 constexpr vke::VulkanEngineOptions vulkanEngineOptions {
   .WINDOW_WIDTH = 800,
@@ -62,7 +63,8 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void populateLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights)
+void populateLights(const vke::VulkanEngine& renderer,
+                    std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   lights.push_back(renderer.getLightingManager()->createPointLight({0, 15.0f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 

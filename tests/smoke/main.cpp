@@ -8,7 +8,9 @@
 #include <imgui.h>
 #include <iostream>
 
-void createLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights);
+void createLights(const vke::VulkanEngine& renderer,
+                  std::vector<std::shared_ptr<vke::Light>>& lights);
+
 void createSmokeSystems(const vke::VulkanEngine& renderer);
 
 int main()
@@ -63,7 +65,8 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void createLights(const vke::VulkanEngine& renderer, std::vector<std::shared_ptr<vke::Light>>& lights)
+void createLights(const vke::VulkanEngine& renderer,
+                  std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   lights.push_back(renderer.getLightingManager()->createPointLight({0, 1.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
