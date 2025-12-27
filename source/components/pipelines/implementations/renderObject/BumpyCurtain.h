@@ -15,7 +15,7 @@ namespace vke {
 
   class BumpyCurtain final : public GraphicsPipeline {
   public:
-    BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    BumpyCurtain(std::shared_ptr<LogicalDevice> logicalDevice,
                  std::shared_ptr<RenderPass> renderPass,
                  const VkCommandPool& commandPool,
                  VkDescriptorPool descriptorPool,
