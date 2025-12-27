@@ -12,7 +12,8 @@ namespace vke {
 
   class LegacyRenderer final : public Renderer {
   public:
-    LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<SwapChain>& swapChain,
+    LegacyRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
+                   const std::shared_ptr<SwapChain>& swapChain,
                    VkCommandPool commandPool);
 
     [[nodiscard]] std::shared_ptr<RenderPass> getSwapchainRenderPass() const override;
