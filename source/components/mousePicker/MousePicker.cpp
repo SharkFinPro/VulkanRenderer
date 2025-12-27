@@ -13,11 +13,11 @@
 
 namespace vke {
 
-  MousePicker::MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const std::shared_ptr<Window>& window,
+  MousePicker::MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
+                           std::shared_ptr<Window> window,
                            const VkCommandPool& commandPool,
                            VkDescriptorSetLayout objectDescriptorSetLayout)
-    : m_logicalDevice(logicalDevice), m_window(window), m_commandPool(commandPool)
+    : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window)), m_commandPool(commandPool)
   {
     m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 

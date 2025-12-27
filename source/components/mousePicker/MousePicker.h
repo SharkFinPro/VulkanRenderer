@@ -21,8 +21,8 @@ namespace vke {
 
   class MousePicker {
   public:
-    MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const std::shared_ptr<Window>& window,
+    MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
+                std::shared_ptr<Window> window,
                 const VkCommandPool& commandPool,
                 VkDescriptorSetLayout objectDescriptorSetLayout);
 
