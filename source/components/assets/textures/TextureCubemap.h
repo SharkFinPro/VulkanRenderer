@@ -21,6 +21,12 @@ namespace vke {
     void createTextureImage(const VkCommandPool& commandPool,
                             const std::array<std::string, 6>& paths);
 
+    void createImage(VkBuffer stagingBuffer,
+                     VkCommandPool commandPool,
+                     VkDeviceSize imageSize,
+                     uint32_t texWidth,
+                     uint32_t texHeight);
+
     void copyBufferToImage(const VkCommandPool& commandPool,
                            VkBuffer stagingBuffer,
                            VkDeviceSize imageSize,

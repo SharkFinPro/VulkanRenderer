@@ -51,13 +51,24 @@ namespace vke {
       }
     });
 
+    createImage(stagingBuffer, commandPool, imageSize, texWidth, texHeight);
+
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+  }
+
+  void TextureCubemap::createImage(VkBuffer stagingBuffer,
+                                   VkCommandPool commandPool,
+                                   const VkDeviceSize imageSize,
+                                   const uint32_t texWidth,
+                                   const uint32_t texHeight)
+  {
     Images::createImage(
       m_logicalDevice,
       {
         .flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
         .extent = {
-          .width = static_cast<uint32_t>(texWidth),
-          .height = static_cast<uint32_t>(texHeight),
+          .width = texWidth,
+          .height = texHeight,
           .depth = 1
         },
         .mipLevels = 1,
@@ -82,8 +93,6 @@ namespace vke {
     Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 6);
-
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
   void TextureCubemap::copyBufferToImage(const VkCommandPool& commandPool,
