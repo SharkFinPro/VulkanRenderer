@@ -60,7 +60,8 @@ namespace vke {
     return m_computeQueue;
   }
 
-  void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
+  void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
+                                                      const VkCommandBuffer* commandBuffer) const
   {
     constexpr VkPipelineStageFlags waitStages[] = {
       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
@@ -84,7 +85,8 @@ namespace vke {
     }
   }
 
-  void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
+  void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
+                                                   const VkCommandBuffer* commandBuffer) const
   {
     const std::array<VkSemaphore, 1> waitSemaphores = {
       m_computeFinishedSemaphores[currentFrame]
@@ -111,7 +113,8 @@ namespace vke {
     }
   }
 
-  void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
+  void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame,
+                                          const VkCommandBuffer* commandBuffer) const
   {
     const std::array<VkSemaphore, 1> waitSemaphores = {
       m_imageAvailableSemaphores[currentFrame]
@@ -138,7 +141,8 @@ namespace vke {
     }
   }
 
-  void LogicalDevice::submitComputeQueue(const uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const
+  void LogicalDevice::submitComputeQueue(const uint32_t currentFrame,
+                                         const VkCommandBuffer* commandBuffer) const
   {
     const VkSubmitInfo submitInfo {
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -185,7 +189,9 @@ namespace vke {
     vkResetFences(m_device, 1, &m_computeInFlightFences[currentFrame]);
   }
 
-  VkResult LogicalDevice::queuePresent(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const
+  VkResult LogicalDevice::queuePresent(const uint32_t currentFrame,
+                                       const VkSwapchainKHR& swapchain,
+                                       const uint32_t* imageIndex) const
   {
     const std::array<VkSemaphore, 2> waitSemaphores = {
       m_renderFinishedSemaphores[currentFrame],
@@ -205,7 +211,9 @@ namespace vke {
     return vkQueuePresentKHR(m_presentQueue, &presentInfo);
   }
 
-  VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const
+  VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame,
+                                           const VkSwapchainKHR& swapchain,
+                                           uint32_t* imageIndex) const
   {
     return vkAcquireNextImageKHR(m_device, swapchain, UINT64_MAX,
                                  m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);
@@ -260,8 +268,11 @@ namespace vke {
     unmapMemory(deviceMemory);
   }
 
-  void LogicalDevice::mapMemory(const VkDeviceMemory& memory, const VkDeviceSize offset, const VkDeviceSize size,
-                                const VkMemoryMapFlags flags, void** data) const
+  void LogicalDevice::mapMemory(const VkDeviceMemory& memory,
+                                const VkDeviceSize offset,
+                                const VkDeviceSize size,
+                                const VkMemoryMapFlags flags,
+                                void** data) const
   {
     vkMapMemory(m_device, memory, offset, size, flags, data);
   }
@@ -324,7 +335,8 @@ namespace vke {
     return memoryRequirements;
   }
 
-  void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory& deviceMemory) const
+  void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo,
+                                     VkDeviceMemory& deviceMemory) const
   {
     if (vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
     {
@@ -344,13 +356,14 @@ namespace vke {
     memory = VK_NULL_HANDLE;
   }
 
-  void LogicalDevice::bindBufferMemory(const VkBuffer& buffer, const VkDeviceMemory& deviceMemory,
+  void LogicalDevice::bindBufferMemory(const VkBuffer& buffer,
+                                       const VkDeviceMemory& deviceMemory,
                                        const VkDeviceSize memoryOffset) const
   {
     vkBindBufferMemory(m_device, buffer, deviceMemory, memoryOffset);
   }
 
-  VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo &samplerCreateInfo) const
+  VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const
   {
     VkSampler sampler = VK_NULL_HANDLE;
 
@@ -426,13 +439,14 @@ namespace vke {
     return memoryRequirements;
   }
 
-  void LogicalDevice::bindImageMemory(const VkImage& image, const VkDeviceMemory& deviceMemory,
+  void LogicalDevice::bindImageMemory(const VkImage& image,
+                                      const VkDeviceMemory& deviceMemory,
                                       const VkDeviceSize memoryOffset) const
   {
     vkBindImageMemory(m_device, image, deviceMemory, memoryOffset);
   }
 
-  VkRenderPass LogicalDevice::createRenderPass(const VkRenderPassCreateInfo &renderPassCreateInfo) const
+  VkRenderPass LogicalDevice::createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const
   {
     VkRenderPass renderPass = VK_NULL_HANDLE;
 
@@ -451,7 +465,7 @@ namespace vke {
     renderPass = VK_NULL_HANDLE;
   }
 
-  VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo &shaderModuleCreateInfo) const
+  VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const
   {
     VkShaderModule shaderModule = VK_NULL_HANDLE;
 
@@ -482,7 +496,8 @@ namespace vke {
     return swapchain;
   }
 
-  void LogicalDevice::getSwapchainImagesKHR(const VkSwapchainKHR& swapchain, uint32_t* swapchainImageCount,
+  void LogicalDevice::getSwapchainImagesKHR(const VkSwapchainKHR& swapchain,
+                                            uint32_t* swapchainImageCount,
                                             VkImage* swapchainImages) const
   {
     vkGetSwapchainImagesKHR(m_device, swapchain, swapchainImageCount, swapchainImages);
@@ -583,7 +598,8 @@ namespace vke {
     }
   }
 
-  void LogicalDevice::freeCommandBuffers(VkCommandPool commandPool, const uint32_t commandBufferCount,
+  void LogicalDevice::freeCommandBuffers(VkCommandPool commandPool,
+                                         const uint32_t commandBufferCount,
                                          const VkCommandBuffer* commandBuffers) const
   {
     vkFreeCommandBuffers(m_device, commandPool, commandBufferCount, commandBuffers);
