@@ -9,7 +9,9 @@ namespace vke {
 
   RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const RenderPassConfig& renderPassConfig)
-    : m_logicalDevice(logicalDevice)
+    : m_logicalDevice(logicalDevice),
+      m_shouldClearColorAttachment(renderPassConfig.hasColorAttachment),
+      m_shouldClearDepthAttachment(renderPassConfig.hasDepthAttachment)
   {
     createRenderPass(renderPassConfig);
   }
@@ -27,10 +29,17 @@ namespace vke {
   void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent,
                          const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    constexpr std::array<VkClearValue, 2> clearValues {{
-      {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
-      {.depthStencil = {1.0f, 0}}
-    }};
+    std::vector<VkClearValue> clearValues;
+
+    if (m_shouldClearColorAttachment)
+    {
+      clearValues.push_back({.color = {0.0f, 0.0f, 0.0f, 1.0f}});
+    }
+
+    if (m_shouldClearDepthAttachment)
+    {
+      clearValues.push_back({.depthStencil = {1.0f, 0}});
+    }
 
     const VkRenderPassBeginInfo renderPassInfo {
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,

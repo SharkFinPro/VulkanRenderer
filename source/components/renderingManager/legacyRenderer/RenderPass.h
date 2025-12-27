@@ -55,6 +55,9 @@ namespace vke {
 
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
+    bool m_shouldClearColorAttachment;
+    bool m_shouldClearDepthAttachment;
+
     void createRenderPass(const RenderPassConfig& renderPassConfig);
 
     [[nodiscard]] AttachmentSetup setupAttachments(const RenderPassConfig& renderPassConfig) const;
