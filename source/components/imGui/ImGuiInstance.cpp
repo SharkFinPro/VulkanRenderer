@@ -13,11 +13,11 @@ namespace vke {
 
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                                const std::shared_ptr<Instance>& instance,
-                               const std::shared_ptr<LogicalDevice>& logicalDevice,
+                               std::shared_ptr<LogicalDevice> logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const bool useDockSpace,
                                const uint32_t maxImGuiTextures)
-    : m_logicalDevice(logicalDevice), m_useDockSpace(useDockSpace)
+    : m_logicalDevice(std::move(logicalDevice)), m_useDockSpace(useDockSpace)
   {
     createDescriptorPool(maxImGuiTextures);
 

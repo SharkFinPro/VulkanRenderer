@@ -18,7 +18,7 @@ namespace vke {
   public:
     ImGuiInstance(const std::shared_ptr<Window>& window,
                   const std::shared_ptr<Instance>& instance,
-                  const std::shared_ptr<LogicalDevice>& logicalDevice,
+                  std::shared_ptr<LogicalDevice> logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
                   bool useDockSpace,
                   uint32_t maxImGuiTextures);
