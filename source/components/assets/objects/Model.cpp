@@ -10,11 +10,11 @@
 
 namespace vke {
 
-  Model::Model(const std::shared_ptr<LogicalDevice> &logicalDevice,
+  Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
                const VkCommandPool& commandPool,
                const char* path,
                const glm::vec3 rotation)
-    : m_logicalDevice(logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     loadModel(path, glm::quat(glm::radians(rotation)));
 
@@ -22,11 +22,11 @@ namespace vke {
     createIndexBuffer(commandPool);
   }
 
-  Model::Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
                const VkCommandPool& commandPool,
                const char* path,
                const glm::quat orientation)
-    : m_logicalDevice(logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     loadModel(path, glm::normalize(orientation));
 
@@ -41,7 +41,8 @@ namespace vke {
     Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
   }
 
-  void Model::loadModel(const char* path, const glm::quat orientation)
+  void Model::loadModel(const char* path,
+                        const glm::quat orientation)
   {
     Assimp::Importer importer;
     constexpr auto sceneFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
@@ -58,7 +59,8 @@ namespace vke {
     loadIndices(mesh);
   }
 
-  void Model::loadVertices(const aiMesh* mesh, const glm::quat orientation)
+  void Model::loadVertices(const aiMesh* mesh,
+                           const glm::quat orientation)
   {
     const auto orientationMatrix = glm::mat4(orientation);
 

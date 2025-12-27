@@ -16,12 +16,12 @@ namespace vke {
 
   class Model {
   public:
-    Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    Model(std::shared_ptr<LogicalDevice> logicalDevice,
           const VkCommandPool& commandPool,
           const char* path,
           glm::vec3 rotation);
 
-    Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    Model(std::shared_ptr<LogicalDevice> logicalDevice,
           const VkCommandPool& commandPool,
           const char* path,
           glm::quat orientation);
@@ -42,9 +42,11 @@ namespace vke {
     VkBuffer m_indexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_indexBufferMemory = VK_NULL_HANDLE;
 
-    void loadModel(const char* path, glm::quat orientation);
+    void loadModel(const char* path,
+                   glm::quat orientation);
 
-    void loadVertices(const aiMesh* mesh, glm::quat orientation);
+    void loadVertices(const aiMesh* mesh,
+                      glm::quat orientation);
 
     void loadIndices(const aiMesh* mesh);
 
