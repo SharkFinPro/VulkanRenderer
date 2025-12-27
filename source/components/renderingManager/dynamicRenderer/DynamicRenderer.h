@@ -9,7 +9,7 @@ namespace vke {
 
   class DynamicRenderer final : public Renderer {
   public:
-    explicit DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    explicit DynamicRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
                              const std::shared_ptr<SwapChain>& swapChain,
                              VkCommandPool commandPool);
 

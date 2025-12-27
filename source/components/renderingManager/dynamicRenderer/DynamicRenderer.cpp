@@ -9,10 +9,10 @@
 
 namespace vke {
 
-  DynamicRenderer::DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  DynamicRenderer::DynamicRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
                                    const std::shared_ptr<SwapChain>& swapChain,
                                    VkCommandPool commandPool)
-    : Renderer(logicalDevice, swapChain, commandPool)
+    : Renderer(std::move(logicalDevice), swapChain, commandPool)
   {}
 
   std::shared_ptr<RenderPass> DynamicRenderer::getSwapchainRenderPass() const
