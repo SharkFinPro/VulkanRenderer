@@ -5,18 +5,18 @@
 
 namespace vke {
 
-class DebugMessenger {
-public:
-  static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData);
+  class DebugMessenger {
+  public:
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+      VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+      VkDebugUtilsMessageTypeFlagsEXT messageType,
+      const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+      void* pUserData);
 
-  static void populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+    static void populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-  static const char* readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity);
-};
+    static const char* readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity);
+  };
 
 } // namespace vke
 
