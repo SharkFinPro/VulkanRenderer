@@ -15,6 +15,7 @@ namespace vke {
   class Instance {
   public:
     Instance();
+
     ~Instance();
 
     [[nodiscard]] VkSurfaceKHR createSurface(GLFWwindow* window) const;

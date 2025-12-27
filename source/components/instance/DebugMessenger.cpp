@@ -3,11 +3,10 @@
 
 namespace vke {
 
-  VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(
-    const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    [[maybe_unused]] void* pUserData)
+  VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                               [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                               const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                               [[maybe_unused]] void* pUserData)
   {
     std::cerr << "[" << readMessageSeverity(messageSeverity) << "] validation layer: " << pCallbackData->pMessage << std::endl;
 

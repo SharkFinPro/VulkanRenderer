@@ -2,8 +2,8 @@
 #include "Instance.h"
 #include "DebugMessenger.h"
 #include <GLFW/glfw3.h>
-#include <stdexcept>
 #include <cstring>
+#include <stdexcept>
 
 #ifdef __APPLE__
 #define IS_MAC 1
