@@ -6,31 +6,31 @@
 
 namespace vke {
 
-class DescriptorSet;
-class RenderPass;
-class UniformBuffer;
+  class DescriptorSet;
+  class RenderPass;
+  class UniformBuffer;
 
-class GridPipeline final : public GraphicsPipeline {
-public:
-  GridPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               std::shared_ptr<RenderPass> renderPass,
-               VkDescriptorPool descriptorPool);
+  class GridPipeline final : public GraphicsPipeline {
+  public:
+    GridPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                 std::shared_ptr<RenderPass> renderPass,
+                 VkDescriptorPool descriptorPool);
 
-  void render(const RenderInfo* renderInfo);
+    void render(const RenderInfo* renderInfo);
 
-private:
-  std::shared_ptr<DescriptorSet> m_gridDescriptorSet;
+  private:
+    std::shared_ptr<DescriptorSet> m_gridDescriptorSet;
 
-  std::shared_ptr<UniformBuffer> m_gridUniform;
+    std::shared_ptr<UniformBuffer> m_gridUniform;
 
-  void createUniforms();
+    void createUniforms();
 
-  void createDescriptorSets(VkDescriptorPool descriptorPool);
+    void createDescriptorSets(VkDescriptorPool descriptorPool);
 
-  void updateUniformVariables(const RenderInfo* renderInfo) override;
+    void updateUniformVariables(const RenderInfo* renderInfo) override;
 
-  void bindDescriptorSet(const RenderInfo* renderInfo) override;
-};
+    void bindDescriptorSet(const RenderInfo* renderInfo) override;
+  };
 
 }
 

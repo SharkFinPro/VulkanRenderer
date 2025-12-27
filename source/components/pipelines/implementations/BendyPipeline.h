@@ -8,58 +8,58 @@
 
 namespace vke {
 
-class UniformBuffer;
-class DescriptorSet;
-class RenderPass;
-class Texture2D;
+  class UniformBuffer;
+  class DescriptorSet;
+  class RenderPass;
+  class Texture2D;
 
-struct BendyPlant {
-  glm::vec3 position = glm::vec3(0.0f);
-  int numFins = 21;
-  int leafLength = 3;
-  float pitch = 77.5;
-  float bendStrength = -0.07;
-};
-
-class BendyPipeline final : public GraphicsPipeline {
-public:
-  BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                std::shared_ptr<RenderPass> renderPass,
-                const VkCommandPool& commandPool,
-                VkDescriptorPool descriptorPool,
-                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
-
-  void render(const RenderInfo* renderInfo);
-
-  void renderBendyPlant(const BendyPlant &bendyPlant);
-
-  void clearBendyPlantsToRender();
-
-private:
-  BendyUniform m_bendyUBO {
-    .time = 0
+  struct BendyPlant {
+    glm::vec3 position = glm::vec3(0.0f);
+    int numFins = 21;
+    int leafLength = 3;
+    float pitch = 77.5;
+    float bendStrength = -0.07;
   };
 
-  std::shared_ptr<UniformBuffer> m_transformUniform;
-  std::shared_ptr<UniformBuffer> m_bendyUniform;
+  class BendyPipeline final : public GraphicsPipeline {
+  public:
+    BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                  std::shared_ptr<RenderPass> renderPass,
+                  const VkCommandPool& commandPool,
+                  VkDescriptorPool descriptorPool,
+                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
-  std::shared_ptr<DescriptorSet> m_BendyPipelineDescriptorSet;
-  std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
+    void render(const RenderInfo* renderInfo);
 
-  std::shared_ptr<Texture2D> m_texture;
+    void renderBendyPlant(const BendyPlant &bendyPlant);
 
-  std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
+    void clearBendyPlantsToRender();
 
-  std::vector<BendyPlant> m_bendyPlantsToRender;
+  private:
+    BendyUniform m_bendyUBO {
+      .time = 0
+    };
 
-  void createUniforms(const VkCommandPool& commandPool);
+    std::shared_ptr<UniformBuffer> m_transformUniform;
+    std::shared_ptr<UniformBuffer> m_bendyUniform;
 
-  void createDescriptorSets(VkDescriptorPool descriptorPool);
+    std::shared_ptr<DescriptorSet> m_BendyPipelineDescriptorSet;
+    std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
-  void updateUniformVariables(const RenderInfo* renderInfo) override;
+    std::shared_ptr<Texture2D> m_texture;
 
-  void bindDescriptorSet(const RenderInfo* renderInfo) override;
-};
+    std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
+
+    std::vector<BendyPlant> m_bendyPlantsToRender;
+
+    void createUniforms(const VkCommandPool& commandPool);
+
+    void createDescriptorSets(VkDescriptorPool descriptorPool);
+
+    void updateUniformVariables(const RenderInfo* renderInfo) override;
+
+    void bindDescriptorSet(const RenderInfo* renderInfo) override;
+  };
 
 } // namespace vke
 

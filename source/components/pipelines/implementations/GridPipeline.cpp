@@ -77,7 +77,12 @@ namespace vke {
 
   void GridPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                  &m_gridDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+    renderInfo->commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipelineLayout,
+      0,
+      1,
+      &m_gridDescriptorSet->getDescriptorSet(renderInfo->currentFrame)
+    );
   }
 }
