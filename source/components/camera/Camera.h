@@ -28,21 +28,21 @@ namespace vke {
     bool isEnabled() const;
 
   private:
-    bool m_enabled;
+    bool m_enabled = true;
 
     glm::vec3 m_position;
-    glm::vec3 m_direction;
+    glm::vec3 m_direction = glm::vec3(0, 0, -1);
 
     struct SpeedSettings {
-      float speed;
-      float cameraSpeed;
-      float scrollSpeed;
-      float swivelSpeed;
+      float speed = 0;
+      float cameraSpeed = 0;
+      float scrollSpeed = 0;
+      float swivelSpeed = 0;
     } m_speedSettings;
 
     struct Rotation {
-      float pitch;
-      float yaw;
+      float pitch = 0;
+      float yaw = 90;
     } m_rotation;
 
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;

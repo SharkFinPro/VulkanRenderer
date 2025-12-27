@@ -7,18 +7,7 @@ namespace vke {
   constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
   Camera::Camera(const glm::vec3 initialPosition)
-    : m_enabled(true), m_position(initialPosition), m_direction(0, 0, -1),
-      m_speedSettings {
-        .speed = 0,
-        .cameraSpeed = 0,
-        .scrollSpeed = 0,
-        .swivelSpeed = 0
-      },
-      m_rotation {
-        .pitch = 0,
-        .yaw = 90
-      },
-      m_previousTime(std::chrono::steady_clock::now())
+    : m_position(initialPosition), m_previousTime(std::chrono::steady_clock::now())
   {}
 
   glm::mat4 Camera::getViewMatrix() const
