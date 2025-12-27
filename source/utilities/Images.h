@@ -10,18 +10,24 @@ namespace vke {
   class PhysicalDevice;
 
   namespace Images {
+
+    struct ImageConfig {
+      VkImageCreateFlags flags;
+      VkExtent3D extent;
+      uint32_t mipLevels;
+      VkSampleCountFlagBits numSamples;
+      VkFormat format;
+      VkImageTiling tiling;
+      VkImageUsageFlags usage;
+      VkImageType imageType;
+      uint32_t layerCount;
+      VkMemoryPropertyFlags properties;
+    };
+
     void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                     VkImageCreateFlags flags,
-                     VkExtent3D extent,
-                     uint32_t mipLevels,
-                     VkSampleCountFlagBits numSamples,
-                     VkFormat format,
-                     VkImageTiling tiling,
-                     VkImageUsageFlags usage,
+                     const ImageConfig& imageConfig,
                      VkImage& image,
-                     VkDeviceMemory& imageMemory,
-                     VkImageType imageType,
-                     uint32_t layerCount);
+                     VkDeviceMemory& imageMemory);
 
     void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const VkCommandPool& commandPool,

@@ -7,29 +7,21 @@
 namespace vke::Images {
 
   void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                   const VkImageCreateFlags flags,
-                   const VkExtent3D extent,
-                   const uint32_t mipLevels,
-                   const VkSampleCountFlagBits numSamples,
-                   const VkFormat format,
-                   const VkImageTiling tiling,
-                   const VkImageUsageFlags usage,
+                   const ImageConfig& imageConfig,
                    VkImage& image,
-                   VkDeviceMemory& imageMemory,
-                   const VkImageType imageType,
-                   const uint32_t layerCount)
+                   VkDeviceMemory& imageMemory)
   {
     const VkImageCreateInfo imageCreateInfo {
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-      .flags = flags,
-      .imageType = imageType,
-      .format = format,
-      .extent = extent,
-      .mipLevels = mipLevels,
-      .arrayLayers = layerCount,
-      .samples = numSamples,
-      .tiling = tiling,
-      .usage = usage,
+      .flags = imageConfig.flags,
+      .imageType = imageConfig.imageType,
+      .format = imageConfig.format,
+      .extent = imageConfig.extent,
+      .mipLevels = imageConfig.mipLevels,
+      .arrayLayers = imageConfig.layerCount,
+      .samples = imageConfig.numSamples,
+      .tiling = imageConfig.tiling,
+      .usage = imageConfig.usage,
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
@@ -42,7 +34,7 @@ namespace vke::Images {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .allocationSize = memoryRequirements.size,
       .memoryTypeIndex = logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits,
-                                                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+                                                                            imageConfig.properties)
     };
 
     logicalDevice->allocateMemory(allocateInfo, imageMemory);

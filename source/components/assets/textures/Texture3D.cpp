@@ -69,20 +69,24 @@ namespace vke {
 
     Images::createImage(
       m_logicalDevice,
-      0,
       {
-        .width = static_cast<uint32_t>(width),
-        .height = static_cast<uint32_t>(height),
-        .depth = static_cast<uint32_t>(depth),
+        .flags = 0,
+        .extent = {
+          .width = static_cast<uint32_t>(width),
+          .height = static_cast<uint32_t>(height),
+          .depth = static_cast<uint32_t>(depth),
+        },
+        .mipLevels = m_mipLevels,
+        .numSamples = VK_SAMPLE_COUNT_1_BIT,
+        .format = VK_FORMAT_R8G8B8A8_UNORM,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        .imageType = VK_IMAGE_TYPE_3D,
+        .layerCount = 1,
+        .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
       },
-      m_mipLevels,
-      VK_SAMPLE_COUNT_1_BIT,
-      VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
       m_textureImage,
-      m_textureImageMemory,
-      VK_IMAGE_TYPE_3D,
-      1
+      m_textureImageMemory
     );
 
     Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
