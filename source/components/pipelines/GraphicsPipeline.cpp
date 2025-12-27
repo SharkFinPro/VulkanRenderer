@@ -7,11 +7,12 @@
 
 namespace vke {
 
-  GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
-    : Pipeline(logicalDevice)
+  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice)
+    : Pipeline(std::move(logicalDevice))
   {}
 
-  void GraphicsPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+  void GraphicsPipeline::render(const RenderInfo* renderInfo,
+                                const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
     updateUniformVariables(renderInfo);
 
@@ -43,7 +44,9 @@ namespace vke {
     m_pipelineLayout = m_logicalDevice->createPipelineLayout(pipelineLayoutInfo);
   }
 
-  void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions, const bool useColorAttachment, const bool renderCubeMap)
+  void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions,
+                                        const bool useColorAttachment,
+                                        const bool renderCubeMap)
   {
     createPipelineLayout(graphicsPipelineOptions);
 

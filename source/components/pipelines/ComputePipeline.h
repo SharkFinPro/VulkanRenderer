@@ -31,7 +31,7 @@ namespace vke {
 
   class ComputePipeline : public Pipeline {
   public:
-    explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
+    explicit ComputePipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
   protected:
     void createPipelineLayout(const ComputePipelineOptions& computePipelineOptions);

@@ -118,9 +118,10 @@ namespace vke {
 
   class GraphicsPipeline : public Pipeline {
   public:
-    explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
+    explicit GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
-    virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects);
+    virtual void render(const RenderInfo* renderInfo,
+                        const std::vector<std::shared_ptr<RenderObject>>* objects);
 
   protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);

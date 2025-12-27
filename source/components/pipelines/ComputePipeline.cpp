@@ -3,8 +3,8 @@
 
 namespace vke {
 
-  ComputePipeline::ComputePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
-    : Pipeline(logicalDevice)
+  ComputePipeline::ComputePipeline(std::shared_ptr<LogicalDevice> logicalDevice)
+    : Pipeline(std::move(logicalDevice))
   {}
 
   void ComputePipeline::createPipelineLayout(const ComputePipelineOptions& computePipelineOptions)
