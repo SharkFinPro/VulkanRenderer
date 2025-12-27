@@ -8,65 +8,65 @@
 
 namespace vke {
 
-class VulkanEngine;
-class Instance;
+  class VulkanEngine;
+  class Instance;
 
-class Window {
-public:
-  Window(int width, int height, const char* title, const std::shared_ptr<Instance>& instance, bool fullscreen,
-         VulkanEngine* engine);
-  ~Window();
+  class Window {
+  public:
+    Window(int width, int height, const char* title, const std::shared_ptr<Instance>& instance, bool fullscreen,
+           VulkanEngine* engine);
+    ~Window();
 
-  [[nodiscard]] bool isOpen() const;
+    [[nodiscard]] bool isOpen() const;
 
-  void update();
+    void update();
 
-  void getFramebufferSize(int* width, int* height) const;
+    void getFramebufferSize(int* width, int* height) const;
 
-  [[nodiscard]] VkSurfaceKHR& getSurface();
+    [[nodiscard]] VkSurfaceKHR& getSurface();
 
-  [[nodiscard]] bool keyIsPressed(int key) const;
+    [[nodiscard]] bool keyIsPressed(int key) const;
 
-  [[nodiscard]] bool buttonIsPressed(int button) const;
+    [[nodiscard]] bool buttonIsPressed(int button) const;
 
-  void getCursorPos(double& xpos, double& ypos) const;
+    void getCursorPos(double& xpos, double& ypos) const;
 
-  void getPreviousCursorPos(double& xpos, double& ypos) const;
+    void getPreviousCursorPos(double& xpos, double& ypos) const;
 
-  void initImGui();
+    void initImGui();
 
-  [[nodiscard]] double getScroll() const;
+    [[nodiscard]] double getScroll() const;
 
-  [[nodiscard]] float getContentScale() const;
+    [[nodiscard]] float getContentScale() const;
 
-  static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
-  static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-  static void contentScaleCallback(GLFWwindow* window, float xscale, float yscale);
+    static void contentScaleCallback(GLFWwindow* window, float xscale, float yscale);
 
-private:
-  VulkanEngine* m_engine;
+  private:
+    VulkanEngine* m_engine;
 
-  GLFWwindow* m_window;
+    GLFWwindow* m_window;
 
-  std::shared_ptr<Instance> m_instance;
+    std::shared_ptr<Instance> m_instance;
 
-  VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
-  double m_previousMouseX;
-  double m_previousMouseY;
-  double m_mouseX;
-  double m_mouseY;
+    double m_previousMouseX;
+    double m_previousMouseY;
+    double m_mouseX;
+    double m_mouseY;
 
-  double m_scroll;
+    double m_scroll;
 
-  std::unordered_map<int, bool> m_keysPressed;
+    std::unordered_map<int, bool> m_keysPressed;
 
-  float m_contentScale = 1.0f;
+    float m_contentScale = 1.0f;
 
-  static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-};
+    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+  };
 
 } // namespace vke
 

@@ -8,170 +8,170 @@
 
 namespace vke {
 
-Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
-               const bool fullscreen, VulkanEngine* engine)
-  : m_engine(engine), m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
-{
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-  glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-
-  if (fullscreen)
+  Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
+                 const bool fullscreen, VulkanEngine* engine)
+    : m_engine(engine), m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
   {
-    glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
-    const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+    if (fullscreen)
+    {
+      glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
 
-    m_window = glfwCreateWindow(videoMode->width, videoMode->height, title, primaryMonitor, nullptr);
-  }
-  else
-  {
-    m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-  }
+      GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 
-  if (m_window == nullptr)
-  {
-    glfwTerminate();
-    throw std::runtime_error("Failed to create GLFW window");
-  }
+      const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
 
-  glfwSetWindowUserPointer(m_window, this);
-  glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
+      m_window = glfwCreateWindow(videoMode->width, videoMode->height, title, primaryMonitor, nullptr);
+    }
+    else
+    {
+      m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    }
 
-  glfwSetScrollCallback(m_window, scrollCallback);
+    if (m_window == nullptr)
+    {
+      glfwTerminate();
+      throw std::runtime_error("Failed to create GLFW window");
+    }
 
-  glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
-  m_previousMouseX = m_mouseX;
-  m_previousMouseY = m_mouseY;
+    glfwSetWindowUserPointer(m_window, this);
+    glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
 
-  m_surface = m_instance->createSurface(m_window);
+    glfwSetScrollCallback(m_window, scrollCallback);
 
-  glfwSetKeyCallback(m_window, keyCallback);
+    glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
+    m_previousMouseX = m_mouseX;
+    m_previousMouseY = m_mouseY;
 
-  glfwSetWindowContentScaleCallback(m_window, contentScaleCallback);
-}
+    m_surface = m_instance->createSurface(m_window);
 
-Window::~Window()
-{
-  m_instance->destroySurface(m_surface);
+    glfwSetKeyCallback(m_window, keyCallback);
 
-  glfwDestroyWindow(m_window);
-}
-
-bool Window::isOpen() const
-{
-  return !glfwWindowShouldClose(m_window);
-}
-
-void Window::update()
-{
-  m_scroll = 0;
-
-  glfwPollEvents();
-
-  if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-  {
-    glfwSetWindowShouldClose(m_window, true);
+    glfwSetWindowContentScaleCallback(m_window, contentScaleCallback);
   }
 
-  m_previousMouseX = m_mouseX;
-  m_previousMouseY = m_mouseY;
-  glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
-}
-
-void Window::getFramebufferSize(int* width, int* height) const
-{
-  glfwGetFramebufferSize(m_window, width, height);
-}
-
-VkSurfaceKHR& Window::getSurface()
-{
-  return m_surface;
-}
-
-bool Window::keyIsPressed(const int key) const
-{
-  if (const auto keyNode = m_keysPressed.find(key); keyNode != m_keysPressed.end())
+  Window::~Window()
   {
-    return keyNode->second;
+    m_instance->destroySurface(m_surface);
+
+    glfwDestroyWindow(m_window);
   }
 
-  return false;
-}
+  bool Window::isOpen() const
+  {
+    return !glfwWindowShouldClose(m_window);
+  }
 
-bool Window::buttonIsPressed(const int button) const
-{
-  return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
-}
+  void Window::update()
+  {
+    m_scroll = 0;
 
-void Window::getCursorPos(double& xpos, double& ypos) const
-{
-  xpos = m_mouseX;
-  ypos = m_mouseY;
-}
+    glfwPollEvents();
 
-void Window::getPreviousCursorPos(double& xpos, double& ypos) const
-{
-  xpos = m_previousMouseX;
-  ypos = m_previousMouseY;
-}
+    if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+      glfwSetWindowShouldClose(m_window, true);
+    }
 
-void Window::initImGui()
-{
-  ImGui_ImplGlfw_InitForVulkan(m_window, true);
+    m_previousMouseX = m_mouseX;
+    m_previousMouseY = m_mouseY;
+    glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
+  }
 
-  float xscale, yscale;
-  glfwGetWindowContentScale(m_window, &xscale, &yscale);
+  void Window::getFramebufferSize(int* width, int* height) const
+  {
+    glfwGetFramebufferSize(m_window, width, height);
+  }
 
-  ImGui::GetStyle().ScaleAllSizes(xscale);
-  ImGui::GetIO().FontGlobalScale = xscale;
+  VkSurfaceKHR& Window::getSurface()
+  {
+    return m_surface;
+  }
 
-  m_contentScale = xscale;
-}
+  bool Window::keyIsPressed(const int key) const
+  {
+    if (const auto keyNode = m_keysPressed.find(key); keyNode != m_keysPressed.end())
+    {
+      return keyNode->second;
+    }
 
-double Window::getScroll() const
-{
-  return m_scroll;
-}
+    return false;
+  }
 
-float Window::getContentScale() const
-{
-  return m_contentScale;
-}
+  bool Window::buttonIsPressed(const int button) const
+  {
+    return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
+  }
 
-void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, const double yoffset)
-{
-  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-  app->m_scroll = yoffset;
-}
+  void Window::getCursorPos(double& xpos, double& ypos) const
+  {
+    xpos = m_mouseX;
+    ypos = m_mouseY;
+  }
 
-void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
-{
-  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-  app->m_engine->getRenderingManager()->markFramebufferResized();
-}
+  void Window::getPreviousCursorPos(double& xpos, double& ypos) const
+  {
+    xpos = m_previousMouseX;
+    ypos = m_previousMouseY;
+  }
 
-void Window::contentScaleCallback(GLFWwindow* window, const float xscale, [[maybe_unused]] float yscale)
-{
-  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+  void Window::initImGui()
+  {
+    ImGui_ImplGlfw_InitForVulkan(m_window, true);
 
-  ImGui::GetStyle().ScaleAllSizes(1.0f / app->m_contentScale);
-  ImGui::GetStyle().ScaleAllSizes(xscale);
-  ImGui::GetIO().FontGlobalScale = xscale;
+    float xscale, yscale;
+    glfwGetWindowContentScale(m_window, &xscale, &yscale);
 
-  app->m_contentScale = xscale;
+    ImGui::GetStyle().ScaleAllSizes(xscale);
+    ImGui::GetIO().FontGlobalScale = xscale;
 
-  app->m_engine->getImGuiInstance()->markDockNeedsUpdate();
-}
+    m_contentScale = xscale;
+  }
 
-void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,
-                         [[maybe_unused]] int mods)
-{
-  const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+  double Window::getScroll() const
+  {
+    return m_scroll;
+  }
 
-  app->m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
-}
+  float Window::getContentScale() const
+  {
+    return m_contentScale;
+  }
+
+  void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, const double yoffset)
+  {
+    const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+    app->m_scroll = yoffset;
+  }
+
+  void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
+  {
+    const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+    app->m_engine->getRenderingManager()->markFramebufferResized();
+  }
+
+  void Window::contentScaleCallback(GLFWwindow* window, const float xscale, [[maybe_unused]] float yscale)
+  {
+    const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+    ImGui::GetStyle().ScaleAllSizes(1.0f / app->m_contentScale);
+    ImGui::GetStyle().ScaleAllSizes(xscale);
+    ImGui::GetIO().FontGlobalScale = xscale;
+
+    app->m_contentScale = xscale;
+
+    app->m_engine->getImGuiInstance()->markDockNeedsUpdate();
+  }
+
+  void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,
+                           [[maybe_unused]] int mods)
+  {
+    const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+    app->m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
+  }
 
 } // namespace vke

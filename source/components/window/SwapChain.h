@@ -1,7 +1,6 @@
 #ifndef VKE_SWAPCHAIN_H
 #define VKE_SWAPCHAIN_H
 
-#include "../physicalDevice/PhysicalDevice.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "Window.h"
 #include <vulkan/vulkan.h>
@@ -9,36 +8,36 @@
 
 namespace vke {
 
-class SwapChain {
-public:
-  SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<Window>& window);
-  ~SwapChain();
+  class SwapChain {
+  public:
+    SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<Window>& window);
+    ~SwapChain();
 
-  [[nodiscard]] VkFormat& getImageFormat();
-  [[nodiscard]] VkExtent2D& getExtent();
-  [[nodiscard]] VkSwapchainKHR& getSwapChain();
+    [[nodiscard]] VkFormat& getImageFormat();
+    [[nodiscard]] VkExtent2D& getExtent();
+    [[nodiscard]] VkSwapchainKHR& getSwapChain();
 
-  [[nodiscard]] std::vector<VkImageView>& getImageViews();
+    [[nodiscard]] std::vector<VkImageView>& getImageViews();
 
-  [[nodiscard]] std::vector<VkImage>& getImages();
+    [[nodiscard]] std::vector<VkImage>& getImages();
 
-private:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
-  std::shared_ptr<Window> m_window;
+  private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+    std::shared_ptr<Window> m_window;
 
-  VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
-  std::vector<VkImage> m_swapChainImages;
-  VkFormat m_swapChainImageFormat = VK_FORMAT_UNDEFINED;
-  VkExtent2D m_swapChainExtent{};
-  std::vector<VkImageView> m_swapChainImageViews;
+    VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
+    std::vector<VkImage> m_swapChainImages;
+    VkFormat m_swapChainImageFormat = VK_FORMAT_UNDEFINED;
+    VkExtent2D m_swapChainExtent{};
+    std::vector<VkImageView> m_swapChainImageViews;
 
-  static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
-  static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
-  [[nodiscard]] VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
-  static uint32_t chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
-  void createSwapChain();
-  void createImageViews();
-};
+    static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+    static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+    [[nodiscard]] VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
+    static uint32_t chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
+    void createSwapChain();
+    void createImageViews();
+  };
 
 } // namespace vke
 
