@@ -202,8 +202,32 @@ namespace vke {
   uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX,
                                                          const int32_t mouseY) const
   {
-    VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, m_commandPool);
+    const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, m_commandPool);
 
+    transitionImageForReading(commandBuffer);
+
+    Images::copyImageToBuffer(
+      m_renderTarget->getColorImageResource(0).getImage(),
+      { mouseX, mouseY, 0 },
+      { 1, 1, 1 },
+      commandBuffer,
+      m_stagingBuffer
+    );
+
+    transitionImageForWriting(commandBuffer);
+
+    Buffers::endSingleTimeCommands(
+      m_logicalDevice,
+      m_commandPool,
+      m_logicalDevice->getGraphicsQueue(),
+      commandBuffer
+    );
+
+    return getObjectIDFromBuffer(m_stagingBufferMemory);
+  }
+
+  void MousePicker::transitionImageForReading(VkCommandBuffer commandBuffer) const
+  {
     const VkImageMemoryBarrier barrier {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
       .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -231,10 +255,10 @@ namespace vke {
       0, nullptr,
       1, &barrier
     );
+  }
 
-    Images::copyImageToBuffer(m_renderTarget->getColorImageResource(0).getImage(), { mouseX, mouseY, 0 },
-                              { 1, 1, 1 }, commandBuffer, m_stagingBuffer);
-
+  void MousePicker::transitionImageForWriting(VkCommandBuffer commandBuffer) const
+  {
     const VkImageMemoryBarrier barrierBack {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
       .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
@@ -262,12 +286,6 @@ namespace vke {
       0, nullptr,
       1, &barrierBack
     );
-
-    Buffers::endSingleTimeCommands(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
-
-    const uint32_t objectID = getObjectIDFromBuffer(m_stagingBufferMemory);
-
-    return objectID;
   }
 
   uint32_t MousePicker::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const

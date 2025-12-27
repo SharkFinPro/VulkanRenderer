@@ -81,6 +81,10 @@ namespace vke {
     [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX,
                                                             int32_t mouseY) const;
 
+    void transitionImageForReading(VkCommandBuffer commandBuffer) const;
+
+    void transitionImageForWriting(VkCommandBuffer commandBuffer) const;
+
     [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
 
     void handleMousePickingResult(uint32_t objectID,
