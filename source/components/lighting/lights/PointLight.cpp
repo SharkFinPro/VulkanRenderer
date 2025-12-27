@@ -15,16 +15,12 @@
 namespace vke {
 
   PointLight::PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
-                         const glm::vec3& position,
-                         const glm::vec3& color,
-                         const float ambient,
-                         const float diffuse,
-                         const float specular,
+                         const CommonLightData& commonLightData,
                          const VkCommandPool& commandPool,
                          VkDescriptorPool descriptorPool,
                          VkDescriptorSetLayout descriptorSetLayout,
                          const std::shared_ptr<Renderer>& renderer)
-    : Light(std::move(logicalDevice), position, color, ambient, diffuse, specular)
+    : Light(std::move(logicalDevice), commonLightData)
   {
     PointLight::createShadowMap(commandPool);
 

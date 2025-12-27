@@ -45,14 +45,18 @@ namespace vke {
     spotLight
   };
 
+  struct CommonLightData {
+    glm::vec3 position;
+    glm::vec3 color;
+    float ambient;
+    float diffuse;
+    float specular;
+  };
+
   class Light {
   public:
     Light(std::shared_ptr<LogicalDevice> logicalDevice,
-          const glm::vec3& position,
-          const glm::vec3& color,
-          float ambient,
-          float diffuse,
-          float specular);
+          const CommonLightData& commonLightData);
 
     virtual ~Light() = default;
 

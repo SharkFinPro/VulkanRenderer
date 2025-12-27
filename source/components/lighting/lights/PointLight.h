@@ -14,11 +14,7 @@ namespace vke {
   class PointLight final : public Light {
   public:
     PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
-               const glm::vec3& position,
-               const glm::vec3& color,
-               float ambient,
-               float diffuse,
-               float specular,
+               const CommonLightData& commonLightData,
                const VkCommandPool& commandPool,
                VkDescriptorPool descriptorPool,
                VkDescriptorSetLayout descriptorSetLayout,

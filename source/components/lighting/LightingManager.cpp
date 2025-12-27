@@ -36,19 +36,23 @@ namespace vke {
     m_logicalDevice->destroyDescriptorSetLayout(m_pointLightDescriptorSetLayout);
   }
 
-  std::shared_ptr<Light> LightingManager::createPointLight(glm::vec3 position,
-                                                           glm::vec3 color,
-                                                           float ambient,
-                                                           float diffuse,
-                                                           float specular)
+  std::shared_ptr<Light> LightingManager::createPointLight(const glm::vec3 position,
+                                                           const glm::vec3 color,
+                                                           const float ambient,
+                                                           const float diffuse,
+                                                           const float specular)
   {
+    CommonLightData commonLightData {
+      .position = position,
+      .color = color,
+      .ambient = ambient,
+      .diffuse = diffuse,
+      .specular = specular
+    };
+
     auto light = std::make_shared<PointLight>(
       m_logicalDevice,
-      position,
-      color,
-      ambient,
-      diffuse,
-      specular,
+      commonLightData,
       m_commandPool,
       m_descriptorPool,
       m_pointLightDescriptorSetLayout,
@@ -60,19 +64,23 @@ namespace vke {
     return light;
   }
 
-  std::shared_ptr<Light> LightingManager::createSpotLight(glm::vec3 position,
-                                                          glm::vec3 color,
-                                                          float ambient,
-                                                          float diffuse,
-                                                          float specular)
+  std::shared_ptr<Light> LightingManager::createSpotLight(const glm::vec3 position,
+                                                          const glm::vec3 color,
+                                                          const float ambient,
+                                                          const float diffuse,
+                                                          const float specular)
   {
+    CommonLightData commonLightData {
+      .position = position,
+      .color = color,
+      .ambient = ambient,
+      .diffuse = diffuse,
+      .specular = specular
+    };
+
     auto light = std::make_shared<SpotLight>(
       m_logicalDevice,
-      position,
-      color,
-      ambient,
-      diffuse,
-      specular,
+      commonLightData,
       m_commandPool,
       m_renderer
     );

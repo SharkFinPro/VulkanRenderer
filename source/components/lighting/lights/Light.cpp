@@ -7,13 +7,9 @@
 namespace vke {
 
   Light::Light(std::shared_ptr<LogicalDevice> logicalDevice,
-               const glm::vec3& position,
-               const glm::vec3& color,
-               const float ambient,
-               const float diffuse,
-               const float specular)
-    : m_logicalDevice(std::move(logicalDevice)), m_position(position), m_color(color), m_ambient(ambient),
-      m_diffuse(diffuse), m_specular(specular)
+               const CommonLightData& commonLightData)
+    : m_logicalDevice(std::move(logicalDevice)), m_position(commonLightData.position), m_color(commonLightData.color),
+      m_ambient(commonLightData.ambient), m_diffuse(commonLightData.diffuse), m_specular(commonLightData.specular)
   {}
 
   glm::vec3 Light::getPosition() const
