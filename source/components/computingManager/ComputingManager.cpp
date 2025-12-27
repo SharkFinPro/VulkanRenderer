@@ -1,14 +1,14 @@
 #include "ComputingManager.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
-#include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/implementations/DotsPipeline.h"
 #include "../pipelines/implementations/SmokePipeline.h"
+#include "../pipelines/pipelineManager/PipelineManager.h"
 
 namespace vke {
 
-  ComputingManager::ComputingManager(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
-    : m_logicalDevice(logicalDevice)
+  ComputingManager::ComputingManager(std::shared_ptr<LogicalDevice> logicalDevice, VkCommandPool commandPool)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     m_computeCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, commandPool);
   }
