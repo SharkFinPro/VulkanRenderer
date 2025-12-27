@@ -10,80 +10,86 @@
 
 namespace vke {
 
-class LogicalDevice;
-class CommandBuffer;
-class Framebuffer;
-enum class PipelineType;
-class RenderObject;
-class RenderPass;
-class RenderTarget;
-class Window;
+  class CommandBuffer;
+  class Framebuffer;
+  class LogicalDevice;
+  enum class PipelineType;
+  class RenderObject;
+  class RenderPass;
+  class RenderTarget;
+  class Window;
 
-class MousePicker {
-public:
-  MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
-              const std::shared_ptr<Window>& window,
-              const VkCommandPool& commandPool,
-              VkDescriptorSetLayout objectDescriptorSetLayout);
+  class MousePicker {
+  public:
+    MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
+                std::shared_ptr<Window> window,
+                const VkCommandPool& commandPool,
+                VkDescriptorSetLayout objectDescriptorSetLayout);
 
-  ~MousePicker();
+    ~MousePicker();
 
-  void clearObjectsToMousePick();
+    void clearObjectsToMousePick();
 
-  void recreateFramebuffer(VkExtent2D viewportExtent);
+    void recreateFramebuffer(VkExtent2D viewportExtent);
 
-  void doMousePicking(uint32_t imageIndex,
-                      uint32_t currentFrame,
-                      glm::vec3 viewPosition,
-                      const glm::mat4& viewMatrix,
-                      std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
+    void doMousePicking(uint32_t imageIndex,
+                        uint32_t currentFrame,
+                        glm::vec3 viewPosition,
+                        const glm::mat4& viewMatrix,
+                        std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
 
-  [[nodiscard]] bool canMousePick() const;
+    [[nodiscard]] bool canMousePick() const;
 
-  void renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked);
+    void renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked);
 
-  void setViewportPos(ImVec2 viewportPos);
+    void setViewportPos(ImVec2 viewportPos);
 
-private:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
-  std::shared_ptr<Window> m_window;
+  private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+    std::shared_ptr<Window> m_window;
 
-  VkExtent2D m_viewportExtent { 1, 1 };
+    VkExtent2D m_viewportExtent { 1, 1 };
 
-  ImVec2 m_viewportPos {0, 0};
+    ImVec2 m_viewportPos {0, 0};
 
-  std::shared_ptr<CommandBuffer> m_mousePickingCommandBuffer;
+    std::shared_ptr<CommandBuffer> m_mousePickingCommandBuffer;
 
-  std::shared_ptr<RenderPass> m_mousePickingRenderPass;
-  std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
-  std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
+    std::shared_ptr<RenderPass> m_mousePickingRenderPass;
+    std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
+    std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
 
-  std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
-  std::unordered_map<uint32_t, bool*> m_mousePickingItems;
+    std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
+    std::unordered_map<uint32_t, bool*> m_mousePickingItems;
 
-  bool m_canMousePick = false;
+    bool m_canMousePick = false;
 
-  VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-  VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
+    VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
-  std::shared_ptr<RenderTarget> m_renderTarget;
+    std::shared_ptr<RenderTarget> m_renderTarget;
 
-  void recordMousePickingCommandBuffer(uint32_t imageIndex,
-                                       uint32_t currentFrame,
-                                       glm::vec3 viewPosition,
-                                       const glm::mat4& viewMatrix) const;
+    void recordMousePickingCommandBuffer(uint32_t imageIndex,
+                                         uint32_t currentFrame,
+                                         glm::vec3 viewPosition,
+                                         const glm::mat4& viewMatrix) const;
 
-  bool validateMousePickingMousePosition(int32_t& mouseX, int32_t& mouseY);
+    bool validateMousePickingMousePosition(int32_t& mouseX,
+                                           int32_t& mouseY);
 
-  [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX, int32_t mouseY) const;
+    [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX,
+                                                            int32_t mouseY) const;
 
-  [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
+    void transitionImageForReading(VkCommandBuffer commandBuffer) const;
 
-  void handleMousePickingResult(uint32_t objectID,
-                                std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
-};
+    void transitionImageForWriting(VkCommandBuffer commandBuffer) const;
+
+    [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
+
+    void handleMousePickingResult(uint32_t objectID,
+                                  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
+  };
 
 } // namespace vke
 

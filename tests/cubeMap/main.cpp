@@ -7,10 +7,13 @@
 #include <imgui.h>
 #include <iostream>
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject> &object, std::vector<std::shared_ptr<vke::RenderObject>>& walls);
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object,
+                 const std::vector<std::shared_ptr<vke::RenderObject>>& walls);
 
-void setupScene(vke::VulkanEngine& renderer, std::shared_ptr<vke::RenderObject>& object,
+void setupScene(const vke::VulkanEngine& renderer,
+                std::shared_ptr<vke::RenderObject>& object,
                 std::vector<std::shared_ptr<vke::RenderObject>>& walls);
 
 int main()
@@ -49,8 +52,10 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui,
-                 const std::shared_ptr<vke::RenderObject> &object, std::vector<std::shared_ptr<vke::RenderObject>>& walls)
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 const std::shared_ptr<vke::RenderObject>& object,
+                 const std::vector<std::shared_ptr<vke::RenderObject>>& walls)
 {
   gui->dockCenter("SceneView");
   gui->dockBottom("Objects");
@@ -73,7 +78,8 @@ void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiIn
   renderer.render();
 }
 
-void setupScene(vke::VulkanEngine& renderer, std::shared_ptr<vke::RenderObject>& object,
+void setupScene(const vke::VulkanEngine& renderer,
+                std::shared_ptr<vke::RenderObject>& object,
                 std::vector<std::shared_ptr<vke::RenderObject>>& walls)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");

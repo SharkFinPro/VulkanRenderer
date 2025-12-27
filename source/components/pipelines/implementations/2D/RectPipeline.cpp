@@ -4,9 +4,9 @@
 #include "../../../renderingManager/renderer2D/Renderer2D.h"
 
 namespace vke {
-  RectPipeline::RectPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  RectPipeline::RectPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                              std::shared_ptr<RenderPass> renderPass)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -47,7 +47,8 @@ namespace vke {
     }
   }
 
-  void RectPipeline::renderRect(const RenderInfo* renderInfo, const Rect& rect) const
+  void RectPipeline::renderRect(const RenderInfo* renderInfo,
+                                const Rect& rect) const
   {
     const RectPushConstant rectPC {
       .transform = rect.transform,

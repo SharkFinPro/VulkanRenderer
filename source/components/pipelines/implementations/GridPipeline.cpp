@@ -1,15 +1,16 @@
 #include "GridPipeline.h"
-#include "../../commandBuffer/CommandBuffer.h"
-#include "../uniformBuffers/UniformBuffer.h"
 #include "common/GraphicsPipelineStates.h"
+#include "common/Uniforms.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../descriptorSets/LayoutBindings.h"
+#include "../uniformBuffers/UniformBuffer.h"
+#include "../../commandBuffer/CommandBuffer.h"
 
 namespace vke {
-  GridPipeline::GridPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  GridPipeline::GridPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              VkDescriptorPool descriptorPool)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     createUniforms();
 
@@ -77,7 +78,12 @@ namespace vke {
 
   void GridPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                  &m_gridDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+    renderInfo->commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipelineLayout,
+      0,
+      1,
+      &m_gridDescriptorSet->getDescriptorSet(renderInfo->currentFrame)
+    );
   }
 }

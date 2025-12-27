@@ -1,8 +1,8 @@
 #include "PointLight.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
+#include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../../renderingManager/ImageResource.h"
 #include "../../renderingManager/RenderTarget.h"
@@ -13,17 +13,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace vke {
-  PointLight::PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const glm::vec3& position,
-                         const glm::vec3& color,
-                         const float ambient,
-                         const float diffuse,
-                         const float specular,
+
+  PointLight::PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
+                         const CommonLightData& commonLightData,
                          const VkCommandPool& commandPool,
                          VkDescriptorPool descriptorPool,
                          VkDescriptorSetLayout descriptorSetLayout,
                          const std::shared_ptr<Renderer>& renderer)
-    : Light(logicalDevice, position, color, ambient, diffuse, specular)
+    : Light(std::move(logicalDevice), commonLightData)
   {
     PointLight::createShadowMap(commandPool);
 
@@ -143,4 +140,5 @@ namespace vke {
       return descriptorWrites;
     });
   }
+
 } // vke

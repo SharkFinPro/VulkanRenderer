@@ -11,14 +11,10 @@ namespace vke {
   struct RenderInfo;
   class UniformBuffer;
 
-  class PointLight : public Light {
+  class PointLight final : public Light {
   public:
-    PointLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const glm::vec3& position,
-               const glm::vec3& color,
-               float ambient,
-               float diffuse,
-               float specular,
+    PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
+               const CommonLightData& commonLightData,
                const VkCommandPool& commandPool,
                VkDescriptorPool descriptorPool,
                VkDescriptorSetLayout descriptorSetLayout,
@@ -48,6 +44,7 @@ namespace vke {
     void createDescriptorSet(VkDescriptorPool descriptorPool,
                              VkDescriptorSetLayout descriptorSetLayout);
   };
+
 } // vke
 
 #endif //VULKANPROJECT_POINTLIGHT_H

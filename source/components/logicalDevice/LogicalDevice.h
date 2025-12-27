@@ -8,153 +8,179 @@
 
 namespace vke {
 
-class PhysicalDevice;
+  class PhysicalDevice;
 
-class LogicalDevice {
-public:
-  explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
-  ~LogicalDevice();
+  class LogicalDevice {
+  public:
+    explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
+    ~LogicalDevice();
 
-  [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
+    [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
 
-  void waitIdle() const;
+    void waitIdle() const;
 
-  [[nodiscard]] VkQueue getGraphicsQueue() const;
-  [[nodiscard]] VkQueue getPresentQueue() const;
-  [[nodiscard]] VkQueue getComputeQueue() const;
+    [[nodiscard]] VkQueue getGraphicsQueue() const;
+    [[nodiscard]] VkQueue getPresentQueue() const;
+    [[nodiscard]] VkQueue getComputeQueue() const;
 
-  void submitMousePickingGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
-  void submitOffscreenGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
-  void submitGraphicsQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
-  void submitComputeQueue(uint32_t currentFrame, const VkCommandBuffer* commandBuffer) const;
+    void submitMousePickingGraphicsQueue(uint32_t currentFrame,
+                                         const VkCommandBuffer* commandBuffer) const;
 
-  void waitForGraphicsFences(uint32_t currentFrame) const;
-  void waitForComputeFences(uint32_t currentFrame) const;
-  void waitForMousePickingFences(uint32_t currentFrame) const;
+    void submitOffscreenGraphicsQueue(uint32_t currentFrame,
+                                      const VkCommandBuffer* commandBuffer) const;
 
-  void resetGraphicsFences(uint32_t currentFrame) const;
-  void resetMousePickingFences(uint32_t currentFrame) const;
-  void resetComputeFences(uint32_t currentFrame) const;
+    void submitGraphicsQueue(uint32_t currentFrame,
+                             const VkCommandBuffer* commandBuffer) const;
 
-  VkResult queuePresent(uint32_t currentFrame, const VkSwapchainKHR& swapchain, const uint32_t* imageIndex) const;
+    void submitComputeQueue(uint32_t currentFrame,
+                            const VkCommandBuffer* commandBuffer) const;
 
-  VkResult acquireNextImage(uint32_t currentFrame, const VkSwapchainKHR& swapchain, uint32_t* imageIndex) const;
+    void waitForGraphicsFences(uint32_t currentFrame) const;
+    void waitForComputeFences(uint32_t currentFrame) const;
+    void waitForMousePickingFences(uint32_t currentFrame) const;
 
-  [[nodiscard]] uint32_t getMaxFramesInFlight() const;
+    void resetGraphicsFences(uint32_t currentFrame) const;
+    void resetMousePickingFences(uint32_t currentFrame) const;
+    void resetComputeFences(uint32_t currentFrame) const;
 
-  [[nodiscard]] VkCommandPool createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const;
+    VkResult queuePresent(uint32_t currentFrame,
+                          const VkSwapchainKHR& swapchain,
+                          const uint32_t* imageIndex) const;
 
-  void destroyCommandPool(VkCommandPool& commandPool) const;
+    VkResult acquireNextImage(uint32_t currentFrame,
+                              const VkSwapchainKHR& swapchain,
+                              uint32_t* imageIndex) const;
 
-  void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
-                              VkCommandBuffer* commandBuffers) const;
+    [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
-  void freeCommandBuffers(VkCommandPool commandPool, uint32_t commandBufferCount, const VkCommandBuffer* commandBuffers) const;
+    [[nodiscard]] VkCommandPool createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const;
 
-  [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
+    void destroyCommandPool(VkCommandPool& commandPool) const;
 
-  void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
+    void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                VkCommandBuffer* commandBuffers) const;
 
-  [[nodiscard]] VkDescriptorSetLayout createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
+    void freeCommandBuffers(VkCommandPool commandPool,
+                            uint32_t commandBufferCount,
+                            const VkCommandBuffer* commandBuffers) const;
 
-  void destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const;
+    [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
 
-  void doMappedMemoryOperation(VkDeviceMemory deviceMemory, const std::function<void(void* data)>& operationFunction) const;
+    void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
 
-  void mapMemory(const VkDeviceMemory& memory, VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags, void** data) const;
+    [[nodiscard]] VkDescriptorSetLayout createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
 
-  void unmapMemory(const VkDeviceMemory& memory) const;
+    void destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const;
 
-  void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
-                              VkDescriptorSet* descriptorSets) const;
+    void doMappedMemoryOperation(VkDeviceMemory deviceMemory,
+                                 const std::function<void(void* data)>& operationFunction) const;
 
-  void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* descriptorWrites) const;
+    void mapMemory(const VkDeviceMemory& memory,
+                   VkDeviceSize offset,
+                   VkDeviceSize size,
+                   VkMemoryMapFlags flags,
+                   void** data) const;
 
-  [[nodiscard]] VkBuffer createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const;
+    void unmapMemory(const VkDeviceMemory& memory) const;
 
-  void destroyBuffer(VkBuffer& buffer) const;
+    void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
+                                VkDescriptorSet* descriptorSets) const;
 
-  [[nodiscard]] VkMemoryRequirements getBufferMemoryRequirements(const VkBuffer& buffer) const;
+    void updateDescriptorSets(uint32_t descriptorWriteCount,
+                              const VkWriteDescriptorSet* descriptorWrites) const;
 
-  void allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory& deviceMemory) const;
+    [[nodiscard]] VkBuffer createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const;
 
-  void freeMemory(VkDeviceMemory& memory) const;
+    void destroyBuffer(VkBuffer& buffer) const;
 
-  void bindBufferMemory(const VkBuffer& buffer, const VkDeviceMemory& deviceMemory, VkDeviceSize memoryOffset = 0) const;
+    [[nodiscard]] VkMemoryRequirements getBufferMemoryRequirements(const VkBuffer& buffer) const;
 
-  [[nodiscard]] VkSampler createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const;
+    void allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo,
+                        VkDeviceMemory& deviceMemory) const;
 
-  void destroySampler(VkSampler& sampler) const;
+    void freeMemory(VkDeviceMemory& memory) const;
 
-  [[nodiscard]] VkImageView createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const;
+    void bindBufferMemory(const VkBuffer& buffer,
+                          const VkDeviceMemory& deviceMemory,
+                          VkDeviceSize memoryOffset = 0) const;
 
-  void destroyImageView(VkImageView& imageView) const;
+    [[nodiscard]] VkSampler createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const;
 
-  [[nodiscard]] VkImage createImage(const VkImageCreateInfo& imageCreateInfo) const;
+    void destroySampler(VkSampler& sampler) const;
 
-  void destroyImage(VkImage& image) const;
+    [[nodiscard]] VkImageView createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const;
 
-  [[nodiscard]] VkMemoryRequirements getImageMemoryRequirements(const VkImage& image) const;
+    void destroyImageView(VkImageView& imageView) const;
 
-  void bindImageMemory(const VkImage& image, const VkDeviceMemory& deviceMemory, VkDeviceSize memoryOffset = 0) const;
+    [[nodiscard]] VkImage createImage(const VkImageCreateInfo& imageCreateInfo) const;
 
-  [[nodiscard]] VkRenderPass createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const;
+    void destroyImage(VkImage& image) const;
 
-  void destroyRenderPass(VkRenderPass& renderPass) const;
+    [[nodiscard]] VkMemoryRequirements getImageMemoryRequirements(const VkImage& image) const;
 
-  [[nodiscard]] VkShaderModule createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const;
+    void bindImageMemory(const VkImage& image,
+                         const VkDeviceMemory& deviceMemory,
+                         VkDeviceSize memoryOffset = 0) const;
 
-  void destroyShaderModule(VkShaderModule& shaderModule) const;
+    [[nodiscard]] VkRenderPass createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const;
 
-  [[nodiscard]] VkSwapchainKHR createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const;
+    void destroyRenderPass(VkRenderPass& renderPass) const;
 
-  void getSwapchainImagesKHR(const VkSwapchainKHR& swapchain, uint32_t* swapchainImageCount, VkImage* swapchainImages) const;
+    [[nodiscard]] VkShaderModule createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const;
 
-  void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
+    void destroyShaderModule(VkShaderModule& shaderModule) const;
 
-  [[nodiscard]] VkFramebuffer createFramebuffer(const VkFramebufferCreateInfo& framebufferCreateInfo) const;
+    [[nodiscard]] VkSwapchainKHR createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const;
 
-  void destroyFramebuffer(VkFramebuffer& framebuffer) const;
+    void getSwapchainImagesKHR(const VkSwapchainKHR& swapchain,
+                               uint32_t* swapchainImageCount,
+                               VkImage* swapchainImages) const;
 
-  [[nodiscard]] VkPipelineLayout createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const;
+    void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
 
-  void destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const;
+    [[nodiscard]] VkFramebuffer createFramebuffer(const VkFramebufferCreateInfo& framebufferCreateInfo) const;
 
-  [[nodiscard]] VkPipeline createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const;
+    void destroyFramebuffer(VkFramebuffer& framebuffer) const;
 
-  [[nodiscard]] VkPipeline createPipeline(const VkComputePipelineCreateInfo& computePipelineCreateInfo) const;
+    [[nodiscard]] VkPipelineLayout createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const;
 
-  void destroyPipeline(VkPipeline& pipeline) const;
+    void destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const;
 
-  friend class ImGuiInstance;
+    [[nodiscard]] VkPipeline createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const;
 
-private:
-  std::shared_ptr<PhysicalDevice> m_physicalDevice;
+    [[nodiscard]] VkPipeline createPipeline(const VkComputePipelineCreateInfo& computePipelineCreateInfo) const;
 
-  VkDevice m_device = VK_NULL_HANDLE;
+    void destroyPipeline(VkPipeline& pipeline) const;
 
-  VkQueue m_graphicsQueue = VK_NULL_HANDLE;
-  VkQueue m_presentQueue = VK_NULL_HANDLE;
-  VkQueue m_computeQueue = VK_NULL_HANDLE;
+    friend class ImGuiInstance;
 
-  std::vector<VkSemaphore> m_imageAvailableSemaphores;
+  private:
+    std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
-  std::vector<VkSemaphore> m_renderFinishedSemaphores;
-  std::vector<VkSemaphore> m_renderFinishedSemaphores2;
+    VkDevice m_device = VK_NULL_HANDLE;
 
-  std::vector<VkFence> m_inFlightFences;
-  std::vector<VkFence> m_inFlightFences2;
-  std::vector<VkFence> m_mousePickingInFlightFences;
+    VkQueue m_graphicsQueue = VK_NULL_HANDLE;
+    VkQueue m_presentQueue = VK_NULL_HANDLE;
+    VkQueue m_computeQueue = VK_NULL_HANDLE;
 
-  std::vector<VkSemaphore> m_computeFinishedSemaphores;
-  std::vector<VkFence> m_computeInFlightFences;
+    std::vector<VkSemaphore> m_imageAvailableSemaphores;
 
-  uint8_t m_maxFramesInFlight = 2;
+    std::vector<VkSemaphore> m_renderFinishedSemaphores;
+    std::vector<VkSemaphore> m_renderFinishedSemaphores2;
 
-  void createDevice();
+    std::vector<VkFence> m_inFlightFences;
+    std::vector<VkFence> m_inFlightFences2;
+    std::vector<VkFence> m_mousePickingInFlightFences;
 
-  void createSyncObjects();
-};
+    std::vector<VkSemaphore> m_computeFinishedSemaphores;
+    std::vector<VkFence> m_computeInFlightFences;
+
+    uint8_t m_maxFramesInFlight = 2;
+
+    void createDevice();
+
+    void createSyncObjects();
+  };
 
 } // namespace vke
 

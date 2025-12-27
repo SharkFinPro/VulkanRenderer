@@ -4,9 +4,10 @@
 #include "Texture.h"
 
 namespace vke {
+
   class TextureGlyph final : public Texture {
   public:
-    TextureGlyph(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkCommandPool& commandPool,
                  const unsigned char* pixelData,
                  uint32_t width,
@@ -40,6 +41,7 @@ namespace vke {
 
     void createImageView() override;
   };
+
 } // vke
 
 #endif //VULKANPROJECT_TEXTUREGLYPH_H

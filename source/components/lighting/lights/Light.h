@@ -45,65 +45,69 @@ namespace vke {
     spotLight
   };
 
-class Light {
-public:
-  Light(const std::shared_ptr<LogicalDevice>& logicalDevice,
-        const glm::vec3& position,
-        const glm::vec3& color,
-        float ambient,
-        float diffuse,
-        float specular);
+  struct CommonLightData {
+    glm::vec3 position;
+    glm::vec3 color;
+    float ambient;
+    float diffuse;
+    float specular;
+  };
 
-  virtual ~Light() = default;
+  class Light {
+  public:
+    Light(std::shared_ptr<LogicalDevice> logicalDevice,
+          const CommonLightData& commonLightData);
 
-  [[nodiscard]] glm::vec3 getPosition() const;
-  [[nodiscard]] glm::vec3 getColor() const;
-  [[nodiscard]] float getAmbient() const;
-  [[nodiscard]] float getDiffuse() const;
-  [[nodiscard]] float getSpecular() const;
+    virtual ~Light() = default;
 
-  void setPosition(const glm::vec3& position);
-  void setColor(const glm::vec3& color);
-  void setAmbient(float ambient);
-  void setDiffuse(float diffuse);
-  void setSpecular(float specular);
+    [[nodiscard]] glm::vec3 getPosition() const;
+    [[nodiscard]] glm::vec3 getColor() const;
+    [[nodiscard]] float getAmbient() const;
+    [[nodiscard]] float getDiffuse() const;
+    [[nodiscard]] float getSpecular() const;
 
-  [[nodiscard]] VkImage getShadowMap() const;
+    void setPosition(const glm::vec3& position);
+    void setColor(const glm::vec3& color);
+    void setAmbient(float ambient);
+    void setDiffuse(float diffuse);
+    void setSpecular(float specular);
 
-  [[nodiscard]] VkImageView getShadowMapView() const;
+    [[nodiscard]] VkImage getShadowMap() const;
 
-  [[nodiscard]] uint32_t getShadowMapSize() const;
+    [[nodiscard]] VkImageView getShadowMapView() const;
 
-  [[nodiscard]] bool castsShadows() const;
+    [[nodiscard]] uint32_t getShadowMapSize() const;
 
-  [[nodiscard]] virtual LightType getLightType() const = 0;
+    [[nodiscard]] bool castsShadows() const;
 
-  [[nodiscard]] virtual LightUniform getUniform() const = 0;
+    [[nodiscard]] virtual LightType getLightType() const = 0;
 
-  [[nodiscard]] uint32_t getRendererShadowMapID() const;
+    [[nodiscard]] virtual LightUniform getUniform() const = 0;
 
-  [[nodiscard]] std::shared_ptr<RenderTarget> getShadowMapRenderTarget() const;
+    [[nodiscard]] uint32_t getRendererShadowMapID() const;
 
-protected:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
+    [[nodiscard]] std::shared_ptr<RenderTarget> getShadowMapRenderTarget() const;
 
-  std::shared_ptr<RenderTarget> m_shadowMapRenderTarget;
+  protected:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  bool m_castsShadows = true;
-  uint32_t m_shadowMapSize = 1024;
+    std::shared_ptr<RenderTarget> m_shadowMapRenderTarget;
 
-  uint32_t m_rendererShadowMapID = 0;
+    bool m_castsShadows = true;
+    uint32_t m_shadowMapSize = 1024;
 
-  glm::vec3 m_position;
-  glm::vec3 m_color;
-  float m_ambient;
-  float m_diffuse;
-  float m_specular;
+    uint32_t m_rendererShadowMapID = 0;
 
-  virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
+    glm::vec3 m_position;
+    glm::vec3 m_color;
+    float m_ambient;
+    float m_diffuse;
+    float m_specular;
 
-  void registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer);
-};
+    virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
+
+    void registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer);
+  };
 
 } // namespace vke
 

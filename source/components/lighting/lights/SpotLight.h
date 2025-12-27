@@ -4,14 +4,11 @@
 #include "Light.h"
 
 namespace vke {
-  class SpotLight : public Light {
+
+  class SpotLight final : public Light {
   public:
-    SpotLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
-              const glm::vec3& position,
-              const glm::vec3& color,
-              float ambient,
-              float diffuse,
-              float specular,
+    SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
+              const CommonLightData& commonLightData,
               const VkCommandPool& commandPool,
               const std::shared_ptr<Renderer>& renderer);
 
@@ -33,6 +30,7 @@ namespace vke {
 
     void createShadowMap(const VkCommandPool& commandPool) override;
   };
+
 } // vke
 
 #endif //VULKANPROJECT_SPOTLIGHT_H

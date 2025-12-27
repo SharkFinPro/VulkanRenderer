@@ -5,8 +5,8 @@
 #include <imgui.h>
 #include <iostream>
 
-
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui);
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui);
 
 int main()
 {
@@ -74,7 +74,8 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui)
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui)
 {
   // Render GUI
   displayGui(gui, {}, {}, renderer.getRenderingManager());

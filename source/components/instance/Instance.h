@@ -8,38 +8,39 @@
 
 namespace vke {
 
-constexpr std::array<const char*, 1> validationLayers {
-  "VK_LAYER_KHRONOS_validation"
-};
+  constexpr std::array<const char*, 1> validationLayers {
+    "VK_LAYER_KHRONOS_validation"
+  };
 
-class Instance {
-public:
-  Instance();
-  ~Instance();
+  class Instance {
+  public:
+    Instance();
 
-  [[nodiscard]] VkSurfaceKHR createSurface(GLFWwindow* window) const;
+    ~Instance();
 
-  void destroySurface(VkSurfaceKHR& surface) const;
+    [[nodiscard]] VkSurfaceKHR createSurface(GLFWwindow* window) const;
 
-  void createDebugUtilsMessenger();
+    void destroySurface(VkSurfaceKHR& surface) const;
 
-  void destroyDebugUtilsMessenger();
+    void createDebugUtilsMessenger();
 
-  [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
+    void destroyDebugUtilsMessenger();
 
-  static bool validationLayersEnabled();
+    [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
 
-  friend class ImGuiInstance;
+    static bool validationLayersEnabled();
 
-private:
-  VkInstance m_instance = VK_NULL_HANDLE;
+    friend class ImGuiInstance;
 
-  VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
+  private:
+    VkInstance m_instance = VK_NULL_HANDLE;
 
-  static bool checkValidationLayerSupport();
+    VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
 
-  static std::vector<const char*> getRequiredExtensions();
-};
+    static bool checkValidationLayerSupport();
+
+    static std::vector<const char*> getRequiredExtensions();
+  };
 
 } // namespace vke
 

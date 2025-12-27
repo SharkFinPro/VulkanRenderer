@@ -13,126 +13,127 @@
 
 namespace vke {
 
-class CommandBuffer;
-class RenderObject;
-class RenderPass;
+  class CommandBuffer;
+  class RenderObject;
+  class RenderPass;
 
-struct RenderInfo {
-  std::shared_ptr<CommandBuffer> commandBuffer;
-  uint32_t currentFrame;
-  glm::vec3 viewPosition;
-  const glm::mat4& viewMatrix;
-  VkExtent2D extent;
+  struct RenderInfo {
+    std::shared_ptr<CommandBuffer> commandBuffer;
+    uint32_t currentFrame;
+    glm::vec3 viewPosition;
+    const glm::mat4& viewMatrix;
+    VkExtent2D extent;
 
-  mutable glm::mat4 projectionMatrix;
-  mutable bool shouldCreateProjectionMatrix = true;
+    mutable glm::mat4 projectionMatrix;
+    mutable bool shouldCreateProjectionMatrix = true;
 
-  [[nodiscard]] glm::mat4& getProjectionMatrix() const
-  {
-    if (shouldCreateProjectionMatrix)
+    [[nodiscard]] glm::mat4& getProjectionMatrix() const
     {
-      projectionMatrix = glm::perspective(
-        glm::radians(45.0f),
-        static_cast<float>(extent.width) / static_cast<float>(extent.height),
-        0.1f,
-        1000.0f
-      );
+      if (shouldCreateProjectionMatrix)
+      {
+        projectionMatrix = glm::perspective(
+          glm::radians(45.0f),
+          static_cast<float>(extent.width) / static_cast<float>(extent.height),
+          0.1f,
+          1000.0f
+        );
 
-      projectionMatrix[1][1] *= -1;
+        projectionMatrix[1][1] *= -1;
+      }
+
+      return projectionMatrix;
     }
+  };
 
-    return projectionMatrix;
-  }
-};
+  struct GraphicsPipelineOptions {
+    struct {
+      std::string vertexShader;
+      std::string geometryShader;
+      std::string tesselationControlShader;
+      std::string tesselationEvaluationShader;
+      std::string fragmentShader;
 
-struct GraphicsPipelineOptions {
-  struct {
-    std::string vertexShader;
-    std::string geometryShader;
-    std::string tesselationControlShader;
-    std::string tesselationEvaluationShader;
-    std::string fragmentShader;
-
-    [[nodiscard]] std::vector<ShaderModule> getShaderModules(const std::shared_ptr<LogicalDevice>& logicalDevice) const
-    {
-      std::vector<ShaderModule> shaderModules;
-      if (!vertexShader.empty())
+      [[nodiscard]] std::vector<ShaderModule> getShaderModules(const std::shared_ptr<LogicalDevice>& logicalDevice) const
       {
-        shaderModules.emplace_back(logicalDevice, vertexShader.c_str(), VK_SHADER_STAGE_VERTEX_BIT);
+        std::vector<ShaderModule> shaderModules;
+        if (!vertexShader.empty())
+        {
+          shaderModules.emplace_back(logicalDevice, vertexShader.c_str(), VK_SHADER_STAGE_VERTEX_BIT);
+        }
+
+        if (!fragmentShader.empty())
+        {
+          shaderModules.emplace_back(logicalDevice, fragmentShader.c_str(), VK_SHADER_STAGE_FRAGMENT_BIT);
+        }
+
+        if (!geometryShader.empty())
+        {
+          shaderModules.emplace_back(logicalDevice, geometryShader.c_str(), VK_SHADER_STAGE_GEOMETRY_BIT);
+        }
+
+        if (!tesselationControlShader.empty())
+        {
+          shaderModules.emplace_back(logicalDevice, tesselationControlShader.c_str(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
+        }
+
+        if (!tesselationEvaluationShader.empty())
+        {
+          shaderModules.emplace_back(logicalDevice, tesselationEvaluationShader.c_str(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
+        }
+
+        return std::move(shaderModules);
       }
 
-      if (!fragmentShader.empty())
+      static std::vector<VkPipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
       {
-        shaderModules.emplace_back(logicalDevice, fragmentShader.c_str(), VK_SHADER_STAGE_FRAGMENT_BIT);
+        std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
+
+        for (const auto& shaderModule : shaderModules)
+        {
+          pipelineShaderStageCreateInfos.push_back(shaderModule.getShaderStageCreateInfo());
+        }
+
+        return std::move(pipelineShaderStageCreateInfos);
       }
+    } shaders;
 
-      if (!geometryShader.empty())
-      {
-        shaderModules.emplace_back(logicalDevice, geometryShader.c_str(), VK_SHADER_STAGE_GEOMETRY_BIT);
-      }
+    struct {
+      VkPipelineColorBlendStateCreateInfo colorBlendState{};
+      VkPipelineDepthStencilStateCreateInfo depthStencilState{};
+      VkPipelineDynamicStateCreateInfo dynamicState{};
+      VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
+      VkPipelineMultisampleStateCreateInfo multisampleState{};
+      VkPipelineRasterizationStateCreateInfo rasterizationState{};
+      VkPipelineTessellationStateCreateInfo tessellationState{};
+      VkPipelineVertexInputStateCreateInfo vertexInputState{};
+      VkPipelineViewportStateCreateInfo viewportState{};
+    } states;
 
-      if (!tesselationControlShader.empty())
-      {
-        shaderModules.emplace_back(logicalDevice, tesselationControlShader.c_str(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
-      }
+    std::vector<VkPushConstantRange> pushConstantRanges;
 
-      if (!tesselationEvaluationShader.empty())
-      {
-        shaderModules.emplace_back(logicalDevice, tesselationEvaluationShader.c_str(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
-      }
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
-      return std::move(shaderModules);
-    }
+    std::shared_ptr<RenderPass>& renderPass;
+  };
 
-    static std::vector<VkPipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
-    {
-      std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
+  class GraphicsPipeline : public Pipeline {
+  public:
+    explicit GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
-      for (const auto& shaderModule : shaderModules)
-      {
-        pipelineShaderStageCreateInfos.push_back(shaderModule.getShaderStageCreateInfo());
-      }
+    virtual void render(const RenderInfo* renderInfo,
+                        const std::vector<std::shared_ptr<RenderObject>>* objects);
 
-      return std::move(pipelineShaderStageCreateInfos);
-    }
-  } shaders;
+  protected:
+    void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
-  struct {
-    VkPipelineColorBlendStateCreateInfo colorBlendState{};
-    VkPipelineDepthStencilStateCreateInfo depthStencilState{};
-    VkPipelineDynamicStateCreateInfo dynamicState{};
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
-    VkPipelineMultisampleStateCreateInfo multisampleState{};
-    VkPipelineRasterizationStateCreateInfo rasterizationState{};
-    VkPipelineTessellationStateCreateInfo tessellationState{};
-    VkPipelineVertexInputStateCreateInfo vertexInputState{};
-    VkPipelineViewportStateCreateInfo viewportState{};
-  } states;
+    void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions,
+                        bool useColorAttachment = true,
+                        bool renderCubeMap = false);
 
-  std::vector<VkPushConstantRange> pushConstantRanges;
+    virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
 
-  std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-
-  std::shared_ptr<RenderPass>& renderPass;
-};
-
-class GraphicsPipeline : public Pipeline {
-public:
-  explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
-
-  virtual void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects);
-
-protected:
-  void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
-
-  void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions,
-                      bool useColorAttachment = true,
-                      bool renderCubeMap = false);
-
-  virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
-
-  virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
-};
+    virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
+  };
 
 } // namespace vke
 

@@ -6,11 +6,11 @@
 #include "../../../lighting/lights/PointLight.h"
 
 namespace vke {
-  PointLightShadowMapPipeline::PointLightShadowMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  PointLightShadowMapPipeline::PointLightShadowMapPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                                            std::shared_ptr<RenderPass> renderPass,
                                                            VkDescriptorSetLayout objectDescriptorSetLayout,
                                                            VkDescriptorSetLayout pointLightDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions{
       .shaders{

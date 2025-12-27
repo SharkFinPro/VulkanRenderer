@@ -10,10 +10,10 @@
 
 namespace vke {
 
-  LegacyRenderer::LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  LegacyRenderer::LegacyRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
                                  const std::shared_ptr<SwapChain>& swapChain,
                                  VkCommandPool commandPool)
-    : Renderer(logicalDevice, swapChain, commandPool)
+    : Renderer(std::move(logicalDevice), swapChain, commandPool)
   {
     createRenderPasses(swapChain);
 
@@ -75,21 +75,23 @@ namespace vke {
     );
   }
 
-  void LegacyRenderer::beginSwapchainRendering(const uint32_t imageIndex, const VkExtent2D extent,
+  void LegacyRenderer::beginSwapchainRendering(const uint32_t imageIndex,
+                                               const VkExtent2D extent,
                                                const std::shared_ptr<CommandBuffer> commandBuffer,
                                                [[maybe_unused]] std::shared_ptr<SwapChain> swapChain)
   {
     m_swapchainRenderPass->begin(m_swapchainFramebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
   }
 
-  void LegacyRenderer::beginOffscreenRendering(const uint32_t imageIndex, const VkExtent2D extent,
+  void LegacyRenderer::beginOffscreenRendering(const uint32_t imageIndex,
+                                               const VkExtent2D extent,
                                                const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     m_offscreenRenderPass->begin(m_offscreenFramebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
   }
 
-  void LegacyRenderer::beginShadowRendering(uint32_t imageIndex,
-                                            VkExtent2D extent,
+  void LegacyRenderer::beginShadowRendering(const uint32_t imageIndex,
+                                            const VkExtent2D extent,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer,
                                             const std::shared_ptr<Light>& light)
   {
@@ -152,7 +154,7 @@ namespace vke {
     commandBuffer->endRenderPass();
   }
 
-  void LegacyRenderer::createRenderPasses(const std::shared_ptr<SwapChain> &swapChain)
+  void LegacyRenderer::createRenderPasses(const std::shared_ptr<SwapChain>& swapChain)
   {
     RenderPassConfig swapchainRenderPassConfig {
       .imageFormat = swapChain->getImageFormat(),

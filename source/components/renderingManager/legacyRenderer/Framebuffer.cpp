@@ -8,12 +8,12 @@
 
 namespace vke {
 
-  Framebuffer::Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  Framebuffer::Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                            const std::shared_ptr<RenderTarget>& renderTarget,
                            const std::shared_ptr<RenderPass>& renderPass,
                            const VkExtent2D extent,
                            const std::shared_ptr<SwapChain>& swapChain)
-    : m_logicalDevice(logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     createFrameBuffers(renderPass->getRenderPass(), extent, renderTarget, swapChain);
   }

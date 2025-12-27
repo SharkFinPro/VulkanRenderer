@@ -16,11 +16,14 @@ struct MousePickingObject {
   bool selected = false;
 };
 
-void setupScene(vke::VulkanEngine& renderer, std::vector<MousePickingObject>& objects,
+void setupScene(const vke::VulkanEngine& renderer,
+                std::vector<MousePickingObject>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights);
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui, std::vector<MousePickingObject>& objects,
-                const std::vector<std::shared_ptr<vke::Light>>& lights);
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 std::vector<MousePickingObject>& objects,
+                 const std::vector<std::shared_ptr<vke::Light>>& lights);
 
 int main()
 {
@@ -29,7 +32,7 @@ int main()
     constexpr vke::VulkanEngineOptions vulkanEngineOptions {
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Cube",
+      .WINDOW_TITLE = "Mouse Picking",
       .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
       .DO_DOTS = false
     };
@@ -65,7 +68,8 @@ int main()
   return EXIT_SUCCESS;
 }
 
-void setupScene(vke::VulkanEngine& renderer, std::vector<MousePickingObject>& objects,
+void setupScene(const vke::VulkanEngine& renderer,
+                std::vector<MousePickingObject>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
@@ -96,8 +100,10 @@ void setupScene(vke::VulkanEngine& renderer, std::vector<MousePickingObject>& ob
   lights.push_back(renderer.getLightingManager()->createPointLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
 
-void renderScene(vke::VulkanEngine& renderer, const std::shared_ptr<vke::ImGuiInstance>& gui, std::vector<MousePickingObject>& objects,
-                const std::vector<std::shared_ptr<vke::Light>>& lights)
+void renderScene(vke::VulkanEngine& renderer,
+                 const std::shared_ptr<vke::ImGuiInstance>& gui,
+                 std::vector<MousePickingObject>& objects,
+                 const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   gui->dockCenter("SceneView");
   gui->dockBottom("Selected Object");

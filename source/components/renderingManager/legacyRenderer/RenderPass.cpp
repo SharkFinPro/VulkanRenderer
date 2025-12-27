@@ -2,14 +2,13 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
-#include <array>
 #include <stdexcept>
 
 namespace vke {
 
-  RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  RenderPass::RenderPass(std::shared_ptr<LogicalDevice> logicalDevice,
                          const RenderPassConfig& renderPassConfig)
-    : m_logicalDevice(logicalDevice),
+    : m_logicalDevice(std::move(logicalDevice)),
       m_shouldClearColorAttachment(renderPassConfig.hasColorAttachment),
       m_shouldClearDepthAttachment(renderPassConfig.hasDepthAttachment)
   {
@@ -26,7 +25,8 @@ namespace vke {
     return m_renderPass;
   }
 
-  void RenderPass::begin(const VkFramebuffer& framebuffer, const VkExtent2D& extent,
+  void RenderPass::begin(const VkFramebuffer& framebuffer,
+                         const VkExtent2D& extent,
                          const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     std::vector<VkClearValue> clearValues;

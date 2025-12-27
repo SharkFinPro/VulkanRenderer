@@ -10,43 +10,45 @@
 
 namespace vke {
 
-class DescriptorSet;
-class UniformBuffer;
+  class DescriptorSet;
+  class UniformBuffer;
 
-constexpr int PARTICLE_COUNT = 8192;
+  constexpr int PARTICLE_COUNT = 8192;
 
-class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
-public:
-  DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const VkCommandPool& commandPool,
-               std::shared_ptr<RenderPass> renderPass,
-               VkDescriptorPool descriptorPool);
+  class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
+  public:
+    DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+                 const VkCommandPool& commandPool,
+                 std::shared_ptr<RenderPass> renderPass,
+                 VkDescriptorPool descriptorPool);
 
-  ~DotsPipeline() override;
+    ~DotsPipeline() override;
 
-  void compute(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t currentFrame) const;
+    void compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                 uint32_t currentFrame) const;
 
-  void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+    void render(const RenderInfo* renderInfo,
+                const std::vector<std::shared_ptr<RenderObject>>* objects) override;
 
-private:
-  std::vector<VkBuffer> m_shaderStorageBuffers;
-  std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
-  std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
+  private:
+    std::vector<VkBuffer> m_shaderStorageBuffers;
+    std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
+    std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
 
-  std::shared_ptr<DescriptorSet> m_dotsDescriptorSet;
+    std::shared_ptr<DescriptorSet> m_dotsDescriptorSet;
 
-  std::unique_ptr<UniformBuffer> m_deltaTimeUniform;
+    std::unique_ptr<UniformBuffer> m_deltaTimeUniform;
 
-  float m_dotSpeed;
-  std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
+    float m_dotSpeed = 1000.0f;
+    std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
-  void createUniforms();
-  void createShaderStorageBuffers(const VkCommandPool& commandPool);
+    void createUniforms();
+    void createShaderStorageBuffers(const VkCommandPool& commandPool);
 
-  void createDescriptorSets(VkDescriptorPool descriptorPool);
+    void createDescriptorSets(VkDescriptorPool descriptorPool);
 
-  void updateUniformVariables(const RenderInfo* renderInfo) override;
-};
+    void updateUniformVariables(const RenderInfo* renderInfo) override;
+  };
 
 } // namespace vke
 

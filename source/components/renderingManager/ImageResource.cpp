@@ -87,23 +87,27 @@ namespace vke {
         }
       }
 
-      Images::createImage(
-        m_logicalDevice,
-        config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
-        config.extent.width,
-        config.extent.height,
-        1,
-        1,
-        config.numSamples,
-        getFormat(config),
-        VK_IMAGE_TILING_OPTIMAL,
-        imageUsageFlags,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        m_image,
-        m_imageMemory,
-        VK_IMAGE_TYPE_2D,
-        config.isCubeMap ? 6 : 1
-      );
+    Images::createImage(
+      m_logicalDevice,
+      {
+        .flags = static_cast<VkImageCreateFlags>(config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0),
+        .extent = {
+          .width = config.extent.width,
+          .height = config.extent.height,
+          .depth = 1,
+        },
+        .mipLevels = 1,
+        .numSamples = config.numSamples,
+        .format = getFormat(config),
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = imageUsageFlags,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .layerCount = static_cast<uint32_t>(config.isCubeMap ? 6 : 1),
+        .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+      },
+      m_image,
+      m_imageMemory
+    );
     }
 
     void ImageResource::createImageView(const ImageResourceConfig& config)

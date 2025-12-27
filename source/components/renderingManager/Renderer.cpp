@@ -7,10 +7,10 @@
 
 namespace vke {
 
-  Renderer::Renderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  Renderer::Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
                      const std::shared_ptr<SwapChain>& swapChain,
                      VkCommandPool commandPool)
-    : m_logicalDevice(logicalDevice), m_commandPool(commandPool)
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     createSampler();
 

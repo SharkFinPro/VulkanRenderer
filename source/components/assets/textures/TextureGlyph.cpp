@@ -4,12 +4,13 @@
 #include "../../../utilities/Images.h"
 
 namespace vke {
-  TextureGlyph::TextureGlyph(const std::shared_ptr<LogicalDevice>& logicalDevice,
+
+  TextureGlyph::TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
                              const VkCommandPool& commandPool,
                              const unsigned char* pixelData,
                              const uint32_t width,
                              const uint32_t height)
-    : Texture(logicalDevice, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+    : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
   {
     createTextureImage(commandPool, pixelData, width, height);
 
@@ -63,20 +64,24 @@ namespace vke {
   {
     Images::createImage(
       m_logicalDevice,
-      0,
-      width,
-      height,
-      1,
-      m_mipLevels,
-      VK_SAMPLE_COUNT_1_BIT,
-      VK_FORMAT_R8_UNORM,
-      VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      {
+        .flags = 0,
+        .extent = {
+          .width = width,
+          .height = height,
+          .depth = 1,
+        },
+        .mipLevels = m_mipLevels,
+        .numSamples = VK_SAMPLE_COUNT_1_BIT,
+        .format = VK_FORMAT_R8_UNORM,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .layerCount = 1,
+        .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+      },
       m_textureImage,
-      m_textureImageMemory,
-      VK_IMAGE_TYPE_2D,
-      1
+      m_textureImageMemory
     );
 
     Images::transitionImageLayout(
@@ -158,4 +163,5 @@ namespace vke {
 
     m_imageInfo.imageView = m_textureImageView;
   }
+
 } // vke

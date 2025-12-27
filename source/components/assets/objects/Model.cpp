@@ -10,159 +10,161 @@
 
 namespace vke {
 
-Model::Model(const std::shared_ptr<LogicalDevice> &logicalDevice,
-             const VkCommandPool& commandPool,
-             const char* path,
-             const glm::vec3 rotation)
-  : m_logicalDevice(logicalDevice)
-{
-  loadModel(path, glm::quat(glm::radians(rotation)));
-
-  createVertexBuffer(commandPool);
-  createIndexBuffer(commandPool);
-}
-
-Model::Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
-             const VkCommandPool& commandPool,
-             const char* path,
-             const glm::quat orientation)
-  : m_logicalDevice(logicalDevice)
-{
-  loadModel(path, glm::normalize(orientation));
-
-  createVertexBuffer(commandPool);
-  createIndexBuffer(commandPool);
-}
-
-Model::~Model()
-{
-  Buffers::destroyBuffer(m_logicalDevice, m_indexBuffer, m_indexBufferMemory);
-
-  Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
-}
-
-void Model::loadModel(const char* path, const glm::quat orientation)
-{
-  Assimp::Importer importer;
-  constexpr auto sceneFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                 aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices;
-  const aiScene* scene = importer.ReadFile(path, sceneFlags);
-
-  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+  Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
+               const VkCommandPool& commandPool,
+               const char* path,
+               const glm::vec3 rotation)
+    : m_logicalDevice(std::move(logicalDevice))
   {
-    throw std::runtime_error("Assimp Error: " + std::string(importer.GetErrorString()));
+    loadModel(path, glm::quat(glm::radians(rotation)));
+
+    createVertexBuffer(commandPool);
+    createIndexBuffer(commandPool);
   }
 
-  const aiMesh* mesh = scene->mMeshes[0];
-  loadVertices(mesh, orientation);
-  loadIndices(mesh);
-}
-
-void Model::loadVertices(const aiMesh* mesh, const glm::quat orientation)
-{
-  const auto orientationMatrix = glm::mat4(orientation);
-
-  for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+  Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
+               const VkCommandPool& commandPool,
+               const char* path,
+               const glm::quat orientation)
+    : m_logicalDevice(std::move(logicalDevice))
   {
-    Vertex vertex {
-      .pos = {
-        mesh->mVertices[i].x,
-        mesh->mVertices[i].y,
-        mesh->mVertices[i].z
-      },
-      .normal = {
-        mesh->mNormals[i].x,
-        mesh->mNormals[i].y,
-        mesh->mNormals[i].z
-      },
-      .texCoord = {
-        mesh->mTextureCoords[0][i].x,
-        mesh->mTextureCoords[0][i].y
-      }
-    };
+    loadModel(path, glm::normalize(orientation));
 
-    vertex.pos = orientationMatrix * glm::vec4(vertex.pos, 1.0f);
-    vertex.normal = orientationMatrix * glm::vec4(vertex.normal, 1.0f);
-
-    m_vertices.push_back(vertex);
+    createVertexBuffer(commandPool);
+    createIndexBuffer(commandPool);
   }
-}
 
-void Model::loadIndices(const aiMesh* mesh)
-{
-  for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+  Model::~Model()
   {
-    const aiFace face = mesh->mFaces[i];
+    Buffers::destroyBuffer(m_logicalDevice, m_indexBuffer, m_indexBufferMemory);
 
-    for (unsigned int j = 0; j < face.mNumIndices; j++)
+    Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
+  }
+
+  void Model::loadModel(const char* path,
+                        const glm::quat orientation)
+  {
+    Assimp::Importer importer;
+    constexpr auto sceneFlags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
+                                   aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices;
+    const aiScene* scene = importer.ReadFile(path, sceneFlags);
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-      m_indices.push_back(face.mIndices[j]);
+      throw std::runtime_error("Assimp Error: " + std::string(importer.GetErrorString()));
+    }
+
+    const aiMesh* mesh = scene->mMeshes[0];
+    loadVertices(mesh, orientation);
+    loadIndices(mesh);
+  }
+
+  void Model::loadVertices(const aiMesh* mesh,
+                           const glm::quat orientation)
+  {
+    const auto orientationMatrix = glm::mat4(orientation);
+
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+    {
+      Vertex vertex {
+        .pos = {
+          mesh->mVertices[i].x,
+          mesh->mVertices[i].y,
+          mesh->mVertices[i].z
+        },
+        .normal = {
+          mesh->mNormals[i].x,
+          mesh->mNormals[i].y,
+          mesh->mNormals[i].z
+        },
+        .texCoord = {
+          mesh->mTextureCoords[0][i].x,
+          mesh->mTextureCoords[0][i].y
+        }
+      };
+
+      vertex.pos = orientationMatrix * glm::vec4(vertex.pos, 1.0f);
+      vertex.normal = orientationMatrix * glm::vec4(vertex.normal, 1.0f);
+
+      m_vertices.push_back(vertex);
     }
   }
-}
 
-void Model::createVertexBuffer(const VkCommandPool& commandPool)
-{
-  const VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
+  void Model::loadIndices(const aiMesh* mesh)
+  {
+    for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+    {
+      const aiFace face = mesh->mFaces[i];
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
+      for (unsigned int j = 0; j < face.mNumIndices; j++)
+      {
+        m_indices.push_back(face.mIndices[j]);
+      }
+    }
+  }
 
-  m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
-    memcpy(data, m_vertices.data(), bufferSize);
-  });
+  void Model::createVertexBuffer(const VkCommandPool& commandPool)
+  {
+    const VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 
-  Buffers::createBuffer(m_logicalDevice, bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                          stagingBuffer, stagingBufferMemory);
 
-  Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
-                      m_vertexBuffer, bufferSize);
+    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
+      memcpy(data, m_vertices.data(), bufferSize);
+    });
 
-  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
-}
+    Buffers::createBuffer(m_logicalDevice, bufferSize,
+                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
-void Model::createIndexBuffer(const VkCommandPool& commandPool)
-{
-  const VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
+    Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
+                        m_vertexBuffer, bufferSize);
 
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+  }
 
-  Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
+  void Model::createIndexBuffer(const VkCommandPool& commandPool)
+  {
+    const VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 
-  m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
-    memcpy(data, m_indices.data(), bufferSize);
-  });
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
 
-  Buffers::createBuffer(m_logicalDevice, bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
+    Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                          stagingBuffer, stagingBufferMemory);
 
-  Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
-                      m_indexBuffer, bufferSize);
+    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
+      memcpy(data, m_indices.data(), bufferSize);
+    });
 
-  Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
-}
+    Buffers::createBuffer(m_logicalDevice, bufferSize,
+                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
 
-void Model::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
-{
-  constexpr VkDeviceSize offsets[] = {0};
-  commandBuffer->bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
+    Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
+                        m_indexBuffer, bufferSize);
 
-  commandBuffer->bindIndexBuffer(m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-}
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+  }
 
-void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
-{
-  bind(commandBuffer);
+  void Model::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    constexpr VkDeviceSize offsets[] = {0};
+    commandBuffer->bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
 
-  commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
-}
+    commandBuffer->bindIndexBuffer(m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+  }
+
+  void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    bind(commandBuffer);
+
+    commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
+  }
 
 } // namespace vke

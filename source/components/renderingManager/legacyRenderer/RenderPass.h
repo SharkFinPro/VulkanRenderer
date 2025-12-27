@@ -41,7 +41,7 @@ namespace vke {
 
   class RenderPass {
   public:
-    RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    RenderPass(std::shared_ptr<LogicalDevice> logicalDevice,
                const RenderPassConfig& renderPassConfig);
     ~RenderPass();
 

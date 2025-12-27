@@ -14,7 +14,7 @@ namespace vke {
 
   class Framebuffer final {
   public:
-    explicit Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    explicit Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                          const std::shared_ptr<RenderTarget>& renderTarget,
                          const std::shared_ptr<RenderPass>& renderPass,
                          VkExtent2D extent,

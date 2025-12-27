@@ -7,33 +7,36 @@
 
 namespace vke {
 
-class LogicalDevice;
+  class LogicalDevice;
 
-class ShaderModule {
-public:
-  ShaderModule(const std::shared_ptr<LogicalDevice>& logicalDevice, const char* filename, VkShaderStageFlagBits stage);
-  ~ShaderModule();
+  class ShaderModule {
+  public:
+    ShaderModule(std::shared_ptr<LogicalDevice> logicalDevice,
+                 const char* filename,
+                 VkShaderStageFlagBits stage);
 
-  ShaderModule(ShaderModule&& other) noexcept
-    : m_logicalDevice(other.m_logicalDevice),
-      m_stage(other.m_stage),
-      m_module(other.m_module)
-  {
-    other.m_module = VK_NULL_HANDLE;
-  }
+    ~ShaderModule();
 
-  [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
+    ShaderModule(ShaderModule&& other) noexcept
+      : m_logicalDevice(other.m_logicalDevice),
+        m_stage(other.m_stage),
+        m_module(other.m_module)
+    {
+      other.m_module = VK_NULL_HANDLE;
+    }
 
-private:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
+    [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
 
-  VkShaderStageFlagBits m_stage{};
-  VkShaderModule m_module = VK_NULL_HANDLE;
+  private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  static std::vector<char> readFile(const char* filename);
+    VkShaderStageFlagBits m_stage{};
+    VkShaderModule m_module = VK_NULL_HANDLE;
 
-  void createShaderModule(const char* file);
-};
+    static std::vector<char> readFile(const char* filename);
+
+    void createShaderModule(const char* file);
+  };
 
 } // namespace vke
 

@@ -3,19 +3,19 @@
 
 namespace vke {
 
-enum class PipelineType {
-  bumpyCurtain,
-  crosses,
-  curtain,
-  cubeMap,
-  ellipticalDots,
-  magnifyWhirlMosaic,
-  noisyEllipticalDots,
-  object,
-  objectHighlight,
-  texturedPlane,
-  snake
-};
+  enum class PipelineType {
+    bumpyCurtain,
+    crosses,
+    curtain,
+    cubeMap,
+    ellipticalDots,
+    magnifyWhirlMosaic,
+    noisyEllipticalDots,
+    object,
+    objectHighlight,
+    texturedPlane,
+    snake
+  };
 
 } // namespace vke
 

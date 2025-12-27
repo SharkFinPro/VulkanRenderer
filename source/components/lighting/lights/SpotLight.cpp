@@ -8,15 +8,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace vke {
-  SpotLight::SpotLight(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                       const glm::vec3& position,
-                       const glm::vec3& color,
-                       const float ambient,
-                       const float diffuse,
-                       const float specular,
+
+  SpotLight::SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
+                       const CommonLightData& commonLightData,
                        const VkCommandPool& commandPool,
                        const std::shared_ptr<Renderer>& renderer)
-    : Light(logicalDevice, position, color, ambient, diffuse, specular)
+    : Light(std::move(logicalDevice), commonLightData)
   {
     SpotLight::createShadowMap(commandPool);
 
@@ -107,4 +104,5 @@ namespace vke {
 
     m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
   }
+
 } // vke

@@ -4,10 +4,10 @@
 #include "../../../commandBuffer/CommandBuffer.h"
 
 namespace vke {
-  ShadowPipeline::ShadowPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  ShadowPipeline::ShadowPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                  std::shared_ptr<RenderPass> renderPass,
                                  const VkDescriptorSetLayout objectDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -39,7 +39,8 @@ namespace vke {
     createPipeline(graphicsPipelineOptions, false);
   }
 
-  void ShadowPipeline::render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects)
+  void ShadowPipeline::render(const RenderInfo* renderInfo,
+                              const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
     GraphicsPipeline::render(renderInfo, nullptr);
 
