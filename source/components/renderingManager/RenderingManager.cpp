@@ -241,7 +241,7 @@ void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<Pipeli
       return;
     }
 
-    lightingManager->renderShadowMaps(m_offscreenCommandBuffer, pipelineManager, m_renderer, currentFrame);
+    lightingManager->renderShadowMaps(m_offscreenCommandBuffer, pipelineManager, currentFrame);
 
     m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 

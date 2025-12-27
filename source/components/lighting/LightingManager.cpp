@@ -15,8 +15,10 @@ namespace vke {
 
 LightingManager::LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                  VkDescriptorPool descriptorPool,
-                                 VkCommandPool commandPool)
-  : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool)
+                                 VkCommandPool commandPool,
+                                 std::shared_ptr<Renderer> renderer)
+  : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
+    m_renderer(std::move(renderer))
 {
   createPointLightDescriptorSetLayout();
 
@@ -102,12 +104,11 @@ void LightingManager::update(const uint32_t currentFrame, const glm::vec3 viewPo
 
 void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                        const std::shared_ptr<PipelineManager>& pipelineManager,
-                                       const std::shared_ptr<Renderer>& renderer,
                                        const uint32_t currentFrame) const
 {
-  renderPointLightShadowMaps(commandBuffer, pipelineManager, renderer, currentFrame);
+  renderPointLightShadowMaps(commandBuffer, pipelineManager, currentFrame);
 
-  renderSpotLightShadowMaps(commandBuffer, pipelineManager, renderer, currentFrame);
+  renderSpotLightShadowMaps(commandBuffer, pipelineManager, currentFrame);
 }
 
 VkDescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
@@ -395,7 +396,6 @@ void LightingManager::destroyShadowMapSampler()
 
 void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                  const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                 const std::shared_ptr<Renderer>& renderer,
                                                  const uint32_t currentFrame) const
 {
   for (auto& light : m_pointLightsToRender)
@@ -411,7 +411,7 @@ void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBu
       .height = light->getShadowMapSize()
     };
 
-    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+    m_renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
 
     VkViewport viewport {
       .x = 0.0f,
@@ -436,13 +436,12 @@ void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBu
 
     pipelineManager->renderPointLightShadowMapPipeline(commandBuffer, shadowRenderInfo, pointLight);
 
-    renderer->endShadowRendering(0, commandBuffer);
+    m_renderer->endShadowRendering(0, commandBuffer);
   }
 }
 
 void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                 const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                const std::shared_ptr<Renderer>& renderer,
                                                 const uint32_t currentFrame) const
 {
   for (auto& light : m_spotLightsToRender)
@@ -458,7 +457,7 @@ void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuf
       .height = light->getShadowMapSize()
     };
 
-    renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+    m_renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
 
     VkViewport viewport {
       .x = 0.0f,
@@ -483,7 +482,7 @@ void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuf
 
     pipelineManager->renderShadowPipeline(commandBuffer, shadowRenderInfo);
 
-    renderer->endShadowRendering(0, commandBuffer);
+    m_renderer->endShadowRendering(0, commandBuffer);
   }
 }
 

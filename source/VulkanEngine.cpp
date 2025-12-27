@@ -124,8 +124,6 @@ void VulkanEngine::createPools()
 
 void VulkanEngine::createComponents()
 {
-  m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool, m_commandPool);
-
   m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_commandPool, m_descriptorPool);
 
   m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
@@ -134,6 +132,9 @@ void VulkanEngine::createComponents()
   m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_window, m_mousePicker, m_commandPool,
                                                           m_vulkanEngineOptions.USE_DOCKSPACE,
                                                           m_vulkanEngineOptions.SCENE_VIEW_NAME, m_assetManager);
+
+  m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool, m_commandPool,
+                                                        m_renderingManager->getRenderer());
 
   m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer(),
                                                         m_lightingManager, m_mousePicker,

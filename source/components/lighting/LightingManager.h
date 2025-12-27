@@ -24,7 +24,8 @@ class LightingManager {
 public:
   LightingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                   VkDescriptorPool descriptorPool,
-                  VkCommandPool commandPool);
+                  VkCommandPool commandPool,
+                  std::shared_ptr<Renderer> renderer);
 
   ~LightingManager();
 
@@ -50,7 +51,6 @@ public:
 
   void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                         const std::shared_ptr<PipelineManager>& pipelineManager,
-                        const std::shared_ptr<Renderer>& renderer,
                         uint32_t currentFrame) const;
 
   [[nodiscard]] VkDescriptorSetLayout getPointLightDescriptorSetLayout() const;
@@ -80,6 +80,8 @@ private:
 
   VkDescriptorSetLayout m_pointLightDescriptorSetLayout = VK_NULL_HANDLE;
 
+  std::shared_ptr<Renderer> m_renderer;
+
   void createUniforms();
 
   void createDescriptorSet();
@@ -100,12 +102,10 @@ private:
 
   void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                   const std::shared_ptr<PipelineManager>& pipelineManager,
-                                  const std::shared_ptr<Renderer>& renderer,
                                   uint32_t currentFrame) const;
 
   void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  const std::shared_ptr<PipelineManager>& pipelineManager,
-                                 const std::shared_ptr<Renderer>& renderer,
                                  uint32_t currentFrame) const;
 
   void createPointLightDescriptorSetLayout();
