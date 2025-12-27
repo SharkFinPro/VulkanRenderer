@@ -53,7 +53,7 @@ namespace vke {
     std::shared_ptr<UniformBuffer> m_transformUniform;
     std::shared_ptr<UniformBuffer> m_smokeUniform;
 
-    float m_dotSpeed;
+    float m_dotSpeed = 0.75f;
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
     uint32_t m_numParticles;

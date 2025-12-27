@@ -53,11 +53,8 @@ namespace vke {
                                const glm::vec3 position,
                                const uint32_t numParticles,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : ComputePipeline(std::move(logicalDevice)),
-      GraphicsPipeline(std::move(logicalDevice)),
-      m_lightingDescriptorSet(lightingDescriptorSet),
-      m_dotSpeed(0.75f),
-      m_previousTime(std::chrono::steady_clock::now()),
+    : ComputePipeline(std::move(logicalDevice)), GraphicsPipeline(std::move(logicalDevice)),
+      m_lightingDescriptorSet(lightingDescriptorSet), m_previousTime(std::chrono::steady_clock::now()),
       m_numParticles(numParticles)
   {
     m_smokeUBO.systemPosition = position;
