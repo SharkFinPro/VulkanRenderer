@@ -21,9 +21,15 @@ MousePicker::MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
 {
   m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-  m_mousePickingRenderPass = std::make_shared<RenderPass>(m_logicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
-                                                          VK_SAMPLE_COUNT_1_BIT,
-                                                          VK_IMAGE_LAYOUT_UNDEFINED);
+  RenderPassConfig mousePickingRenderPassConfig {
+    .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
+    .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
+    .finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .hasColorAttachment = true,
+    .hasDepthAttachment = true,
+    .hasResolveAttachment = false
+  };
+  m_mousePickingRenderPass = std::make_shared<RenderPass>(m_logicalDevice, mousePickingRenderPassConfig);
 
   m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(m_logicalDevice, m_mousePickingRenderPass,
                                                                   objectDescriptorSetLayout);

@@ -3,18 +3,44 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <vector>
 
 namespace vke {
 
   class CommandBuffer;
   class LogicalDevice;
 
+  struct RenderPassConfig {
+    VkFormat imageFormat;
+    VkSampleCountFlagBits msaaSamples;
+    VkImageLayout finalLayout;
+    bool hasColorAttachment;
+    bool hasDepthAttachment;
+    bool hasResolveAttachment;
+  };
+
+  struct AttachmentSetup {
+    std::vector<VkAttachmentDescription> attachments;
+    std::vector<VkAttachmentReference> colorAttachmentReferences;
+    std::vector<VkAttachmentReference> depthAttachmentReferences;
+    std::vector<VkAttachmentReference> resolveAttachmentReferences;
+
+    VkSubpassDescription createSubpass() const
+    {
+      return {
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .colorAttachmentCount = static_cast<uint32_t>(colorAttachmentReferences.size()),
+        .pColorAttachments = colorAttachmentReferences.empty() ? nullptr : colorAttachmentReferences.data(),
+        .pResolveAttachments = resolveAttachmentReferences.empty() ? nullptr : resolveAttachmentReferences.data(),
+        .pDepthStencilAttachment = depthAttachmentReferences.empty() ? nullptr : depthAttachmentReferences.data()
+      };
+    }
+  };
+
   class RenderPass {
   public:
     RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               VkFormat imageFormat,
-               VkSampleCountFlagBits msaaSamples,
-               VkImageLayout finalLayout);
+               const RenderPassConfig& renderPassConfig);
     ~RenderPass();
 
     VkRenderPass& getRenderPass();
@@ -28,9 +54,15 @@ namespace vke {
 
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
-    void createRenderPass(VkFormat imageFormat,
-                          VkSampleCountFlagBits msaaSamples,
-                          VkImageLayout finalLayout);
+    void createRenderPass(const RenderPassConfig& renderPassConfig);
+
+    [[nodiscard]] AttachmentSetup setupAttachments(const RenderPassConfig& renderPassConfig) const;
+
+    [[nodiscard]] static VkAttachmentDescription getColorAttachmentDescription(const RenderPassConfig& renderPassConfig);
+
+    [[nodiscard]] VkAttachmentDescription getDepthAttachmentDescription(const RenderPassConfig& renderPassConfig) const;
+
+    [[nodiscard]] static VkAttachmentDescription getResolveAttachmentDescription(const RenderPassConfig& renderPassConfig);
   };
 
 } // namespace vke
