@@ -12,7 +12,8 @@ namespace vke {
 
   class CommandBuffer {
   public:
-    CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool);
+    CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+                  VkCommandPool commandPool);
 
     void setCurrentFrame(uint32_t currentFrame);
 
@@ -34,24 +35,43 @@ namespace vke {
 
     void endRendering() const;
 
-    void bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) const;
+    void bindPipeline(VkPipelineBindPoint pipelineBindPoint,
+                      VkPipeline pipeline) const;
 
-    void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet,
-                            uint32_t descriptorSetCount, const VkDescriptorSet* descriptorSets) const;
+    void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint,
+                            VkPipelineLayout pipelineLayout,
+                            uint32_t firstSet,
+                            uint32_t descriptorSetCount,
+                            const VkDescriptorSet* descriptorSets) const;
 
-    void dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) const;
+    void dispatch(uint32_t groupCountX,
+                  uint32_t groupCountY,
+                  uint32_t groupCountZ) const;
 
-    void bindVertexBuffers(uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* buffers,
+    void bindVertexBuffers(uint32_t firstBinding,
+                           uint32_t bindingCount,
+                           const VkBuffer* buffers,
                            const VkDeviceSize* offsets) const;
 
-    void bindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType) const;
+    void bindIndexBuffer(VkBuffer buffer,
+                         VkDeviceSize offset,
+                         VkIndexType indexType) const;
 
-    void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const;
+    void draw(uint32_t vertexCount,
+              uint32_t instanceCount,
+              uint32_t firstVertex,
+              uint32_t firstInstance) const;
 
-    void drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset,
+    void drawIndexed(uint32_t indexCount,
+                     uint32_t instanceCount,
+                     uint32_t firstIndex,
+                     int32_t vertexOffset,
                      uint32_t firstInstance) const;
 
-    void pushConstants(VkPipelineLayout layout, VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size,
+    void pushConstants(VkPipelineLayout layout,
+                       VkShaderStageFlags stageFlags,
+                       uint32_t offset,
+                       uint32_t size,
                        const void* values) const;
 
     void pipelineBarrier(VkPipelineStageFlags srcStageMask,

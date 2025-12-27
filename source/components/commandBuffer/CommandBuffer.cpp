@@ -4,8 +4,9 @@
 
 namespace vke {
 
-  CommandBuffer::CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool)
-    : m_logicalDevice(logicalDevice)
+  CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+                               VkCommandPool commandPool)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     allocateCommandBuffers(commandPool);
   }
@@ -74,49 +75,66 @@ namespace vke {
     vkCmdEndRendering(m_commandBuffers[m_currentFrame]);
   }
 
-  void CommandBuffer::bindPipeline(const VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) const
+  void CommandBuffer::bindPipeline(const VkPipelineBindPoint pipelineBindPoint,
+                                   VkPipeline pipeline) const
   {
     vkCmdBindPipeline(m_commandBuffers[m_currentFrame], pipelineBindPoint, pipeline);
   }
 
-  void CommandBuffer::bindDescriptorSets(const VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout,
-                                         const uint32_t firstSet, const uint32_t descriptorSetCount,
+  void CommandBuffer::bindDescriptorSets(const VkPipelineBindPoint pipelineBindPoint,
+                                         VkPipelineLayout pipelineLayout,
+                                         const uint32_t firstSet,
+                                         const uint32_t descriptorSetCount,
                                          const VkDescriptorSet* descriptorSets) const
   {
     vkCmdBindDescriptorSets(m_commandBuffers[m_currentFrame], pipelineBindPoint, pipelineLayout, firstSet,
                             descriptorSetCount, descriptorSets, 0, nullptr);
   }
 
-  void CommandBuffer::dispatch(const uint32_t groupCountX, const uint32_t groupCountY, const uint32_t groupCountZ) const
+  void CommandBuffer::dispatch(const uint32_t groupCountX,
+                               const uint32_t groupCountY,
+                               const uint32_t groupCountZ) const
   {
     vkCmdDispatch(m_commandBuffers[m_currentFrame], groupCountX, groupCountY, groupCountZ);
   }
 
-  void CommandBuffer::bindVertexBuffers(const uint32_t firstBinding, const uint32_t bindingCount, const VkBuffer* buffers,
+  void CommandBuffer::bindVertexBuffers(const uint32_t firstBinding,
+                                        const uint32_t bindingCount,
+                                        const VkBuffer* buffers,
                                         const VkDeviceSize* offsets) const
   {
     vkCmdBindVertexBuffers(m_commandBuffers[m_currentFrame], firstBinding, bindingCount, buffers, offsets);
   }
 
-  void CommandBuffer::bindIndexBuffer(VkBuffer buffer, const VkDeviceSize offset, const VkIndexType indexType) const
+  void CommandBuffer::bindIndexBuffer(VkBuffer buffer,
+                                      const VkDeviceSize offset,
+                                      const VkIndexType indexType) const
   {
     vkCmdBindIndexBuffer(m_commandBuffers[m_currentFrame], buffer, offset, indexType);
   }
 
-  void CommandBuffer::draw(const uint32_t vertexCount, const uint32_t instanceCount, const uint32_t firstVertex,
+  void CommandBuffer::draw(const uint32_t vertexCount,
+                           const uint32_t instanceCount,
+                           const uint32_t firstVertex,
                            const uint32_t firstInstance) const
   {
     vkCmdDraw(m_commandBuffers[m_currentFrame], vertexCount, instanceCount, firstVertex, firstInstance);
   }
 
-  void CommandBuffer::drawIndexed(const uint32_t indexCount, const uint32_t instanceCount, const uint32_t firstIndex,
-                                  const int32_t vertexOffset, const uint32_t firstInstance) const
+  void CommandBuffer::drawIndexed(const uint32_t indexCount,
+                                  const uint32_t instanceCount,
+                                  const uint32_t firstIndex,
+                                  const int32_t vertexOffset,
+                                  const uint32_t firstInstance) const
   {
     vkCmdDrawIndexed(m_commandBuffers[m_currentFrame], indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
   }
 
-  void CommandBuffer::pushConstants(const VkPipelineLayout layout, const VkShaderStageFlags stageFlags,
-                                    const uint32_t offset, const uint32_t size, const void* values) const
+  void CommandBuffer::pushConstants(const VkPipelineLayout layout,
+                                    const VkShaderStageFlags stageFlags,
+                                    const uint32_t offset,
+                                    const uint32_t size,
+                                    const void* values) const
   {
     vkCmdPushConstants(m_commandBuffers[m_currentFrame], layout, stageFlags, offset, size, values);
   }
