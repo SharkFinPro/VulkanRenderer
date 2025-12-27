@@ -4,7 +4,7 @@
 #include "../../GraphicsPipeline.h"
 
 namespace vke {
-  class ShadowPipeline : public GraphicsPipeline {
+  class ShadowPipeline final : public GraphicsPipeline {
   public:
     ShadowPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                    std::shared_ptr<RenderPass> renderPass,
