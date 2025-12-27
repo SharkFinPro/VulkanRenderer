@@ -10,19 +10,20 @@
 
 namespace vke {
 
-  RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  RenderObject::RenderObject(std::shared_ptr<LogicalDevice> logicalDevice,
                              const VkDescriptorSetLayout& descriptorSetLayout,
                              const std::shared_ptr<Texture>& texture,
                              const std::shared_ptr<Texture>& specularMap,
                              const std::shared_ptr<Model>& model)
-    : m_logicalDevice(logicalDevice),
+    : m_logicalDevice(std::move(logicalDevice)),
       m_descriptorSetLayout(descriptorSetLayout),
       m_texture(texture),
       m_specularMap(specularMap),
       m_model(model),
-      m_transformUniform(std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform)))
+      m_transformUniform(std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(TransformUniform)))
   {
     createDescriptorPool();
+
     createDescriptorSets();
   }
 

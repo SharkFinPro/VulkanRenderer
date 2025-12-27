@@ -9,14 +9,14 @@
 namespace vke {
 
   class CommandBuffer;
+  class LogicalDevice;
   class Model;
   class Texture;
   class UniformBuffer;
-  class LogicalDevice;
 
   class RenderObject {
   public:
-    RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    RenderObject(std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkDescriptorSetLayout& descriptorSetLayout,
                  const std::shared_ptr<Texture>& texture,
                  const std::shared_ptr<Texture>& specularMap,
