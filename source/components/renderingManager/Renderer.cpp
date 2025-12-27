@@ -46,6 +46,11 @@ namespace vke {
     createOffscreenRenderTarget(offscreenViewportExtent);
   }
 
+  uint32_t Renderer::registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget)
+  {
+    return ++m_currentShadowMapRenderTargetID;
+  }
+
   void Renderer::createSampler()
   {
     constexpr VkSamplerCreateInfo samplerInfo {

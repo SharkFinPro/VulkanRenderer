@@ -21,10 +21,13 @@ namespace vke {
                          const float specular,
                          const VkCommandPool& commandPool,
                          VkDescriptorPool descriptorPool,
-                         VkDescriptorSetLayout descriptorSetLayout)
+                         VkDescriptorSetLayout descriptorSetLayout,
+                         const std::shared_ptr<Renderer>& renderer)
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
     PointLight::createShadowMap(commandPool);
+
+    registerShadowMapRenderTarget(renderer);
 
     createUniform();
 

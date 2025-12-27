@@ -3,6 +3,7 @@
 
 namespace vke {
   RenderTarget::RenderTarget(const ImageResourceConfig& imageResourceConfig)
+    : m_extent(imageResourceConfig.extent)
   {
     m_colorImageResources.reserve(NUM_IMAGES);
     m_depthImageResources.reserve(NUM_IMAGES);
@@ -65,5 +66,10 @@ namespace vke {
   uint32_t RenderTarget::hasResolveImageResource() const
   {
     return m_resolveImageResources.size();
+  }
+
+  VkExtent2D RenderTarget::getExtent() const
+  {
+    return m_extent;
   }
 } // vke

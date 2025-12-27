@@ -14,10 +14,13 @@ namespace vke {
                        const float ambient,
                        const float diffuse,
                        const float specular,
-                       const VkCommandPool& commandPool)
+                       const VkCommandPool& commandPool,
+                       const std::shared_ptr<Renderer>& renderer)
     : Light(logicalDevice, position, color, ambient, diffuse, specular)
   {
     SpotLight::createShadowMap(commandPool);
+
+    registerShadowMapRenderTarget(renderer);
   }
 
   glm::vec3 SpotLight::getDirection() const

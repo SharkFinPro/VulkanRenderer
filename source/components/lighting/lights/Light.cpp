@@ -1,6 +1,7 @@
 #include "Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/ImageResource.h"
+#include "../../renderingManager/Renderer.h"
 #include "../../renderingManager/RenderTarget.h"
 
 namespace vke {
@@ -83,5 +84,15 @@ uint32_t Light::getShadowMapSize() const
 bool Light::castsShadows() const
 {
   return m_castsShadows;
+}
+
+uint32_t Light::getRendererShadowMapID() const
+{
+  return m_rendererShadowMapID;
+}
+
+void Light::registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer)
+{
+  m_rendererShadowMapID = renderer->registerShadowMapRenderTarget(m_shadowMapRenderTarget);
 }
 } // namespace vke

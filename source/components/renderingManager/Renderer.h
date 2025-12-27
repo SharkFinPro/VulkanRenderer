@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <unordered_map>
 
 namespace vke {
 
@@ -55,6 +56,8 @@ namespace vke {
     virtual void endShadowRendering(uint32_t imageIndex,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
 
+    [[nodiscard]] virtual uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget);
+
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -65,6 +68,8 @@ namespace vke {
     std::shared_ptr<RenderTarget> m_swapchainRenderTarget;
 
     VkSampler m_sampler = VK_NULL_HANDLE;
+
+    uint32_t m_currentShadowMapRenderTargetID = 0;
 
     void createSampler();
 

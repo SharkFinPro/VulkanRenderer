@@ -11,6 +11,7 @@
 namespace vke {
 
   class LogicalDevice;
+  class Renderer;
   class RenderTarget;
 
   struct alignas(16) PointLightUniform {
@@ -79,6 +80,8 @@ public:
 
   [[nodiscard]] virtual LightUniform getUniform() const = 0;
 
+  [[nodiscard]] uint32_t getRendererShadowMapID() const;
+
 protected:
   std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -87,6 +90,8 @@ protected:
   bool m_castsShadows = true;
   uint32_t m_shadowMapSize = 1024;
 
+  uint32_t m_rendererShadowMapID = 0;
+
   glm::vec3 m_position;
   glm::vec3 m_color;
   float m_ambient;
@@ -94,6 +99,8 @@ protected:
   float m_specular;
 
   virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
+
+  void registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer);
 };
 
 } // namespace vke

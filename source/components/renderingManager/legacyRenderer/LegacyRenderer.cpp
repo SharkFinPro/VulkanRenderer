@@ -1,9 +1,11 @@
 #include "LegacyRenderer.h"
 #include "Framebuffer.h"
 #include "RenderPass.h"
+#include "../RenderTarget.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../lighting/lights/Light.h"
 #include "../../window/SwapChain.h"
 
 namespace vke {
@@ -86,7 +88,11 @@ namespace vke {
                                             const std::shared_ptr<CommandBuffer>& commandBuffer,
                                             const std::shared_ptr<Light>& light)
   {
-    // m_shadowRenderPass->begin(m_shadowFramebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
+    m_shadowRenderPass->begin(
+      m_shadowMapFramebuffers.at(light->getRendererShadowMapID())->getFramebuffer(imageIndex),
+      extent,
+      commandBuffer
+    );
   }
 
   void LegacyRenderer::endSwapchainRendering(uint32_t imageIndex,
@@ -105,7 +111,23 @@ namespace vke {
   void LegacyRenderer::endShadowRendering(uint32_t imageIndex,
                                           const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
-    // endRendering(commandBuffer);
+    endRendering(commandBuffer);
+  }
+
+  uint32_t LegacyRenderer::registerShadowMapRenderTarget(const std::shared_ptr<RenderTarget> renderTarget)
+  {
+    const uint32_t id = Renderer::registerShadowMapRenderTarget(renderTarget);
+
+    const auto framebuffer = std::make_shared<Framebuffer>(
+      m_logicalDevice,
+      renderTarget,
+      m_shadowRenderPass,
+      renderTarget->getExtent()
+    );
+
+    m_shadowMapFramebuffers.insert({ id, framebuffer });
+
+    return id;
   }
 
   void LegacyRenderer::endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
