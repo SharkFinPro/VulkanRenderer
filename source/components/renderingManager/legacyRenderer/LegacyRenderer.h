@@ -54,6 +54,8 @@ namespace vke {
     std::shared_ptr<RenderPass> m_shadowRenderPass;
 
     static void endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
+
+    void createRenderPasses(const std::shared_ptr<SwapChain>& swapChain);
   };
 
 } // namespace vke

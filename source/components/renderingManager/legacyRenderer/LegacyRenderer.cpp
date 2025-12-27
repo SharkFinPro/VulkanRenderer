@@ -13,35 +13,7 @@ namespace vke {
                                  VkCommandPool commandPool)
     : Renderer(logicalDevice, swapChain, commandPool)
   {
-    RenderPassConfig swapchainRenderPassConfig {
-      .imageFormat = swapChain->getImageFormat(),
-      .msaaSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-      .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-      .hasColorAttachment = true,
-      .hasDepthAttachment = true,
-      .hasResolveAttachment = true
-    };
-    m_swapchainRenderPass = std::make_shared<RenderPass>(m_logicalDevice, swapchainRenderPassConfig);
-
-    RenderPassConfig offscreenRenderPassConfig {
-      .imageFormat = VK_FORMAT_B8G8R8A8_UNORM,
-      .msaaSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-      .hasColorAttachment = true,
-      .hasDepthAttachment = true,
-      .hasResolveAttachment = true
-    };
-    m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, offscreenRenderPassConfig);
-
-    RenderPassConfig shadowRenderPassConfig {
-      .imageFormat = VK_FORMAT_D32_SFLOAT,
-      .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
-      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-      .hasColorAttachment = false,
-      .hasDepthAttachment = true,
-      .hasResolveAttachment = false
-    };
-    m_shadowRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowRenderPassConfig);
+    createRenderPasses(swapChain);
 
     m_swapchainFramebuffer = std::make_shared<Framebuffer>(
       m_logicalDevice,
@@ -139,5 +111,38 @@ namespace vke {
   void LegacyRenderer::endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->endRenderPass();
+  }
+
+  void LegacyRenderer::createRenderPasses(const std::shared_ptr<SwapChain> &swapChain)
+  {
+    RenderPassConfig swapchainRenderPassConfig {
+      .imageFormat = swapChain->getImageFormat(),
+      .msaaSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
+      .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+      .hasColorAttachment = true,
+      .hasDepthAttachment = true,
+      .hasResolveAttachment = true
+    };
+    m_swapchainRenderPass = std::make_shared<RenderPass>(m_logicalDevice, swapchainRenderPassConfig);
+
+    RenderPassConfig offscreenRenderPassConfig {
+      .imageFormat = VK_FORMAT_B8G8R8A8_UNORM,
+      .msaaSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
+      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      .hasColorAttachment = true,
+      .hasDepthAttachment = true,
+      .hasResolveAttachment = true
+    };
+    m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, offscreenRenderPassConfig);
+
+    RenderPassConfig shadowRenderPassConfig {
+      .imageFormat = VK_FORMAT_D32_SFLOAT,
+      .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
+      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+      .hasColorAttachment = false,
+      .hasDepthAttachment = true,
+      .hasResolveAttachment = false
+    };
+    m_shadowRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowRenderPassConfig);
   }
 } // namespace vke
