@@ -20,9 +20,15 @@ namespace vke {
 
     for (int i = 0; i < NUM_IMAGES; ++i)
     {
-      m_colorImageResources.emplace_back(colorImageResourceConfig);
+      if (imageResourceConfig.colorFormat != VK_FORMAT_UNDEFINED)
+      {
+        m_colorImageResources.emplace_back(colorImageResourceConfig);
+      }
 
-      m_depthImageResources.emplace_back(depthImageResourceConfig);
+      if (imageResourceConfig.depthFormat != VK_FORMAT_UNDEFINED)
+      {
+        m_depthImageResources.emplace_back(depthImageResourceConfig);
+      }
 
       if (imageResourceConfig.resolveFormat != VK_FORMAT_UNDEFINED)
       {

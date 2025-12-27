@@ -3,9 +3,9 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
-#include "../../pipelines/descriptorSets/LayoutBindings.h"
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
-#include "../../../utilities/Images.h"
+#include "../../renderingManager/ImageResource.h"
+#include "../../renderingManager/RenderTarget.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_RIGHT_HANDED
@@ -107,46 +107,19 @@ namespace vke {
       return;
     }
 
-    constexpr VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
+    ImageResourceConfig imageResourceConfig {
+      .logicalDevice = m_logicalDevice,
+      .extent = {
+        .width = m_shadowMapSize,
+        .height = m_shadowMapSize
+      },
+      .commandPool = commandPool,
+      .depthFormat = VK_FORMAT_D32_SFLOAT,
+      .numSamples = VK_SAMPLE_COUNT_1_BIT,
+      .isCubeMap = true
+    };
 
-    Images::createImage(
-       m_logicalDevice,
-       VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-       m_shadowMapSize,
-       m_shadowMapSize,
-       1,
-       1,
-       VK_SAMPLE_COUNT_1_BIT,
-       depthFormat,
-       VK_IMAGE_TILING_OPTIMAL,
-       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-       m_shadowMap,
-       m_shadowMapMemory,
-       VK_IMAGE_TYPE_2D,
-       6
-     );
-
-    m_shadowMapView = Images::createImageView(
-      m_logicalDevice,
-      m_shadowMap,
-      depthFormat,
-      VK_IMAGE_ASPECT_DEPTH_BIT,
-      1,
-      VK_IMAGE_VIEW_TYPE_CUBE,
-      6
-    );
-
-    Images::transitionImageLayout(
-      m_logicalDevice,
-      commandPool,
-      m_shadowMap,
-      depthFormat,
-      VK_IMAGE_LAYOUT_UNDEFINED,
-      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-      1,
-      6
-    );
+    m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
   }
 
   void PointLight::createUniform()

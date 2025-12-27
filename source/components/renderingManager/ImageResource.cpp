@@ -71,6 +71,11 @@ namespace vke {
       else if (config.imageResourceType == ImageResourceType::Depth)
       {
         imageUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+        if (getFormat(config) == VK_FORMAT_D32_SFLOAT)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        }
       }
       else if (config.imageResourceType == ImageResourceType::Resolve)
       {
