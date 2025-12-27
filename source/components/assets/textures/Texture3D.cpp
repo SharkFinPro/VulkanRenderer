@@ -7,7 +7,10 @@
 
 namespace vke {
 
-  unsigned char* ReadTexture3D(const char* filename, int* width, int* height, int* depth)
+  unsigned char* ReadTexture3D(const char* filename,
+                               int* width,
+                               int* height,
+                               int* depth)
   {
     FILE *fp = fopen(filename, "rb");
     if( fp == nullptr )
@@ -31,18 +34,19 @@ namespace vke {
     return texture;
   }
 
-  Texture3D::Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  Texture3D::Texture3D(std::shared_ptr<LogicalDevice> logicalDevice,
                        const VkCommandPool& commandPool,
                        const char* path,
                        const VkSamplerAddressMode samplerAddressMode)
-    : Texture(logicalDevice, samplerAddressMode)
+    : Texture(std::move(logicalDevice), samplerAddressMode)
   {
     createTextureImage(commandPool, path);
 
     createImageView();
   }
 
-  void Texture3D::createTextureImage(const VkCommandPool& commandPool, const char* path)
+  void Texture3D::createTextureImage(const VkCommandPool& commandPool,
+                                     const char* path)
   {
     m_mipLevels = 1;
 

@@ -8,17 +8,18 @@
 
 namespace vke {
 
-  TextureCubemap::TextureCubemap(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  TextureCubemap::TextureCubemap(std::shared_ptr<LogicalDevice> logicalDevice,
                                  const VkCommandPool& commandPool,
                                  const std::array<std::string, 6>& paths)
-    : Texture(logicalDevice, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+    : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
   {
     createTextureImage(commandPool, paths);
 
     createImageView();
   }
 
-  void TextureCubemap::createTextureImage(const VkCommandPool& commandPool, const std::array<std::string, 6>& paths)
+  void TextureCubemap::createTextureImage(const VkCommandPool& commandPool,
+                                          const std::array<std::string, 6>& paths)
   {
     int texWidth, texHeight;
     std::array<stbi_uc*, 6> pixels{};

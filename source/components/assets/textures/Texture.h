@@ -11,13 +11,15 @@ namespace vke {
 
   class Texture {
   public:
-    Texture(const std::shared_ptr<LogicalDevice>& logicalDevice, VkSamplerAddressMode samplerAddressMode);
+    Texture(std::shared_ptr<LogicalDevice> logicalDevice,
+            VkSamplerAddressMode samplerAddressMode);
 
     virtual ~Texture();
 
     [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
-    [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet) const;
+    [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding,
+                                                        const VkDescriptorSet& dstSet) const;
 
     [[nodiscard]] ImTextureID getImGuiTexture();
 
@@ -31,12 +33,16 @@ namespace vke {
 
     VkDescriptorImageInfo m_imageInfo{};
 
-    uint32_t m_mipLevels;
+    uint32_t m_mipLevels = 1;
 
     VkDescriptorSet m_imGuiTexture = VK_NULL_HANDLE;
 
-    void generateMipmaps(const VkCommandPool& commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth,
-                         int32_t texHeight, uint32_t mipLevels) const;
+    void generateMipmaps(const VkCommandPool& commandPool,
+                         VkImage image,
+                         VkFormat imageFormat,
+                         int32_t texWidth,
+                         int32_t texHeight,
+                         uint32_t mipLevels) const;
 
     void createTextureSampler(VkSamplerAddressMode addressMode);
 

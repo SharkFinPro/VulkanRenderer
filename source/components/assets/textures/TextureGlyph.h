@@ -7,7 +7,7 @@ namespace vke {
 
   class TextureGlyph final : public Texture {
   public:
-    TextureGlyph(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkCommandPool& commandPool,
                  const unsigned char* pixelData,
                  uint32_t width,

@@ -11,18 +11,19 @@
 
 namespace vke {
 
-  Texture2D::Texture2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  Texture2D::Texture2D(std::shared_ptr<LogicalDevice> logicalDevice,
                        const VkCommandPool& commandPool,
                        const char* path,
                        const VkSamplerAddressMode samplerAddressMode)
-    : Texture(logicalDevice, samplerAddressMode)
+    : Texture(std::move(logicalDevice), samplerAddressMode)
   {
     createTextureImage(commandPool, path);
 
     createImageView();
   }
 
-  void Texture2D::createTextureImage(const VkCommandPool& commandPool, const char* path)
+  void Texture2D::createTextureImage(const VkCommandPool& commandPool,
+                                     const char* path)
   {
     int texWidth, texHeight, texChannels;
 

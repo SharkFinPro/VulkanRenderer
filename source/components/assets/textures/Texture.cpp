@@ -7,8 +7,9 @@
 
 namespace vke {
 
-  Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkSamplerAddressMode samplerAddressMode)
-    : m_logicalDevice(logicalDevice), m_mipLevels(1)
+  Texture::Texture(std::shared_ptr<LogicalDevice> logicalDevice,
+                   const VkSamplerAddressMode samplerAddressMode)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     createTextureSampler(samplerAddressMode);
 
@@ -40,7 +41,8 @@ namespace vke {
     return poolSize;
   }
 
-  VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding, const VkDescriptorSet& dstSet) const
+  VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding,
+                                                 const VkDescriptorSet& dstSet) const
   {
     const VkWriteDescriptorSet descriptorSet {
       .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -65,8 +67,12 @@ namespace vke {
     return reinterpret_cast<ImTextureID>(m_imGuiTexture);
   }
 
-  void Texture::generateMipmaps(const VkCommandPool& commandPool, const VkImage image, const VkFormat imageFormat,
-                                const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const
+  void Texture::generateMipmaps(const VkCommandPool& commandPool,
+                                const VkImage image,
+                                const VkFormat imageFormat,
+                                const int32_t texWidth,
+                                const int32_t texHeight,
+                                const uint32_t mipLevels) const
   {
     const VkFormatProperties formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(imageFormat);
 
