@@ -2,10 +2,10 @@
 #define VKE_PHYSICALDEVICE_H
 
 #include <vulkan/vulkan.h>
-#include <optional>
 #include <array>
-#include <vector>
 #include <memory>
+#include <optional>
+#include <vector>
 
 namespace vke {
 
@@ -53,7 +53,8 @@ namespace vke {
 
     [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
 
-    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
+    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter,
+                                          const VkMemoryPropertyFlags& properties) const;
 
     void updateSwapChainSupportDetails();
 
@@ -76,7 +77,7 @@ namespace vke {
 
     VkSurfaceKHR& m_surface;
 
-    VkSampleCountFlagBits m_msaaSamples;
+    VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
     QueueFamilyIndices m_queueFamilyIndices;
 

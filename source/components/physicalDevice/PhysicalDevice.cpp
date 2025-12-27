@@ -1,13 +1,14 @@
 #include "PhysicalDevice.h"
 #include "../instance/Instance.h"
 #include <array>
-#include <stdexcept>
 #include <set>
+#include <stdexcept>
 
 namespace vke {
 
-  PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface)
-    : m_surface(surface), m_msaaSamples(VK_SAMPLE_COUNT_1_BIT)
+  PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance,
+                                 VkSurfaceKHR& surface)
+    : m_surface(surface)
   {
     pickPhysicalDevice(instance);
 
@@ -31,7 +32,8 @@ namespace vke {
     return m_msaaSamples;
   }
 
-  uint32_t PhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const
+  uint32_t PhysicalDevice::findMemoryType(const uint32_t typeFilter,
+                                          const VkMemoryPropertyFlags& properties) const
   {
     VkPhysicalDeviceMemoryProperties memoryProperties;
     vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memoryProperties);
@@ -89,7 +91,8 @@ namespace vke {
     );
   }
 
-  VkFormat PhysicalDevice::findSupportedFormat(const std::vector<VkFormat> &candidates, const VkImageTiling tiling,
+  VkFormat PhysicalDevice::findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                               const VkImageTiling tiling,
                                                const VkFormatFeatureFlags features) const
   {
     for (const auto& format : candidates)
