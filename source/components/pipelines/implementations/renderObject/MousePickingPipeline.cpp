@@ -1,16 +1,16 @@
 #include "MousePickingPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
 #include "../common/Uniforms.h"
+#include "../../../assets/objects/RenderObject.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../../assets/objects/RenderObject.h"
 
 namespace vke {
 
-  MousePickingPipeline::MousePickingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  MousePickingPipeline::MousePickingPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                              std::shared_ptr<RenderPass> renderPass,
                                              VkDescriptorSetLayout objectDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {

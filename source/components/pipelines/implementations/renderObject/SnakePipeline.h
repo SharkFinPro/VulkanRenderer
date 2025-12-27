@@ -13,7 +13,7 @@ namespace vke {
 
   class SnakePipeline final : public GraphicsPipeline {
   public:
-    SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    SnakePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                   std::shared_ptr<RenderPass> renderPass,
                   VkDescriptorSetLayout objectDescriptorSetLayout,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);

@@ -2,20 +2,19 @@
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
 #include "../../descriptorSets/LayoutBindings.h"
+#include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../uniformBuffers/UniformBuffer.h"
 #include <imgui.h>
 
 namespace vke {
 
-  CurtainPipeline::CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  CurtainPipeline::CurtainPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                    std::shared_ptr<RenderPass> renderPass,
                                    const VkDescriptorPool descriptorPool,
                                    const VkDescriptorSetLayout objectDescriptorSetLayout,
                                    const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : GraphicsPipeline(logicalDevice),
-      m_lightingDescriptorSet(lightingDescriptorSet)
+    : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet)
   {
     createUniforms();
 

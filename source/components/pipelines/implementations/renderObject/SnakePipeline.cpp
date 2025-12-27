@@ -7,12 +7,11 @@
 
 namespace vke {
 
-  SnakePipeline::SnakePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  SnakePipeline::SnakePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                std::shared_ptr<RenderPass> renderPass,
                                const VkDescriptorSetLayout objectDescriptorSetLayout,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : GraphicsPipeline(logicalDevice),
-      m_lightingDescriptorSet(lightingDescriptorSet)
+    : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet)
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {

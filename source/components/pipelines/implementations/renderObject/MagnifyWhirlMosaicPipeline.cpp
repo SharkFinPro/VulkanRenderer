@@ -10,11 +10,11 @@
 
 namespace vke {
 
-  MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  MagnifyWhirlMosaicPipeline::MagnifyWhirlMosaicPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                                          std::shared_ptr<RenderPass> renderPass,
                                                          VkDescriptorPool descriptorPool,
                                                          VkDescriptorSetLayout objectDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     createUniforms();
 

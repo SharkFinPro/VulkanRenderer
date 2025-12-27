@@ -2,21 +2,21 @@
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
 #include "../../descriptorSets/LayoutBindings.h"
+#include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../assets/textures/TextureCubemap.h"
 #include "../../../assets/textures/Texture3D.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../uniformBuffers/UniformBuffer.h"
 #include <imgui.h>
 
 namespace vke {
 
-  CubeMapPipeline::CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  CubeMapPipeline::CubeMapPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                    std::shared_ptr<RenderPass> renderPass,
                                    const VkCommandPool& commandPool,
                                    const VkDescriptorPool descriptorPool,
                                    const VkDescriptorSetLayout objectDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     createUniforms(commandPool);
 

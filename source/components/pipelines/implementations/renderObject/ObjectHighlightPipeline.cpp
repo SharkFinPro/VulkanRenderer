@@ -1,14 +1,14 @@
 #include "ObjectHighlightPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
-#include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../assets/objects/RenderObject.h"
+#include "../../../logicalDevice/LogicalDevice.h"
 
 namespace vke {
 
-  ObjectHighlightPipeline::ObjectHighlightPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  ObjectHighlightPipeline::ObjectHighlightPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                                    std::shared_ptr<RenderPass> renderPass,
                                                    VkDescriptorSetLayout objectDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {

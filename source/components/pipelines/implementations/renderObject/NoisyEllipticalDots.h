@@ -13,7 +13,7 @@ namespace vke {
 
   class NoisyEllipticalDots final : public GraphicsPipeline {
   public:
-    NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    NoisyEllipticalDots(std::shared_ptr<LogicalDevice> logicalDevice,
                         std::shared_ptr<RenderPass> renderPass,
                         const VkCommandPool& commandPool,
                         VkDescriptorPool descriptorPool,

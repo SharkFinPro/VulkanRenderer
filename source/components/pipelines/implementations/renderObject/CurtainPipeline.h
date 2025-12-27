@@ -12,7 +12,7 @@ namespace vke {
 
   class CurtainPipeline final : public GraphicsPipeline {
   public:
-    CurtainPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    CurtainPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                     std::shared_ptr<RenderPass> renderPass,
                     VkDescriptorPool descriptorPool,
                     VkDescriptorSetLayout objectDescriptorSetLayout,

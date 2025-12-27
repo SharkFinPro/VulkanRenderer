@@ -11,7 +11,7 @@ namespace vke {
 
   class ObjectsPipeline final : public GraphicsPipeline {
   public:
-    ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    ObjectsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                     std::shared_ptr<RenderPass> renderPass,
                     VkDescriptorSetLayout objectDescriptorSetLayout,
                     const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);

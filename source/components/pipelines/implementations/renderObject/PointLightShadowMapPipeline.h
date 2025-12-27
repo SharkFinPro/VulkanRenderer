@@ -11,7 +11,7 @@ namespace vke {
 
   class PointLightShadowMapPipeline final : public GraphicsPipeline {
   public:
-    PointLightShadowMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    PointLightShadowMapPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                 std::shared_ptr<RenderPass> renderPass,
                                 VkDescriptorSetLayout objectDescriptorSetLayout,
                                 VkDescriptorSetLayout pointLightDescriptorSetLayout);

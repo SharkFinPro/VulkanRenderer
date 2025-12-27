@@ -14,7 +14,7 @@ namespace vke {
 
   class CrossesPipeline final : public GraphicsPipeline {
   public:
-    CrossesPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    CrossesPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                     std::shared_ptr<RenderPass> renderPass,
                     VkDescriptorPool descriptorPool,
                     VkDescriptorSetLayout objectDescriptorSetLayout,

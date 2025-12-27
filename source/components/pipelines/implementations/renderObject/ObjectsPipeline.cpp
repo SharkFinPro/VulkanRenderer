@@ -6,12 +6,11 @@
 
 namespace vke {
 
-  ObjectsPipeline::ObjectsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  ObjectsPipeline::ObjectsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                    std::shared_ptr<RenderPass> renderPass,
                                    const VkDescriptorSetLayout objectDescriptorSetLayout,
                                    const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : GraphicsPipeline(logicalDevice),
-      m_lightingDescriptorSet(lightingDescriptorSet)
+    : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet)
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {

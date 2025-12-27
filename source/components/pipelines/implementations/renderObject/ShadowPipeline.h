@@ -6,11 +6,12 @@
 namespace vke {
   class ShadowPipeline final : public GraphicsPipeline {
   public:
-    ShadowPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    ShadowPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                    std::shared_ptr<RenderPass> renderPass,
                    VkDescriptorSetLayout objectDescriptorSetLayout);
 
-    void render(const RenderInfo* renderInfo, const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+    void render(const RenderInfo* renderInfo,
+                const std::vector<std::shared_ptr<RenderObject>>* objects) override;
   };
 } // vke
 

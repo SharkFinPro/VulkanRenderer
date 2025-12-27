@@ -2,21 +2,21 @@
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
 #include "../../descriptorSets/LayoutBindings.h"
+#include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../assets/textures/Texture3D.h"
 #include "../../../commandBuffer/CommandBuffer.h"
 #include "../../../logicalDevice/LogicalDevice.h"
-#include "../../uniformBuffers/UniformBuffer.h"
 #include <imgui.h>
 
 namespace vke {
 
-  BumpyCurtain::BumpyCurtain(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  BumpyCurtain::BumpyCurtain(std::shared_ptr<LogicalDevice> logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              const VkCommandPool& commandPool,
                              const VkDescriptorPool descriptorPool,
                              const VkDescriptorSetLayout objectDescriptorSetLayout,
                              const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : GraphicsPipeline(logicalDevice),
+    : GraphicsPipeline(std::move(logicalDevice)),
       m_lightingDescriptorSet(lightingDescriptorSet),
       m_objectDescriptorSetLayout(objectDescriptorSetLayout)
   {

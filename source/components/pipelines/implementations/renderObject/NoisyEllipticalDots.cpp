@@ -2,22 +2,21 @@
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
 #include "../../descriptorSets/LayoutBindings.h"
-#include "../../../commandBuffer/CommandBuffer.h"
-#include "../../../logicalDevice/LogicalDevice.h"
 #include "../../uniformBuffers/UniformBuffer.h"
 #include "../../../assets/textures/Texture3D.h"
+#include "../../../commandBuffer/CommandBuffer.h"
+#include "../../../logicalDevice/LogicalDevice.h"
 #include <imgui.h>
 
 namespace vke {
 
-  NoisyEllipticalDots::NoisyEllipticalDots(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  NoisyEllipticalDots::NoisyEllipticalDots(std::shared_ptr<LogicalDevice> logicalDevice,
                                            std::shared_ptr<RenderPass> renderPass,
                                            const VkCommandPool& commandPool,
                                            const VkDescriptorPool descriptorPool,
                                            const VkDescriptorSetLayout objectDescriptorSetLayout,
                                            const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : GraphicsPipeline(logicalDevice),
-      m_lightingDescriptorSet(lightingDescriptorSet)
+    : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet)
   {
     createUniforms(commandPool);
 

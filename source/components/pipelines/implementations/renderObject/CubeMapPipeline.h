@@ -14,7 +14,7 @@ namespace vke {
 
   class CubeMapPipeline final : public GraphicsPipeline {
   public:
-    CubeMapPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    CubeMapPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                     std::shared_ptr<RenderPass> renderPass,
                     const VkCommandPool& commandPool,
                     VkDescriptorPool descriptorPool,

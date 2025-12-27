@@ -1,15 +1,15 @@
 #include "TexturedPlane.h"
 #include "../common/GraphicsPipelineStates.h"
 #include "../../descriptorSets/DescriptorSet.h"
-#include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../assets/objects/RenderObject.h"
+#include "../../../logicalDevice/LogicalDevice.h"
 
 namespace vke {
 
-  TexturedPlane::TexturedPlane(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  TexturedPlane::TexturedPlane(std::shared_ptr<LogicalDevice> logicalDevice,
                                std::shared_ptr<RenderPass> renderPass,
                                const VkDescriptorSetLayout objectDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -35,7 +35,8 @@ namespace vke {
     createPipeline(graphicsPipelineOptions);
   }
 
-  void TexturedPlane::render(const RenderInfo *renderInfo, const std::vector<std::shared_ptr<RenderObject>> *objects)
+  void TexturedPlane::render(const RenderInfo* renderInfo,
+                             const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
     GraphicsPipeline::render(renderInfo, nullptr);
 
