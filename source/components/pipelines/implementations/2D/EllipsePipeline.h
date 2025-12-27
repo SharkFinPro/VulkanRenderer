@@ -25,14 +25,15 @@ namespace vke {
 
   class EllipsePipeline : public GraphicsPipeline {
   public:
-    EllipsePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    EllipsePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                  std::shared_ptr<RenderPass> renderPass);
 
     void render(const RenderInfo* renderInfo,
                 const std::vector<Ellipse>* ellipses);
 
   private:
-    void renderEllipse(const RenderInfo* renderInfo, const Ellipse& ellipse) const;
+    void renderEllipse(const RenderInfo* renderInfo,
+                       const Ellipse& ellipse) const;
   };
 } // vke
 

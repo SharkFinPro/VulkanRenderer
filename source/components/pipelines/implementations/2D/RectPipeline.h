@@ -25,14 +25,15 @@ namespace vke {
 
   class RectPipeline final : public GraphicsPipeline {
   public:
-    RectPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    RectPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                  std::shared_ptr<RenderPass> renderPass);
 
     void render(const RenderInfo* renderInfo,
                 const std::vector<Rect>* rects);
 
   private:
-    void renderRect(const RenderInfo* renderInfo, const Rect& rect) const;
+    void renderRect(const RenderInfo* renderInfo,
+                    const Rect& rect) const;
   };
 } // vke
 

@@ -4,9 +4,9 @@
 #include "../../../renderingManager/renderer2D/Renderer2D.h"
 
 namespace vke {
-  EllipsePipeline::EllipsePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  EllipsePipeline::EllipsePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                    std::shared_ptr<RenderPass> renderPass)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {

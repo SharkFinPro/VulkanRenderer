@@ -27,14 +27,15 @@ namespace vke {
 
   class TrianglePipeline final : public GraphicsPipeline {
   public:
-    TrianglePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    TrianglePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                      std::shared_ptr<RenderPass> renderPass);
 
     void render(const RenderInfo* renderInfo,
                 const std::vector<Triangle>* triangles);
 
   private:
-    void renderTriangle(const RenderInfo* renderInfo, const Triangle& triangle) const;
+    void renderTriangle(const RenderInfo* renderInfo,
+                        const Triangle& triangle) const;
   };
 } // vke
 

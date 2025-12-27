@@ -29,7 +29,7 @@ namespace vke {
 
   class FontPipeline final : public GraphicsPipeline {
   public:
-    FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    FontPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                  std::shared_ptr<RenderPass> renderPass,
                  VkDescriptorSetLayout fontDescriptorSetLayout);
 
@@ -38,7 +38,8 @@ namespace vke {
                 const std::shared_ptr<AssetManager>& assetManager);
 
   private:
-    void renderGlyph(const RenderInfo* renderInfo, const Glyph& glyph) const;
+    void renderGlyph(const RenderInfo* renderInfo,
+                     const Glyph& glyph) const;
   };
 } // vke
 

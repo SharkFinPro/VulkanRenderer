@@ -6,10 +6,10 @@
 #include "../../../renderingManager/renderer2D/Renderer2D.h"
 
 namespace vke {
-  FontPipeline::FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  FontPipeline::FontPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              VkDescriptorSetLayout fontDescriptorSetLayout)
-    : GraphicsPipeline(logicalDevice)
+    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
