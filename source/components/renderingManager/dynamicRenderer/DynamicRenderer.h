@@ -17,6 +17,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderPass> getOffscreenRenderPass() const override;
 
+    [[nodiscard]] std::shared_ptr<RenderPass> getShadowRenderPass() const override;
+
     void beginSwapchainRendering(uint32_t imageIndex,
                                  VkExtent2D extent,
                                  std::shared_ptr<CommandBuffer> commandBuffer,

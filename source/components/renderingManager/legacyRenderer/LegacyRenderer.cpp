@@ -33,6 +33,16 @@ namespace vke {
     };
     m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, offscreenRenderPassConfig);
 
+    RenderPassConfig shadowRenderPassConfig {
+      .imageFormat = VK_FORMAT_D32_SFLOAT,
+      .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
+      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+      .hasColorAttachment = false,
+      .hasDepthAttachment = true,
+      .hasResolveAttachment = false
+    };
+    m_shadowRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowRenderPassConfig);
+
     m_swapchainFramebuffer = std::make_shared<Framebuffer>(
       m_logicalDevice,
       m_swapchainRenderTarget,
@@ -50,6 +60,11 @@ namespace vke {
   std::shared_ptr<RenderPass> LegacyRenderer::getOffscreenRenderPass() const
   {
     return m_offscreenRenderPass;
+  }
+
+  std::shared_ptr<RenderPass> LegacyRenderer::getShadowRenderPass() const
+  {
+    return m_shadowRenderPass;
   }
 
   void LegacyRenderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)

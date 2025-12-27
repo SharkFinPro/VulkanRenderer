@@ -135,7 +135,7 @@ void VulkanEngine::createComponents()
                                                           m_vulkanEngineOptions.USE_DOCKSPACE,
                                                           m_vulkanEngineOptions.SCENE_VIEW_NAME, m_assetManager);
 
-  m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer()->getSwapchainRenderPass(),
+  m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer(),
                                                         m_lightingManager, m_mousePicker,
                                                         m_assetManager->getObjectDescriptorSetLayout(),
                                                         m_assetManager->getFontDescriptorSetLayout(),

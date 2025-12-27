@@ -25,6 +25,8 @@ namespace vke {
 
     [[nodiscard]] virtual std::shared_ptr<RenderPass> getOffscreenRenderPass() const = 0;
 
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowRenderPass() const = 0;
+
     [[nodiscard]] virtual VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
 
     virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
