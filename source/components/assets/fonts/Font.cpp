@@ -10,6 +10,7 @@
 constexpr uint32_t MAX_ASCII_CODE = 255;
 
 namespace vke {
+
   Font::Font(std::shared_ptr<LogicalDevice> logicalDevice,
              const std::string& fileName,
              const uint32_t fontSize,
@@ -221,4 +222,5 @@ namespace vke {
       return descriptorWrites;
     });
   }
+
 } // vke
