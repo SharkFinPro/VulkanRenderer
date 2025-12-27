@@ -12,7 +12,8 @@ namespace vke {
               float ambient,
               float diffuse,
               float specular,
-              const VkCommandPool& commandPool);
+              const VkCommandPool& commandPool,
+              const std::shared_ptr<Renderer>& renderer);
 
     [[nodiscard]] glm::vec3 getDirection() const;
     [[nodiscard]] float getConeAngle() const;

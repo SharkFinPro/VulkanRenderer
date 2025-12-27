@@ -21,7 +21,8 @@ namespace vke {
                float specular,
                const VkCommandPool& commandPool,
                VkDescriptorPool descriptorPool,
-               VkDescriptorSetLayout descriptorSetLayout);
+               VkDescriptorSetLayout descriptorSetLayout,
+               const std::shared_ptr<Renderer>& renderer);
 
     [[nodiscard]] LightType getLightType() const override;
 

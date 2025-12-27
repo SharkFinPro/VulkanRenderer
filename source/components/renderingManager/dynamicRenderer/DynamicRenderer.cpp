@@ -1,10 +1,9 @@
 #include "DynamicRenderer.h"
-#include "ImageResource.h"
-#include "RenderTarget.h"
+#include "../ImageResource.h"
+#include "../RenderTarget.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/lights/Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../window/SwapChain.h"
 #include <backends/imgui_impl_vulkan.h>
 
@@ -13,45 +12,27 @@ namespace vke {
   DynamicRenderer::DynamicRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                    const std::shared_ptr<SwapChain>& swapChain,
                                    VkCommandPool commandPool)
-    : Renderer(logicalDevice, commandPool)
-  {
-    createSampler();
+    : Renderer(logicalDevice, swapChain, commandPool)
+  {}
 
-    createSwapchainRenderTarget(swapChain);
-  }
-
-  DynamicRenderer::~DynamicRenderer()
-  {
-    m_logicalDevice->destroySampler(m_sampler);
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getRenderPass() const
+  std::shared_ptr<RenderPass> DynamicRenderer::getSwapchainRenderPass() const
   {
     return nullptr;
   }
 
-  VkDescriptorSet DynamicRenderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
+  std::shared_ptr<RenderPass> DynamicRenderer::getOffscreenRenderPass() const
   {
-    if (!m_offscreenRenderTarget)
-    {
-      return VK_NULL_HANDLE;
-    }
-
-    return m_offscreenRenderTarget->getResolveImageResource(imageIndex).getDescriptorSet();
+    return nullptr;
   }
 
-  void DynamicRenderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain> swapChain)
+  std::shared_ptr<RenderPass> DynamicRenderer::getShadowRenderPass() const
   {
-    m_swapchainRenderTarget.reset();
-
-    createSwapchainRenderTarget(swapChain);
+    return nullptr;
   }
 
-  void DynamicRenderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
+  std::shared_ptr<RenderPass> DynamicRenderer::getShadowCubeRenderPass() const
   {
-    m_offscreenRenderTarget.reset();
-
-    createOffscreenRenderTarget(offscreenViewportExtent);
+    return nullptr;
   }
 
   void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
@@ -196,62 +177,6 @@ namespace vke {
                                            const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->endRendering();
-  }
-
-  void DynamicRenderer::createSampler()
-  {
-    constexpr VkSamplerCreateInfo samplerInfo {
-      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .magFilter = VK_FILTER_LINEAR,
-      .minFilter = VK_FILTER_LINEAR,
-      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-      .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .mipLodBias = 0.0f,
-      .anisotropyEnable = VK_FALSE,
-      .maxAnisotropy = 1.0f,
-      .compareEnable = VK_FALSE,
-      .compareOp = VK_COMPARE_OP_ALWAYS,
-      .minLod = 0.0f,
-      .maxLod = 0.0f,
-      .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-      .unnormalizedCoordinates = VK_FALSE
-    };
-
-    m_sampler = m_logicalDevice->createSampler(samplerInfo);
-  }
-
-  void DynamicRenderer::createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain)
-  {
-    ImageResourceConfig imageResourceConfig {
-      .logicalDevice = m_logicalDevice,
-      .extent = swapChain->getExtent(),
-      .commandPool = m_commandPool,
-      .colorFormat = swapChain->getImageFormat(),
-      .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .numSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
-    };
-
-    m_swapchainRenderTarget = std::make_unique<RenderTarget>(imageResourceConfig);
-  }
-
-  void DynamicRenderer::createOffscreenRenderTarget(const VkExtent2D extent)
-  {
-    ImageResourceConfig imageResourceConfig {
-      .logicalDevice = m_logicalDevice,
-      .extent = extent,
-      .commandPool = m_commandPool,
-      .colorFormat = VK_FORMAT_B8G8R8A8_UNORM,
-      .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .resolveFormat = VK_FORMAT_B8G8R8A8_UNORM,
-      .numSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-      .sampler = m_sampler
-    };
-
-    m_offscreenRenderTarget = std::make_unique<RenderTarget>(imageResourceConfig);
   }
 
   void DynamicRenderer::transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,

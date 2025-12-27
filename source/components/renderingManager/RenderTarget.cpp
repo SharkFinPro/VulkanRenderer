@@ -1,10 +1,9 @@
 #include "RenderTarget.h"
 #include "ImageResource.h"
 
-constexpr uint32_t NUM_IMAGES = 3;
-
 namespace vke {
   RenderTarget::RenderTarget(const ImageResourceConfig& imageResourceConfig)
+    : m_extent(imageResourceConfig.extent)
   {
     m_colorImageResources.reserve(NUM_IMAGES);
     m_depthImageResources.reserve(NUM_IMAGES);
@@ -22,9 +21,15 @@ namespace vke {
 
     for (int i = 0; i < NUM_IMAGES; ++i)
     {
-      m_colorImageResources.emplace_back(colorImageResourceConfig);
+      if (imageResourceConfig.colorFormat != VK_FORMAT_UNDEFINED)
+      {
+        m_colorImageResources.emplace_back(colorImageResourceConfig);
+      }
 
-      m_depthImageResources.emplace_back(depthImageResourceConfig);
+      if (imageResourceConfig.depthFormat != VK_FORMAT_UNDEFINED)
+      {
+        m_depthImageResources.emplace_back(depthImageResourceConfig);
+      }
 
       if (imageResourceConfig.resolveFormat != VK_FORMAT_UNDEFINED)
       {
@@ -46,5 +51,25 @@ namespace vke {
   ImageResource& RenderTarget::getResolveImageResource(const uint32_t imageIndex)
   {
     return m_resolveImageResources[imageIndex];
+  }
+
+  uint32_t RenderTarget::hasColorImageResource() const
+  {
+    return m_colorImageResources.size();
+  }
+
+  uint32_t RenderTarget::hasDepthImageResource() const
+  {
+    return m_depthImageResources.size();
+  }
+
+  uint32_t RenderTarget::hasResolveImageResource() const
+  {
+    return m_resolveImageResources.size();
+  }
+
+  VkExtent2D RenderTarget::getExtent() const
+  {
+    return m_extent;
   }
 } // vke

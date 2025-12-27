@@ -25,13 +25,14 @@ class GuiPipeline;
 class PointLight;
 class Pipeline;
 enum class PipelineType;
+class Renderer;
 class RenderObject;
 class SmokePipeline;
 
 class PipelineManager {
 public:
   PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass,
+                  const std::shared_ptr<Renderer>& renderer,
                   const std::shared_ptr<LightingManager>& lightingManager,
                   const std::shared_ptr<MousePicker>& mousePicker,
                   VkDescriptorSetLayout objectDescriptorSetLayout,
@@ -131,7 +132,8 @@ private:
   bool m_shouldDoDots;
 
   void createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
-                       VkDescriptorSetLayout fontDescriptorSetLayout);
+                       VkDescriptorSetLayout fontDescriptorSetLayout,
+                       const std::shared_ptr<Renderer>& renderer);
 
   void renderRenderObjects(const RenderInfo& renderInfo) const;
 

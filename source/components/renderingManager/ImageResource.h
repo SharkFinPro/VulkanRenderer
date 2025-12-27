@@ -25,6 +25,7 @@ namespace vke {
     VkFormat resolveFormat = VK_FORMAT_UNDEFINED;
     VkSampleCountFlagBits numSamples;
     VkSampler sampler = VK_NULL_HANDLE;
+    bool isCubeMap = false;
   };
 
   class ImageResource final {

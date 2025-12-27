@@ -76,35 +76,27 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     # Dynamic Renderer
     components/renderingManager/dynamicRenderer/DynamicRenderer.cpp
     components/renderingManager/dynamicRenderer/DynamicRenderer.h
-    components/renderingManager/dynamicRenderer/ImageResource.cpp
-    components/renderingManager/dynamicRenderer/ImageResource.h
-    components/renderingManager/dynamicRenderer/RenderTarget.cpp
-    components/renderingManager/dynamicRenderer/RenderTarget.h
 
     # Legacy Renderer
     components/renderingManager/legacyRenderer/LegacyRenderer.cpp
     components/renderingManager/legacyRenderer/LegacyRenderer.h
-
-    # Framebuffers
-    components/renderingManager/legacyRenderer/framebuffers/Framebuffer.cpp
-    components/renderingManager/legacyRenderer/framebuffers/Framebuffer.h
-    components/renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.cpp
-    components/renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.h
-    components/renderingManager/legacyRenderer/framebuffers/SwapchainFramebuffer.cpp
-    components/renderingManager/legacyRenderer/framebuffers/SwapchainFramebuffer.h
-
-    # Render Pass
-    components/renderingManager/legacyRenderer/renderPass/RenderPass.cpp
-    components/renderingManager/legacyRenderer/renderPass/RenderPass.h
+    components/renderingManager/legacyRenderer/Framebuffer.cpp
+    components/renderingManager/legacyRenderer/Framebuffer.h
+    components/renderingManager/legacyRenderer/RenderPass.cpp
+    components/renderingManager/legacyRenderer/RenderPass.h
 
     # Renderer2D
     components/renderingManager/renderer2D/Renderer2D.cpp
     components/renderingManager/renderer2D/Renderer2D.h
 
+  components/renderingManager/ImageResource.cpp
+  components/renderingManager/ImageResource.h
   components/renderingManager/Renderer.cpp
   components/renderingManager/Renderer.h
   components/renderingManager/RenderingManager.cpp
   components/renderingManager/RenderingManager.h
+  components/renderingManager/RenderTarget.cpp
+  components/renderingManager/RenderTarget.h
 
   # Windows
   components/window/SwapChain.cpp

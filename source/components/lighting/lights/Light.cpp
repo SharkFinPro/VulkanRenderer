@@ -1,5 +1,8 @@
 #include "Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
+#include "../../renderingManager/ImageResource.h"
+#include "../../renderingManager/Renderer.h"
+#include "../../renderingManager/RenderTarget.h"
 
 namespace vke {
 
@@ -12,11 +15,6 @@ Light::Light(const std::shared_ptr<LogicalDevice>& logicalDevice,
   : m_logicalDevice(logicalDevice), m_position(position), m_color(color), m_ambient(ambient), m_diffuse(diffuse),
     m_specular(specular)
 {}
-
-Light::~Light()
-{
-  destroyShadowMap();
-}
 
 glm::vec3 Light::getPosition() const
 {
@@ -70,12 +68,12 @@ void Light::setSpecular(const float specular)
 
 VkImage Light::getShadowMap() const
 {
-  return m_shadowMap;
+  return m_shadowMapRenderTarget->getDepthImageResource(0).getImage();
 }
 
 VkImageView Light::getShadowMapView() const
 {
-  return m_shadowMapView;
+  return m_shadowMapRenderTarget->getDepthImageResource(0).getImageView();
 }
 
 uint32_t Light::getShadowMapSize() const
@@ -88,10 +86,21 @@ bool Light::castsShadows() const
   return m_castsShadows;
 }
 
-void Light::destroyShadowMap()
+uint32_t Light::getRendererShadowMapID() const
 {
-  m_logicalDevice->destroyImage(m_shadowMap);
-  m_logicalDevice->destroyImageView(m_shadowMapView);
-  m_logicalDevice->freeMemory(m_shadowMapMemory);
+  return m_rendererShadowMapID;
+}
+
+std::shared_ptr<RenderTarget> Light::getShadowMapRenderTarget() const
+{
+  return m_shadowMapRenderTarget;
+}
+
+void Light::registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer)
+{
+  m_rendererShadowMapID = renderer->registerShadowMapRenderTarget(
+    m_shadowMapRenderTarget,
+    getLightType() == LightType::pointLight
+  );
 }
 } // namespace vke

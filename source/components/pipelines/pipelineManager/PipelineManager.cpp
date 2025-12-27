@@ -1,8 +1,4 @@
 #include "PipelineManager.h"
-#include "../../commandBuffer/CommandBuffer.h"
-#include "../../logicalDevice/LogicalDevice.h"
-#include "../../lighting/LightingManager.h"
-#include "../../mousePicker/MousePicker.h"
 
 #include "../implementations/common/PipelineTypes.h"
 
@@ -26,13 +22,19 @@
 #include "../implementations/GuiPipeline.h"
 #include "../implementations/SmokePipeline.h"
 
+#include "../../commandBuffer/CommandBuffer.h"
+#include "../../lighting/LightingManager.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../mousePicker/MousePicker.h"
+#include "../../renderingManager/Renderer.h"
+
 #include <imgui.h>
 #include <ranges>
 
 namespace vke {
 
 PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<RenderPass>& renderPass,
+                                 const std::shared_ptr<Renderer>& renderer,
                                  const std::shared_ptr<LightingManager>& lightingManager,
                                  const std::shared_ptr<MousePicker>& mousePicker,
                                  VkDescriptorSetLayout objectDescriptorSetLayout,
@@ -41,10 +43,10 @@ PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDe
                                  VkCommandPool commandPool,
                                  const bool shouldDoDots)
   : m_logicalDevice(logicalDevice), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
-    m_renderPass(renderPass), m_lightingManager(lightingManager), m_mousePicker(mousePicker),
+    m_renderPass(renderer->getSwapchainRenderPass()), m_lightingManager(lightingManager), m_mousePicker(mousePicker),
     m_shouldDoDots(shouldDoDots)
 {
-  createPipelines(objectDescriptorSetLayout, fontDescriptorSetLayout);
+  createPipelines(objectDescriptorSetLayout, fontDescriptorSetLayout, renderer);
 }
 
 void PipelineManager::createNewFrame()
@@ -228,7 +230,8 @@ void PipelineManager::renderFontPipeline(const RenderInfo* renderInfo,
 }
 
 void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
-                                      VkDescriptorSetLayout fontDescriptorSetLayout)
+                                      VkDescriptorSetLayout fontDescriptorSetLayout,
+                                      const std::shared_ptr<Renderer>& renderer)
 {
   m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
     m_logicalDevice, m_renderPass, objectDescriptorSetLayout,
@@ -283,10 +286,10 @@ void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetL
 
   m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
 
-  m_shadowPipeline = std::make_unique<ShadowPipeline>(m_logicalDevice, m_renderPass, objectDescriptorSetLayout);
+  m_shadowPipeline = std::make_unique<ShadowPipeline>(m_logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
 
   m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
-    m_logicalDevice, m_renderPass, objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
+    m_logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
 
   m_rectPipeline = std::make_unique<RectPipeline>(m_logicalDevice, m_renderPass);
 

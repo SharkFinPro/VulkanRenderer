@@ -1,6 +1,6 @@
 #include "ImageResource.h"
-#include "../../logicalDevice/LogicalDevice.h"
-#include "../../../utilities/Images.h"
+#include "../logicalDevice/LogicalDevice.h"
+#include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
 namespace vke {
@@ -56,20 +56,40 @@ namespace vke {
 
       if (config.imageResourceType == ImageResourceType::Color)
       {
-        imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+        imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        if (config.numSamples > VK_SAMPLE_COUNT_1_BIT)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+        }
+
+        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
       }
       else if (config.imageResourceType == ImageResourceType::Depth)
       {
         imageUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+        if (getFormat(config) == VK_FORMAT_D32_SFLOAT)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        }
       }
       else if (config.imageResourceType == ImageResourceType::Resolve)
       {
         imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
+        {
+          imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
       }
 
       Images::createImage(
         m_logicalDevice,
-        0,
+        config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
         config.extent.width,
         config.extent.height,
         1,
@@ -82,7 +102,7 @@ namespace vke {
         m_image,
         m_imageMemory,
         VK_IMAGE_TYPE_2D,
-        1
+        config.isCubeMap ? 6 : 1
       );
     }
 
@@ -106,8 +126,8 @@ namespace vke {
         getFormat(config),
         imageAspectFlags,
         1,
-        VK_IMAGE_VIEW_TYPE_2D,
-        1
+        config.isCubeMap ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D,
+        config.isCubeMap ? 6 : 1
       );
     }
 
@@ -128,14 +148,15 @@ namespace vke {
         imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       }
 
-      Images::transitionImageLayout(m_logicalDevice,
+      Images::transitionImageLayout(
+        m_logicalDevice,
         config.commandPool,
         m_image,
         getFormat(config),
         VK_IMAGE_LAYOUT_UNDEFINED,
         imageLayout,
         1,
-        1
+        config.isCubeMap ? 6 : 1
       );
     }
 

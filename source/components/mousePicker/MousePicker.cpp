@@ -1,9 +1,12 @@
 #include "MousePicker.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
+#include "../physicalDevice/PhysicalDevice.h"
 #include "../pipelines/implementations/common/PipelineTypes.h"
-#include "../renderingManager/legacyRenderer/framebuffers/StandardFramebuffer.h"
-#include "../renderingManager/legacyRenderer/renderPass/RenderPass.h"
+#include "../renderingManager/ImageResource.h"
+#include "../renderingManager/RenderTarget.h"
+#include "../renderingManager/legacyRenderer/Framebuffer.h"
+#include "../renderingManager/legacyRenderer/RenderPass.h"
 #include "../window/Window.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
@@ -18,9 +21,15 @@ MousePicker::MousePicker(const std::shared_ptr<LogicalDevice>& logicalDevice,
 {
   m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-  m_mousePickingRenderPass = std::make_shared<RenderPass>(m_logicalDevice, VK_FORMAT_R8G8B8A8_UNORM,
-                                                          VK_SAMPLE_COUNT_1_BIT,
-                                                          VK_IMAGE_LAYOUT_UNDEFINED);
+  RenderPassConfig mousePickingRenderPassConfig {
+    .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
+    .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
+    .finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    .hasColorAttachment = true,
+    .hasDepthAttachment = true,
+    .hasResolveAttachment = false
+  };
+  m_mousePickingRenderPass = std::make_shared<RenderPass>(m_logicalDevice, mousePickingRenderPassConfig);
 
   m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(m_logicalDevice, m_mousePickingRenderPass,
                                                                   objectDescriptorSetLayout);
@@ -45,9 +54,27 @@ void MousePicker::recreateFramebuffer(const VkExtent2D viewportExtent)
 {
   m_viewportExtent = viewportExtent;
 
+  m_renderTarget.reset();
+
+  ImageResourceConfig imageResourceConfig {
+    .logicalDevice = m_logicalDevice,
+    .extent = m_viewportExtent,
+    .commandPool = m_commandPool,
+    .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
+    .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
+    .numSamples = VK_SAMPLE_COUNT_1_BIT
+  };
+
+  m_renderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+
   m_mousePickingFramebuffer.reset();
-  m_mousePickingFramebuffer = std::make_shared<StandardFramebuffer>(m_logicalDevice, m_commandPool, m_mousePickingRenderPass,
-                                                                    m_viewportExtent, true);
+
+  m_mousePickingFramebuffer = std::make_shared<Framebuffer>(
+    m_logicalDevice,
+    m_renderTarget,
+    m_mousePickingRenderPass,
+    m_viewportExtent
+  );
 }
 
 void MousePicker::doMousePicking(const uint32_t imageIndex,
@@ -182,7 +209,7 @@ uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX, con
     .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
     .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-    .image = m_mousePickingFramebuffer->getColorImage(),
+    .image = m_renderTarget->getColorImageResource(0).getImage(),
     .subresourceRange {
       .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
       .baseMipLevel = 0,
@@ -202,8 +229,36 @@ uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX, con
     1, &barrier
   );
 
-  Images::copyImageToBuffer(m_mousePickingFramebuffer->getColorImage(), { mouseX, mouseY, 0 },
+  Images::copyImageToBuffer(m_renderTarget->getColorImageResource(0).getImage(), { mouseX, mouseY, 0 },
                             { 1, 1, 1 }, commandBuffer, m_stagingBuffer);
+
+  const VkImageMemoryBarrier barrierBack {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+    .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+    .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    .image = m_renderTarget->getColorImageResource(0).getImage(),
+    .subresourceRange {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .baseMipLevel = 0,
+      .levelCount = 1,
+      .baseArrayLayer = 0,
+      .layerCount = 1
+    }
+  };
+
+  vkCmdPipelineBarrier(
+    commandBuffer,
+    VK_PIPELINE_STAGE_TRANSFER_BIT,
+    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    0,
+    0, nullptr,
+    0, nullptr,
+    1, &barrierBack
+  );
 
   Buffers::endSingleTimeCommands(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
 
