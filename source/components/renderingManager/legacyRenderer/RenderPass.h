@@ -25,7 +25,7 @@ namespace vke {
     std::vector<VkAttachmentReference> depthAttachmentReferences;
     std::vector<VkAttachmentReference> resolveAttachmentReferences;
 
-    VkSubpassDescription createSubpass() const
+    [[nodiscard]] VkSubpassDescription createSubpass() const
     {
       return {
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
