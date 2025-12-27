@@ -6,8 +6,9 @@
 
 namespace vke {
 
-  SwapChain::SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice, const std::shared_ptr<Window>& window)
-    : m_logicalDevice(logicalDevice), m_window(window)
+  SwapChain::SwapChain(std::shared_ptr<LogicalDevice> logicalDevice,
+                       std::shared_ptr<Window> window)
+    : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window))
   {
     createSwapChain();
     createImageViews();

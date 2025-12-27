@@ -13,7 +13,11 @@ namespace vke {
 
   class Window {
   public:
-    Window(int width, int height, const char* title, const std::shared_ptr<Instance>& instance, bool fullscreen,
+    Window(int width,
+           int height,
+           const char* title,
+           const std::shared_ptr<Instance>& instance,
+           bool fullscreen,
            VulkanEngine* engine);
     ~Window();
 
@@ -21,7 +25,8 @@ namespace vke {
 
     void update();
 
-    void getFramebufferSize(int* width, int* height) const;
+    void getFramebufferSize(int* width,
+                            int* height) const;
 
     [[nodiscard]] VkSurfaceKHR& getSurface();
 
@@ -29,9 +34,11 @@ namespace vke {
 
     [[nodiscard]] bool buttonIsPressed(int button) const;
 
-    void getCursorPos(double& xpos, double& ypos) const;
+    void getCursorPos(double& xpos,
+                      double& ypos) const;
 
-    void getPreviousCursorPos(double& xpos, double& ypos) const;
+    void getPreviousCursorPos(double& xpos,
+                              double& ypos) const;
 
     void initImGui();
 
@@ -39,11 +46,17 @@ namespace vke {
 
     [[nodiscard]] float getContentScale() const;
 
-    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+    static void scrollCallback(GLFWwindow* window,
+                               double xoffset,
+                               double yoffset);
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+    static void framebufferResizeCallback(GLFWwindow* window,
+                                          int width,
+                                          int height);
 
-    static void contentScaleCallback(GLFWwindow* window, float xscale, float yscale);
+    static void contentScaleCallback(GLFWwindow* window,
+                                     float xscale,
+                                     float yscale);
 
   private:
     VulkanEngine* m_engine;
@@ -65,7 +78,11 @@ namespace vke {
 
     float m_contentScale = 1.0f;
 
-    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void keyCallback(GLFWwindow* window,
+                            int key,
+                            int scancode,
+                            int action,
+                            int mods);
   };
 
 } // namespace vke

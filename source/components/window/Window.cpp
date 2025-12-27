@@ -8,8 +8,12 @@
 
 namespace vke {
 
-  Window::Window(const int width, const int height, const char* title, const std::shared_ptr<Instance>& instance,
-                 const bool fullscreen, VulkanEngine* engine)
+  Window::Window(const int width,
+                 const int height,
+                 const char* title,
+                 const std::shared_ptr<Instance>& instance,
+                 const bool fullscreen,
+                 VulkanEngine* engine)
     : m_engine(engine), m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -81,7 +85,8 @@ namespace vke {
     glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
   }
 
-  void Window::getFramebufferSize(int* width, int* height) const
+  void Window::getFramebufferSize(int* width,
+                                  int* height) const
   {
     glfwGetFramebufferSize(m_window, width, height);
   }
@@ -106,13 +111,15 @@ namespace vke {
     return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
   }
 
-  void Window::getCursorPos(double& xpos, double& ypos) const
+  void Window::getCursorPos(double& xpos,
+                            double& ypos) const
   {
     xpos = m_mouseX;
     ypos = m_mouseY;
   }
 
-  void Window::getPreviousCursorPos(double& xpos, double& ypos) const
+  void Window::getPreviousCursorPos(double& xpos,
+                                    double& ypos) const
   {
     xpos = m_previousMouseX;
     ypos = m_previousMouseY;
@@ -141,19 +148,25 @@ namespace vke {
     return m_contentScale;
   }
 
-  void Window::scrollCallback(GLFWwindow* window, [[maybe_unused]] double xoffset, const double yoffset)
+  void Window::scrollCallback(GLFWwindow* window,
+                              [[maybe_unused]] double xoffset,
+                              const double yoffset)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
     app->m_scroll = yoffset;
   }
 
-  void Window::framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
+  void Window::framebufferResizeCallback(GLFWwindow* window,
+                                         [[maybe_unused]] int width,
+                                         [[maybe_unused]] int height)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
     app->m_engine->getRenderingManager()->markFramebufferResized();
   }
 
-  void Window::contentScaleCallback(GLFWwindow* window, const float xscale, [[maybe_unused]] float yscale)
+  void Window::contentScaleCallback(GLFWwindow* window,
+                                    const float xscale,
+                                    [[maybe_unused]] float yscale)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
@@ -166,7 +179,10 @@ namespace vke {
     app->m_engine->getImGuiInstance()->markDockNeedsUpdate();
   }
 
-  void Window::keyCallback(GLFWwindow* window, const int key, [[maybe_unused]] int scancode, const int action,
+  void Window::keyCallback(GLFWwindow* window,
+                           const int key,
+                           [[maybe_unused]] int scancode,
+                           const int action,
                            [[maybe_unused]] int mods)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
