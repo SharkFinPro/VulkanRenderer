@@ -6,11 +6,21 @@
 
 namespace vke::Images {
 
-    void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkImageCreateFlags flags,
-                     const uint32_t width, const uint32_t height, const uint32_t depth, const uint32_t mipLevels,
-                     const VkSampleCountFlagBits numSamples, const VkFormat format, const VkImageTiling tiling,
-                     const VkImageUsageFlags usage, const VkMemoryPropertyFlags properties, VkImage& image,
-                     VkDeviceMemory& imageMemory, const VkImageType imageType, const uint32_t layerCount)
+    void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                     const VkImageCreateFlags flags,
+                     const uint32_t width,
+                     const uint32_t height,
+                     const uint32_t depth,
+                     const uint32_t mipLevels,
+                     const VkSampleCountFlagBits numSamples,
+                     const VkFormat format,
+                     const VkImageTiling tiling,
+                     const VkImageUsageFlags usage,
+                     const VkMemoryPropertyFlags properties,
+                     VkImage& image,
+                     VkDeviceMemory& imageMemory,
+                     const VkImageType imageType,
+                     const uint32_t layerCount)
     {
       const VkImageCreateInfo imageCreateInfo {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -46,9 +56,14 @@ namespace vke::Images {
       logicalDevice->bindImageMemory(image, imageMemory);
     }
 
-    void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
-                               const VkImage image, const VkFormat format, const VkImageLayout oldLayout,
-                               const VkImageLayout newLayout, const uint32_t mipLevels, const uint32_t layerCount)
+    void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                               const VkCommandPool& commandPool,
+                               const VkImage image,
+                               const VkFormat format,
+                               const VkImageLayout oldLayout,
+                               const VkImageLayout newLayout,
+                               const uint32_t mipLevels,
+                               const uint32_t layerCount)
     {
       const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
 
@@ -157,8 +172,12 @@ namespace vke::Images {
       Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
     }
 
-    void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
-                           const VkBuffer buffer, const VkImage image, const uint32_t width, const uint32_t height,
+    void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const VkCommandPool& commandPool,
+                           const VkBuffer buffer,
+                           const VkImage image,
+                           const uint32_t width,
+                           const uint32_t height,
                            const uint32_t depth)
     {
       const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
@@ -189,8 +208,11 @@ namespace vke::Images {
       Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
     }
 
-    void copyImageToBuffer(const VkImage& image, const VkOffset3D offset, const VkExtent3D extent,
-                           VkCommandBuffer commandBuffer, VkBuffer stagingBuffer)
+    void copyImageToBuffer(const VkImage& image,
+                           const VkOffset3D offset,
+                           const VkExtent3D extent,
+                           VkCommandBuffer commandBuffer,
+                           VkBuffer stagingBuffer)
     {
       const VkBufferImageCopy region{
         .bufferOffset = 0,
@@ -216,9 +238,13 @@ namespace vke::Images {
       );
     }
 
-    VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkImage image,
-                                const VkFormat format, const VkImageAspectFlags aspectFlags, const uint32_t mipLevels,
-                                const VkImageViewType viewType, const uint32_t layerCount)
+    VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                const VkImage image,
+                                const VkFormat format,
+                                const VkImageAspectFlags aspectFlags,
+                                const uint32_t mipLevels,
+                                const VkImageViewType viewType,
+                                const uint32_t layerCount)
     {
       const VkImageViewCreateInfo imageViewCreateInfo {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

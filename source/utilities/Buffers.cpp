@@ -5,8 +5,11 @@
 
 namespace vke::Buffers {
 
-    void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkDeviceSize size,
-                      const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, VkBuffer& buffer,
+    void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                      const VkDeviceSize size,
+                      const VkBufferUsageFlags usage,
+                      const VkMemoryPropertyFlags properties,
+                      VkBuffer& buffer,
                       VkDeviceMemory& bufferMemory)
     {
       const VkBufferCreateInfo bufferInfo {
@@ -31,8 +34,12 @@ namespace vke::Buffers {
       logicalDevice->bindBufferMemory(buffer, bufferMemory);
     }
 
-    void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
-                    const VkQueue& queue, const VkBuffer srcBuffer, const VkBuffer dstBuffer, const VkDeviceSize size)
+    void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                    const VkCommandPool& commandPool,
+                    const VkQueue& queue,
+                    const VkBuffer srcBuffer,
+                    const VkBuffer dstBuffer,
+                    const VkDeviceSize size)
     {
       const VkCommandBuffer commandBuffer = beginSingleTimeCommands(logicalDevice, commandPool);
 
@@ -44,7 +51,9 @@ namespace vke::Buffers {
       endSingleTimeCommands(logicalDevice, commandPool, queue, commandBuffer);
     }
 
-    void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+    void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                       VkBuffer& buffer,
+                       VkDeviceMemory& bufferMemory)
     {
       logicalDevice->freeMemory(bufferMemory);
 
@@ -77,8 +86,10 @@ namespace vke::Buffers {
       return commandBuffer;
     }
 
-    void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool commandPool,
-                               const VkQueue queue, VkCommandBuffer commandBuffer)
+    void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                               const VkCommandPool commandPool,
+                               const VkQueue queue,
+                               VkCommandBuffer commandBuffer)
     {
       if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
       {
