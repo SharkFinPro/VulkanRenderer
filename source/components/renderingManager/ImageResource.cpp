@@ -84,7 +84,7 @@ namespace vke {
 
       Images::createImage(
         m_logicalDevice,
-        0,
+        config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
         config.extent.width,
         config.extent.height,
         1,
@@ -97,7 +97,7 @@ namespace vke {
         m_image,
         m_imageMemory,
         VK_IMAGE_TYPE_2D,
-        1
+        config.isCubeMap ? 6 : 1
       );
     }
 
@@ -121,8 +121,8 @@ namespace vke {
         getFormat(config),
         imageAspectFlags,
         1,
-        VK_IMAGE_VIEW_TYPE_2D,
-        1
+        config.isCubeMap ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D,
+        config.isCubeMap ? 6 : 1
       );
     }
 
@@ -151,7 +151,7 @@ namespace vke {
         VK_IMAGE_LAYOUT_UNDEFINED,
         imageLayout,
         1,
-        1
+        config.isCubeMap ? 6 : 1
       );
     }
 
