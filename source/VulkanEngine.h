@@ -71,7 +71,7 @@ namespace vke {
 
     std::shared_ptr<Camera> m_camera;
 
-    uint32_t m_currentFrame;
+    uint32_t m_currentFrame = 0;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 

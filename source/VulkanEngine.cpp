@@ -16,7 +16,7 @@
 namespace vke {
 
   VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
-    : m_vulkanEngineOptions(vulkanEngineOptions), m_currentFrame(0)
+    : m_vulkanEngineOptions(vulkanEngineOptions)
   {
     glfwInit();
 
