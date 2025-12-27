@@ -4,11 +4,10 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-namespace vke {
+constexpr uint32_t MAX_SHADOW_MAPS = 16;
 
-  constexpr uint32_t MAX_SHADOW_MAPS = 16;
+namespace vke::LayoutBindings {
 
-namespace LayoutBindings {
   constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 0,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -241,8 +240,7 @@ namespace LayoutBindings {
       .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
     }
   };
-}
 
-} // namespace vke
+} // namespace vke::LayoutBindings
 
 #endif //VKE_LAYOUTBINDINGS_H

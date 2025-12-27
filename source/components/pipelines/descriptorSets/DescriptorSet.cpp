@@ -4,77 +4,77 @@
 
 namespace vke {
 
-DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             VkDescriptorPool descriptorPool,
-                             const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
-  : m_logicalDevice(logicalDevice)
-{
-  createDescriptorSetLayout(layoutBindings);
-
-  allocateDescriptorSets(descriptorPool);
-}
-
-DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice> &logicalDevice,
-                             VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout descriptorSetLayout)
-  : m_logicalDevice(logicalDevice), m_descriptorSetLayout(descriptorSetLayout)
-{
-  allocateDescriptorSets(descriptorPool);
-}
-
-DescriptorSet::~DescriptorSet()
-{
-  if (m_ownsLayout)
+  DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                               VkDescriptorPool descriptorPool,
+                               const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
+    : m_logicalDevice(logicalDevice)
   {
-    m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
-  }
-}
+    createDescriptorSetLayout(layoutBindings);
 
-void DescriptorSet::updateDescriptorSets(const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const
-{
-  for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+    allocateDescriptorSets(descriptorPool);
+  }
+
+  DescriptorSet::DescriptorSet(const std::shared_ptr<LogicalDevice> &logicalDevice,
+                               VkDescriptorPool descriptorPool,
+                               VkDescriptorSetLayout descriptorSetLayout)
+    : m_logicalDevice(logicalDevice), m_descriptorSetLayout(descriptorSetLayout)
   {
-    std::vector<VkWriteDescriptorSet> writeDescriptorSets = getWriteDescriptorSets(m_descriptorSets[i], i);
-
-    m_logicalDevice->updateDescriptorSets(writeDescriptorSets.size(), writeDescriptorSets.data());
+    allocateDescriptorSets(descriptorPool);
   }
-}
 
-VkDescriptorSetLayout DescriptorSet::getDescriptorSetLayout() const
-{
-  return m_descriptorSetLayout;
-}
+  DescriptorSet::~DescriptorSet()
+  {
+    if (m_ownsLayout)
+    {
+      m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+    }
+  }
 
-VkDescriptorSet& DescriptorSet::getDescriptorSet(const size_t frame)
-{
-  return m_descriptorSets[frame];
-}
+  void DescriptorSet::updateDescriptorSets(const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const
+  {
+    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+    {
+      std::vector<VkWriteDescriptorSet> writeDescriptorSets = getWriteDescriptorSets(m_descriptorSets[i], i);
 
-void DescriptorSet::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
-{
-  const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-    .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
-    .pBindings = layoutBindings.data()
-  };
+      m_logicalDevice->updateDescriptorSets(writeDescriptorSets.size(), writeDescriptorSets.data());
+    }
+  }
 
-  m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+  VkDescriptorSetLayout DescriptorSet::getDescriptorSetLayout() const
+  {
+    return m_descriptorSetLayout;
+  }
 
-  m_ownsLayout = true;
-}
+  VkDescriptorSet& DescriptorSet::getDescriptorSet(const size_t frame)
+  {
+    return m_descriptorSets[frame];
+  }
 
-void DescriptorSet::allocateDescriptorSets(VkDescriptorPool descriptorPool)
-{
-  const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
-  const VkDescriptorSetAllocateInfo allocateInfo {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptorPool,
-    .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
-    .pSetLayouts = layouts.data()
-  };
+  void DescriptorSet::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
+  {
+    const VkDescriptorSetLayoutCreateInfo globalLayoutCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
+      .pBindings = layoutBindings.data()
+    };
 
-  m_descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-  m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
-}
+    m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+
+    m_ownsLayout = true;
+  }
+
+  void DescriptorSet::allocateDescriptorSets(VkDescriptorPool descriptorPool)
+  {
+    const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
+    const VkDescriptorSetAllocateInfo allocateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      .descriptorPool = descriptorPool,
+      .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
+      .pSetLayouts = layouts.data()
+    };
+
+    m_descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
+    m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
+  }
 
 } // namespace vke

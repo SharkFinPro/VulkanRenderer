@@ -7,31 +7,31 @@
 
 namespace vke {
 
-class LogicalDevice;
+  class LogicalDevice;
 
-class UniformBuffer {
-public:
-  UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDeviceSize bufferSize);
-  ~UniformBuffer();
+  class UniformBuffer {
+  public:
+    UniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkDeviceSize bufferSize);
+    ~UniformBuffer();
 
-  [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
+    [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
-  [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet, size_t frame) const;
+    [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding, const VkDescriptorSet& dstSet, size_t frame) const;
 
-  void update(uint32_t frame, const void* data) const;
+    void update(uint32_t frame, const void* data) const;
 
-protected:
-  std::shared_ptr<LogicalDevice> m_logicalDevice;
+  protected:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-  std::vector<VkBuffer> m_uniformBuffers;
-  std::vector<VkDeviceMemory> m_uniformBuffersMemory;
-  std::vector<void*> m_uniformBuffersMapped;
+    std::vector<VkBuffer> m_uniformBuffers;
+    std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+    std::vector<void*> m_uniformBuffersMapped;
 
-  std::vector<VkDescriptorBufferInfo> m_bufferInfos;
-  VkDescriptorPoolSize m_poolSize{};
+    std::vector<VkDescriptorBufferInfo> m_bufferInfos;
+    VkDescriptorPoolSize m_poolSize{};
 
-  VkDeviceSize m_bufferSize;
-};
+    VkDeviceSize m_bufferSize;
+  };
 
 } // namespace vke
 
