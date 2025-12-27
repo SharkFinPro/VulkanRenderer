@@ -158,7 +158,7 @@ namespace vke {
     m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, offscreenRenderPassConfig);
 
     RenderPassConfig shadowRenderPassConfig {
-      .imageFormat = VK_FORMAT_D32_SFLOAT,
+      .depthFormat = VK_FORMAT_D32_SFLOAT,
       .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
       .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
       .hasColorAttachment = false,

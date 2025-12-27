@@ -12,6 +12,7 @@ namespace vke {
 
   struct RenderPassConfig {
     VkFormat imageFormat;
+    VkFormat depthFormat = VK_FORMAT_UNDEFINED;
     VkSampleCountFlagBits msaaSamples;
     VkImageLayout finalLayout;
     bool hasColorAttachment;

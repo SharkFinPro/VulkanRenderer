@@ -137,10 +137,14 @@ namespace vke {
   VkAttachmentDescription RenderPass::getDepthAttachmentDescription(const RenderPassConfig& renderPassConfig) const
   {
     const VkAttachmentDescription depthAttachmentDescription {
-      .format = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
+      .format = renderPassConfig.depthFormat != VK_FORMAT_UNDEFINED
+                ? renderPassConfig.depthFormat
+                : m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
       .samples = renderPassConfig.msaaSamples,
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .storeOp = renderPassConfig.finalLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+                 ? VK_ATTACHMENT_STORE_OP_STORE
+                 : VK_ATTACHMENT_STORE_OP_DONT_CARE,
       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
       .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
