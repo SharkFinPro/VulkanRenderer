@@ -204,7 +204,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
 set(VULKAN_ENGINE_SOURCES_UTILITIES
   utilities/Buffers.cpp
   utilities/Buffers.h
-  utilities/EventSystem.cpp
   utilities/EventSystem.h
   utilities/Images.cpp
   utilities/Images.h
