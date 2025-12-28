@@ -1,7 +1,4 @@
 #include "Window.h"
-#include "../../VulkanEngine.h"
-#include "../instance/Instance.h"
-#include <backends/imgui_impl_glfw.h>
 #include <stdexcept>
 
 namespace vke {
@@ -9,9 +6,7 @@ namespace vke {
   Window::Window(const int width,
                  const int height,
                  const char* title,
-                 std::shared_ptr<Instance> instance,
                  const bool fullscreen)
-    : m_instance(std::move(instance))
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -47,7 +42,9 @@ namespace vke {
     m_previousMouseX = m_mouseX;
     m_previousMouseY = m_mouseY;
 
-    m_surface = m_instance->createSurface(m_window);
+    float xscale;
+    glfwGetWindowContentScale(m_window, &xscale, nullptr);
+    m_contentScale = xscale;
 
     glfwSetKeyCallback(m_window, keyCallback);
 
@@ -56,8 +53,6 @@ namespace vke {
 
   Window::~Window()
   {
-    m_instance->destroySurface(m_surface);
-
     glfwDestroyWindow(m_window);
   }
 
@@ -88,11 +83,6 @@ namespace vke {
     glfwGetFramebufferSize(m_window, width, height);
   }
 
-  VkSurfaceKHR& Window::getSurface()
-  {
-    return m_surface;
-  }
-
   bool Window::keyIsPressed(const int key) const
   {
     if (const auto keyNode = m_keysPressed.find(key); keyNode != m_keysPressed.end())
@@ -120,19 +110,6 @@ namespace vke {
   {
     xpos = m_previousMouseX;
     ypos = m_previousMouseY;
-  }
-
-  void Window::initImGui()
-  {
-    ImGui_ImplGlfw_InitForVulkan(m_window, true);
-
-    float xscale, yscale;
-    glfwGetWindowContentScale(m_window, &xscale, &yscale);
-
-    ImGui::GetStyle().ScaleAllSizes(xscale);
-    ImGui::GetIO().FontGlobalScale = xscale;
-
-    m_contentScale = xscale;
   }
 
   double Window::getScroll() const
@@ -169,13 +146,14 @@ namespace vke {
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-    ImGui::GetStyle().ScaleAllSizes(1.0f / app->m_contentScale);
-    ImGui::GetStyle().ScaleAllSizes(xscale);
-    ImGui::GetIO().FontGlobalScale = xscale;
-
     app->m_contentScale = xscale;
 
     app->emit(ContentScaleEvent{xscale, yscale});
+  }
+
+  GLFWwindow* Window::getWindow() const
+  {
+    return m_window;
   }
 
   void Window::keyCallback(GLFWwindow* window,

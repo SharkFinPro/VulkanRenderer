@@ -10,6 +10,7 @@
 namespace vke {
 
   class Instance;
+  class Surface;
 
   #ifdef __APPLE__
   constexpr std::array<const char*, 3> deviceExtensions {
@@ -45,7 +46,8 @@ namespace vke {
 
   class PhysicalDevice {
   public:
-    PhysicalDevice(const std::shared_ptr<Instance>& instance, VkSurfaceKHR& surface);
+    PhysicalDevice(const std::shared_ptr<Instance>& instance,
+                   std::shared_ptr<Surface> surface);
 
     [[nodiscard]] QueueFamilyIndices getQueueFamilies() const;
 
@@ -75,7 +77,7 @@ namespace vke {
   private:
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
-    VkSurfaceKHR& m_surface;
+    std::shared_ptr<Surface> m_surface;
 
     VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 

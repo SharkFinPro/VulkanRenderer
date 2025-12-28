@@ -19,6 +19,7 @@ namespace vke {
   class PipelineManager;
   struct RenderInfo;
   class RenderingManager;
+  class Surface;
   class Window;
 
   class VulkanEngine {
@@ -51,6 +52,7 @@ namespace vke {
     VulkanEngineOptions m_vulkanEngineOptions;
 
     std::shared_ptr<Instance> m_instance;
+    std::shared_ptr<Surface> m_surface;
     std::shared_ptr<Window> m_window;
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
     std::shared_ptr<LogicalDevice> m_logicalDevice;

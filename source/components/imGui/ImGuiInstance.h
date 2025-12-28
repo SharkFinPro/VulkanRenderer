@@ -69,9 +69,13 @@ namespace vke {
     ImGuiID m_rightDock = 0;
     ImGuiID m_centerDock = 0;
 
+    float m_contentScale = 1.0f;
+
     void createDescriptorPool(uint32_t maxImGuiTextures);
 
     void markDockNeedsUpdate();
+
+    void initFromWindow(const std::shared_ptr<Window>& window);
   };
 
 } // namespace vke

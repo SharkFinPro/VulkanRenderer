@@ -10,7 +10,6 @@
 namespace vke {
 
   class VulkanEngine;
-  class Instance;
 
   struct ContentScaleEvent {
     float xscale;
@@ -39,7 +38,6 @@ namespace vke {
     Window(int width,
            int height,
            const char* title,
-           std::shared_ptr<Instance> instance,
            bool fullscreen);
     ~Window();
 
@@ -50,8 +48,6 @@ namespace vke {
     void getFramebufferSize(int* width,
                             int* height) const;
 
-    [[nodiscard]] VkSurfaceKHR& getSurface();
-
     [[nodiscard]] bool keyIsPressed(int key) const;
 
     [[nodiscard]] bool buttonIsPressed(int button) const;
@@ -61,8 +57,6 @@ namespace vke {
 
     void getPreviousCursorPos(double& xpos,
                               double& ypos) const;
-
-    void initImGui();
 
     [[nodiscard]] double getScroll() const;
 
@@ -80,12 +74,10 @@ namespace vke {
                                      float xscale,
                                      float yscale);
 
+    [[nodiscard]] GLFWwindow* getWindow() const;
+
   private:
     GLFWwindow* m_window;
-
-    std::shared_ptr<Instance> m_instance;
-
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
     double m_previousMouseX;
     double m_previousMouseY;

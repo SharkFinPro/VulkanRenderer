@@ -9,6 +9,7 @@
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../lighting/LightingManager.h"
 #include "../window/SwapChain.h"
+#include "../window/Window.h"
 #include "../mousePicker/MousePicker.h"
 #include "../pipelines/implementations/GuiPipeline.h"
 #include <GLFW/glfw3.h>
@@ -18,6 +19,7 @@
 namespace vke {
 
   RenderingManager::RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                                     std::shared_ptr<Surface> surface,
                                      std::shared_ptr<Window> window,
                                      std::shared_ptr<MousePicker> mousePicker,
                                      VkCommandPool commandPool,
@@ -25,6 +27,7 @@ namespace vke {
                                      const char* sceneViewName,
                                      std::shared_ptr<AssetManager> assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
+      m_surface(std::move(surface)),
       m_window(std::move(window)),
       m_mousePicker(std::move(mousePicker)),
       m_commandPool(commandPool),
@@ -35,7 +38,7 @@ namespace vke {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window);
+    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
 
     // m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
     m_renderer = std::make_shared<DynamicRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
@@ -136,7 +139,7 @@ namespace vke {
 
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window);
+    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
 
     m_renderer->resetSwapchainImageResources(m_swapChain);
 

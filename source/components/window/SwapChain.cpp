@@ -1,4 +1,7 @@
 #include "SwapChain.h"
+#include "Surface.h"
+#include "Window.h"
+#include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../../utilities/Images.h"
 #include <limits>
@@ -7,10 +10,11 @@
 namespace vke {
 
   SwapChain::SwapChain(std::shared_ptr<LogicalDevice> logicalDevice,
-                       std::shared_ptr<Window> window)
-    : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window))
+                       const std::shared_ptr<Window>& window,
+                       const std::shared_ptr<Surface>& surface)
+    : m_logicalDevice(std::move(logicalDevice))
   {
-    createSwapChain();
+    createSwapChain(window, surface);
     createImageViews();
   }
 
@@ -50,7 +54,8 @@ namespace vke {
     return VK_PRESENT_MODE_FIFO_KHR;
   }
 
-  VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const
+  VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
+                                         const std::shared_ptr<Window>& window)
   {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
     {
@@ -58,7 +63,7 @@ namespace vke {
     }
 
     int width, height;
-    m_window->getFramebufferSize(&width, &height);
+    window->getFramebufferSize(&width, &height);
 
     const VkExtent2D actualExtent {
       .width = std::clamp(static_cast<uint32_t>(width),
@@ -81,13 +86,14 @@ namespace vke {
     return imageCountExceeded ? capabilities.maxImageCount : imageCount;
   }
 
-  void SwapChain::createSwapChain()
+  void SwapChain::createSwapChain(const std::shared_ptr<Window>& window,
+                                  const std::shared_ptr<Surface>& surface)
   {
     const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    const VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+    const VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, window);
     uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
     const auto indices = m_logicalDevice->getPhysicalDevice()->getQueueFamilies();
@@ -98,7 +104,7 @@ namespace vke {
 
     const VkSwapchainCreateInfoKHR createInfo {
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-      .surface = m_window->getSurface(),
+      .surface = surface->getSurface(),
       .minImageCount = imageCount,
       .imageFormat = surfaceFormat.format,
       .imageColorSpace = surfaceFormat.colorSpace,

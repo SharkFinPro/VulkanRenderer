@@ -99,6 +99,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/renderingManager/RenderTarget.h
 
   # Windows
+  components/window/Surface.cpp
+  components/window/Surface.h
   components/window/SwapChain.cpp
   components/window/SwapChain.h
   components/window/Window.cpp
