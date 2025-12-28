@@ -41,8 +41,6 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
 
-    void markFramebufferResized();
-
     [[nodiscard]] bool isSceneFocused() const;
 
     void recreateSwapChain();

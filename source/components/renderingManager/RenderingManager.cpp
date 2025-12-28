@@ -41,7 +41,7 @@ namespace vke {
     m_renderer = std::make_shared<DynamicRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
 
     m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
-      markFramebufferResized();
+      m_framebufferResized = true;
     });
   }
 
@@ -113,11 +113,6 @@ namespace vke {
   std::shared_ptr<Renderer> RenderingManager::getRenderer() const
   {
     return m_renderer;
-  }
-
-  void RenderingManager::markFramebufferResized()
-  {
-    m_framebufferResized = true;
   }
 
   bool RenderingManager::isSceneFocused() const
