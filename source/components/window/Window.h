@@ -22,7 +22,19 @@ namespace vke {
     int height;
   };
 
-  class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent> {
+  struct KeyCallbackEvent {
+    int key;
+    int scancode;
+    int action;
+    int mods;
+  };
+
+  struct ScrollEvent {
+    double xoffset;
+    double yoffset;
+  };
+
+  class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent> {
   public:
     Window(int width,
            int height,

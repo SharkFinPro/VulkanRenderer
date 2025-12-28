@@ -146,11 +146,13 @@ namespace vke {
   }
 
   void Window::scrollCallback(GLFWwindow* window,
-                              [[maybe_unused]] double xoffset,
+                              const double xoffset,
                               const double yoffset)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
     app->m_scroll = yoffset;
+
+    app->emit(ScrollEvent{xoffset, yoffset});
   }
 
   void Window::framebufferResizeCallback(GLFWwindow* window,
@@ -178,13 +180,15 @@ namespace vke {
 
   void Window::keyCallback(GLFWwindow* window,
                            const int key,
-                           [[maybe_unused]] int scancode,
+                           const int scancode,
                            const int action,
-                           [[maybe_unused]] int mods)
+                           const int mods)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
     app->m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
+
+    app->emit(KeyCallbackEvent{key, scancode, action, mods});
   }
 
 } // namespace vke
