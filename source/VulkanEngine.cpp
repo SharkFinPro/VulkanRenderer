@@ -108,7 +108,7 @@ namespace vke {
 
     m_window = std::make_shared<Window>(m_vulkanEngineOptions.WINDOW_WIDTH, m_vulkanEngineOptions.WINDOW_HEIGHT,
                                         m_vulkanEngineOptions.WINDOW_TITLE, m_instance,
-                                        m_vulkanEngineOptions.FULLSCREEN, this);
+                                        m_vulkanEngineOptions.FULLSCREEN);
 
     m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_window->getSurface());
 
