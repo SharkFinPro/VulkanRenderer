@@ -10,7 +10,6 @@
 namespace vke {
 
   class VulkanEngine;
-  class Instance;
 
   struct ContentScaleEvent {
     float xscale;
@@ -39,7 +38,6 @@ namespace vke {
     Window(int width,
            int height,
            const char* title,
-           std::shared_ptr<Instance> instance,
            bool fullscreen);
     ~Window();
 
@@ -80,8 +78,6 @@ namespace vke {
 
   private:
     GLFWwindow* m_window;
-
-    std::shared_ptr<Instance> m_instance;
 
     double m_previousMouseX;
     double m_previousMouseY;

@@ -6,9 +6,7 @@ namespace vke {
   Window::Window(const int width,
                  const int height,
                  const char* title,
-                 std::shared_ptr<Instance> instance,
                  const bool fullscreen)
-    : m_instance(std::move(instance))
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
