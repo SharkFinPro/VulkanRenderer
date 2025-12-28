@@ -23,11 +23,9 @@ namespace vke {
 
     ImGui::CreateContext();
 
-    window->initImGui();
+    ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
 
-    window->on<ContentScaleEvent>([this]([[maybe_unused]] const ContentScaleEvent& e) {
-      markDockNeedsUpdate();
-    });
+    initFromWindow(window);
 
     const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
@@ -275,5 +273,28 @@ namespace vke {
   void ImGuiInstance::markDockNeedsUpdate()
   {
     m_dockNeedsUpdate = true;
+  }
+
+  void ImGuiInstance::initFromWindow(const std::shared_ptr<Window>& window)
+  {
+    float xscale, yscale;
+    glfwGetWindowContentScale(window->getWindow(), &xscale, &yscale);
+
+    ImGui::GetStyle().ScaleAllSizes(xscale);
+    ImGui::GetIO().FontGlobalScale = xscale;
+
+    m_contentScale = xscale;
+
+    window->on<ContentScaleEvent>([this](const ContentScaleEvent& e) {
+      ImGui::GetStyle().ScaleAllSizes(1.0f / m_contentScale);
+      ImGui::GetStyle().ScaleAllSizes(e.xscale);
+      ImGui::GetIO().FontGlobalScale = e.xscale;
+
+      m_contentScale = e.xscale;
+    });
+
+    window->on<ContentScaleEvent>([this]([[maybe_unused]] const ContentScaleEvent& e) {
+      markDockNeedsUpdate();
+    });
   }
 } // namespace vke

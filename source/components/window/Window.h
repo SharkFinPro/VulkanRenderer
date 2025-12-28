@@ -60,8 +60,6 @@ namespace vke {
     void getPreviousCursorPos(double& xpos,
                               double& ypos) const;
 
-    void initImGui();
-
     [[nodiscard]] double getScroll() const;
 
     [[nodiscard]] float getContentScale() const;

@@ -1,5 +1,4 @@
 #include "Window.h"
-#include <backends/imgui_impl_glfw.h>
 #include <stdexcept>
 
 namespace vke {
@@ -44,6 +43,10 @@ namespace vke {
     glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
     m_previousMouseX = m_mouseX;
     m_previousMouseY = m_mouseY;
+
+    float xscale;
+    glfwGetWindowContentScale(m_window, &xscale, nullptr);
+    m_contentScale = xscale;
 
     glfwSetKeyCallback(m_window, keyCallback);
 
@@ -111,19 +114,6 @@ namespace vke {
     ypos = m_previousMouseY;
   }
 
-  void Window::initImGui()
-  {
-    ImGui_ImplGlfw_InitForVulkan(m_window, true);
-
-    float xscale, yscale;
-    glfwGetWindowContentScale(m_window, &xscale, &yscale);
-
-    ImGui::GetStyle().ScaleAllSizes(xscale);
-    ImGui::GetIO().FontGlobalScale = xscale;
-
-    m_contentScale = xscale;
-  }
-
   double Window::getScroll() const
   {
     return m_scroll;
@@ -157,10 +147,6 @@ namespace vke {
                                     const float yscale)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-
-    ImGui::GetStyle().ScaleAllSizes(1.0f / app->m_contentScale);
-    ImGui::GetStyle().ScaleAllSizes(xscale);
-    ImGui::GetIO().FontGlobalScale = xscale;
 
     app->m_contentScale = xscale;
 
