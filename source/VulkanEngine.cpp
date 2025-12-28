@@ -108,8 +108,7 @@ namespace vke {
     m_instance = std::make_shared<Instance>();
 
     m_window = std::make_shared<Window>(m_vulkanEngineOptions.WINDOW_WIDTH, m_vulkanEngineOptions.WINDOW_HEIGHT,
-                                        m_vulkanEngineOptions.WINDOW_TITLE, m_instance,
-                                        m_vulkanEngineOptions.FULLSCREEN);
+                                        m_vulkanEngineOptions.WINDOW_TITLE, m_vulkanEngineOptions.FULLSCREEN);
 
     m_surface = std::make_shared<Surface>(m_instance, m_window);
 
