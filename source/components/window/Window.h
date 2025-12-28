@@ -50,8 +50,6 @@ namespace vke {
     void getFramebufferSize(int* width,
                             int* height) const;
 
-    [[nodiscard]] VkSurfaceKHR& getSurface();
-
     [[nodiscard]] bool keyIsPressed(int key) const;
 
     [[nodiscard]] bool buttonIsPressed(int button) const;
@@ -80,12 +78,12 @@ namespace vke {
                                      float xscale,
                                      float yscale);
 
+    [[nodiscard]] GLFWwindow* getWindow() const;
+
   private:
     GLFWwindow* m_window;
 
     std::shared_ptr<Instance> m_instance;
-
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
     double m_previousMouseX;
     double m_previousMouseY;

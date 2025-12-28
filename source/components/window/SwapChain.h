@@ -1,17 +1,21 @@
 #ifndef VKE_SWAPCHAIN_H
 #define VKE_SWAPCHAIN_H
 
-#include "../logicalDevice/LogicalDevice.h"
-#include "Window.h"
 #include <vulkan/vulkan.h>
+#include <memory>
 #include <vector>
 
 namespace vke {
 
+  class LogicalDevice;
+  class Surface;
+  class Window;
+
   class SwapChain {
   public:
     SwapChain(std::shared_ptr<LogicalDevice> logicalDevice,
-              std::shared_ptr<Window> window);
+              const std::shared_ptr<Window>& window,
+              const std::shared_ptr<Surface>& surface);
 
     ~SwapChain();
 
@@ -25,7 +29,6 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
-    std::shared_ptr<Window> m_window;
 
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
     std::vector<VkImage> m_swapChainImages;
@@ -34,10 +37,17 @@ namespace vke {
     std::vector<VkImageView> m_swapChainImageViews;
 
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+
     static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    [[nodiscard]] VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
+
+    [[nodiscard]] static VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
+                                                     const std::shared_ptr<Window>& window);
+
     static uint32_t chooseSwapImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
-    void createSwapChain();
+
+    void createSwapChain(const std::shared_ptr<Window>& window,
+                         const std::shared_ptr<Surface>& surface);
+
     void createImageViews();
   };
 

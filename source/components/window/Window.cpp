@@ -1,6 +1,4 @@
 #include "Window.h"
-#include "../../VulkanEngine.h"
-#include "../instance/Instance.h"
 #include <backends/imgui_impl_glfw.h>
 #include <stdexcept>
 
@@ -47,8 +45,6 @@ namespace vke {
     m_previousMouseX = m_mouseX;
     m_previousMouseY = m_mouseY;
 
-    m_surface = m_instance->createSurface(m_window);
-
     glfwSetKeyCallback(m_window, keyCallback);
 
     glfwSetWindowContentScaleCallback(m_window, contentScaleCallback);
@@ -56,8 +52,6 @@ namespace vke {
 
   Window::~Window()
   {
-    m_instance->destroySurface(m_surface);
-
     glfwDestroyWindow(m_window);
   }
 
@@ -86,11 +80,6 @@ namespace vke {
                                   int* height) const
   {
     glfwGetFramebufferSize(m_window, width, height);
-  }
-
-  VkSurfaceKHR& Window::getSurface()
-  {
-    return m_surface;
   }
 
   bool Window::keyIsPressed(const int key) const
@@ -176,6 +165,11 @@ namespace vke {
     app->m_contentScale = xscale;
 
     app->emit(ContentScaleEvent{xscale, yscale});
+  }
+
+  GLFWwindow* Window::getWindow() const
+  {
+    return m_window;
   }
 
   void Window::keyCallback(GLFWwindow* window,

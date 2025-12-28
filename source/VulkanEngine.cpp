@@ -1,17 +1,18 @@
 #include "VulkanEngine.h"
 #include "components/assets/AssetManager.h"
+#include "components/camera/Camera.h"
 #include "components/computingManager/ComputingManager.h"
+#include "components/imGui/ImGuiInstance.h"
 #include "components/instance/Instance.h"
-#include "components/logicalDevice/LogicalDevice.h"
-#include "components/physicalDevice/PhysicalDevice.h"
 #include "components/lighting/LightingManager.h"
+#include "components/logicalDevice/LogicalDevice.h"
+#include "components/mousePicker/MousePicker.h"
+#include "components/physicalDevice/PhysicalDevice.h"
+#include "components/pipelines/pipelineManager/PipelineManager.h"
 #include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
+#include "components/window/Surface.h"
 #include "components/window/Window.h"
-#include "components/camera/Camera.h"
-#include "components/imGui/ImGuiInstance.h"
-#include "components/mousePicker/MousePicker.h"
-#include "components/pipelines/pipelineManager/PipelineManager.h"
 
 namespace vke {
 
@@ -110,7 +111,9 @@ namespace vke {
                                         m_vulkanEngineOptions.WINDOW_TITLE, m_instance,
                                         m_vulkanEngineOptions.FULLSCREEN);
 
-    m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_window->getSurface());
+    m_surface = std::make_shared<Surface>(m_instance, m_window);
+
+    m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_surface);
 
     m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
   }
@@ -129,8 +132,8 @@ namespace vke {
     m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
                                                   m_assetManager->getObjectDescriptorSetLayout());
 
-    m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_window, m_mousePicker, m_commandPool,
-                                                            m_vulkanEngineOptions.USE_DOCKSPACE,
+    m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_surface, m_window, m_mousePicker,
+                                                            m_commandPool, m_vulkanEngineOptions.USE_DOCKSPACE,
                                                             m_vulkanEngineOptions.SCENE_VIEW_NAME, m_assetManager);
 
     m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool, m_commandPool,

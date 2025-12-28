@@ -17,12 +17,14 @@ namespace vke {
   class PipelineManager;
   class Renderer;
   class Renderer2D;
+  class Surface;
   class SwapChain;
   class Window;
 
   class RenderingManager {
   public:
     RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                     std::shared_ptr<Surface> surface,
                      std::shared_ptr<Window> window,
                      std::shared_ptr<MousePicker> mousePicker,
                      VkCommandPool commandPool,
@@ -57,6 +59,8 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<Surface> m_surface;
 
     std::shared_ptr<Window> m_window;
 
