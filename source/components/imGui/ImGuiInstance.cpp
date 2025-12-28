@@ -25,6 +25,10 @@ namespace vke {
 
     window->initImGui();
 
+    window->on<ContentScaleEvent>([this]([[maybe_unused]] const ContentScaleEvent& e) {
+      markDockNeedsUpdate();
+    });
+
     const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;

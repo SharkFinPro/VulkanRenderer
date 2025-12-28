@@ -1,6 +1,7 @@
 #ifndef VKE_WINDOW_H
 #define VKE_WINDOW_H
 
+#include "../../utilities/EventSystem.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <memory>
@@ -11,14 +12,23 @@ namespace vke {
   class VulkanEngine;
   class Instance;
 
-  class Window {
+  struct ContentScaleEvent {
+    float xscale;
+    float yscale;
+  };
+
+  struct FramebufferResizeEvent {
+    int width;
+    int height;
+  };
+
+  class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent> {
   public:
     Window(int width,
            int height,
            const char* title,
-           const std::shared_ptr<Instance>& instance,
-           bool fullscreen,
-           VulkanEngine* engine);
+           std::shared_ptr<Instance> instance,
+           bool fullscreen);
     ~Window();
 
     [[nodiscard]] bool isOpen() const;
@@ -59,8 +69,6 @@ namespace vke {
                                      float yscale);
 
   private:
-    VulkanEngine* m_engine;
-
     GLFWwindow* m_window;
 
     std::shared_ptr<Instance> m_instance;
@@ -69,10 +77,10 @@ namespace vke {
 
     double m_previousMouseX;
     double m_previousMouseY;
-    double m_mouseX;
-    double m_mouseY;
+    double m_mouseX = 0.0;
+    double m_mouseY = 0.0;
 
-    double m_scroll;
+    double m_scroll = 0.0;
 
     std::unordered_map<int, bool> m_keysPressed;
 

@@ -1,8 +1,6 @@
 #include "Window.h"
 #include "../../VulkanEngine.h"
-#include "../imGui/ImGuiInstance.h"
 #include "../instance/Instance.h"
-#include "../renderingManager/RenderingManager.h"
 #include <backends/imgui_impl_glfw.h>
 #include <stdexcept>
 
@@ -11,10 +9,9 @@ namespace vke {
   Window::Window(const int width,
                  const int height,
                  const char* title,
-                 const std::shared_ptr<Instance>& instance,
-                 const bool fullscreen,
-                 VulkanEngine* engine)
-    : m_engine(engine), m_instance(instance), m_mouseX(0), m_mouseY(0), m_scroll(0)
+                 std::shared_ptr<Instance> instance,
+                 const bool fullscreen)
+    : m_instance(std::move(instance))
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -157,16 +154,16 @@ namespace vke {
   }
 
   void Window::framebufferResizeCallback(GLFWwindow* window,
-                                         [[maybe_unused]] int width,
-                                         [[maybe_unused]] int height)
+                                         const int width,
+                                         const int height)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-    app->m_engine->getRenderingManager()->markFramebufferResized();
+    app->emit(FramebufferResizeEvent{width, height});
   }
 
   void Window::contentScaleCallback(GLFWwindow* window,
                                     const float xscale,
-                                    [[maybe_unused]] float yscale)
+                                    const float yscale)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
@@ -176,7 +173,7 @@ namespace vke {
 
     app->m_contentScale = xscale;
 
-    app->m_engine->getImGuiInstance()->markDockNeedsUpdate();
+    app->emit(ContentScaleEvent{xscale, yscale});
   }
 
   void Window::keyCallback(GLFWwindow* window,
