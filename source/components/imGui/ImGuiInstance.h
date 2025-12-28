@@ -44,8 +44,6 @@ namespace vke {
 
     void setRightDockPercent(float percent);
 
-    void markDockNeedsUpdate();
-
     static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
     static ImGuiContext* getImGuiContext();
@@ -72,6 +70,8 @@ namespace vke {
     ImGuiID m_centerDock = 0;
 
     void createDescriptorPool(uint32_t maxImGuiTextures);
+
+    void markDockNeedsUpdate();
   };
 
 } // namespace vke

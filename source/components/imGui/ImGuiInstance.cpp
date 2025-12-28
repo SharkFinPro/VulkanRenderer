@@ -191,7 +191,7 @@ namespace vke {
 
     m_topDockPercent = percent;
 
-    m_dockNeedsUpdate = true;
+    markDockNeedsUpdate();
   }
 
   void ImGuiInstance::setBottomDockPercent(const float percent)
@@ -203,7 +203,7 @@ namespace vke {
 
     m_bottomDockPercent = percent;
 
-    m_dockNeedsUpdate = true;
+    markDockNeedsUpdate();
   }
 
   void ImGuiInstance::setLeftDockPercent(const float percent)
@@ -215,7 +215,7 @@ namespace vke {
 
     m_leftDockPercent = percent;
 
-    m_dockNeedsUpdate = true;
+    markDockNeedsUpdate();
   }
 
   void ImGuiInstance::setRightDockPercent(const float percent)
@@ -227,12 +227,7 @@ namespace vke {
 
     m_rightDockPercent = percent;
 
-    m_dockNeedsUpdate = true;
-  }
-
-  void ImGuiInstance::markDockNeedsUpdate()
-  {
-    m_dockNeedsUpdate = true;
+    markDockNeedsUpdate();
   }
 
   void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
@@ -277,4 +272,8 @@ namespace vke {
     descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
   }
 
+  void ImGuiInstance::markDockNeedsUpdate()
+  {
+    m_dockNeedsUpdate = true;
+  }
 } // namespace vke
