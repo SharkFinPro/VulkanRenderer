@@ -45,6 +45,8 @@ namespace vke {
 
     [[nodiscard]] VkDescriptorSetLayout getFontDescriptorSetLayout() const;
 
+    [[nodiscard]] VkDescriptorSetLayout getSmokeSystemDescriptorSetLayout() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -53,6 +55,8 @@ namespace vke {
     VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
     VkDescriptorSetLayout m_fontDescriptorSetLayout = VK_NULL_HANDLE;
+
+    VkDescriptorSetLayout m_smokeSystemDescriptorSetLayout = VK_NULL_HANDLE;
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
@@ -68,6 +72,8 @@ namespace vke {
     void createObjectDescriptorSetLayout();
 
     void createFontDescriptorSetLayout();
+
+    void createSmokeSystemDescriptorSetLayout();
 
     void loadFont(const std::string& fontName,
                   uint32_t fontSize);

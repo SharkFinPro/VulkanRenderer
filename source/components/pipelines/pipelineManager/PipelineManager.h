@@ -33,8 +33,7 @@ namespace vke {
     PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                     const std::shared_ptr<Renderer>& renderer,
                     const std::shared_ptr<LightingManager>& lightingManager,
-                    VkDescriptorSetLayout objectDescriptorSetLayout,
-                    VkDescriptorSetLayout fontDescriptorSetLayout,
+                    const std::shared_ptr<AssetManager>& assetManager,
                     VkDescriptorPool descriptorPool,
                     VkCommandPool commandPool,
                     bool shouldDoDots);
@@ -110,8 +109,7 @@ namespace vke {
 
     bool m_shouldDoDots;
 
-    void createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
-                         VkDescriptorSetLayout fontDescriptorSetLayout,
+    void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer);
   };
 

@@ -19,14 +19,13 @@ namespace vke {
   class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
     SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                  const VkCommandPool& commandPool,
                   std::shared_ptr<RenderPass> renderPass,
-                  VkDescriptorPool descriptorPool,
-                  glm::vec3 position,
-                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
+                  const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
+                  VkDescriptorSetLayout smokeSystemDescriptorSetLayout);
 
     void compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                 uint32_t currentFrame) const;
+                 uint32_t currentFrame,
+                 const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
     void render(const RenderInfo* renderInfo,
                 const std::vector<std::shared_ptr<SmokeSystem>>* systems);

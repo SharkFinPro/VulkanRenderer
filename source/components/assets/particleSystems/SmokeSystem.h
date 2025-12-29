@@ -20,6 +20,7 @@ namespace vke {
     SmokeSystem(std::shared_ptr<LogicalDevice> logicalDevice,
                 VkCommandPool commandPool,
                 VkDescriptorPool descriptorPool,
+                VkDescriptorSetLayout smokeSystemDescriptorSetLayout,
                 glm::vec3 position,
                 uint32_t numParticles);
 
@@ -29,6 +30,12 @@ namespace vke {
 
     void update(const RenderInfo* renderInfo);
 
+    [[nodiscard]] uint32_t getNumParticles() const;
+
+    [[nodiscard]] std::shared_ptr<DescriptorSet> getSmokeSystemDescriptorSet() const;
+
+    [[nodiscard]] const VkBuffer& getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -36,7 +43,7 @@ namespace vke {
     std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
     std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
 
-    std::shared_ptr<DescriptorSet> m_smokeDescriptorSet;
+    std::shared_ptr<DescriptorSet> m_smokeSystemDescriptorSet;
 
     std::shared_ptr<UniformBuffer> m_deltaTimeUniform;
     std::shared_ptr<UniformBuffer> m_transformUniform;
@@ -62,7 +69,8 @@ namespace vke {
     void uploadShaderStorageBuffers(const VkCommandPool& commandPool,
                                     const std::vector<SmokeParticle>& particles);
 
-    void createDescriptorSets(VkDescriptorPool descriptorPool);
+    void createDescriptorSet(VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout smokeSystemDescriptorSetLayout);
   };
 } // vke
 

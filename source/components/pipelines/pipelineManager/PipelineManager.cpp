@@ -20,7 +20,6 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/DotsPipeline.h"
 #include "../implementations/GuiPipeline.h"
-#include "../implementations/SmokePipeline.h"
 
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -28,13 +27,14 @@
 
 #include <ranges>
 
+#include "../../assets/AssetManager.h"
+
 namespace vke {
 
   PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                    const std::shared_ptr<Renderer>& renderer,
                                    const std::shared_ptr<LightingManager>& lightingManager,
-                                   VkDescriptorSetLayout objectDescriptorSetLayout,
-                                   VkDescriptorSetLayout fontDescriptorSetLayout,
+                                   const std::shared_ptr<AssetManager>& assetManager,
                                    VkDescriptorPool descriptorPool,
                                    VkCommandPool commandPool,
                                    const bool shouldDoDots)
@@ -42,7 +42,7 @@ namespace vke {
       m_renderPass(renderer->getSwapchainRenderPass()), m_lightingManager(lightingManager),
       m_shouldDoDots(shouldDoDots)
   {
-    createPipelines(objectDescriptorSetLayout, fontDescriptorSetLayout, renderer);
+    createPipelines(assetManager, renderer);
   }
 
   std::shared_ptr<DotsPipeline> PipelineManager::getDotsPipeline()
@@ -124,10 +124,11 @@ namespace vke {
     m_fontPipeline->render(renderInfo, glyphs, assetManager);
   }
 
-  void PipelineManager::createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
-                                        VkDescriptorSetLayout fontDescriptorSetLayout,
+  void PipelineManager::createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                                         const std::shared_ptr<Renderer>& renderer)
   {
+    auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
+
     m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
       m_logicalDevice, m_renderPass, objectDescriptorSetLayout,
       m_lightingManager->getLightingDescriptorSet());
@@ -192,7 +193,10 @@ namespace vke {
 
     m_ellipsePipeline = std::make_unique<EllipsePipeline>(m_logicalDevice, m_renderPass);
 
-    m_fontPipeline = std::make_unique<FontPipeline>(m_logicalDevice, m_renderPass, fontDescriptorSetLayout);
+    m_fontPipeline = std::make_unique<FontPipeline>(m_logicalDevice, m_renderPass, assetManager->getFontDescriptorSetLayout());
+
+    m_smokePipeline = std::make_unique<SmokePipeline>(m_logicalDevice, m_renderPass,
+      m_lightingManager->getLightingDescriptorSet(), assetManager->getSmokeSystemDescriptorSetLayout());
   }
 
 } // namespace vke

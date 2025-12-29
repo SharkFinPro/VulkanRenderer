@@ -6,56 +6,26 @@
 #include "../../pipelines/implementations/vertexInputs/SmokeParticle.h"
 #include "../../../utilities/Buffers.h"
 #include <imgui.h>
+#include <cstring>
 #include <random>
 
 namespace vke {
-
-  const std::vector<VkDescriptorSetLayoutBinding> layoutBindings {{
-    { // DT
-      .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-    },
-    { // Last Frame SB
-      .binding = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-    },
-    { // Current Frame SB
-      .binding = 2,
-      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-    },
-    { // Transform
-      .binding = 3,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-    },
-    { // Smoke
-      .binding = 4,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
-    }
-  }};
-
   SmokeSystem::SmokeSystem(std::shared_ptr<LogicalDevice> logicalDevice,
                            VkCommandPool commandPool,
                            VkDescriptorPool descriptorPool,
+                           VkDescriptorSetLayout smokeSystemDescriptorSetLayout,
                            const glm::vec3 position,
                            const uint32_t numParticles)
-    : m_previousTime(std::chrono::steady_clock::now()),  m_numParticles(numParticles)
+    : m_logicalDevice(std::move(logicalDevice)), m_previousTime(std::chrono::steady_clock::now()),
+      m_numParticles(numParticles)
   {
     m_smokeUBO.systemPosition = position;
 
     createUniforms();
+
     createShaderStorageBuffers(commandPool);
 
-    createDescriptorSets(descriptorPool);
+    createDescriptorSet(descriptorPool, smokeSystemDescriptorSetLayout);
   }
 
   SmokeSystem::~SmokeSystem()
@@ -103,6 +73,21 @@ namespace vke {
     m_transformUniform->update(renderInfo->currentFrame, &transformUBO);
 
     m_smokeUniform->update(renderInfo->currentFrame, &m_smokeUBO);
+  }
+
+  uint32_t SmokeSystem::getNumParticles() const
+  {
+    return m_numParticles;
+  }
+
+  std::shared_ptr<DescriptorSet> SmokeSystem::getSmokeSystemDescriptorSet() const
+  {
+    return m_smokeSystemDescriptorSet;
+  }
+
+  const VkBuffer& SmokeSystem::getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const
+  {
+    return m_shaderStorageBuffers[currentFrame];
   }
 
   void SmokeSystem::createUniforms()
@@ -178,10 +163,11 @@ namespace vke {
     Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
-  void SmokeSystem::createDescriptorSets(VkDescriptorPool descriptorPool)
+  void SmokeSystem::createDescriptorSet(VkDescriptorPool descriptorPool,
+                                        VkDescriptorSetLayout smokeSystemDescriptorSetLayout)
   {
-    m_smokeDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, layoutBindings);
-    m_smokeDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    m_smokeSystemDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
+    m_smokeSystemDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
     {
       constexpr DeltaTimeUniform deltaTimeUBO{0};
 

@@ -105,11 +105,18 @@ namespace vke {
     return m_fontDescriptorSetLayout;
   }
 
+  VkDescriptorSetLayout AssetManager::getSmokeSystemDescriptorSetLayout() const
+  {
+    return m_smokeSystemDescriptorSetLayout;
+  }
+
   void AssetManager::createDescriptorSetLayouts()
   {
     createObjectDescriptorSetLayout();
 
     createFontDescriptorSetLayout();
+
+    createSmokeSystemDescriptorSetLayout();
   }
 
   void AssetManager::createObjectDescriptorSetLayout()
@@ -170,6 +177,50 @@ namespace vke {
     };
 
     m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+  }
+
+  void AssetManager::createSmokeSystemDescriptorSetLayout()
+  {
+    const std::vector<VkDescriptorSetLayoutBinding> smokeSystemDescriptorSetLayoutBinding {{
+      { // DT
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+      },
+      { // Last Frame SB
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+      },
+      { // Current Frame SB
+        .binding = 2,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+      },
+      { // Transform
+        .binding = 3,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+      },
+      { // Smoke
+        .binding = 4,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+      }
+    }};
+
+    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(smokeSystemDescriptorSetLayoutBinding.size()),
+      .pBindings = smokeSystemDescriptorSetLayoutBinding.data()
+    };
+
+    m_smokeSystemDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
   void AssetManager::loadFont(const std::string& fontName,
