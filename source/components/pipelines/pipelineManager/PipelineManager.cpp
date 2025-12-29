@@ -51,40 +51,7 @@ namespace vke {
 
   void PipelineManager::createNewFrame()
   {
-    for (auto& [_, objects] : m_renderObjectsToRender)
-    {
-      objects.clear();
-    }
-
-    m_lineVerticesToRender.clear();
-
     m_bendyPipeline->clearBendyPlantsToRender();
-  }
-
-  void PipelineManager::renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                                     const PipelineType pipelineType,
-                                     bool* mousePicked)
-  {
-    m_renderObjectsToRender[pipelineType].push_back(renderObject);
-
-    if (mousePicked == nullptr)
-    {
-      return;
-    }
-
-    m_mousePicker->renderObject(renderObject, mousePicked);
-  }
-
-  void PipelineManager::renderLine(const glm::vec3 start,
-                                   const glm::vec3 end)
-  {
-    m_lineVerticesToRender.push_back({start});
-    m_lineVerticesToRender.push_back({end});
-  }
-
-  void PipelineManager::renderBendyPlant(const BendyPlant& bendyPlant) const
-  {
-    m_bendyPipeline->renderBendyPlant(bendyPlant);
   }
 
   std::shared_ptr<SmokePipeline> PipelineManager::createSmokeSystem(glm::vec3 position,
@@ -157,18 +124,18 @@ namespace vke {
     };
     renderInfo.commandBuffer->setScissor(scissor);
 
-    renderRenderObjects(renderInfo);
+    // renderRenderObjects(renderInfo);
 
     if (m_shouldDoDots)
     {
       m_dotsPipeline->render(&renderInfo, nullptr);
     }
 
-    m_linePipeline->render(&renderInfo, m_commandPool, m_lineVerticesToRender);
+    // m_linePipeline->render(&renderInfo, m_commandPool, m_lineVerticesToRender);
 
     m_bendyPipeline->render(&renderInfo);
 
-    renderSmokeSystems(renderInfo);
+    // renderSmokeSystems(renderInfo);
 
     if (shouldRenderGrid)
     {
@@ -176,33 +143,17 @@ namespace vke {
     }
   }
 
-  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& PipelineManager::getRenderObjectsToRender()
+  void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo,
+                                             const std::vector<std::shared_ptr<RenderObject>>* objects) const
   {
-    return m_renderObjectsToRender;
-  }
-
-  void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo)
-  {
-    for (const auto& [_, renderObjects] : m_renderObjectsToRender)
-    {
-      m_shadowPipeline->render(
-        &renderInfo,
-        &renderObjects
-      );
-    }
+    m_shadowPipeline->render(&renderInfo, objects);
   }
 
   void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo& renderInfo,
-                                                          const std::shared_ptr<PointLight>& pointLight)
+                                                          const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                                          const std::shared_ptr<PointLight>& pointLight) const
   {
-    for (const auto& [_, renderObjects] : m_renderObjectsToRender)
-    {
-      m_pointLightShadowMapPipeline->render(
-        &renderInfo,
-        &renderObjects,
-        pointLight
-      );
-    }
+    m_pointLightShadowMapPipeline->render(&renderInfo, objects, pointLight);
   }
 
   void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
@@ -299,74 +250,6 @@ namespace vke {
     m_ellipsePipeline = std::make_unique<EllipsePipeline>(m_logicalDevice, m_renderPass);
 
     m_fontPipeline = std::make_unique<FontPipeline>(m_logicalDevice, m_renderPass, fontDescriptorSetLayout);
-  }
-
-  void PipelineManager::renderRenderObjects(const RenderInfo& renderInfo) const
-  {
-    for (const auto& [type, objects] : m_renderObjectsToRender)
-    {
-      if (objects.empty())
-      {
-        continue;
-      }
-
-      if (auto it = m_pipelines.find(type); it != m_pipelines.end())
-      {
-        if (it->first == PipelineType::objectHighlight)
-        {
-          continue;
-        }
-
-        if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get()))
-        {
-          graphicsPipeline->displayGui();
-          graphicsPipeline->render(&renderInfo, &objects);
-          continue;
-        }
-
-        throw std::runtime_error("Pipeline for object type is not a GraphicsPipeline");
-      }
-
-      throw std::runtime_error("Pipeline for object type does not exist");
-    }
-
-    auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
-    auto highlightPipelineIt = m_pipelines.find(PipelineType::objectHighlight);
-
-    if (highlightObjectsIt != m_renderObjectsToRender.end() &&
-        highlightPipelineIt != m_pipelines.end())
-    {
-      auto& highlightObjects = highlightObjectsIt->second;
-
-      if (!highlightObjects.empty())
-      {
-        if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(highlightPipelineIt->second.get()))
-        {
-          graphicsPipeline->displayGui();
-          graphicsPipeline->render(&renderInfo, &highlightObjects);
-        }
-      }
-    }
-  }
-
-  void PipelineManager::renderSmokeSystems(const RenderInfo& renderInfo) const
-  {
-    if (!m_smokeSystems.empty())
-    {
-      ImGui::Begin("Smoke");
-      ImGui::Separator();
-      for (const auto& system : m_smokeSystems)
-      {
-        ImGui::PushID(&system);
-        system->displayGui();
-        ImGui::PopID();
-
-        ImGui::Separator();
-
-        system->render(&renderInfo, nullptr);
-      }
-      ImGui::End();
-    }
   }
 
 } // namespace vke

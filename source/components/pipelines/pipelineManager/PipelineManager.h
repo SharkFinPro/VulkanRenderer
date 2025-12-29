@@ -43,14 +43,6 @@ namespace vke {
 
     void createNewFrame();
 
-    void renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                      PipelineType pipelineType,
-                      bool* mousePicked = nullptr);
-
-    void renderLine(glm::vec3 start, glm::vec3 end);
-
-    void renderBendyPlant(const BendyPlant& bendyPlant) const;
-
     std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
                                                      uint32_t numParticles = 5'000'000);
 
@@ -69,12 +61,12 @@ namespace vke {
                                  const glm::mat4& viewMatrix,
                                  bool shouldRenderGrid) const;
 
-    [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
-
-    void renderShadowPipeline(const RenderInfo& renderInfo);
+    void renderShadowPipeline(const RenderInfo& renderInfo,
+                              const std::vector<std::shared_ptr<RenderObject>>* objects) const;
 
     void renderPointLightShadowMapPipeline(const RenderInfo& renderInfo,
-                                           const std::shared_ptr<PointLight>& pointLight);
+                                           const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                           const std::shared_ptr<PointLight>& pointLight) const;
 
     void renderRectPipeline(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects) const;
@@ -107,12 +99,10 @@ namespace vke {
     std::shared_ptr<DotsPipeline> m_dotsPipeline;
 
     std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> m_pipelines;
-    std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
 
     std::vector<std::shared_ptr<SmokePipeline>> m_smokeSystems;
 
     std::unique_ptr<LinePipeline> m_linePipeline;
-    std::vector<LineVertex> m_lineVerticesToRender;
 
     std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
@@ -135,10 +125,6 @@ namespace vke {
     void createPipelines(VkDescriptorSetLayout objectDescriptorSetLayout,
                          VkDescriptorSetLayout fontDescriptorSetLayout,
                          const std::shared_ptr<Renderer>& renderer);
-
-    void renderRenderObjects(const RenderInfo& renderInfo) const;
-
-    void renderSmokeSystems(const RenderInfo& renderInfo) const;
   };
 
 } // namespace vke
