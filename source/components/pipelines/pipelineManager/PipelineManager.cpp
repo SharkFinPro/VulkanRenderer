@@ -45,38 +45,9 @@ namespace vke {
     createPipelines(objectDescriptorSetLayout, fontDescriptorSetLayout, renderer);
   }
 
-  std::shared_ptr<SmokePipeline> PipelineManager::createSmokeSystem(glm::vec3 position,
-                                                                    uint32_t numParticles)
-  {
-    auto system = std::make_shared<SmokePipeline>(m_logicalDevice, m_commandPool, m_renderPass, m_descriptorPool,
-                                                  position, numParticles, m_lightingManager->getLightingDescriptorSet());
-
-    m_smokeSystems.push_back(system);
-
-    return system;
-  }
-
-  void PipelineManager::destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem)
-  {
-    const auto system = std::ranges::find(m_smokeSystems, smokeSystem);
-
-    if (system == m_smokeSystems.end())
-    {
-      return;
-    }
-
-    m_logicalDevice->waitIdle();
-    m_smokeSystems.erase(system);
-  }
-
   std::shared_ptr<DotsPipeline> PipelineManager::getDotsPipeline()
   {
     return m_dotsPipeline;
-  }
-
-  std::vector<std::shared_ptr<SmokePipeline>>& PipelineManager::getSmokeSystems()
-  {
-    return m_smokeSystems;
   }
 
   std::shared_ptr<GuiPipeline> PipelineManager::getGuiPipeline()

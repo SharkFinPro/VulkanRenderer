@@ -68,6 +68,9 @@ namespace vke {
 
     void renderBendyPlant(const BendyPlant& bendyPlant);
 
+    // std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
+    //                                                  uint32_t numParticles = 5'000'000);
+
   private:
     std::shared_ptr<MousePicker> m_mousePicker;
 

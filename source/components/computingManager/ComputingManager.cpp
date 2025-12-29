@@ -37,10 +37,10 @@ namespace vke {
         dotsPipeline->compute(m_computeCommandBuffer, currentFrame);
       }
 
-      for (const auto& system : pipelineManager->getSmokeSystems())
-      {
-        system->compute(m_computeCommandBuffer, currentFrame);
-      }
+      // for (const auto& system : pipelineManager->getSmokeSystems())
+      // {
+      //   system->compute(m_computeCommandBuffer, currentFrame);
+      // }
     });
   }
 

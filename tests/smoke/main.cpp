@@ -85,9 +85,10 @@ void createSmokeSystems(const vke::VulkanEngine& renderer)
 {
   constexpr uint32_t numParticles = 2'500'000;
 
-  renderer.getPipelineManager()->createSmokeSystem({0, 0.95f, 0}, numParticles);
-  renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, -5}, numParticles * 2);
-  renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, 5}, numParticles / 2);
-  renderer.getPipelineManager()->createSmokeSystem({5, .95f, 5}, numParticles * 2);
-  renderer.getPipelineManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2);
+  // TODO: Create & Link
+  // renderer.getPipelineManager()->createSmokeSystem({0, 0.95f, 0}, numParticles);
+  // renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, -5}, numParticles * 2);
+  // renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, 5}, numParticles / 2);
+  // renderer.getPipelineManager()->createSmokeSystem({5, .95f, 5}, numParticles * 2);
+  // renderer.getPipelineManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2);
 }

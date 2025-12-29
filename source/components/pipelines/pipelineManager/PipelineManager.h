@@ -4,6 +4,7 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
+#include "../implementations/SmokePipeline.h"
 #include "../implementations/2D/EllipsePipeline.h"
 #include "../implementations/2D/FontPipeline.h"
 #include "../implementations/2D/RectPipeline.h"
@@ -26,7 +27,6 @@ namespace vke {
   enum class PipelineType;
   class Renderer;
   class RenderObject;
-  class SmokePipeline;
 
   class PipelineManager {
   public:
@@ -39,14 +39,7 @@ namespace vke {
                     VkCommandPool commandPool,
                     bool shouldDoDots);
 
-    std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
-                                                     uint32_t numParticles = 5'000'000);
-
-    void destroySmokeSystem(const std::shared_ptr<SmokePipeline>& smokeSystem);
-
     [[nodiscard]] std::shared_ptr<DotsPipeline> getDotsPipeline();
-
-    [[nodiscard]] std::vector<std::shared_ptr<SmokePipeline>>& getSmokeSystems();
 
     [[nodiscard]] std::shared_ptr<GuiPipeline> getGuiPipeline();
 
@@ -79,7 +72,6 @@ namespace vke {
                             const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
                             const std::shared_ptr<AssetManager>& assetManager) const;
 
-
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -96,7 +88,7 @@ namespace vke {
 
     std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> m_pipelines;
 
-    std::vector<std::shared_ptr<SmokePipeline>> m_smokeSystems;
+    std::unique_ptr<SmokePipeline> m_smokePipeline;
 
     std::unique_ptr<LinePipeline> m_linePipeline;
 
