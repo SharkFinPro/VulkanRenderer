@@ -3,6 +3,7 @@
 #include "legacyRenderer/LegacyRenderer.h"
 #include "Renderer.h"
 #include "renderer2D/Renderer2D.h"
+#include "renderer3D/Renderer3D.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -15,8 +16,6 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>
-
-#include "renderer3D/Renderer3D.h"
 
 namespace vke {
 
@@ -76,10 +75,10 @@ namespace vke {
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    lightingManager->update(currentFrame, m_viewPosition);
+    // lightingManager->update(currentFrame, m_viewPosition);
 
-    m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix,
-                                  pipelineManager->getRenderObjectsToRender());
+    // m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix,
+                                  // pipelineManager->getRenderObjectsToRender());
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
     m_offscreenCommandBuffer->resetCommandBuffer();
@@ -107,13 +106,6 @@ namespace vke {
   std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
   {
     return m_swapChain;
-  }
-
-  void RenderingManager::setCameraParameters(const glm::vec3 position,
-                                             const glm::mat4& viewMatrix)
-  {
-    m_viewPosition = position;
-    m_viewMatrix = viewMatrix;
   }
 
   std::shared_ptr<Renderer> RenderingManager::getRenderer() const
@@ -249,8 +241,10 @@ namespace vke {
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
         .currentFrame = currentFrame,
-        .viewPosition = m_viewPosition,
-        .viewMatrix = m_viewMatrix,
+        // .viewPosition = m_viewPosition,
+        // .viewMatrix = m_viewMatrix,
+        .viewPosition = {},
+        .viewMatrix = {},
         .extent = {
           static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
           static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
@@ -274,8 +268,10 @@ namespace vke {
       const RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
         .currentFrame = currentFrame,
-        .viewPosition = m_viewPosition,
-        .viewMatrix = m_viewMatrix,
+        // .viewPosition = m_viewPosition,
+        // .viewMatrix = m_viewMatrix,
+        .viewPosition = {},
+        .viewMatrix = {},
         .extent = m_swapChain->getExtent()
       };
 

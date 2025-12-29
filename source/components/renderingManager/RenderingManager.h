@@ -1,8 +1,6 @@
 #ifndef VKE_RENDERINGMANAGER_H
 #define VKE_RENDERINGMANAGER_H
 
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -39,9 +37,6 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<SwapChain> getSwapChain() const;
 
-    void setCameraParameters(glm::vec3 position,
-                             const glm::mat4& viewMatrix);
-
     [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
 
     [[nodiscard]] bool isSceneFocused() const;
@@ -71,9 +66,6 @@ namespace vke {
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
 
     std::shared_ptr<SwapChain> m_swapChain;
-
-    glm::vec3 m_viewPosition{};
-    glm::mat4 m_viewMatrix{};
 
     bool m_shouldRenderOffscreen;
 

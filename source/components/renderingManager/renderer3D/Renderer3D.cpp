@@ -22,4 +22,11 @@ namespace vke {
   {
     return m_shouldRenderGrid;
   }
+
+  void Renderer3D::setCameraParameters(const glm::vec3 position,
+                                       const glm::mat4& viewMatrix)
+  {
+    m_viewPosition = position;
+    m_viewMatrix = viewMatrix;
+  }
 } // vke
