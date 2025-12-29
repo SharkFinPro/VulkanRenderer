@@ -67,6 +67,8 @@ namespace vke {
     void renderBendyPlantPipeline(const RenderInfo& renderInfo,
                                   const std::vector<BendyPlant>* plants) const;
 
+    void renderGridPipeline(const RenderInfo* renderInfo) const;
+
     void renderRectPipeline(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects) const;
 

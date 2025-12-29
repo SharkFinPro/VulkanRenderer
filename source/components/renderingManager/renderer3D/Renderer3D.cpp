@@ -24,6 +24,11 @@ namespace vke {
     //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
 
     pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
+
+    if (m_shouldRenderGrid)
+    {
+      pipelineManager->renderGridPipeline(&renderInfo3D);
+    }
   }
 
   void Renderer3D::createNewFrame()

@@ -11,6 +11,7 @@
 #include "components/pipelines/pipelineManager/PipelineManager.h"
 #include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
+#include "components/renderingManager/renderer3D/Renderer3D.h"
 #include "components/window/Surface.h"
 #include "components/window/Window.h"
 
@@ -53,7 +54,7 @@ namespace vke {
     if (m_renderingManager->isSceneFocused() && m_camera->isEnabled())
     {
       m_camera->processInput(m_window);
-      // m_renderingManager->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
+      m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
     }
 
     m_computingManager->doComputing(m_pipelineManager, m_currentFrame);

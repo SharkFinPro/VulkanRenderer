@@ -122,6 +122,11 @@ namespace vke {
     m_bendyPipeline->render(&renderInfo, plants);
   }
 
+  void PipelineManager::renderGridPipeline(const RenderInfo* renderInfo) const
+  {
+    m_gridPipeline->render(renderInfo);
+  }
+
   void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
                                            const std::vector<Rect>* rects) const
   {
