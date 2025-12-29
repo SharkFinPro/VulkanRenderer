@@ -30,6 +30,7 @@ namespace vke {
 
   SmokeSystem::~SmokeSystem()
   {
+    m_logicalDevice->waitIdle();
     for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
     {
       Buffers::destroyBuffer(m_logicalDevice, m_shaderStorageBuffers[i], m_shaderStorageBuffersMemory[i]);

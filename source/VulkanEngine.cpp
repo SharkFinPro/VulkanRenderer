@@ -57,7 +57,7 @@ namespace vke {
       m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
     }
 
-    m_computingManager->doComputing(m_pipelineManager, m_currentFrame);
+    m_computingManager->doComputing(m_pipelineManager, m_currentFrame, m_renderingManager->getRenderer3D());
 
     m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
 

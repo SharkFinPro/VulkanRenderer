@@ -97,6 +97,18 @@ namespace vke {
     return fontBySize->second;
   }
 
+  std::shared_ptr<SmokeSystem> AssetManager::createSmokeSystem(glm::vec3 position, uint32_t numParticles)
+  {
+    return std::make_shared<SmokeSystem>(
+      m_logicalDevice,
+      m_commandPool,
+      m_descriptorPool,
+      m_smokeSystemDescriptorSetLayout,
+      position,
+      numParticles
+    );
+  }
+
   VkDescriptorSetLayout AssetManager::getObjectDescriptorSetLayout() const
   {
     return m_objectDescriptorSetLayout;

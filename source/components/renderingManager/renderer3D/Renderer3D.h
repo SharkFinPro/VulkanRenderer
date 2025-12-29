@@ -71,8 +71,7 @@ namespace vke {
 
     void renderSmokeSystem(const std::shared_ptr<SmokeSystem>& smokeSystem);
 
-    // std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
-    //                                                  uint32_t numParticles = 5'000'000);
+    [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;;
 
   private:
     std::shared_ptr<MousePicker> m_mousePicker;

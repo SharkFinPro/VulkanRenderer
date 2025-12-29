@@ -105,6 +105,13 @@ namespace vke {
     m_smokePipeline->render(renderInfo, systems);
   }
 
+  void PipelineManager::computeSmokePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             const uint32_t currentFrame,
+                                             const std::vector<std::shared_ptr<SmokeSystem>>* systems) const
+  {
+    m_smokePipeline->compute(commandBuffer, currentFrame, systems);
+  }
+
   void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
                                            const std::vector<Rect>* rects) const
   {

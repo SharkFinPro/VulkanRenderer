@@ -100,6 +100,11 @@ namespace vke {
     m_smokeSystemsToRender.push_back(smokeSystem);
   }
 
+  const std::vector<std::shared_ptr<SmokeSystem>>& Renderer3D::getSmokeSystems() const
+  {
+    return m_smokeSystemsToRender;
+  }
+
   void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
                                        const std::shared_ptr<PipelineManager>& pipelineManager) const
   {

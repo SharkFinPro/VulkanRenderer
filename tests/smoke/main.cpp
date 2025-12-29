@@ -11,7 +11,7 @@
 void createLights(const vke::VulkanEngine& renderer,
                   std::vector<std::shared_ptr<vke::Light>>& lights);
 
-void createSmokeSystems(const vke::VulkanEngine& renderer);
+std::vector<std::shared_ptr<vke::SmokeSystem>> createSmokeSystems(const vke::VulkanEngine& renderer);
 
 int main()
 {
@@ -40,7 +40,7 @@ int main()
     std::vector<std::shared_ptr<vke::Light>> lights;
     createLights(renderer, lights);
 
-    createSmokeSystems(renderer);
+    const auto smokeSystems = createSmokeSystems(renderer);
 
     const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
@@ -49,6 +49,11 @@ int main()
       displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
       r3d->renderObject(object, vke::PipelineType::object);
+
+      for (const auto& system : smokeSystems)
+      {
+        r3d->renderSmokeSystem(system);
+      }
 
       for (const auto& light : lights)
       {
@@ -81,14 +86,17 @@ void createLights(const vke::VulkanEngine& renderer,
   lights.push_back(renderer.getLightingManager()->createPointLight({-5.0f, 1.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
 }
 
-void createSmokeSystems(const vke::VulkanEngine& renderer)
+std::vector<std::shared_ptr<vke::SmokeSystem>> createSmokeSystems(const vke::VulkanEngine& renderer)
 {
+  std::vector<std::shared_ptr<vke::SmokeSystem>> systems;
+
   constexpr uint32_t numParticles = 2'500'000;
 
-  // TODO: Create & Link
-  // renderer.getPipelineManager()->createSmokeSystem({0, 0.95f, 0}, numParticles);
-  // renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, -5}, numParticles * 2);
-  // renderer.getPipelineManager()->createSmokeSystem({-5, 0.95f, 5}, numParticles / 2);
-  // renderer.getPipelineManager()->createSmokeSystem({5, .95f, 5}, numParticles * 2);
-  // renderer.getPipelineManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2);
+  systems.push_back(renderer.getAssetManager()->createSmokeSystem({0, 0.95f, 0}, numParticles));
+  systems.push_back(renderer.getAssetManager()->createSmokeSystem({-5, 0.95f, -5}, numParticles * 2));
+  systems.push_back(renderer.getAssetManager()->createSmokeSystem({-5, 0.95f, 5}, numParticles / 2));
+  systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, .95f, 5}, numParticles * 2));
+  systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2));
+
+  return systems;
 }
