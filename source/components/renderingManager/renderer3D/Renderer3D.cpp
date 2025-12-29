@@ -1,19 +1,28 @@
 #include "Renderer3D.h"
+#include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
 #include "../../mousePicker/MousePicker.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 
 namespace vke {
-  Renderer3D::Renderer3D()
-  {
-    // m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
-    //                                               m_assetManager->getObjectDescriptorSetLayout());
-  }
+  Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
+                         std::shared_ptr<Window> window,
+                         const std::shared_ptr<AssetManager>& assetManager,
+                         VkCommandPool commandPool)
+    : m_mousePicker(std::make_shared<MousePicker>(std::move(logicalDevice), std::move(window), commandPool,
+                    assetManager->getObjectDescriptorSetLayout()))
+  {}
 
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                                     const uint32_t currentFrame) const
   {
     lightingManager->update(currentFrame, m_viewPosition);
+  }
+
+  void Renderer3D::doMousePicking(const uint32_t imageIndex,
+                                  const uint32_t currentFrame)
+  {
+    m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix, m_renderObjectsToRender);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,
@@ -48,7 +57,7 @@ namespace vke {
 
     m_bendyPlantsToRender.clear();
 
-    // m_mousePicker->clearObjectsToMousePick();
+    m_mousePicker->clearObjectsToMousePick();
   }
 
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Renderer3D::getRenderObjectsToRender()
@@ -64,7 +73,7 @@ namespace vke {
 
     if (mousePicked)
     {
-      // m_mousePicker->renderObject(renderObject, mousePicked);
+      m_mousePicker->renderObject(renderObject, mousePicked);
     }
   }
 

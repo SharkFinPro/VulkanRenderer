@@ -3,19 +3,23 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
 namespace vke {
 
+  class AssetManager;
   class LightingManager;
   class LineVertex;
+  class LogicalDevice;
   class MousePicker;
   class PipelineManager;
   enum class PipelineType;
   struct RenderInfo;
   class RenderObject;
+  class Window;
 
   struct BendyPlant {
     glm::vec3 position = glm::vec3(0.0f);
@@ -27,10 +31,16 @@ namespace vke {
 
   class Renderer3D {
   public:
-    Renderer3D();
+    Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
+               std::shared_ptr<Window> window,
+               const std::shared_ptr<AssetManager>& assetManager,
+               VkCommandPool commandPool);
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                           uint32_t currentFrame) const;
+
+    void doMousePicking(uint32_t imageIndex,
+                        uint32_t currentFrame);
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;

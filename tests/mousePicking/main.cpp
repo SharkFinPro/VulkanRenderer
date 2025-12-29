@@ -47,14 +47,13 @@ int main()
 
     while (renderer.isActive())
     {
-      // TODO: Link & Enable
-      // if (renderer.getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
-      // {
-      //   for (auto& [_, hovering, selected] : objects)
-      //   {
-      //     selected = hovering;
-      //   }
-      // }
+      if (renderer.getRenderingManager()->getRenderer3D()->getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+      {
+        for (auto& [_, hovering, selected] : objects)
+        {
+          selected = hovering;
+        }
+      }
 
       renderScene(renderer, gui, objects, lights);
     }

@@ -32,8 +32,8 @@ namespace vke {
       m_commandPool(commandPool),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
-      m_renderer2D(std::make_shared<Renderer2D>(std::move(assetManager))),
-      m_renderer3D(std::make_shared<Renderer3D>())
+      m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
+      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, std::move(assetManager), commandPool))
   {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -75,8 +75,7 @@ namespace vke {
 
     m_renderer3D->renderShadowMaps(lightingManager, currentFrame);
 
-    // m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix,
-                                  // pipelineManager->getRenderObjectsToRender());
+    m_renderer3D->doMousePicking(imageIndex, currentFrame);
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
     m_offscreenCommandBuffer->resetCommandBuffer();
@@ -145,11 +144,11 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
-      // m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
+      m_renderer3D->getMousePicker()->recreateFramebuffer(m_offscreenViewportExtent);
     }
     else
     {
-      // m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
+      m_renderer3D->getMousePicker()->recreateFramebuffer(m_swapChain->getExtent());
     }
   }
 
@@ -204,11 +203,11 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
-      // m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
+      m_renderer3D->getMousePicker()->recreateFramebuffer(m_offscreenViewportExtent);
     }
 
     m_offscreenViewportPos = ImGui::GetCursorScreenPos();
-    // m_mousePicker->setViewportPos(m_offscreenViewportPos);
+    m_renderer3D->getMousePicker()->setViewportPos(m_offscreenViewportPos);
 
     ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(imageIndex), contentRegionAvailable);
 
