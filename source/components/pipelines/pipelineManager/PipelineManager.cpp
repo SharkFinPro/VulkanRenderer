@@ -112,6 +112,12 @@ namespace vke {
     m_smokePipeline->compute(commandBuffer, currentFrame, systems);
   }
 
+  void PipelineManager::renderLinePipeline(const RenderInfo* renderInfo,
+                                           const std::vector<LineVertex>* lineVertices) const
+  {
+    m_linePipeline->render(renderInfo, m_commandPool, lineVertices);
+  }
+
   void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
                                            const std::vector<Rect>* rects) const
   {

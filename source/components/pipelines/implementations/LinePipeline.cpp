@@ -52,16 +52,16 @@ namespace vke {
 
   void LinePipeline::render(const RenderInfo* renderInfo,
                             const VkCommandPool& commandPool,
-                            const std::vector<LineVertex>& vertices)
+                            const std::vector<LineVertex>* vertices)
   {
-    if (vertices.empty())
+    if (vertices->empty())
     {
       return;
     }
 
     GraphicsPipeline::render(renderInfo, nullptr);
 
-    const VkDeviceSize bufferSize = sizeof(LineVertex) * vertices.size();
+    const VkDeviceSize bufferSize = sizeof(LineVertex) * vertices->size();
 
     if (bufferSize > m_maxVertexBufferSize)
     {
@@ -69,7 +69,7 @@ namespace vke {
     }
 
     m_logicalDevice->doMappedMemoryOperation(m_stagingBufferMemory, [vertices, bufferSize](void* data) {
-      memcpy(data, vertices.data(), bufferSize);
+      memcpy(data, vertices->data(), bufferSize);
     });
 
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), m_stagingBuffer,
@@ -82,7 +82,7 @@ namespace vke {
     renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                                              sizeof(MVPTransformUniform), &transformUBO);
 
-    renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices->size()), 1, 0, 0);
   }
 
   void LinePipeline::createVertexBuffer()

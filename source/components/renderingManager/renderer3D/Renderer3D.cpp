@@ -42,16 +42,18 @@ namespace vke {
 
     pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
 
-    if (m_shouldRenderGrid)
-    {
-      pipelineManager->renderGridPipeline(&renderInfo3D);
-    }
-
     for (auto& system : m_smokeSystemsToRender)
     {
       system->update(&renderInfo3D);
     }
     pipelineManager->renderSmokePipeline(&renderInfo3D, &m_smokeSystemsToRender);
+
+    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineVerticesToRender);
+
+    if (m_shouldRenderGrid)
+    {
+      pipelineManager->renderGridPipeline(&renderInfo3D);
+    }
   }
 
   void Renderer3D::createNewFrame()

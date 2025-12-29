@@ -65,6 +65,9 @@ namespace vke {
                               uint32_t currentFrame,
                               const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
+    void renderLinePipeline(const RenderInfo* renderInfo,
+                            const std::vector<LineVertex>* lineVertices) const;
+
     void renderRectPipeline(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects) const;
 
