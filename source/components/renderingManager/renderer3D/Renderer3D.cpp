@@ -23,6 +23,8 @@ namespace vke {
     // pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
     //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
 
+    renderRenderObjects(&renderInfo3D, pipelineManager);
+
     pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
 
     if (m_shouldRenderGrid)
@@ -76,35 +78,21 @@ namespace vke {
     m_bendyPlantsToRender.push_back(bendyPlant);
   }
 
-  void Renderer3D::renderRenderObjects(const RenderInfo& renderInfo) const
+  void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
+                                       const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    // for (const auto& [type, objects] : m_renderObjectsToRender)
-    // {
-    //   if (objects.empty())
-    //   {
-    //     continue;
-    //   }
-    //
-    //   if (auto it = m_pipelines.find(type); it != m_pipelines.end())
-    //   {
-    //     if (it->first == PipelineType::objectHighlight)
-    //     {
-    //       continue;
-    //     }
-    //
-    //     if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get()))
-    //     {
-    //       graphicsPipeline->displayGui();
-    //       graphicsPipeline->render(&renderInfo, &objects);
-    //       continue;
-    //     }
-    //
-    //     throw std::runtime_error("Pipeline for object type is not a GraphicsPipeline");
-    //   }
-    //
-    //   throw std::runtime_error("Pipeline for object type does not exist");
-    // }
-    //
+    for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
+    {
+      if (objects.empty())
+      {
+        continue;
+      }
+
+      pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
+    }
+
+    // pipelineManager->renderObjectHighlightPipeline()
+
     // auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
     // auto highlightPipelineIt = m_pipelines.find(PipelineType::objectHighlight);
     //

@@ -156,6 +156,8 @@ namespace vke {
   void RenderingManager::createNewFrame() const
   {
     m_renderer2D->createNewFrame();
+
+    m_renderer3D->createNewFrame();
   }
 
   std::shared_ptr<Renderer2D> RenderingManager::getRenderer2D() const

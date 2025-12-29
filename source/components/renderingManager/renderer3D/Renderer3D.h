@@ -68,7 +68,8 @@ namespace vke {
 
     std::vector<BendyPlant> m_bendyPlantsToRender;
 
-    void renderRenderObjects(const RenderInfo& renderInfo) const;
+    void renderRenderObjects(const RenderInfo* renderInfo,
+                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void renderSmokeSystems(const RenderInfo& renderInfo) const;
   };

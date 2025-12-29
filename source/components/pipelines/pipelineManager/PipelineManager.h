@@ -69,6 +69,10 @@ namespace vke {
 
     void renderGridPipeline(const RenderInfo* renderInfo) const;
 
+    void renderRenderObjectPipeline(const RenderInfo* renderInfo,
+                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                    PipelineType pipelineType) const;
+
     void renderRectPipeline(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects) const;
 

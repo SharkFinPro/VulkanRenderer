@@ -127,6 +127,31 @@ namespace vke {
     m_gridPipeline->render(renderInfo);
   }
 
+  void PipelineManager::renderRenderObjectPipeline(const RenderInfo* renderInfo,
+                                                   const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                                   const PipelineType pipelineType) const
+  {
+    const auto it = m_pipelines.find(pipelineType);
+    if (it == m_pipelines.end())
+    {
+      throw std::runtime_error("Pipeline for object type does not exist");
+    }
+
+    if (it->first == PipelineType::objectHighlight)
+    {
+      return;
+    }
+
+    auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get());
+    if (!graphicsPipeline)
+    {
+      throw std::runtime_error("Pipeline for object type is not a GraphicsPipeline");
+    }
+
+    graphicsPipeline->displayGui();
+    graphicsPipeline->render(renderInfo, objects);
+  }
+
   void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
                                            const std::vector<Rect>* rects) const
   {
