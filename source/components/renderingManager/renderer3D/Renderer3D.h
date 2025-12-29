@@ -91,6 +91,9 @@ namespace vke {
 
     void renderRenderObjects(const RenderInfo* renderInfo,
                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    void renderSmokeSystems(const RenderInfo* renderInfo,
+                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
   };
 } // vke
 

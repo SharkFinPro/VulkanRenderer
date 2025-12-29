@@ -42,11 +42,7 @@ namespace vke {
 
     pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
 
-    for (auto& system : m_smokeSystemsToRender)
-    {
-      system->update(&renderInfo3D);
-    }
-    pipelineManager->renderSmokePipeline(&renderInfo3D, &m_smokeSystemsToRender);
+    renderSmokeSystems(&renderInfo3D, pipelineManager);
 
     pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineVerticesToRender);
 
@@ -129,6 +125,16 @@ namespace vke {
     {
       pipelineManager->renderRenderObjectPipeline(renderInfo, &highlightObjectsIt->second, PipelineType::objectHighlight);
     }
+  }
+
+  void Renderer3D::renderSmokeSystems(const RenderInfo* renderInfo,
+                                      const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    for (auto& system : m_smokeSystemsToRender)
+    {
+      system->update(renderInfo);
+    }
+    pipelineManager->renderSmokePipeline(renderInfo, &m_smokeSystemsToRender);
   }
 
   void Renderer3D::enableGrid()
