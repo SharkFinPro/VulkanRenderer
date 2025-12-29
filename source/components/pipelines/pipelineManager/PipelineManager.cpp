@@ -99,6 +99,12 @@ namespace vke {
     graphicsPipeline->render(renderInfo, objects);
   }
 
+  void PipelineManager::renderSmokePipeline(const RenderInfo* renderInfo,
+                                            const std::vector<std::shared_ptr<SmokeSystem>>* systems) const
+  {
+    m_smokePipeline->render(renderInfo, systems);
+  }
+
   void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
                                            const std::vector<Rect>* rects) const
   {

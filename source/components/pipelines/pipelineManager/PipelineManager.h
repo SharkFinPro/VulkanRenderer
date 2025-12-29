@@ -58,6 +58,9 @@ namespace vke {
                                     const std::vector<std::shared_ptr<RenderObject>>* objects,
                                     PipelineType pipelineType) const;
 
+    void renderSmokePipeline(const RenderInfo* renderInfo,
+                             const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
+
     void renderRectPipeline(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects) const;
 
@@ -65,7 +68,7 @@ namespace vke {
                                 const std::vector<Triangle>* triangles) const;
 
     void renderEllipsePipeline(const RenderInfo* renderInfo,
-                                const std::vector<Ellipse>* ellipses) const;
+                               const std::vector<Ellipse>* ellipses) const;
 
     void renderFontPipeline(const RenderInfo* renderInfo,
                             const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
