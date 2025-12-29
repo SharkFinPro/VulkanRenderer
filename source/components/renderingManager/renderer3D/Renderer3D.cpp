@@ -64,8 +64,8 @@ namespace vke {
     // m_mousePicker->renderObject(renderObject, mousePicked);
   }
 
-  void Renderer3D::renderLine(glm::vec3 start,
-                              glm::vec3 end)
+  void Renderer3D::renderLine(const glm::vec3 start,
+                              const glm::vec3 end)
   {
     m_lineVerticesToRender.push_back({start});
     m_lineVerticesToRender.push_back({end});
