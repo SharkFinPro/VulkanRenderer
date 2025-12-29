@@ -1,7 +1,6 @@
 #include "../common/gui.h"
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -57,6 +56,8 @@ void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::RenderObject>& object,
                  const std::vector<std::shared_ptr<vke::RenderObject>>& walls)
 {
+  const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+
   gui->dockCenter("SceneView");
   gui->dockBottom("Objects");
   gui->dockBottom("Cube Map");
@@ -67,11 +68,11 @@ void renderScene(vke::VulkanEngine& renderer,
   displayObjectGuis({ object });
 
   // Render Objects
-  renderer.getPipelineManager()->renderObject(object, vke::PipelineType::cubeMap);
+  r3d->renderObject(object, vke::PipelineType::cubeMap);
 
   for (auto& wall : walls)
   {
-    renderer.getPipelineManager()->renderObject(wall, vke::PipelineType::texturedPlane);
+    r3d->renderObject(wall, vke::PipelineType::texturedPlane);
   }
 
   // Render Frame

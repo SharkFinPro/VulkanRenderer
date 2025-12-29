@@ -2,7 +2,6 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -71,6 +70,8 @@ void renderScene(vke::VulkanEngine& renderer,
                  const std::vector<std::shared_ptr<vke::Light>>& lights,
                  bool& useCurtain)
 {
+  const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+
   // Render GUI
   displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
@@ -80,7 +81,7 @@ void renderScene(vke::VulkanEngine& renderer,
 
 
   // Render Objects
-  renderer.getPipelineManager()->renderObject(object, useCurtain ? vke::PipelineType::curtain : vke::PipelineType::object);
+  r3d->renderObject(object, useCurtain ? vke::PipelineType::curtain : vke::PipelineType::object);
 
   for (const auto& light : lights)
   {

@@ -3,9 +3,7 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
-#include <source/components/renderingManager/renderer3D/Renderer3D.h>
 #include <imgui.h>
 #include <iostream>
 

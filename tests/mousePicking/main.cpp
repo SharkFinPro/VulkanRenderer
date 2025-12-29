@@ -4,7 +4,6 @@
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/window/Window.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -48,13 +47,14 @@ int main()
 
     while (renderer.isActive())
     {
-      if (renderer.getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
-      {
-        for (auto& [_, hovering, selected] : objects)
-        {
-          selected = hovering;
-        }
-      }
+      // TODO: Link & Enable
+      // if (renderer.getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+      // {
+      //   for (auto& [_, hovering, selected] : objects)
+      //   {
+      //     selected = hovering;
+      //   }
+      // }
 
       renderScene(renderer, gui, objects, lights);
     }
@@ -105,6 +105,8 @@ void renderScene(vke::VulkanEngine& renderer,
                  std::vector<MousePickingObject>& objects,
                  const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
+  const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+
   gui->dockCenter("SceneView");
   gui->dockBottom("Selected Object");
   gui->dockBottom("Lights");
@@ -134,11 +136,11 @@ void renderScene(vke::VulkanEngine& renderer,
   // Render Objects
   for (auto& [object, hovering, selected] : objects)
   {
-    renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object, &hovering);
+    r3d->renderObject(object, vke::PipelineType::object, &hovering);
 
     if (selected)
     {
-      renderer.getPipelineManager()->renderObject(object, vke::PipelineType::objectHighlight);
+      r3d->renderObject(object, vke::PipelineType::objectHighlight);
     }
   }
 

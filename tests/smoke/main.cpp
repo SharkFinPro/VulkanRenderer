@@ -42,11 +42,13 @@ int main()
 
     createSmokeSystems(renderer);
 
+    const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+
     while (renderer.isActive())
     {
       displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
-      renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
+      r3d->renderObject(object, vke::PipelineType::object);
 
       for (const auto& light : lights)
       {
