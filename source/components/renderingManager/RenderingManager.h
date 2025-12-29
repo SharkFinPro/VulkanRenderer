@@ -27,7 +27,7 @@ namespace vke {
                      VkCommandPool commandPool,
                      bool shouldRenderOffscreen,
                      const char* sceneViewName,
-                     std::shared_ptr<AssetManager> assetManager);
+                     const std::shared_ptr<AssetManager>& assetManager);
 
     void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const std::shared_ptr<LightingManager>& lightingManager,

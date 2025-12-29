@@ -25,7 +25,7 @@ namespace vke {
                                      VkCommandPool commandPool,
                                      const bool shouldRenderOffscreen,
                                      const char* sceneViewName,
-                                     std::shared_ptr<AssetManager> assetManager)
+                                     const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
@@ -33,7 +33,7 @@ namespace vke {
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
-      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, std::move(assetManager), commandPool))
+      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, assetManager, commandPool))
   {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
