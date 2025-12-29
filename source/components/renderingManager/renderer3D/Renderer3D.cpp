@@ -1,5 +1,6 @@
 #include "Renderer3D.h"
 #include "../../assets/AssetManager.h"
+#include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../lighting/LightingManager.h"
 #include "../../mousePicker/MousePicker.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
@@ -45,6 +46,8 @@ namespace vke {
     {
       pipelineManager->renderGridPipeline(&renderInfo3D);
     }
+
+    pipelineManager->renderSmokePipeline(&renderInfo3D, &m_smokeSystemsToRender);
   }
 
   void Renderer3D::createNewFrame()
@@ -59,6 +62,8 @@ namespace vke {
     m_bendyPlantsToRender.clear();
 
     m_mousePicker->clearObjectsToMousePick();
+
+    m_smokeSystemsToRender.clear();
   }
 
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Renderer3D::getRenderObjectsToRender()
@@ -90,6 +95,11 @@ namespace vke {
     m_bendyPlantsToRender.push_back(bendyPlant);
   }
 
+  void Renderer3D::renderSmokeSystem(const std::shared_ptr<SmokeSystem>& smokeSystem)
+  {
+    m_smokeSystemsToRender.push_back(smokeSystem);
+  }
+
   void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
                                        const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
@@ -108,26 +118,6 @@ namespace vke {
     {
       pipelineManager->renderRenderObjectPipeline(renderInfo, &highlightObjectsIt->second, PipelineType::objectHighlight);
     }
-  }
-
-  void Renderer3D::renderSmokeSystems(const RenderInfo& renderInfo) const
-  {
-    // if (!m_smokeSystems.empty())
-    // {
-    //   ImGui::Begin("Smoke");
-    //   ImGui::Separator();
-    //   for (const auto& system : m_smokeSystems)
-    //   {
-    //     ImGui::PushID(&system);
-    //     system->displayGui();
-    //     ImGui::PopID();
-    //
-    //     ImGui::Separator();
-    //
-    //     system->render(&renderInfo, nullptr);
-    //   }
-    //   ImGui::End();
-    // }
   }
 
   void Renderer3D::enableGrid()

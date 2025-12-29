@@ -19,6 +19,7 @@ namespace vke {
   enum class PipelineType;
   struct RenderInfo;
   class RenderObject;
+  class SmokeSystem;
   class Window;
 
   struct BendyPlant {
@@ -68,6 +69,8 @@ namespace vke {
 
     void renderBendyPlant(const BendyPlant& bendyPlant);
 
+    void renderSmokeSystem(const std::shared_ptr<SmokeSystem>& smokeSystem);
+
     // std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
     //                                                  uint32_t numParticles = 5'000'000);
 
@@ -85,10 +88,10 @@ namespace vke {
 
     std::vector<BendyPlant> m_bendyPlantsToRender;
 
+    std::vector<std::shared_ptr<SmokeSystem>> m_smokeSystemsToRender;
+
     void renderRenderObjects(const RenderInfo* renderInfo,
                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
-
-    void renderSmokeSystems(const RenderInfo& renderInfo) const;
   };
 } // vke
 
