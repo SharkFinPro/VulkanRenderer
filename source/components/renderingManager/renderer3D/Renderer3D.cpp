@@ -67,7 +67,7 @@ namespace vke {
   }
 
   void Renderer3D::renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                                PipelineType pipelineType,
+                                const PipelineType pipelineType,
                                 bool* mousePicked)
   {
     m_renderObjectsToRender[pipelineType].push_back(renderObject);
