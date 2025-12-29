@@ -1,5 +1,6 @@
 #include "Renderer3D.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../mousePicker/MousePicker.h"
 
 namespace vke {
   Renderer3D::Renderer3D()
