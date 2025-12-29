@@ -39,8 +39,6 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<LightingManager> getLightingManager() const;
 
-    [[nodiscard]] std::shared_ptr<PipelineManager> getPipelineManager() const;
-
     [[nodiscard]] std::shared_ptr<RenderingManager> getRenderingManager() const;
 
     [[nodiscard]] std::shared_ptr<Window> getWindow() const;

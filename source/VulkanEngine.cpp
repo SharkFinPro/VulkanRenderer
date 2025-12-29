@@ -84,11 +84,6 @@ namespace vke {
     return m_lightingManager;
   }
 
-  std::shared_ptr<PipelineManager> VulkanEngine::getPipelineManager() const
-  {
-    return m_pipelineManager;
-  }
-
   std::shared_ptr<RenderingManager> VulkanEngine::getRenderingManager() const
   {
     return m_renderingManager;
