@@ -22,7 +22,6 @@
 #include "../implementations/GuiPipeline.h"
 #include "../implementations/SmokePipeline.h"
 
-#include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/Renderer.h"
@@ -83,24 +82,6 @@ namespace vke {
   std::shared_ptr<GuiPipeline> PipelineManager::getGuiPipeline()
   {
     return m_guiPipeline;
-  }
-
-  void PipelineManager::renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                const VkExtent2D extent,
-                                                const uint32_t currentFrame,
-                                                const glm::vec3& viewPosition,
-                                                const glm::mat4& viewMatrix,
-                                                const bool shouldRenderGrid) const
-  {
-    // if (m_shouldDoDots)
-    // {
-    //   m_dotsPipeline->render(&renderInfo, nullptr);
-    // }
-    //
-    // if (shouldRenderGrid)
-    // {
-    //   m_gridPipeline->render(&renderInfo);
-    // }
   }
 
   void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo,

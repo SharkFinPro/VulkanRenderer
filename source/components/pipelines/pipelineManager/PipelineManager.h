@@ -50,13 +50,6 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<GuiPipeline> getGuiPipeline();
 
-    void renderGraphicsPipelines(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                 VkExtent2D extent,
-                                 uint32_t currentFrame,
-                                 const glm::vec3& viewPosition,
-                                 const glm::mat4& viewMatrix,
-                                 bool shouldRenderGrid) const;
-
     void renderShadowPipeline(const RenderInfo& renderInfo,
                               const std::vector<std::shared_ptr<RenderObject>>* objects) const;
 
