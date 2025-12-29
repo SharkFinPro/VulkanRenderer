@@ -47,6 +47,10 @@ namespace vke {
       pipelineManager->renderGridPipeline(&renderInfo3D);
     }
 
+    for (auto& system : m_smokeSystemsToRender)
+    {
+      system->update(&renderInfo3D);
+    }
     pipelineManager->renderSmokePipeline(&renderInfo3D, &m_smokeSystemsToRender);
   }
 
