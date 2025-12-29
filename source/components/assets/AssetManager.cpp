@@ -22,6 +22,8 @@ namespace vke {
     m_logicalDevice->destroyDescriptorSetLayout(m_objectDescriptorSetLayout);
 
     m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
+
+    m_logicalDevice->destroyDescriptorSetLayout(m_smokeSystemDescriptorSetLayout);
   }
 
   std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path,
