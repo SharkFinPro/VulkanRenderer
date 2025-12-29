@@ -28,7 +28,8 @@ namespace vke {
   public:
     Renderer3D();
 
-    void render(const std::shared_ptr<PipelineManager>& pipelineManager) const;
+    void render(const RenderInfo* renderInfo,
+                const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void createNewFrame();
 

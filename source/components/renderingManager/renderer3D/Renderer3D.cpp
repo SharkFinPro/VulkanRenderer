@@ -9,10 +9,21 @@ namespace vke {
     //                                               m_assetManager->getObjectDescriptorSetLayout());
   }
 
-  void Renderer3D::render(const std::shared_ptr<PipelineManager>& pipelineManager) const
+  void Renderer3D::render(const RenderInfo* renderInfo,
+                          const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
+    const RenderInfo renderInfo3D {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent
+    };
+
     // pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
     //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
+
+    pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
   }
 
   void Renderer3D::createNewFrame()

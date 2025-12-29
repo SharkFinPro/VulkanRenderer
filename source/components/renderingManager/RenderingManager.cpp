@@ -231,66 +231,13 @@ namespace vke {
 
       m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
-      m_renderer3D->render(pipelineManager);
-
-      // pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
-      //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
-
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
         .currentFrame = currentFrame,
-        // .viewPosition = m_viewPosition,
-        // .viewMatrix = m_viewMatrix,
         .viewPosition = {},
         .viewMatrix = {},
-        .extent = {
-          static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
-          static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
-        }
+        .extent = m_offscreenViewportExtent
       };
-
-      resetDepthBuffer(*m_offscreenCommandBuffer->getCommandBuffer(), m_offscreenViewportExtent);
-
-      m_renderer2D->render(&renderInfo, pipelineManager);
-
-      m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
-    });
-  }
-
-  void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                      uint32_t currentFrame,
-                                                      const uint32_t imageIndex) const
-  {
-    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
-    {
-      const RenderInfo renderInfo {
-        .commandBuffer = m_swapchainCommandBuffer,
-        .currentFrame = currentFrame,
-        // .viewPosition = m_viewPosition,
-        // .viewMatrix = m_viewMatrix,
-        .viewPosition = {},
-        .viewMatrix = {},
-        .extent = m_swapChain->getExtent()
-      };
-
-      m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
-
-      if (!m_shouldRenderOffscreen)
-      {
-        m_renderer3D->render(pipelineManager);
-        // pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
-        //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
-
-        RenderInfo renderInfo2D = renderInfo;
-        renderInfo2D.extent = {
-          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
-          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
-        };
-
-        resetDepthBuffer(*m_swapchainCommandBuffer->getCommandBuffer(), m_swapChain->getExtent());
-
-        m_renderer2D->render(&renderInfo2D, pipelineManager);
-      }
 
       const VkViewport viewport = {
         .x = 0.0f,
@@ -307,6 +254,69 @@ namespace vke {
         .extent = renderInfo.extent
       };
       renderInfo.commandBuffer->setScissor(scissor);
+
+      m_renderer3D->render(&renderInfo, pipelineManager);
+
+      resetDepthBuffer(*m_offscreenCommandBuffer->getCommandBuffer(), m_offscreenViewportExtent);
+
+      RenderInfo renderInfo2D = renderInfo;
+      renderInfo2D.extent = {
+        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
+        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
+      };
+
+      m_renderer2D->render(&renderInfo2D, pipelineManager);
+
+      m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
+    });
+  }
+
+  void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                      uint32_t currentFrame,
+                                                      const uint32_t imageIndex) const
+  {
+    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
+    {
+      const RenderInfo renderInfo {
+        .commandBuffer = m_swapchainCommandBuffer,
+        .currentFrame = currentFrame,
+        .viewPosition = {},
+        .viewMatrix = {},
+        .extent = m_swapChain->getExtent()
+      };
+
+      m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
+
+      const VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(renderInfo.extent.width),
+        .height = static_cast<float>(renderInfo.extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+      };
+      renderInfo.commandBuffer->setViewport(viewport);
+
+      const VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent = renderInfo.extent
+      };
+      renderInfo.commandBuffer->setScissor(scissor);
+
+      if (!m_shouldRenderOffscreen)
+      {
+        m_renderer3D->render(&renderInfo, pipelineManager);
+
+        resetDepthBuffer(*m_swapchainCommandBuffer->getCommandBuffer(), m_swapChain->getExtent());
+
+        RenderInfo renderInfo2D = renderInfo;
+        renderInfo2D.extent = {
+          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
+          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
+        };
+
+        m_renderer2D->render(&renderInfo2D, pipelineManager);
+      }
 
       pipelineManager->getGuiPipeline()->render(&renderInfo);
 

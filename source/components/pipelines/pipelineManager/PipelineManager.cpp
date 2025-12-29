@@ -92,47 +92,15 @@ namespace vke {
                                                 const glm::mat4& viewMatrix,
                                                 const bool shouldRenderGrid) const
   {
-    const RenderInfo renderInfo {
-      .commandBuffer = commandBuffer,
-      .currentFrame = currentFrame,
-      .viewPosition = viewPosition,
-      .viewMatrix = viewMatrix,
-      .extent = extent
-    };
-
-    const VkViewport viewport = {
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(extent.width),
-      .height = static_cast<float>(extent.height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f
-    };
-    renderInfo.commandBuffer->setViewport(viewport);
-
-    const VkRect2D scissor = {
-      .offset = {0, 0},
-      .extent = extent
-    };
-    renderInfo.commandBuffer->setScissor(scissor);
-
-    // renderRenderObjects(renderInfo);
-
-    if (m_shouldDoDots)
-    {
-      m_dotsPipeline->render(&renderInfo, nullptr);
-    }
-
-    // m_linePipeline->render(&renderInfo, m_commandPool, m_lineVerticesToRender);
-
-    // m_bendyPipeline->render(&renderInfo);
-
-    // renderSmokeSystems(renderInfo);
-
-    if (shouldRenderGrid)
-    {
-      m_gridPipeline->render(&renderInfo);
-    }
+    // if (m_shouldDoDots)
+    // {
+    //   m_dotsPipeline->render(&renderInfo, nullptr);
+    // }
+    //
+    // if (shouldRenderGrid)
+    // {
+    //   m_gridPipeline->render(&renderInfo);
+    // }
   }
 
   void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo,
