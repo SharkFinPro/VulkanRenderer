@@ -13,13 +13,7 @@ namespace vke {
   class RenderPass;
   class Texture2D;
 
-  struct BendyPlant {
-    glm::vec3 position = glm::vec3(0.0f);
-    int numFins = 21;
-    int leafLength = 3;
-    float pitch = 77.5;
-    float bendStrength = -0.07;
-  };
+  struct BendyPlant;
 
   class BendyPipeline final : public GraphicsPipeline {
   public:
@@ -29,11 +23,8 @@ namespace vke {
                   VkDescriptorPool descriptorPool,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
-    void render(const RenderInfo* renderInfo);
-
-    void renderBendyPlant(const BendyPlant &bendyPlant);
-
-    void clearBendyPlantsToRender();
+    void render(const RenderInfo* renderInfo,
+                const std::vector<BendyPlant>* plants);
 
   private:
     BendyUniform m_bendyUBO {
@@ -49,8 +40,6 @@ namespace vke {
     std::shared_ptr<Texture2D> m_texture;
 
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
-
-    std::vector<BendyPlant> m_bendyPlantsToRender;
 
     void createUniforms(const VkCommandPool& commandPool);
 

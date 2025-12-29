@@ -22,7 +22,6 @@ namespace vke {
   RenderingManager::RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                      std::shared_ptr<Surface> surface,
                                      std::shared_ptr<Window> window,
-                                     std::shared_ptr<MousePicker> mousePicker,
                                      VkCommandPool commandPool,
                                      const bool shouldRenderOffscreen,
                                      const char* sceneViewName,
@@ -30,7 +29,6 @@ namespace vke {
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
-      m_mousePicker(std::move(mousePicker)),
       m_commandPool(commandPool),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
@@ -147,11 +145,11 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
-      m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
+      // m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
     }
     else
     {
-      m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
+      // m_mousePicker->recreateFramebuffer(m_swapChain->getExtent());
     }
   }
 
@@ -204,11 +202,11 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
-      m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
+      // m_mousePicker->recreateFramebuffer(m_offscreenViewportExtent);
     }
 
     m_offscreenViewportPos = ImGui::GetCursorScreenPos();
-    m_mousePicker->setViewportPos(m_offscreenViewportPos);
+    // m_mousePicker->setViewportPos(m_offscreenViewportPos);
 
     ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(imageIndex), contentRegionAvailable);
 

@@ -18,7 +18,6 @@
 namespace vke {
 
   class AssetManager;
-  class MousePicker;
   class LightingManager;
   class DotsPipeline;
   class GuiPipeline;
@@ -34,14 +33,11 @@ namespace vke {
     PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                     const std::shared_ptr<Renderer>& renderer,
                     const std::shared_ptr<LightingManager>& lightingManager,
-                    const std::shared_ptr<MousePicker>& mousePicker,
                     VkDescriptorSetLayout objectDescriptorSetLayout,
                     VkDescriptorSetLayout fontDescriptorSetLayout,
                     VkDescriptorPool descriptorPool,
                     VkCommandPool commandPool,
                     bool shouldDoDots);
-
-    void createNewFrame();
 
     std::shared_ptr<SmokePipeline> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
                                                      uint32_t numParticles = 5'000'000);
@@ -68,6 +64,9 @@ namespace vke {
                                            const std::vector<std::shared_ptr<RenderObject>>* objects,
                                            const std::shared_ptr<PointLight>& pointLight) const;
 
+    void renderBendyPlantPipeline(const RenderInfo& renderInfo,
+                                  const std::vector<BendyPlant>* plants) const;
+
     void renderRectPipeline(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects) const;
 
@@ -92,8 +91,6 @@ namespace vke {
     std::shared_ptr<RenderPass> m_renderPass;
 
     std::shared_ptr<LightingManager> m_lightingManager;
-
-    std::shared_ptr<MousePicker> m_mousePicker;
 
     std::shared_ptr<GuiPipeline> m_guiPipeline;
     std::shared_ptr<DotsPipeline> m_dotsPipeline;

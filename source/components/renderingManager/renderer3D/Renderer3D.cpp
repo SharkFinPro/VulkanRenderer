@@ -2,6 +2,12 @@
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 
 namespace vke {
+  Renderer3D::Renderer3D()
+  {
+    // m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
+    //                                               m_assetManager->getObjectDescriptorSetLayout());
+  }
+
   void Renderer3D::render(const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
     // pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
@@ -16,6 +22,10 @@ namespace vke {
     }
 
     m_lineVerticesToRender.clear();
+
+    m_bendyPlantsToRender.clear();
+
+    // m_mousePicker->clearObjectsToMousePick();
   }
 
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Renderer3D::getRenderObjectsToRender()
@@ -46,7 +56,7 @@ namespace vke {
 
   void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant) const
   {
-    // m_bendyPipeline->renderBendyPlant(bendyPlant);
+    // m_bendyPlantsToRender.push_back(bendyPlant);
   }
 
   void Renderer3D::renderRenderObjects(const RenderInfo& renderInfo) const
@@ -137,5 +147,10 @@ namespace vke {
   {
     m_viewPosition = position;
     m_viewMatrix = viewMatrix;
+  }
+
+  std::shared_ptr<MousePicker> Renderer3D::getMousePicker() const
+  {
+    return m_mousePicker;
   }
 } // vke

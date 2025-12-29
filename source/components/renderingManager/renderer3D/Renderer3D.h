@@ -9,15 +9,25 @@
 
 namespace vke {
 
-  class BendyPlant;
   class LineVertex;
+  class MousePicker;
   class PipelineManager;
   enum class PipelineType;
   struct RenderInfo;
   class RenderObject;
 
+  struct BendyPlant {
+    glm::vec3 position = glm::vec3(0.0f);
+    int numFins = 21;
+    int leafLength = 3;
+    float pitch = 77.5;
+    float bendStrength = -0.07;
+  };
+
   class Renderer3D {
   public:
+    Renderer3D();
+
     void render(const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void createNewFrame();
@@ -31,6 +41,8 @@ namespace vke {
     void setCameraParameters(glm::vec3 position,
                              const glm::mat4& viewMatrix);
 
+    [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
+
     [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
 
     void renderObject(const std::shared_ptr<RenderObject>& renderObject,
@@ -42,6 +54,8 @@ namespace vke {
     void renderBendyPlant(const BendyPlant& bendyPlant) const;
 
   private:
+    std::shared_ptr<MousePicker> m_mousePicker;
+
     bool m_shouldRenderGrid = true;
 
     glm::vec3 m_viewPosition{};
@@ -50,6 +64,8 @@ namespace vke {
     std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
 
     std::vector<LineVertex> m_lineVerticesToRender;
+
+    std::vector<BendyPlant> m_bendyPlantsToRender;
 
     void renderRenderObjects(const RenderInfo& renderInfo) const;
 

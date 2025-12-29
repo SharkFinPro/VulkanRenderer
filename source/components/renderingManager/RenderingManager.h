@@ -11,7 +11,6 @@ namespace vke {
   class CommandBuffer;
   class LightingManager;
   class LogicalDevice;
-  class MousePicker;
   class PipelineManager;
   class Renderer;
   class Renderer2D;
@@ -25,7 +24,6 @@ namespace vke {
     RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                      std::shared_ptr<Surface> surface,
                      std::shared_ptr<Window> window,
-                     std::shared_ptr<MousePicker> mousePicker,
                      VkCommandPool commandPool,
                      bool shouldRenderOffscreen,
                      const char* sceneViewName,
@@ -55,8 +53,6 @@ namespace vke {
     std::shared_ptr<Surface> m_surface;
 
     std::shared_ptr<Window> m_window;
-
-    std::shared_ptr<MousePicker> m_mousePicker;
 
     std::shared_ptr<Renderer> m_renderer;
 

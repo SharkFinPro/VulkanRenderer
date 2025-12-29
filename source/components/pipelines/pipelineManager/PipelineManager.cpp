@@ -25,10 +25,8 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../mousePicker/MousePicker.h"
 #include "../../renderingManager/Renderer.h"
 
-#include <imgui.h>
 #include <ranges>
 
 namespace vke {
@@ -36,22 +34,16 @@ namespace vke {
   PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                    const std::shared_ptr<Renderer>& renderer,
                                    const std::shared_ptr<LightingManager>& lightingManager,
-                                   const std::shared_ptr<MousePicker>& mousePicker,
                                    VkDescriptorSetLayout objectDescriptorSetLayout,
                                    VkDescriptorSetLayout fontDescriptorSetLayout,
                                    VkDescriptorPool descriptorPool,
                                    VkCommandPool commandPool,
                                    const bool shouldDoDots)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
-      m_renderPass(renderer->getSwapchainRenderPass()), m_lightingManager(lightingManager), m_mousePicker(mousePicker),
+      m_renderPass(renderer->getSwapchainRenderPass()), m_lightingManager(lightingManager),
       m_shouldDoDots(shouldDoDots)
   {
     createPipelines(objectDescriptorSetLayout, fontDescriptorSetLayout, renderer);
-  }
-
-  void PipelineManager::createNewFrame()
-  {
-    m_bendyPipeline->clearBendyPlantsToRender();
   }
 
   std::shared_ptr<SmokePipeline> PipelineManager::createSmokeSystem(glm::vec3 position,
@@ -133,7 +125,7 @@ namespace vke {
 
     // m_linePipeline->render(&renderInfo, m_commandPool, m_lineVerticesToRender);
 
-    m_bendyPipeline->render(&renderInfo);
+    // m_bendyPipeline->render(&renderInfo);
 
     // renderSmokeSystems(renderInfo);
 
@@ -154,6 +146,12 @@ namespace vke {
                                                           const std::shared_ptr<PointLight>& pointLight) const
   {
     m_pointLightShadowMapPipeline->render(&renderInfo, objects, pointLight);
+  }
+
+  void PipelineManager::renderBendyPlantPipeline(const RenderInfo& renderInfo,
+                                                 const std::vector<BendyPlant>* plants) const
+  {
+    m_bendyPipeline->render(&renderInfo, plants);
   }
 
   void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
