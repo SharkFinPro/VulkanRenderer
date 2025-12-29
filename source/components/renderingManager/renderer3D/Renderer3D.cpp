@@ -3,6 +3,7 @@
 #include "../../lighting/LightingManager.h"
 #include "../../mousePicker/MousePicker.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../pipelines/implementations/common/PipelineTypes.h"
 
 namespace vke {
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -94,7 +95,7 @@ namespace vke {
   {
     for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
     {
-      if (objects.empty())
+      if (objects.empty() || pipelineType == PipelineType::objectHighlight)
       {
         continue;
       }
@@ -102,25 +103,11 @@ namespace vke {
       pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
     }
 
-    // pipelineManager->renderObjectHighlightPipeline()
-
-    // auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
-    // auto highlightPipelineIt = m_pipelines.find(PipelineType::objectHighlight);
-    //
-    // if (highlightObjectsIt != m_renderObjectsToRender.end() &&
-    //     highlightPipelineIt != m_pipelines.end())
-    // {
-    //   auto& highlightObjects = highlightObjectsIt->second;
-    //
-    //   if (!highlightObjects.empty())
-    //   {
-    //     if (auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(highlightPipelineIt->second.get()))
-    //     {
-    //       graphicsPipeline->displayGui();
-    //       graphicsPipeline->render(&renderInfo, &highlightObjects);
-    //     }
-    //   }
-    // }
+    const auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
+    if (highlightObjectsIt != m_renderObjectsToRender.end() && !highlightObjectsIt->second.empty())
+    {
+      pipelineManager->renderRenderObjectPipeline(renderInfo, &highlightObjectsIt->second, PipelineType::objectHighlight);
+    }
   }
 
   void Renderer3D::renderSmokeSystems(const RenderInfo& renderInfo) const

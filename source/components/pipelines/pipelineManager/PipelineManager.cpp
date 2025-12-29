@@ -118,11 +118,6 @@ namespace vke {
       throw std::runtime_error("Pipeline for object type does not exist");
     }
 
-    if (it->first == PipelineType::objectHighlight)
-    {
-      return;
-    }
-
     auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get());
     if (!graphicsPipeline)
     {
