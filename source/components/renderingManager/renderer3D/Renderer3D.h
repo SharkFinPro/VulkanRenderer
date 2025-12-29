@@ -51,7 +51,7 @@ namespace vke {
 
     void renderLine(glm::vec3 start, glm::vec3 end);
 
-    void renderBendyPlant(const BendyPlant& bendyPlant) const;
+    void renderBendyPlant(const BendyPlant& bendyPlant);
 
   private:
     std::shared_ptr<MousePicker> m_mousePicker;

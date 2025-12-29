@@ -55,9 +55,9 @@ namespace vke {
     m_lineVerticesToRender.push_back({end});
   }
 
-  void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant) const
+  void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)
   {
-    // m_bendyPlantsToRender.push_back(bendyPlant);
+    m_bendyPlantsToRender.push_back(bendyPlant);
   }
 
   void Renderer3D::renderRenderObjects(const RenderInfo& renderInfo) const
