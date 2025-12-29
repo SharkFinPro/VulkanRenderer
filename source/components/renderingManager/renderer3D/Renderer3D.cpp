@@ -1,12 +1,19 @@
 #include "Renderer3D.h"
-#include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../lighting/LightingManager.h"
 #include "../../mousePicker/MousePicker.h"
+#include "../../pipelines/pipelineManager/PipelineManager.h"
 
 namespace vke {
   Renderer3D::Renderer3D()
   {
     // m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
     //                                               m_assetManager->getObjectDescriptorSetLayout());
+  }
+
+  void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
+                                    const uint32_t currentFrame) const
+  {
+    lightingManager->update(currentFrame, m_viewPosition);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,

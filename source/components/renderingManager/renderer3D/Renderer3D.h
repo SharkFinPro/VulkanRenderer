@@ -9,6 +9,7 @@
 
 namespace vke {
 
+  class LightingManager;
   class LineVertex;
   class MousePicker;
   class PipelineManager;
@@ -27,6 +28,9 @@ namespace vke {
   class Renderer3D {
   public:
     Renderer3D();
+
+    void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
+                          uint32_t currentFrame) const;
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;

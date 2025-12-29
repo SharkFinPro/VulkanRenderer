@@ -73,7 +73,7 @@ namespace vke {
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    // lightingManager->update(currentFrame, m_viewPosition);
+    m_renderer3D->renderShadowMaps(lightingManager, currentFrame);
 
     // m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix,
                                   // pipelineManager->getRenderObjectsToRender());
