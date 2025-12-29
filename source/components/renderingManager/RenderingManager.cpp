@@ -16,6 +16,8 @@
 #include <vulkan/vulkan.h>
 #include <stdexcept>
 
+#include "renderer3D/Renderer3D.h"
+
 namespace vke {
 
   RenderingManager::RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -33,7 +35,8 @@ namespace vke {
       m_commandPool(commandPool),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
-      m_renderer2D(std::make_shared<Renderer2D>(assetManager))
+      m_renderer2D(std::make_shared<Renderer2D>(std::move(assetManager))),
+      m_renderer3D(std::make_shared<Renderer3D>())
   {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -160,21 +163,6 @@ namespace vke {
     }
   }
 
-  void RenderingManager::enableGrid()
-  {
-    m_shouldRenderGrid = true;
-  }
-
-  void RenderingManager::disableGrid()
-  {
-    m_shouldRenderGrid = false;
-  }
-
-  bool RenderingManager::isGridEnabled() const
-  {
-    return m_shouldRenderGrid;
-  }
-
   void RenderingManager::createNewFrame() const
   {
     m_renderer2D->createNewFrame();
@@ -183,6 +171,11 @@ namespace vke {
   std::shared_ptr<Renderer2D> RenderingManager::getRenderer2D() const
   {
     return m_renderer2D;
+  }
+
+  std::shared_ptr<Renderer3D> RenderingManager::getRenderer3D() const
+  {
+    return m_renderer3D;
   }
 
   void RenderingManager::renderGuiScene(const uint32_t imageIndex)
@@ -248,8 +241,10 @@ namespace vke {
 
       m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
-      pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
-                                               currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
+      m_renderer3D->render(pipelineManager);
+
+      // pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
+      //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
 
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
@@ -288,8 +283,9 @@ namespace vke {
 
       if (!m_shouldRenderOffscreen)
       {
-        pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
-                                                 currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
+        m_renderer3D->render(pipelineManager);
+        // pipelineManager->renderGraphicsPipelines(renderInfo.commandBuffer, m_swapChain->getExtent(),
+        //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
 
         RenderInfo renderInfo2D = renderInfo;
         renderInfo2D.extent = {

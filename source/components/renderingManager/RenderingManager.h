@@ -17,6 +17,7 @@ namespace vke {
   class PipelineManager;
   class Renderer;
   class Renderer2D;
+  class Renderer3D;
   class Surface;
   class SwapChain;
   class Window;
@@ -47,15 +48,11 @@ namespace vke {
 
     void recreateSwapChain();
 
-    void enableGrid();
-
-    void disableGrid();
-
-    [[nodiscard]] bool isGridEnabled() const;
-
     void createNewFrame() const;
 
     [[nodiscard]] std::shared_ptr<Renderer2D> getRenderer2D() const;
+
+    [[nodiscard]] std::shared_ptr<Renderer3D> getRenderer3D() const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -90,9 +87,9 @@ namespace vke {
 
     const char* m_sceneViewName;
 
-    bool m_shouldRenderGrid = true;
-
     std::shared_ptr<Renderer2D> m_renderer2D;
+
+    std::shared_ptr<Renderer3D> m_renderer3D;
 
     void renderGuiScene(uint32_t imageIndex);
 
