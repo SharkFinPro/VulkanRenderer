@@ -68,6 +68,33 @@ namespace vke {
     m_smokeSystemsToRender.clear();
   }
 
+  void Renderer3D::enableGrid()
+  {
+    m_shouldRenderGrid = true;
+  }
+
+  void Renderer3D::disableGrid()
+  {
+    m_shouldRenderGrid = false;
+  }
+
+  bool Renderer3D::isGridEnabled() const
+  {
+    return m_shouldRenderGrid;
+  }
+
+  void Renderer3D::setCameraParameters(const glm::vec3 position,
+                                       const glm::mat4& viewMatrix)
+  {
+    m_viewPosition = position;
+    m_viewMatrix = viewMatrix;
+  }
+
+  std::shared_ptr<MousePicker> Renderer3D::getMousePicker() const
+  {
+    return m_mousePicker;
+  }
+
   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Renderer3D::getRenderObjectsToRender()
   {
     return m_renderObjectsToRender;
@@ -135,32 +162,5 @@ namespace vke {
       system->update(renderInfo);
     }
     pipelineManager->renderSmokePipeline(renderInfo, &m_smokeSystemsToRender);
-  }
-
-  void Renderer3D::enableGrid()
-  {
-    m_shouldRenderGrid = true;
-  }
-
-  void Renderer3D::disableGrid()
-  {
-    m_shouldRenderGrid = false;
-  }
-
-  bool Renderer3D::isGridEnabled() const
-  {
-    return m_shouldRenderGrid;
-  }
-
-  void Renderer3D::setCameraParameters(const glm::vec3 position,
-                                       const glm::mat4& viewMatrix)
-  {
-    m_viewPosition = position;
-    m_viewMatrix = viewMatrix;
-  }
-
-  std::shared_ptr<MousePicker> Renderer3D::getMousePicker() const
-  {
-    return m_mousePicker;
   }
 } // vke
