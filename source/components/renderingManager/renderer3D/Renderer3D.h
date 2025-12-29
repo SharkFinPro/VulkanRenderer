@@ -12,7 +12,7 @@ namespace vke {
 
   class AssetManager;
   class LightingManager;
-  class LineVertex;
+  struct LineVertex;
   class LogicalDevice;
   class MousePicker;
   class PipelineManager;
