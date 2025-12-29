@@ -20,9 +20,6 @@ namespace vke {
       .extent = renderInfo->extent
     };
 
-    // pipelineManager->renderGraphicsPipelines(m_offscreenCommandBuffer, m_offscreenViewportExtent,
-    //                                          currentFrame, m_viewPosition, m_viewMatrix, m_shouldRenderGrid);
-
     renderRenderObjects(&renderInfo3D, pipelineManager);
 
     pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
@@ -58,12 +55,10 @@ namespace vke {
   {
     m_renderObjectsToRender[pipelineType].push_back(renderObject);
 
-    if (mousePicked == nullptr)
+    if (mousePicked)
     {
-      return;
+      // m_mousePicker->renderObject(renderObject, mousePicked);
     }
-
-    // m_mousePicker->renderObject(renderObject, mousePicked);
   }
 
   void Renderer3D::renderLine(const glm::vec3 start,
