@@ -38,7 +38,7 @@ namespace vke {
                              const VkCommandPool& commandPool,
                              std::shared_ptr<RenderPass> renderPass,
                              const VkDescriptorPool descriptorPool)
-    : ComputePipeline(std::move(logicalDevice)), GraphicsPipeline(std::move(logicalDevice)),
+    : ComputePipeline(logicalDevice), GraphicsPipeline(std::move(logicalDevice)),
       m_previousTime(std::chrono::steady_clock::now())
   {
     createUniforms();

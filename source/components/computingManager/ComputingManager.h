@@ -9,6 +9,7 @@ namespace vke {
   class CommandBuffer;
   class LogicalDevice;
   class PipelineManager;
+  class Renderer2D;
   class Renderer3D;
 
   class ComputingManager {
@@ -18,6 +19,7 @@ namespace vke {
 
     void doComputing(const std::shared_ptr<PipelineManager>& pipelineManager,
                      uint32_t currentFrame,
+                     const std::shared_ptr<Renderer2D>& renderer2D,
                      const std::shared_ptr<Renderer3D>& renderer3D) const;
 
   private:
@@ -27,6 +29,7 @@ namespace vke {
 
     void recordComputeCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                     uint32_t currentFrame,
+                                    const std::shared_ptr<Renderer2D>& renderer2D,
                                     const std::shared_ptr<Renderer3D>& renderer3D) const;
   };
 

@@ -55,6 +55,10 @@ namespace vke {
 
     void createNewFrame();
 
+    [[nodiscard]] bool shouldDoDots() const;
+
+    void setShouldDoDots(bool shouldDoDots);
+
     void fill(float r,
               float g,
               float b,
@@ -126,6 +130,8 @@ namespace vke {
     uint32_t m_currentFontSize = 12;
 
     float m_currentZ = 0.0f;
+
+    bool m_shouldDoDots = false;
 
     void updateCurrentFont();
 

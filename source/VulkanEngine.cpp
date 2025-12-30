@@ -57,7 +57,8 @@ namespace vke {
       m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
     }
 
-    m_computingManager->doComputing(m_pipelineManager, m_currentFrame, m_renderingManager->getRenderer3D());
+    m_computingManager->doComputing(m_pipelineManager, m_currentFrame, m_renderingManager->getRenderer2D(),
+                                    m_renderingManager->getRenderer3D());
 
     m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
 
@@ -128,7 +129,7 @@ namespace vke {
 
     m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer(),
                                                           m_lightingManager, m_assetManager,
-                                                          m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS);
+                                                          m_descriptorPool, m_commandPool);
 
     m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
                                                       m_renderingManager->getRenderer()->getSwapchainRenderPass(),

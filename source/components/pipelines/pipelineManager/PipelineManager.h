@@ -35,8 +35,7 @@ namespace vke {
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager,
                     VkDescriptorPool descriptorPool,
-                    VkCommandPool commandPool,
-                    bool shouldDoDots);
+                    VkCommandPool commandPool);
 
     void renderDotsPipeline(const RenderInfo* renderInfo) const;
 
@@ -112,8 +111,6 @@ namespace vke {
     std::unique_ptr<EllipsePipeline> m_ellipsePipeline;
 
     std::unique_ptr<FontPipeline> m_fontPipeline;
-
-    bool m_shouldDoDots;
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,

@@ -28,31 +28,20 @@ namespace vke {
                                    const std::shared_ptr<LightingManager>& lightingManager,
                                    const std::shared_ptr<AssetManager>& assetManager,
                                    VkDescriptorPool descriptorPool,
-                                   VkCommandPool commandPool,
-                                   const bool shouldDoDots)
-    : m_commandPool(commandPool), m_shouldDoDots(shouldDoDots)
+                                   VkCommandPool commandPool)
+    : m_commandPool(commandPool)
   {
     createPipelines(assetManager, renderer, logicalDevice, lightingManager, descriptorPool);
   }
 
   void PipelineManager::renderDotsPipeline(const RenderInfo* renderInfo) const
   {
-    if (!m_dotsPipeline)
-    {
-      return;
-    }
-
     m_dotsPipeline->render(renderInfo, nullptr);
   }
 
   void PipelineManager::computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                             const uint32_t currentFrame) const
   {
-    if (!m_dotsPipeline)
-    {
-      return;
-    }
-
     m_dotsPipeline->compute(commandBuffer, currentFrame);
   }
 
@@ -243,11 +232,7 @@ namespace vke {
 
     m_guiPipeline = std::make_unique<GuiPipeline>(logicalDevice, renderPass);
 
-    if (m_shouldDoDots)
-    {
-      m_dotsPipeline = std::make_shared<DotsPipeline>(
-        logicalDevice, m_commandPool, renderPass, descriptorPool);
-    }
+    m_dotsPipeline = std::make_shared<DotsPipeline>(logicalDevice, m_commandPool, renderPass, descriptorPool);
 
     m_linePipeline = std::make_unique<LinePipeline>(logicalDevice, renderPass);
 
