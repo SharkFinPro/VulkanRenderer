@@ -29,7 +29,7 @@ namespace vke {
     m_renderObjectsToMousePick.clear();
   }
 
-  void MousePicker::recreateFramebuffer(const VkExtent2D viewportExtent)
+  void MousePicker::setViewportExtent(const VkExtent2D viewportExtent)
   {
     m_viewportExtent = viewportExtent;
   }

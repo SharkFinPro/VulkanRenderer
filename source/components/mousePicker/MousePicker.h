@@ -30,7 +30,7 @@ namespace vke {
 
     void clearObjectsToMousePick();
 
-    void recreateFramebuffer(VkExtent2D viewportExtent);
+    void setViewportExtent(VkExtent2D viewportExtent);
 
     void handleRenderedMousePickingImage(VkImage image,
                                          std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
