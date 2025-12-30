@@ -14,6 +14,7 @@ namespace vke {
   class LogicalDevice;
   class PipelineManager;
   enum class PipelineType;
+  struct RenderInfo;
   class RenderObject;
   class RenderPass;
   class RenderTarget;
