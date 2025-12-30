@@ -1,7 +1,7 @@
 #include "SmokePipeline.h"
 #include "common/GraphicsPipelineStates.h"
-#include "../../assets/particleSystems/SmokeSystem.h"
 #include "../descriptorSets/DescriptorSet.h"
+#include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include <imgui.h>
@@ -97,11 +97,6 @@ namespace vke {
 
       renderInfo->commandBuffer->draw(system->getNumParticles(), 1, 0, 0);
     }
-  }
-
-  void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
-  {
-
   }
 
   void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)

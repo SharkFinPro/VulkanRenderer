@@ -73,8 +73,6 @@ namespace vke {
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    m_renderer3D->renderShadowMaps(lightingManager, currentFrame);
-
     m_renderer3D->doMousePicking(imageIndex, currentFrame);
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
@@ -221,14 +219,14 @@ namespace vke {
   {
     m_offscreenCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex, lightingManager]()
     {
+      m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
+
       if (!m_shouldRenderOffscreen ||
           m_offscreenViewportExtent.width == 0 ||
           m_offscreenViewportExtent.height == 0)
       {
         return;
       }
-
-      lightingManager->renderShadowMaps(m_offscreenCommandBuffer, pipelineManager, currentFrame);
 
       m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
@@ -319,7 +317,7 @@ namespace vke {
         m_renderer2D->render(&renderInfo2D, pipelineManager);
       }
 
-      pipelineManager->getGuiPipeline()->render(&renderInfo);
+      pipelineManager->renderGuiPipeline(&renderInfo);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
     });

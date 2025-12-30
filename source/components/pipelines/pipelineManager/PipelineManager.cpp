@@ -1,9 +1,4 @@
 #include "PipelineManager.h"
-#include "../implementations/BendyPipeline.h"
-#include "../implementations/DotsPipeline.h"
-#include "../implementations/GuiPipeline.h"
-#include "../implementations/2D/FontPipeline.h"
-#include "../implementations/2D/RectPipeline.h"
 #include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
@@ -18,7 +13,6 @@
 #include "../implementations/renderObject/TexturedPlane.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
-#include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/Renderer.h"
 #include <ranges>
 
@@ -29,40 +23,45 @@ namespace vke {
                                    const std::shared_ptr<LightingManager>& lightingManager,
                                    const std::shared_ptr<AssetManager>& assetManager,
                                    VkDescriptorPool descriptorPool,
-                                   VkCommandPool commandPool,
-                                   const bool shouldDoDots)
-    : m_commandPool(commandPool), m_shouldDoDots(shouldDoDots)
+                                   VkCommandPool commandPool)
+    : m_commandPool(commandPool)
   {
     createPipelines(assetManager, renderer, logicalDevice, lightingManager, descriptorPool);
   }
 
-  std::shared_ptr<DotsPipeline> PipelineManager::getDotsPipeline()
+  void PipelineManager::renderDotsPipeline(const RenderInfo* renderInfo) const
   {
-    return m_dotsPipeline;
+    m_dotsPipeline->render(renderInfo, nullptr);
   }
 
-  std::shared_ptr<GuiPipeline> PipelineManager::getGuiPipeline()
+  void PipelineManager::computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                            const uint32_t currentFrame) const
   {
-    return m_guiPipeline;
+    m_dotsPipeline->compute(commandBuffer, currentFrame);
   }
 
-  void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo,
+  void PipelineManager::renderGuiPipeline(const RenderInfo* renderInfo) const
+  {
+    m_guiPipeline->render(renderInfo);
+  }
+
+  void PipelineManager::renderShadowPipeline(const RenderInfo* renderInfo,
                                              const std::vector<std::shared_ptr<RenderObject>>* objects) const
   {
-    m_shadowPipeline->render(&renderInfo, objects);
+    m_shadowPipeline->render(renderInfo, objects);
   }
 
-  void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo& renderInfo,
+  void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo* renderInfo,
                                                           const std::vector<std::shared_ptr<RenderObject>>* objects,
                                                           const std::shared_ptr<PointLight>& pointLight) const
   {
-    m_pointLightShadowMapPipeline->render(&renderInfo, objects, pointLight);
+    m_pointLightShadowMapPipeline->render(renderInfo, objects, pointLight);
   }
 
-  void PipelineManager::renderBendyPlantPipeline(const RenderInfo& renderInfo,
+  void PipelineManager::renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                                  const std::vector<BendyPlant>* plants) const
   {
-    m_bendyPipeline->render(&renderInfo, plants);
+    m_bendyPipeline->render(renderInfo, plants);
   }
 
   void PipelineManager::renderGridPipeline(const RenderInfo* renderInfo) const
@@ -159,7 +158,8 @@ namespace vke {
 
     m_ellipsePipeline = std::make_unique<EllipsePipeline>(logicalDevice, renderPass);
 
-    m_fontPipeline = std::make_unique<FontPipeline>(logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());
+    m_fontPipeline = std::make_unique<FontPipeline>(
+      logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());
   }
 
   void PipelineManager::createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
@@ -209,10 +209,12 @@ namespace vke {
       logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_shadowPipeline = std::make_unique<ShadowPipeline>(logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
+    m_shadowPipeline = std::make_unique<ShadowPipeline>(
+      logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
 
     m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
-      logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout, lightingManager->getPointLightDescriptorSetLayout());
+      logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
+      lightingManager->getPointLightDescriptorSetLayout());
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
@@ -223,22 +225,19 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_guiPipeline = std::make_shared<GuiPipeline>(logicalDevice, renderPass);
+    m_guiPipeline = std::make_unique<GuiPipeline>(logicalDevice, renderPass);
 
-    if (m_shouldDoDots)
-    {
-      m_dotsPipeline = std::make_shared<DotsPipeline>(logicalDevice, m_commandPool, renderPass,
-                                                      descriptorPool);
-    }
+    m_dotsPipeline = std::make_unique<DotsPipeline>(logicalDevice, m_commandPool, renderPass, descriptorPool);
 
     m_linePipeline = std::make_unique<LinePipeline>(logicalDevice, renderPass);
 
-    m_bendyPipeline = std::make_unique<BendyPipeline>(logicalDevice, renderPass, m_commandPool, descriptorPool,
-                                                      lightingManager->getLightingDescriptorSet());
+    m_bendyPipeline = std::make_unique<BendyPipeline>(
+      logicalDevice, renderPass, m_commandPool, descriptorPool, lightingManager->getLightingDescriptorSet());
 
     m_gridPipeline = std::make_unique<GridPipeline>(logicalDevice, renderPass, descriptorPool);
 
-    m_smokePipeline = std::make_unique<SmokePipeline>(logicalDevice, renderPass,
-      lightingManager->getLightingDescriptorSet(), assetManager->getSmokeSystemDescriptorSetLayout());
+    m_smokePipeline = std::make_unique<SmokePipeline>(
+      logicalDevice, renderPass, lightingManager->getLightingDescriptorSet(),
+      assetManager->getSmokeSystemDescriptorSetLayout());
   }
 } // namespace vke

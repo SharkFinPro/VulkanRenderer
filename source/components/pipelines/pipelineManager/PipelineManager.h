@@ -2,7 +2,9 @@
 #define VKE_PIPELINEMANAGER_H
 
 #include "../implementations/BendyPipeline.h"
+#include "../implementations/DotsPipeline.h"
 #include "../implementations/GridPipeline.h"
+#include "../implementations/GuiPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
 #include "../implementations/2D/EllipsePipeline.h"
@@ -21,7 +23,6 @@ namespace vke {
   class AssetManager;
   class LightingManager;
   class DotsPipeline;
-  class GuiPipeline;
   class PointLight;
   class Pipeline;
   enum class PipelineType;
@@ -35,21 +36,23 @@ namespace vke {
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager,
                     VkDescriptorPool descriptorPool,
-                    VkCommandPool commandPool,
-                    bool shouldDoDots);
+                    VkCommandPool commandPool);
 
-    [[nodiscard]] std::shared_ptr<DotsPipeline> getDotsPipeline();
+    void renderDotsPipeline(const RenderInfo* renderInfo) const;
 
-    [[nodiscard]] std::shared_ptr<GuiPipeline> getGuiPipeline();
+    void computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                             uint32_t currentFrame) const;
 
-    void renderShadowPipeline(const RenderInfo& renderInfo,
+    void renderGuiPipeline(const RenderInfo* renderInfo) const;
+
+    void renderShadowPipeline(const RenderInfo* renderInfo,
                               const std::vector<std::shared_ptr<RenderObject>>* objects) const;
 
-    void renderPointLightShadowMapPipeline(const RenderInfo& renderInfo,
+    void renderPointLightShadowMapPipeline(const RenderInfo* renderInfo,
                                            const std::vector<std::shared_ptr<RenderObject>>* objects,
                                            const std::shared_ptr<PointLight>& pointLight) const;
 
-    void renderBendyPlantPipeline(const RenderInfo& renderInfo,
+    void renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                   const std::vector<BendyPlant>* plants) const;
 
     void renderGridPipeline(const RenderInfo* renderInfo) const;
@@ -84,9 +87,9 @@ namespace vke {
   private:
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-    std::shared_ptr<GuiPipeline> m_guiPipeline;
+    std::unique_ptr<GuiPipeline> m_guiPipeline;
 
-    std::shared_ptr<DotsPipeline> m_dotsPipeline;
+    std::unique_ptr<DotsPipeline> m_dotsPipeline;
 
     std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> m_pipelines;
 
@@ -109,8 +112,6 @@ namespace vke {
     std::unique_ptr<EllipsePipeline> m_ellipsePipeline;
 
     std::unique_ptr<FontPipeline> m_fontPipeline;
-
-    bool m_shouldDoDots;
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,

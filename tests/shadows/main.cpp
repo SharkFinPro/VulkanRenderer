@@ -25,8 +25,7 @@ int main()
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Shadows",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f },
-      .DO_DOTS = false
+      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f }
     };
 
     vke::VulkanEngine renderer(vulkanEngineOptions);

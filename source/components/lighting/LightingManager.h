@@ -14,6 +14,7 @@ namespace vke {
   class LogicalDevice;
   class PipelineManager;
   class Renderer;
+  class RenderObject;
   class UniformBuffer;
 
   class LightingManager {
@@ -47,6 +48,7 @@ namespace vke {
 
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
+                          const std::vector<std::shared_ptr<RenderObject>>* objects,
                           uint32_t currentFrame) const;
 
     [[nodiscard]] VkDescriptorSetLayout getPointLightDescriptorSetLayout() const;
@@ -99,10 +101,12 @@ namespace vke {
 
     void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
+                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
                                     uint32_t currentFrame) const;
 
     void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                    const std::shared_ptr<PipelineManager>& pipelineManager,
+                                   const std::vector<std::shared_ptr<RenderObject>>* objects,
                                    uint32_t currentFrame) const;
 
     void createPointLightDescriptorSetLayout();

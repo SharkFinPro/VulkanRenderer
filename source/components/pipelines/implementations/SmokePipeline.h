@@ -1,11 +1,9 @@
 #ifndef VKE_SMOKEPIPELINE_H
 #define VKE_SMOKEPIPELINE_H
 
-#include "common/Uniforms.h"
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
 #include <vulkan/vulkan.h>
-#include <chrono>
 #include <memory>
 #include <vector>
 
@@ -32,8 +30,6 @@ namespace vke {
 
   private:
     std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
-
-    void updateUniformVariables(const RenderInfo* renderInfo) override;
 
     void bindDescriptorSet(const RenderInfo* renderInfo) override;
   };

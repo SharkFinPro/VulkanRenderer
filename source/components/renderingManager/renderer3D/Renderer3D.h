@@ -11,6 +11,7 @@
 namespace vke {
 
   class AssetManager;
+  class CommandBuffer;
   class LightingManager;
   struct LineVertex;
   class LogicalDevice;
@@ -38,6 +39,8 @@ namespace vke {
                VkCommandPool commandPool);
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
+                          const std::shared_ptr<CommandBuffer>& commandBuffer,
+                          const std::shared_ptr<PipelineManager>& pipelineManager,
                           uint32_t currentFrame) const;
 
     void doMousePicking(uint32_t imageIndex,
@@ -82,6 +85,7 @@ namespace vke {
     glm::mat4 m_viewMatrix{};
 
     std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
+    std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;
 
     std::vector<LineVertex> m_lineVerticesToRender;
 

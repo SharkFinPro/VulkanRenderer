@@ -21,6 +21,11 @@ namespace vke {
     pipelineManager->renderEllipsePipeline(renderInfo, &m_ellipsesToRender);
 
     pipelineManager->renderFontPipeline(renderInfo, &m_glyphsToRender, m_assetManager);
+
+    if (m_shouldDoDots)
+    {
+      pipelineManager->renderDotsPipeline(renderInfo);
+    }
   }
 
   void Renderer2D::createNewFrame()
@@ -38,6 +43,16 @@ namespace vke {
     m_ellipsesToRender.clear();
 
     m_glyphsToRender.clear();
+  }
+
+  bool Renderer2D::shouldDoDots() const
+  {
+    return m_shouldDoDots;
+  }
+
+  void Renderer2D::setShouldDoDots(const bool shouldDoDots)
+  {
+    m_shouldDoDots = shouldDoDots;
   }
 
   void Renderer2D::fill(const float r,

@@ -1,9 +1,8 @@
 #include "ComputingManager.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
-#include "../pipelines/implementations/DotsPipeline.h"
-#include "../pipelines/implementations/SmokePipeline.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
+#include "../renderingManager/renderer2D/Renderer2D.h"
 #include "../renderingManager/renderer3D/Renderer3D.h"
 
 namespace vke {
@@ -16,6 +15,7 @@ namespace vke {
 
   void ComputingManager::doComputing(const std::shared_ptr<PipelineManager>& pipelineManager,
                                      const uint32_t currentFrame,
+                                     const std::shared_ptr<Renderer2D>& renderer2D,
                                      const std::shared_ptr<Renderer3D>& renderer3D) const
   {
     m_logicalDevice->waitForComputeFences(currentFrame);
@@ -24,20 +24,20 @@ namespace vke {
 
     m_computeCommandBuffer->setCurrentFrame(currentFrame);
     m_computeCommandBuffer->resetCommandBuffer();
-    recordComputeCommandBuffer(pipelineManager, currentFrame, renderer3D);
+    recordComputeCommandBuffer(pipelineManager, currentFrame, renderer2D, renderer3D);
 
     m_logicalDevice->submitComputeQueue(currentFrame, m_computeCommandBuffer->getCommandBuffer());
   }
 
   void ComputingManager::recordComputeCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                                     uint32_t currentFrame,
+                                                    const std::shared_ptr<Renderer2D>& renderer2D,
                                                     const std::shared_ptr<Renderer3D>& renderer3D) const
   {
-    m_computeCommandBuffer->record([this, pipelineManager, currentFrame, renderer3D]()
-    {
-      if (const auto dotsPipeline = pipelineManager->getDotsPipeline())
+    m_computeCommandBuffer->record([this, pipelineManager, currentFrame, renderer2D, renderer3D] {
+      if (renderer2D->shouldDoDots())
       {
-        dotsPipeline->compute(m_computeCommandBuffer, currentFrame);
+        pipelineManager->computeDotsPipeline(m_computeCommandBuffer, currentFrame);
       }
 
       pipelineManager->computeSmokePipeline(m_computeCommandBuffer, currentFrame, &renderer3D->getSmokeSystems());

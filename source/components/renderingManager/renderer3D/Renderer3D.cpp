@@ -16,9 +16,13 @@ namespace vke {
   {}
 
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                    const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const uint32_t currentFrame) const
   {
     lightingManager->update(currentFrame, m_viewPosition);
+
+    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened, currentFrame);
   }
 
   void Renderer3D::doMousePicking(const uint32_t imageIndex,
@@ -40,7 +44,7 @@ namespace vke {
 
     renderRenderObjects(&renderInfo3D, pipelineManager);
 
-    pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
+    pipelineManager->renderBendyPlantPipeline(&renderInfo3D, &m_bendyPlantsToRender);
 
     renderSmokeSystems(&renderInfo3D, pipelineManager);
 
@@ -58,6 +62,8 @@ namespace vke {
     {
       objects.clear();
     }
+
+    m_renderObjectsToRenderFlattened.clear();
 
     m_lineVerticesToRender.clear();
 
@@ -106,6 +112,8 @@ namespace vke {
   {
     m_renderObjectsToRender[pipelineType].push_back(renderObject);
 
+    m_renderObjectsToRenderFlattened.push_back(renderObject);
+
     if (mousePicked)
     {
       m_mousePicker->renderObject(renderObject, mousePicked);
@@ -115,8 +123,7 @@ namespace vke {
   void Renderer3D::renderLine(const glm::vec3 start,
                               const glm::vec3 end)
   {
-    m_lineVerticesToRender.push_back({start});
-    m_lineVerticesToRender.push_back({end});
+    m_lineVerticesToRender.insert(m_lineVerticesToRender.end(), { LineVertex{start}, LineVertex{end} });
   }
 
   void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)
@@ -137,20 +144,26 @@ namespace vke {
   void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
                                        const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
+    const std::vector<std::shared_ptr<RenderObject>>* highlightedRenderObjects = nullptr;
     for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
     {
-      if (objects.empty() || pipelineType == PipelineType::objectHighlight)
+      if (objects.empty())
       {
+        continue;
+      }
+
+      if (pipelineType == PipelineType::objectHighlight)
+      {
+        highlightedRenderObjects = &objects;
         continue;
       }
 
       pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
     }
 
-    const auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
-    if (highlightObjectsIt != m_renderObjectsToRender.end() && !highlightObjectsIt->second.empty())
+    if (highlightedRenderObjects)
     {
-      pipelineManager->renderRenderObjectPipeline(renderInfo, &highlightObjectsIt->second, PipelineType::objectHighlight);
+      pipelineManager->renderRenderObjectPipeline(renderInfo, highlightedRenderObjects, PipelineType::objectHighlight);
     }
   }
 

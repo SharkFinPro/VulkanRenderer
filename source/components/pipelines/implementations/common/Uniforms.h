@@ -94,10 +94,6 @@ namespace vke {
     float windStrength;
   };
 
-  struct MousePickingID {
-    uint32_t objectID;
-  };
-
   struct BendyUniform {
     float time;
   };
