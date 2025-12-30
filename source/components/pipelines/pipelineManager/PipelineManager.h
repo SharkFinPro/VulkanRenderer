@@ -3,6 +3,7 @@
 
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/GridPipeline.h"
+#include "../implementations/GuiPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
 #include "../implementations/2D/EllipsePipeline.h"
@@ -21,7 +22,6 @@ namespace vke {
   class AssetManager;
   class LightingManager;
   class DotsPipeline;
-  class GuiPipeline;
   class PointLight;
   class Pipeline;
   enum class PipelineType;
@@ -40,7 +40,7 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<DotsPipeline> getDotsPipeline();
 
-    [[nodiscard]] std::shared_ptr<GuiPipeline> getGuiPipeline();
+    void renderGuiPipeline(const RenderInfo* renderInfo) const;
 
     void renderShadowPipeline(const RenderInfo& renderInfo,
                               const std::vector<std::shared_ptr<RenderObject>>* objects) const;
@@ -84,7 +84,7 @@ namespace vke {
   private:
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-    std::shared_ptr<GuiPipeline> m_guiPipeline;
+    std::unique_ptr<GuiPipeline> m_guiPipeline;
 
     std::shared_ptr<DotsPipeline> m_dotsPipeline;
 

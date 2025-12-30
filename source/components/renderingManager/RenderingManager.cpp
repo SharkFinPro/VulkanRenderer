@@ -319,7 +319,7 @@ namespace vke {
         m_renderer2D->render(&renderInfo2D, pipelineManager);
       }
 
-      pipelineManager->getGuiPipeline()->render(&renderInfo);
+      pipelineManager->renderGuiPipeline(&renderInfo);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
     });

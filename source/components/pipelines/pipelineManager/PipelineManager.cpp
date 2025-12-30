@@ -1,7 +1,6 @@
 #include "PipelineManager.h"
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/DotsPipeline.h"
-#include "../implementations/GuiPipeline.h"
 #include "../implementations/2D/FontPipeline.h"
 #include "../implementations/2D/RectPipeline.h"
 #include "../implementations/common/PipelineTypes.h"
@@ -41,9 +40,9 @@ namespace vke {
     return m_dotsPipeline;
   }
 
-  std::shared_ptr<GuiPipeline> PipelineManager::getGuiPipeline()
+  void PipelineManager::renderGuiPipeline(const RenderInfo* renderInfo) const
   {
-    return m_guiPipeline;
+    m_guiPipeline->render(renderInfo);
   }
 
   void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo,
@@ -226,7 +225,7 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_guiPipeline = std::make_shared<GuiPipeline>(logicalDevice, renderPass);
+    m_guiPipeline = std::make_unique<GuiPipeline>(logicalDevice, renderPass);
 
     if (m_shouldDoDots)
     {
