@@ -122,11 +122,12 @@ namespace vke {
 
   void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<PipelineManager>& pipelineManager,
+                                         const std::vector<std::shared_ptr<RenderObject>>* objects,
                                          const uint32_t currentFrame) const
   {
-    renderPointLightShadowMaps(commandBuffer, pipelineManager, currentFrame);
+    renderPointLightShadowMaps(commandBuffer, pipelineManager, objects, currentFrame);
 
-    renderSpotLightShadowMaps(commandBuffer, pipelineManager, currentFrame);
+    renderSpotLightShadowMaps(commandBuffer, pipelineManager, objects, currentFrame);
   }
 
   VkDescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
@@ -415,6 +416,7 @@ namespace vke {
 
   void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                   const std::vector<std::shared_ptr<RenderObject>>* objects,
                                                    const uint32_t currentFrame) const
   {
     for (auto& light : m_pointLightsToRender)
@@ -453,7 +455,7 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      // pipelineManager->renderPointLightShadowMapPipeline(shadowRenderInfo, pointLight);
+      pipelineManager->renderPointLightShadowMapPipeline(shadowRenderInfo, objects, pointLight);
 
       m_renderer->endShadowRendering(0, commandBuffer);
     }
@@ -461,6 +463,7 @@ namespace vke {
 
   void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                  const std::vector<std::shared_ptr<RenderObject>>* objects,
                                                   const uint32_t currentFrame) const
   {
     for (auto& light : m_spotLightsToRender)
@@ -499,7 +502,7 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      // pipelineManager->renderShadowPipeline(shadowRenderInfo);
+      pipelineManager->renderShadowPipeline(shadowRenderInfo, objects);
 
       m_renderer->endShadowRendering(0, commandBuffer);
     }

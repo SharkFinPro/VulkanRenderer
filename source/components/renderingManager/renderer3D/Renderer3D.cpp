@@ -16,9 +16,13 @@ namespace vke {
   {}
 
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                    const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const uint32_t currentFrame) const
   {
     lightingManager->update(currentFrame, m_viewPosition);
+
+    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened, currentFrame);
   }
 
   void Renderer3D::doMousePicking(const uint32_t imageIndex,
@@ -58,6 +62,8 @@ namespace vke {
     {
       objects.clear();
     }
+
+    m_renderObjectsToRenderFlattened.clear();
 
     m_lineVerticesToRender.clear();
 
@@ -105,6 +111,8 @@ namespace vke {
                                 bool* mousePicked)
   {
     m_renderObjectsToRender[pipelineType].push_back(renderObject);
+
+    m_renderObjectsToRenderFlattened.push_back(renderObject);
 
     if (mousePicked)
     {
