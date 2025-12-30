@@ -29,7 +29,7 @@ namespace vke {
 
     void beginMousePickingRendering(uint32_t imageIndex,
                                     VkExtent2D extent,
-                                    const std::shared_ptr<CommandBuffer>& commandBuffer) override {};
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
     void endSwapchainRendering(uint32_t imageIndex,
                                std::shared_ptr<CommandBuffer> commandBuffer,
@@ -42,7 +42,7 @@ namespace vke {
                             const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
     void endMousePickingRendering(uint32_t imageIndex,
-                                  const std::shared_ptr<CommandBuffer>& commandBuffer) override {};
+                                  const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
   private:
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,

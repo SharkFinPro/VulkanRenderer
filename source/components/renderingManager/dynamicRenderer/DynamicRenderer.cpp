@@ -138,6 +138,13 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
+  void DynamicRenderer::beginMousePickingRendering(uint32_t imageIndex,
+                                                   VkExtent2D extent,
+                                                   const std::shared_ptr<CommandBuffer> &commandBuffer)
+  {
+    // TODO:
+  }
+
   void DynamicRenderer::endSwapchainRendering(const uint32_t imageIndex,
                                               const std::shared_ptr<CommandBuffer> commandBuffer,
                                               const std::shared_ptr<SwapChain> swapChain)
@@ -147,14 +154,20 @@ namespace vke {
     transitionSwapchainImagePostRender(commandBuffer, swapChain->getImages()[imageIndex]);
   }
 
-  void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex,
+  void DynamicRenderer::endOffscreenRendering([[maybe_unused]] uint32_t imageIndex,
                                               const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     commandBuffer->endRendering();
   }
 
-  void DynamicRenderer::endShadowRendering(uint32_t imageIndex,
+  void DynamicRenderer::endShadowRendering([[maybe_unused]] uint32_t imageIndex,
                                            const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    commandBuffer->endRendering();
+  }
+
+  void DynamicRenderer::endMousePickingRendering([[maybe_unused]] uint32_t imageIndex,
+                                                 const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->endRendering();
   }
