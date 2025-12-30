@@ -274,7 +274,7 @@ namespace vke {
                                                       uint32_t currentFrame,
                                                       const uint32_t imageIndex) const
   {
-    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]()
+    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
