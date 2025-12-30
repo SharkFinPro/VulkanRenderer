@@ -15,31 +15,6 @@ namespace vke {
     : Renderer(std::move(logicalDevice), swapChain, commandPool)
   {}
 
-  std::shared_ptr<RenderPass> DynamicRenderer::getSwapchainRenderPass() const
-  {
-    return nullptr;
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getOffscreenRenderPass() const
-  {
-    return nullptr;
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getShadowRenderPass() const
-  {
-    return nullptr;
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getShadowCubeRenderPass() const
-  {
-    return nullptr;
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getMousePickingRenderPass() const
-  {
-    return nullptr;
-  }
-
   void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
                                                 const VkExtent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer,

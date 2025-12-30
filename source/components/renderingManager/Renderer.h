@@ -21,15 +21,15 @@ namespace vke {
 
     virtual ~Renderer();
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getSwapchainRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getSwapchainRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getOffscreenRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getOffscreenRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowCubeRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowCubeRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getMousePickingRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getMousePickingRenderPass() const { return nullptr; };
 
     [[nodiscard]] virtual VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
 

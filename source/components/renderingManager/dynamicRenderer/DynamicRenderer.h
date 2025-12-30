@@ -13,16 +13,6 @@ namespace vke {
                              const std::shared_ptr<SwapChain>& swapChain,
                              VkCommandPool commandPool);
 
-    [[nodiscard]] std::shared_ptr<RenderPass> getSwapchainRenderPass() const override;
-
-    [[nodiscard]] std::shared_ptr<RenderPass> getOffscreenRenderPass() const override;
-
-    [[nodiscard]] std::shared_ptr<RenderPass> getShadowRenderPass() const override;
-
-    [[nodiscard]] std::shared_ptr<RenderPass> getShadowCubeRenderPass() const override;
-
-    [[nodiscard]] std::shared_ptr<RenderPass> getMousePickingRenderPass() const override;
-
     void beginSwapchainRendering(uint32_t imageIndex,
                                  VkExtent2D extent,
                                  std::shared_ptr<CommandBuffer> commandBuffer,
