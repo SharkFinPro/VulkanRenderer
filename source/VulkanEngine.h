@@ -16,7 +16,6 @@ namespace vke {
   class LogicalDevice;
   class PhysicalDevice;
   class PipelineManager;
-  struct RenderInfo;
   class RenderingManager;
   class Surface;
   class Window;
