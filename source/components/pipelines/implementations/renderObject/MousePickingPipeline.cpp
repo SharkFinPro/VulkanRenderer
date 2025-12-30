@@ -31,7 +31,7 @@ namespace vke {
         {
           .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
           .offset = 0,
-          .size = sizeof(MousePickingID)
+          .size = sizeof(uint32_t)
         }
       },
       .descriptorSetLayouts {
@@ -52,21 +52,14 @@ namespace vke {
 
     bindDescriptorSet(renderInfo);
 
-    if (objects)
+    for (const auto& [first, second] : *objects)
     {
-      for (size_t i = 0; i < objects->size(); ++i)
-      {
-        MousePickingID id {
-          .objectID = objects->at(i).second
-        };
+      renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                                               sizeof(uint32_t), &second);
 
-        renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-                                                 sizeof(MousePickingID), &id);
+      first->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-        objects->at(i).first->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-        objects->at(i).first->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
-      }
+      first->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
     }
   }
 

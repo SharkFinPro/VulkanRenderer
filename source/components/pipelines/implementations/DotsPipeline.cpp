@@ -72,13 +72,6 @@ namespace vke {
         .vertexInputState = GraphicsPipelineStates::vertexInputStateParticle,
         .viewportState = GraphicsPipelineStates::viewportState
       },
-      .pushConstantRanges {
-        {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-          .offset = 0,
-          .size = sizeof(MousePickingID)
-        }
-      },
       .renderPass = renderPass
     };
 
