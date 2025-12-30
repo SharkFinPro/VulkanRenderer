@@ -6,7 +6,6 @@
 #include "components/instance/Instance.h"
 #include "components/lighting/LightingManager.h"
 #include "components/logicalDevice/LogicalDevice.h"
-#include "components/mousePicker/MousePicker.h"
 #include "components/physicalDevice/PhysicalDevice.h"
 #include "components/pipelines/pipelineManager/PipelineManager.h"
 #include "components/renderingManager/Renderer.h"
