@@ -145,20 +145,26 @@ namespace vke {
   void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
                                        const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
+    const std::vector<std::shared_ptr<RenderObject>>* highlightedRenderObjects = nullptr;
     for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
     {
-      if (objects.empty() || pipelineType == PipelineType::objectHighlight)
+      if (objects.empty())
       {
+        continue;
+      }
+
+      if (pipelineType == PipelineType::objectHighlight)
+      {
+        highlightedRenderObjects = &objects;
         continue;
       }
 
       pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
     }
 
-    const auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
-    if (highlightObjectsIt != m_renderObjectsToRender.end() && !highlightObjectsIt->second.empty())
+    if (highlightedRenderObjects)
     {
-      pipelineManager->renderRenderObjectPipeline(renderInfo, &highlightObjectsIt->second, PipelineType::objectHighlight);
+      pipelineManager->renderRenderObjectPipeline(renderInfo, highlightedRenderObjects, PipelineType::objectHighlight);
     }
   }
 
