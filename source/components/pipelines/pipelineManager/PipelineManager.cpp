@@ -1,10 +1,10 @@
 #include "PipelineManager.h"
-
-#include "../implementations/common/PipelineTypes.h"
-
+#include "../implementations/BendyPipeline.h"
+#include "../implementations/DotsPipeline.h"
+#include "../implementations/GuiPipeline.h"
 #include "../implementations/2D/FontPipeline.h"
 #include "../implementations/2D/RectPipeline.h"
-
+#include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
 #include "../implementations/renderObject/CubeMapPipeline.h"
@@ -16,18 +16,11 @@
 #include "../implementations/renderObject/ObjectsPipeline.h"
 #include "../implementations/renderObject/SnakePipeline.h"
 #include "../implementations/renderObject/TexturedPlane.h"
-
-#include "../implementations/BendyPipeline.h"
-#include "../implementations/DotsPipeline.h"
-#include "../implementations/GuiPipeline.h"
-
+#include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/Renderer.h"
-
 #include <ranges>
-
-#include "../../assets/AssetManager.h"
 
 namespace vke {
 
@@ -147,8 +140,36 @@ namespace vke {
                                         const std::shared_ptr<LightingManager>& lightingManager,
                                         VkDescriptorPool descriptorPool)
   {
-    const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
+    create2DPipelines(assetManager, renderer, logicalDevice);
+
+    createRenderObjectPipelines(assetManager, renderer, logicalDevice, lightingManager, descriptorPool);
+
+    createMiscPipelines(assetManager, renderer, logicalDevice, lightingManager, descriptorPool);
+  }
+
+  void PipelineManager::create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
+                                          const std::shared_ptr<Renderer>& renderer,
+                                          const std::shared_ptr<LogicalDevice>& logicalDevice)
+  {
     const auto renderPass = renderer->getSwapchainRenderPass();
+
+    m_rectPipeline = std::make_unique<RectPipeline>(logicalDevice, renderPass);
+
+    m_trianglePipeline = std::make_unique<TrianglePipeline>(logicalDevice, renderPass);
+
+    m_ellipsePipeline = std::make_unique<EllipsePipeline>(logicalDevice, renderPass);
+
+    m_fontPipeline = std::make_unique<FontPipeline>(logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());
+  }
+
+  void PipelineManager::createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
+                                                    const std::shared_ptr<Renderer>& renderer,
+                                                    const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                    const std::shared_ptr<LightingManager>& lightingManager,
+                                                    VkDescriptorPool descriptorPool)
+  {
+    const auto renderPass = renderer->getSwapchainRenderPass();
+    const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
 
     m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
       logicalDevice, renderPass, objectDescriptorSetLayout,
@@ -188,6 +209,20 @@ namespace vke {
       logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
+    m_shadowPipeline = std::make_unique<ShadowPipeline>(logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
+
+    m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
+      logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout, lightingManager->getPointLightDescriptorSetLayout());
+  }
+
+  void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
+                                            const std::shared_ptr<Renderer>& renderer,
+                                            const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                            const std::shared_ptr<LightingManager>& lightingManager,
+                                            VkDescriptorPool descriptorPool)
+  {
+    const auto renderPass = renderer->getSwapchainRenderPass();
+
     m_guiPipeline = std::make_shared<GuiPipeline>(logicalDevice, renderPass);
 
     if (m_shouldDoDots)
@@ -203,21 +238,7 @@ namespace vke {
 
     m_gridPipeline = std::make_unique<GridPipeline>(logicalDevice, renderPass, descriptorPool);
 
-    m_shadowPipeline = std::make_unique<ShadowPipeline>(logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
-
-    m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
-      logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout, lightingManager->getPointLightDescriptorSetLayout());
-
-    m_rectPipeline = std::make_unique<RectPipeline>(logicalDevice, renderPass);
-
-    m_trianglePipeline = std::make_unique<TrianglePipeline>(logicalDevice, renderPass);
-
-    m_ellipsePipeline = std::make_unique<EllipsePipeline>(logicalDevice, renderPass);
-
-    m_fontPipeline = std::make_unique<FontPipeline>(logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());
-
     m_smokePipeline = std::make_unique<SmokePipeline>(logicalDevice, renderPass,
       lightingManager->getLightingDescriptorSet(), assetManager->getSmokeSystemDescriptorSetLayout());
   }
-
 } // namespace vke

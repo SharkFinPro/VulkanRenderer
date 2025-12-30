@@ -85,6 +85,7 @@ namespace vke {
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
     std::shared_ptr<GuiPipeline> m_guiPipeline;
+
     std::shared_ptr<DotsPipeline> m_dotsPipeline;
 
     std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> m_pipelines;
@@ -116,6 +117,22 @@ namespace vke {
                          const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<LightingManager>& lightingManager,
                          VkDescriptorPool descriptorPool);
+
+    void create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
+                           const std::shared_ptr<Renderer>& renderer,
+                           const std::shared_ptr<LogicalDevice>& logicalDevice);
+
+    void createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
+                                     const std::shared_ptr<Renderer>& renderer,
+                                     const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                     const std::shared_ptr<LightingManager>& lightingManager,
+                                     VkDescriptorPool descriptorPool);
+
+    void createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
+                             const std::shared_ptr<Renderer>& renderer,
+                             const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             const std::shared_ptr<LightingManager>& lightingManager,
+                             VkDescriptorPool descriptorPool);
   };
 
 } // namespace vke
