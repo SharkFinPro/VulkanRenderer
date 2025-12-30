@@ -37,6 +37,7 @@ namespace vke {
   {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
+    m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
 
@@ -73,7 +74,13 @@ namespace vke {
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    m_renderer3D->doMousePicking(imageIndex, currentFrame);
+    // m_renderer3D->doMousePicking(imageIndex, currentFrame);
+    m_logicalDevice->resetMousePickingFences(currentFrame);
+
+    m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
+    m_mousePickingCommandBuffer->resetCommandBuffer();
+    recordMousePickingCommandBuffer(imageIndex, currentFrame);
+    m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
     m_offscreenCommandBuffer->resetCommandBuffer();
@@ -96,6 +103,9 @@ namespace vke {
     {
       throw std::runtime_error("failed to present swap chain image!");
     }
+
+    m_logicalDevice->waitForMousePickingFences(currentFrame);
+    // m_renderer3D->handleMousePicking();
   }
 
   std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
@@ -320,6 +330,43 @@ namespace vke {
       pipelineManager->renderGuiPipeline(&renderInfo);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
+    });
+  }
+
+  void RenderingManager::recordMousePickingCommandBuffer(uint32_t imageIndex,
+                                                         uint32_t currentFrame) const
+  {
+    m_mousePickingCommandBuffer->record([this, imageIndex, currentFrame]
+    {
+      const RenderInfo renderInfo {
+        .commandBuffer = m_mousePickingCommandBuffer,
+        .currentFrame = currentFrame,
+        .viewPosition = {},
+        .viewMatrix = {},
+        .extent = m_shouldRenderOffscreen ? m_offscreenViewportExtent : m_swapChain->getExtent(),
+      };
+
+      // m_mousePickingRenderPass->begin(m_mousePickingFramebuffer->getFramebuffer(imageIndex), m_viewportExtent, renderInfo.commandBuffer);
+
+      const VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(renderInfo.extent.width),
+        .height = static_cast<float>(renderInfo.extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+      };
+      renderInfo.commandBuffer->setViewport(viewport);
+
+      const VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent = renderInfo.extent
+      };
+      renderInfo.commandBuffer->setScissor(scissor);
+
+      // m_mousePickingPipeline->render(&renderInfo, &m_renderObjectsToMousePick);
+
+      // m_mousePickingCommandBuffer->endRenderPass();
     });
   }
 

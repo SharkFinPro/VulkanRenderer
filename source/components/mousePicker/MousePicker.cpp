@@ -19,8 +19,6 @@ namespace vke {
                            VkDescriptorSetLayout objectDescriptorSetLayout)
     : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window)), m_commandPool(commandPool)
   {
-    m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
-
     RenderPassConfig mousePickingRenderPassConfig {
       .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
       .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
@@ -94,14 +92,6 @@ namespace vke {
       return;
     }
 
-    m_logicalDevice->resetMousePickingFences(currentFrame);
-
-    m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
-    m_mousePickingCommandBuffer->resetCommandBuffer();
-    recordMousePickingCommandBuffer(imageIndex, currentFrame, viewPosition, viewMatrix);
-    m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
-    m_logicalDevice->waitForMousePickingFences(currentFrame);
-
     const auto objectID = getIDFromMousePickingFramebuffer(mouseX, mouseY);
 
     if (objectID == 0)
@@ -129,50 +119,6 @@ namespace vke {
   void MousePicker::setViewportPos(const ImVec2 viewportPos)
   {
     m_viewportPos = viewportPos;
-  }
-
-  void MousePicker::recordMousePickingCommandBuffer(const uint32_t imageIndex,
-                                                    uint32_t currentFrame,
-                                                    const glm::vec3 viewPosition,
-                                                    const glm::mat4& viewMatrix) const
-  {
-    m_mousePickingCommandBuffer->record([this, imageIndex, currentFrame, viewPosition, viewMatrix]()
-    {
-      if (m_renderObjectsToMousePick.empty())
-      {
-        return;
-      }
-
-      const RenderInfo renderInfo {
-        .commandBuffer = m_mousePickingCommandBuffer,
-        .currentFrame = currentFrame,
-        .viewPosition = viewPosition,
-        .viewMatrix = viewMatrix,
-        .extent = m_viewportExtent
-      };
-
-      m_mousePickingRenderPass->begin(m_mousePickingFramebuffer->getFramebuffer(imageIndex), m_viewportExtent, renderInfo.commandBuffer);
-
-      const VkViewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(renderInfo.extent.width),
-        .height = static_cast<float>(renderInfo.extent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-      };
-      renderInfo.commandBuffer->setViewport(viewport);
-
-      const VkRect2D scissor = {
-        .offset = {0, 0},
-        .extent = renderInfo.extent
-      };
-      renderInfo.commandBuffer->setScissor(scissor);
-
-      m_mousePickingPipeline->render(&renderInfo, &m_renderObjectsToMousePick);
-
-      m_mousePickingCommandBuffer->endRenderPass();
-    });
   }
 
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,

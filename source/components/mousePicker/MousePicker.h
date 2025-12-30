@@ -52,8 +52,6 @@ namespace vke {
 
     ImVec2 m_viewportPos {0, 0};
 
-    std::shared_ptr<CommandBuffer> m_mousePickingCommandBuffer;
-
     std::shared_ptr<RenderPass> m_mousePickingRenderPass;
     std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
     std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
