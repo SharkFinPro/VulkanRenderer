@@ -1,10 +1,10 @@
 #include "MousePicker.h"
-#include "../logicalDevice/LogicalDevice.h"
-#include "../pipelines/implementations/common/PipelineTypes.h"
-#include "../pipelines/pipelineManager/PipelineManager.h"
-#include "../window/Window.h"
-#include "../../utilities/Buffers.h"
-#include "../../utilities/Images.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../pipelines/implementations/common/PipelineTypes.h"
+#include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../window/Window.h"
+#include "../../../utilities/Buffers.h"
+#include "../../../utilities/Images.h"
 
 namespace vke {
 

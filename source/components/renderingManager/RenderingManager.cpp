@@ -13,7 +13,7 @@
 #include "../lighting/LightingManager.h"
 #include "../window/SwapChain.h"
 #include "../window/Window.h"
-#include "../mousePicker/MousePicker.h"
+#include "renderer3D/MousePicker.h"
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>

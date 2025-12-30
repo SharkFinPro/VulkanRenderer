@@ -1,8 +1,7 @@
 #include "Renderer3D.h"
-#include "../../assets/AssetManager.h"
+#include "MousePicker.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../lighting/LightingManager.h"
-#include "../../mousePicker/MousePicker.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 
