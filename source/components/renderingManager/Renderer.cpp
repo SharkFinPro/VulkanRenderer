@@ -22,7 +22,7 @@ namespace vke {
     m_logicalDevice->destroySampler(m_sampler);
   }
 
-  VkDescriptorSet Renderer::getOffscreenImageDescriptorSet(uint32_t imageIndex)
+  VkDescriptorSet Renderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
   {
     if (!m_offscreenRenderTarget)
     {
@@ -44,6 +44,13 @@ namespace vke {
     m_offscreenRenderTarget.reset();
 
     createOffscreenRenderTarget(offscreenViewportExtent);
+  }
+
+  void Renderer::resetMousePickingImageResources(const VkExtent2D mousePickingExtent)
+  {
+    m_mousePickingRenderTarget.reset();
+
+    createMousePickingRenderTarget(mousePickingExtent);
   }
 
   uint32_t Renderer::registerShadowMapRenderTarget([[maybe_unused]] std::shared_ptr<RenderTarget> renderTarget,
@@ -106,5 +113,19 @@ namespace vke {
     };
 
     m_offscreenRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+  }
+
+  void Renderer::createMousePickingRenderTarget(const VkExtent2D extent)
+  {
+    ImageResourceConfig imageResourceConfig {
+      .logicalDevice = m_logicalDevice,
+      .extent = extent,
+      .commandPool = m_commandPool,
+      .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
+      .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
+      .numSamples = VK_SAMPLE_COUNT_1_BIT
+    };
+
+    m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
   }
 } // namespace vke

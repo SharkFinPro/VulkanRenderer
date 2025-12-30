@@ -52,19 +52,6 @@ namespace vke {
   {
     m_viewportExtent = viewportExtent;
 
-    m_renderTarget.reset();
-
-    ImageResourceConfig imageResourceConfig {
-      .logicalDevice = m_logicalDevice,
-      .extent = m_viewportExtent,
-      .commandPool = m_commandPool,
-      .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
-      .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .numSamples = VK_SAMPLE_COUNT_1_BIT
-    };
-
-    m_renderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
-
     m_mousePickingFramebuffer.reset();
 
     m_mousePickingFramebuffer = std::make_shared<Framebuffer>(

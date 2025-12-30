@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
-#include <unordered_map>
 
 namespace vke {
 
@@ -35,6 +34,8 @@ namespace vke {
     virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
     virtual void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent);
+
+    virtual void resetMousePickingImageResources(VkExtent2D shadowViewportExtent);
 
     virtual void beginSwapchainRendering(uint32_t imageIndex,
                                          VkExtent2D extent,
@@ -72,6 +73,8 @@ namespace vke {
 
     std::shared_ptr<RenderTarget> m_swapchainRenderTarget;
 
+    std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
+
     VkSampler m_sampler = VK_NULL_HANDLE;
 
     uint32_t m_currentShadowMapRenderTargetID = 0;
@@ -81,6 +84,8 @@ namespace vke {
     void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
     void createOffscreenRenderTarget(VkExtent2D extent);
+
+    void createMousePickingRenderTarget(VkExtent2D extent);
   };
 
 } // namespace vke
