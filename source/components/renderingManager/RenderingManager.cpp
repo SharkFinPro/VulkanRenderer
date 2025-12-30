@@ -256,7 +256,7 @@ namespace vke {
 
       m_renderer3D->render(&renderInfo, pipelineManager);
 
-      resetDepthBuffer(*m_offscreenCommandBuffer->getCommandBuffer(), m_offscreenViewportExtent);
+      resetDepthBuffer(m_offscreenCommandBuffer, m_offscreenViewportExtent);
 
       RenderInfo renderInfo2D = renderInfo;
       renderInfo2D.extent = {
@@ -306,7 +306,7 @@ namespace vke {
       {
         m_renderer3D->render(&renderInfo, pipelineManager);
 
-        resetDepthBuffer(*m_swapchainCommandBuffer->getCommandBuffer(), m_swapChain->getExtent());
+        resetDepthBuffer(m_swapchainCommandBuffer, m_swapChain->getExtent());
 
         RenderInfo renderInfo2D = renderInfo;
         renderInfo2D.extent = {
@@ -323,7 +323,7 @@ namespace vke {
     });
   }
 
-  void RenderingManager::resetDepthBuffer(VkCommandBuffer commandBuffer,
+  void RenderingManager::resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                           const VkExtent2D extent)
   {
     constexpr VkClearAttachment clearAttachment{
@@ -342,6 +342,6 @@ namespace vke {
       .layerCount = 1
     };
 
-    vkCmdClearAttachments(commandBuffer, 1, &clearAttachment, 1, &clearRect);
+    commandBuffer->clearAttachments({ clearAttachment }, { clearRect });
   }
 } // namespace vke

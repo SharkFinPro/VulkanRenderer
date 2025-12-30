@@ -81,6 +81,9 @@ namespace vke {
                          const std::vector<VkBufferMemoryBarrier>& bufferMemoryBarriers,
                          const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const;
 
+    void clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
+                          const std::vector<VkClearRect>& clearRects) const;
+
     friend class ImGuiInstance;
 
   private:
