@@ -45,23 +45,23 @@ namespace vke {
     m_guiPipeline->render(renderInfo);
   }
 
-  void PipelineManager::renderShadowPipeline(const RenderInfo& renderInfo,
+  void PipelineManager::renderShadowPipeline(const RenderInfo* renderInfo,
                                              const std::vector<std::shared_ptr<RenderObject>>* objects) const
   {
-    m_shadowPipeline->render(&renderInfo, objects);
+    m_shadowPipeline->render(renderInfo, objects);
   }
 
-  void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo& renderInfo,
+  void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo* renderInfo,
                                                           const std::vector<std::shared_ptr<RenderObject>>* objects,
                                                           const std::shared_ptr<PointLight>& pointLight) const
   {
-    m_pointLightShadowMapPipeline->render(&renderInfo, objects, pointLight);
+    m_pointLightShadowMapPipeline->render(renderInfo, objects, pointLight);
   }
 
-  void PipelineManager::renderBendyPlantPipeline(const RenderInfo& renderInfo,
+  void PipelineManager::renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                                  const std::vector<BendyPlant>* plants) const
   {
-    m_bendyPipeline->render(&renderInfo, plants);
+    m_bendyPipeline->render(renderInfo, plants);
   }
 
   void PipelineManager::renderGridPipeline(const RenderInfo* renderInfo) const

@@ -44,7 +44,7 @@ namespace vke {
 
     renderRenderObjects(&renderInfo3D, pipelineManager);
 
-    pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
+    pipelineManager->renderBendyPlantPipeline(&renderInfo3D, &m_bendyPlantsToRender);
 
     renderSmokeSystems(&renderInfo3D, pipelineManager);
 
