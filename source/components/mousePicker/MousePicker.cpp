@@ -5,8 +5,6 @@
 #include "../pipelines/implementations/common/PipelineTypes.h"
 #include "../renderingManager/ImageResource.h"
 #include "../renderingManager/RenderTarget.h"
-#include "../renderingManager/legacyRenderer/Framebuffer.h"
-#include "../renderingManager/legacyRenderer/RenderPass.h"
 #include "../window/Window.h"
 #include "../../utilities/Buffers.h"
 #include "../../utilities/Images.h"
@@ -19,18 +17,8 @@ namespace vke {
                            VkDescriptorSetLayout objectDescriptorSetLayout)
     : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window)), m_commandPool(commandPool)
   {
-    RenderPassConfig mousePickingRenderPassConfig {
-      .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
-      .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
-      .finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-      .hasColorAttachment = true,
-      .hasDepthAttachment = true,
-      .hasResolveAttachment = false
-    };
-    m_mousePickingRenderPass = std::make_shared<RenderPass>(m_logicalDevice, mousePickingRenderPassConfig);
-
-    m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(m_logicalDevice, m_mousePickingRenderPass,
-                                                                    objectDescriptorSetLayout);
+    // m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(m_logicalDevice, m_mousePickingRenderPass,
+    //                                                                 objectDescriptorSetLayout);
 
     constexpr VkDeviceSize bufferSize = 4;
     Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -51,22 +39,9 @@ namespace vke {
   void MousePicker::recreateFramebuffer(const VkExtent2D viewportExtent)
   {
     m_viewportExtent = viewportExtent;
-
-    m_mousePickingFramebuffer.reset();
-
-    m_mousePickingFramebuffer = std::make_shared<Framebuffer>(
-      m_logicalDevice,
-      m_renderTarget,
-      m_mousePickingRenderPass,
-      m_viewportExtent
-    );
   }
 
-  void MousePicker::doMousePicking(const uint32_t imageIndex,
-                                   const uint32_t currentFrame,
-                                   const glm::vec3 viewPosition,
-                                   const glm::mat4& viewMatrix,
-                                   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender)
+  void MousePicker::doMousePicking(std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender)
   {
     if (m_renderObjectsToMousePick.empty())
     {
@@ -135,90 +110,91 @@ namespace vke {
   uint32_t MousePicker::getIDFromMousePickingFramebuffer(const int32_t mouseX,
                                                          const int32_t mouseY) const
   {
-    const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, m_commandPool);
-
-    transitionImageForReading(commandBuffer);
-
-    Images::copyImageToBuffer(
-      m_renderTarget->getColorImageResource(0).getImage(),
-      { mouseX, mouseY, 0 },
-      { 1, 1, 1 },
-      commandBuffer,
-      m_stagingBuffer
-    );
-
-    transitionImageForWriting(commandBuffer);
-
-    Buffers::endSingleTimeCommands(
-      m_logicalDevice,
-      m_commandPool,
-      m_logicalDevice->getGraphicsQueue(),
-      commandBuffer
-    );
-
-    return getObjectIDFromBuffer(m_stagingBufferMemory);
+    return 0;
+    // const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, m_commandPool);
+    //
+    // transitionImageForReading(commandBuffer);
+    //
+    // Images::copyImageToBuffer(
+    //   m_renderTarget->getColorImageResource(0).getImage(),
+    //   { mouseX, mouseY, 0 },
+    //   { 1, 1, 1 },
+    //   commandBuffer,
+    //   m_stagingBuffer
+    // );
+    //
+    // transitionImageForWriting(commandBuffer);
+    //
+    // Buffers::endSingleTimeCommands(
+    //   m_logicalDevice,
+    //   m_commandPool,
+    //   m_logicalDevice->getGraphicsQueue(),
+    //   commandBuffer
+    // );
+    //
+    // return getObjectIDFromBuffer(m_stagingBufferMemory);
   }
 
   void MousePicker::transitionImageForReading(VkCommandBuffer commandBuffer) const
   {
-    const VkImageMemoryBarrier barrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-      .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-      .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = m_renderTarget->getColorImageResource(0).getImage(),
-      .subresourceRange {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-      }
-    };
-
-    vkCmdPipelineBarrier(
-      commandBuffer,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrier
-    );
+    // const VkImageMemoryBarrier barrier {
+    //   .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    //   .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    //   .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+    //   .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    //   .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+    //   .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    //   .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    //   .image = m_renderTarget->getColorImageResource(0).getImage(),
+    //   .subresourceRange {
+    //     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+    //     .baseMipLevel = 0,
+    //     .levelCount = 1,
+    //     .baseArrayLayer = 0,
+    //     .layerCount = 1
+    //   }
+    // };
+    //
+    // vkCmdPipelineBarrier(
+    //   commandBuffer,
+    //   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    //   VK_PIPELINE_STAGE_TRANSFER_BIT,
+    //   0,
+    //   0, nullptr,
+    //   0, nullptr,
+    //   1, &barrier
+    // );
   }
 
   void MousePicker::transitionImageForWriting(VkCommandBuffer commandBuffer) const
   {
-    const VkImageMemoryBarrier barrierBack {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-      .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-      .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = m_renderTarget->getColorImageResource(0).getImage(),
-      .subresourceRange {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-      }
-    };
-
-    vkCmdPipelineBarrier(
-      commandBuffer,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrierBack
-    );
+    // const VkImageMemoryBarrier barrierBack {
+    //   .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    //   .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+    //   .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+    //   .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+    //   .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    //   .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    //   .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    //   .image = m_renderTarget->getColorImageResource(0).getImage(),
+    //   .subresourceRange {
+    //     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+    //     .baseMipLevel = 0,
+    //     .levelCount = 1,
+    //     .baseArrayLayer = 0,
+    //     .layerCount = 1
+    //   }
+    // };
+    //
+    // vkCmdPipelineBarrier(
+    //   commandBuffer,
+    //   VK_PIPELINE_STAGE_TRANSFER_BIT,
+    //   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    //   0,
+    //   0, nullptr,
+    //   0, nullptr,
+    //   1, &barrierBack
+    // );
   }
 
   uint32_t MousePicker::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const

@@ -3,6 +3,7 @@
 
 #include "../Renderer.h"
 #include <memory>
+#include <unordered_map>
 
 namespace vke {
 
@@ -24,9 +25,13 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderPass> getShadowCubeRenderPass() const override;
 
+    [[nodiscard]] std::shared_ptr<RenderPass> getMousePickingRenderPass() const override;
+
     void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain) override;
 
     void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
+
+    void resetMousePickingImageResources(VkExtent2D mousePickingExtent) override;
 
     void beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
                                  std::shared_ptr<CommandBuffer> commandBuffer,
@@ -54,11 +59,13 @@ namespace vke {
   private:
     std::shared_ptr<Framebuffer> m_swapchainFramebuffer;
     std::shared_ptr<Framebuffer> m_offscreenFramebuffer;
+    std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
 
     std::shared_ptr<RenderPass> m_swapchainRenderPass;
     std::shared_ptr<RenderPass> m_offscreenRenderPass;
     std::shared_ptr<RenderPass> m_shadowRenderPass;
     std::shared_ptr<RenderPass> m_shadowCubeRenderPass;
+    std::shared_ptr<RenderPass> m_mousePickingRenderPass;
 
     std::unordered_map<uint32_t, std::shared_ptr<Framebuffer>> m_shadowMapFramebuffers;
 

@@ -29,13 +29,15 @@ namespace vke {
 
     [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowCubeRenderPass() const = 0;
 
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getMousePickingRenderPass() const = 0;
+
     [[nodiscard]] virtual VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
 
     virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
     virtual void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent);
 
-    virtual void resetMousePickingImageResources(VkExtent2D shadowViewportExtent);
+    virtual void resetMousePickingImageResources(VkExtent2D mousePickingExtent);
 
     virtual void beginSwapchainRendering(uint32_t imageIndex,
                                          VkExtent2D extent,

@@ -35,6 +35,11 @@ namespace vke {
     return nullptr;
   }
 
+  std::shared_ptr<RenderPass> DynamicRenderer::getMousePickingRenderPass() const
+  {
+    return nullptr;
+  }
+
   void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
                                                 const VkExtent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer,

@@ -32,11 +32,7 @@ namespace vke {
 
     void recreateFramebuffer(VkExtent2D viewportExtent);
 
-    void doMousePicking(uint32_t imageIndex,
-                        uint32_t currentFrame,
-                        glm::vec3 viewPosition,
-                        const glm::mat4& viewMatrix,
-                        std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
+    void doMousePicking(std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
 
     [[nodiscard]] bool canMousePick() const;
 
@@ -52,9 +48,7 @@ namespace vke {
 
     ImVec2 m_viewportPos {0, 0};
 
-    std::shared_ptr<RenderPass> m_mousePickingRenderPass;
     std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
-    std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
 
     std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
     std::unordered_map<uint32_t, bool*> m_mousePickingItems;

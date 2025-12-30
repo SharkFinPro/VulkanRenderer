@@ -28,7 +28,7 @@ namespace vke {
   void Renderer3D::doMousePicking(const uint32_t imageIndex,
                                   const uint32_t currentFrame)
   {
-    m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix, m_renderObjectsToRender);
+    m_mousePicker->doMousePicking(m_renderObjectsToRender);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,
