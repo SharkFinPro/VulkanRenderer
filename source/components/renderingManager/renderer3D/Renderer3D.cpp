@@ -123,8 +123,7 @@ namespace vke {
   void Renderer3D::renderLine(const glm::vec3 start,
                               const glm::vec3 end)
   {
-    m_lineVerticesToRender.push_back({start});
-    m_lineVerticesToRender.push_back({end});
+    m_lineVerticesToRender.insert(m_lineVerticesToRender.end(), { LineVertex{start}, LineVertex{end} });
   }
 
   void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)
