@@ -25,7 +25,7 @@ namespace vke {
 
     void disable();
 
-    bool isEnabled() const;
+    [[nodiscard]] bool isEnabled() const;
 
   private:
     bool m_enabled = true;
