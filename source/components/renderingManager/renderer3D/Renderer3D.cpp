@@ -28,7 +28,7 @@ namespace vke {
   void Renderer3D::renderMousePicking(const RenderInfo* renderInfo,
                                       const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    // TODO: Call pipeline
+    m_mousePicker->render(renderInfo, pipelineManager);
   }
 
   void Renderer3D::handleRenderedMousePickingImage()

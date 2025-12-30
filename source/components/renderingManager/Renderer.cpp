@@ -15,6 +15,8 @@ namespace vke {
     createSampler();
 
     createSwapchainRenderTarget(swapChain);
+
+    createMousePickingRenderTarget(swapChain->getExtent());
   }
 
   Renderer::~Renderer()

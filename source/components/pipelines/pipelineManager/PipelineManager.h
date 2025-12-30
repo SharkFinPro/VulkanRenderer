@@ -11,6 +11,7 @@
 #include "../implementations/2D/FontPipeline.h"
 #include "../implementations/2D/RectPipeline.h"
 #include "../implementations/2D/TrianglePipeline.h"
+#include "../implementations/renderObject/MousePickingPipeline.h"
 #include "../implementations/renderObject/PointLightShadowMapPipeline.h"
 #include "../implementations/renderObject/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
@@ -68,6 +69,9 @@ namespace vke {
                               uint32_t currentFrame,
                               const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
+    void renderMousePickingPipeline(const RenderInfo* renderInfo,
+                                    const std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>>* objects) const;
+
     void renderLinePipeline(const RenderInfo* renderInfo,
                             const std::vector<LineVertex>* lineVertices) const;
 
@@ -104,6 +108,8 @@ namespace vke {
     std::unique_ptr<PointLightShadowMapPipeline> m_pointLightShadowMapPipeline;
 
     std::unique_ptr<ShadowPipeline> m_shadowPipeline;
+
+    std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
 
     std::unique_ptr<RectPipeline> m_rectPipeline;
 

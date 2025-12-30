@@ -24,6 +24,13 @@ namespace vke {
       swapChain->getExtent(),
       swapChain
     );
+
+    m_mousePickingFramebuffer = std::make_shared<Framebuffer>(
+      m_logicalDevice,
+      m_mousePickingRenderTarget,
+      m_mousePickingRenderPass,
+      swapChain->getExtent()
+    );
   }
 
   std::shared_ptr<RenderPass> LegacyRenderer::getSwapchainRenderPass() const

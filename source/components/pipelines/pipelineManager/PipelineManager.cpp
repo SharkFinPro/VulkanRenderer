@@ -102,6 +102,12 @@ namespace vke {
     m_smokePipeline->compute(commandBuffer, currentFrame, systems);
   }
 
+  void PipelineManager::renderMousePickingPipeline(const RenderInfo* renderInfo,
+                                                   const std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>>* objects) const
+  {
+    m_mousePickingPipeline->render(renderInfo, objects);
+  }
+
   void PipelineManager::renderLinePipeline(const RenderInfo* renderInfo,
                                            const std::vector<LineVertex>* lineVertices) const
   {
@@ -215,6 +221,9 @@ namespace vke {
     m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
       logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
       lightingManager->getPointLightDescriptorSetLayout());
+
+    m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(
+      logicalDevice, renderer->getMousePickingRenderPass(), objectDescriptorSetLayout);
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,

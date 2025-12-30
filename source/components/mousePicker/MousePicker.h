@@ -13,6 +13,7 @@ namespace vke {
   class CommandBuffer;
   class Framebuffer;
   class LogicalDevice;
+  class PipelineManager;
   enum class PipelineType;
   class RenderObject;
   class RenderPass;
@@ -40,6 +41,9 @@ namespace vke {
 
     void setViewportPos(ImVec2 viewportPos);
 
+    void render(const RenderInfo* renderInfo,
+                const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
     std::shared_ptr<Window> m_window;
@@ -47,8 +51,6 @@ namespace vke {
     VkExtent2D m_viewportExtent { 1, 1 };
 
     ImVec2 m_viewportPos {0, 0};
-
-    std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
 
     std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
     std::unordered_map<uint32_t, bool*> m_mousePickingItems;
