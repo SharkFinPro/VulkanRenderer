@@ -24,6 +24,11 @@ namespace vke {
     Buffers::destroyBuffer(m_logicalDevice, m_stagingBuffer, m_stagingBufferMemory);
   }
 
+  bool MousePicker::canMousePick() const
+  {
+    return m_canMousePick;
+  }
+
   void MousePicker::clearObjectsToMousePick()
   {
     m_renderObjectsToMousePick.clear();
@@ -32,6 +37,26 @@ namespace vke {
   void MousePicker::setViewportExtent(const VkExtent2D viewportExtent)
   {
     m_viewportExtent = viewportExtent;
+  }
+
+  void MousePicker::setViewportPos(const ImVec2 viewportPos)
+  {
+    m_viewportPos = viewportPos;
+  }
+
+  void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
+                                 bool* mousePicked)
+  {
+    uint32_t objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
+    m_renderObjectsToMousePick.emplace_back( renderObject, objectID );
+    m_mousePickingItems[objectID] = mousePicked;
+    *mousePicked = false;
+  }
+
+  void MousePicker::render(const RenderInfo* renderInfo,
+                           const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    pipelineManager->renderMousePickingPipeline(renderInfo, &m_renderObjectsToMousePick);
   }
 
   void MousePicker::handleRenderedMousePickingImage(const VkImage image,
@@ -51,31 +76,6 @@ namespace vke {
     }
 
     handleMousePickingResult(objectID, renderObjectsToRender);
-  }
-
-  bool MousePicker::canMousePick() const
-  {
-    return m_canMousePick;
-  }
-
-  void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                                 bool* mousePicked)
-  {
-    uint32_t objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
-    m_renderObjectsToMousePick.emplace_back( renderObject, objectID );
-    m_mousePickingItems[objectID] = mousePicked;
-    *mousePicked = false;
-  }
-
-  void MousePicker::setViewportPos(const ImVec2 viewportPos)
-  {
-    m_viewportPos = viewportPos;
-  }
-
-  void MousePicker::render(const RenderInfo* renderInfo,
-                           const std::shared_ptr<PipelineManager>& pipelineManager) const
-  {
-    pipelineManager->renderMousePickingPipeline(renderInfo, &m_renderObjectsToMousePick);
   }
 
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,
@@ -128,6 +128,34 @@ namespace vke {
     );
 
     return getObjectIDFromBuffer(m_stagingBufferMemory);
+  }
+
+  uint32_t MousePicker::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const
+  {
+    uint32_t objectID = 0;
+
+    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
+      const uint8_t* pixel = static_cast<uint8_t*>(data);
+
+      objectID = pixel[0] << 16 | pixel[1] << 8 | pixel[2];
+    });
+
+    return objectID;
+  }
+
+  void MousePicker::handleMousePickingResult(const uint32_t objectID,
+                                             std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender)
+  {
+    *m_mousePickingItems.at(objectID) = true;
+
+    for (auto& [object, id] : m_renderObjectsToMousePick)
+    {
+      if (id == objectID)
+      {
+        renderObjectsToRender[PipelineType::objectHighlight].push_back(object);
+        break;
+      }
+    }
   }
 
   void MousePicker::transitionImageForReading(VkCommandBuffer commandBuffer,
@@ -193,33 +221,4 @@ namespace vke {
       1, &barrierBack
     );
   }
-
-  uint32_t MousePicker::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const
-  {
-    uint32_t objectID = 0;
-
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
-      const uint8_t* pixel = static_cast<uint8_t*>(data);
-
-      objectID = pixel[0] << 16 | pixel[1] << 8 | pixel[2];
-    });
-
-    return objectID;
-  }
-
-  void MousePicker::handleMousePickingResult(const uint32_t objectID,
-                                             std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender)
-  {
-    *m_mousePickingItems.at(objectID) = true;
-
-    for (auto& [object, id] : m_renderObjectsToMousePick)
-    {
-      if (id == objectID)
-      {
-        renderObjectsToRender[PipelineType::objectHighlight].push_back(object);
-        break;
-      }
-    }
-  }
-
 } // namespace vke

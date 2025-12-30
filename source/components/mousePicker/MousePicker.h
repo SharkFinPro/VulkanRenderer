@@ -28,21 +28,21 @@ namespace vke {
 
     ~MousePicker();
 
+    [[nodiscard]] bool canMousePick() const;
+
     void clearObjectsToMousePick();
 
     void setViewportExtent(VkExtent2D viewportExtent);
 
-    void handleRenderedMousePickingImage(VkImage image,
-                                         std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
-
-    [[nodiscard]] bool canMousePick() const;
+    void setViewportPos(ImVec2 viewportPos);
 
     void renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked);
 
-    void setViewportPos(ImVec2 viewportPos);
-
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    void handleRenderedMousePickingImage(VkImage image,
+                                         std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -69,16 +69,16 @@ namespace vke {
                                                       int32_t mouseX,
                                                       int32_t mouseY) const;
 
+    [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
+
+    void handleMousePickingResult(uint32_t objectID,
+                                  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
+
     static void transitionImageForReading(VkCommandBuffer commandBuffer,
                                           VkImage image);
 
     static void transitionImageForWriting(VkCommandBuffer commandBuffer,
                                           VkImage image);
-
-    [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
-
-    void handleMousePickingResult(uint32_t objectID,
-                                  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
   };
 
 } // namespace vke
