@@ -34,8 +34,7 @@ namespace vke {
                                                     const std::shared_ptr<Renderer2D>& renderer2D,
                                                     const std::shared_ptr<Renderer3D>& renderer3D) const
   {
-    m_computeCommandBuffer->record([this, pipelineManager, currentFrame, renderer2D, renderer3D]()
-    {
+    m_computeCommandBuffer->record([this, pipelineManager, currentFrame, renderer2D, renderer3D] {
       if (renderer2D->shouldDoDots())
       {
         pipelineManager->computeDotsPipeline(m_computeCommandBuffer, currentFrame);
