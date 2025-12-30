@@ -1,7 +1,4 @@
 #include "PipelineManager.h"
-#include "../implementations/BendyPipeline.h"
-#include "../implementations/2D/FontPipeline.h"
-#include "../implementations/2D/RectPipeline.h"
 #include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
@@ -16,7 +13,6 @@
 #include "../implementations/renderObject/TexturedPlane.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
-#include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/Renderer.h"
 #include <ranges>
 
