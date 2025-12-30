@@ -9,10 +9,8 @@
 namespace vke {
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
                          std::shared_ptr<Window> window,
-                         const std::shared_ptr<AssetManager>& assetManager,
                          VkCommandPool commandPool)
-    : m_mousePicker(std::make_shared<MousePicker>(std::move(logicalDevice), std::move(window), commandPool,
-                    assetManager->getObjectDescriptorSetLayout()))
+    : m_mousePicker(std::make_shared<MousePicker>(std::move(logicalDevice), std::move(window), commandPool))
   {}
 
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,

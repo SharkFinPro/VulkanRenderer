@@ -34,7 +34,7 @@ namespace vke {
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
-      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, assetManager, commandPool))
+      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, commandPool))
   {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);

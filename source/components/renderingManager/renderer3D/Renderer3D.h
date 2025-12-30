@@ -35,7 +35,6 @@ namespace vke {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
                std::shared_ptr<Window> window,
-               const std::shared_ptr<AssetManager>& assetManager,
                VkCommandPool commandPool);
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,

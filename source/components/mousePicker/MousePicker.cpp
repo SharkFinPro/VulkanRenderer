@@ -10,8 +10,7 @@ namespace vke {
 
   MousePicker::MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
                            std::shared_ptr<Window> window,
-                           const VkCommandPool& commandPool,
-                           VkDescriptorSetLayout objectDescriptorSetLayout)
+                           const VkCommandPool& commandPool)
     : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window)), m_commandPool(commandPool)
   {
     constexpr VkDeviceSize bufferSize = 4;
