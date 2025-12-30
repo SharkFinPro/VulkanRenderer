@@ -1,7 +1,6 @@
 #ifndef VKE_MOUSEPICKER_H
 #define VKE_MOUSEPICKER_H
 
-#include "../pipelines/implementations/renderObject/MousePickingPipeline.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -33,7 +32,8 @@ namespace vke {
 
     void recreateFramebuffer(VkExtent2D viewportExtent);
 
-    void doMousePicking(std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
+    void handleRenderedMousePickingImage(VkImage image,
+                                         std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
 
     [[nodiscard]] bool canMousePick() const;
 
@@ -65,12 +65,15 @@ namespace vke {
     bool validateMousePickingMousePosition(int32_t& mouseX,
                                            int32_t& mouseY);
 
-    [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX,
-                                                            int32_t mouseY) const;
+    [[nodiscard]] uint32_t getIDFromMousePickingImage(VkImage image,
+                                                      int32_t mouseX,
+                                                      int32_t mouseY) const;
 
-    void transitionImageForReading(VkCommandBuffer commandBuffer) const;
+    static void transitionImageForReading(VkCommandBuffer commandBuffer,
+                                          VkImage image);
 
-    void transitionImageForWriting(VkCommandBuffer commandBuffer) const;
+    static void transitionImageForWriting(VkCommandBuffer commandBuffer,
+                                          VkImage image);
 
     [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
 

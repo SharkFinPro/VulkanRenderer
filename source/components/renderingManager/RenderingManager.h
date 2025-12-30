@@ -99,6 +99,10 @@ namespace vke {
 
     static void resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  VkExtent2D extent);
+
+    void doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                        uint32_t currentFrame,
+                        uint32_t imageIndex) const;
   };
 
 } // namespace vke

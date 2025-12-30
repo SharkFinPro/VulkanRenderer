@@ -33,6 +33,8 @@ namespace vke {
 
     [[nodiscard]] virtual VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
 
+    [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
+
     virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
     virtual void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent);

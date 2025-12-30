@@ -28,18 +28,20 @@ namespace vke {
   void Renderer3D::renderMousePicking(const RenderInfo* renderInfo,
                                       const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    m_mousePicker->render(renderInfo, pipelineManager);
+    const RenderInfo renderInfoMousePicking {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent
+    };
+
+    m_mousePicker->render(&renderInfoMousePicking, pipelineManager);
   }
 
-  void Renderer3D::handleRenderedMousePickingImage()
+  void Renderer3D::handleRenderedMousePickingImage(const VkImage image)
   {
-    // TODO: Find picked object
-  }
-
-  void Renderer3D::doMousePicking(const uint32_t imageIndex,
-                                  const uint32_t currentFrame)
-  {
-    m_mousePicker->doMousePicking(m_renderObjectsToRender);
+    m_mousePicker->handleRenderedMousePickingImage(image, m_renderObjectsToRender);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,

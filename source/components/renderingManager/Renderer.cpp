@@ -34,6 +34,11 @@ namespace vke {
     return m_offscreenRenderTarget->getResolveImageResource(imageIndex).getDescriptorSet();
   }
 
+  std::shared_ptr<RenderTarget> Renderer::getMousePickingRenderTarget() const
+  {
+    return m_mousePickingRenderTarget;
+  }
+
   void Renderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)
   {
     m_swapchainRenderTarget.reset();

@@ -1,7 +1,9 @@
 #include "RenderingManager.h"
+#include "ImageResource.h"
+#include "Renderer.h"
+#include "RenderTarget.h"
 #include "dynamicRenderer/DynamicRenderer.h"
 #include "legacyRenderer/LegacyRenderer.h"
-#include "Renderer.h"
 #include "renderer2D/Renderer2D.h"
 #include "renderer3D/Renderer3D.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
@@ -12,7 +14,6 @@
 #include "../window/SwapChain.h"
 #include "../window/Window.h"
 #include "../mousePicker/MousePicker.h"
-#include "../pipelines/implementations/GuiPipeline.h"
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>
@@ -74,13 +75,7 @@ namespace vke {
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    // m_renderer3D->doMousePicking(imageIndex, currentFrame);
-    m_logicalDevice->resetMousePickingFences(currentFrame);
-
-    m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
-    m_mousePickingCommandBuffer->resetCommandBuffer();
-    recordMousePickingCommandBuffer(pipelineManager, imageIndex, currentFrame);
-    m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
+    doMousePicking(pipelineManager, currentFrame, imageIndex);
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
     m_offscreenCommandBuffer->resetCommandBuffer();
@@ -103,9 +98,6 @@ namespace vke {
     {
       throw std::runtime_error("failed to present swap chain image!");
     }
-
-    m_logicalDevice->waitForMousePickingFences(currentFrame);
-    m_renderer3D->handleRenderedMousePickingImage();
   }
 
   std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
@@ -391,5 +383,20 @@ namespace vke {
     };
 
     commandBuffer->clearAttachments({ clearAttachment }, { clearRect });
+  }
+
+  void RenderingManager::doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                        const uint32_t currentFrame,
+                                        const uint32_t imageIndex) const
+  {
+    m_logicalDevice->resetMousePickingFences(currentFrame);
+
+    m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
+    m_mousePickingCommandBuffer->resetCommandBuffer();
+    recordMousePickingCommandBuffer(pipelineManager, imageIndex, currentFrame);
+    m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
+
+    m_logicalDevice->waitForMousePickingFences(currentFrame);
+    m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
   }
 } // namespace vke
