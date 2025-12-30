@@ -1,6 +1,5 @@
 #include "PipelineManager.h"
 #include "../implementations/BendyPipeline.h"
-#include "../implementations/DotsPipeline.h"
 #include "../implementations/2D/FontPipeline.h"
 #include "../implementations/2D/RectPipeline.h"
 #include "../implementations/common/PipelineTypes.h"
@@ -232,7 +231,7 @@ namespace vke {
 
     m_guiPipeline = std::make_unique<GuiPipeline>(logicalDevice, renderPass);
 
-    m_dotsPipeline = std::make_shared<DotsPipeline>(logicalDevice, m_commandPool, renderPass, descriptorPool);
+    m_dotsPipeline = std::make_unique<DotsPipeline>(logicalDevice, m_commandPool, renderPass, descriptorPool);
 
     m_linePipeline = std::make_unique<LinePipeline>(logicalDevice, renderPass);
 

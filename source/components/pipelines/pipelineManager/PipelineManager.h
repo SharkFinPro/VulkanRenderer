@@ -2,6 +2,7 @@
 #define VKE_PIPELINEMANAGER_H
 
 #include "../implementations/BendyPipeline.h"
+#include "../implementations/DotsPipeline.h"
 #include "../implementations/GridPipeline.h"
 #include "../implementations/GuiPipeline.h"
 #include "../implementations/LinePipeline.h"
@@ -88,7 +89,7 @@ namespace vke {
 
     std::unique_ptr<GuiPipeline> m_guiPipeline;
 
-    std::shared_ptr<DotsPipeline> m_dotsPipeline;
+    std::unique_ptr<DotsPipeline> m_dotsPipeline;
 
     std::unordered_map<PipelineType, std::unique_ptr<Pipeline>> m_pipelines;
 
