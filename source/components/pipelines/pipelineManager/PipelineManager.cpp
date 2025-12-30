@@ -35,9 +35,25 @@ namespace vke {
     createPipelines(assetManager, renderer, logicalDevice, lightingManager, descriptorPool);
   }
 
-  std::shared_ptr<DotsPipeline> PipelineManager::getDotsPipeline()
+  void PipelineManager::renderDotsPipeline(const RenderInfo* renderInfo) const
   {
-    return m_dotsPipeline;
+    if (!m_dotsPipeline)
+    {
+      return;
+    }
+
+    m_dotsPipeline->render(renderInfo, nullptr);
+  }
+
+  void PipelineManager::computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                            const uint32_t currentFrame) const
+  {
+    if (!m_dotsPipeline)
+    {
+      return;
+    }
+
+    m_dotsPipeline->compute(commandBuffer, currentFrame);
   }
 
   void PipelineManager::renderGuiPipeline(const RenderInfo* renderInfo) const

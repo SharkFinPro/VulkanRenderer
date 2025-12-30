@@ -35,10 +35,7 @@ namespace vke {
   {
     m_computeCommandBuffer->record([this, pipelineManager, currentFrame, renderer3D]()
     {
-      if (const auto dotsPipeline = pipelineManager->getDotsPipeline())
-      {
-        dotsPipeline->compute(m_computeCommandBuffer, currentFrame);
-      }
+      pipelineManager->computeDotsPipeline(m_computeCommandBuffer, currentFrame);
 
       pipelineManager->computeSmokePipeline(m_computeCommandBuffer, currentFrame, &renderer3D->getSmokeSystems());
     });

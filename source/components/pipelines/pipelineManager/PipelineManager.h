@@ -38,7 +38,10 @@ namespace vke {
                     VkCommandPool commandPool,
                     bool shouldDoDots);
 
-    [[nodiscard]] std::shared_ptr<DotsPipeline> getDotsPipeline();
+    void renderDotsPipeline(const RenderInfo* renderInfo) const;
+
+    void computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                             uint32_t currentFrame) const;
 
     void renderGuiPipeline(const RenderInfo* renderInfo) const;
 
