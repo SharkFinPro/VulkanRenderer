@@ -15,8 +15,6 @@ namespace vke {
 
     bool FULLSCREEN = false;
 
-    bool DO_DOTS = false;
-
     bool USE_DOCKSPACE = true;
 
     const char* SCENE_VIEW_NAME = "SceneView";

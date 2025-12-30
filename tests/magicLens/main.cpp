@@ -24,8 +24,7 @@ int main()
       .WINDOW_WIDTH = 800,
       .WINDOW_HEIGHT = 600,
       .WINDOW_TITLE = "Magic Lens",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -15.0f },
-      .DO_DOTS = false
+      .CAMERA_POSITION = { 0.0f, 0.0f, -15.0f }
     };
 
     vke::VulkanEngine renderer(vulkanEngineOptions);
