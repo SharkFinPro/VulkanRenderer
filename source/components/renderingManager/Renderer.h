@@ -53,6 +53,10 @@ namespace vke {
                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
                                       const std::shared_ptr<Light>& light) = 0;
 
+    virtual void beginMousePickingRendering(uint32_t imageIndex,
+                                            VkExtent2D extent,
+                                            const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
+
     virtual void endSwapchainRendering(uint32_t imageIndex,
                                        std::shared_ptr<CommandBuffer> commandBuffer,
                                        std::shared_ptr<SwapChain> swapChain) = 0;
@@ -62,6 +66,9 @@ namespace vke {
 
     virtual void endShadowRendering(uint32_t imageIndex,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
+
+    virtual void endMousePickingRendering(uint32_t imageIndex,
+                                          const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
 
     [[nodiscard]] virtual uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget,
                                                                  bool isCubeMap);

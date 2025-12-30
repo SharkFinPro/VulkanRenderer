@@ -132,21 +132,38 @@ namespace vke {
     }
   }
 
-  void LegacyRenderer::endSwapchainRendering(uint32_t imageIndex,
+  void LegacyRenderer::beginMousePickingRendering(const uint32_t imageIndex,
+                                                  const VkExtent2D extent,
+                                                  const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    m_mousePickingRenderPass->begin(
+      m_mousePickingFramebuffer->getFramebuffer(imageIndex),
+      extent,
+      commandBuffer
+    );
+  }
+
+  void LegacyRenderer::endSwapchainRendering([[maybe_unused]] uint32_t imageIndex,
                                              const std::shared_ptr<CommandBuffer> commandBuffer,
                                              [[maybe_unused]] std::shared_ptr<SwapChain> swapChain)
   {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endOffscreenRendering(uint32_t imageIndex,
+  void LegacyRenderer::endOffscreenRendering([[maybe_unused]] uint32_t imageIndex,
                                              const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endShadowRendering(uint32_t imageIndex,
+  void LegacyRenderer::endShadowRendering([[maybe_unused]] uint32_t imageIndex,
                                           const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    endRendering(commandBuffer);
+  }
+
+  void LegacyRenderer::endMousePickingRendering([[maybe_unused]] uint32_t imageIndex,
+                                                const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     endRendering(commandBuffer);
   }

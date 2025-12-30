@@ -33,7 +33,8 @@ namespace vke {
 
     void resetMousePickingImageResources(VkExtent2D mousePickingExtent) override;
 
-    void beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
+    void beginSwapchainRendering(uint32_t imageIndex,
+                                 VkExtent2D extent,
                                  std::shared_ptr<CommandBuffer> commandBuffer,
                                  std::shared_ptr<SwapChain> swapChain) override;
 
@@ -45,6 +46,10 @@ namespace vke {
                               const std::shared_ptr<CommandBuffer>& commandBuffer,
                               const std::shared_ptr<Light>& light) override;
 
+    void beginMousePickingRendering(uint32_t imageIndex,
+                                    VkExtent2D extent,
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+
     void endSwapchainRendering(uint32_t imageIndex, std::shared_ptr<CommandBuffer> commandBuffer,
                                std::shared_ptr<SwapChain> swapChain) override;
 
@@ -52,6 +57,9 @@ namespace vke {
 
     void endShadowRendering(uint32_t imageIndex,
                             const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+
+    void endMousePickingRendering(uint32_t imageIndex,
+                                  const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
     [[nodiscard]] uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget,
                                                          bool isCubeMap) override;

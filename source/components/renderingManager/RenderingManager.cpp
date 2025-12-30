@@ -346,7 +346,7 @@ namespace vke {
         .extent = m_shouldRenderOffscreen ? m_offscreenViewportExtent : m_swapChain->getExtent(),
       };
 
-      // m_mousePickingRenderPass->begin(m_mousePickingFramebuffer->getFramebuffer(imageIndex), m_viewportExtent, renderInfo.commandBuffer);
+      m_renderer->beginMousePickingRendering(imageIndex, renderInfo.extent, renderInfo.commandBuffer);
 
       const VkViewport viewport = {
         .x = 0.0f,
@@ -367,6 +367,8 @@ namespace vke {
       // m_mousePickingPipeline->render(&renderInfo, &m_renderObjectsToMousePick);
 
       // m_mousePickingCommandBuffer->endRenderPass();
+
+      m_renderer->endMousePickingRendering(imageIndex, renderInfo.commandBuffer);
     });
   }
 
