@@ -93,7 +93,8 @@ namespace vke {
                                       uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 
-    void recordMousePickingCommandBuffer(uint32_t imageIndex,
+    void recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                         uint32_t imageIndex,
                                          uint32_t currentFrame) const;
 
     static void resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,

@@ -25,6 +25,17 @@ namespace vke {
     lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened, currentFrame);
   }
 
+  void Renderer3D::renderMousePicking(const RenderInfo* renderInfo,
+                                      const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    // TODO: Call pipeline
+  }
+
+  void Renderer3D::handleRenderedMousePickingImage()
+  {
+    // TODO: Find picked object
+  }
+
   void Renderer3D::doMousePicking(const uint32_t imageIndex,
                                   const uint32_t currentFrame)
   {

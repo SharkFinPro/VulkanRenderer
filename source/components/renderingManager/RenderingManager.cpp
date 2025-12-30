@@ -79,7 +79,7 @@ namespace vke {
 
     m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
     m_mousePickingCommandBuffer->resetCommandBuffer();
-    recordMousePickingCommandBuffer(imageIndex, currentFrame);
+    recordMousePickingCommandBuffer(pipelineManager, imageIndex, currentFrame);
     m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
@@ -105,7 +105,7 @@ namespace vke {
     }
 
     m_logicalDevice->waitForMousePickingFences(currentFrame);
-    // m_renderer3D->handleMousePicking();
+    m_renderer3D->handleRenderedMousePickingImage();
   }
 
   std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
@@ -333,10 +333,11 @@ namespace vke {
     });
   }
 
-  void RenderingManager::recordMousePickingCommandBuffer(uint32_t imageIndex,
+  void RenderingManager::recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                         uint32_t imageIndex,
                                                          uint32_t currentFrame) const
   {
-    m_mousePickingCommandBuffer->record([this, imageIndex, currentFrame]
+    m_mousePickingCommandBuffer->record([this, pipelineManager, imageIndex, currentFrame]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_mousePickingCommandBuffer,
@@ -364,9 +365,7 @@ namespace vke {
       };
       renderInfo.commandBuffer->setScissor(scissor);
 
-      // m_mousePickingPipeline->render(&renderInfo, &m_renderObjectsToMousePick);
-
-      // m_mousePickingCommandBuffer->endRenderPass();
+      m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
       m_renderer->endMousePickingRendering(imageIndex, renderInfo.commandBuffer);
     });
