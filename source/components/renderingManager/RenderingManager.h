@@ -90,7 +90,7 @@ namespace vke {
                                       uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 
-    static void resetDepthBuffer(VkCommandBuffer commandBuffer,
+    static void resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  VkExtent2D extent);
   };
 

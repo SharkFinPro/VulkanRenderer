@@ -160,6 +160,18 @@ namespace vke {
     );
   }
 
+  void CommandBuffer::clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
+                                       const std::vector<VkClearRect>& clearRects) const
+  {
+    vkCmdClearAttachments(
+      m_commandBuffers[m_currentFrame],
+      clearAttachments.size(),
+      clearAttachments.data(),
+      clearRects.size(),
+      clearRects.data()
+    );
+  }
+
   void CommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)
   {
     m_commandBuffers.resize(m_logicalDevice->getMaxFramesInFlight());

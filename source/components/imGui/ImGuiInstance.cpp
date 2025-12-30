@@ -291,9 +291,7 @@ namespace vke {
       ImGui::GetIO().FontGlobalScale = e.xscale;
 
       m_contentScale = e.xscale;
-    });
 
-    window->on<ContentScaleEvent>([this]([[maybe_unused]] const ContentScaleEvent& e) {
       markDockNeedsUpdate();
     });
   }
