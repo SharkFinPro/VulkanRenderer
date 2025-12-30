@@ -20,7 +20,7 @@ namespace vke {
 
     void render(const RenderInfo* renderInfo,
                 const VkCommandPool& commandPool,
-                const std::vector<LineVertex>& vertices);
+                const std::vector<LineVertex>* vertices);
 
   private:
     VkBuffer m_vertexBuffer = VK_NULL_HANDLE;

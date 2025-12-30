@@ -1,10 +1,9 @@
 #include "../common/gui.h"
+#include <source/VulkanEngine.h>
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
-#include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
 
@@ -68,11 +67,13 @@ void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::RenderObject>& object,
                  const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
+  const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+
   // Render GUI
   displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
   // Render Objects
-  renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
+  r3d->renderObject(object, vke::PipelineType::object);
 
   for (const auto& light : lights)
   {
@@ -80,9 +81,9 @@ void renderScene(vke::VulkanEngine& renderer,
   }
 
   // Render lines
-  renderer.getPipelineManager()->renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
-  renderer.getPipelineManager()->renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
-  renderer.getPipelineManager()->renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
+  r3d->renderLine({-1.0f,  0.0f, 0.0f}, {-0.5f,  0.5f, 0.0f});
+  r3d->renderLine({ 0.0f,  0.0f, 0.0f}, { 0.5f, -0.5f, 0.0f});
+  r3d->renderLine({ 1.0f,  0.0f, 0.0f}, { 1.5f,  0.5f, 0.0f});
 
   // Render Frame
   renderer.render();

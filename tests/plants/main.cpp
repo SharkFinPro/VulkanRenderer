@@ -2,7 +2,6 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -75,11 +74,13 @@ void renderScene(vke::VulkanEngine& renderer,
                  const std::vector<std::shared_ptr<vke::Light>>& lights,
                  std::vector<vke::BendyPlant>& bendyPlants)
 {
+  const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+
   // Render GUI
   displayGui(gui, lights, { object }, renderer.getRenderingManager());
 
   // Render Objects
-  renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
+  r3d->renderObject(object, vke::PipelineType::object);
 
   for (const auto& light : lights)
   {
@@ -91,7 +92,7 @@ void renderScene(vke::VulkanEngine& renderer,
 
   for (const auto& bendyPlant : bendyPlants)
   {
-    renderer.getPipelineManager()->renderBendyPlant(bendyPlant);
+    r3d->renderBendyPlant(bendyPlant);
   }
 
   // Render Frame

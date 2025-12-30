@@ -2,7 +2,6 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <iostream>
@@ -33,13 +32,15 @@ int main()
 
     const auto light = renderer.getLightingManager()->createPointLight({0, 3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f);
 
+    const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+
     while (renderer.isActive())
     {
       displayGui(gui, { light }, { object }, renderer.getRenderingManager());
 
       renderer.getLightingManager()->renderLight(light);
 
-      renderer.getPipelineManager()->renderObject(object, vke::PipelineType::object);
+      r3d->renderObject(object, vke::PipelineType::object);
 
       renderer.render();
     }

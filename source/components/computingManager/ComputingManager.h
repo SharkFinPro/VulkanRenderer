@@ -9,6 +9,7 @@ namespace vke {
   class CommandBuffer;
   class LogicalDevice;
   class PipelineManager;
+  class Renderer3D;
 
   class ComputingManager {
   public:
@@ -16,7 +17,8 @@ namespace vke {
                      VkCommandPool commandPool);
 
     void doComputing(const std::shared_ptr<PipelineManager>& pipelineManager,
-                     uint32_t currentFrame) const;
+                     uint32_t currentFrame,
+                     const std::shared_ptr<Renderer3D>& renderer3D) const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -24,7 +26,8 @@ namespace vke {
     std::shared_ptr<CommandBuffer> m_computeCommandBuffer;
 
     void recordComputeCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                    uint32_t currentFrame) const;
+                                    uint32_t currentFrame,
+                                    const std::shared_ptr<Renderer3D>& renderer3D) const;
   };
 
 } // namespace vke

@@ -2,15 +2,16 @@
 #define VKE_TESTS_GUI_H
 
 #include <source/components/assets/objects/RenderObject.h>
-#include <source/components/lighting/lights/Light.h>
 #include <source/components/imGui/ImGuiInstance.h>
-#include <source/components/renderingManager/RenderingManager.h>
+#include <source/components/lighting/lights/Light.h>
+#include <source/components/lighting/lights/SpotLight.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
+#include <source/components/renderingManager/RenderingManager.h>
+#include <source/components/renderingManager/renderer3D/Renderer3D.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <memory>
 #include <string>
-#include <source/components/lighting/lights/SpotLight.h>
 
 inline void displayBendyPlantGui(vke::BendyPlant& bendyPlant,
                                  const int id)
@@ -158,17 +159,17 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
 {
   ImGui::Begin("Scene Options");
 
-  bool showGrid = renderingManager->isGridEnabled();
+  bool showGrid = renderingManager->getRenderer3D()->isGridEnabled();
 
   if (ImGui::Checkbox("Show Grid", &showGrid))
   {
     if (showGrid)
     {
-      renderingManager->enableGrid();
+      renderingManager->getRenderer3D()->enableGrid();
     }
     else
     {
-      renderingManager->disableGrid();
+      renderingManager->getRenderer3D()->disableGrid();
     }
   }
 

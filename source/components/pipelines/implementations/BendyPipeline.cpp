@@ -5,6 +5,7 @@
 #include "../uniformBuffers/UniformBuffer.h"
 #include "../../assets/textures/Texture2D.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../renderingManager/renderer3D/Renderer3D.h"
 
 namespace vke {
 
@@ -52,34 +53,30 @@ namespace vke {
     createPipeline(graphicsPipelineOptions);
   }
 
-  void BendyPipeline::render(const RenderInfo* renderInfo)
+  void BendyPipeline::render(const RenderInfo* renderInfo,
+                             const std::vector<BendyPlant>* plants)
   {
+    if (!plants)
+    {
+      return;
+    }
+
     GraphicsPipeline::render(renderInfo, nullptr);
 
-    for (const auto& bendyPlant : m_bendyPlantsToRender)
+    for (const auto&[position, numFins, leafLength, pitch, bendStrength] : *plants)
     {
       BendyPlantInfo bendyPlantInfo {
-        .model = glm::translate(glm::mat4(1.0f), bendyPlant.position),
-        .leafLength = bendyPlant.leafLength,
-        .pitch = bendyPlant.pitch,
-        .bendStrength = bendyPlant.bendStrength
+        .model = glm::translate(glm::mat4(1.0f), position),
+        .leafLength = leafLength,
+        .pitch = pitch,
+        .bendStrength = bendStrength
       };
 
       renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                                                sizeof(BendyPlantInfo), &bendyPlantInfo);
 
-      renderInfo->commandBuffer->draw(bendyPlant.leafLength * 2 * 4 + 2, bendyPlant.numFins, 0, 0);
+      renderInfo->commandBuffer->draw(leafLength * 2 * 4 + 2, numFins, 0, 0);
     }
-  }
-
-  void BendyPipeline::renderBendyPlant(const BendyPlant& bendyPlant)
-  {
-    m_bendyPlantsToRender.push_back(bendyPlant);
-  }
-
-  void BendyPipeline::clearBendyPlantsToRender()
-  {
-    m_bendyPlantsToRender.clear();
   }
 
   void BendyPipeline::createUniforms(const VkCommandPool& commandPool)

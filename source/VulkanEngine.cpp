@@ -11,6 +11,7 @@
 #include "components/pipelines/pipelineManager/PipelineManager.h"
 #include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
+#include "components/renderingManager/renderer3D/Renderer3D.h"
 #include "components/window/Surface.h"
 #include "components/window/Window.h"
 
@@ -53,10 +54,10 @@ namespace vke {
     if (m_renderingManager->isSceneFocused() && m_camera->isEnabled())
     {
       m_camera->processInput(m_window);
-      m_renderingManager->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
+      m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
     }
 
-    m_computingManager->doComputing(m_pipelineManager, m_currentFrame);
+    m_computingManager->doComputing(m_pipelineManager, m_currentFrame, m_renderingManager->getRenderer3D());
 
     m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
 
@@ -81,16 +82,6 @@ namespace vke {
   std::shared_ptr<LightingManager> VulkanEngine::getLightingManager() const
   {
     return m_lightingManager;
-  }
-
-  std::shared_ptr<MousePicker> VulkanEngine::getMousePicker() const
-  {
-    return m_mousePicker;
-  }
-
-  std::shared_ptr<PipelineManager> VulkanEngine::getPipelineManager() const
-  {
-    return m_pipelineManager;
   }
 
   std::shared_ptr<RenderingManager> VulkanEngine::getRenderingManager() const
@@ -128,10 +119,7 @@ namespace vke {
   {
     m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_commandPool, m_descriptorPool);
 
-    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_window, m_commandPool,
-                                                  m_assetManager->getObjectDescriptorSetLayout());
-
-    m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_surface, m_window, m_mousePicker,
+    m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_surface, m_window,
                                                             m_commandPool, m_vulkanEngineOptions.USE_DOCKSPACE,
                                                             m_vulkanEngineOptions.SCENE_VIEW_NAME, m_assetManager);
 
@@ -139,9 +127,7 @@ namespace vke {
                                                           m_renderingManager->getRenderer());
 
     m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer(),
-                                                          m_lightingManager, m_mousePicker,
-                                                          m_assetManager->getObjectDescriptorSetLayout(),
-                                                          m_assetManager->getFontDescriptorSetLayout(),
+                                                          m_lightingManager, m_assetManager,
                                                           m_descriptorPool, m_commandPool, m_vulkanEngineOptions.DO_DOTS);
 
     m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
@@ -196,10 +182,6 @@ namespace vke {
     m_imGuiInstance->createNewFrame();
 
     m_lightingManager->clearLightsToRender();
-
-    m_mousePicker->clearObjectsToMousePick();
-
-    m_pipelineManager->createNewFrame();
 
     m_renderingManager->createNewFrame();
   }

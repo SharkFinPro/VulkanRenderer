@@ -1,0 +1,166 @@
+#include "Renderer3D.h"
+#include "../../assets/AssetManager.h"
+#include "../../assets/particleSystems/SmokeSystem.h"
+#include "../../lighting/LightingManager.h"
+#include "../../mousePicker/MousePicker.h"
+#include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../pipelines/implementations/common/PipelineTypes.h"
+
+namespace vke {
+  Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
+                         std::shared_ptr<Window> window,
+                         const std::shared_ptr<AssetManager>& assetManager,
+                         VkCommandPool commandPool)
+    : m_mousePicker(std::make_shared<MousePicker>(std::move(logicalDevice), std::move(window), commandPool,
+                    assetManager->getObjectDescriptorSetLayout()))
+  {}
+
+  void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
+                                    const uint32_t currentFrame) const
+  {
+    lightingManager->update(currentFrame, m_viewPosition);
+  }
+
+  void Renderer3D::doMousePicking(const uint32_t imageIndex,
+                                  const uint32_t currentFrame)
+  {
+    m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix, m_renderObjectsToRender);
+  }
+
+  void Renderer3D::render(const RenderInfo* renderInfo,
+                          const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    const RenderInfo renderInfo3D {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent
+    };
+
+    renderRenderObjects(&renderInfo3D, pipelineManager);
+
+    pipelineManager->renderBendyPlantPipeline(renderInfo3D, &m_bendyPlantsToRender);
+
+    renderSmokeSystems(&renderInfo3D, pipelineManager);
+
+    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineVerticesToRender);
+
+    if (m_shouldRenderGrid)
+    {
+      pipelineManager->renderGridPipeline(&renderInfo3D);
+    }
+  }
+
+  void Renderer3D::createNewFrame()
+  {
+    for (auto& [_, objects] : m_renderObjectsToRender)
+    {
+      objects.clear();
+    }
+
+    m_lineVerticesToRender.clear();
+
+    m_bendyPlantsToRender.clear();
+
+    m_mousePicker->clearObjectsToMousePick();
+
+    m_smokeSystemsToRender.clear();
+  }
+
+  void Renderer3D::enableGrid()
+  {
+    m_shouldRenderGrid = true;
+  }
+
+  void Renderer3D::disableGrid()
+  {
+    m_shouldRenderGrid = false;
+  }
+
+  bool Renderer3D::isGridEnabled() const
+  {
+    return m_shouldRenderGrid;
+  }
+
+  void Renderer3D::setCameraParameters(const glm::vec3 position,
+                                       const glm::mat4& viewMatrix)
+  {
+    m_viewPosition = position;
+    m_viewMatrix = viewMatrix;
+  }
+
+  std::shared_ptr<MousePicker> Renderer3D::getMousePicker() const
+  {
+    return m_mousePicker;
+  }
+
+  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Renderer3D::getRenderObjectsToRender()
+  {
+    return m_renderObjectsToRender;
+  }
+
+  void Renderer3D::renderObject(const std::shared_ptr<RenderObject>& renderObject,
+                                const PipelineType pipelineType,
+                                bool* mousePicked)
+  {
+    m_renderObjectsToRender[pipelineType].push_back(renderObject);
+
+    if (mousePicked)
+    {
+      m_mousePicker->renderObject(renderObject, mousePicked);
+    }
+  }
+
+  void Renderer3D::renderLine(const glm::vec3 start,
+                              const glm::vec3 end)
+  {
+    m_lineVerticesToRender.push_back({start});
+    m_lineVerticesToRender.push_back({end});
+  }
+
+  void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)
+  {
+    m_bendyPlantsToRender.push_back(bendyPlant);
+  }
+
+  void Renderer3D::renderSmokeSystem(const std::shared_ptr<SmokeSystem>& smokeSystem)
+  {
+    m_smokeSystemsToRender.push_back(smokeSystem);
+  }
+
+  const std::vector<std::shared_ptr<SmokeSystem>>& Renderer3D::getSmokeSystems() const
+  {
+    return m_smokeSystemsToRender;
+  }
+
+  void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
+                                       const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
+    {
+      if (objects.empty() || pipelineType == PipelineType::objectHighlight)
+      {
+        continue;
+      }
+
+      pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
+    }
+
+    const auto highlightObjectsIt = m_renderObjectsToRender.find(PipelineType::objectHighlight);
+    if (highlightObjectsIt != m_renderObjectsToRender.end() && !highlightObjectsIt->second.empty())
+    {
+      pipelineManager->renderRenderObjectPipeline(renderInfo, &highlightObjectsIt->second, PipelineType::objectHighlight);
+    }
+  }
+
+  void Renderer3D::renderSmokeSystems(const RenderInfo* renderInfo,
+                                      const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    for (auto& system : m_smokeSystemsToRender)
+    {
+      system->update(renderInfo);
+    }
+    pipelineManager->renderSmokePipeline(renderInfo, &m_smokeSystemsToRender);
+  }
+} // vke

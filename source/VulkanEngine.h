@@ -14,7 +14,6 @@ namespace vke {
   class Instance;
   class LightingManager;
   class LogicalDevice;
-  class MousePicker;
   class PhysicalDevice;
   class PipelineManager;
   struct RenderInfo;
@@ -40,10 +39,6 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<LightingManager> getLightingManager() const;
 
-    [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
-
-    [[nodiscard]] std::shared_ptr<PipelineManager> getPipelineManager() const;
-
     [[nodiscard]] std::shared_ptr<RenderingManager> getRenderingManager() const;
 
     [[nodiscard]] std::shared_ptr<Window> getWindow() const;
@@ -58,8 +53,6 @@ namespace vke {
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     std::shared_ptr<ImGuiInstance> m_imGuiInstance;
-
-    std::shared_ptr<MousePicker> m_mousePicker;
 
     std::shared_ptr<LightingManager> m_lightingManager;
 

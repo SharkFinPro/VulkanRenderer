@@ -11,6 +11,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/objects/RenderObject.cpp
     components/assets/objects/RenderObject.h
 
+    # Particle Systems
+    components/assets/particleSystems/SmokeSystem.cpp
+    components/assets/particleSystems/SmokeSystem.h
+
     # Textures
     components/assets/textures/Texture.cpp
     components/assets/textures/Texture.h
@@ -88,6 +92,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     # Renderer2D
     components/renderingManager/renderer2D/Renderer2D.cpp
     components/renderingManager/renderer2D/Renderer2D.h
+
+    # Renderer3D
+    components/renderingManager/renderer3D/Renderer3D.cpp
+    components/renderingManager/renderer3D/Renderer3D.h
 
   components/renderingManager/ImageResource.cpp
   components/renderingManager/ImageResource.h
