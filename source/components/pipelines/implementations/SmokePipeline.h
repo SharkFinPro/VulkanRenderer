@@ -33,8 +33,6 @@ namespace vke {
   private:
     std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
 
-    void updateUniformVariables(const RenderInfo* renderInfo) override;
-
     void bindDescriptorSet(const RenderInfo* renderInfo) override;
   };
 

@@ -99,11 +99,6 @@ namespace vke {
     }
   }
 
-  void SmokePipeline::updateUniformVariables(const RenderInfo* renderInfo)
-  {
-
-  }
-
   void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   {
     renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::m_pipelineLayout, 1, 1,
