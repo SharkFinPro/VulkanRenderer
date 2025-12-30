@@ -60,11 +60,6 @@ namespace vke {
     VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
-    void recordMousePickingCommandBuffer(uint32_t imageIndex,
-                                         uint32_t currentFrame,
-                                         glm::vec3 viewPosition,
-                                         const glm::mat4& viewMatrix) const;
-
     bool validateMousePickingMousePosition(int32_t& mouseX,
                                            int32_t& mouseY);
 
