@@ -213,7 +213,7 @@ namespace vke {
                                  VkDescriptorSetLayout descriptorSetLayout)
   {
     m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
-    m_descriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    m_descriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
         m_glyphTexture->getDescriptorSet(0, descriptorSet)
