@@ -31,18 +31,16 @@
 
 namespace vke {
 
-  PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
+  PipelineManager::PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                    const std::shared_ptr<Renderer>& renderer,
                                    const std::shared_ptr<LightingManager>& lightingManager,
                                    const std::shared_ptr<AssetManager>& assetManager,
                                    VkDescriptorPool descriptorPool,
                                    VkCommandPool commandPool,
                                    const bool shouldDoDots)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
-      m_renderPass(renderer->getSwapchainRenderPass()), m_lightingManager(lightingManager),
-      m_shouldDoDots(shouldDoDots)
+    : m_commandPool(commandPool), m_shouldDoDots(shouldDoDots)
   {
-    createPipelines(assetManager, renderer);
+    createPipelines(assetManager, renderer, logicalDevice, lightingManager, descriptorPool);
   }
 
   std::shared_ptr<DotsPipeline> PipelineManager::getDotsPipeline()
@@ -144,78 +142,82 @@ namespace vke {
   }
 
   void PipelineManager::createPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                                        const std::shared_ptr<Renderer>& renderer)
+                                        const std::shared_ptr<Renderer>& renderer,
+                                        const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                        const std::shared_ptr<LightingManager>& lightingManager,
+                                        VkDescriptorPool descriptorPool)
   {
-    auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
+    const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
+    const auto renderPass = renderer->getSwapchainRenderPass();
 
     m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
-      m_logicalDevice, m_renderPass, objectDescriptorSetLayout,
-      m_lightingManager->getLightingDescriptorSet());
+      logicalDevice, renderPass, objectDescriptorSetLayout,
+      lightingManager->getLightingDescriptorSet());
 
     m_pipelines[PipelineType::objectHighlight] = std::make_unique<ObjectHighlightPipeline>(
-      m_logicalDevice, m_renderPass, objectDescriptorSetLayout);
+      logicalDevice, renderPass, objectDescriptorSetLayout);
 
     m_pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
-      m_logicalDevice, m_renderPass, objectDescriptorSetLayout, m_lightingManager->getLightingDescriptorSet());
+      logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
 
     m_pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
-      m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout,
-      m_lightingManager->getLightingDescriptorSet());
+      logicalDevice, renderPass, m_commandPool, descriptorPool, objectDescriptorSetLayout,
+      lightingManager->getLightingDescriptorSet());
 
     m_pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
-      m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout,
-      m_lightingManager->getLightingDescriptorSet());
+      logicalDevice, renderPass, m_commandPool, descriptorPool, objectDescriptorSetLayout,
+      lightingManager->getLightingDescriptorSet());
 
     m_pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
-      m_logicalDevice, m_renderPass, m_descriptorPool, objectDescriptorSetLayout,
-      m_lightingManager->getLightingDescriptorSet());
+      logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+      lightingManager->getLightingDescriptorSet());
 
     m_pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
-      m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout);
+      logicalDevice, renderPass, m_commandPool, descriptorPool, objectDescriptorSetLayout);
 
     m_pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
-      m_logicalDevice, m_renderPass, objectDescriptorSetLayout);
+      logicalDevice, renderPass, objectDescriptorSetLayout);
 
     m_pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
-      m_logicalDevice, m_renderPass, m_descriptorPool, objectDescriptorSetLayout);
+      logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout);
 
     m_pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
-      m_logicalDevice, m_renderPass, objectDescriptorSetLayout, m_lightingManager->getLightingDescriptorSet());
+      logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
 
     m_pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
-      m_logicalDevice, m_renderPass, m_descriptorPool, objectDescriptorSetLayout,
-      m_lightingManager->getLightingDescriptorSet());
+      logicalDevice, renderPass, descriptorPool, objectDescriptorSetLayout,
+      lightingManager->getLightingDescriptorSet());
 
-    m_guiPipeline = std::make_shared<GuiPipeline>(m_logicalDevice, m_renderPass);
+    m_guiPipeline = std::make_shared<GuiPipeline>(logicalDevice, renderPass);
 
     if (m_shouldDoDots)
     {
-      m_dotsPipeline = std::make_shared<DotsPipeline>(m_logicalDevice, m_commandPool, m_renderPass,
-                                                      m_descriptorPool);
+      m_dotsPipeline = std::make_shared<DotsPipeline>(logicalDevice, m_commandPool, renderPass,
+                                                      descriptorPool);
     }
 
-    m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, m_renderPass);
+    m_linePipeline = std::make_unique<LinePipeline>(logicalDevice, renderPass);
 
-    m_bendyPipeline = std::make_unique<BendyPipeline>(m_logicalDevice, m_renderPass, m_commandPool, m_descriptorPool,
-                                                      m_lightingManager->getLightingDescriptorSet());
+    m_bendyPipeline = std::make_unique<BendyPipeline>(logicalDevice, renderPass, m_commandPool, descriptorPool,
+                                                      lightingManager->getLightingDescriptorSet());
 
-    m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, m_renderPass, m_descriptorPool);
+    m_gridPipeline = std::make_unique<GridPipeline>(logicalDevice, renderPass, descriptorPool);
 
-    m_shadowPipeline = std::make_unique<ShadowPipeline>(m_logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
+    m_shadowPipeline = std::make_unique<ShadowPipeline>(logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
 
     m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
-      m_logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout, m_lightingManager->getPointLightDescriptorSetLayout());
+      logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout, lightingManager->getPointLightDescriptorSetLayout());
 
-    m_rectPipeline = std::make_unique<RectPipeline>(m_logicalDevice, m_renderPass);
+    m_rectPipeline = std::make_unique<RectPipeline>(logicalDevice, renderPass);
 
-    m_trianglePipeline = std::make_unique<TrianglePipeline>(m_logicalDevice, m_renderPass);
+    m_trianglePipeline = std::make_unique<TrianglePipeline>(logicalDevice, renderPass);
 
-    m_ellipsePipeline = std::make_unique<EllipsePipeline>(m_logicalDevice, m_renderPass);
+    m_ellipsePipeline = std::make_unique<EllipsePipeline>(logicalDevice, renderPass);
 
-    m_fontPipeline = std::make_unique<FontPipeline>(m_logicalDevice, m_renderPass, assetManager->getFontDescriptorSetLayout());
+    m_fontPipeline = std::make_unique<FontPipeline>(logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());
 
-    m_smokePipeline = std::make_unique<SmokePipeline>(m_logicalDevice, m_renderPass,
-      m_lightingManager->getLightingDescriptorSet(), assetManager->getSmokeSystemDescriptorSetLayout());
+    m_smokePipeline = std::make_unique<SmokePipeline>(logicalDevice, renderPass,
+      lightingManager->getLightingDescriptorSet(), assetManager->getSmokeSystemDescriptorSetLayout());
   }
 
 } // namespace vke

@@ -30,7 +30,7 @@ namespace vke {
 
   class PipelineManager {
   public:
-    PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
+    PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                     const std::shared_ptr<Renderer>& renderer,
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager,
@@ -82,15 +82,7 @@ namespace vke {
                             const std::shared_ptr<AssetManager>& assetManager) const;
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
-
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-
-    std::shared_ptr<RenderPass> m_renderPass;
-
-    std::shared_ptr<LightingManager> m_lightingManager;
 
     std::shared_ptr<GuiPipeline> m_guiPipeline;
     std::shared_ptr<DotsPipeline> m_dotsPipeline;
@@ -120,7 +112,10 @@ namespace vke {
     bool m_shouldDoDots;
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                         const std::shared_ptr<Renderer>& renderer);
+                         const std::shared_ptr<Renderer>& renderer,
+                         const std::shared_ptr<LogicalDevice>& logicalDevice,
+                         const std::shared_ptr<LightingManager>& lightingManager,
+                         VkDescriptorPool descriptorPool);
   };
 
 } // namespace vke
