@@ -180,7 +180,7 @@ namespace vke {
       .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
     };
 
-    std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings {
+    constexpr std::array descriptorSetLayoutBindings {
       glyphDescriptorSetLayoutBinding
     };
 
