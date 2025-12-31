@@ -238,7 +238,7 @@ namespace vke {
 
     if (fontPath == m_fontNames.end())
     {
-      throw std::runtime_error("Font not found!");
+      throw std::runtime_error("Font not found: " + fontName);
     }
 
     auto font = std::make_shared<Font>(
