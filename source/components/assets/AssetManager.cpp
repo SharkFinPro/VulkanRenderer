@@ -2,6 +2,7 @@
 #include "fonts/Font.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
+#include "particleSystems/SmokeSystem.h"
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include <array>
@@ -66,35 +67,28 @@ namespace vke {
     m_renderObjects.push_back(renderObject);
 
     return renderObject;
-
   }
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)
   {
-    m_fontNames.insert({fontName, fontPath});
+    m_fontNames.insert({ std::move(fontName), std::move(fontPath) });
   }
 
   std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName,
                                               const uint32_t fontSize)
   {
-    auto fontByName = m_fonts.find(fontName);
+    const FontKey key { fontName, fontSize };
 
-    if (fontByName == m_fonts.end())
+    auto font = m_fonts.find(key);
+
+    if (font == m_fonts.end())
     {
       loadFont(fontName, fontSize);
 
-      fontByName = m_fonts.find(fontName);
+      font = m_fonts.find(key);
     }
 
-    auto fontBySize = fontByName->second.find(fontSize);
-    if (fontBySize == fontByName->second.end())
-    {
-      loadFont(fontName, fontSize);
-
-      fontBySize = fontByName->second.find(fontSize);
-    }
-
-    return fontBySize->second;
+    return font->second;
   }
 
   std::shared_ptr<SmokeSystem> AssetManager::createSmokeSystem(glm::vec3 position, uint32_t numParticles)
@@ -180,7 +174,7 @@ namespace vke {
       .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
     };
 
-    std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings {
+    constexpr std::array descriptorSetLayoutBindings {
       glyphDescriptorSetLayoutBinding
     };
 
@@ -244,12 +238,13 @@ namespace vke {
 
     if (fontPath == m_fontNames.end())
     {
-      throw std::runtime_error("Font not found!");
+      throw std::runtime_error("Font not found: " + fontName);
     }
 
-    auto font = std::make_shared<Font>(m_logicalDevice, fontPath->second, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
+    auto font = std::make_shared<Font>(
+      m_logicalDevice, fontPath->second, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
 
-    m_fonts[fontName].insert({fontSize, font});
+    m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
   }
 
 } // namespace vke

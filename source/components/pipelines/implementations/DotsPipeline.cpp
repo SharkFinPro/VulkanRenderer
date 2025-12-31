@@ -110,7 +110,7 @@ namespace vke {
 
   void DotsPipeline::createUniforms()
   {
-    m_deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(DeltaTimeUniform));
+    m_deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(float));
   }
 
   void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
@@ -207,7 +207,7 @@ namespace vke {
     const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count();
     m_previousTime = currentTime;
 
-    const DeltaTimeUniform deltaTimeUBO{m_dotSpeed * dt};
+    const float deltaTimeUBO = m_dotSpeed * dt;
 
     m_deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO);
   }

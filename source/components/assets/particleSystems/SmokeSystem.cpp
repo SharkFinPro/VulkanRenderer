@@ -37,19 +37,6 @@ namespace vke {
     }
   }
 
-  void SmokeSystem::displayGui()
-  {
-    ImGui::SliderFloat3("Position", &m_smokeUBO.systemPosition[0], -20, 20);
-
-    ImGui::SliderFloat("Speed", &m_dotSpeed, 0.001f, 10.0f);
-
-    ImGui::SliderFloat("Spread Factor", &m_smokeUBO.spreadFactor, 0.0f, 3.0f);
-
-    ImGui::SliderFloat("Max Spread Distance", &m_smokeUBO.maxSpreadDistance, 0.0f, 20.0f);
-
-    ImGui::SliderFloat("Wind Strength", &m_smokeUBO.windStrength, 0.0f, 3.0f);
-  }
-
   void SmokeSystem::update(const RenderInfo* renderInfo)
   {
     if (!m_ran)
@@ -62,7 +49,7 @@ namespace vke {
     const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count();
     m_previousTime = currentTime;
 
-    const DeltaTimeUniform deltaTimeUBO{m_dotSpeed * dt};
+    const float deltaTimeUBO = m_dotSpeed * dt;
 
     m_deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO);
 
@@ -91,9 +78,59 @@ namespace vke {
     return m_shaderStorageBuffers[currentFrame];
   }
 
+  glm::vec3 SmokeSystem::getPosition() const
+  {
+    return m_smokeUBO.systemPosition;
+  }
+
+  float SmokeSystem::getSpeed() const
+  {
+    return m_dotSpeed;
+  }
+
+  float SmokeSystem::getSpreadFactor() const
+  {
+    return m_smokeUBO.spreadFactor;
+  }
+
+  float SmokeSystem::getMaxSpreadDistance() const
+  {
+    return m_smokeUBO.maxSpreadDistance;
+  }
+
+  float SmokeSystem::getWindStrength() const
+  {
+    return m_smokeUBO.windStrength;
+  }
+
+  void SmokeSystem::setPosition(const glm::vec3& position)
+  {
+    m_smokeUBO.systemPosition = position;
+  }
+
+  void SmokeSystem::setSpeed(const float speed)
+  {
+    m_dotSpeed = speed;
+  }
+
+  void SmokeSystem::setSpreadFactor(const float spreadFactor)
+  {
+    m_smokeUBO.spreadFactor = spreadFactor;
+  }
+
+  void SmokeSystem::setMaxSpreadDistance(const float maxSpreadDistance)
+  {
+    m_smokeUBO.maxSpreadDistance = maxSpreadDistance;
+  }
+
+  void SmokeSystem::setWindStrength(const float windStrength)
+  {
+    m_smokeUBO.windStrength = windStrength;
+  }
+
   void SmokeSystem::createUniforms()
   {
-    m_deltaTimeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(DeltaTimeUniform));
+    m_deltaTimeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(float));
 
     m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(ViewProjTransformUniform));
 
@@ -170,7 +207,7 @@ namespace vke {
     m_smokeSystemDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
     m_smokeSystemDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
     {
-      constexpr DeltaTimeUniform deltaTimeUBO{0};
+      constexpr float deltaTimeUBO = 0;
 
       m_deltaTimeUniform->update(frame, &deltaTimeUBO);
       m_smokeUniform->update(frame, &m_smokeUBO);

@@ -149,7 +149,6 @@ inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
   gui->dockBottom("Noisy Elliptical Dots");
   gui->dockBottom("Objects");
   gui->dockBottom("Rendering");
-  gui->dockBottom("Smoke");
   gui->dockBottom("Snake");
 
   gui->setBottomDockPercent(0.3);

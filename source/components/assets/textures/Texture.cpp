@@ -74,7 +74,7 @@ namespace vke {
                                 const int32_t texHeight,
                                 const uint32_t mipLevels) const
   {
-    const VkFormatProperties formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(imageFormat);
+    const auto formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(imageFormat);
 
     if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
     {

@@ -1,8 +1,8 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
-#include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
-#include <source/components/pipelines/pipelineManager/PipelineManager.h>
+#include <source/components/assets/objects/RenderObject.h>
+#include <source/components/assets/particleSystems/SmokeSystem.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -12,6 +12,9 @@ void createLights(const vke::VulkanEngine& renderer,
                   std::vector<std::shared_ptr<vke::Light>>& lights);
 
 std::vector<std::shared_ptr<vke::SmokeSystem>> createSmokeSystems(const vke::VulkanEngine& renderer);
+
+void displaySmokeSystemGui(const std::shared_ptr<vke::SmokeSystem>& smokeSystem,
+                           uint32_t id);
 
 int main()
 {
@@ -46,6 +49,14 @@ int main()
     while (renderer.isActive())
     {
       displayGui(gui, lights, { object }, renderer.getRenderingManager());
+      gui->dockBottom("Smoke Systems");
+
+      ImGui::Begin("Smoke Systems");
+      for (uint32_t i = 0; i < smokeSystems.size(); ++i)
+      {
+        displaySmokeSystemGui(smokeSystems[i], i + 1);
+      }
+      ImGui::End();
 
       r3d->renderObject(object, vke::PipelineType::object);
 
@@ -98,4 +109,37 @@ std::vector<std::shared_ptr<vke::SmokeSystem>> createSmokeSystems(const vke::Vul
   systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2));
 
   return systems;
+}
+
+void displaySmokeSystemGui(const std::shared_ptr<vke::SmokeSystem>& smokeSystem,
+                           const uint32_t id)
+{
+  ImGui::PushID(id);
+
+  if (ImGui::CollapsingHeader(("Smoke System " + std::to_string(id)).c_str()))
+  {
+    auto position = smokeSystem->getPosition();
+    auto speed = smokeSystem->getSpeed();
+    auto spreadFactor = smokeSystem->getSpreadFactor();
+    auto maxSpreadDistance = smokeSystem->getMaxSpreadDistance();
+    auto windStrength = smokeSystem->getWindStrength();
+
+    ImGui::SliderFloat3("Position", &position[0], -20, 20);
+
+    ImGui::SliderFloat("Speed", &speed, 0.001f, 10.0f);
+
+    ImGui::SliderFloat("Spread Factor", &spreadFactor, 0.0f, 3.0f);
+
+    ImGui::SliderFloat("Max Spread Distance", &maxSpreadDistance, 0.0f, 20.0f);
+
+    ImGui::SliderFloat("Wind Strength", &windStrength, 0.0f, 3.0f);
+
+    smokeSystem->setPosition(position);
+    smokeSystem->setSpeed(speed);
+    smokeSystem->setSpreadFactor(spreadFactor);
+    smokeSystem->setMaxSpreadDistance(maxSpreadDistance);
+    smokeSystem->setWindStrength(windStrength);
+  }
+
+  ImGui::PopID();
 }

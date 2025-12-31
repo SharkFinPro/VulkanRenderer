@@ -68,10 +68,6 @@ namespace vke {
     float redDepth;
   };
 
-  struct DeltaTimeUniform {
-    float deltaTime = 1.0f;
-  };
-
   struct TransformUniform {
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;

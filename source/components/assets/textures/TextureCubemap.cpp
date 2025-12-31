@@ -116,8 +116,16 @@ namespace vke {
     }
 
     const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
-    vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, m_textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                           static_cast<uint32_t>(bufferCopyRegions.size()), bufferCopyRegions.data());
+
+    vkCmdCopyBufferToImage(
+      commandBuffer,
+      stagingBuffer,
+      m_textureImage,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      static_cast<uint32_t>(bufferCopyRegions.size()),
+      bufferCopyRegions.data()
+    );
+
     Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
   }
 

@@ -8,16 +8,35 @@
 #include <unordered_map>
 #include <vector>
 
-#include "particleSystems/SmokeSystem.h"
-
 namespace vke {
 
   class Font;
   class LogicalDevice;
   class Model;
   class RenderObject;
+  class SmokeSystem;
   class Texture;
   class Texture2D;
+
+  struct FontKey {
+    std::string name;
+    uint32_t size;
+
+    bool operator==(const FontKey& other) const
+    {
+      return name == other.name && size == other.size;
+    }
+  };
+
+  struct FontKeyHash {
+    std::size_t operator()(const FontKey& key) const
+    {
+      const std::size_t h1 = std::hash<std::string>{}(key.name);
+      const std::size_t h2 = std::hash<uint32_t>{}(key.size);
+
+      return h1 ^ (h2 << 1);
+    }
+  };
 
   class AssetManager {
   public:
@@ -70,7 +89,7 @@ namespace vke {
     std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
 
     std::unordered_map<std::string, std::string> m_fontNames;
-    std::unordered_map<std::string, std::unordered_map<uint32_t, std::shared_ptr<Font>>> m_fonts;
+    std::unordered_map<FontKey, std::shared_ptr<Font>, FontKeyHash> m_fonts;
 
     void createDescriptorSetLayouts();
 

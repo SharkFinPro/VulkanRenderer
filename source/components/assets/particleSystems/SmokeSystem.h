@@ -26,8 +26,6 @@ namespace vke {
 
     ~SmokeSystem();
 
-    void displayGui();
-
     void update(const RenderInfo* renderInfo);
 
     [[nodiscard]] uint32_t getNumParticles() const;
@@ -35,6 +33,26 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<DescriptorSet> getSmokeSystemDescriptorSet() const;
 
     [[nodiscard]] const VkBuffer& getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const;
+
+    [[nodiscard]] glm::vec3 getPosition() const;
+
+    [[nodiscard]] float getSpeed() const;
+
+    [[nodiscard]] float getSpreadFactor() const;
+
+    [[nodiscard]] float getMaxSpreadDistance() const;
+
+    [[nodiscard]] float getWindStrength() const;
+
+    void setPosition(const glm::vec3& position);
+
+    void setSpeed(float speed);
+
+    void setSpreadFactor(float spreadFactor);
+
+    void setMaxSpreadDistance(float maxSpreadDistance);
+
+    void setWindStrength(float windStrength);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
