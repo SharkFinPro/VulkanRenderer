@@ -24,6 +24,13 @@ namespace vke {
       swapChain->getExtent(),
       swapChain
     );
+
+    m_mousePickingFramebuffer = std::make_shared<Framebuffer>(
+      m_logicalDevice,
+      m_mousePickingRenderTarget,
+      m_mousePickingRenderPass,
+      swapChain->getExtent()
+    );
   }
 
   std::shared_ptr<RenderPass> LegacyRenderer::getSwapchainRenderPass() const
@@ -44,6 +51,11 @@ namespace vke {
   std::shared_ptr<RenderPass> LegacyRenderer::getShadowCubeRenderPass() const
   {
     return m_shadowCubeRenderPass;
+  }
+
+  std::shared_ptr<RenderPass> LegacyRenderer::getMousePickingRenderPass() const
+  {
+    return m_mousePickingRenderPass;
   }
 
   void LegacyRenderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)
@@ -72,6 +84,20 @@ namespace vke {
       m_offscreenRenderTarget,
       m_offscreenRenderPass,
       offscreenViewportExtent
+    );
+  }
+
+  void LegacyRenderer::resetMousePickingImageResources(const VkExtent2D mousePickingExtent)
+  {
+    m_mousePickingFramebuffer.reset();
+
+    Renderer::resetMousePickingImageResources(mousePickingExtent);
+
+    m_mousePickingFramebuffer = std::make_shared<Framebuffer>(
+      m_logicalDevice,
+      m_mousePickingRenderTarget,
+      m_mousePickingRenderPass,
+      mousePickingExtent
     );
   }
 
@@ -113,21 +139,35 @@ namespace vke {
     }
   }
 
-  void LegacyRenderer::endSwapchainRendering(uint32_t imageIndex,
+  void LegacyRenderer::beginMousePickingRendering(const uint32_t imageIndex,
+                                                  const VkExtent2D extent,
+                                                  const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    m_mousePickingRenderPass->begin(
+      m_mousePickingFramebuffer->getFramebuffer(imageIndex),
+      extent,
+      commandBuffer
+    );
+  }
+
+  void LegacyRenderer::endSwapchainRendering([[maybe_unused]] uint32_t imageIndex,
                                              const std::shared_ptr<CommandBuffer> commandBuffer,
                                              [[maybe_unused]] std::shared_ptr<SwapChain> swapChain)
   {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endOffscreenRendering(uint32_t imageIndex,
-                                             const std::shared_ptr<CommandBuffer> commandBuffer)
+  void LegacyRenderer::endOffscreenRendering(const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endShadowRendering(uint32_t imageIndex,
-                                          const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void LegacyRenderer::endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    endRendering(commandBuffer);
+  }
+
+  void LegacyRenderer::endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     endRendering(commandBuffer);
   }
@@ -189,5 +229,15 @@ namespace vke {
     RenderPassConfig shadowCubeRenderPassConfig = shadowRenderPassConfig;
     shadowCubeRenderPassConfig.useMultiview = true;
     m_shadowCubeRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowCubeRenderPassConfig);
+
+    RenderPassConfig mousePickingRenderPassConfig {
+      .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
+      .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
+      .finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .hasColorAttachment = true,
+      .hasDepthAttachment = true,
+      .hasResolveAttachment = false
+    };
+    m_mousePickingRenderPass = std::make_shared<RenderPass>(m_logicalDevice, mousePickingRenderPassConfig);
   }
 } // namespace vke

@@ -15,26 +15,6 @@ namespace vke {
     : Renderer(std::move(logicalDevice), swapChain, commandPool)
   {}
 
-  std::shared_ptr<RenderPass> DynamicRenderer::getSwapchainRenderPass() const
-  {
-    return nullptr;
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getOffscreenRenderPass() const
-  {
-    return nullptr;
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getShadowRenderPass() const
-  {
-    return nullptr;
-  }
-
-  std::shared_ptr<RenderPass> DynamicRenderer::getShadowCubeRenderPass() const
-  {
-    return nullptr;
-  }
-
   void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
                                                 const VkExtent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer,
@@ -158,6 +138,48 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
+  void DynamicRenderer::beginMousePickingRendering(const uint32_t imageIndex,
+                                                   const VkExtent2D extent,
+                                                   const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
+      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+      .imageView = m_mousePickingRenderTarget->getColorImageResource(imageIndex).getImageView(),
+      .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+      .resolveMode = VK_RESOLVE_MODE_NONE,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+      .clearValue = {
+        .color = {0.0f, 0.0f, 0.0f, 1.0f}
+      }
+    };
+
+    VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
+      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+      .imageView = m_mousePickingRenderTarget->getDepthImageResource(imageIndex).getImageView(),
+      .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .clearValue = {
+        .depthStencil = {1.0f, 0}
+      }
+    };
+
+    const VkRenderingInfo renderingInfo {
+      .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+      .renderArea = {
+        .offset = {0, 0},
+        .extent = extent,
+      },
+      .layerCount = 1,
+      .colorAttachmentCount = 1,
+      .pColorAttachments = &colorRenderingAttachmentInfo,
+      .pDepthAttachment = &depthRenderingAttachmentInfo,
+    };
+
+    commandBuffer->beginRendering(renderingInfo);
+  }
+
   void DynamicRenderer::endSwapchainRendering(const uint32_t imageIndex,
                                               const std::shared_ptr<CommandBuffer> commandBuffer,
                                               const std::shared_ptr<SwapChain> swapChain)
@@ -167,14 +189,17 @@ namespace vke {
     transitionSwapchainImagePostRender(commandBuffer, swapChain->getImages()[imageIndex]);
   }
 
-  void DynamicRenderer::endOffscreenRendering(uint32_t imageIndex,
-                                              const std::shared_ptr<CommandBuffer> commandBuffer)
+  void DynamicRenderer::endOffscreenRendering(const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     commandBuffer->endRendering();
   }
 
-  void DynamicRenderer::endShadowRendering(uint32_t imageIndex,
-                                           const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void DynamicRenderer::endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    commandBuffer->endRendering();
+  }
+
+  void DynamicRenderer::endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->endRendering();
   }

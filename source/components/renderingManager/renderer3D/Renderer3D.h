@@ -35,7 +35,6 @@ namespace vke {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
                std::shared_ptr<Window> window,
-               const std::shared_ptr<AssetManager>& assetManager,
                VkCommandPool commandPool);
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
@@ -43,8 +42,10 @@ namespace vke {
                           const std::shared_ptr<PipelineManager>& pipelineManager,
                           uint32_t currentFrame) const;
 
-    void doMousePicking(uint32_t imageIndex,
-                        uint32_t currentFrame);
+    void renderMousePicking(const RenderInfo* renderInfo,
+                            const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    void handleRenderedMousePickingImage(VkImage image);
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;

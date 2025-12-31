@@ -68,10 +68,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/logicalDevice/LogicalDevice.cpp
   components/logicalDevice/LogicalDevice.h
 
-  # Mouse Picking
-  components/mousePicker/MousePicker.cpp
-  components/mousePicker/MousePicker.h
-
   # Physical Device Management
   components/physicalDevice/PhysicalDevice.cpp
   components/physicalDevice/PhysicalDevice.h
@@ -94,6 +90,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/renderer2D/Renderer2D.h
 
     # Renderer3D
+    components/renderingManager/renderer3D/MousePicker.cpp
+    components/renderingManager/renderer3D/MousePicker.h
     components/renderingManager/renderer3D/Renderer3D.cpp
     components/renderingManager/renderer3D/Renderer3D.h
 

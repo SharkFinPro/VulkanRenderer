@@ -45,7 +45,6 @@ namespace vke {
   }
 
   void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions,
-                                        const bool useColorAttachment,
                                         const bool renderCubeMap)
   {
     createPipelineLayout(graphicsPipelineOptions);
@@ -53,14 +52,14 @@ namespace vke {
     const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(m_logicalDevice);
     const auto shaderStages = graphicsPipelineOptions.shaders.getShaderStages(shaderModules);
 
-    constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    const bool hasColorFormat = graphicsPipelineOptions.colorFormat != VK_FORMAT_UNDEFINED;
 
     VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
       .viewMask = renderCubeMap ? 0x3Fu : 0,
-      .colorAttachmentCount = static_cast<uint32_t>(useColorAttachment ? 1 : 0),
-      .pColorAttachmentFormats = useColorAttachment ? &colorFormat : nullptr,
-      .depthAttachmentFormat = useColorAttachment ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : VK_FORMAT_D32_SFLOAT
+      .colorAttachmentCount = static_cast<uint32_t>(hasColorFormat),
+      .pColorAttachmentFormats = hasColorFormat ? &graphicsPipelineOptions.colorFormat : nullptr,
+      .depthAttachmentFormat = hasColorFormat ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : VK_FORMAT_D32_SFLOAT
     };
 
     const VkGraphicsPipelineCreateInfo pipelineInfo {

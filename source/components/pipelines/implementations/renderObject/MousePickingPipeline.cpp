@@ -37,7 +37,8 @@ namespace vke {
       .descriptorSetLayouts {
         objectDescriptorSetLayout
       },
-      .renderPass = renderPass
+      .renderPass = renderPass,
+      .colorFormat = VK_FORMAT_R8G8B8A8_UNORM
     };
 
     createPipeline(graphicsPipelineOptions);

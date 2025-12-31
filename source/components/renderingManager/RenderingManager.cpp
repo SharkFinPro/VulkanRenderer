@@ -1,7 +1,9 @@
 #include "RenderingManager.h"
+#include "ImageResource.h"
+#include "Renderer.h"
+#include "RenderTarget.h"
 #include "dynamicRenderer/DynamicRenderer.h"
 #include "legacyRenderer/LegacyRenderer.h"
-#include "Renderer.h"
 #include "renderer2D/Renderer2D.h"
 #include "renderer3D/Renderer3D.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
@@ -11,8 +13,7 @@
 #include "../lighting/LightingManager.h"
 #include "../window/SwapChain.h"
 #include "../window/Window.h"
-#include "../mousePicker/MousePicker.h"
-#include "../pipelines/implementations/GuiPipeline.h"
+#include "renderer3D/MousePicker.h"
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>
@@ -33,10 +34,11 @@ namespace vke {
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
-      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, assetManager, commandPool))
+      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, commandPool))
   {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
+    m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
 
@@ -73,7 +75,7 @@ namespace vke {
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    m_renderer3D->doMousePicking(imageIndex, currentFrame);
+    doMousePicking(pipelineManager, currentFrame, imageIndex);
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
     m_offscreenCommandBuffer->resetCommandBuffer();
@@ -142,11 +144,11 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
-      m_renderer3D->getMousePicker()->recreateFramebuffer(m_offscreenViewportExtent);
+      m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
     else
     {
-      m_renderer3D->getMousePicker()->recreateFramebuffer(m_swapChain->getExtent());
+      m_renderer3D->getMousePicker()->setViewportExtent(m_swapChain->getExtent());
     }
   }
 
@@ -201,7 +203,7 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
-      m_renderer3D->getMousePicker()->recreateFramebuffer(m_offscreenViewportExtent);
+      m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
     m_offscreenViewportPos = ImGui::GetCursorScreenPos();
@@ -266,7 +268,7 @@ namespace vke {
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
-      m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
+      m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
     });
   }
 
@@ -323,6 +325,44 @@ namespace vke {
     });
   }
 
+  void RenderingManager::recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                         uint32_t imageIndex,
+                                                         uint32_t currentFrame) const
+  {
+    m_mousePickingCommandBuffer->record([this, pipelineManager, imageIndex, currentFrame]
+    {
+      const RenderInfo renderInfo {
+        .commandBuffer = m_mousePickingCommandBuffer,
+        .currentFrame = currentFrame,
+        .viewPosition = {},
+        .viewMatrix = {},
+        .extent = m_shouldRenderOffscreen ? m_offscreenViewportExtent : m_swapChain->getExtent(),
+      };
+
+      m_renderer->beginMousePickingRendering(imageIndex, renderInfo.extent, renderInfo.commandBuffer);
+
+      const VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(renderInfo.extent.width),
+        .height = static_cast<float>(renderInfo.extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+      };
+      renderInfo.commandBuffer->setViewport(viewport);
+
+      const VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent = renderInfo.extent
+      };
+      renderInfo.commandBuffer->setScissor(scissor);
+
+      m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
+
+      m_renderer->endMousePickingRendering(renderInfo.commandBuffer);
+    });
+  }
+
   void RenderingManager::resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                           const VkExtent2D extent)
   {
@@ -343,5 +383,20 @@ namespace vke {
     };
 
     commandBuffer->clearAttachments({ clearAttachment }, { clearRect });
+  }
+
+  void RenderingManager::doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                        const uint32_t currentFrame,
+                                        const uint32_t imageIndex) const
+  {
+    m_logicalDevice->resetMousePickingFences(currentFrame);
+
+    m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
+    m_mousePickingCommandBuffer->resetCommandBuffer();
+    recordMousePickingCommandBuffer(pipelineManager, imageIndex, currentFrame);
+    m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
+
+    m_logicalDevice->waitForMousePickingFences(currentFrame);
+    m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
   }
 } // namespace vke

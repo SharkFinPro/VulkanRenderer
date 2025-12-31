@@ -1,18 +1,15 @@
 #include "Renderer3D.h"
-#include "../../assets/AssetManager.h"
+#include "MousePicker.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../lighting/LightingManager.h"
-#include "../../mousePicker/MousePicker.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 
 namespace vke {
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
                          std::shared_ptr<Window> window,
-                         const std::shared_ptr<AssetManager>& assetManager,
                          VkCommandPool commandPool)
-    : m_mousePicker(std::make_shared<MousePicker>(std::move(logicalDevice), std::move(window), commandPool,
-                    assetManager->getObjectDescriptorSetLayout()))
+    : m_mousePicker(std::make_shared<MousePicker>(std::move(logicalDevice), std::move(window), commandPool))
   {}
 
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
@@ -25,10 +22,23 @@ namespace vke {
     lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened, currentFrame);
   }
 
-  void Renderer3D::doMousePicking(const uint32_t imageIndex,
-                                  const uint32_t currentFrame)
+  void Renderer3D::renderMousePicking(const RenderInfo* renderInfo,
+                                      const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    m_mousePicker->doMousePicking(imageIndex, currentFrame, m_viewPosition, m_viewMatrix, m_renderObjectsToRender);
+    const RenderInfo renderInfoMousePicking {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent
+    };
+
+    m_mousePicker->render(&renderInfoMousePicking, pipelineManager);
+  }
+
+  void Renderer3D::handleRenderedMousePickingImage(const VkImage image)
+  {
+    m_mousePicker->handleRenderedMousePickingImage(image, m_renderObjectsToRender);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,

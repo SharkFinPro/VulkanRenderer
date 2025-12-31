@@ -1,7 +1,6 @@
 #ifndef VKE_MOUSEPICKER_H
 #define VKE_MOUSEPICKER_H
 
-#include "../pipelines/implementations/renderObject/MousePickingPipeline.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -13,7 +12,9 @@ namespace vke {
   class CommandBuffer;
   class Framebuffer;
   class LogicalDevice;
+  class PipelineManager;
   enum class PipelineType;
+  struct RenderInfo;
   class RenderObject;
   class RenderPass;
   class RenderTarget;
@@ -23,26 +24,25 @@ namespace vke {
   public:
     MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
                 std::shared_ptr<Window> window,
-                const VkCommandPool& commandPool,
-                VkDescriptorSetLayout objectDescriptorSetLayout);
+                const VkCommandPool& commandPool);
 
     ~MousePicker();
 
+    [[nodiscard]] bool canMousePick() const;
+
     void clearObjectsToMousePick();
 
-    void recreateFramebuffer(VkExtent2D viewportExtent);
+    void setViewportExtent(VkExtent2D viewportExtent);
 
-    void doMousePicking(uint32_t imageIndex,
-                        uint32_t currentFrame,
-                        glm::vec3 viewPosition,
-                        const glm::mat4& viewMatrix,
-                        std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
-
-    [[nodiscard]] bool canMousePick() const;
+    void setViewportPos(ImVec2 viewportPos);
 
     void renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked);
 
-    void setViewportPos(ImVec2 viewportPos);
+    void render(const RenderInfo* renderInfo,
+                const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    void handleRenderedMousePickingImage(VkImage image,
+                                         std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -51,12 +51,6 @@ namespace vke {
     VkExtent2D m_viewportExtent { 1, 1 };
 
     ImVec2 m_viewportPos {0, 0};
-
-    std::shared_ptr<CommandBuffer> m_mousePickingCommandBuffer;
-
-    std::shared_ptr<RenderPass> m_mousePickingRenderPass;
-    std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
-    std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
 
     std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
     std::unordered_map<uint32_t, bool*> m_mousePickingItems;
@@ -68,27 +62,23 @@ namespace vke {
     VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
-    std::shared_ptr<RenderTarget> m_renderTarget;
-
-    void recordMousePickingCommandBuffer(uint32_t imageIndex,
-                                         uint32_t currentFrame,
-                                         glm::vec3 viewPosition,
-                                         const glm::mat4& viewMatrix) const;
-
     bool validateMousePickingMousePosition(int32_t& mouseX,
                                            int32_t& mouseY);
 
-    [[nodiscard]] uint32_t getIDFromMousePickingFramebuffer(int32_t mouseX,
-                                                            int32_t mouseY) const;
-
-    void transitionImageForReading(VkCommandBuffer commandBuffer) const;
-
-    void transitionImageForWriting(VkCommandBuffer commandBuffer) const;
+    [[nodiscard]] uint32_t getIDFromMousePickingImage(VkImage image,
+                                                      int32_t mouseX,
+                                                      int32_t mouseY) const;
 
     [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
 
     void handleMousePickingResult(uint32_t objectID,
                                   std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
+
+    static void transitionImageForReading(VkCommandBuffer commandBuffer,
+                                          VkImage image);
+
+    static void transitionImageForWriting(VkCommandBuffer commandBuffer,
+                                          VkImage image);
   };
 
 } // namespace vke

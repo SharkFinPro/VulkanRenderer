@@ -3,7 +3,6 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
-#include <unordered_map>
 
 namespace vke {
 
@@ -22,19 +21,25 @@ namespace vke {
 
     virtual ~Renderer();
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getSwapchainRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getSwapchainRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getOffscreenRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getOffscreenRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowCubeRenderPass() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowCubeRenderPass() const { return nullptr; };
+
+    [[nodiscard]] virtual std::shared_ptr<RenderPass> getMousePickingRenderPass() const { return nullptr; };
 
     [[nodiscard]] virtual VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
+
+    [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
     virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
     virtual void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent);
+
+    virtual void resetMousePickingImageResources(VkExtent2D mousePickingExtent);
 
     virtual void beginSwapchainRendering(uint32_t imageIndex,
                                          VkExtent2D extent,
@@ -50,15 +55,19 @@ namespace vke {
                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
                                       const std::shared_ptr<Light>& light) = 0;
 
+    virtual void beginMousePickingRendering(uint32_t imageIndex,
+                                            VkExtent2D extent,
+                                            const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
+
     virtual void endSwapchainRendering(uint32_t imageIndex,
                                        std::shared_ptr<CommandBuffer> commandBuffer,
                                        std::shared_ptr<SwapChain> swapChain) = 0;
 
-    virtual void endOffscreenRendering(uint32_t imageIndex,
-                                       std::shared_ptr<CommandBuffer> commandBuffer) = 0;
+    virtual void endOffscreenRendering(std::shared_ptr<CommandBuffer> commandBuffer) = 0;
 
-    virtual void endShadowRendering(uint32_t imageIndex,
-                                    const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
+    virtual void endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
+
+    virtual void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
 
     [[nodiscard]] virtual uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget,
                                                                  bool isCubeMap);
@@ -72,6 +81,8 @@ namespace vke {
 
     std::shared_ptr<RenderTarget> m_swapchainRenderTarget;
 
+    std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
+
     VkSampler m_sampler = VK_NULL_HANDLE;
 
     uint32_t m_currentShadowMapRenderTargetID = 0;
@@ -81,6 +92,8 @@ namespace vke {
     void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
     void createOffscreenRenderTarget(VkExtent2D extent);
+
+    void createMousePickingRenderTarget(VkExtent2D extent);
   };
 
 } // namespace vke

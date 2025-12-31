@@ -457,7 +457,7 @@ namespace vke {
 
       pipelineManager->renderPointLightShadowMapPipeline(&shadowRenderInfo, objects, pointLight);
 
-      m_renderer->endShadowRendering(0, commandBuffer);
+      m_renderer->endShadowRendering(commandBuffer);
     }
   }
 
@@ -504,7 +504,7 @@ namespace vke {
 
       pipelineManager->renderShadowPipeline(&shadowRenderInfo, objects);
 
-      m_renderer->endShadowRendering(0, commandBuffer);
+      m_renderer->endShadowRendering(commandBuffer);
     }
   }
 
