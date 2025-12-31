@@ -77,24 +77,18 @@ namespace vke {
   std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName,
                                               const uint32_t fontSize)
   {
-    auto fontByName = m_fonts.find(fontName);
+    const FontKey key { fontName, fontSize };
 
-    if (fontByName == m_fonts.end())
+    auto font = m_fonts.find(key);
+
+    if (font == m_fonts.end())
     {
       loadFont(fontName, fontSize);
 
-      fontByName = m_fonts.find(fontName);
+      font = m_fonts.find(key);
     }
 
-    auto fontBySize = fontByName->second.find(fontSize);
-    if (fontBySize == fontByName->second.end())
-    {
-      loadFont(fontName, fontSize);
-
-      fontBySize = fontByName->second.find(fontSize);
-    }
-
-    return fontBySize->second;
+    return font->second;
   }
 
   std::shared_ptr<SmokeSystem> AssetManager::createSmokeSystem(glm::vec3 position, uint32_t numParticles)
@@ -250,7 +244,7 @@ namespace vke {
     auto font = std::make_shared<Font>(
       m_logicalDevice, fontPath->second, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
 
-    m_fonts[fontName].insert({ fontSize, std::move(font) });
+    m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
   }
 
 } // namespace vke
