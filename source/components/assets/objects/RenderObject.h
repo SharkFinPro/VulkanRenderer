@@ -18,9 +18,9 @@ namespace vke {
   public:
     RenderObject(std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkDescriptorSetLayout& descriptorSetLayout,
-                 const std::shared_ptr<Texture>& texture,
-                 const std::shared_ptr<Texture>& specularMap,
-                 const std::shared_ptr<Model>& model);
+                 std::shared_ptr<Texture> texture,
+                 std::shared_ptr<Texture> specularMap,
+                 std::shared_ptr<Model> model);
 
     ~RenderObject();
 
