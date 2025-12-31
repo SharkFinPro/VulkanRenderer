@@ -268,7 +268,7 @@ namespace vke {
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
-      m_renderer->endOffscreenRendering(imageIndex, m_offscreenCommandBuffer);
+      m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
     });
   }
 
@@ -359,7 +359,7 @@ namespace vke {
 
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
-      m_renderer->endMousePickingRendering(imageIndex, renderInfo.commandBuffer);
+      m_renderer->endMousePickingRendering(renderInfo.commandBuffer);
     });
   }
 

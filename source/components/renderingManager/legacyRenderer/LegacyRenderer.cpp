@@ -157,20 +157,17 @@ namespace vke {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endOffscreenRendering([[maybe_unused]] uint32_t imageIndex,
-                                             const std::shared_ptr<CommandBuffer> commandBuffer)
+  void LegacyRenderer::endOffscreenRendering(const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endShadowRendering([[maybe_unused]] uint32_t imageIndex,
-                                          const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void LegacyRenderer::endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endMousePickingRendering([[maybe_unused]] uint32_t imageIndex,
-                                                const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void LegacyRenderer::endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     endRendering(commandBuffer);
   }

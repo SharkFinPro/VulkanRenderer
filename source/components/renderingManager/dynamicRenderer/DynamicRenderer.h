@@ -35,14 +35,11 @@ namespace vke {
                                std::shared_ptr<CommandBuffer> commandBuffer,
                                std::shared_ptr<SwapChain> swapChain) override;
 
-    void endOffscreenRendering(uint32_t imageIndex,
-                               std::shared_ptr<CommandBuffer> commandBuffer) override;
+    void endOffscreenRendering(std::shared_ptr<CommandBuffer> commandBuffer) override;
 
-    void endShadowRendering(uint32_t imageIndex,
-                            const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+    void endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
-    void endMousePickingRendering(uint32_t imageIndex,
-                                  const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+    void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
   private:
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
