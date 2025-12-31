@@ -64,6 +64,10 @@ namespace vke {
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
+    std::vector<std::shared_ptr<Texture>> m_textures;
+    std::vector<std::shared_ptr<Model>> m_models;
+    std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
+
     std::unordered_map<std::string, std::string> m_fontNames;
     std::unordered_map<std::string, std::unordered_map<uint32_t, std::shared_ptr<Font>>> m_fonts;
 

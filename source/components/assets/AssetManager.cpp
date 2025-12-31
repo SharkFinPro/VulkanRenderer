@@ -30,36 +30,43 @@ namespace vke {
   std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path,
                                                        const bool repeat)
   {
-    return std::make_shared<Texture2D>(
-      m_logicalDevice,
-      m_commandPool,
-      path,
-      repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-    );
+    auto texture = std::make_shared<Texture2D>(m_logicalDevice, m_commandPool, path,
+                                               repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+    m_textures.push_back(texture);
+
+    return texture;
   }
 
   std::shared_ptr<Model> AssetManager::loadModel(const char* path,
                                                  glm::vec3 rotation)
   {
-    return std::make_shared<Model>(
+    auto model = std::make_shared<Model>(
       m_logicalDevice,
       m_commandPool,
       path,
       rotation
     );
+
+    m_models.push_back(model);
+
+    return model;
   }
 
   std::shared_ptr<RenderObject> AssetManager::loadRenderObject(const std::shared_ptr<Texture2D>& texture,
                                                                const std::shared_ptr<Texture2D>& specularMap,
                                                                const std::shared_ptr<Model>& model)
   {
-    return std::make_shared<RenderObject>(
+    auto renderObject = std::make_shared<RenderObject>(
       m_logicalDevice,
       m_objectDescriptorSetLayout,
       texture,
       specularMap,
       model
     );
+
+    m_renderObjects.push_back(renderObject);
+
+    return renderObject;
   }
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)
