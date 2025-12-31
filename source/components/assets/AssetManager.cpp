@@ -72,7 +72,7 @@ namespace vke {
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)
   {
-    m_fontNames.insert({fontName, fontPath});
+    m_fontNames.insert({ std::move(fontName), std::move(fontPath) });
   }
 
   std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName,
