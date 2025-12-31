@@ -114,6 +114,8 @@ namespace vke {
     std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
     std::shared_ptr<RenderPass>& renderPass;
+
+    VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
   };
 
   class GraphicsPipeline : public Pipeline {
@@ -127,7 +129,6 @@ namespace vke {
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions,
-                        bool useColorAttachment = true,
                         bool renderCubeMap = false);
 
     virtual void updateUniformVariables(const RenderInfo* renderInfo) {}

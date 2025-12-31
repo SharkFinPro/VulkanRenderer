@@ -12,12 +12,12 @@ namespace vke {
                                                            VkDescriptorSetLayout pointLightDescriptorSetLayout)
     : GraphicsPipeline(std::move(logicalDevice))
   {
-    const GraphicsPipelineOptions graphicsPipelineOptions{
-      .shaders{
+    const GraphicsPipelineOptions graphicsPipelineOptions {
+      .shaders {
         .vertexShader = "assets/shaders/renderObject/ShadowCubeMap.vert.spv",
         .fragmentShader = "assets/shaders/renderObject/ShadowCubeMap.frag.spv"
       },
-      .states{
+      .states {
         .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,
         .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
@@ -34,14 +34,15 @@ namespace vke {
           .size = sizeof(glm::vec3)
         }
       },
-      .descriptorSetLayouts{
+      .descriptorSetLayouts {
         objectDescriptorSetLayout,
         pointLightDescriptorSetLayout
       },
-      .renderPass = renderPass
+      .renderPass = renderPass,
+      .colorFormat = VK_FORMAT_UNDEFINED
     };
 
-    createPipeline(graphicsPipelineOptions, false, true);
+    createPipeline(graphicsPipelineOptions, true);
   }
 
   void PointLightShadowMapPipeline::render(const RenderInfo* renderInfo,

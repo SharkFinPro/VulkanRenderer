@@ -138,11 +138,46 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void DynamicRenderer::beginMousePickingRendering(uint32_t imageIndex,
-                                                   VkExtent2D extent,
-                                                   const std::shared_ptr<CommandBuffer> &commandBuffer)
+  void DynamicRenderer::beginMousePickingRendering(const uint32_t imageIndex,
+                                                   const VkExtent2D extent,
+                                                   const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
-    // TODO:
+    VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
+      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+      .imageView = m_mousePickingRenderTarget->getColorImageResource(imageIndex).getImageView(),
+      .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+      .resolveMode = VK_RESOLVE_MODE_NONE,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+      .clearValue = {
+        .color = {0.0f, 0.0f, 0.0f, 1.0f}
+      }
+    };
+
+    VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
+      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+      .imageView = m_mousePickingRenderTarget->getDepthImageResource(imageIndex).getImageView(),
+      .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .clearValue = {
+        .depthStencil = {1.0f, 0}
+      }
+    };
+
+    const VkRenderingInfo renderingInfo {
+      .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+      .renderArea = {
+        .offset = {0, 0},
+        .extent = extent,
+      },
+      .layerCount = 1,
+      .colorAttachmentCount = 1,
+      .pColorAttachments = &colorRenderingAttachmentInfo,
+      .pDepthAttachment = &depthRenderingAttachmentInfo,
+    };
+
+    commandBuffer->beginRendering(renderingInfo);
   }
 
   void DynamicRenderer::endSwapchainRendering(const uint32_t imageIndex,
