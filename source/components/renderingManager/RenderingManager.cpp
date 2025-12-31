@@ -144,10 +144,12 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
+      m_renderer->resetMousePickingImageResources(m_offscreenViewportExtent);
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
     else
     {
+      m_renderer->resetMousePickingImageResources(m_swapChain->getExtent());
       m_renderer3D->getMousePicker()->setViewportExtent(m_swapChain->getExtent());
     }
   }
@@ -203,6 +205,7 @@ namespace vke {
 
       m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
 
+      m_renderer->resetMousePickingImageResources(m_offscreenViewportExtent);
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
