@@ -247,9 +247,10 @@ namespace vke {
       throw std::runtime_error("Font not found!");
     }
 
-    auto font = std::make_shared<Font>(m_logicalDevice, fontPath->second, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
+    auto font = std::make_shared<Font>(
+      m_logicalDevice, fontPath->second, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
 
-    m_fonts[fontName].insert({fontSize, font});
+    m_fonts[fontName].insert({ fontSize, std::move(font) });
   }
 
 } // namespace vke
