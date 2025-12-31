@@ -49,7 +49,7 @@ namespace vke {
     const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count();
     m_previousTime = currentTime;
 
-    const DeltaTimeUniform deltaTimeUBO{m_dotSpeed * dt};
+    const float deltaTimeUBO = m_dotSpeed * dt;
 
     m_deltaTimeUniform->update(renderInfo->currentFrame, &deltaTimeUBO);
 
@@ -130,7 +130,7 @@ namespace vke {
 
   void SmokeSystem::createUniforms()
   {
-    m_deltaTimeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(DeltaTimeUniform));
+    m_deltaTimeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(float));
 
     m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(ViewProjTransformUniform));
 
@@ -207,7 +207,7 @@ namespace vke {
     m_smokeSystemDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
     m_smokeSystemDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
     {
-      constexpr DeltaTimeUniform deltaTimeUBO{0};
+      constexpr float deltaTimeUBO = 0;
 
       m_deltaTimeUniform->update(frame, &deltaTimeUBO);
       m_smokeUniform->update(frame, &m_smokeUBO);
