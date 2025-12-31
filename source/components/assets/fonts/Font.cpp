@@ -76,7 +76,7 @@ namespace vke {
     }
 
     FT_Face face;
-    if (FT_New_Memory_Face(ft, fontBuffer.data(), fontBuffer.size(), 0, &face))
+    if (FT_New_Memory_Face(ft, fontBuffer.data(), static_cast<FT_Long>(fontBuffer.size()), 0, &face))
     {
       FT_Done_FreeType(ft);
       throw std::runtime_error("Failed to load font from memory");
@@ -105,7 +105,7 @@ namespace vke {
     m_maxGlyphHeight = static_cast<float>(maxGlyphHeight);
   }
 
-  std::vector<FT_ULong> Font::getCharset(const FT_Face face)
+  std::vector<FT_ULong> Font::getCharset(FT_Face face)
   {
     std::vector<FT_ULong> charset;
 
@@ -213,7 +213,7 @@ namespace vke {
                                  VkDescriptorSetLayout descriptorSetLayout)
   {
     m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
-    m_descriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
         m_glyphTexture->getDescriptorSet(0, descriptorSet)
