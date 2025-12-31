@@ -33,10 +33,11 @@ namespace vke {
       .descriptorSetLayouts {
         objectDescriptorSetLayout
       },
-      .renderPass = renderPass
+      .renderPass = renderPass,
+      .colorFormat = VK_FORMAT_UNDEFINED
     };
 
-    createPipeline(graphicsPipelineOptions, false);
+    createPipeline(graphicsPipelineOptions);
   }
 
   void ShadowPipeline::render(const RenderInfo* renderInfo,
