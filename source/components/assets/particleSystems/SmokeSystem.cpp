@@ -37,19 +37,6 @@ namespace vke {
     }
   }
 
-  void SmokeSystem::displayGui()
-  {
-    ImGui::SliderFloat3("Position", &m_smokeUBO.systemPosition[0], -20, 20);
-
-    ImGui::SliderFloat("Speed", &m_dotSpeed, 0.001f, 10.0f);
-
-    ImGui::SliderFloat("Spread Factor", &m_smokeUBO.spreadFactor, 0.0f, 3.0f);
-
-    ImGui::SliderFloat("Max Spread Distance", &m_smokeUBO.maxSpreadDistance, 0.0f, 20.0f);
-
-    ImGui::SliderFloat("Wind Strength", &m_smokeUBO.windStrength, 0.0f, 3.0f);
-  }
-
   void SmokeSystem::update(const RenderInfo* renderInfo)
   {
     if (!m_ran)
@@ -89,6 +76,56 @@ namespace vke {
   const VkBuffer& SmokeSystem::getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const
   {
     return m_shaderStorageBuffers[currentFrame];
+  }
+
+  glm::vec3 SmokeSystem::getPosition() const
+  {
+    return m_smokeUBO.systemPosition;
+  }
+
+  float SmokeSystem::getSpeed() const
+  {
+    return m_dotSpeed;
+  }
+
+  float SmokeSystem::getSpreadFactor() const
+  {
+    return m_smokeUBO.spreadFactor;
+  }
+
+  float SmokeSystem::getMaxSpreadDistance() const
+  {
+    return m_smokeUBO.maxSpreadDistance;
+  }
+
+  float SmokeSystem::getWindStrength() const
+  {
+    return m_smokeUBO.windStrength;
+  }
+
+  void SmokeSystem::setPosition(const glm::vec3& position)
+  {
+    m_smokeUBO.systemPosition = position;
+  }
+
+  void SmokeSystem::setSpeed(const float speed)
+  {
+    m_dotSpeed = speed;
+  }
+
+  void SmokeSystem::setSpreadFactor(const float spreadFactor)
+  {
+    m_smokeUBO.spreadFactor = spreadFactor;
+  }
+
+  void SmokeSystem::setMaxSpreadDistance(const float maxSpreadDistance)
+  {
+    m_smokeUBO.maxSpreadDistance = maxSpreadDistance;
+  }
+
+  void SmokeSystem::setWindStrength(const float windStrength)
+  {
+    m_smokeUBO.windStrength = windStrength;
   }
 
   void SmokeSystem::createUniforms()
