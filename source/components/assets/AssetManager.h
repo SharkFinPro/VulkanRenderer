@@ -8,14 +8,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "particleSystems/SmokeSystem.h"
-
 namespace vke {
 
   class Font;
   class LogicalDevice;
   class Model;
   class RenderObject;
+  class SmokeSystem;
   class Texture;
   class Texture2D;
 

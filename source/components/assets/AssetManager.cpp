@@ -2,6 +2,7 @@
 #include "fonts/Font.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
+#include "particleSystems/SmokeSystem.h"
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include <array>
