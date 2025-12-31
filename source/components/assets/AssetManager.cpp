@@ -67,7 +67,6 @@ namespace vke {
     m_renderObjects.push_back(renderObject);
 
     return renderObject;
-
   }
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)
