@@ -36,7 +36,7 @@ namespace vke {
 
   class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent> {
   public:
-    Window(const EngineConfig::Window& config);
+    explicit Window(const EngineConfig::Window& config);
     ~Window();
 
     [[nodiscard]] bool isOpen() const;

@@ -27,7 +27,7 @@ int main()
         .title = "Smoke"
       },
       .camera {
-        .position = { 0.0f, 0.0f, -15.0f }
+        .position = { 0.0f, 5.0f, -15.0f }
       }
     };
 

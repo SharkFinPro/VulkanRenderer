@@ -243,20 +243,10 @@ namespace vke {
 
   void ImGuiInstance::createDescriptorPool(const uint32_t maxImGuiTextures)
   {
-    const std::array<VkDescriptorPoolSize, 11> poolSizes {
-      {
-        {VK_DESCRIPTOR_TYPE_SAMPLER, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures},
-        {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, m_logicalDevice->getMaxFramesInFlight()},
-        {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, m_logicalDevice->getMaxFramesInFlight()}
-      }};
+    const std::array<VkDescriptorPoolSize, 1> poolSizes {
+    {
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures}
+    }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,

@@ -1,16 +1,24 @@
 #include "ComputingManager.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
+#include "../physicalDevice/PhysicalDevice.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../renderingManager/renderer2D/Renderer2D.h"
 #include "../renderingManager/renderer3D/Renderer3D.h"
 
 namespace vke {
 
-  ComputingManager::ComputingManager(std::shared_ptr<LogicalDevice> logicalDevice, VkCommandPool commandPool)
+  ComputingManager::ComputingManager(std::shared_ptr<LogicalDevice> logicalDevice)
     : m_logicalDevice(std::move(logicalDevice))
   {
-    m_computeCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, commandPool);
+    createCommandPool();
+
+    m_computeCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
+  }
+
+  ComputingManager::~ComputingManager()
+  {
+    m_logicalDevice->destroyCommandPool(m_commandPool);
   }
 
   void ComputingManager::doComputing(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -44,4 +52,14 @@ namespace vke {
     });
   }
 
+  void ComputingManager::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().computeFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
+  }
 } // namespace vke

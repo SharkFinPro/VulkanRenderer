@@ -16,8 +16,6 @@ namespace vke {
 
     virtual ~Texture();
 
-    [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
-
     [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding,
                                                         const VkDescriptorSet& dstSet) const;
 

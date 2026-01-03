@@ -31,16 +31,6 @@ namespace vke {
     m_logicalDevice->freeMemory(m_textureImageMemory);
   }
 
-  VkDescriptorPoolSize Texture::getDescriptorPoolSize() const
-  {
-    const VkDescriptorPoolSize poolSize {
-      .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-      .descriptorCount = m_logicalDevice->getMaxFramesInFlight(),
-    };
-
-    return poolSize;
-  }
-
   VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding,
                                                  const VkDescriptorSet& dstSet) const
   {

@@ -2,34 +2,26 @@
 #include "Model.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
+#include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/implementations/common/Uniforms.h"
-#include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../../assets/textures/Texture.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include <array>
+#include <vector>
 
 namespace vke {
 
-  RenderObject::RenderObject(std::shared_ptr<LogicalDevice> logicalDevice,
-                             const VkDescriptorSetLayout& descriptorSetLayout,
+  RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout,
                              std::shared_ptr<Texture> texture,
                              std::shared_ptr<Texture> specularMap,
                              std::shared_ptr<Model> model)
-    : m_logicalDevice(std::move(logicalDevice)),
-      m_descriptorSetLayout(descriptorSetLayout),
-      m_texture(std::move(texture)),
+    : m_texture(std::move(texture)),
       m_specularMap(std::move(specularMap)),
       m_model(std::move(model)),
-      m_transformUniform(std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(TransformUniform)))
+      m_transformUniform(std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform)))
   {
-    createDescriptorPool();
-
-    createDescriptorSets();
-  }
-
-  RenderObject::~RenderObject()
-  {
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+    createDescriptorSet(logicalDevice, descriptorPool, descriptorSetLayout);
   }
 
   void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -38,7 +30,7 @@ namespace vke {
                           const uint32_t descriptorSet) const
   {
     commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet,
-                                      1, &m_descriptorSets[currentFrame]);
+                                      1, &m_descriptorSet->getDescriptorSet(currentFrame));
 
     m_model->draw(commandBuffer);
   }
@@ -101,49 +93,21 @@ namespace vke {
     return m_orientation;
   }
 
-  void RenderObject::createDescriptorPool()
+  void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                         VkDescriptorPool descriptorPool,
+                                         VkDescriptorSetLayout descriptorSetLayout)
   {
-    const std::array<VkDescriptorPoolSize, 3> poolSizes {
-      m_transformUniform->getDescriptorPoolSize(),
-      m_texture->getDescriptorPoolSize(),
-      m_specularMap->getDescriptorPoolSize()
-    };
-
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight(),
-      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-      .pPoolSizes = poolSizes.data()
-    };
-
-    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
-  }
-
-  void RenderObject::createDescriptorSets()
-  {
-    const auto maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
-
-    const std::vector<VkDescriptorSetLayout> layouts(maxFramesInFlight, m_descriptorSetLayout);
-    const VkDescriptorSetAllocateInfo allocateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-      .descriptorPool = m_descriptorPool,
-      .descriptorSetCount = maxFramesInFlight,
-      .pSetLayouts = layouts.data()
-    };
-
-    m_descriptorSets.resize(maxFramesInFlight);
-    m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
-
-    for (size_t i = 0; i < maxFramesInFlight; i++)
+    m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, descriptorSetLayout);
+    m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
     {
-      std::array<VkWriteDescriptorSet, 3> descriptorWrites {
-        m_transformUniform->getDescriptorSet(0, m_descriptorSets[i], i),
-        m_texture->getDescriptorSet(1, m_descriptorSets[i]),
-        m_specularMap->getDescriptorSet(4, m_descriptorSets[i])
-      };
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
+        m_texture->getDescriptorSet(1, descriptorSet),
+        m_specularMap->getDescriptorSet(4, descriptorSet)
+      }};
 
-      m_logicalDevice->updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data());
-    }
+      return descriptorWrites;
+    });
   }
 
   glm::mat4 RenderObject::createModelMatrix() const

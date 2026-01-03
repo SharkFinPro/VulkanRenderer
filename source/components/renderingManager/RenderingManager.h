@@ -24,10 +24,11 @@ namespace vke {
     RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                      std::shared_ptr<Surface> surface,
                      std::shared_ptr<Window> window,
-                     VkCommandPool commandPool,
                      bool shouldRenderOffscreen,
                      const char* sceneViewName,
                      const std::shared_ptr<AssetManager>& assetManager);
+
+    ~RenderingManager();
 
     void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const std::shared_ptr<LightingManager>& lightingManager,
@@ -103,6 +104,8 @@ namespace vke {
     void doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
                         uint32_t currentFrame,
                         uint32_t imageIndex) const;
+
+    void createCommandPool();
   };
 
 } // namespace vke
