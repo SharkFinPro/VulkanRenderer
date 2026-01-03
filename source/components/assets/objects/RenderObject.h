@@ -5,11 +5,11 @@
 #include <glm/gtc/quaternion.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
-#include <vector>
 
 namespace vke {
 
   class CommandBuffer;
+  class DescriptorSet;
   class LogicalDevice;
   class Model;
   class Texture;
@@ -44,7 +44,7 @@ namespace vke {
     [[nodiscard]] glm::quat getOrientationQuat() const;
 
   private:
-    std::vector<VkDescriptorSet> m_descriptorSets;
+    std::shared_ptr<DescriptorSet> m_descriptorSet;
 
     std::shared_ptr<Texture> m_texture;
     std::shared_ptr<Texture> m_specularMap;
@@ -56,9 +56,9 @@ namespace vke {
 
     std::unique_ptr<UniformBuffer> m_transformUniform;
 
-    void createDescriptorSets(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                              VkDescriptorPool descriptorPool,
-                              VkDescriptorSetLayout descriptorSetLayout);
+    void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] glm::mat4 createModelMatrix() const;
   };
