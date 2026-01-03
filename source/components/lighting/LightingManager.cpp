@@ -213,7 +213,7 @@ namespace vke {
         .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
       };
 
-      m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
+      m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](VkDescriptorSet descriptorSet, const size_t frame)
       {
         m_lightMetadataUniform->update(frame, &lightMetadataUBO);
 
@@ -317,7 +317,7 @@ namespace vke {
         .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
       };
 
-      m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](const VkDescriptorSet descriptorSet, const size_t frame)
+      m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](VkDescriptorSet descriptorSet, const size_t frame)
       {
         m_lightMetadataUniform->update(frame, &lightMetadataUBO);
 
