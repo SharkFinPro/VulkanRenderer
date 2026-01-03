@@ -17,24 +17,21 @@ namespace vke {
 
     for (size_t i = 0; i < maxFramesInFlight; i++)
     {
-      Buffers::createBuffer(m_logicalDevice, bufferSize,
+      Buffers::createBuffer(m_logicalDevice, m_bufferSize,
                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                             m_uniformBuffers[i], m_uniformBuffersMemory[i]);
 
-      m_logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, bufferSize, 0, &m_uniformBuffersMapped[i]);
+      m_logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, m_bufferSize, 0, &m_uniformBuffersMapped[i]);
 
       const VkDescriptorBufferInfo bufferInfo {
         .buffer = m_uniformBuffers[i],
         .offset = 0,
-        .range = bufferSize
+        .range = m_bufferSize
       };
 
       m_bufferInfos.push_back(bufferInfo);
     }
-
-    m_poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    m_poolSize.descriptorCount = maxFramesInFlight;
   }
 
   UniformBuffer::~UniformBuffer()
@@ -45,11 +42,6 @@ namespace vke {
 
       Buffers::destroyBuffer(m_logicalDevice, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
     }
-  }
-
-  VkDescriptorPoolSize UniformBuffer::getDescriptorPoolSize() const
-  {
-    return m_poolSize;
   }
 
   VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding,

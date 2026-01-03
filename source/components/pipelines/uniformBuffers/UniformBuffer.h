@@ -15,8 +15,6 @@ namespace vke {
                   VkDeviceSize bufferSize);
     ~UniformBuffer();
 
-    [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
-
     [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding,
                                                         const VkDescriptorSet& dstSet,
                                                         size_t frame) const;
@@ -32,7 +30,6 @@ namespace vke {
     std::vector<void*> m_uniformBuffersMapped;
 
     std::vector<VkDescriptorBufferInfo> m_bufferInfos;
-    VkDescriptorPoolSize m_poolSize{};
 
     VkDeviceSize m_bufferSize;
   };

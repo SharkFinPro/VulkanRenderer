@@ -1,6 +1,7 @@
 #ifndef VKE_RENDEROBJECT_H
 #define VKE_RENDEROBJECT_H
 
+#include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include <glm/gtc/quaternion.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -12,17 +13,15 @@ namespace vke {
   class LogicalDevice;
   class Model;
   class Texture;
-  class UniformBuffer;
 
   class RenderObject {
   public:
-    RenderObject(std::shared_ptr<LogicalDevice> logicalDevice,
-                 const VkDescriptorSetLayout& descriptorSetLayout,
+    RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                 VkDescriptorPool descriptorPool,
+                 VkDescriptorSetLayout descriptorSetLayout,
                  std::shared_ptr<Texture> texture,
                  std::shared_ptr<Texture> specularMap,
                  std::shared_ptr<Model> model);
-
-    ~RenderObject();
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
               const VkPipelineLayout& pipelineLayout,
@@ -45,10 +44,6 @@ namespace vke {
     [[nodiscard]] glm::quat getOrientationQuat() const;
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
-    VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
     std::vector<VkDescriptorSet> m_descriptorSets;
 
     std::shared_ptr<Texture> m_texture;
@@ -61,8 +56,9 @@ namespace vke {
 
     std::unique_ptr<UniformBuffer> m_transformUniform;
 
-    void createDescriptorPool();
-    void createDescriptorSets();
+    void createDescriptorSets(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              VkDescriptorPool descriptorPool,
+                              VkDescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] glm::mat4 createModelMatrix() const;
   };

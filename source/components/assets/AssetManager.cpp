@@ -65,6 +65,7 @@ namespace vke {
   {
     auto renderObject = std::make_shared<RenderObject>(
       m_logicalDevice,
+      m_descriptorPool,
       m_objectDescriptorSetLayout,
       texture,
       specularMap,
@@ -275,7 +276,7 @@ namespace vke {
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 1000,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
     };
