@@ -221,7 +221,7 @@ set(VULKAN_ENGINE_SOURCES_UTILITIES
 set(VULKAN_ENGINE_SOURCES_BASE
   VulkanEngine.cpp
   VulkanEngine.h
-  VulkanEngineOptions.h
+  EngineConfig.h
 )
 
 # Combine all source groups

@@ -16,18 +16,17 @@
 
 namespace vke {
 
-  VulkanEngine::VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions)
-    : m_vulkanEngineOptions(vulkanEngineOptions)
+  VulkanEngine::VulkanEngine(const EngineConfig& engineConfig)
   {
     glfwInit();
 
-    initializeVulkanAndWindow();
+    initializeVulkanAndWindow(engineConfig);
 
     createPools();
 
-    createComponents();
+    createComponents(engineConfig);
 
-    createCamera();
+    createCamera(engineConfig);
   }
 
   VulkanEngine::~VulkanEngine()
@@ -94,12 +93,11 @@ namespace vke {
     return m_window;
   }
 
-  void VulkanEngine::initializeVulkanAndWindow()
+  void VulkanEngine::initializeVulkanAndWindow(const EngineConfig& engineConfig)
   {
     m_instance = std::make_shared<Instance>();
 
-    m_window = std::make_shared<Window>(m_vulkanEngineOptions.WINDOW_WIDTH, m_vulkanEngineOptions.WINDOW_HEIGHT,
-                                        m_vulkanEngineOptions.WINDOW_TITLE, m_vulkanEngineOptions.FULLSCREEN);
+    m_window = std::make_shared<Window>(engineConfig.window);
 
     m_surface = std::make_shared<Surface>(m_instance, m_window);
 
@@ -115,13 +113,14 @@ namespace vke {
     createDescriptorPool();
   }
 
-  void VulkanEngine::createComponents()
+  void VulkanEngine::createComponents(const EngineConfig& engineConfig)
   {
     m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_commandPool, m_descriptorPool);
 
     m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_surface, m_window,
-                                                            m_commandPool, m_vulkanEngineOptions.USE_DOCKSPACE,
-                                                            m_vulkanEngineOptions.SCENE_VIEW_NAME, m_assetManager);
+                                                            m_commandPool,engineConfig.imGui.useDockspace,
+                                                            engineConfig.imGui.sceneViewName.c_str(),
+                                                            m_assetManager);
 
     m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool, m_commandPool,
                                                           m_renderingManager->getRenderer());
@@ -132,16 +131,14 @@ namespace vke {
 
     m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
                                                       m_renderingManager->getRenderer()->getSwapchainRenderPass(),
-                                                      m_vulkanEngineOptions.USE_DOCKSPACE,
-                                                      m_vulkanEngineOptions.MAX_IMGUI_TEXTURES);
+                                                      engineConfig.imGui);
 
     m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice, m_commandPool);
   }
 
-  void VulkanEngine::createCamera()
+  void VulkanEngine::createCamera(const EngineConfig& engineConfig)
   {
-    m_camera = std::make_shared<Camera>(m_vulkanEngineOptions.CAMERA_POSITION);
-    m_camera->setSpeed(m_vulkanEngineOptions.CAMERA_SPEED);
+    m_camera = std::make_shared<Camera>(engineConfig.camera);
   }
 
   void VulkanEngine::createCommandPool()

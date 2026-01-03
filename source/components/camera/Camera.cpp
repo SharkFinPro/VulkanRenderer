@@ -7,9 +7,11 @@ namespace vke {
 
   constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
-  Camera::Camera(const glm::vec3 initialPosition)
-    : m_position(initialPosition), m_previousTime(std::chrono::steady_clock::now())
-  {}
+  Camera::Camera(const EngineConfig::Camera& config)
+    : m_position(config.position), m_previousTime(std::chrono::steady_clock::now())
+  {
+    setSpeed(config.speed);
+  }
 
   glm::mat4 Camera::getViewMatrix() const
   {

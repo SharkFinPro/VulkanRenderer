@@ -134,7 +134,7 @@ inline void displayObjectGuis(const std::vector<std::shared_ptr<vke::RenderObjec
 
 inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
 {
-  gui->dockCenter("SceneView");
+  gui->dockCenter("Scene View");
 
   gui->dockBottom("Scene Options");
 

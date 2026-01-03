@@ -1,6 +1,7 @@
 #ifndef VKE_IMGUIINSTANCE_H
 #define VKE_IMGUIINSTANCE_H
 
+#include "../../EngineConfig.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -20,8 +21,7 @@ namespace vke {
                   const std::shared_ptr<Instance>& instance,
                   std::shared_ptr<LogicalDevice> logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
-                  bool useDockSpace,
-                  uint32_t maxImGuiTextures);
+                  const EngineConfig::ImGui& config);
     ~ImGuiInstance();
 
     void createNewFrame();

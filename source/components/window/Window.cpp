@@ -3,16 +3,15 @@
 
 namespace vke {
 
-  Window::Window(const int width,
-                 const int height,
-                 const char* title,
-                 const bool fullscreen)
+  Window::Window(const EngineConfig::Window& config)
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
-    if (fullscreen)
+    glfwWindowHint(GLFW_RESIZABLE, config.resizable ? GLFW_TRUE : GLFW_FALSE);
+
+    if (config.fullscreen)
     {
       glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
 
@@ -20,11 +19,11 @@ namespace vke {
 
       const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
 
-      m_window = glfwCreateWindow(videoMode->width, videoMode->height, title, primaryMonitor, nullptr);
+      m_window = glfwCreateWindow(videoMode->width, videoMode->height, config.title.c_str(), primaryMonitor, nullptr);
     }
     else
     {
-      m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+      m_window = glfwCreateWindow(config.width, config.height, config.title.c_str(), nullptr, nullptr);
     }
 
     if (m_window == nullptr)

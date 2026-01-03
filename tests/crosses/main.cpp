@@ -10,18 +10,22 @@
 void populateLights(const vke::VulkanEngine& renderer,
                     std::vector<std::shared_ptr<vke::Light>>& lights);
 
-constexpr vke::VulkanEngineOptions vulkanEngineOptions {
-  .WINDOW_WIDTH = 800,
-  .WINDOW_HEIGHT = 600,
-  .WINDOW_TITLE = "Crosses",
-  .CAMERA_POSITION = { 0.0f, 0.0f, -15.0f }
-};
-
 int main()
 {
   try
   {
-    vke::VulkanEngine renderer(vulkanEngineOptions);
+    const vke::EngineConfig engineConfig {
+      .window {
+        .width = 800,
+        .height = 600,
+        .title = "Crosses"
+      },
+      .camera {
+        .position = { 0.0f, 0.0f, -15.0f }
+      }
+    };
+
+    vke::VulkanEngine renderer(engineConfig);
     const auto gui = renderer.getImGuiInstance();
     ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
