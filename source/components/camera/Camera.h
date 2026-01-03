@@ -1,6 +1,7 @@
 #ifndef VKE_CAMERA_H
 #define VKE_CAMERA_H
 
+#include "../../EngineConfig.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <chrono>
@@ -12,7 +13,7 @@ namespace vke {
 
   class Camera {
   public:
-    explicit Camera(glm::vec3 initialPosition = { 0, 0, 0 });
+    explicit Camera(const EngineConfig::Camera& config);
 
     [[nodiscard]] glm::mat4 getViewMatrix() const;
 

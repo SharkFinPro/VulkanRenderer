@@ -138,8 +138,7 @@ namespace vke {
 
   void VulkanEngine::createCamera(const EngineConfig& engineConfig)
   {
-    m_camera = std::make_shared<Camera>(engineConfig.camera.position);
-    m_camera->setSpeed(engineConfig.camera.speed);
+    m_camera = std::make_shared<Camera>(engineConfig.camera);
   }
 
   void VulkanEngine::createCommandPool()
