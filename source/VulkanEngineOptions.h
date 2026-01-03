@@ -2,24 +2,30 @@
 #define VKE_VULKANENGINEOPTIONS_H
 
 #include <glm/vec3.hpp>
+#include <cstdint>
+#include <string>
 
 namespace vke {
 
   struct VulkanEngineOptions {
-    uint32_t WINDOW_WIDTH;
-    uint32_t WINDOW_HEIGHT;
-    const char* WINDOW_TITLE;
+    struct window {
+      uint32_t width = 1280;
+      uint32_t height = 720;
+      std::string title = "Vulkan Engine";
+      bool fullscreen = false;
+      bool resizable = true;
+    };
 
-    glm::vec3 CAMERA_POSITION = { 0.0f, 0.0f, 0.0f };
-    float CAMERA_SPEED = 1.0f;
+    struct camera {
+      glm::vec3 position = glm::vec3{ 0.0f };
+      float speed = 1.0f;
+    };
 
-    bool FULLSCREEN = false;
-
-    bool USE_DOCKSPACE = true;
-
-    const char* SCENE_VIEW_NAME = "SceneView";
-
-    uint32_t MAX_IMGUI_TEXTURES = 5;
+    struct ImGui {
+      bool useDockspace = true;
+      std::string sceneViewName = "Scene View";
+      uint32_t maxTextures = 5;
+    };
   };
 
 } // namespace vke
