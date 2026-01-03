@@ -1,6 +1,5 @@
 add_subdirectory(2D)
 add_subdirectory(crosses)
-add_subdirectory(cube)
 add_subdirectory(cubeMap)
 add_subdirectory(grid)
 add_subdirectory(magicLens)
@@ -18,7 +17,6 @@ add_custom_target(build_all
   DEPENDS
   2D
   crosses
-  cube
   cubeMap
   grid
   magicLens
