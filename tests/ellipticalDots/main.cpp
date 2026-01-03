@@ -17,14 +17,18 @@ int main()
 {
   try
   {
-    constexpr vke::VulkanEngineOptions vulkanEngineOptions {
-      .WINDOW_WIDTH = 800,
-      .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Elliptical Dots",
-      .CAMERA_POSITION = { 0.0f, 0.0f, -5.0f }
+    const vke::EngineConfig engineConfig {
+      .window {
+        .width = 800,
+        .height = 600,
+        .title = "Elliptical Dots",
+      },
+      .camera {
+        .position = { 0.0f, 0.0f, -5.0f }
+      }
     };
 
-    vke::VulkanEngine renderer(vulkanEngineOptions);
+    vke::VulkanEngine renderer(engineConfig);
     const auto gui = renderer.getImGuiInstance();
 
     ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());

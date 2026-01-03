@@ -10,14 +10,18 @@ int main()
 {
   try
   {
-    constexpr vke::VulkanEngineOptions vulkanEngineOptions {
-      .WINDOW_WIDTH = 800,
-      .WINDOW_HEIGHT = 600,
-      .WINDOW_TITLE = "Object Loading",
-      .CAMERA_SPEED = 0.5f
+    const vke::EngineConfig engineConfig {
+      .window {
+        .width = 800,
+        .height = 600,
+        .title = "Object Loading",
+      },
+      .camera {
+        .speed = 0.5f
+      }
     };
 
-    vke::VulkanEngine renderer(vulkanEngineOptions);
+    vke::VulkanEngine renderer(engineConfig);
     const auto gui = renderer.getImGuiInstance();
 
     ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());

@@ -1,7 +1,7 @@
 #ifndef VKE_VULKANENGINE_H
 #define VKE_VULKANENGINE_H
 
-#include "VulkanEngineOptions.h"
+#include "EngineConfig.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 
@@ -22,7 +22,7 @@ namespace vke {
 
   class VulkanEngine {
   public:
-    explicit VulkanEngine(const VulkanEngineOptions& vulkanEngineOptions);
+    explicit VulkanEngine(const EngineConfig& engineConfig);
 
     ~VulkanEngine();
 
@@ -43,8 +43,6 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<Window> getWindow() const;
 
   private:
-    VulkanEngineOptions m_vulkanEngineOptions;
-
     std::shared_ptr<Instance> m_instance;
     std::shared_ptr<Surface> m_surface;
     std::shared_ptr<Window> m_window;
@@ -71,13 +69,13 @@ namespace vke {
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
-    void initializeVulkanAndWindow();
+    void initializeVulkanAndWindow(const EngineConfig& engineConfig);
 
     void createPools();
 
-    void createComponents();
+    void createComponents(const EngineConfig& engineConfig);
 
-    void createCamera();
+    void createCamera(const EngineConfig& engineConfig);
 
     void createCommandPool();
 
