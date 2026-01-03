@@ -8,7 +8,7 @@
 namespace vke {
 
   struct EngineConfig {
-    struct {
+    struct Window {
       uint32_t width = 1280;
       uint32_t height = 720;
       std::string title = "Vulkan Engine";
@@ -16,12 +16,12 @@ namespace vke {
       bool resizable = true;
     } window;
 
-    struct {
+    struct Camera {
       glm::vec3 position = glm::vec3{ 0.0f };
       float speed = 1.0f;
     } camera;
 
-    struct {
+    struct ImGui {
       bool useDockspace = true;
       std::string sceneViewName = "Scene View";
       uint32_t maxTextures = 5;

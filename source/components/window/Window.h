@@ -1,6 +1,7 @@
 #ifndef VKE_WINDOW_H
 #define VKE_WINDOW_H
 
+#include "../../EngineConfig.h"
 #include "../../utilities/EventSystem.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -9,7 +10,7 @@
 
 namespace vke {
 
-  class VulkanEngine;
+  struct WindowConfig;
 
   struct ContentScaleEvent {
     float xscale;
@@ -35,11 +36,7 @@ namespace vke {
 
   class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent> {
   public:
-    Window(int width,
-           int height,
-           const char* title,
-           bool fullscreen,
-           bool resizable);
+    Window(const EngineConfig::Window& config);
     ~Window();
 
     [[nodiscard]] bool isOpen() const;
