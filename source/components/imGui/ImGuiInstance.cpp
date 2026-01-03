@@ -15,11 +15,10 @@ namespace vke {
                                const std::shared_ptr<Instance>& instance,
                                std::shared_ptr<LogicalDevice> logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
-                               const bool useDockSpace,
-                               const uint32_t maxImGuiTextures)
-    : m_logicalDevice(std::move(logicalDevice)), m_useDockSpace(useDockSpace)
+                               const EngineConfig::ImGui& config)
+    : m_logicalDevice(std::move(logicalDevice)), m_useDockSpace(config.useDockspace)
   {
-    createDescriptorPool(maxImGuiTextures);
+    createDescriptorPool(config.maxTextures);
 
     ImGui::CreateContext();
 
@@ -65,7 +64,7 @@ namespace vke {
 
     ImGui_ImplVulkan_Init(&initInfo);
 
-    if (useDockSpace)
+    if (m_useDockSpace)
     {
       ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     }

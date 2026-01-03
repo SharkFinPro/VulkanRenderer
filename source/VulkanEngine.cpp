@@ -131,7 +131,7 @@ namespace vke {
 
     m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
                                                       m_renderingManager->getRenderer()->getSwapchainRenderPass(),
-                                                      engineConfig.imGui.useDockspace, engineConfig.imGui.maxTextures);
+                                                      engineConfig.imGui);
 
     m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice, m_commandPool);
   }
