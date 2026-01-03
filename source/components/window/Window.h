@@ -38,7 +38,8 @@ namespace vke {
     Window(int width,
            int height,
            const char* title,
-           bool fullscreen);
+           bool fullscreen,
+           bool resizable);
     ~Window();
 
     [[nodiscard]] bool isOpen() const;

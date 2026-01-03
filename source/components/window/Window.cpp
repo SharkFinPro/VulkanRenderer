@@ -6,11 +6,14 @@ namespace vke {
   Window::Window(const int width,
                  const int height,
                  const char* title,
-                 const bool fullscreen)
+                 const bool fullscreen,
+                 const bool resizable)
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+
+    glfwWindowHint(GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
 
     if (fullscreen)
     {

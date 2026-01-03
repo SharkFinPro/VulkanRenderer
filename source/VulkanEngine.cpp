@@ -98,7 +98,8 @@ namespace vke {
     m_instance = std::make_shared<Instance>();
 
     m_window = std::make_shared<Window>(engineConfig.window.width, engineConfig.window.height,
-                                        engineConfig.window.title.c_str(), engineConfig.window.fullscreen);
+                                        engineConfig.window.title.c_str(), engineConfig.window.fullscreen,
+                                        engineConfig.window.resizable);
 
     m_surface = std::make_shared<Surface>(m_instance, m_window);
 
