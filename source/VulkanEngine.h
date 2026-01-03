@@ -2,7 +2,6 @@
 #define VKE_VULKANENGINE_H
 
 #include "EngineConfig.h"
-#include <vulkan/vulkan.h>
 #include <memory>
 
 namespace vke {
@@ -65,21 +64,11 @@ namespace vke {
 
     uint32_t m_currentFrame = 0;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
-
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-
     void initializeVulkanAndWindow(const EngineConfig& engineConfig);
-
-    void createPools();
 
     void createComponents(const EngineConfig& engineConfig);
 
     void createCamera(const EngineConfig& engineConfig);
-
-    void createCommandPool();
-
-    void createDescriptorPool();
 
     void createNewFrame();
   };

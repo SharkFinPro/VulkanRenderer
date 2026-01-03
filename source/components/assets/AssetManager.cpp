@@ -5,16 +5,19 @@
 #include "particleSystems/SmokeSystem.h"
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
+#include "../physicalDevice/PhysicalDevice.h"
 #include <array>
 #include <stdexcept>
 
 namespace vke {
 
-  AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                             VkCommandPool commandPool,
-                             VkDescriptorPool descriptorPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool), m_descriptorPool(descriptorPool)
+  AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
+    createCommandPool();
+
+    createDescriptorPool();
+
     createDescriptorSetLayouts();
   }
 
@@ -25,6 +28,10 @@ namespace vke {
     m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
 
     m_logicalDevice->destroyDescriptorSetLayout(m_smokeSystemDescriptorSetLayout);
+
+    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+
+    m_logicalDevice->destroyCommandPool(m_commandPool);
   }
 
   std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path,
@@ -247,4 +254,32 @@ namespace vke {
     m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
   }
 
+  void AssetManager::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
+  }
+
+  void AssetManager::createDescriptorPool()
+  {
+    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
+    }};
+
+    const VkDescriptorPoolCreateInfo poolCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()
+    };
+
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+  }
 } // namespace vke

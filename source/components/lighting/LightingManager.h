@@ -20,8 +20,6 @@ namespace vke {
   class LightingManager {
   public:
     LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                    VkDescriptorPool descriptorPool,
-                    VkCommandPool commandPool,
                     std::shared_ptr<Renderer> renderer);
 
     ~LightingManager();
@@ -110,6 +108,10 @@ namespace vke {
                                    uint32_t currentFrame) const;
 
     void createPointLightDescriptorSetLayout();
+
+    void createCommandPool();
+
+    void createDescriptorPool();
   };
 
 } // namespace vke

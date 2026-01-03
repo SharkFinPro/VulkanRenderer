@@ -32,12 +32,12 @@ namespace vke {
 
   class PipelineManager {
   public:
-    PipelineManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                     const std::shared_ptr<Renderer>& renderer,
                     const std::shared_ptr<LightingManager>& lightingManager,
-                    const std::shared_ptr<AssetManager>& assetManager,
-                    VkDescriptorPool descriptorPool,
-                    VkCommandPool commandPool);
+                    const std::shared_ptr<AssetManager>& assetManager);
+
+    ~PipelineManager();
 
     void renderDotsPipeline(const RenderInfo* renderInfo) const;
 
@@ -89,7 +89,11 @@ namespace vke {
                             const std::shared_ptr<AssetManager>& assetManager) const;
 
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
     std::unique_ptr<GuiPipeline> m_guiPipeline;
 
@@ -121,25 +125,22 @@ namespace vke {
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,
-                         const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const std::shared_ptr<LightingManager>& lightingManager,
-                         VkDescriptorPool descriptorPool);
+                         const std::shared_ptr<LightingManager>& lightingManager);
 
     void create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                           const std::shared_ptr<Renderer>& renderer,
-                           const std::shared_ptr<LogicalDevice>& logicalDevice);
+                           const std::shared_ptr<Renderer>& renderer);
 
     void createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
                                      const std::shared_ptr<Renderer>& renderer,
-                                     const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                     const std::shared_ptr<LightingManager>& lightingManager,
-                                     VkDescriptorPool descriptorPool);
+                                     const std::shared_ptr<LightingManager>& lightingManager);
 
     void createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
                              const std::shared_ptr<Renderer>& renderer,
-                             const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<LightingManager>& lightingManager,
-                             VkDescriptorPool descriptorPool);
+                             const std::shared_ptr<LightingManager>& lightingManager);
+
+    void createCommandPool();
+
+    void createDescriptorPool();
   };
 
 } // namespace vke

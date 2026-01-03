@@ -14,8 +14,9 @@ namespace vke {
 
   class ComputingManager {
   public:
-    ComputingManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                     VkCommandPool commandPool);
+    explicit ComputingManager(std::shared_ptr<LogicalDevice> logicalDevice);
+
+    ~ComputingManager();
 
     void doComputing(const std::shared_ptr<PipelineManager>& pipelineManager,
                      uint32_t currentFrame,
@@ -25,12 +26,16 @@ namespace vke {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
     std::shared_ptr<CommandBuffer> m_computeCommandBuffer;
 
     void recordComputeCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                     uint32_t currentFrame,
                                     const std::shared_ptr<Renderer2D>& renderer2D,
                                     const std::shared_ptr<Renderer3D>& renderer3D) const;
+
+    void createCommandPool();
   };
 
 } // namespace vke

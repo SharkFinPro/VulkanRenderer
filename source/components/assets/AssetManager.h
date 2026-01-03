@@ -40,9 +40,7 @@ namespace vke {
 
   class AssetManager {
   public:
-    AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                 VkCommandPool commandPool,
-                 VkDescriptorPool descriptorPool);
+    explicit AssetManager(std::shared_ptr<LogicalDevice> logicalDevice);
 
     ~AssetManager();
 
@@ -76,13 +74,13 @@ namespace vke {
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+
     VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
     VkDescriptorSetLayout m_fontDescriptorSetLayout = VK_NULL_HANDLE;
 
     VkDescriptorSetLayout m_smokeSystemDescriptorSetLayout = VK_NULL_HANDLE;
-
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
     std::vector<std::shared_ptr<Texture>> m_textures;
     std::vector<std::shared_ptr<Model>> m_models;
@@ -101,6 +99,10 @@ namespace vke {
 
     void loadFont(const std::string& fontName,
                   uint32_t fontSize);
+
+    void createCommandPool();
+
+    void createDescriptorPool();
   };
 
 } // namespace vke

@@ -3,23 +3,25 @@
 #include "lights/PointLight.h"
 #include "lights/SpotLight.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../logicalDevice/LogicalDevice.h"
+#include "../physicalDevice/PhysicalDevice.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
 #include "../pipelines/descriptorSets/LayoutBindings.h"
 #include "../pipelines/implementations/common/Uniforms.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/Renderer.h"
-#include "../../components/logicalDevice/LogicalDevice.h"
 
 namespace vke {
 
   LightingManager::LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                                   VkDescriptorPool descriptorPool,
-                                   VkCommandPool commandPool,
                                    std::shared_ptr<Renderer> renderer)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool), m_descriptorPool(descriptorPool),
-      m_renderer(std::move(renderer))
+    : m_logicalDevice(std::move(logicalDevice)), m_renderer(std::move(renderer))
   {
+    createCommandPool();
+
+    createDescriptorPool();
+
     createPointLightDescriptorSetLayout();
 
     createUniforms();
@@ -34,6 +36,10 @@ namespace vke {
     destroyShadowMapSampler();
 
     m_logicalDevice->destroyDescriptorSetLayout(m_pointLightDescriptorSetLayout);
+
+    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+
+    m_logicalDevice->destroyCommandPool(m_commandPool);
   }
 
   std::shared_ptr<Light> LightingManager::createPointLight(const glm::vec3 position,
@@ -521,4 +527,32 @@ namespace vke {
     m_pointLightDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
+  void LightingManager::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
+  }
+
+  void LightingManager::createDescriptorPool()
+  {
+    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
+    }};
+
+    const VkDescriptorPoolCreateInfo poolCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()
+    };
+
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+  }
 } // namespace vke

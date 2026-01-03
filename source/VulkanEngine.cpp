@@ -22,8 +22,6 @@ namespace vke {
 
     initializeVulkanAndWindow(engineConfig);
 
-    createPools();
-
     createComponents(engineConfig);
 
     createCamera(engineConfig);
@@ -32,10 +30,6 @@ namespace vke {
   VulkanEngine::~VulkanEngine()
   {
     m_logicalDevice->waitIdle();
-
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
-
-    m_logicalDevice->destroyCommandPool(m_commandPool);
 
     glfwTerminate();
   }
@@ -106,70 +100,30 @@ namespace vke {
     m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
   }
 
-  void VulkanEngine::createPools()
-  {
-    createCommandPool();
-
-    createDescriptorPool();
-  }
-
   void VulkanEngine::createComponents(const EngineConfig& engineConfig)
   {
-    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_commandPool, m_descriptorPool);
+    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice);
 
     m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_surface, m_window,
-                                                            m_commandPool,engineConfig.imGui.useDockspace,
+                                                            engineConfig.imGui.useDockspace,
                                                             engineConfig.imGui.sceneViewName.c_str(),
                                                             m_assetManager);
 
-    m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_descriptorPool, m_commandPool,
-                                                          m_renderingManager->getRenderer());
+    m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_renderingManager->getRenderer());
 
     m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer(),
-                                                          m_lightingManager, m_assetManager,
-                                                          m_descriptorPool, m_commandPool);
+                                                          m_lightingManager, m_assetManager);
 
     m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
                                                       m_renderingManager->getRenderer()->getSwapchainRenderPass(),
                                                       engineConfig.imGui);
 
-    m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice, m_commandPool);
+    m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice);
   }
 
   void VulkanEngine::createCamera(const EngineConfig& engineConfig)
   {
     m_camera = std::make_shared<Camera>(engineConfig.camera);
-  }
-
-  void VulkanEngine::createCommandPool()
-  {
-    const auto queueFamilyIndices = m_physicalDevice->getQueueFamilies();
-
-    const VkCommandPoolCreateInfo poolInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()
-    };
-
-    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
-  }
-
-  void VulkanEngine::createDescriptorPool()
-  {
-    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
-    }};
-
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
-      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-      .pPoolSizes = poolSizes.data()
-    };
-
-    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
   }
 
   void VulkanEngine::createNewFrame()

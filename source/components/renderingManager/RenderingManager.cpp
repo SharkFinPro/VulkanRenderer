@@ -23,19 +23,20 @@ namespace vke {
   RenderingManager::RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                      std::shared_ptr<Surface> surface,
                                      std::shared_ptr<Window> window,
-                                     VkCommandPool commandPool,
                                      const bool shouldRenderOffscreen,
                                      const char* sceneViewName,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
-      m_commandPool(commandPool),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(sceneViewName),
-      m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
-      m_renderer3D(std::make_shared<Renderer3D>(m_logicalDevice, m_window, commandPool))
+      m_renderer2D(std::make_shared<Renderer2D>(assetManager))
   {
+    createCommandPool();
+
+    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, m_window, m_commandPool);
+
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -48,6 +49,11 @@ namespace vke {
     m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
       m_framebufferResized = true;
     });
+  }
+
+  RenderingManager::~RenderingManager()
+  {
+    m_logicalDevice->destroyCommandPool(m_commandPool);
   }
 
   void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -401,5 +407,16 @@ namespace vke {
 
     m_logicalDevice->waitForMousePickingFences(currentFrame);
     m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
+  }
+
+  void RenderingManager::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
   }
 } // namespace vke
