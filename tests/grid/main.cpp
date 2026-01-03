@@ -23,7 +23,7 @@ int main()
         .title = "Grid"
       },
       .camera {
-        .position = { 0.0f, 0.0f, -20.0f }
+        .position = { 0.0f, 5.0f, -20.0f }
       }
     };
 
