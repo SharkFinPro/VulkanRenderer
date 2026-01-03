@@ -21,7 +21,7 @@ int main()
       .window {
         .width = 800,
         .height = 600,
-        .title = "Curtain",
+        .title = "Curtain"
       },
       .camera {
         .position = { 0.0f, 0.0f, -15.0f }

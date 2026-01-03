@@ -20,7 +20,7 @@ int main()
       .window {
         .width = 800,
         .height = 600,
-        .title = "Spotlight",
+        .title = "Spotlight"
       },
       .camera {
         .position = { 0.0f, 0.0f, -5.0f }

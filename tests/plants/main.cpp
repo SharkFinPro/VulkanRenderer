@@ -23,7 +23,7 @@ int main()
       .window {
         .width = 800,
         .height = 600,
-        .title = "Plants",
+        .title = "Plants"
       },
       .camera {
         .position = { 0.0f, 0.0f, -5.0f }
