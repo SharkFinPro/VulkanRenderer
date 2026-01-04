@@ -61,14 +61,7 @@ int main()
 
       pipelineTypeGui(currentPipeline);
 
-      if (isCurtainPipeline(currentPipeline))
-      {
-        r3d->renderObject(curtainObject, currentPipeline);
-      }
-      else
-      {
-        r3d->renderObject(cubeObject, currentPipeline);
-      }
+      r3d->renderObject(isCurtainPipeline(currentPipeline) ? curtainObject : cubeObject, currentPipeline);
 
       for (const auto& light : lights)
       {
