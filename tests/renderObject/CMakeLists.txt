@@ -1,4 +1,4 @@
-project("cube")
+project("renderObject")
 
 add_executable(${PROJECT_NAME} main.cpp
   ../common/gui.h)
