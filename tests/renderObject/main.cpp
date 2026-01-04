@@ -6,18 +6,6 @@
 #include <imgui.h>
 #include <iostream>
 
-const char* getPipelineTypeName(vke::PipelineType type);
-
-void pipelineTypeGui(vke::PipelineType& currentPipeline);
-
-std::vector<std::shared_ptr<vke::Light>> createLights(const vke::VulkanEngine& renderer);
-
-bool isCurtainPipeline(vke::PipelineType type);
-
-std::shared_ptr<vke::RenderObject> createCubeObject(const vke::VulkanEngine& renderer);
-
-std::shared_ptr<vke::RenderObject> createCurtainObject(const vke::VulkanEngine& renderer);
-
 const vke::EngineConfig ENGINE_CONFIG {
   .window {
     .width = 800,
@@ -36,6 +24,18 @@ constexpr std::array AVAILABLE_PIPELINES {
   vke::PipelineType::noisyEllipticalDots,
   vke::PipelineType::object
 };
+
+const char* getPipelineTypeName(vke::PipelineType type);
+
+void pipelineTypeGui(vke::PipelineType& currentPipeline);
+
+std::vector<std::shared_ptr<vke::Light>> createLights(const vke::VulkanEngine& renderer);
+
+bool isCurtainPipeline(vke::PipelineType type);
+
+std::shared_ptr<vke::RenderObject> createCubeObject(const vke::VulkanEngine& renderer);
+
+std::shared_ptr<vke::RenderObject> createCurtainObject(const vke::VulkanEngine& renderer);
 
 int main()
 {
