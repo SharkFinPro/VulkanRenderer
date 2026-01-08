@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <string>
 
 namespace vke {
 
@@ -25,7 +26,7 @@ namespace vke {
                      std::shared_ptr<Surface> surface,
                      std::shared_ptr<Window> window,
                      bool shouldRenderOffscreen,
-                     const char* sceneViewName,
+                     std::string sceneViewName,
                      const std::shared_ptr<AssetManager>& assetManager);
 
     ~RenderingManager();
@@ -77,7 +78,7 @@ namespace vke {
 
     ImVec2 m_offscreenViewportPos{0, 0};
 
-    const char* m_sceneViewName;
+    std::string m_sceneViewName;
 
     std::shared_ptr<Renderer2D> m_renderer2D;
 
