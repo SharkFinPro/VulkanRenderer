@@ -59,8 +59,7 @@ namespace vke {
     pipelineManager->renderMousePickingPipeline(renderInfo, &m_renderObjectsToMousePick);
   }
 
-  void MousePicker::handleRenderedMousePickingImage(const VkImage image,
-                                                    std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender)
+  void MousePicker::handleRenderedMousePickingImage(VkImage image)
   {
     int32_t mouseX, mouseY;
     if (!validateMousePickingMousePosition(mouseX, mouseY))
@@ -75,7 +74,7 @@ namespace vke {
       return;
     }
 
-    handleMousePickingResult(objectID, renderObjectsToRender);
+    *m_mousePickingItems.at(objectID) = true;
   }
 
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,
@@ -102,7 +101,7 @@ namespace vke {
     return m_canMousePick;
   }
 
-  uint32_t MousePicker::getIDFromMousePickingImage(const VkImage image,
+  uint32_t MousePicker::getIDFromMousePickingImage(VkImage image,
                                                    const int32_t mouseX,
                                                    const int32_t mouseY) const
   {
@@ -137,29 +136,16 @@ namespace vke {
     m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
       const uint8_t* pixel = static_cast<uint8_t*>(data);
 
-      objectID = pixel[0] << 16 | pixel[1] << 8 | pixel[2];
+      objectID = static_cast<uint32_t>(pixel[0]) << 16 |
+                 static_cast<uint32_t>(pixel[1]) << 8 |
+                 static_cast<uint32_t>(pixel[2]);
     });
 
     return objectID;
   }
 
-  void MousePicker::handleMousePickingResult(const uint32_t objectID,
-                                             std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender)
-  {
-    *m_mousePickingItems.at(objectID) = true;
-
-    for (auto& [object, id] : m_renderObjectsToMousePick)
-    {
-      if (id == objectID)
-      {
-        renderObjectsToRender[PipelineType::objectHighlight].push_back(object);
-        break;
-      }
-    }
-  }
-
   void MousePicker::transitionImageForReading(VkCommandBuffer commandBuffer,
-                                              const VkImage image)
+                                              VkImage image)
   {
     const VkImageMemoryBarrier barrier {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -191,7 +177,7 @@ namespace vke {
   }
 
   void MousePicker::transitionImageForWriting(VkCommandBuffer commandBuffer,
-                                              const VkImage image)
+                                              VkImage image)
   {
     const VkImageMemoryBarrier barrierBack {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,

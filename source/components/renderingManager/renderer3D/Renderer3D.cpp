@@ -36,9 +36,9 @@ namespace vke {
     m_mousePicker->render(&renderInfoMousePicking, pipelineManager);
   }
 
-  void Renderer3D::handleRenderedMousePickingImage(const VkImage image)
+  void Renderer3D::handleRenderedMousePickingImage(VkImage image) const
   {
-    m_mousePicker->handleRenderedMousePickingImage(image, m_renderObjectsToRender);
+    m_mousePicker->handleRenderedMousePickingImage(image);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,

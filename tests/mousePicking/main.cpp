@@ -109,7 +109,7 @@ void renderScene(vke::VulkanEngine& renderer,
 {
   const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
-  gui->dockCenter("SceneView");
+  gui->dockCenter("Scene View");
   gui->dockBottom("Selected Object");
   gui->dockBottom("Lights");
   gui->dockBottom("Elliptical Dots");
@@ -138,12 +138,12 @@ void renderScene(vke::VulkanEngine& renderer,
   // Render Objects
   for (auto& [object, hovering, selected] : objects)
   {
-    r3d->renderObject(object, vke::PipelineType::object, &hovering);
-
-    if (selected)
+    if (selected || hovering)
     {
       r3d->renderObject(object, vke::PipelineType::objectHighlight);
     }
+
+    r3d->renderObject(object, vke::PipelineType::object, &hovering);
   }
 
   for (const auto& light : lights)

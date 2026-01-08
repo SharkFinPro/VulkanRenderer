@@ -128,7 +128,7 @@ namespace vke {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
-      .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
+      .colorFormat = VK_FORMAT_R8G8B8A8_UINT,
       .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
       .numSamples = VK_SAMPLE_COUNT_1_BIT
     };

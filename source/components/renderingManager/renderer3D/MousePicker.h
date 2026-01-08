@@ -41,8 +41,7 @@ namespace vke {
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    void handleRenderedMousePickingImage(VkImage image,
-                                         std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
+    void handleRenderedMousePickingImage(VkImage image);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -70,9 +69,6 @@ namespace vke {
                                                       int32_t mouseY) const;
 
     [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
-
-    void handleMousePickingResult(uint32_t objectID,
-                                  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& renderObjectsToRender);
 
     static void transitionImageForReading(VkCommandBuffer commandBuffer,
                                           VkImage image);

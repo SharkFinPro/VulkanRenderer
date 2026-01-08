@@ -45,7 +45,7 @@ namespace vke {
     void renderMousePicking(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    void handleRenderedMousePickingImage(VkImage image);
+    void handleRenderedMousePickingImage(VkImage image) const;
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;

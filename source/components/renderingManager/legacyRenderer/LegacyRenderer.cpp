@@ -231,7 +231,7 @@ namespace vke {
     m_shadowCubeRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowCubeRenderPassConfig);
 
     RenderPassConfig mousePickingRenderPassConfig {
-      .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
+      .imageFormat = VK_FORMAT_R8G8B8A8_UINT,
       .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
       .finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,
       .hasColorAttachment = true,

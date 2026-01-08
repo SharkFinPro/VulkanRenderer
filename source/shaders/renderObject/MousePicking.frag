@@ -4,13 +4,13 @@ layout(push_constant) uniform PushConstants {
   uint objectID;
 };
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out uvec4 outColor;
 
 void main()
 {
-  float r = float((objectID >> 16) & 0xFF) / 255.0;
-  float g = float((objectID >> 8) & 0xFF) / 255.0;
-  float b = float((objectID >> 0) & 0xFF) / 255.0;
+  float r = (objectID >> 16) & 0xFF;
+  float g = (objectID >> 8) & 0xFF;
+  float b = (objectID >> 0) & 0xFF;
 
-  outColor = vec4(r, g, b, 1.0);
+  outColor = uvec4(r, g, b, 255);
 }
