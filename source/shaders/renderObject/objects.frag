@@ -1,5 +1,6 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_nonuniform_qualifier : require
 #include "../common/Lighting.glsl"
 
 layout(set = 1, binding = 0) uniform Transform {
@@ -28,9 +29,9 @@ layout(set = 0, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 0, binding = 4) uniform sampler2DShadow[16] spotLightShadowMaps;
+layout(set = 0, binding = 4) uniform sampler2DShadow[] spotLightShadowMaps;
 
-layout(set = 0, binding = 5) uniform samplerCubeShadow[16] pointLightShadowMaps;
+layout(set = 0, binding = 5) uniform samplerCubeShadow[] pointLightShadowMaps;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
@@ -57,7 +58,7 @@ void main()
     float bias = 0.001;
     ref -= bias;
 
-    float shadow = texture(pointLightShadowMaps[i], vec4(fragToLight, ref));
+    float shadow = texture(pointLightShadowMaps[nonuniformEXT(i)], vec4(fragToLight, ref));
 
     if (shadow > 0.1)
     {
@@ -82,7 +83,7 @@ void main()
 
     if (shadow > 0.5)
     {
-      result += SpecularMapSpotLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
+      result += SpecularMapSpotLightAffect(spotLights[nonuniformEXT(i)], texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
     else
     {

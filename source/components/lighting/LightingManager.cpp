@@ -249,7 +249,6 @@ namespace vke {
   void LightingManager::updatePointLightShadowMaps(const uint32_t currentFrame) const
   {
     std::vector<VkDescriptorImageInfo> imageInfos;
-    imageInfos.reserve(MAX_SHADOW_MAPS);
 
     for (auto& light : m_pointLightsToRender)
     {
@@ -353,7 +352,6 @@ namespace vke {
   void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) const
   {
     std::vector<VkDescriptorImageInfo> imageInfos;
-    imageInfos.reserve(MAX_SHADOW_MAPS);
 
     for (auto& light : m_spotLightsToRender)
     {

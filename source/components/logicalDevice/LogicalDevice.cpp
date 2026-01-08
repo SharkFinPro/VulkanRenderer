@@ -652,20 +652,28 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceMultiviewFeatures multiviewFeatures {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
-      .multiview = VK_TRUE
+    VkPhysicalDeviceVulkan13Features vulkan13Features{
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+      .dynamicRendering = VK_TRUE
     };
 
-    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
-      .pNext = &multiviewFeatures,
-      .dynamicRendering = VK_TRUE
+    VkPhysicalDeviceVulkan12Features vulkan12Features{
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+      .pNext = &vulkan13Features,
+      .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+      .descriptorBindingPartiallyBound = VK_TRUE,
+      .runtimeDescriptorArray = VK_TRUE
+    };
+
+    VkPhysicalDeviceVulkan11Features vulkan11Features {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+      .pNext = &vulkan12Features,
+      .multiview = VK_TRUE
     };
 
     VkPhysicalDeviceFeatures2 deviceFeatures2 {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-      .pNext = &dynamicRenderingFeatures,
+      .pNext = &vulkan11Features,
       .features {
         .geometryShader = VK_TRUE,
         .fillModeNonSolid = VK_TRUE,
