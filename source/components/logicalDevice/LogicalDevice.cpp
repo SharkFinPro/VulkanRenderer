@@ -652,8 +652,16 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    VkPhysicalDeviceVulkan12Features vulkan12Features{
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+      .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+      .descriptorBindingPartiallyBound = VK_TRUE,
+      .runtimeDescriptorArray = VK_TRUE
+    };
+
     VkPhysicalDeviceMultiviewFeatures multiviewFeatures {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
+      .pNext = &vulkan12Features,
       .multiview = VK_TRUE
     };
 
