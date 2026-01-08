@@ -138,12 +138,12 @@ void renderScene(vke::VulkanEngine& renderer,
   // Render Objects
   for (auto& [object, hovering, selected] : objects)
   {
-    r3d->renderObject(object, vke::PipelineType::object, &hovering);
-
-    if (selected)
+    if (selected || hovering)
     {
       r3d->renderObject(object, vke::PipelineType::objectHighlight);
     }
+
+    r3d->renderObject(object, vke::PipelineType::object, &hovering);
   }
 
   for (const auto& light : lights)
