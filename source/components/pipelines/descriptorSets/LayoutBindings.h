@@ -4,7 +4,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-constexpr uint32_t MAX_SHADOW_MAPS = 16;
+constexpr uint32_t MAX_SHADOW_MAPS = 32;
 
 namespace vke::LayoutBindings {
 
