@@ -408,7 +408,7 @@ namespace vke {
     m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
   }
 
-  void RenderingManager::handleMousePickingResult(const uint32_t currentFrame)
+  void RenderingManager::handleMousePickingResult(const uint32_t currentFrame) const
   {
     m_logicalDevice->waitForMousePickingFences(currentFrame);
     m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
