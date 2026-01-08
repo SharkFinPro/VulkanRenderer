@@ -63,7 +63,7 @@ namespace vke {
           imageUsageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
         }
 
-        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
+        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UINT)
         {
           imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
         }
