@@ -24,13 +24,13 @@ namespace vke {
                                      std::shared_ptr<Surface> surface,
                                      std::shared_ptr<Window> window,
                                      const bool shouldRenderOffscreen,
-                                     const char* sceneViewName,
+                                     std::string sceneViewName,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
-      m_sceneViewName(sceneViewName),
+      m_sceneViewName(std::move(sceneViewName)),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager))
   {
     createCommandPool();
@@ -184,7 +184,7 @@ namespace vke {
       return;
     }
 
-    ImGui::Begin(m_sceneViewName);
+    ImGui::Begin(m_sceneViewName.c_str());
 
     m_sceneIsFocused = ImGui::IsWindowFocused();
 
