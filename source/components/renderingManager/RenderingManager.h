@@ -106,8 +106,6 @@ namespace vke {
                         uint32_t currentFrame,
                         uint32_t imageIndex) const;
 
-    void handleMousePickingResult(uint32_t currentFrame) const;
-
     void createCommandPool();
   };
 

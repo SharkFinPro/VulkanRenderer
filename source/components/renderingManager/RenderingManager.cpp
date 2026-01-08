@@ -104,8 +104,6 @@ namespace vke {
     {
       throw std::runtime_error("failed to present swap chain image!");
     }
-
-    handleMousePickingResult(currentFrame);
   }
 
   std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
@@ -406,10 +404,7 @@ namespace vke {
     m_mousePickingCommandBuffer->resetCommandBuffer();
     recordMousePickingCommandBuffer(pipelineManager, imageIndex, currentFrame);
     m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
-  }
 
-  void RenderingManager::handleMousePickingResult(const uint32_t currentFrame) const
-  {
     m_logicalDevice->waitForMousePickingFences(currentFrame);
     m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
   }
