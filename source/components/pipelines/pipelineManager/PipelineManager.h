@@ -75,9 +75,6 @@ namespace vke {
     void renderLinePipeline(const RenderInfo* renderInfo,
                             const std::vector<LineVertex>* lineVertices) const;
 
-    void renderRectPipeline(const RenderInfo* renderInfo,
-                            const std::vector<Rect>* rects) const;
-
     void renderTrianglePipeline(const RenderInfo* renderInfo,
                                 const std::vector<Triangle>* triangles) const;
 
@@ -89,6 +86,12 @@ namespace vke {
                             const std::shared_ptr<AssetManager>& assetManager) const;
 
     void bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void pushRectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   VkShaderStageFlags stageFlags,
+                                   uint32_t offset,
+                                   uint32_t size,
+                                   const void* values) const;
 
     void bindTrianglePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 

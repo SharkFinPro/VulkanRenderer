@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -14,7 +15,7 @@ namespace vke {
   {
     normalizeZValues();
 
-    pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
+    renderRects(pipelineManager, renderInfo);
 
     pipelineManager->renderTrianglePipeline(renderInfo, &m_trianglesToRender);
 
@@ -261,5 +262,33 @@ namespace vke {
         }
       }
     }
+  }
+
+  void Renderer2D::renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo) const
+  {
+    pipelineManager->bindRectPipeline(renderInfo->commandBuffer);
+
+    for (const auto& rect : m_rectsToRender)
+    {
+      renderRect(pipelineManager, renderInfo, rect);
+    }
+  }
+
+  void Renderer2D::renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo,
+                              const Rect& rect)
+  {
+    const auto rectPC = rect.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushRectPipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(Rect::PushConstant),
+      &rectPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 } // vke

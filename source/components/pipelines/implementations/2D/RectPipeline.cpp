@@ -1,7 +1,6 @@
 #include "RectPipeline.h"
 #include "../common/GraphicsPipelineStates.h"
-#include "../../../commandBuffer/CommandBuffer.h"
-#include "../../../renderingManager/renderer2D/Renderer2D.h"
+#include "../../../renderingManager/renderer2D/Primitives2D.h"
 
 namespace vke {
   RectPipeline::RectPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -27,47 +26,12 @@ namespace vke {
         {
           .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
           .offset = 0,
-          .size = sizeof(RectPushConstant)
+          .size = sizeof(Rect::PushConstant)
         }
       },
       .renderPass = renderPass
     };
 
     createPipeline(graphicsPipelineOptions);
-  }
-
-  void RectPipeline::render(const RenderInfo* renderInfo,
-                            const std::vector<Rect>* rects)
-  {
-    GraphicsPipeline::render(renderInfo, nullptr);
-
-    for (const auto& rect : *rects)
-    {
-      renderRect(renderInfo, rect);
-    }
-  }
-
-  void RectPipeline::renderRect(const RenderInfo* renderInfo,
-                                const Rect& rect) const
-  {
-    const RectPushConstant rectPC {
-      .transform = rect.transform,
-      .screenWidth = static_cast<int>(renderInfo->extent.width),
-      .screenHeight = static_cast<int>(renderInfo->extent.height),
-      .z = rect.z,
-      .x = rect.bounds.x,
-      .y = rect.bounds.y,
-      .width = rect.bounds.z,
-      .height = rect.bounds.w,
-      .r = rect.color.r,
-      .g = rect.color.g,
-      .b = rect.color.b,
-      .a = rect.color.a
-    };
-
-    renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                                             0, sizeof(RectPushConstant), &rectPC);
-
-    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 } // vke

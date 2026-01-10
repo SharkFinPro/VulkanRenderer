@@ -125,12 +125,6 @@ namespace vke {
     m_linePipeline->render(renderInfo, m_commandPool, lineVertices);
   }
 
-  void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
-                                           const std::vector<Rect>* rects) const
-  {
-    m_rectPipeline->render(renderInfo, rects);
-  }
-
   void PipelineManager::renderTrianglePipeline(const RenderInfo* renderInfo,
                                                const std::vector<Triangle>* triangles) const
   {
@@ -153,6 +147,15 @@ namespace vke {
   void PipelineManager::bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     m_rectPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushRectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  const VkShaderStageFlags stageFlags,
+                                                  const uint32_t offset,
+                                                  const uint32_t size,
+                                                  const void* values) const
+  {
+    m_rectPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
   void PipelineManager::bindTrianglePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const

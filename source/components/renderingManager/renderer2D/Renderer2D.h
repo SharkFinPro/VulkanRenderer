@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_RENDERER2D_H
 #define VULKANPROJECT_RENDERER2D_H
 
+#include "Primitives2D.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
@@ -20,13 +21,6 @@ namespace vke {
     glm::vec4 color;
     glm::mat4 transform;
     glm::vec4 uv;
-    float z;
-  };
-
-  struct Rect {
-    glm::vec4 bounds;
-    glm::vec4 color;
-    glm::mat4 transform;
     float z;
   };
 
@@ -138,6 +132,13 @@ namespace vke {
     void increaseCurrentZ();
 
     void normalizeZValues();
+
+    void renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                    const RenderInfo* renderInfo) const;
+
+    static void renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
+                           const RenderInfo* renderInfo,
+                           const Rect& rect);
   };
 } // vke
 

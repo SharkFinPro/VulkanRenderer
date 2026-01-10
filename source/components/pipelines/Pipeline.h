@@ -6,6 +6,7 @@
 
 namespace vke {
 
+  class CommandBuffer;
   class LogicalDevice;
 
   class Pipeline {
@@ -16,10 +17,17 @@ namespace vke {
 
     virtual void displayGui() {}
 
+    void pushConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                       VkShaderStageFlags stageFlags,
+                       uint32_t offset,
+                       uint32_t size,
+                       const void* values) const;
+
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+
     VkPipeline m_pipeline = VK_NULL_HANDLE;
   };
 
