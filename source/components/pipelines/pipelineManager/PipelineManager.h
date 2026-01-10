@@ -4,7 +4,6 @@
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/DotsPipeline.h"
 #include "../implementations/GridPipeline.h"
-#include "../implementations/GuiPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
 #include "../implementations/renderObject/MousePickingPipeline.h"
@@ -40,7 +39,7 @@ namespace vke {
     void computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                              uint32_t currentFrame) const;
 
-    void renderGuiPipeline(const RenderInfo* renderInfo) const;
+    void bindGuiPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     void renderShadowPipeline(const RenderInfo* renderInfo,
                               const std::vector<std::shared_ptr<RenderObject>>* objects) const;
@@ -114,7 +113,7 @@ namespace vke {
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
-    std::unique_ptr<GuiPipeline> m_guiPipeline;
+    std::unique_ptr<GraphicsPipeline> m_guiPipeline;
 
     std::unique_ptr<DotsPipeline> m_dotsPipeline;
 

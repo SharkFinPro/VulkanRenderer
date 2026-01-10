@@ -6,10 +6,11 @@
 #include "legacyRenderer/LegacyRenderer.h"
 #include "renderer2D/Renderer2D.h"
 #include "renderer3D/Renderer3D.h"
-#include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../imGui/ImGuiInstance.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../lighting/LightingManager.h"
 #include "../window/SwapChain.h"
 #include "../window/Window.h"
@@ -328,7 +329,9 @@ namespace vke {
         m_renderer2D->render(&renderInfo2D, pipelineManager);
       }
 
-      pipelineManager->renderGuiPipeline(&renderInfo);
+      pipelineManager->bindGuiPipeline(renderInfo.commandBuffer);
+      ImGui::Render();
+      ImGuiInstance::renderDrawData(renderInfo.commandBuffer);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
     });

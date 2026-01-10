@@ -1,4 +1,5 @@
 #include "PipelineManager.h"
+#include "../implementations/PipelineConfig.h"
 #include "../implementations/PipelineConfig2D.h"
 #include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
@@ -52,9 +53,9 @@ namespace vke {
     m_dotsPipeline->compute(commandBuffer, currentFrame);
   }
 
-  void PipelineManager::renderGuiPipeline(const RenderInfo* renderInfo) const
+  void PipelineManager::bindGuiPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_guiPipeline->render(renderInfo);
+    m_guiPipeline->bind(commandBuffer);
   }
 
   void PipelineManager::renderShadowPipeline(const RenderInfo* renderInfo,
@@ -280,7 +281,8 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_guiPipeline = std::make_unique<GuiPipeline>(m_logicalDevice, renderPass);
+    m_guiPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createUIPipelineOptions(m_logicalDevice, renderPass));
 
     m_dotsPipeline = std::make_unique<DotsPipeline>(m_logicalDevice, m_commandPool, renderPass, m_descriptorPool);
 
