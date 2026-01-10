@@ -16,30 +16,6 @@ namespace vke {
   class PipelineManager;
   struct RenderInfo;
 
-  struct Glyph {
-    glm::vec4 bounds;
-    glm::vec4 color;
-    glm::mat4 transform;
-    glm::vec4 uv;
-    float z;
-  };
-
-  struct Triangle {
-    glm::vec2 p1;
-    glm::vec2 p2;
-    glm::vec2 p3;
-    glm::vec4 color;
-    glm::mat4 transform;
-    float z;
-  };
-
-  struct Ellipse {
-    glm::vec4 bounds;
-    glm::vec4 color;
-    glm::mat4 transform;
-    float z;
-  };
-
   class Renderer2D {
   public:
     explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
@@ -139,6 +115,27 @@ namespace vke {
     static void renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo,
                            const Rect& rect);
+
+    void renderTriangles(const std::shared_ptr<PipelineManager>& pipelineManager,
+                         const RenderInfo* renderInfo) const;
+
+    static void renderTriangle(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo,
+                               const Triangle& triangle);
+
+    void renderEllipses(const std::shared_ptr<PipelineManager>& pipelineManager,
+                        const RenderInfo* renderInfo) const;
+
+    static void renderEllipse(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo,
+                              const Ellipse& ellipse);
+
+    void renderGlyphs(const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const RenderInfo* renderInfo) const;
+
+    static void renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo,
+                            const Glyph& glyph);
   };
 } // vke
 

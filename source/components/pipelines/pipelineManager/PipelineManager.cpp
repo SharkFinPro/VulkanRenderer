@@ -125,25 +125,6 @@ namespace vke {
     m_linePipeline->render(renderInfo, m_commandPool, lineVertices);
   }
 
-  void PipelineManager::renderTrianglePipeline(const RenderInfo* renderInfo,
-                                               const std::vector<Triangle>* triangles) const
-  {
-    m_trianglePipeline->render(renderInfo, triangles);
-  }
-
-  void PipelineManager::renderEllipsePipeline(const RenderInfo* renderInfo,
-                                              const std::vector<Ellipse>* ellipses) const
-  {
-    m_ellipsePipeline->render(renderInfo, ellipses);
-  }
-
-  void PipelineManager::renderFontPipeline(const RenderInfo* renderInfo,
-                                           const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
-                                           const std::shared_ptr<AssetManager>& assetManager) const
-  {
-    m_fontPipeline->render(renderInfo, glyphs, assetManager);
-  }
-
   void PipelineManager::bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     m_rectPipeline->bind(commandBuffer);
@@ -163,14 +144,48 @@ namespace vke {
     m_trianglePipeline->bind(commandBuffer);
   }
 
+  void PipelineManager::pushTrianglePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                      const VkShaderStageFlags stageFlags,
+                                                      const uint32_t offset,
+                                                      const uint32_t size,
+                                                      const void* values) const
+  {
+    m_trianglePipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
   void PipelineManager::bindEllipsePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     m_ellipsePipeline->bind(commandBuffer);
   }
 
+  void PipelineManager::pushEllipsePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                     const VkShaderStageFlags stageFlags,
+                                                     const uint32_t offset,
+                                                     const uint32_t size,
+                                                     const void* values) const
+  {
+    m_ellipsePipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
   void PipelineManager::bindFontPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     m_fontPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushFontPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  const VkShaderStageFlags stageFlags,
+                                                  const uint32_t offset,
+                                                  const uint32_t size,
+                                                  const void* values) const
+  {
+    m_fontPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindFontPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                      const VkDescriptorSet descriptorSet,
+                                                      const uint32_t location) const
+  {
+    m_fontPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::createPipelines(const std::shared_ptr<AssetManager>& assetManager,
