@@ -7,10 +7,6 @@
 #include "../implementations/GuiPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
-#include "../implementations/2D/EllipsePipeline.h"
-#include "../implementations/2D/FontPipeline.h"
-#include "../implementations/2D/RectPipeline.h"
-#include "../implementations/2D/TrianglePipeline.h"
 #include "../implementations/renderObject/MousePickingPipeline.h"
 #include "../implementations/renderObject/PointLightShadowMapPipeline.h"
 #include "../implementations/renderObject/ShadowPipeline.h"
@@ -138,13 +134,13 @@ namespace vke {
 
     std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
 
-    std::unique_ptr<RectPipeline> m_rectPipeline;
+    std::unique_ptr<GraphicsPipeline> m_rectPipeline;
 
-    std::unique_ptr<TrianglePipeline> m_trianglePipeline;
+    std::unique_ptr<GraphicsPipeline> m_trianglePipeline;
 
     std::unique_ptr<GraphicsPipeline> m_ellipsePipeline;
 
-    std::unique_ptr<FontPipeline> m_fontPipeline;
+    std::unique_ptr<GraphicsPipeline> m_fontPipeline;
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,

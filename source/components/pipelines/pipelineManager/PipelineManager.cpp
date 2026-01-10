@@ -205,15 +205,17 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_rectPipeline = std::make_unique<RectPipeline>(m_logicalDevice, renderPass);
+    m_rectPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createRectPipelineOptions(m_logicalDevice, renderPass));
 
-    m_trianglePipeline = std::make_unique<TrianglePipeline>(m_logicalDevice, renderPass);
+    m_trianglePipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createTrianglePipelineOptions(m_logicalDevice, renderPass));
 
     m_ellipsePipeline = std::make_unique<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createEllipsePipelineOptions(m_logicalDevice, renderPass));
 
-    m_fontPipeline = std::make_unique<FontPipeline>(
-      m_logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());
+    m_fontPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createFontPipelineOptions(m_logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout()));
   }
 
   void PipelineManager::createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
