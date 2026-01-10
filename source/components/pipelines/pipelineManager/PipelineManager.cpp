@@ -77,9 +77,18 @@ namespace vke {
     m_bendyPipeline->render(renderInfo, plants);
   }
 
-  void PipelineManager::renderGridPipeline(const RenderInfo* renderInfo) const
+  void PipelineManager::bindGridPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_gridPipeline->render(renderInfo);
+    m_gridPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushGridPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  const VkShaderStageFlags stageFlags,
+                                                  const uint32_t offset,
+                                                  const uint32_t size,
+                                                  const void* values) const
+  {
+    m_gridPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
   void PipelineManager::renderRenderObjectPipeline(const RenderInfo* renderInfo,
@@ -291,7 +300,8 @@ namespace vke {
     m_bendyPipeline = std::make_unique<BendyPipeline>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, lightingManager->getLightingDescriptorSet());
 
-    m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, renderPass, m_descriptorPool);
+    m_gridPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createGridPipelineOptions(m_logicalDevice, renderPass));
 
     m_smokePipeline = std::make_unique<SmokePipeline>(
       m_logicalDevice, renderPass, lightingManager->getLightingDescriptorSet(),

@@ -177,8 +177,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/BendyPipeline.h
   components/pipelines/implementations/DotsPipeline.cpp
   components/pipelines/implementations/DotsPipeline.h
-  components/pipelines/implementations/GridPipeline.cpp
-  components/pipelines/implementations/GridPipeline.h
   components/pipelines/implementations/LinePipeline.cpp
   components/pipelines/implementations/LinePipeline.h
   components/pipelines/implementations/SmokePipeline.cpp

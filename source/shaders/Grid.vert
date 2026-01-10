@@ -1,10 +1,9 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform Grid {
-  mat4 view;
-  mat4 proj;
+layout(push_constant) uniform GridPC {
+  mat4 viewProj;
   vec3 viewPosition;
-} grid;
+} pc;
 
 layout(location = 0) out vec3 nearPoint;
 layout(location = 1) out vec3 farPoint;
@@ -18,7 +17,7 @@ vec2 positions[4] = vec2[](
 
 vec3 unprojectPoint(vec2 p, float z)
 {
-  vec4 newPoint = inverse(grid.view) * inverse(grid.proj) * vec4(p.x, p.y, z, 1.0);
+  vec4 newPoint = inverse(pc.viewProj) * vec4(p.x, p.y, z, 1.0);
 
   return newPoint.xyz / newPoint.w;
 }

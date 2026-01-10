@@ -1,6 +1,7 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
@@ -62,7 +63,7 @@ namespace vke {
 
     if (m_shouldRenderGrid)
     {
-      pipelineManager->renderGridPipeline(&renderInfo3D);
+      renderGrid(pipelineManager, &renderInfo3D);
     }
   }
 
@@ -185,5 +186,26 @@ namespace vke {
       system->update(renderInfo);
     }
     pipelineManager->renderSmokePipeline(renderInfo, &m_smokeSystemsToRender);
+  }
+
+  void Renderer3D::renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo)
+  {
+    pipelineManager->bindGridPipeline(renderInfo->commandBuffer);
+
+    const GridPushConstant gridPC {
+      .viewProj = renderInfo->getProjectionMatrix() * renderInfo->viewMatrix,
+      .viewPosition = renderInfo->viewPosition
+    };
+
+    pipelineManager->pushGridPipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(gridPC),
+      &gridPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 } // vke

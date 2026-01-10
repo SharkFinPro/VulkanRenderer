@@ -31,6 +31,11 @@ namespace vke {
     float bendStrength = -0.07;
   };
 
+  struct GridPushConstant {
+    glm::mat4 viewProj;
+    glm::vec3 viewPosition;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -98,7 +103,10 @@ namespace vke {
                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void renderSmokeSystems(const RenderInfo* renderInfo,
-                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
+                            const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    static void renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
+                    const RenderInfo* renderInfo);
   };
 } // vke
 

@@ -3,7 +3,6 @@
 
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/DotsPipeline.h"
-#include "../implementations/GridPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
 #include "../implementations/renderObject/MousePickingPipeline.h"
@@ -51,7 +50,13 @@ namespace vke {
     void renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                   const std::vector<BendyPlant>* plants) const;
 
-    void renderGridPipeline(const RenderInfo* renderInfo) const;
+    void bindGridPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void pushGridPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   VkShaderStageFlags stageFlags,
+                                   uint32_t offset,
+                                   uint32_t size,
+                                   const void* values) const;
 
     void renderRenderObjectPipeline(const RenderInfo* renderInfo,
                                     const std::vector<std::shared_ptr<RenderObject>>* objects,
@@ -125,7 +130,7 @@ namespace vke {
 
     std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
-    std::unique_ptr<GridPipeline> m_gridPipeline;
+    std::unique_ptr<GraphicsPipeline> m_gridPipeline;
 
     std::unique_ptr<PointLightShadowMapPipeline> m_pointLightShadowMapPipeline;
 
