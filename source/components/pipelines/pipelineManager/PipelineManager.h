@@ -88,6 +88,14 @@ namespace vke {
                             const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
                             const std::shared_ptr<AssetManager>& assetManager) const;
 
+    void bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void bindTrianglePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void bindEllipsePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void bindFontPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

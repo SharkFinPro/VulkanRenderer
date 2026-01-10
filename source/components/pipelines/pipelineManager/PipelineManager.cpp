@@ -150,6 +150,26 @@ namespace vke {
     m_fontPipeline->render(renderInfo, glyphs, assetManager);
   }
 
+  void PipelineManager::bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_rectPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::bindTrianglePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_trianglePipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::bindEllipsePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_ellipsePipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::bindFontPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_fontPipeline->bind(commandBuffer);
+  }
+
   void PipelineManager::createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                                         const std::shared_ptr<Renderer>& renderer,
                                         const std::shared_ptr<LightingManager>& lightingManager)
