@@ -142,7 +142,7 @@ namespace vke {
 
     std::unique_ptr<TrianglePipeline> m_trianglePipeline;
 
-    std::unique_ptr<EllipsePipeline> m_ellipsePipeline;
+    std::unique_ptr<GraphicsPipeline> m_ellipsePipeline;
 
     std::unique_ptr<FontPipeline> m_fontPipeline;
 

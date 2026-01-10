@@ -1,4 +1,5 @@
 #include "PipelineManager.h"
+#include "../implementations/2D/PipelineConfig2D.h"
 #include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
@@ -208,7 +209,8 @@ namespace vke {
 
     m_trianglePipeline = std::make_unique<TrianglePipeline>(m_logicalDevice, renderPass);
 
-    m_ellipsePipeline = std::make_unique<EllipsePipeline>(m_logicalDevice, renderPass);
+    m_ellipsePipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createEllipsePipelineOptions(m_logicalDevice, renderPass));
 
     m_fontPipeline = std::make_unique<FontPipeline>(
       m_logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());

@@ -11,6 +11,13 @@ namespace vke {
     : Pipeline(std::move(logicalDevice))
   {}
 
+  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+                                     const GraphicsPipelineOptions& graphicsPipelineOptions)
+    : Pipeline(std::move(logicalDevice))
+  {
+    createPipeline(graphicsPipelineOptions);
+  }
+
   void GraphicsPipeline::render(const RenderInfo* renderInfo,
                                 const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
