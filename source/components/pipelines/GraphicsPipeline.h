@@ -125,6 +125,8 @@ namespace vke {
     virtual void render(const RenderInfo* renderInfo,
                         const std::vector<std::shared_ptr<RenderObject>>* objects);
 
+    void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
   protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 

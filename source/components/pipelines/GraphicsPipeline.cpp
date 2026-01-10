@@ -31,6 +31,11 @@ namespace vke {
     }
   }
 
+  void GraphicsPipeline::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+  }
+
   void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions)
   {
     const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
