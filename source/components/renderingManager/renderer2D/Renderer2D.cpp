@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -14,13 +15,13 @@ namespace vke {
   {
     normalizeZValues();
 
-    pipelineManager->renderRectPipeline(renderInfo, &m_rectsToRender);
+    renderRects(pipelineManager, renderInfo);
 
-    pipelineManager->renderTrianglePipeline(renderInfo, &m_trianglesToRender);
+    renderTriangles(pipelineManager, renderInfo);
 
-    pipelineManager->renderEllipsePipeline(renderInfo, &m_ellipsesToRender);
+    renderEllipses(pipelineManager, renderInfo);
 
-    pipelineManager->renderFontPipeline(renderInfo, &m_glyphsToRender, m_assetManager);
+    renderGlyphs(pipelineManager, renderInfo);
 
     if (m_shouldDoDots)
     {
@@ -261,5 +262,131 @@ namespace vke {
         }
       }
     }
+  }
+
+  void Renderer2D::renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo) const
+  {
+    pipelineManager->bindRectPipeline(renderInfo->commandBuffer);
+
+    for (const auto& rect : m_rectsToRender)
+    {
+      renderRect(pipelineManager, renderInfo, rect);
+    }
+  }
+
+  void Renderer2D::renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo,
+                              const Rect& rect)
+  {
+    const auto rectPC = rect.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushRectPipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(rectPC),
+      &rectPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderTriangles(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                   const RenderInfo* renderInfo) const
+  {
+    pipelineManager->bindTrianglePipeline(renderInfo->commandBuffer);
+
+    for (const auto& triangle : m_trianglesToRender)
+    {
+      renderTriangle(pipelineManager, renderInfo, triangle);
+    }
+  }
+
+  void Renderer2D::renderTriangle(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const RenderInfo* renderInfo,
+                                  const Triangle& triangle)
+  {
+    const auto trianglePC = triangle.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushTrianglePipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(trianglePC),
+      &trianglePC
+    );
+
+    renderInfo->commandBuffer->draw(3, 1, 0, 0);
+  }
+
+  void Renderer2D::renderEllipses(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const RenderInfo* renderInfo) const
+  {
+    pipelineManager->bindEllipsePipeline(renderInfo->commandBuffer);
+
+    for (const auto& ellipse : m_ellipsesToRender)
+    {
+      renderEllipse(pipelineManager, renderInfo, ellipse);
+    }
+  }
+
+  void Renderer2D::renderEllipse(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                 const RenderInfo* renderInfo,
+                                 const Ellipse& ellipse)
+  {
+    const auto ellipsePC = ellipse.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushEllipsePipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(ellipsePC),
+      &ellipsePC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderGlyphs(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const RenderInfo* renderInfo) const
+  {
+    pipelineManager->bindFontPipeline(renderInfo->commandBuffer);
+
+    for (const auto& [fontName, fontSizes] : m_glyphsToRender)
+    {
+      for (const auto& [fontSize, text] : fontSizes)
+      {
+        const auto descriptorSet = m_assetManager->getFont(fontName, fontSize)->getDescriptorSet(renderInfo->currentFrame);
+
+        pipelineManager->bindFontPipelineDescriptorSet(
+          renderInfo->commandBuffer,
+          descriptorSet,
+          0
+        );
+
+        for (const auto& glyph : text)
+        {
+          renderGlyph(pipelineManager, renderInfo, glyph);
+        }
+      }
+    }
+  }
+
+  void Renderer2D::renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo,
+                               const Glyph& glyph)
+  {
+    const auto glyphPC = glyph.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushFontPipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(glyphPC),
+      &glyphPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 } // vke

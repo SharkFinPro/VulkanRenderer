@@ -1,4 +1,5 @@
 #include "PipelineManager.h"
+#include "../implementations/PipelineConfig2D.h"
 #include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
@@ -125,29 +126,67 @@ namespace vke {
     m_linePipeline->render(renderInfo, m_commandPool, lineVertices);
   }
 
-  void PipelineManager::renderRectPipeline(const RenderInfo* renderInfo,
-                                           const std::vector<Rect>* rects) const
+  void PipelineManager::bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_rectPipeline->render(renderInfo, rects);
+    m_rectPipeline->bind(commandBuffer);
   }
 
-  void PipelineManager::renderTrianglePipeline(const RenderInfo* renderInfo,
-                                               const std::vector<Triangle>* triangles) const
+  void PipelineManager::pushRectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  const VkShaderStageFlags stageFlags,
+                                                  const uint32_t offset,
+                                                  const uint32_t size,
+                                                  const void* values) const
   {
-    m_trianglePipeline->render(renderInfo, triangles);
+    m_rectPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
-  void PipelineManager::renderEllipsePipeline(const RenderInfo* renderInfo,
-                                              const std::vector<Ellipse>* ellipses) const
+  void PipelineManager::bindTrianglePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_ellipsePipeline->render(renderInfo, ellipses);
+    m_trianglePipeline->bind(commandBuffer);
   }
 
-  void PipelineManager::renderFontPipeline(const RenderInfo* renderInfo,
-                                           const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
-                                           const std::shared_ptr<AssetManager>& assetManager) const
+  void PipelineManager::pushTrianglePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                      const VkShaderStageFlags stageFlags,
+                                                      const uint32_t offset,
+                                                      const uint32_t size,
+                                                      const void* values) const
   {
-    m_fontPipeline->render(renderInfo, glyphs, assetManager);
+    m_trianglePipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindEllipsePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_ellipsePipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushEllipsePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                     const VkShaderStageFlags stageFlags,
+                                                     const uint32_t offset,
+                                                     const uint32_t size,
+                                                     const void* values) const
+  {
+    m_ellipsePipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindFontPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_fontPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushFontPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  const VkShaderStageFlags stageFlags,
+                                                  const uint32_t offset,
+                                                  const uint32_t size,
+                                                  const void* values) const
+  {
+    m_fontPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindFontPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                      const VkDescriptorSet descriptorSet,
+                                                      const uint32_t location) const
+  {
+    m_fontPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::createPipelines(const std::shared_ptr<AssetManager>& assetManager,
@@ -166,14 +205,17 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_rectPipeline = std::make_unique<RectPipeline>(m_logicalDevice, renderPass);
+    m_rectPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createRectPipelineOptions(m_logicalDevice, renderPass));
 
-    m_trianglePipeline = std::make_unique<TrianglePipeline>(m_logicalDevice, renderPass);
+    m_trianglePipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createTrianglePipelineOptions(m_logicalDevice, renderPass));
 
-    m_ellipsePipeline = std::make_unique<EllipsePipeline>(m_logicalDevice, renderPass);
+    m_ellipsePipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createEllipsePipelineOptions(m_logicalDevice, renderPass));
 
-    m_fontPipeline = std::make_unique<FontPipeline>(
-      m_logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout());
+    m_fontPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createFontPipelineOptions(m_logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout()));
   }
 
   void PipelineManager::createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,

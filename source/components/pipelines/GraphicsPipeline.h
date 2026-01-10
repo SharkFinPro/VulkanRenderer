@@ -113,7 +113,7 @@ namespace vke {
 
     std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
-    std::shared_ptr<RenderPass>& renderPass;
+    const std::shared_ptr<RenderPass>& renderPass;
 
     VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
   };
@@ -122,8 +122,17 @@ namespace vke {
   public:
     explicit GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
+    GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+                     const GraphicsPipelineOptions& graphicsPipelineOptions);
+
     virtual void render(const RenderInfo* renderInfo,
                         const std::vector<std::shared_ptr<RenderObject>>* objects);
+
+    void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                           VkDescriptorSet descriptorSet,
+                           uint32_t location) const;
 
   protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);

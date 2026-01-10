@@ -11,6 +11,13 @@ namespace vke {
     : Pipeline(std::move(logicalDevice))
   {}
 
+  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+                                     const GraphicsPipelineOptions& graphicsPipelineOptions)
+    : Pipeline(std::move(logicalDevice))
+  {
+    createPipeline(graphicsPipelineOptions);
+  }
+
   void GraphicsPipeline::render(const RenderInfo* renderInfo,
                                 const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
@@ -29,6 +36,24 @@ namespace vke {
         object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame);
       }
     }
+  }
+
+  void GraphicsPipeline::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+  }
+
+  void GraphicsPipeline::bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           const VkDescriptorSet descriptorSet,
+                                           const uint32_t location) const
+  {
+    commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipelineLayout,
+      location,
+      1,
+      &descriptorSet
+    );
   }
 
   void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions)

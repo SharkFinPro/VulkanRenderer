@@ -7,10 +7,6 @@
 #include "../implementations/GuiPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
-#include "../implementations/2D/EllipsePipeline.h"
-#include "../implementations/2D/FontPipeline.h"
-#include "../implementations/2D/RectPipeline.h"
-#include "../implementations/2D/TrianglePipeline.h"
 #include "../implementations/renderObject/MousePickingPipeline.h"
 #include "../implementations/renderObject/PointLightShadowMapPipeline.h"
 #include "../implementations/renderObject/ShadowPipeline.h"
@@ -75,18 +71,41 @@ namespace vke {
     void renderLinePipeline(const RenderInfo* renderInfo,
                             const std::vector<LineVertex>* lineVertices) const;
 
-    void renderRectPipeline(const RenderInfo* renderInfo,
-                            const std::vector<Rect>* rects) const;
+    void bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    void renderTrianglePipeline(const RenderInfo* renderInfo,
-                                const std::vector<Triangle>* triangles) const;
+    void pushRectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   VkShaderStageFlags stageFlags,
+                                   uint32_t offset,
+                                   uint32_t size,
+                                   const void* values) const;
 
-    void renderEllipsePipeline(const RenderInfo* renderInfo,
-                               const std::vector<Ellipse>* ellipses) const;
+    void bindTrianglePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    void renderFontPipeline(const RenderInfo* renderInfo,
-                            const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
-                            const std::shared_ptr<AssetManager>& assetManager) const;
+    void pushTrianglePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                       VkShaderStageFlags stageFlags,
+                                       uint32_t offset,
+                                       uint32_t size,
+                                       const void* values) const;
+
+    void bindEllipsePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void pushEllipsePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                      VkShaderStageFlags stageFlags,
+                                      uint32_t offset,
+                                      uint32_t size,
+                                      const void* values) const;
+
+    void bindFontPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void pushFontPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   VkShaderStageFlags stageFlags,
+                                   uint32_t offset,
+                                   uint32_t size,
+                                   const void* values) const;
+
+    void bindFontPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                       VkDescriptorSet descriptorSet,
+                                       uint32_t location) const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -115,13 +134,13 @@ namespace vke {
 
     std::unique_ptr<MousePickingPipeline> m_mousePickingPipeline;
 
-    std::unique_ptr<RectPipeline> m_rectPipeline;
+    std::unique_ptr<GraphicsPipeline> m_rectPipeline;
 
-    std::unique_ptr<TrianglePipeline> m_trianglePipeline;
+    std::unique_ptr<GraphicsPipeline> m_trianglePipeline;
 
-    std::unique_ptr<EllipsePipeline> m_ellipsePipeline;
+    std::unique_ptr<GraphicsPipeline> m_ellipsePipeline;
 
-    std::unique_ptr<FontPipeline> m_fontPipeline;
+    std::unique_ptr<GraphicsPipeline> m_fontPipeline;
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,
