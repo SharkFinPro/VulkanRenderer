@@ -351,6 +351,11 @@ namespace vke {
         .extent = m_shouldRenderOffscreen ? m_offscreenViewportExtent : m_swapChain->getExtent(),
       };
 
+      if (renderInfo.extent.width == 0 || renderInfo.extent.height == 0)
+      {
+        return;
+      }
+
       m_renderer->beginMousePickingRendering(imageIndex, renderInfo.extent, renderInfo.commandBuffer);
 
       const VkViewport viewport = {
