@@ -26,11 +26,15 @@ namespace vke {
 
   void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const VkPipelineLayout& pipelineLayout,
-                          const uint32_t currentFrame,
-                          const uint32_t descriptorSet) const
+                          const uint32_t currentFrame) const
   {
-    commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, descriptorSet,
-                                      1, &m_descriptorSet->getDescriptorSet(currentFrame));
+    commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      pipelineLayout,
+      0,
+      1,
+      &m_descriptorSet->getDescriptorSet(currentFrame)
+    );
 
     m_model->draw(commandBuffer);
   }

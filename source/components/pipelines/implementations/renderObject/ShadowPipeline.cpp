@@ -54,7 +54,7 @@ namespace vke {
       {
         object->updateUniformBuffer(renderInfo->currentFrame, {1.0}, {1.0});
 
-        object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
+        object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame);
       }
     }
   }

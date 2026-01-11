@@ -25,8 +25,7 @@ namespace vke {
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
               const VkPipelineLayout& pipelineLayout,
-              uint32_t currentFrame,
-              uint32_t descriptorSet = 0) const;
+              uint32_t currentFrame) const;
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 

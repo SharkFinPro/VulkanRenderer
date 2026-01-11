@@ -60,7 +60,7 @@ namespace vke {
 
       first->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      first->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame, 0);
+      first->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame);
     }
   }
 
