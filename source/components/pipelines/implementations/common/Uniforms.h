@@ -41,15 +41,6 @@ namespace vke {
     float whiteMix;
   };
 
-  struct MagnifyWhirlMosaicUniform {
-    float lensS;
-    float lensT;
-    float lensRadius;
-    float magnification;
-    float whirl;
-    float mosaic;
-  };
-
   struct SnakeUniform {
     float wiggle;
   };
@@ -99,12 +90,6 @@ namespace vke {
     int leafLength;
     float pitch;
     float bendStrength;
-  };
-
-  struct GridUniform {
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-    glm::vec3 viewPosition;
   };
 
 } // namespace vke

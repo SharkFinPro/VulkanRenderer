@@ -3,35 +3,35 @@
 #extension GL_EXT_nonuniform_qualifier : require
 #include "../common/Lighting.glsl"
 
-layout(set = 1, binding = 0) uniform Transform {
+layout(set = 0, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;
 } transform;
 
-layout(set = 1, binding = 1) uniform sampler2D texSampler;
-layout(set = 1, binding = 4) uniform sampler2D specSampler;
+layout(set = 0, binding = 1) uniform sampler2D texSampler;
+layout(set = 0, binding = 4) uniform sampler2D specSampler;
 
-layout(set = 0, binding = 0) uniform PointLightsMetadata {
+layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 0, binding = 1) readonly buffer PointLights {
+layout(set = 1, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 0, binding = 2) readonly buffer SpotLights {
+layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 0, binding = 3) uniform Camera {
+layout(set = 1, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 0, binding = 4) uniform sampler2DShadow[] spotLightShadowMaps;
+layout(set = 1, binding = 4) uniform sampler2DShadow[] spotLightShadowMaps;
 
-layout(set = 0, binding = 5) uniform samplerCubeShadow[] pointLightShadowMaps;
+layout(set = 1, binding = 5) uniform samplerCubeShadow[] pointLightShadowMaps;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;

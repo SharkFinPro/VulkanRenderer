@@ -38,8 +38,8 @@ namespace vke {
         .viewportState = GraphicsPipelineStates::viewportState
       },
       .descriptorSetLayouts {
-        m_cubeMapDescriptorSet->getDescriptorSetLayout(),
         objectDescriptorSetLayout,
+        m_cubeMapDescriptorSet->getDescriptorSetLayout()
       },
       .renderPass = renderPass
     };
@@ -119,7 +119,7 @@ namespace vke {
 
   void CubeMapPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
   {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
                                                   &m_cubeMapDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
   }
 

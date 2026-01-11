@@ -19,19 +19,19 @@ layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 0, binding = 4) uniform EllipticalDots {
+layout(set = 1, binding = 4) uniform EllipticalDots {
   float shininess;
   float sDiameter;
   float tDiameter;
   float blendFactor;
 } ellipticalDots;
 
-layout(set = 0, binding = 6) uniform NoiseOptions {
+layout(set = 1, binding = 6) uniform NoiseOptions {
   float amplitude;
   float frequency;
 } noiseOptions;
 
-layout(set = 0, binding = 7) uniform sampler3D Noise3;
+layout(set = 1, binding = 7) uniform sampler3D Noise3;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;

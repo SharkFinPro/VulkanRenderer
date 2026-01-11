@@ -38,8 +38,8 @@ namespace vke {
         .viewportState = GraphicsPipelineStates::viewportState
       },
       .descriptorSetLayouts {
-        m_noisyEllipticalDotsDescriptorSet->getDescriptorSetLayout(),
         objectDescriptorSetLayout,
+        m_noisyEllipticalDotsDescriptorSet->getDescriptorSetLayout(),
         m_lightingDescriptorSet->getDescriptorSetLayout()
       },
       .renderPass = renderPass
@@ -99,7 +99,7 @@ namespace vke {
 
   void NoisyEllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
   {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
                                                   &m_noisyEllipticalDotsDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 
     renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,

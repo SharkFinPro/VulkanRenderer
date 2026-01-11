@@ -19,7 +19,7 @@ layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 0, binding = 4) uniform Curtain {
+layout(set = 1, binding = 4) uniform Curtain {
   float amplitude;
   float period;
   float shininess;

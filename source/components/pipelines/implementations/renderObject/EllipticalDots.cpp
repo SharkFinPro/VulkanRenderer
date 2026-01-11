@@ -36,8 +36,8 @@ namespace vke {
         }
       },
       .descriptorSetLayouts {
-        m_lightingDescriptorSet->getDescriptorSetLayout(),
-        objectDescriptorSetLayout
+        objectDescriptorSetLayout,
+        m_lightingDescriptorSet->getDescriptorSetLayout()
       },
       .renderPass = renderPass
     };
@@ -65,7 +65,7 @@ namespace vke {
 
   void EllipticalDots::bindDescriptorSet(const RenderInfo* renderInfo)
   {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
                                                   &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
   }
 

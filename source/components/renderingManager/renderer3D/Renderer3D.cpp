@@ -44,8 +44,26 @@ namespace vke {
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,
-                          const std::shared_ptr<PipelineManager>& pipelineManager) const
+                          const std::shared_ptr<PipelineManager>& pipelineManager)
   {
+    if (m_renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic) &&
+        !m_renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic).empty())
+    {
+      ImGui::Begin("Magnify Whirl Mosaic");
+
+      ImGui::SliderFloat("Lens S Center", &m_magnifyWhirlMosaicPC.lensS, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens T Center", &m_magnifyWhirlMosaicPC.lensT, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens Radius", &m_magnifyWhirlMosaicPC.lensRadius, 0.01f, 0.75f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
+      ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
+      ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
+
+      ImGui::End();
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -170,7 +188,8 @@ namespace vke {
         continue;
       }
 
-      if (pipelineType == PipelineType::texturedPlane)
+      if (pipelineType == PipelineType::texturedPlane ||
+          pipelineType == PipelineType::magnifyWhirlMosaic)
       {
         renderRenderObjects(pipelineManager, renderInfo, pipelineType, &objects);
         continue;
@@ -219,13 +238,25 @@ namespace vke {
   void Renderer3D::renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
                                        const RenderInfo* renderInfo,
                                        const PipelineType pipelineType,
-                                       const std::vector<std::shared_ptr<RenderObject>>* objects)
+                                       const std::vector<std::shared_ptr<RenderObject>>* objects) const
   {
+    pipelineManager->bindRenderObjectPipeline(renderInfo->commandBuffer, pipelineType);
+
+    if (pipelineType == PipelineType::magnifyWhirlMosaic)
+    {
+      pipelineManager->pushRenderObjectPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_magnifyWhirlMosaicPC),
+        &m_magnifyWhirlMosaicPC
+      );
+    }
+
     for (const auto& object : *objects)
     {
       object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-      pipelineManager->bindRenderObjectPipeline(renderInfo->commandBuffer, pipelineType);
 
       pipelineManager->bindRenderObjectPipelineDescriptorSet(
         renderInfo->commandBuffer,

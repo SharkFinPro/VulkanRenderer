@@ -17,8 +17,7 @@ namespace vke {
                              const VkDescriptorSetLayout objectDescriptorSetLayout,
                              const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
     : GraphicsPipeline(std::move(logicalDevice)),
-      m_lightingDescriptorSet(lightingDescriptorSet),
-      m_objectDescriptorSetLayout(objectDescriptorSetLayout)
+      m_lightingDescriptorSet(lightingDescriptorSet)
   {
     createUniforms(commandPool);
 
@@ -40,8 +39,8 @@ namespace vke {
         .viewportState = GraphicsPipelineStates::viewportState
       },
       .descriptorSetLayouts {
+        objectDescriptorSetLayout,
         m_bumpyCurtainDescriptorSet->getDescriptorSetLayout(),
-        m_objectDescriptorSetLayout,
         m_lightingDescriptorSet->getDescriptorSetLayout()
       },
       .renderPass = renderPass
@@ -100,7 +99,7 @@ namespace vke {
 
   void BumpyCurtain::bindDescriptorSet(const RenderInfo* renderInfo)
   {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
                                                   &m_bumpyCurtainDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
 
     renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 2, 1,

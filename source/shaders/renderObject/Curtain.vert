@@ -1,12 +1,12 @@
 #version 450
 
-layout(set = 1, binding = 0) uniform Transform {
+layout(set = 0, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;
 } transform;
 
-layout(set = 0, binding = 4) uniform Curtain {
+layout(set = 1, binding = 4) uniform Curtain {
   float amplitude;
   float period;
   float shininess;

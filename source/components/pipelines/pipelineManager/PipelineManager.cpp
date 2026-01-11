@@ -7,7 +7,6 @@
 #include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/CurtainPipeline.h"
 #include "../implementations/renderObject/EllipticalDots.h"
-#include "../implementations/renderObject/MagnifyWhirlMosaicPipeline.h"
 #include "../implementations/renderObject/NoisyEllipticalDots.h"
 #include "../implementations/renderObject/ObjectsPipeline.h"
 #include "../implementations/renderObject/PipelineConfigRenderObject.h"
@@ -282,8 +281,8 @@ namespace vke {
     m_renderObjectPipelines[PipelineType::texturedPlane] = std::make_shared<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_renderObjectPipelines[PipelineType::magnifyWhirlMosaic] = std::make_shared<MagnifyWhirlMosaicPipeline>(
-      m_logicalDevice, renderPass, m_descriptorPool, objectDescriptorSetLayout);
+    m_renderObjectPipelines[PipelineType::magnifyWhirlMosaic] = std::make_shared<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::snake] = std::make_shared<SnakePipeline>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
