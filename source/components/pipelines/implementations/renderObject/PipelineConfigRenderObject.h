@@ -32,6 +32,32 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createObjectHighlightPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                    const std::shared_ptr<RenderPass>& renderPass,
+                                                                    const VkDescriptorSetLayout objectDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/ObjectHighlight.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/ObjectHighlight.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendStateDots,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionOnly,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H

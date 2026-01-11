@@ -159,8 +159,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/MousePickingPipeline.h
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.cpp
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.h
-  components/pipelines/implementations/renderObject/ObjectHighlightPipeline.cpp
-  components/pipelines/implementations/renderObject/ObjectHighlightPipeline.h
   components/pipelines/implementations/renderObject/ObjectsPipeline.cpp
   components/pipelines/implementations/renderObject/ObjectsPipeline.h
   components/pipelines/implementations/renderObject/PointLightShadowMapPipeline.cpp

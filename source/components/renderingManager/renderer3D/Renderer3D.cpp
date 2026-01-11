@@ -172,7 +172,7 @@ namespace vke {
 
       if (pipelineType == PipelineType::texturedPlane)
       {
-        renderRenderObjects(pipelineManager, renderInfo, PipelineType::texturedPlane);
+        renderRenderObjects(pipelineManager, renderInfo, pipelineType, &objects);
         continue;
       }
 
@@ -181,7 +181,7 @@ namespace vke {
 
     if (highlightedRenderObjects)
     {
-      pipelineManager->renderRenderObjectPipeline(renderInfo, highlightedRenderObjects, PipelineType::objectHighlight);
+      renderRenderObjects(pipelineManager, renderInfo, PipelineType::objectHighlight, highlightedRenderObjects);
     }
   }
 
@@ -218,9 +218,10 @@ namespace vke {
 
   void Renderer3D::renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
                                        const RenderInfo* renderInfo,
-                                       const PipelineType pipelineType) const
+                                       const PipelineType pipelineType,
+                                       const std::vector<std::shared_ptr<RenderObject>>* objects)
   {
-    for (const auto& object : m_renderObjectsToRenderFlattened)
+    for (const auto& object : *objects)
     {
       object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 

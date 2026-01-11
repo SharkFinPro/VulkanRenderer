@@ -9,7 +9,6 @@
 #include "../implementations/renderObject/EllipticalDots.h"
 #include "../implementations/renderObject/MagnifyWhirlMosaicPipeline.h"
 #include "../implementations/renderObject/NoisyEllipticalDots.h"
-#include "../implementations/renderObject/ObjectHighlightPipeline.h"
 #include "../implementations/renderObject/ObjectsPipeline.h"
 #include "../implementations/renderObject/PipelineConfigRenderObject.h"
 #include "../implementations/renderObject/SnakePipeline.h"
@@ -247,8 +246,8 @@ namespace vke {
       m_logicalDevice, renderPass, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_renderObjectPipelines[PipelineType::objectHighlight] = std::make_shared<ObjectHighlightPipeline>(
-      m_logicalDevice, renderPass, objectDescriptorSetLayout);
+    m_renderObjectPipelines[PipelineType::objectHighlight] = std::make_shared<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::ellipticalDots] = std::make_shared<EllipticalDots>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());

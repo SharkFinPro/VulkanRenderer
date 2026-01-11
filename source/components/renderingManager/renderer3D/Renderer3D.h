@@ -108,9 +108,10 @@ namespace vke {
     static void renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo);
 
-    void renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
-                             const RenderInfo* renderInfo,
-                             PipelineType pipelineType) const;
+    static void renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                    const RenderInfo* renderInfo,
+                                    PipelineType pipelineType,
+                                    const std::vector<std::shared_ptr<RenderObject>>* objects);
   };
 } // vke
 
