@@ -130,7 +130,7 @@ namespace vke {
 
     std::unique_ptr<DotsPipeline> m_dotsPipeline;
 
-    std::unordered_map<PipelineType, std::shared_ptr<Pipeline>> m_renderObjectPipelines;
+    std::unordered_map<PipelineType, std::shared_ptr<GraphicsPipeline>> m_renderObjectPipelines;
 
     std::unique_ptr<SmokePipeline> m_smokePipeline;
 

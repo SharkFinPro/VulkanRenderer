@@ -349,12 +349,6 @@ namespace vke {
       throw std::runtime_error("Pipeline for object type does not exist");
     }
 
-    auto graphicsPipeline = std::dynamic_pointer_cast<GraphicsPipeline>(it->second);
-    if (!graphicsPipeline)
-    {
-      throw std::runtime_error("Pipeline for object type is not a GraphicsPipeline");
-    }
-
-    return graphicsPipeline;
+    return it->second;
   }
 } // namespace vke
