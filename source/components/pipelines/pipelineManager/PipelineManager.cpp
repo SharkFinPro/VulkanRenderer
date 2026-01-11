@@ -142,10 +142,25 @@ namespace vke {
     m_smokePipeline->compute(commandBuffer, currentFrame, systems);
   }
 
-  void PipelineManager::renderMousePickingPipeline(const RenderInfo* renderInfo,
-                                                   const std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>>* objects) const
+  void PipelineManager::bindMousePickingPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_mousePickingPipeline->render(renderInfo, objects);
+    m_mousePickingPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushMousePickingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                          const VkShaderStageFlags stageFlags,
+                                                          const uint32_t offset,
+                                                          const uint32_t size,
+                                                          const void* values) const
+  {
+    m_mousePickingPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindMousePickingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                              const VkDescriptorSet descriptorSet,
+                                                              const uint32_t location) const
+  {
+    m_mousePickingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::renderLinePipeline(const RenderInfo* renderInfo,
@@ -298,8 +313,8 @@ namespace vke {
       m_logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
       lightingManager->getPointLightDescriptorSetLayout());
 
-    m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(
-      m_logicalDevice, renderer->getMousePickingRenderPass(), objectDescriptorSetLayout);
+    m_mousePickingPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createMousePickingPipelineOptions(renderPass, objectDescriptorSetLayout));
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,

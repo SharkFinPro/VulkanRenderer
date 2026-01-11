@@ -153,8 +153,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/CurtainPipeline.h
   components/pipelines/implementations/renderObject/EllipticalDots.cpp
   components/pipelines/implementations/renderObject/EllipticalDots.h
-  components/pipelines/implementations/renderObject/MousePickingPipeline.cpp
-  components/pipelines/implementations/renderObject/MousePickingPipeline.h
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.cpp
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.h
   components/pipelines/implementations/renderObject/ObjectsPipeline.cpp

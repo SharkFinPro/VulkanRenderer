@@ -9,7 +9,7 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createTexturedPlanePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                     const std::shared_ptr<RenderPass>& renderPass,
-                                                                    const VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                    VkDescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -35,7 +35,7 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createObjectHighlightPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                     const std::shared_ptr<RenderPass>& renderPass,
-                                                                    const VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                    VkDescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -61,7 +61,7 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createMagnifyWhirlMosaicPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                          const std::shared_ptr<RenderPass>& renderPass,
-                                                                         const VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                         VkDescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -89,6 +89,39 @@ namespace vke::PipelineConfig {
         objectDescriptorSetLayout
       },
       .renderPass = renderPass
+    };
+  }
+
+  inline GraphicsPipelineOptions createMousePickingPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
+                                                                   VkDescriptorSetLayout objectDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/MousePicking.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/MousePicking.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::multisampleStateNone,
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionOnly,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(uint32_t)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout
+      },
+      .renderPass = renderPass,
+      .colorFormat = VK_FORMAT_R8G8B8A8_UINT
     };
   }
 

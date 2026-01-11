@@ -1,6 +1,6 @@
 #include "MousePicker.h"
+#include "../../assets/objects/RenderObject.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../pipelines/implementations/common/PipelineTypes.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../window/Window.h"
 #include "../../../utilities/Buffers.h"
@@ -56,7 +56,28 @@ namespace vke {
   void MousePicker::render(const RenderInfo* renderInfo,
                            const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    pipelineManager->renderMousePickingPipeline(renderInfo, &m_renderObjectsToMousePick);
+    pipelineManager->bindMousePickingPipeline(renderInfo->commandBuffer);
+
+    for (const auto& [object, id] : m_renderObjectsToMousePick)
+    {
+      pipelineManager->pushMousePickingPipelineConstants(
+        renderInfo->commandBuffer,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(id),
+        &id
+      );
+
+      pipelineManager->bindMousePickingPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        object->getDescriptorSet(renderInfo->currentFrame),
+        0
+      );
+
+      object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+
+      object->draw(renderInfo->commandBuffer);
+    }
   }
 
   void MousePicker::handleRenderedMousePickingImage(VkImage image)
