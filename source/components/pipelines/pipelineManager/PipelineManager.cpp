@@ -1,4 +1,5 @@
 #include "PipelineManager.h"
+#include "../implementations/PipelineConfig.h"
 #include "../implementations/PipelineConfig2D.h"
 #include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
@@ -6,12 +7,10 @@
 #include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/CurtainPipeline.h"
 #include "../implementations/renderObject/EllipticalDots.h"
-#include "../implementations/renderObject/MagnifyWhirlMosaicPipeline.h"
 #include "../implementations/renderObject/NoisyEllipticalDots.h"
-#include "../implementations/renderObject/ObjectHighlightPipeline.h"
 #include "../implementations/renderObject/ObjectsPipeline.h"
+#include "../implementations/renderObject/PipelineConfigRenderObject.h"
 #include "../implementations/renderObject/SnakePipeline.h"
-#include "../implementations/renderObject/TexturedPlane.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -52,22 +51,51 @@ namespace vke {
     m_dotsPipeline->compute(commandBuffer, currentFrame);
   }
 
-  void PipelineManager::renderGuiPipeline(const RenderInfo* renderInfo) const
+  void PipelineManager::bindGuiPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_guiPipeline->render(renderInfo);
+    m_guiPipeline->bind(commandBuffer);
   }
 
-  void PipelineManager::renderShadowPipeline(const RenderInfo* renderInfo,
-                                             const std::vector<std::shared_ptr<RenderObject>>* objects) const
+  void PipelineManager::bindShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_shadowPipeline->render(renderInfo, objects);
+    m_shadowPipeline->bind(commandBuffer);
   }
 
-  void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo* renderInfo,
-                                                          const std::vector<std::shared_ptr<RenderObject>>* objects,
-                                                          const std::shared_ptr<PointLight>& pointLight) const
+  void PipelineManager::pushShadowPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                    const VkShaderStageFlags stageFlags,
+                                                    const uint32_t offset,
+                                                    const uint32_t size,
+                                                    const void* values) const
   {
-    m_pointLightShadowMapPipeline->render(renderInfo, objects, pointLight);
+    m_shadowPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindShadowPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                        VkDescriptorSet descriptorSet,
+                                                        const uint32_t location) const
+  {
+    m_shadowPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
+  }
+
+  void PipelineManager::bindPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_pointLightShadowMapPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushPointLightShadowMapPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                                 const VkShaderStageFlags stageFlags,
+                                                                 const uint32_t offset,
+                                                                 const uint32_t size,
+                                                                 const void* values) const
+  {
+    m_pointLightShadowMapPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindPointLightShadowMapPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                                     VkDescriptorSet descriptorSet,
+                                                                     const uint32_t location) const
+  {
+    m_pointLightShadowMapPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::renderBendyPlantPipeline(const RenderInfo* renderInfo,
@@ -76,29 +104,58 @@ namespace vke {
     m_bendyPipeline->render(renderInfo, plants);
   }
 
-  void PipelineManager::renderGridPipeline(const RenderInfo* renderInfo) const
+  void PipelineManager::bindGridPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_gridPipeline->render(renderInfo);
+    m_gridPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushGridPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  const VkShaderStageFlags stageFlags,
+                                                  const uint32_t offset,
+                                                  const uint32_t size,
+                                                  const void* values) const
+  {
+    m_gridPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
   void PipelineManager::renderRenderObjectPipeline(const RenderInfo* renderInfo,
                                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
                                                    const PipelineType pipelineType) const
   {
-    const auto it = m_pipelines.find(pipelineType);
-    if (it == m_pipelines.end())
-    {
-      throw std::runtime_error("Pipeline for object type does not exist");
-    }
-
-    auto* graphicsPipeline = dynamic_cast<GraphicsPipeline*>(it->second.get());
-    if (!graphicsPipeline)
-    {
-      throw std::runtime_error("Pipeline for object type is not a GraphicsPipeline");
-    }
+    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
 
     graphicsPipeline->displayGui();
     graphicsPipeline->render(renderInfo, objects);
+  }
+
+  void PipelineManager::bindRenderObjectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                 const PipelineType pipelineType) const
+  {
+    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
+
+    graphicsPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushRenderObjectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                          const PipelineType pipelineType,
+                                                          const VkShaderStageFlags stageFlags,
+                                                          const uint32_t offset,
+                                                          const uint32_t size,
+                                                          const void* values) const
+  {
+    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
+
+    graphicsPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindRenderObjectPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                              const PipelineType pipelineType,
+                                                              VkDescriptorSet descriptorSet,
+                                                              const uint32_t location) const
+  {
+    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
+
+    graphicsPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::renderSmokePipeline(const RenderInfo* renderInfo,
@@ -114,10 +171,25 @@ namespace vke {
     m_smokePipeline->compute(commandBuffer, currentFrame, systems);
   }
 
-  void PipelineManager::renderMousePickingPipeline(const RenderInfo* renderInfo,
-                                                   const std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>>* objects) const
+  void PipelineManager::bindMousePickingPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_mousePickingPipeline->render(renderInfo, objects);
+    m_mousePickingPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushMousePickingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                          const VkShaderStageFlags stageFlags,
+                                                          const uint32_t offset,
+                                                          const uint32_t size,
+                                                          const void* values) const
+  {
+    m_mousePickingPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindMousePickingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                              VkDescriptorSet descriptorSet,
+                                                              const uint32_t location) const
+  {
+    m_mousePickingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::renderLinePipeline(const RenderInfo* renderInfo,
@@ -183,7 +255,7 @@ namespace vke {
   }
 
   void PipelineManager::bindFontPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                      const VkDescriptorSet descriptorSet,
+                                                      VkDescriptorSet descriptorSet,
                                                       const uint32_t location) const
   {
     m_fontPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
@@ -225,53 +297,53 @@ namespace vke {
     const auto renderPass = renderer->getSwapchainRenderPass();
     const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
 
-    m_pipelines[PipelineType::object] = std::make_unique<ObjectsPipeline>(
+    m_renderObjectPipelines[PipelineType::object] = std::make_shared<ObjectsPipeline>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_pipelines[PipelineType::objectHighlight] = std::make_unique<ObjectHighlightPipeline>(
-      m_logicalDevice, renderPass, objectDescriptorSetLayout);
+    m_renderObjectPipelines[PipelineType::objectHighlight] = std::make_shared<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_pipelines[PipelineType::ellipticalDots] = std::make_unique<EllipticalDots>(
+    m_renderObjectPipelines[PipelineType::ellipticalDots] = std::make_shared<EllipticalDots>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
 
-    m_pipelines[PipelineType::noisyEllipticalDots] = std::make_unique<NoisyEllipticalDots>(
+    m_renderObjectPipelines[PipelineType::noisyEllipticalDots] = std::make_shared<NoisyEllipticalDots>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_pipelines[PipelineType::bumpyCurtain] = std::make_unique<BumpyCurtain>(
+    m_renderObjectPipelines[PipelineType::bumpyCurtain] = std::make_shared<BumpyCurtain>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_pipelines[PipelineType::curtain] = std::make_unique<CurtainPipeline>(
+    m_renderObjectPipelines[PipelineType::curtain] = std::make_shared<CurtainPipeline>(
       m_logicalDevice, renderPass, m_descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_pipelines[PipelineType::cubeMap] = std::make_unique<CubeMapPipeline>(
+    m_renderObjectPipelines[PipelineType::cubeMap] = std::make_shared<CubeMapPipeline>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout);
 
-    m_pipelines[PipelineType::texturedPlane] = std::make_unique<TexturedPlane>(
-      m_logicalDevice, renderPass, objectDescriptorSetLayout);
+    m_renderObjectPipelines[PipelineType::texturedPlane] = std::make_shared<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_pipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<MagnifyWhirlMosaicPipeline>(
-      m_logicalDevice, renderPass, m_descriptorPool, objectDescriptorSetLayout);
+    m_renderObjectPipelines[PipelineType::magnifyWhirlMosaic] = std::make_shared<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_pipelines[PipelineType::snake] = std::make_unique<SnakePipeline>(
+    m_renderObjectPipelines[PipelineType::snake] = std::make_shared<SnakePipeline>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
 
-    m_pipelines[PipelineType::crosses] = std::make_unique<CrossesPipeline>(
+    m_renderObjectPipelines[PipelineType::crosses] = std::make_shared<CrossesPipeline>(
       m_logicalDevice, renderPass, m_descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_shadowPipeline = std::make_unique<ShadowPipeline>(
-      m_logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
+    m_shadowPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createShadowMapPipelineOptions(renderer->getShadowRenderPass(), objectDescriptorSetLayout));
 
-    m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
-      m_logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
-      lightingManager->getPointLightDescriptorSetLayout());
+    m_pointLightShadowMapPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createPointLightShadowMapPipelineOptions(renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
+      lightingManager->getPointLightDescriptorSetLayout()));
 
-    m_mousePickingPipeline = std::make_unique<MousePickingPipeline>(
-      m_logicalDevice, renderer->getMousePickingRenderPass(), objectDescriptorSetLayout);
+    m_mousePickingPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createMousePickingPipelineOptions(renderPass, objectDescriptorSetLayout));
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
@@ -280,7 +352,8 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_guiPipeline = std::make_unique<GuiPipeline>(m_logicalDevice, renderPass);
+    m_guiPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createUIPipelineOptions(m_logicalDevice, renderPass));
 
     m_dotsPipeline = std::make_unique<DotsPipeline>(m_logicalDevice, m_commandPool, renderPass, m_descriptorPool);
 
@@ -289,7 +362,8 @@ namespace vke {
     m_bendyPipeline = std::make_unique<BendyPipeline>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, lightingManager->getLightingDescriptorSet());
 
-    m_gridPipeline = std::make_unique<GridPipeline>(m_logicalDevice, renderPass, m_descriptorPool);
+    m_gridPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createGridPipelineOptions(m_logicalDevice, renderPass));
 
     m_smokePipeline = std::make_unique<SmokePipeline>(
       m_logicalDevice, renderPass, lightingManager->getLightingDescriptorSet(),
@@ -320,5 +394,16 @@ namespace vke {
     };
 
     m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+  }
+
+  std::shared_ptr<GraphicsPipeline> PipelineManager::getRenderObjectPipeline(const PipelineType pipelineType) const
+  {
+    const auto it = m_renderObjectPipelines.find(pipelineType);
+    if (it == m_renderObjectPipelines.end())
+    {
+      throw std::runtime_error("Pipeline for object type does not exist");
+    }
+
+    return it->second;
   }
 } // namespace vke

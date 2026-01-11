@@ -2,6 +2,7 @@
 #include "lights/Light.h"
 #include "lights/PointLight.h"
 #include "lights/SpotLight.h"
+#include "../assets/objects/RenderObject.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
@@ -459,7 +460,36 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      pipelineManager->renderPointLightShadowMapPipeline(&shadowRenderInfo, objects, pointLight);
+      pipelineManager->bindPointLightShadowMapPipeline(shadowRenderInfo.commandBuffer);
+
+      pipelineManager->pushPointLightShadowMapPipelineConstants(
+        shadowRenderInfo.commandBuffer,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(shadowRenderInfo.viewPosition),
+        &shadowRenderInfo.viewPosition
+      );
+
+      pointLight->updateUniform(shadowRenderInfo.currentFrame);
+
+      pipelineManager->bindPointLightShadowMapPipelineDescriptorSet(
+        shadowRenderInfo.commandBuffer,
+        pointLight->getDescriptorSet(currentFrame),
+        1
+      );
+
+      for (const auto& object : *objects)
+      {
+        object->updateUniformBuffer(shadowRenderInfo.currentFrame, {1.0}, {1.0});
+
+        pipelineManager->bindPointLightShadowMapPipelineDescriptorSet(
+          shadowRenderInfo.commandBuffer,
+          object->getDescriptorSet(currentFrame),
+          0
+        );
+
+        object->draw(shadowRenderInfo.commandBuffer);
+      }
 
       m_renderer->endShadowRendering(commandBuffer);
     }
@@ -506,7 +536,28 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      pipelineManager->renderShadowPipeline(&shadowRenderInfo, objects);
+      pipelineManager->bindShadowPipeline(shadowRenderInfo.commandBuffer);
+
+      pipelineManager->pushShadowPipelineConstants(
+        shadowRenderInfo.commandBuffer,
+        VK_SHADER_STAGE_VERTEX_BIT,
+        0,
+        sizeof(shadowRenderInfo.viewMatrix),
+        &shadowRenderInfo.viewMatrix
+      );
+
+      for (const auto& object : *objects)
+      {
+        object->updateUniformBuffer(shadowRenderInfo.currentFrame, {1.0}, {1.0});
+
+        pipelineManager->bindShadowPipelineDescriptorSet(
+          shadowRenderInfo.commandBuffer,
+          object->getDescriptorSet(currentFrame),
+          0
+        );
+
+        object->draw(shadowRenderInfo.commandBuffer);
+      }
 
       m_renderer->endShadowRendering(commandBuffer);
     }

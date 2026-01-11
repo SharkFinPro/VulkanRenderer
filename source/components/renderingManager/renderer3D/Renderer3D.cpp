@@ -1,6 +1,8 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
+#include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
@@ -42,8 +44,26 @@ namespace vke {
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,
-                          const std::shared_ptr<PipelineManager>& pipelineManager) const
+                          const std::shared_ptr<PipelineManager>& pipelineManager)
   {
+    if (m_renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic) &&
+        !m_renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic).empty())
+    {
+      ImGui::Begin("Magnify Whirl Mosaic");
+
+      ImGui::SliderFloat("Lens S Center", &m_magnifyWhirlMosaicPC.lensS, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens T Center", &m_magnifyWhirlMosaicPC.lensT, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens Radius", &m_magnifyWhirlMosaicPC.lensRadius, 0.01f, 0.75f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
+      ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
+      ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
+
+      ImGui::End();
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -52,7 +72,7 @@ namespace vke {
       .extent = renderInfo->extent
     };
 
-    renderRenderObjects(&renderInfo3D, pipelineManager);
+    renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager);
 
     pipelineManager->renderBendyPlantPipeline(&renderInfo3D, &m_bendyPlantsToRender);
 
@@ -62,7 +82,7 @@ namespace vke {
 
     if (m_shouldRenderGrid)
     {
-      pipelineManager->renderGridPipeline(&renderInfo3D);
+      renderGrid(pipelineManager, &renderInfo3D);
     }
   }
 
@@ -151,8 +171,8 @@ namespace vke {
     return m_smokeSystemsToRender;
   }
 
-  void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
-                                       const std::shared_ptr<PipelineManager>& pipelineManager) const
+  void Renderer3D::renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
+                                                 const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
     const std::vector<std::shared_ptr<RenderObject>>* highlightedRenderObjects = nullptr;
     for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
@@ -168,12 +188,19 @@ namespace vke {
         continue;
       }
 
+      if (pipelineType == PipelineType::texturedPlane ||
+          pipelineType == PipelineType::magnifyWhirlMosaic)
+      {
+        renderRenderObjects(pipelineManager, renderInfo, pipelineType, &objects);
+        continue;
+      }
+
       pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
     }
 
     if (highlightedRenderObjects)
     {
-      pipelineManager->renderRenderObjectPipeline(renderInfo, highlightedRenderObjects, PipelineType::objectHighlight);
+      renderRenderObjects(pipelineManager, renderInfo, PipelineType::objectHighlight, highlightedRenderObjects);
     }
   }
 
@@ -185,5 +212,60 @@ namespace vke {
       system->update(renderInfo);
     }
     pipelineManager->renderSmokePipeline(renderInfo, &m_smokeSystemsToRender);
+  }
+
+  void Renderer3D::renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo)
+  {
+    pipelineManager->bindGridPipeline(renderInfo->commandBuffer);
+
+    const GridPushConstant gridPC {
+      .viewProj = renderInfo->getProjectionMatrix() * renderInfo->viewMatrix,
+      .viewPosition = renderInfo->viewPosition
+    };
+
+    pipelineManager->pushGridPipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(gridPC),
+      &gridPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer3D::renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                       const RenderInfo* renderInfo,
+                                       const PipelineType pipelineType,
+                                       const std::vector<std::shared_ptr<RenderObject>>* objects) const
+  {
+    pipelineManager->bindRenderObjectPipeline(renderInfo->commandBuffer, pipelineType);
+
+    if (pipelineType == PipelineType::magnifyWhirlMosaic)
+    {
+      pipelineManager->pushRenderObjectPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_magnifyWhirlMosaicPC),
+        &m_magnifyWhirlMosaicPC
+      );
+    }
+
+    for (const auto& object : *objects)
+    {
+      object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+
+      pipelineManager->bindRenderObjectPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        pipelineType,
+        object->getDescriptorSet(renderInfo->currentFrame),
+        0
+      );
+
+      object->draw(renderInfo->commandBuffer);
+    }
   }
 } // vke

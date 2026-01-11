@@ -153,34 +153,18 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/CurtainPipeline.h
   components/pipelines/implementations/renderObject/EllipticalDots.cpp
   components/pipelines/implementations/renderObject/EllipticalDots.h
-  components/pipelines/implementations/renderObject/MagnifyWhirlMosaicPipeline.cpp
-  components/pipelines/implementations/renderObject/MagnifyWhirlMosaicPipeline.h
-  components/pipelines/implementations/renderObject/MousePickingPipeline.cpp
-  components/pipelines/implementations/renderObject/MousePickingPipeline.h
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.cpp
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.h
-  components/pipelines/implementations/renderObject/ObjectHighlightPipeline.cpp
-  components/pipelines/implementations/renderObject/ObjectHighlightPipeline.h
   components/pipelines/implementations/renderObject/ObjectsPipeline.cpp
   components/pipelines/implementations/renderObject/ObjectsPipeline.h
-  components/pipelines/implementations/renderObject/PointLightShadowMapPipeline.cpp
-  components/pipelines/implementations/renderObject/PointLightShadowMapPipeline.h
-  components/pipelines/implementations/renderObject/ShadowPipeline.cpp
-  components/pipelines/implementations/renderObject/ShadowPipeline.h
   components/pipelines/implementations/renderObject/SnakePipeline.cpp
   components/pipelines/implementations/renderObject/SnakePipeline.h
-  components/pipelines/implementations/renderObject/TexturedPlane.cpp
-  components/pipelines/implementations/renderObject/TexturedPlane.h
 
   # Other Pipelines
   components/pipelines/implementations/BendyPipeline.cpp
   components/pipelines/implementations/BendyPipeline.h
   components/pipelines/implementations/DotsPipeline.cpp
   components/pipelines/implementations/DotsPipeline.h
-  components/pipelines/implementations/GridPipeline.cpp
-  components/pipelines/implementations/GridPipeline.h
-  components/pipelines/implementations/GuiPipeline.cpp
-  components/pipelines/implementations/GuiPipeline.h
   components/pipelines/implementations/LinePipeline.cpp
   components/pipelines/implementations/LinePipeline.h
   components/pipelines/implementations/SmokePipeline.cpp

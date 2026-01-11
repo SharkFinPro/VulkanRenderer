@@ -1,10 +1,9 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform Grid {
-  mat4 view;
-  mat4 proj;
+layout(push_constant) uniform GridPC {
+  mat4 viewProj;
   vec3 viewPosition;
-} grid;
+} pc;
 
 layout(location = 0) in vec3 nearPoint;
 layout(location = 1) in vec3 farPoint;
@@ -66,10 +65,10 @@ void main() {
 
   vec3 fragPosition = nearPoint + t * (farPoint - nearPoint);
 
-  vec4 clipSpacePosition = grid.proj * grid.view * vec4(fragPosition.xyz, 1.0);
+  vec4 clipSpacePosition = pc.viewProj * vec4(fragPosition.xyz, 1.0);
   gl_FragDepth = clipSpacePosition.z / clipSpacePosition.w;
 
-  float dist = distance(fragPosition, grid.viewPosition);
+  float dist = distance(fragPosition, pc.viewPosition);
   float fadeout = exp(-dist * 0.0025);
 
   outColor = gridColor(fragPosition, 1, 10) * fadeout;

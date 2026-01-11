@@ -31,6 +31,20 @@ namespace vke {
     float bendStrength = -0.07;
   };
 
+  struct GridPushConstant {
+    glm::mat4 viewProj;
+    glm::vec3 viewPosition;
+  };
+
+  struct MagnifyWhirlMosaicPushConstant {
+    float lensS;
+    float lensT;
+    float lensRadius;
+    float magnification;
+    float whirl;
+    float mosaic;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -48,7 +62,7 @@ namespace vke {
     void handleRenderedMousePickingImage(VkImage image) const;
 
     void render(const RenderInfo* renderInfo,
-                const std::shared_ptr<PipelineManager>& pipelineManager) const;
+                const std::shared_ptr<PipelineManager>& pipelineManager);
 
     void createNewFrame();
 
@@ -94,11 +108,28 @@ namespace vke {
 
     std::vector<std::shared_ptr<SmokeSystem>> m_smokeSystemsToRender;
 
-    void renderRenderObjects(const RenderInfo* renderInfo,
-                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
+    MagnifyWhirlMosaicPushConstant m_magnifyWhirlMosaicPC {
+      .lensS = 0.5f,
+      .lensT = 0.5f,
+      .lensRadius = 0.25f,
+      .magnification = 1.0f,
+      .whirl = 0.0f,
+      .mosaic = 0.001f
+    };
+
+    void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
+                                       const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void renderSmokeSystems(const RenderInfo* renderInfo,
-                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
+                            const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    static void renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
+                           const RenderInfo* renderInfo);
+
+    void renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                             const RenderInfo* renderInfo,
+                             PipelineType pipelineType,
+                             const std::vector<std::shared_ptr<RenderObject>>* objects) const;
   };
 } // vke
 

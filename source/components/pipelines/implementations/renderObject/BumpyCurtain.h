@@ -39,8 +39,6 @@ namespace vke {
     std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
     std::shared_ptr<DescriptorSet> m_bumpyCurtainDescriptorSet;
 
-    VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
-
     std::shared_ptr<UniformBuffer> m_curtainUniform;
     std::shared_ptr<UniformBuffer> m_noiseOptionsUniform;
     std::shared_ptr<Texture3D> m_noiseTexture;

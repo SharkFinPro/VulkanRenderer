@@ -116,6 +116,8 @@ namespace vke {
     const std::shared_ptr<RenderPass>& renderPass;
 
     VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
+    bool renderToCubeMap = false;
   };
 
   class GraphicsPipeline : public Pipeline {
@@ -137,8 +139,7 @@ namespace vke {
   protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
-    void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions,
-                        bool renderCubeMap = false);
+    void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
 

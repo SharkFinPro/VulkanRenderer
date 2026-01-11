@@ -28,9 +28,7 @@ namespace vke {
 
     void updateUniform(uint32_t currentFrame) const;
 
-    void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                           const VkPipelineLayout& pipelineLayout,
-                           uint32_t currentFrame) const;
+    [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;

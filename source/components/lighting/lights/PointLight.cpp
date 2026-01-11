@@ -87,17 +87,9 @@ namespace vke {
     m_viewProjectionUniform->update(currentFrame, &matrices);
   }
 
-  void PointLight::bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                     const VkPipelineLayout& pipelineLayout,
-                                     const uint32_t currentFrame) const
+  VkDescriptorSet PointLight::getDescriptorSet(const uint32_t currentFrame) const
   {
-    commandBuffer->bindDescriptorSets(
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
-      pipelineLayout,
-      1,
-      1,
-      &m_descriptorSet->getDescriptorSet(currentFrame)
-    );
+    return m_descriptorSet->getDescriptorSet(currentFrame);
   }
 
   void PointLight::createShadowMap(const VkCommandPool& commandPool)

@@ -19,14 +19,14 @@ layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 0, binding = 4) uniform Crosses {
+layout(set = 1, binding = 4) uniform Crosses {
   int level;
   float quantize;
   float size;
   float shininess;
 } crosses;
 
-layout(std140, set = 0, binding = 6) uniform ChromaDepth {
+layout(std140, set = 1, binding = 6) uniform ChromaDepth {
   bool use;
   float blueDepth;
   float redDepth;

@@ -3,7 +3,7 @@
 #include "../common/Lighting.glsl"
 #include "../common/Perturb.glsl"
 
-layout(set = 1, binding = 0) uniform Transform {
+layout(set = 0, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;
@@ -26,18 +26,18 @@ layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 0, binding = 4) uniform Curtain {
+layout(set = 1, binding = 4) uniform Curtain {
   float amplitude;
   float period;
   float shininess;
 } curtain;
 
-layout(set = 0, binding = 6) uniform NoiseOptions {
+layout(set = 1, binding = 6) uniform NoiseOptions {
   float amplitude;
   float frequency;
 } noiseOptions;
 
-layout(set = 0, binding = 7) uniform sampler3D Noise3;
+layout(set = 1, binding = 7) uniform sampler3D Noise3;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
