@@ -150,7 +150,7 @@ namespace vke {
 
   void PipelineManager::bindRenderObjectPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                               const PipelineType pipelineType,
-                                                              const VkDescriptorSet descriptorSet,
+                                                              VkDescriptorSet descriptorSet,
                                                               const uint32_t location) const
   {
     const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
@@ -186,7 +186,7 @@ namespace vke {
   }
 
   void PipelineManager::bindMousePickingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                              const VkDescriptorSet descriptorSet,
+                                                              VkDescriptorSet descriptorSet,
                                                               const uint32_t location) const
   {
     m_mousePickingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
@@ -255,7 +255,7 @@ namespace vke {
   }
 
   void PipelineManager::bindFontPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                      const VkDescriptorSet descriptorSet,
+                                                      VkDescriptorSet descriptorSet,
                                                       const uint32_t location) const
   {
     m_fontPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
