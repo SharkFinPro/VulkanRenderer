@@ -3,13 +3,13 @@
 layout(triangles) in;
 layout(line_strip, max_vertices=78) out;
 
-layout(set = 1, binding = 0) uniform Transform {
+layout(set = 0, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;
 } transform;
 
-layout(set = 0, binding = 4) uniform Crosses {
+layout(set = 1, binding = 4) uniform Crosses {
   int level;
   float quantize;
   float size;
