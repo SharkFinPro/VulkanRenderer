@@ -21,6 +21,30 @@ namespace vke {
   class Renderer;
   class RenderObject;
 
+  enum class PipelineType {
+    bumpyCurtain,
+    crosses,
+    curtain,
+    cubeMap,
+    ellipticalDots,
+    magnifyWhirlMosaic,
+    noisyEllipticalDots,
+    object,
+    objectHighlight,
+    texturedPlane,
+    snake,
+
+    ellipse,
+    font,
+    gui,
+    grid,
+    mousePicking,
+    pointLightShadowMap,
+    rect,
+    shadow,
+    triangle
+  };
+
   class PipelineManager {
   public:
     PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -30,47 +54,28 @@ namespace vke {
 
     ~PipelineManager();
 
+    void bindGraphicsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                              PipelineType pipelineType) const;
+
+    void pushGraphicsPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                       PipelineType pipelineType,
+                                       VkShaderStageFlags stageFlags,
+                                       uint32_t offset,
+                                       uint32_t size,
+                                       const void* values) const;
+
+    void bindGraphicsPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           PipelineType pipelineType,
+                                           VkDescriptorSet descriptorSet,
+                                           uint32_t location) const;
+
     void renderDotsPipeline(const RenderInfo* renderInfo) const;
 
     void computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                              uint32_t currentFrame) const;
 
-    void bindGuiPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void bindShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushShadowPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                     VkShaderStageFlags stageFlags,
-                                     uint32_t offset,
-                                     uint32_t size,
-                                     const void* values) const;
-
-    void bindShadowPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                         VkDescriptorSet descriptorSet,
-                                         uint32_t location) const;
-
-    void bindPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushPointLightShadowMapPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                  VkShaderStageFlags stageFlags,
-                                                  uint32_t offset,
-                                                  uint32_t size,
-                                                  const void* values) const;
-
-    void bindPointLightShadowMapPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                      VkDescriptorSet descriptorSet,
-                                                      uint32_t location) const;
-
     void renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                   const std::vector<BendyPlant>* plants) const;
-
-    void bindGridPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushGridPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                   VkShaderStageFlags stageFlags,
-                                   uint32_t offset,
-                                   uint32_t size,
-                                   const void* values) const;
 
     void renderRenderObjectPipeline(const RenderInfo* renderInfo,
                                     const std::vector<std::shared_ptr<RenderObject>>* objects,
@@ -98,56 +103,8 @@ namespace vke {
                               uint32_t currentFrame,
                               const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
-    void bindMousePickingPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushMousePickingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           VkShaderStageFlags stageFlags,
-                                           uint32_t offset,
-                                           uint32_t size,
-                                           const void* values) const;
-
-    void bindMousePickingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                               VkDescriptorSet descriptorSet,
-                                               uint32_t location) const;
-
     void renderLinePipeline(const RenderInfo* renderInfo,
                             const std::vector<LineVertex>* lineVertices) const;
-
-    void bindRectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushRectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                   VkShaderStageFlags stageFlags,
-                                   uint32_t offset,
-                                   uint32_t size,
-                                   const void* values) const;
-
-    void bindTrianglePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushTrianglePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                       VkShaderStageFlags stageFlags,
-                                       uint32_t offset,
-                                       uint32_t size,
-                                       const void* values) const;
-
-    void bindEllipsePipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushEllipsePipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                      VkShaderStageFlags stageFlags,
-                                      uint32_t offset,
-                                      uint32_t size,
-                                      const void* values) const;
-
-    void bindFontPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    void pushFontPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                   VkShaderStageFlags stageFlags,
-                                   uint32_t offset,
-                                   uint32_t size,
-                                   const void* values) const;
-
-    void bindFontPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                       VkDescriptorSet descriptorSet,
-                                       uint32_t location) const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -155,8 +112,6 @@ namespace vke {
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-
-    std::unique_ptr<GraphicsPipeline> m_guiPipeline;
 
     std::unique_ptr<DotsPipeline> m_dotsPipeline;
 
@@ -168,21 +123,7 @@ namespace vke {
 
     std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
-    std::unique_ptr<GraphicsPipeline> m_gridPipeline;
-
-    std::unique_ptr<GraphicsPipeline> m_pointLightShadowMapPipeline;
-
-    std::unique_ptr<GraphicsPipeline> m_shadowPipeline;
-
-    std::unique_ptr<GraphicsPipeline> m_mousePickingPipeline;
-
-    std::unique_ptr<GraphicsPipeline> m_rectPipeline;
-
-    std::unique_ptr<GraphicsPipeline> m_trianglePipeline;
-
-    std::unique_ptr<GraphicsPipeline> m_ellipsePipeline;
-
-    std::unique_ptr<GraphicsPipeline> m_fontPipeline;
+    std::unordered_map<PipelineType, std::shared_ptr<GraphicsPipeline>> m_graphicsPipelines;
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,
@@ -204,6 +145,8 @@ namespace vke {
     void createDescriptorPool();
 
     [[nodiscard]] std::shared_ptr<GraphicsPipeline> getRenderObjectPipeline(PipelineType pipelineType) const;
+
+    [[nodiscard]] std::shared_ptr<GraphicsPipeline> getGraphicsPipeline(PipelineType pipelineType) const;
   };
 
 } // namespace vke
