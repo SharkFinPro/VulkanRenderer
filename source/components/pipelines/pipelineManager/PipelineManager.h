@@ -5,8 +5,6 @@
 #include "../implementations/DotsPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
-#include "../implementations/renderObject/PointLightShadowMapPipeline.h"
-#include "../implementations/renderObject/ShadowPipeline.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>
@@ -39,12 +37,29 @@ namespace vke {
 
     void bindGuiPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    void renderShadowPipeline(const RenderInfo* renderInfo,
-                              const std::vector<std::shared_ptr<RenderObject>>* objects) const;
+    void bindShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    void renderPointLightShadowMapPipeline(const RenderInfo* renderInfo,
-                                           const std::vector<std::shared_ptr<RenderObject>>* objects,
-                                           const std::shared_ptr<PointLight>& pointLight) const;
+    void pushShadowPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                     VkShaderStageFlags stageFlags,
+                                     uint32_t offset,
+                                     uint32_t size,
+                                     const void* values) const;
+
+    void bindShadowPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                         VkDescriptorSet descriptorSet,
+                                         uint32_t location) const;
+
+    void bindPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void pushPointLightShadowMapPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  VkShaderStageFlags stageFlags,
+                                                  uint32_t offset,
+                                                  uint32_t size,
+                                                  const void* values) const;
+
+    void bindPointLightShadowMapPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                      VkDescriptorSet descriptorSet,
+                                                      uint32_t location) const;
 
     void renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                   const std::vector<BendyPlant>* plants) const;
@@ -155,9 +170,9 @@ namespace vke {
 
     std::unique_ptr<GraphicsPipeline> m_gridPipeline;
 
-    std::unique_ptr<PointLightShadowMapPipeline> m_pointLightShadowMapPipeline;
+    std::unique_ptr<GraphicsPipeline> m_pointLightShadowMapPipeline;
 
-    std::unique_ptr<ShadowPipeline> m_shadowPipeline;
+    std::unique_ptr<GraphicsPipeline> m_shadowPipeline;
 
     std::unique_ptr<GraphicsPipeline> m_mousePickingPipeline;
 

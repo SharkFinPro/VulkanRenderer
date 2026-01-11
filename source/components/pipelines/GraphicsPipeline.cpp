@@ -69,8 +69,7 @@ namespace vke {
     m_pipelineLayout = m_logicalDevice->createPipelineLayout(pipelineLayoutInfo);
   }
 
-  void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions,
-                                        const bool renderCubeMap)
+  void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions)
   {
     createPipelineLayout(graphicsPipelineOptions);
 
@@ -81,7 +80,7 @@ namespace vke {
 
     VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-      .viewMask = renderCubeMap ? 0x3Fu : 0,
+      .viewMask = graphicsPipelineOptions.renderToCubeMap ? 0x3Fu : 0,
       .colorAttachmentCount = static_cast<uint32_t>(hasColorFormat),
       .pColorAttachmentFormats = hasColorFormat ? &graphicsPipelineOptions.colorFormat : nullptr,
       .depthAttachmentFormat = hasColorFormat ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : VK_FORMAT_D32_SFLOAT

@@ -125,6 +125,74 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createShadowMapPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
+                                                                VkDescriptorSetLayout objectDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/Shadow.vert.spv",
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::multisampleStateNone,
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .offset = 0,
+          .size = sizeof(glm::mat4)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout
+      },
+      .renderPass = renderPass,
+      .colorFormat = VK_FORMAT_UNDEFINED
+    };
+  }
+
+  inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
+                                                                          VkDescriptorSetLayout objectDescriptorSetLayout,
+                                                                          VkDescriptorSetLayout pointLightDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/ShadowCubeMap.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/ShadowCubeMap.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::multisampleStateNone,
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(glm::vec3)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout,
+        pointLightDescriptorSetLayout
+      },
+      .renderPass = renderPass,
+      .colorFormat = VK_FORMAT_UNDEFINED,
+      .renderToCubeMap = true
+    };
+  }
+
 }
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H

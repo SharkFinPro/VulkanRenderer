@@ -56,17 +56,46 @@ namespace vke {
     m_guiPipeline->bind(commandBuffer);
   }
 
-  void PipelineManager::renderShadowPipeline(const RenderInfo* renderInfo,
-                                             const std::vector<std::shared_ptr<RenderObject>>* objects) const
+  void PipelineManager::bindShadowPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    m_shadowPipeline->render(renderInfo, objects);
+    m_shadowPipeline->bind(commandBuffer);
   }
 
-  void PipelineManager::renderPointLightShadowMapPipeline(const RenderInfo* renderInfo,
-                                                          const std::vector<std::shared_ptr<RenderObject>>* objects,
-                                                          const std::shared_ptr<PointLight>& pointLight) const
+  void PipelineManager::pushShadowPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                    const VkShaderStageFlags stageFlags,
+                                                    const uint32_t offset,
+                                                    const uint32_t size,
+                                                    const void* values) const
   {
-    m_pointLightShadowMapPipeline->render(renderInfo, objects, pointLight);
+    m_shadowPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindShadowPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                        VkDescriptorSet descriptorSet,
+                                                        const uint32_t location) const
+  {
+    m_shadowPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
+  }
+
+  void PipelineManager::bindPointLightShadowMapPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_pointLightShadowMapPipeline->bind(commandBuffer);
+  }
+
+  void PipelineManager::pushPointLightShadowMapPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                                 const VkShaderStageFlags stageFlags,
+                                                                 const uint32_t offset,
+                                                                 const uint32_t size,
+                                                                 const void* values) const
+  {
+    m_pointLightShadowMapPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
+  void PipelineManager::bindPointLightShadowMapPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                                     VkDescriptorSet descriptorSet,
+                                                                     const uint32_t location) const
+  {
+    m_pointLightShadowMapPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::renderBendyPlantPipeline(const RenderInfo* renderInfo,
@@ -306,12 +335,12 @@ namespace vke {
       m_logicalDevice, renderPass, m_descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_shadowPipeline = std::make_unique<ShadowPipeline>(
-      m_logicalDevice, renderer->getShadowRenderPass(), objectDescriptorSetLayout);
+    m_shadowPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createShadowMapPipelineOptions(renderer->getShadowRenderPass(), objectDescriptorSetLayout));
 
-    m_pointLightShadowMapPipeline = std::make_unique<PointLightShadowMapPipeline>(
-      m_logicalDevice, renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
-      lightingManager->getPointLightDescriptorSetLayout());
+    m_pointLightShadowMapPipeline = std::make_unique<GraphicsPipeline>(
+      m_logicalDevice, PipelineConfig::createPointLightShadowMapPipelineOptions(renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
+      lightingManager->getPointLightDescriptorSetLayout()));
 
     m_mousePickingPipeline = std::make_unique<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createMousePickingPipelineOptions(renderPass, objectDescriptorSetLayout));
