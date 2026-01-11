@@ -1,5 +1,6 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
+#include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
@@ -53,7 +54,7 @@ namespace vke {
       .extent = renderInfo->extent
     };
 
-    renderRenderObjects(&renderInfo3D, pipelineManager);
+    renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager);
 
     pipelineManager->renderBendyPlantPipeline(&renderInfo3D, &m_bendyPlantsToRender);
 
@@ -152,8 +153,8 @@ namespace vke {
     return m_smokeSystemsToRender;
   }
 
-  void Renderer3D::renderRenderObjects(const RenderInfo* renderInfo,
-                                       const std::shared_ptr<PipelineManager>& pipelineManager) const
+  void Renderer3D::renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
+                                                 const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
     const std::vector<std::shared_ptr<RenderObject>>* highlightedRenderObjects = nullptr;
     for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
@@ -166,6 +167,12 @@ namespace vke {
       if (pipelineType == PipelineType::objectHighlight)
       {
         highlightedRenderObjects = &objects;
+        continue;
+      }
+
+      if (pipelineType == PipelineType::texturedPlane)
+      {
+        renderRenderObjects(pipelineManager, renderInfo, PipelineType::texturedPlane);
         continue;
       }
 
@@ -207,5 +214,26 @@ namespace vke {
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer3D::renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                       const RenderInfo* renderInfo,
+                                       const PipelineType pipelineType) const
+  {
+    for (const auto& object : m_renderObjectsToRenderFlattened)
+    {
+      object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+
+      pipelineManager->bindRenderObjectPipeline(renderInfo->commandBuffer, pipelineType);
+
+      pipelineManager->bindRenderObjectPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        pipelineType,
+        object->getDescriptorSet(renderInfo->currentFrame),
+        0
+      );
+
+      object->draw(renderInfo->commandBuffer);
+    }
   }
 } // vke

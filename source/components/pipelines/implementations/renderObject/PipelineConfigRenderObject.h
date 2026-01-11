@@ -6,7 +6,31 @@
 
 namespace vke::PipelineConfig {
 
-  
+  inline GraphicsPipelineOptions createTexturedPlanePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                    const std::shared_ptr<RenderPass>& renderPass,
+                                                                    const VkDescriptorSetLayout objectDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/TexturedPlane.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/TexturedPlane.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
 
 }
 

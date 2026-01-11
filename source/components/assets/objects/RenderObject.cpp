@@ -35,6 +35,11 @@ namespace vke {
     m_model->draw(commandBuffer);
   }
 
+  void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    m_model->draw(commandBuffer);
+  }
+
   void RenderObject::updateUniformBuffer(const uint32_t currentFrame,
                                          const glm::mat4& viewMatrix,
                                          const glm::mat4& projectionMatrix) const
@@ -91,6 +96,11 @@ namespace vke {
   glm::quat RenderObject::getOrientationQuat() const
   {
     return m_orientation;
+  }
+
+  VkDescriptorSet RenderObject::getDescriptorSet(const uint32_t currentFrame) const
+  {
+    return m_descriptorSet->getDescriptorSet(currentFrame);
   }
 
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,

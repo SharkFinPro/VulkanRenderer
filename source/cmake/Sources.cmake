@@ -169,8 +169,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/ShadowPipeline.h
   components/pipelines/implementations/renderObject/SnakePipeline.cpp
   components/pipelines/implementations/renderObject/SnakePipeline.h
-  components/pipelines/implementations/renderObject/TexturedPlane.cpp
-  components/pipelines/implementations/renderObject/TexturedPlane.h
 
   # Other Pipelines
   components/pipelines/implementations/BendyPipeline.cpp

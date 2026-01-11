@@ -99,14 +99,18 @@ namespace vke {
 
     std::vector<std::shared_ptr<SmokeSystem>> m_smokeSystemsToRender;
 
-    void renderRenderObjects(const RenderInfo* renderInfo,
-                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
+    void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
+                                       const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void renderSmokeSystems(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     static void renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
-                    const RenderInfo* renderInfo);
+                           const RenderInfo* renderInfo);
+
+    void renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                             const RenderInfo* renderInfo,
+                             PipelineType pipelineType) const;
   };
 } // vke
 

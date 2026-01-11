@@ -28,6 +28,8 @@ namespace vke {
               uint32_t currentFrame,
               uint32_t descriptorSet = 1) const;
 
+    void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
     void updateUniformBuffer(uint32_t currentFrame,
                              const glm::mat4& viewMatrix,
                              const glm::mat4& projectionMatrix) const;
@@ -42,6 +44,8 @@ namespace vke {
     [[nodiscard]] glm::vec3 getScale() const;
     [[nodiscard]] glm::vec3 getOrientationEuler() const;
     [[nodiscard]] glm::quat getOrientationQuat() const;
+
+    [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
