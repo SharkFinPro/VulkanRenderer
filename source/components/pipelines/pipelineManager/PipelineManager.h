@@ -65,6 +65,13 @@ namespace vke {
     void bindRenderObjectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                   PipelineType pipelineType) const;
 
+    void pushRenderObjectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           PipelineType pipelineType,
+                                           VkShaderStageFlags stageFlags,
+                                           uint32_t offset,
+                                           uint32_t size,
+                                           const void* values) const;
+
     void bindRenderObjectPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                PipelineType pipelineType,
                                                VkDescriptorSet descriptorSet,
