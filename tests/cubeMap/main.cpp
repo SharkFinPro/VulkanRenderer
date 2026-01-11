@@ -61,7 +61,7 @@ void renderScene(vke::VulkanEngine& renderer,
 {
   const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
-  gui->dockCenter("SceneView");
+  gui->dockCenter("Scene View");
   gui->dockBottom("Objects");
   gui->dockBottom("Cube Map");
 
