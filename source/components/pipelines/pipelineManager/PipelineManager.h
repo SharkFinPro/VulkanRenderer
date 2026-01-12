@@ -99,7 +99,7 @@ namespace vke {
 
     std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
-    std::unordered_map<PipelineType, std::shared_ptr<GraphicsPipeline>> m_graphicsPipelines;
+    std::unordered_map<PipelineType, std::unique_ptr<GraphicsPipeline>> m_graphicsPipelines;
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,
@@ -122,7 +122,7 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<GraphicsPipeline> getRenderObjectPipeline(PipelineType pipelineType) const;
 
-    [[nodiscard]] std::shared_ptr<GraphicsPipeline> getGraphicsPipeline(PipelineType pipelineType) const;
+    [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
   };
 
 } // namespace vke

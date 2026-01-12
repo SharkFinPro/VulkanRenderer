@@ -44,7 +44,7 @@ namespace vke {
   {
     const auto graphicsPipeline = getGraphicsPipeline(pipelineType);
 
-    graphicsPipeline->bind(commandBuffer);
+    graphicsPipeline.bind(commandBuffer);
   }
 
   void PipelineManager::pushGraphicsPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -56,7 +56,7 @@ namespace vke {
   {
     const auto graphicsPipeline = getGraphicsPipeline(pipelineType);
 
-    graphicsPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+    graphicsPipeline.pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
   void PipelineManager::bindGraphicsPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -66,7 +66,7 @@ namespace vke {
   {
     const auto graphicsPipeline = getGraphicsPipeline(pipelineType);
 
-    graphicsPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
+    graphicsPipeline.bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::renderDotsPipeline(const RenderInfo* renderInfo) const
@@ -185,7 +185,7 @@ namespace vke {
       m_logicalDevice, renderPass, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_graphicsPipelines[PipelineType::objectHighlight] = std::make_shared<GraphicsPipeline>(
+    m_graphicsPipelines[PipelineType::objectHighlight] = std::make_unique<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::ellipticalDots] = std::make_shared<EllipticalDots>(
@@ -206,10 +206,10 @@ namespace vke {
     m_renderObjectPipelines[PipelineType::cubeMap] = std::make_shared<CubeMapPipeline>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout);
 
-    m_graphicsPipelines[PipelineType::texturedPlane] = std::make_shared<GraphicsPipeline>(
+    m_graphicsPipelines[PipelineType::texturedPlane] = std::make_unique<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_graphicsPipelines[PipelineType::magnifyWhirlMosaic] = std::make_shared<GraphicsPipeline>(
+    m_graphicsPipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::snake] = std::make_shared<SnakePipeline>(
@@ -291,7 +291,7 @@ namespace vke {
     return it->second;
   }
 
-  std::shared_ptr<GraphicsPipeline> PipelineManager::getGraphicsPipeline(const PipelineType pipelineType) const
+  const GraphicsPipeline& PipelineManager::getGraphicsPipeline(const PipelineType pipelineType) const
   {
     const auto it = m_graphicsPipelines.find(pipelineType);
     if (it == m_graphicsPipelines.end())
@@ -299,6 +299,6 @@ namespace vke {
       throw std::runtime_error("Pipeline for the given type does not exist");
     }
 
-    return it->second;
+    return *it->second;
   }
 } // namespace vke
