@@ -118,6 +118,21 @@ namespace vke {
       ImGui::End();
     }
 
+    if (m_renderObjectsToRender.contains(PipelineType::snake) &&
+        !m_renderObjectsToRender.at(PipelineType::snake).empty())
+    {
+      ImGui::Begin("Snake");
+
+      ImGui::SliderFloat("Wiggle", &m_snakePC.wiggle, -1.0f, 1.0f);
+
+      ImGui::End();
+
+      static float w = 0.0f;
+      w += 0.025f;
+
+      m_snakePC.wiggle = sin(w);
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -245,8 +260,7 @@ namespace vke {
 
       if (pipelineType == PipelineType::noisyEllipticalDots ||
           pipelineType == PipelineType::bumpyCurtain ||
-          pipelineType == PipelineType::cubeMap ||
-          pipelineType == PipelineType::snake)
+          pipelineType == PipelineType::cubeMap)
       {
         pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
         continue;
@@ -349,10 +363,23 @@ namespace vke {
       );
     }
 
+    if (pipelineType == PipelineType::snake)
+    {
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_snakePC),
+        &m_snakePC
+      );
+    }
+
     if (pipelineType == PipelineType::ellipticalDots ||
         pipelineType == PipelineType::crosses ||
         pipelineType == PipelineType::curtain ||
-        pipelineType == PipelineType::object)
+        pipelineType == PipelineType::object ||
+        pipelineType == PipelineType::snake)
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,

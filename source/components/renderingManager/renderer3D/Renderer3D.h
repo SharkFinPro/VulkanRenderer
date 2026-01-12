@@ -69,6 +69,10 @@ namespace vke {
     float shininess;
   };
 
+  struct SnakePushConstant {
+    float wiggle;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -164,6 +168,10 @@ namespace vke {
       .amplitude = 0.1,
       .period = 1,
       .shininess = 10
+    };
+
+    SnakePushConstant m_snakePC {
+      .wiggle = 0
     };
 
     void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,

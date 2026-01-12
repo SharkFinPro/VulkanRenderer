@@ -26,10 +26,6 @@ namespace vke {
     float whiteMix;
   };
 
-  struct SnakeUniform {
-    float wiggle;
-  };
-
   struct TransformUniform {
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;

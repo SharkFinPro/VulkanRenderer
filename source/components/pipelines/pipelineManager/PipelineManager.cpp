@@ -6,7 +6,6 @@
 #include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/NoisyEllipticalDots.h"
 #include "../implementations/renderObject/PipelineConfigRenderObject.h"
-#include "../implementations/renderObject/SnakePipeline.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -217,8 +216,9 @@ namespace vke {
     createGraphicsPipeline(PipelineType::magnifyWhirlMosaic,
       PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_renderObjectPipelines[PipelineType::snake] = std::make_shared<SnakePipeline>(
-      m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
+    createGraphicsPipeline(PipelineType::snake,
+      PipelineConfig::createSnakePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
+      lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::crosses,
       PipelineConfig::createCrossesPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
