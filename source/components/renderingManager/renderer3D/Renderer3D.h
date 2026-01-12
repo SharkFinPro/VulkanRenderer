@@ -63,6 +63,12 @@ namespace vke {
     uint32_t useChromaDepth;
   };
 
+  struct CurtainPushConstant {
+    float amplitude;
+    float period;
+    float shininess;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -152,6 +158,12 @@ namespace vke {
       .redDepth = 1.0f,
       .level = 1,
       .useChromaDepth = false
+    };
+
+    CurtainPushConstant m_curtainPC {
+      .amplitude = 0.1,
+      .period = 1,
+      .shininess = 10
     };
 
     void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,

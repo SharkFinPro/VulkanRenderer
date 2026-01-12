@@ -25,7 +25,7 @@ namespace vke {
 
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
-        .vertexShader = "assets/shaders/renderObject/Curtain.vert.spv",
+        .vertexShader = "assets/shaders/renderObject/BumpyCurtain.vert.spv",
         .fragmentShader = "assets/shaders/renderObject/BumpyCurtain.frag.spv"
       },
       .states {
@@ -67,7 +67,7 @@ namespace vke {
 
   void BumpyCurtain::createUniforms(const VkCommandPool& commandPool)
   {
-    m_curtainUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CurtainUniform));
+    m_curtainUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CurtainPushConstant));
 
     m_noiseOptionsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
 

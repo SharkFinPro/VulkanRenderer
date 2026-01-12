@@ -2,28 +2,28 @@
 #extension GL_GOOGLE_include_directive : require
 #include "../common/Lighting.glsl"
 
-layout(set = 2, binding = 0) uniform PointLightsMetadata {
+layout(push_constant) uniform CurtainPC {
+  float amplitude;
+  float period;
+  float shininess;
+} pc;
+
+layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 2, binding = 1) readonly buffer PointLights {
+layout(set = 1, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 2, binding = 2) readonly buffer SpotLights {
+layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 2, binding = 3) uniform Camera {
+layout(set = 1, binding = 3) uniform Camera {
   vec3 position;
 } camera;
-
-layout(set = 1, binding = 4) uniform Curtain {
-  float amplitude;
-  float period;
-  float shininess;
-} curtain;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
@@ -39,12 +39,12 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
   {
-    result += StandardPointLightAffect(pointLights[i], fragColor, fragNormal, fragPos, camera.position, curtain.shininess);
+    result += StandardPointLightAffect(pointLights[i], fragColor, fragNormal, fragPos, camera.position, pc.shininess);
   }
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, curtain.shininess);
+    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, pc.shininess);
   }
 
   outColor = vec4(result, 1.0);

@@ -264,6 +264,41 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                              const std::shared_ptr<RenderPass>& renderPass,
+                                                              VkDescriptorSetLayout objectDescriptorSetLayout,
+                                                              VkDescriptorSetLayout lightingDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/Curtain.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/Curtain.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(CurtainPushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout,
+        lightingDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H

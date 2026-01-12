@@ -234,7 +234,8 @@ namespace vke {
       if (pipelineType == PipelineType::texturedPlane ||
           pipelineType == PipelineType::magnifyWhirlMosaic ||
           pipelineType == PipelineType::ellipticalDots ||
-          pipelineType == PipelineType::crosses)
+          pipelineType == PipelineType::crosses ||
+          pipelineType == PipelineType::curtain)
       {
         renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
         continue;
@@ -325,8 +326,21 @@ namespace vke {
       );
     }
 
+    if (pipelineType == PipelineType::curtain)
+    {
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_curtainPC),
+        &m_curtainPC
+      );
+    }
+
     if (pipelineType == PipelineType::ellipticalDots ||
-        pipelineType == PipelineType::crosses)
+        pipelineType == PipelineType::crosses ||
+        pipelineType == PipelineType::curtain)
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,

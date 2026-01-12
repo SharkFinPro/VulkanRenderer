@@ -3,6 +3,7 @@
 
 #include "../common/Uniforms.h"
 #include "../../GraphicsPipeline.h"
+#include "../../../renderingManager/renderer3D/Renderer3D.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 
@@ -25,7 +26,7 @@ namespace vke {
     void displayGui() override;
 
   private:
-    CurtainUniform m_curtainUBO {
+    CurtainPushConstant m_curtainUBO {
       .amplitude = 0.1,
       .period = 1,
       .shininess = 10

@@ -147,8 +147,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/BumpyCurtain.h
   components/pipelines/implementations/renderObject/CubeMapPipeline.cpp
   components/pipelines/implementations/renderObject/CubeMapPipeline.h
-  components/pipelines/implementations/renderObject/CurtainPipeline.cpp
-  components/pipelines/implementations/renderObject/CurtainPipeline.h
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.cpp
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.h
   components/pipelines/implementations/renderObject/ObjectsPipeline.cpp

@@ -20,12 +20,6 @@ namespace vke {
     float frequency;
   };
 
-  struct CurtainUniform {
-    float amplitude;
-    float period;
-    float shininess;
-  };
-
   struct CubeMapUniform {
     float mix;
     float refractionIndex;
