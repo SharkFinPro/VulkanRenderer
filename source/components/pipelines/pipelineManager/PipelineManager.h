@@ -101,6 +101,9 @@ namespace vke {
 
     std::unordered_map<PipelineType, std::unique_ptr<GraphicsPipeline>> m_graphicsPipelines;
 
+    void createGraphicsPipeline(PipelineType pipelineType,
+                                const GraphicsPipelineOptions& graphicsPipelineOptions);
+
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                          const std::shared_ptr<Renderer>& renderer,
                          const std::shared_ptr<LightingManager>& lightingManager);

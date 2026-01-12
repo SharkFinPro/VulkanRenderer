@@ -145,6 +145,12 @@ namespace vke {
     m_linePipeline->render(renderInfo, m_commandPool, lineVertices);
   }
 
+  void PipelineManager::createGraphicsPipeline(const PipelineType pipelineType,
+                                               const GraphicsPipelineOptions& graphicsPipelineOptions)
+  {
+    m_graphicsPipelines[pipelineType] = std::make_unique<GraphicsPipeline>(m_logicalDevice, graphicsPipelineOptions);
+  }
+
   void PipelineManager::createPipelines(const std::shared_ptr<AssetManager>& assetManager,
                                         const std::shared_ptr<Renderer>& renderer,
                                         const std::shared_ptr<LightingManager>& lightingManager)
@@ -161,17 +167,17 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_graphicsPipelines[PipelineType::rect] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createRectPipelineOptions(m_logicalDevice, renderPass));
+    createGraphicsPipeline(PipelineType::rect,
+      PipelineConfig::createRectPipelineOptions(m_logicalDevice, renderPass));
 
-    m_graphicsPipelines[PipelineType::triangle] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createTrianglePipelineOptions(m_logicalDevice, renderPass));
+    createGraphicsPipeline(PipelineType::triangle,
+      PipelineConfig::createTrianglePipelineOptions(m_logicalDevice, renderPass));
 
-    m_graphicsPipelines[PipelineType::ellipse] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createEllipsePipelineOptions(m_logicalDevice, renderPass));
+    createGraphicsPipeline(PipelineType::ellipse,
+      PipelineConfig::createEllipsePipelineOptions(m_logicalDevice, renderPass));
 
-    m_graphicsPipelines[PipelineType::font] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createFontPipelineOptions(m_logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout()));
+    createGraphicsPipeline(PipelineType::font,
+      PipelineConfig::createFontPipelineOptions(m_logicalDevice, renderPass, assetManager->getFontDescriptorSetLayout()));
   }
 
   void PipelineManager::createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
@@ -185,8 +191,8 @@ namespace vke {
       m_logicalDevice, renderPass, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_graphicsPipelines[PipelineType::objectHighlight] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
+    createGraphicsPipeline(PipelineType::objectHighlight,
+      PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::ellipticalDots] = std::make_shared<EllipticalDots>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
@@ -206,11 +212,11 @@ namespace vke {
     m_renderObjectPipelines[PipelineType::cubeMap] = std::make_shared<CubeMapPipeline>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout);
 
-    m_graphicsPipelines[PipelineType::texturedPlane] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
+    createGraphicsPipeline(PipelineType::texturedPlane,
+      PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_graphicsPipelines[PipelineType::magnifyWhirlMosaic] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
+    createGraphicsPipeline(PipelineType::magnifyWhirlMosaic,
+      PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::snake] = std::make_shared<SnakePipeline>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
@@ -219,15 +225,15 @@ namespace vke {
       m_logicalDevice, renderPass, m_descriptorPool, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_graphicsPipelines[PipelineType::shadow] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createShadowMapPipelineOptions(renderer->getShadowRenderPass(), objectDescriptorSetLayout));
+    createGraphicsPipeline(PipelineType::shadow,
+      PipelineConfig::createShadowMapPipelineOptions(renderer->getShadowRenderPass(), objectDescriptorSetLayout));
 
-    m_graphicsPipelines[PipelineType::pointLightShadowMap] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createPointLightShadowMapPipelineOptions(renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
+    createGraphicsPipeline(PipelineType::pointLightShadowMap,
+      PipelineConfig::createPointLightShadowMapPipelineOptions(renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
       lightingManager->getPointLightDescriptorSetLayout()));
 
-    m_graphicsPipelines[PipelineType::mousePicking] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createMousePickingPipelineOptions(renderPass, objectDescriptorSetLayout));
+    createGraphicsPipeline(PipelineType::mousePicking,
+      PipelineConfig::createMousePickingPipelineOptions(renderPass, objectDescriptorSetLayout));
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
@@ -236,8 +242,8 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
 
-    m_graphicsPipelines[PipelineType::gui] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createUIPipelineOptions(m_logicalDevice, renderPass));
+    createGraphicsPipeline(PipelineType::gui,
+      PipelineConfig::createUIPipelineOptions(m_logicalDevice, renderPass));
 
     m_dotsPipeline = std::make_unique<DotsPipeline>(m_logicalDevice, m_commandPool, renderPass, m_descriptorPool);
 
@@ -246,8 +252,8 @@ namespace vke {
     m_bendyPipeline = std::make_unique<BendyPipeline>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, lightingManager->getLightingDescriptorSet());
 
-    m_graphicsPipelines[PipelineType::grid] = std::make_unique<GraphicsPipeline>(
-      m_logicalDevice, PipelineConfig::createGridPipelineOptions(m_logicalDevice, renderPass));
+    createGraphicsPipeline(PipelineType::grid,
+      PipelineConfig::createGridPipelineOptions(m_logicalDevice, renderPass));
 
     m_smokePipeline = std::make_unique<SmokePipeline>(
       m_logicalDevice, renderPass, lightingManager->getLightingDescriptorSet(),
