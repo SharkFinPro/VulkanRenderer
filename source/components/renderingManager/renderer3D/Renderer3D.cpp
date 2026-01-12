@@ -243,8 +243,7 @@ namespace vke {
         continue;
       }
 
-      if (pipelineType == PipelineType::object ||
-          pipelineType == PipelineType::noisyEllipticalDots ||
+      if (pipelineType == PipelineType::noisyEllipticalDots ||
           pipelineType == PipelineType::bumpyCurtain ||
           pipelineType == PipelineType::cubeMap ||
           pipelineType == PipelineType::snake)
@@ -352,7 +351,8 @@ namespace vke {
 
     if (pipelineType == PipelineType::ellipticalDots ||
         pipelineType == PipelineType::crosses ||
-        pipelineType == PipelineType::curtain)
+        pipelineType == PipelineType::curtain ||
+        pipelineType == PipelineType::object)
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,

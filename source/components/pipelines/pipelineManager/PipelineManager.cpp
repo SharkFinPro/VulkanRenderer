@@ -5,7 +5,6 @@
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/NoisyEllipticalDots.h"
-#include "../implementations/renderObject/ObjectsPipeline.h"
 #include "../implementations/renderObject/PipelineConfigRenderObject.h"
 #include "../implementations/renderObject/SnakePipeline.h"
 #include "../../assets/AssetManager.h"
@@ -186,9 +185,9 @@ namespace vke {
     const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
     const auto lightingDescriptorSetLayout = lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout();
 
-    m_renderObjectPipelines[PipelineType::object] = std::make_shared<ObjectsPipeline>(
-      m_logicalDevice, renderPass, objectDescriptorSetLayout,
-      lightingManager->getLightingDescriptorSet());
+    createGraphicsPipeline(PipelineType::object,
+      PipelineConfig::createObjectsPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
+      lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::objectHighlight,
       PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));

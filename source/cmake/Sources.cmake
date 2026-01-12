@@ -149,8 +149,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/renderObject/CubeMapPipeline.h
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.cpp
   components/pipelines/implementations/renderObject/NoisyEllipticalDots.h
-  components/pipelines/implementations/renderObject/ObjectsPipeline.cpp
-  components/pipelines/implementations/renderObject/ObjectsPipeline.h
   components/pipelines/implementations/renderObject/SnakePipeline.cpp
   components/pipelines/implementations/renderObject/SnakePipeline.h
 
