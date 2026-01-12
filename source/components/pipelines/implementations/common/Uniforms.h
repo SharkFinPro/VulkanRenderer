@@ -15,15 +15,6 @@ namespace vke {
     alignas(16) glm::vec3 position;
   };
 
-  struct EllipticalDotsUniform {
-    float shininess;
-
-    float sDiameter;
-    float tDiameter;
-
-    float blendFactor;
-  };
-
   struct NoiseOptionsUniform {
     float amplitude;
     float frequency;

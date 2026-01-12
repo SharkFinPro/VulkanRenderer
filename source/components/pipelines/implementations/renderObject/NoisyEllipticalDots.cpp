@@ -67,7 +67,7 @@ namespace vke {
 
   void NoisyEllipticalDots::createUniforms(const VkCommandPool& commandPool)
   {
-    m_ellipticalDotsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(EllipticalDotsUniform));
+    m_ellipticalDotsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(EllipticalDotsPushConstant));
 
     m_noiseOptionsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(NoiseOptionsUniform));
 

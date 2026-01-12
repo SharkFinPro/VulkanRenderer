@@ -92,6 +92,7 @@ namespace vke {
                                       uint32_t imageIndex) const;
 
     void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      const std::shared_ptr<LightingManager>& lightingManager,
                                       uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 

@@ -1,11 +1,11 @@
 #include "PipelineManager.h"
+#include "../descriptorSets/DescriptorSet.h"
 #include "../implementations/PipelineConfig.h"
 #include "../implementations/PipelineConfig2D.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
 #include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/CurtainPipeline.h"
-#include "../implementations/renderObject/EllipticalDots.h"
 #include "../implementations/renderObject/NoisyEllipticalDots.h"
 #include "../implementations/renderObject/ObjectsPipeline.h"
 #include "../implementations/renderObject/PipelineConfigRenderObject.h"
@@ -186,6 +186,7 @@ namespace vke {
   {
     const auto renderPass = renderer->getSwapchainRenderPass();
     const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
+    const auto lightingDescriptorSetLayout = lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout();
 
     m_renderObjectPipelines[PipelineType::object] = std::make_shared<ObjectsPipeline>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout,
@@ -194,8 +195,9 @@ namespace vke {
     createGraphicsPipeline(PipelineType::objectHighlight,
       PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_renderObjectPipelines[PipelineType::ellipticalDots] = std::make_shared<EllipticalDots>(
-      m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
+    createGraphicsPipeline(PipelineType::ellipticalDots,
+      PipelineConfig::createEllipticalDotsPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
+      lightingDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::noisyEllipticalDots] = std::make_shared<NoisyEllipticalDots>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout,

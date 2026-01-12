@@ -4,6 +4,7 @@
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
+#include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 
 namespace vke {
@@ -43,7 +44,8 @@ namespace vke {
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,
-                          const std::shared_ptr<PipelineManager>& pipelineManager)
+                          const std::shared_ptr<PipelineManager>& pipelineManager,
+                          const std::shared_ptr<LightingManager>& lightingManager)
   {
     if (m_renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic) &&
         !m_renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic).empty())
@@ -63,6 +65,19 @@ namespace vke {
       ImGui::End();
     }
 
+    if (m_renderObjectsToRender.contains(PipelineType::ellipticalDots) &&
+        !m_renderObjectsToRender.at(PipelineType::ellipticalDots).empty())
+    {
+      ImGui::Begin("Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::End();
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -71,7 +86,7 @@ namespace vke {
       .extent = renderInfo->extent
     };
 
-    renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager);
+    renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager, lightingManager);
 
     pipelineManager->renderBendyPlantPipeline(&renderInfo3D, &m_bendyPlantsToRender);
 
@@ -171,7 +186,8 @@ namespace vke {
   }
 
   void Renderer3D::renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
-                                                 const std::shared_ptr<PipelineManager>& pipelineManager) const
+                                                 const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                 const std::shared_ptr<LightingManager>& lightingManager) const
   {
     const std::vector<std::shared_ptr<RenderObject>>* highlightedRenderObjects = nullptr;
     for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
@@ -188,9 +204,10 @@ namespace vke {
       }
 
       if (pipelineType == PipelineType::texturedPlane ||
-          pipelineType == PipelineType::magnifyWhirlMosaic)
+          pipelineType == PipelineType::magnifyWhirlMosaic ||
+          pipelineType == PipelineType::ellipticalDots)
       {
-        renderRenderObjects(pipelineManager, renderInfo, pipelineType, &objects);
+        renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
         continue;
       }
 
@@ -199,7 +216,7 @@ namespace vke {
 
     if (highlightedRenderObjects)
     {
-      renderRenderObjects(pipelineManager, renderInfo, PipelineType::objectHighlight, highlightedRenderObjects);
+      renderRenderObjects(pipelineManager, lightingManager, renderInfo, PipelineType::objectHighlight, highlightedRenderObjects);
     }
   }
 
@@ -236,6 +253,7 @@ namespace vke {
   }
 
   void Renderer3D::renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                       const std::shared_ptr<LightingManager>& lightingManager,
                                        const RenderInfo* renderInfo,
                                        const PipelineType pipelineType,
                                        const std::vector<std::shared_ptr<RenderObject>>* objects) const
@@ -251,6 +269,28 @@ namespace vke {
         0,
         sizeof(m_magnifyWhirlMosaicPC),
         &m_magnifyWhirlMosaicPC
+      );
+    }
+
+    if (pipelineType == PipelineType::ellipticalDots)
+    {
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_ellipticalDotsPC),
+        &m_ellipticalDotsPC
+      );
+    }
+
+    if (pipelineType == PipelineType::ellipticalDots)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        pipelineType,
+        lightingManager->getLightingDescriptorSet()->getDescriptorSet(renderInfo->currentFrame),
+        1
       );
     }
 

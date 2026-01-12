@@ -91,7 +91,7 @@ namespace vke {
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
-    recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
+    recordSwapchainCommandBuffer(pipelineManager, lightingManager, currentFrame, imageIndex);
     m_logicalDevice->submitGraphicsQueue(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
 
     result = m_logicalDevice->queuePresent(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
@@ -229,7 +229,7 @@ namespace vke {
                                                       uint32_t currentFrame,
                                                       const uint32_t imageIndex) const
   {
-    m_offscreenCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex, lightingManager]()
+    m_offscreenCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame, imageIndex]()
     {
       m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
 
@@ -266,7 +266,7 @@ namespace vke {
       };
       renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer3D->render(&renderInfo, pipelineManager);
+      m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
 
       resetDepthBuffer(m_offscreenCommandBuffer, m_offscreenViewportExtent);
 
@@ -283,10 +283,11 @@ namespace vke {
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                      const std::shared_ptr<LightingManager>& lightingManager,
                                                       uint32_t currentFrame,
                                                       const uint32_t imageIndex) const
   {
-    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]
+    m_swapchainCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame, imageIndex]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
@@ -316,7 +317,7 @@ namespace vke {
 
       if (!m_shouldRenderOffscreen)
       {
-        m_renderer3D->render(&renderInfo, pipelineManager);
+        m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
 
         resetDepthBuffer(m_swapchainCommandBuffer, m_swapChain->getExtent());
 

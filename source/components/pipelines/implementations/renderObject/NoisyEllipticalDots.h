@@ -3,6 +3,7 @@
 
 #include "../common/Uniforms.h"
 #include "../../GraphicsPipeline.h"
+#include "../../../renderingManager/renderer3D/Renderer3D.h"
 
 namespace vke {
 
@@ -23,7 +24,7 @@ namespace vke {
     void displayGui() override;
 
   private:
-    EllipticalDotsUniform m_ellipticalDotsUBO {
+    EllipticalDotsPushConstant m_ellipticalDotsUBO {
       .shininess = 10.0f,
       .sDiameter = 0.025f,
       .tDiameter = 0.025f,

@@ -45,6 +45,13 @@ namespace vke {
     float mosaic;
   };
 
+  struct EllipticalDotsPushConstant {
+    float shininess;
+    float sDiameter;
+    float tDiameter;
+    float blendFactor;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -62,7 +69,8 @@ namespace vke {
     void handleRenderedMousePickingImage(VkImage image) const;
 
     void render(const RenderInfo* renderInfo,
-                const std::shared_ptr<PipelineManager>& pipelineManager);
+                const std::shared_ptr<PipelineManager>& pipelineManager,
+                const std::shared_ptr<LightingManager>& lightingManager);
 
     void createNewFrame();
 
@@ -117,8 +125,16 @@ namespace vke {
       .mosaic = 0.001f
     };
 
+    EllipticalDotsPushConstant m_ellipticalDotsPC {
+      .shininess = 10.0f,
+      .sDiameter = 0.025f,
+      .tDiameter = 0.025f,
+      .blendFactor = 0.0f
+    };
+
     void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
-                                       const std::shared_ptr<PipelineManager>& pipelineManager) const;
+                                       const std::shared_ptr<PipelineManager>& pipelineManager,
+                                       const std::shared_ptr<LightingManager>& lightingManager) const;
 
     void renderSmokeSystems(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
@@ -127,6 +143,7 @@ namespace vke {
                            const RenderInfo* renderInfo);
 
     void renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                             const std::shared_ptr<LightingManager>& lightingManager,
                              const RenderInfo* renderInfo,
                              PipelineType pipelineType,
                              const std::vector<std::shared_ptr<RenderObject>>* objects) const;

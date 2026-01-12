@@ -193,6 +193,41 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                     const std::shared_ptr<RenderPass>& renderPass,
+                                                                     VkDescriptorSetLayout objectDescriptorSetLayout,
+                                                                     VkDescriptorSetLayout lightingDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/StandardObject.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/EllipticalDots.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(EllipticalDotsPushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout,
+        lightingDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H
