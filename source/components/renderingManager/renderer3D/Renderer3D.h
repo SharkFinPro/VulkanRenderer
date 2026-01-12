@@ -52,6 +52,17 @@ namespace vke {
     float blendFactor;
   };
 
+  struct CrossesPushConstant {
+    glm::vec3 position;
+    float quantize;
+    float size;
+    float shininess;
+    float blueDepth;
+    float redDepth;
+    int level;
+    uint32_t useChromaDepth;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -130,6 +141,17 @@ namespace vke {
       .sDiameter = 0.025f,
       .tDiameter = 0.025f,
       .blendFactor = 0.0f
+    };
+
+    CrossesPushConstant m_crossesPC {
+      .position = glm::vec3(0.0f),
+      .quantize = 50.0f,
+      .size = 0.01f,
+      .shininess = 10.0f,
+      .blueDepth = 4.4f,
+      .redDepth = 1.0f,
+      .level = 1,
+      .useChromaDepth = false
     };
 
     void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,

@@ -3,7 +3,6 @@
 #include "../implementations/PipelineConfig.h"
 #include "../implementations/PipelineConfig2D.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
-#include "../implementations/renderObject/CrossesPipeline.h"
 #include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/CurtainPipeline.h"
 #include "../implementations/renderObject/NoisyEllipticalDots.h"
@@ -223,9 +222,9 @@ namespace vke {
     m_renderObjectPipelines[PipelineType::snake] = std::make_shared<SnakePipeline>(
       m_logicalDevice, renderPass, objectDescriptorSetLayout, lightingManager->getLightingDescriptorSet());
 
-    m_renderObjectPipelines[PipelineType::crosses] = std::make_shared<CrossesPipeline>(
-      m_logicalDevice, renderPass, m_descriptorPool, objectDescriptorSetLayout,
-      lightingManager->getLightingDescriptorSet());
+    createGraphicsPipeline(PipelineType::crosses,
+      PipelineConfig::createCrossesPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
+      lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::shadow,
       PipelineConfig::createShadowMapPipelineOptions(renderer->getShadowRenderPass(), objectDescriptorSetLayout));

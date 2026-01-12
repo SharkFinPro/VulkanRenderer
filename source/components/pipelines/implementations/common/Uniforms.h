@@ -36,20 +36,6 @@ namespace vke {
     float wiggle;
   };
 
-  struct CrossesUniform {
-    int level;
-    float quantize;
-    float size;
-    float shininess;
-  };
-
-  struct ChromaDepthUniform {
-    alignas(16) bool use;
-    char padding[3];
-    float blueDepth;
-    float redDepth;
-  };
-
   struct TransformUniform {
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;

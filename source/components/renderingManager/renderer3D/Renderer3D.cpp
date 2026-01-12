@@ -78,6 +78,34 @@ namespace vke {
       ImGui::End();
     }
 
+    if (m_renderObjectsToRender.contains(PipelineType::crosses) &&
+        !m_renderObjectsToRender.at(PipelineType::crosses).empty())
+    {
+      ImGui::Begin("Crosses");
+
+      ImGui::SliderInt("Level", &m_crossesPC.level, 0, 3);
+
+      ImGui::SliderFloat("Quantize", &m_crossesPC.quantize, 2.0f, 50.0f);
+
+      ImGui::SliderFloat("Size", &m_crossesPC.size, 0.0001f, 0.1f);
+
+      ImGui::SliderFloat("Shininess", &m_crossesPC.shininess, 2.0f, 50.0f);
+
+      ImGui::Separator();
+
+      ImGui::Text("Chroma Depth");
+
+      bool useChromaDepth = m_crossesPC.useChromaDepth;
+      ImGui::Checkbox("Use Chroma Depth", &useChromaDepth);
+      m_crossesPC.useChromaDepth = useChromaDepth;
+
+      ImGui::SliderFloat("Blue Depth", &m_crossesPC.blueDepth, 0.0f, 50.0f);
+
+      ImGui::SliderFloat("Red Depth", &m_crossesPC.redDepth, 0.0f, 50.0f);
+
+      ImGui::End();
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -205,7 +233,8 @@ namespace vke {
 
       if (pipelineType == PipelineType::texturedPlane ||
           pipelineType == PipelineType::magnifyWhirlMosaic ||
-          pipelineType == PipelineType::ellipticalDots)
+          pipelineType == PipelineType::ellipticalDots ||
+          pipelineType == PipelineType::crosses)
       {
         renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
         continue;
@@ -284,7 +313,20 @@ namespace vke {
       );
     }
 
-    if (pipelineType == PipelineType::ellipticalDots)
+    if (pipelineType == PipelineType::crosses)
+    {
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_crossesPC),
+        &m_crossesPC
+      );
+    }
+
+    if (pipelineType == PipelineType::ellipticalDots ||
+        pipelineType == PipelineType::crosses)
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,

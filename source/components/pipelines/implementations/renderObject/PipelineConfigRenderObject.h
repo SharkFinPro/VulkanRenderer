@@ -228,6 +228,42 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createCrossesPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                     const std::shared_ptr<RenderPass>& renderPass,
+                                                                     VkDescriptorSetLayout objectDescriptorSetLayout,
+                                                                     VkDescriptorSetLayout lightingDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/Crosses.vert.spv",
+        .geometryShader = "assets/shaders/renderObject/Crosses.geom.spv",
+        .fragmentShader = "assets/shaders/renderObject/Crosses.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionAndNormal,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(CrossesPushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout,
+        lightingDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H
