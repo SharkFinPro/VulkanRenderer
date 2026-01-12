@@ -42,7 +42,7 @@ namespace vke {
   void PipelineManager::bindGraphicsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                              const PipelineType pipelineType) const
   {
-    const auto graphicsPipeline = getGraphicsPipeline(pipelineType);
+    const auto& graphicsPipeline = getGraphicsPipeline(pipelineType);
 
     graphicsPipeline.bind(commandBuffer);
   }
@@ -54,7 +54,7 @@ namespace vke {
                                                       const uint32_t size,
                                                       const void* values) const
   {
-    const auto graphicsPipeline = getGraphicsPipeline(pipelineType);
+    const auto& graphicsPipeline = getGraphicsPipeline(pipelineType);
 
     graphicsPipeline.pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
@@ -64,7 +64,7 @@ namespace vke {
                                                           VkDescriptorSet descriptorSet,
                                                           const uint32_t location) const
   {
-    const auto graphicsPipeline = getGraphicsPipeline(pipelineType);
+    const auto& graphicsPipeline = getGraphicsPipeline(pipelineType);
 
     graphicsPipeline.bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
