@@ -231,17 +231,17 @@ namespace vke {
         continue;
       }
 
-      if (pipelineType == PipelineType::texturedPlane ||
-          pipelineType == PipelineType::magnifyWhirlMosaic ||
-          pipelineType == PipelineType::ellipticalDots ||
-          pipelineType == PipelineType::crosses ||
-          pipelineType == PipelineType::curtain)
+      if (pipelineType == PipelineType::object ||
+          pipelineType == PipelineType::noisyEllipticalDots ||
+          pipelineType == PipelineType::bumpyCurtain ||
+          pipelineType == PipelineType::cubeMap ||
+          pipelineType == PipelineType::snake)
       {
-        renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
+        pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
         continue;
       }
 
-      pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
+      renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
     }
 
     if (highlightedRenderObjects)
