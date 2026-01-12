@@ -5,6 +5,7 @@
 #include "../implementations/DotsPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
+#include "../implementations/common/PipelineTypes.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>
@@ -17,33 +18,8 @@ namespace vke {
   class DotsPipeline;
   class PointLight;
   class Pipeline;
-  enum class PipelineType;
   class Renderer;
   class RenderObject;
-
-  enum class PipelineType {
-    bumpyCurtain,
-    crosses,
-    curtain,
-    cubeMap,
-    ellipticalDots,
-    magnifyWhirlMosaic,
-    noisyEllipticalDots,
-    object,
-    objectHighlight,
-    texturedPlane,
-    snake,
-
-    ellipse,
-    font,
-    gui,
-    grid,
-    mousePicking,
-    pointLightShadowMap,
-    rect,
-    shadow,
-    triangle
-  };
 
   class PipelineManager {
   public:
