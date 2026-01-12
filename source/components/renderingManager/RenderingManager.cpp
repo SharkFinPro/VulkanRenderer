@@ -329,7 +329,7 @@ namespace vke {
         m_renderer2D->render(&renderInfo2D, pipelineManager);
       }
 
-      pipelineManager->bindGuiPipeline(renderInfo.commandBuffer);
+      pipelineManager->bindGraphicsPipeline(renderInfo.commandBuffer, PipelineType::gui);
       ImGui::Render();
       ImGuiInstance::renderDrawData(renderInfo.commandBuffer);
 

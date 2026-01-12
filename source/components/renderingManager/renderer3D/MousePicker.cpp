@@ -56,20 +56,22 @@ namespace vke {
   void MousePicker::render(const RenderInfo* renderInfo,
                            const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    pipelineManager->bindMousePickingPipeline(renderInfo->commandBuffer);
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::mousePicking);
 
     for (const auto& [object, id] : m_renderObjectsToMousePick)
     {
-      pipelineManager->pushMousePickingPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants(
         renderInfo->commandBuffer,
+        PipelineType::mousePicking,
         VK_SHADER_STAGE_FRAGMENT_BIT,
         0,
         sizeof(id),
         &id
       );
 
-      pipelineManager->bindMousePickingPipelineDescriptorSet(
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
+        PipelineType::mousePicking,
         object->getDescriptorSet(renderInfo->currentFrame),
         0
       );

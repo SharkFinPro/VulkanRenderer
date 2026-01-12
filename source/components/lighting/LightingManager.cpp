@@ -460,10 +460,11 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      pipelineManager->bindPointLightShadowMapPipeline(shadowRenderInfo.commandBuffer);
+      pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, PipelineType::pointLightShadowMap);
 
-      pipelineManager->pushPointLightShadowMapPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants(
         shadowRenderInfo.commandBuffer,
+        PipelineType::pointLightShadowMap,
         VK_SHADER_STAGE_FRAGMENT_BIT,
         0,
         sizeof(shadowRenderInfo.viewPosition),
@@ -472,8 +473,9 @@ namespace vke {
 
       pointLight->updateUniform(shadowRenderInfo.currentFrame);
 
-      pipelineManager->bindPointLightShadowMapPipelineDescriptorSet(
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
         shadowRenderInfo.commandBuffer,
+        PipelineType::pointLightShadowMap,
         pointLight->getDescriptorSet(currentFrame),
         1
       );
@@ -482,8 +484,9 @@ namespace vke {
       {
         object->updateUniformBuffer(shadowRenderInfo.currentFrame, {1.0}, {1.0});
 
-        pipelineManager->bindPointLightShadowMapPipelineDescriptorSet(
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
           shadowRenderInfo.commandBuffer,
+          PipelineType::pointLightShadowMap,
           object->getDescriptorSet(currentFrame),
           0
         );
@@ -536,10 +539,11 @@ namespace vke {
         .extent = shadowExtent
       };
 
-      pipelineManager->bindShadowPipeline(shadowRenderInfo.commandBuffer);
+      pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, PipelineType::shadow);
 
-      pipelineManager->pushShadowPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants(
         shadowRenderInfo.commandBuffer,
+        PipelineType::shadow,
         VK_SHADER_STAGE_VERTEX_BIT,
         0,
         sizeof(shadowRenderInfo.viewMatrix),
@@ -550,8 +554,9 @@ namespace vke {
       {
         object->updateUniformBuffer(shadowRenderInfo.currentFrame, {1.0}, {1.0});
 
-        pipelineManager->bindShadowPipelineDescriptorSet(
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
           shadowRenderInfo.commandBuffer,
+          PipelineType::shadow,
           object->getDescriptorSet(currentFrame),
           0
         );

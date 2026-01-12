@@ -5,7 +5,6 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
-#include "../../pipelines/implementations/common/PipelineTypes.h"
 
 namespace vke {
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -217,15 +216,16 @@ namespace vke {
   void Renderer3D::renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
                               const RenderInfo* renderInfo)
   {
-    pipelineManager->bindGridPipeline(renderInfo->commandBuffer);
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::grid);
 
     const GridPushConstant gridPC {
       .viewProj = renderInfo->getProjectionMatrix() * renderInfo->viewMatrix,
       .viewPosition = renderInfo->viewPosition
     };
 
-    pipelineManager->pushGridPipelineConstants(
+    pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
+      PipelineType::grid,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       0,
       sizeof(gridPC),
@@ -240,11 +240,11 @@ namespace vke {
                                        const PipelineType pipelineType,
                                        const std::vector<std::shared_ptr<RenderObject>>* objects) const
   {
-    pipelineManager->bindRenderObjectPipeline(renderInfo->commandBuffer, pipelineType);
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
 
     if (pipelineType == PipelineType::magnifyWhirlMosaic)
     {
-      pipelineManager->pushRenderObjectPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants(
         renderInfo->commandBuffer,
         pipelineType,
         VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -258,7 +258,7 @@ namespace vke {
     {
       object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      pipelineManager->bindRenderObjectPipelineDescriptorSet(
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
         pipelineType,
         object->getDescriptorSet(renderInfo->currentFrame),

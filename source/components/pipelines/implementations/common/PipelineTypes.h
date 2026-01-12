@@ -14,7 +14,17 @@ namespace vke {
     object,
     objectHighlight,
     texturedPlane,
-    snake
+    snake,
+
+    ellipse,
+    font,
+    gui,
+    grid,
+    mousePicking,
+    pointLightShadowMap,
+    rect,
+    shadow,
+    triangle
   };
 
 } // namespace vke
