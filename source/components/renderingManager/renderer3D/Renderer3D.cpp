@@ -106,6 +106,18 @@ namespace vke {
       ImGui::End();
     }
 
+    if (m_renderObjectsToRender.contains(PipelineType::curtain) &&
+        !m_renderObjectsToRender.at(PipelineType::curtain).empty())
+    {
+      ImGui::Begin("Curtain");
+
+      ImGui::SliderFloat("Amplitude", &m_curtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &m_curtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &m_curtainPC.shininess, 1.0f, 100.0f);
+
+      ImGui::End();
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
