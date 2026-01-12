@@ -240,11 +240,11 @@ namespace vke {
                                        const PipelineType pipelineType,
                                        const std::vector<std::shared_ptr<RenderObject>>* objects) const
   {
-    pipelineManager->bindRenderObjectPipeline(renderInfo->commandBuffer, pipelineType);
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
 
     if (pipelineType == PipelineType::magnifyWhirlMosaic)
     {
-      pipelineManager->pushRenderObjectPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants(
         renderInfo->commandBuffer,
         pipelineType,
         VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -258,7 +258,7 @@ namespace vke {
     {
       object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
 
-      pipelineManager->bindRenderObjectPipelineDescriptorSet(
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
         pipelineType,
         object->getDescriptorSet(renderInfo->currentFrame),

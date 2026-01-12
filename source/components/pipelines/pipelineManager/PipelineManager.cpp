@@ -185,7 +185,7 @@ namespace vke {
       m_logicalDevice, renderPass, objectDescriptorSetLayout,
       lightingManager->getLightingDescriptorSet());
 
-    m_renderObjectPipelines[PipelineType::objectHighlight] = std::make_shared<GraphicsPipeline>(
+    m_graphicsPipelines[PipelineType::objectHighlight] = std::make_shared<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::ellipticalDots] = std::make_shared<EllipticalDots>(
@@ -206,10 +206,10 @@ namespace vke {
     m_renderObjectPipelines[PipelineType::cubeMap] = std::make_shared<CubeMapPipeline>(
       m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout);
 
-    m_renderObjectPipelines[PipelineType::texturedPlane] = std::make_shared<GraphicsPipeline>(
+    m_graphicsPipelines[PipelineType::texturedPlane] = std::make_shared<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
-    m_renderObjectPipelines[PipelineType::magnifyWhirlMosaic] = std::make_shared<GraphicsPipeline>(
+    m_graphicsPipelines[PipelineType::magnifyWhirlMosaic] = std::make_shared<GraphicsPipeline>(
       m_logicalDevice, PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));
 
     m_renderObjectPipelines[PipelineType::snake] = std::make_shared<SnakePipeline>(
