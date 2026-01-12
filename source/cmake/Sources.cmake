@@ -172,6 +172,7 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
 
   # Configuration and State Headers
   components/pipelines/implementations/common/GraphicsPipelineStates.h
+  components/pipelines/implementations/common/PipelineTypes.h
   components/pipelines/implementations/common/Uniforms.h
 
   # Vertex Input States
