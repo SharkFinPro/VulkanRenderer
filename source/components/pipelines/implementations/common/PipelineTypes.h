@@ -1,5 +1,5 @@
-#ifndef VULKANPROJECT_PIPELINETYPES_H
-#define VULKANPROJECT_PIPELINETYPES_H
+#ifndef VKE_PIPELINETYPES_H
+#define VKE_PIPELINETYPES_H
 
 namespace vke {
 
@@ -29,4 +29,4 @@ namespace vke {
 
 } // namespace vke
 
-#endif //VULKANPROJECT_PIPELINETYPES_H
+#endif //VKE_PIPELINETYPES_H
