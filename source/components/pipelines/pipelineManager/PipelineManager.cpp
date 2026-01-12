@@ -1,7 +1,6 @@
 #include "PipelineManager.h"
 #include "../implementations/PipelineConfig.h"
 #include "../implementations/PipelineConfig2D.h"
-#include "../implementations/common/PipelineTypes.h"
 #include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CrossesPipeline.h"
 #include "../implementations/renderObject/CubeMapPipeline.h"
