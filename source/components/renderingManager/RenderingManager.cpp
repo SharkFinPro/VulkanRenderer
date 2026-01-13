@@ -36,7 +36,7 @@ namespace vke {
   {
     createCommandPool();
 
-    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, m_window, m_commandPool);
+    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, m_window);
 
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);

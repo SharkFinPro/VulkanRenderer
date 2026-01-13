@@ -4,15 +4,29 @@
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 
 namespace vke {
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
-                         std::shared_ptr<Window> window,
-                         VkCommandPool commandPool)
-    : m_mousePicker(std::make_shared<MousePicker>(std::move(logicalDevice), std::move(window), commandPool))
-  {}
+                         std::shared_ptr<Window> window)
+    : m_logicalDevice(std::move(logicalDevice))
+  {
+    createCommandPool();
+
+    createDescriptorPool();
+
+    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, std::move(window), m_commandPool);
+  }
+
+  Renderer3D::~Renderer3D()
+  {
+    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+
+    m_logicalDevice->destroyCommandPool(m_commandPool);
+  }
 
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -238,6 +252,32 @@ namespace vke {
   const std::vector<std::shared_ptr<SmokeSystem>>& Renderer3D::getSmokeSystems() const
   {
     return m_smokeSystemsToRender;
+  }
+
+  void Renderer3D::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
+  }
+
+  void Renderer3D::createDescriptorPool()
+  {
+    const std::array<VkDescriptorPoolSize, 1> poolSizes {{
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30}
+    }};
+
+    const VkDescriptorPoolCreateInfo poolCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()
+    };
+
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
   }
 
   void Renderer3D::renderRenderObjectsByPipeline(const RenderInfo* renderInfo,

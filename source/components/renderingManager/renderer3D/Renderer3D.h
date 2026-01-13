@@ -76,8 +76,9 @@ namespace vke {
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
-               std::shared_ptr<Window> window,
-               VkCommandPool commandPool);
+               std::shared_ptr<Window> window);
+
+    ~Renderer3D();
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -121,6 +122,12 @@ namespace vke {
     [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;;
 
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+
     std::shared_ptr<MousePicker> m_mousePicker;
 
     bool m_shouldRenderGrid = true;
@@ -173,6 +180,10 @@ namespace vke {
     SnakePushConstant m_snakePC {
       .wiggle = 0
     };
+
+    void createCommandPool();
+
+    void createDescriptorPool();
 
     void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
                                        const std::shared_ptr<PipelineManager>& pipelineManager,
