@@ -400,6 +400,43 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createBumpyCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                   const std::shared_ptr<RenderPass>& renderPass,
+                                                                   VkDescriptorSetLayout objectDescriptorSetLayout,
+                                                                   VkDescriptorSetLayout lightingDescriptorSetLayout,
+                                                                   VkDescriptorSetLayout noiseDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/Curtain.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/BumpyCurtain.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(BumpyCurtainPushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout,
+        lightingDescriptorSetLayout,
+        noiseDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H

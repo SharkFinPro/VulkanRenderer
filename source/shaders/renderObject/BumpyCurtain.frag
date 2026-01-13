@@ -3,41 +3,38 @@
 #include "../common/Lighting.glsl"
 #include "../common/Perturb.glsl"
 
+layout(push_constant) uniform BumpyCurtainPC {
+  float amplitude;
+  float period;
+  float shininess;
+  float noiseAmplitude;
+  float noiseFrequency;
+} pc;
+
 layout(set = 0, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;
 } transform;
 
-layout(set = 2, binding = 0) uniform PointLightsMetadata {
+layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 2, binding = 1) readonly buffer PointLights {
+layout(set = 1, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 2, binding = 2) readonly buffer SpotLights {
+layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 2, binding = 3) uniform Camera {
+layout(set = 1, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 1, binding = 4) uniform Curtain {
-  float amplitude;
-  float period;
-  float shininess;
-} curtain;
-
-layout(set = 1, binding = 6) uniform NoiseOptions {
-  float amplitude;
-  float frequency;
-} noiseOptions;
-
-layout(set = 1, binding = 7) uniform sampler3D Noise3;
+layout(set = 2, binding = 0) uniform sampler3D Noise3;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
@@ -47,13 +44,13 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-  vec4 nvx = texture(Noise3, noiseOptions.frequency * fragPos);
+  vec4 nvx = texture(Noise3, pc.noiseFrequency * fragPos);
   float angx = nvx.r + nvx.g + nvx.b + nvx.a  -  2.;	// -1. to +1.
-  angx *= noiseOptions.amplitude;
+  angx *= pc.noiseAmplitude;
 
-  vec4 nvy = texture(Noise3, noiseOptions.frequency * vec3(fragPos.xy, fragPos.z + 0.5));
+  vec4 nvy = texture(Noise3, pc.noiseFrequency * vec3(fragPos.xy, fragPos.z + 0.5));
   float angy = nvy.r + nvy.g + nvy.b + nvy.a  -  2.;	// -1. to +1.
-  angy *= noiseOptions.amplitude;
+  angy *= pc.noiseAmplitude;
 
   vec3 n = PerturbNormal2(angx, angy, fragNormal);
   n = normalize(transpose(inverse(mat3(transform.model))) * n);
@@ -64,12 +61,12 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
   {
-    result += StandardPointLightAffect(pointLights[i], fragColor, n, fragPos, camera.position, curtain.shininess);
+    result += StandardPointLightAffect(pointLights[i], fragColor, n, fragPos, camera.position, pc.shininess);
   }
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, curtain.shininess);
+    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, pc.shininess);
   }
 
   outColor = vec4(result, 1.0);

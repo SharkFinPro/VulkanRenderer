@@ -2,7 +2,6 @@
 #include "../descriptorSets/DescriptorSet.h"
 #include "../implementations/PipelineConfig.h"
 #include "../implementations/PipelineConfig2D.h"
-#include "../implementations/renderObject/BumpyCurtain.h"
 #include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/PipelineConfigRenderObject.h"
 #include "../../assets/AssetManager.h"
@@ -200,9 +199,9 @@ namespace vke {
       PipelineConfig::createNoisyEllipticalDotsPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
       lightingDescriptorSetLayout, renderingManager->getRenderer3D()->getNoiseDescriptorSetLayout()));
 
-    m_renderObjectPipelines[PipelineType::bumpyCurtain] = std::make_shared<BumpyCurtain>(
-      m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout,
-      lightingManager->getLightingDescriptorSet());
+    createGraphicsPipeline(PipelineType::bumpyCurtain,
+      PipelineConfig::createBumpyCurtainPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
+      lightingDescriptorSetLayout, renderingManager->getRenderer3D()->getNoiseDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::curtain,
       PipelineConfig::createCurtainPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,

@@ -143,8 +143,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
 # implementations Pipeline Implementations
 set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   # RenderObject Pipelines
-  components/pipelines/implementations/renderObject/BumpyCurtain.cpp
-  components/pipelines/implementations/renderObject/BumpyCurtain.h
   components/pipelines/implementations/renderObject/CubeMapPipeline.cpp
   components/pipelines/implementations/renderObject/CubeMapPipeline.h
 

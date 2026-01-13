@@ -71,6 +71,14 @@ namespace vke {
     float shininess;
   };
 
+  struct BumpyCurtainPushConstant {
+    float amplitude;
+    float period;
+    float shininess;
+    float noiseAmplitude;
+    float noiseFrequency;
+  };
+
   struct SnakePushConstant {
     float wiggle;
   };
@@ -80,8 +88,8 @@ namespace vke {
     float sDiameter;
     float tDiameter;
     float blendFactor;
-    float amplitude;
-    float frequency;
+    float noiseAmplitude;
+    float noiseFrequency;
   };
 
   class Renderer3D {
@@ -194,6 +202,14 @@ namespace vke {
       .shininess = 10
     };
 
+    BumpyCurtainPushConstant m_bumpyCurtainPC {
+      .amplitude = 0.1,
+      .period = 1,
+      .shininess = 10,
+      .noiseAmplitude = 0.5f,
+      .noiseFrequency = 1.0f
+    };
+
     SnakePushConstant m_snakePC {
       .wiggle = 0
     };
@@ -203,8 +219,8 @@ namespace vke {
       .sDiameter = 0.025f,
       .tDiameter = 0.025f,
       .blendFactor = 0.0f,
-      .amplitude = 0.5f,
-      .frequency = 1.0f
+      .noiseAmplitude = 0.5f,
+      .noiseFrequency = 1.0f
     };
 
     void createCommandPool();

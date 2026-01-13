@@ -157,6 +157,23 @@ namespace vke {
       ImGui::End();
     }
 
+    if (m_renderObjectsToRender.contains(PipelineType::bumpyCurtain) &&
+        !m_renderObjectsToRender.at(PipelineType::bumpyCurtain).empty())
+    {
+      ImGui::Begin("Bumpy Curtain");
+
+      ImGui::SliderFloat("Amplitude", &m_bumpyCurtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &m_bumpyCurtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &m_bumpyCurtainPC.shininess, 1.0f, 100.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_bumpyCurtainPC.noiseAmplitude, 0.0f, 10.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_bumpyCurtainPC.noiseFrequency, 0.1f, 10.0f);
+
+      ImGui::End();
+    }
+
     if (m_renderObjectsToRender.contains(PipelineType::snake) &&
         !m_renderObjectsToRender.at(PipelineType::snake).empty())
     {
@@ -184,8 +201,8 @@ namespace vke {
 
       ImGui::Separator();
 
-      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.amplitude, 0.0f, 1.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.frequency, 0.0f, 10.0f);
+      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
 
       ImGui::End();
     }
@@ -346,8 +363,7 @@ namespace vke {
         continue;
       }
 
-      if (pipelineType == PipelineType::bumpyCurtain ||
-          pipelineType == PipelineType::cubeMap)
+      if (pipelineType == PipelineType::cubeMap)
       {
         pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
         continue;
@@ -450,6 +466,18 @@ namespace vke {
       );
     }
 
+    if (pipelineType == PipelineType::bumpyCurtain)
+    {
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_bumpyCurtainPC),
+        &m_bumpyCurtainPC
+      );
+    }
+
     if (pipelineType == PipelineType::snake)
     {
       pipelineManager->pushGraphicsPipelineConstants(
@@ -472,7 +500,11 @@ namespace vke {
         sizeof(m_noisyEllipticalDotsPC),
         &m_noisyEllipticalDotsPC
       );
+    }
 
+    if (pipelineType == PipelineType::bumpyCurtain ||
+        pipelineType == PipelineType::noisyEllipticalDots)
+    {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
         pipelineType,
@@ -484,6 +516,7 @@ namespace vke {
     if (pipelineType == PipelineType::ellipticalDots ||
         pipelineType == PipelineType::crosses ||
         pipelineType == PipelineType::curtain ||
+        pipelineType == PipelineType::bumpyCurtain ||
         pipelineType == PipelineType::object ||
         pipelineType == PipelineType::snake ||
         pipelineType == PipelineType::noisyEllipticalDots)

@@ -7,8 +7,8 @@ layout(push_constant) uniform PushConstants {
   float sDiameter;
   float tDiameter;
   float blendFactor;
-  float amplitude;
-  float frequency;
+  float noiseAmplitude;
+  float noiseFrequency;
 } pc;
 
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
@@ -41,11 +41,11 @@ const vec3 ELLIPSECOLOR = vec3(0.6235, 0.8863, 0.7490);
 
 void main()
 {
-  vec4 nv = texture(Noise3, pc.frequency * fragPos);
+  vec4 nv = texture(Noise3, pc.noiseFrequency * fragPos);
 
   float n = nv.r + nv.g + nv.b + nv.a;
   n -= 2.0;
-  n *= pc.amplitude;
+  n *= pc.noiseAmplitude;
 
   int numins = int(fragTexCoord.s / pc.sDiameter);
   int numint = int(fragTexCoord.t / pc.tDiameter);
