@@ -274,9 +274,11 @@ namespace vke {
 
     void displayGui();
 
-    void displayEllipticalDotsGui();
+    void displayCrossesGui();
 
     void displayCurtainGui();
+
+    void displayEllipticalDotsGui();
 
     void displayMiscGui();
   };

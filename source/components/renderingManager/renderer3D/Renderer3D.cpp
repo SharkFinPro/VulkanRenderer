@@ -491,6 +491,8 @@ namespace vke {
 
   void Renderer3D::displayGui()
   {
+    displayCrossesGui();
+    
     displayCurtainGui();
 
     displayEllipticalDotsGui();
@@ -498,33 +500,31 @@ namespace vke {
     displayMiscGui();
   }
 
-  void Renderer3D::displayEllipticalDotsGui()
+  void Renderer3D::displayCrossesGui()
   {
-    if (pipelineIsActive(PipelineType::ellipticalDots))
+    if (pipelineIsActive(PipelineType::crosses))
     {
-      ImGui::Begin("Elliptical Dots");
+      ImGui::Begin("Crosses");
 
-      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
+      ImGui::SliderInt("Level", &m_crossesPC.level, 0, 3);
 
-      ImGui::End();
-    }
+      ImGui::SliderFloat("Quantize", &m_crossesPC.quantize, 2.0f, 50.0f);
 
-    if (pipelineIsActive(PipelineType::noisyEllipticalDots))
-    {
-      ImGui::Begin("Noisy Elliptical Dots");
+      ImGui::SliderFloat("Size", &m_crossesPC.size, 0.0001f, 0.1f);
 
-      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
+      ImGui::SliderFloat("Shininess", &m_crossesPC.shininess, 2.0f, 50.0f);
 
       ImGui::Separator();
 
-      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
+      ImGui::Text("Chroma Depth");
+
+      bool useChromaDepth = m_crossesPC.useChromaDepth;
+      ImGui::Checkbox("Use Chroma Depth", &useChromaDepth);
+      m_crossesPC.useChromaDepth = useChromaDepth;
+
+      ImGui::SliderFloat("Blue Depth", &m_crossesPC.blueDepth, 0.0f, 50.0f);
+
+      ImGui::SliderFloat("Red Depth", &m_crossesPC.redDepth, 0.0f, 50.0f);
 
       ImGui::End();
     }
@@ -560,6 +560,38 @@ namespace vke {
     }
   }
 
+  void Renderer3D::displayEllipticalDotsGui()
+  {
+    if (pipelineIsActive(PipelineType::ellipticalDots))
+    {
+      ImGui::Begin("Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::noisyEllipticalDots))
+    {
+      ImGui::Begin("Noisy Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
+
+      ImGui::End();
+    }
+  }
+
   void Renderer3D::displayMiscGui()
   {
     if (pipelineIsActive(PipelineType::magnifyWhirlMosaic))
@@ -575,33 +607,6 @@ namespace vke {
       ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
       ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
       ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
-
-      ImGui::End();
-    }
-
-    if (pipelineIsActive(PipelineType::crosses))
-    {
-      ImGui::Begin("Crosses");
-
-      ImGui::SliderInt("Level", &m_crossesPC.level, 0, 3);
-
-      ImGui::SliderFloat("Quantize", &m_crossesPC.quantize, 2.0f, 50.0f);
-
-      ImGui::SliderFloat("Size", &m_crossesPC.size, 0.0001f, 0.1f);
-
-      ImGui::SliderFloat("Shininess", &m_crossesPC.shininess, 2.0f, 50.0f);
-
-      ImGui::Separator();
-
-      ImGui::Text("Chroma Depth");
-
-      bool useChromaDepth = m_crossesPC.useChromaDepth;
-      ImGui::Checkbox("Use Chroma Depth", &useChromaDepth);
-      m_crossesPC.useChromaDepth = useChromaDepth;
-
-      ImGui::SliderFloat("Blue Depth", &m_crossesPC.blueDepth, 0.0f, 50.0f);
-
-      ImGui::SliderFloat("Red Depth", &m_crossesPC.redDepth, 0.0f, 50.0f);
 
       ImGui::End();
     }
