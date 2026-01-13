@@ -104,19 +104,31 @@ namespace vke {
   {
     m_assetManager = std::make_shared<AssetManager>(m_logicalDevice);
 
-    m_renderingManager = std::make_shared<RenderingManager>(m_logicalDevice, m_surface, m_window,
-                                                            engineConfig.imGui.useDockspace,
-                                                            engineConfig.imGui.sceneViewName.c_str(),
-                                                            m_assetManager);
+    m_renderingManager = std::make_shared<RenderingManager>(
+      m_logicalDevice,
+      m_surface,
+      m_window,
+      engineConfig.imGui.useDockspace,
+      engineConfig.imGui.sceneViewName.c_str(),
+      m_assetManager
+    );
 
     m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_renderingManager->getRenderer());
 
-    m_pipelineManager = std::make_shared<PipelineManager>(m_logicalDevice, m_renderingManager->getRenderer(),
-                                                          m_lightingManager, m_assetManager);
+    m_pipelineManager = std::make_shared<PipelineManager>(
+      m_logicalDevice,
+      m_renderingManager,
+      m_lightingManager,
+      m_assetManager
+    );
 
-    m_imGuiInstance = std::make_shared<ImGuiInstance>(m_window, m_instance, m_logicalDevice,
-                                                      m_renderingManager->getRenderer()->getSwapchainRenderPass(),
-                                                      engineConfig.imGui);
+    m_imGuiInstance = std::make_shared<ImGuiInstance>(
+      m_window,
+      m_instance,
+      m_logicalDevice,
+      m_renderingManager->getRenderer()->getSwapchainRenderPass(),
+      engineConfig.imGui
+    );
 
     m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice);
   }

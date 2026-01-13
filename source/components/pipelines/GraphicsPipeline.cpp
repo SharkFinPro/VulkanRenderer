@@ -2,7 +2,6 @@
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../assets/objects/RenderObject.h"
 #include "../renderingManager/legacyRenderer/RenderPass.h"
 
 namespace vke {
@@ -18,33 +17,13 @@ namespace vke {
     createPipeline(graphicsPipelineOptions);
   }
 
-  void GraphicsPipeline::render(const RenderInfo* renderInfo,
-                                const std::vector<std::shared_ptr<RenderObject>>* objects)
-  {
-    updateUniformVariables(renderInfo);
-
-    renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-
-    bindDescriptorSet(renderInfo);
-
-    if (objects)
-    {
-      for (const auto& object : *objects)
-      {
-        object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-        object->draw(renderInfo->commandBuffer, m_pipelineLayout, renderInfo->currentFrame);
-      }
-    }
-  }
-
   void GraphicsPipeline::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
   }
 
   void GraphicsPipeline::bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           const VkDescriptorSet descriptorSet,
+                                           VkDescriptorSet descriptorSet,
                                            const uint32_t location) const
   {
     commandBuffer->bindDescriptorSets(

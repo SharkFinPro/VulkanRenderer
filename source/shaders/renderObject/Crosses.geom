@@ -3,18 +3,22 @@
 layout(triangles) in;
 layout(line_strip, max_vertices=78) out;
 
+layout(push_constant) uniform CrossesPC {
+  vec3 position;
+  float quantize;
+  float size;
+  float shininess;
+  float blueDepth;
+  float redDepth;
+  int level;
+  uint useChromaDepth;
+} pc;
+
 layout(set = 0, binding = 0) uniform Transform {
   mat4 model;
   mat4 view;
   mat4 proj;
 } transform;
-
-layout(set = 1, binding = 4) uniform Crosses {
-  int level;
-  float quantize;
-  float size;
-  float shininess;
-} crosses;
 
 layout(location = 0) in vec3 gsPos[];
 layout(location = 1) in vec3 gsNormal[];
@@ -47,7 +51,7 @@ void main()
   N01 = N1 - N0;
   N02 = N2 - N0;
 
-  int numLayers = 1 << crosses.level;
+  int numLayers = 1 << pc.level;
 
   float dt = 1. / float( numLayers );
   float t = 1.;
@@ -82,7 +86,7 @@ void ProduceCrosses(float s, float t)
   vec3 nv = normalize(mat3(transpose(inverse(transform.model))) * n);
 
   // Cross size
-  vec3 sizeVec = vec3(crosses.size);
+  vec3 sizeVec = vec3(pc.size);
 
   // Eye Space
   vec4 ECposition = transform.view * transform.model * vec4(v, 1.0);
@@ -139,17 +143,17 @@ void ProduceCrosses(float s, float t)
 
 vec3 Quantize(vec3 v)
 {
-  v.x *= crosses.quantize;
+  v.x *= pc.quantize;
   int xi = int(v.x);
-  v.x = float(xi) / crosses.quantize;
+  v.x = float(xi) / pc.quantize;
 
-  v.y *= crosses.quantize;
+  v.y *= pc.quantize;
   int yi = int(v.y);
-  v.y = float(yi) / crosses.quantize;
+  v.y = float(yi) / pc.quantize;
 
-  v.z *= crosses.quantize;
+  v.z *= pc.quantize;
   int zi = int(v.z);
-  v.z = float(zi) / crosses.quantize;
+  v.z = float(zi) / pc.quantize;
 
   return v;
 }

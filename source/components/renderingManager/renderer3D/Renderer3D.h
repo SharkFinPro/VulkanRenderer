@@ -12,6 +12,7 @@ namespace vke {
 
   class AssetManager;
   class CommandBuffer;
+  class DescriptorSet;
   class LightingManager;
   struct LineVertex;
   class LogicalDevice;
@@ -21,6 +22,8 @@ namespace vke {
   struct RenderInfo;
   class RenderObject;
   class SmokeSystem;
+  class Texture3D;
+  class TextureCubemap;
   class Window;
 
   struct BendyPlant {
@@ -45,11 +48,66 @@ namespace vke {
     float mosaic;
   };
 
+  struct EllipticalDotsPushConstant {
+    float shininess;
+    float sDiameter;
+    float tDiameter;
+    float blendFactor;
+  };
+
+  struct CrossesPushConstant {
+    glm::vec3 position;
+    float quantize;
+    float size;
+    float shininess;
+    float blueDepth;
+    float redDepth;
+    int level;
+    uint32_t useChromaDepth;
+  };
+
+  struct CurtainPushConstant {
+    float amplitude;
+    float period;
+    float shininess;
+  };
+
+  struct BumpyCurtainPushConstant {
+    float amplitude;
+    float period;
+    float shininess;
+    float noiseAmplitude;
+    float noiseFrequency;
+  };
+
+  struct SnakePushConstant {
+    float wiggle;
+  };
+
+  struct NoisyEllipticalDotsPushConstant {
+    float shininess;
+    float sDiameter;
+    float tDiameter;
+    float blendFactor;
+    float noiseAmplitude;
+    float noiseFrequency;
+  };
+
+  struct CubeMapPushConstant {
+    glm::vec3 position;
+    float mix;
+    float refractionIndex;
+    float whiteMix;
+    float noiseAmplitude;
+    float noiseFrequency;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
-               std::shared_ptr<Window> window,
-               VkCommandPool commandPool);
+               std::shared_ptr<Window> window);
+
+    ~Renderer3D();
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -62,7 +120,8 @@ namespace vke {
     void handleRenderedMousePickingImage(VkImage image) const;
 
     void render(const RenderInfo* renderInfo,
-                const std::shared_ptr<PipelineManager>& pipelineManager);
+                const std::shared_ptr<PipelineManager>& pipelineManager,
+                const std::shared_ptr<LightingManager>& lightingManager);
 
     void createNewFrame();
 
@@ -91,7 +150,17 @@ namespace vke {
 
     [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;;
 
+    [[nodiscard]] VkDescriptorSetLayout getNoiseDescriptorSetLayout() const;
+
+    [[nodiscard]] VkDescriptorSetLayout getCubeMapDescriptorSetLayout() const;
+
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+
     std::shared_ptr<MousePicker> m_mousePicker;
 
     bool m_shouldRenderGrid = true;
@@ -108,6 +177,14 @@ namespace vke {
 
     std::vector<std::shared_ptr<SmokeSystem>> m_smokeSystemsToRender;
 
+    std::shared_ptr<Texture3D> m_noiseTexture;
+
+    std::shared_ptr<TextureCubemap> m_cubeMapTexture;
+
+    std::shared_ptr<DescriptorSet> m_noiseDescriptorSet;
+
+    std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
+
     MagnifyWhirlMosaicPushConstant m_magnifyWhirlMosaicPC {
       .lensS = 0.5f,
       .lensT = 0.5f,
@@ -117,8 +194,67 @@ namespace vke {
       .mosaic = 0.001f
     };
 
+    EllipticalDotsPushConstant m_ellipticalDotsPC {
+      .shininess = 10.0f,
+      .sDiameter = 0.025f,
+      .tDiameter = 0.025f,
+      .blendFactor = 0.0f
+    };
+
+    CrossesPushConstant m_crossesPC {
+      .position = glm::vec3(0.0f),
+      .quantize = 50.0f,
+      .size = 0.01f,
+      .shininess = 10.0f,
+      .blueDepth = 4.4f,
+      .redDepth = 1.0f,
+      .level = 1,
+      .useChromaDepth = false
+    };
+
+    CurtainPushConstant m_curtainPC {
+      .amplitude = 0.1,
+      .period = 1,
+      .shininess = 10
+    };
+
+    BumpyCurtainPushConstant m_bumpyCurtainPC {
+      .amplitude = 0.1,
+      .period = 1,
+      .shininess = 10,
+      .noiseAmplitude = 0.5f,
+      .noiseFrequency = 1.0f
+    };
+
+    SnakePushConstant m_snakePC {
+      .wiggle = 0
+    };
+
+    NoisyEllipticalDotsPushConstant m_noisyEllipticalDotsPC {
+      .shininess = 10.0f,
+      .sDiameter = 0.025f,
+      .tDiameter = 0.025f,
+      .blendFactor = 0.0f,
+      .noiseAmplitude = 0.5f,
+      .noiseFrequency = 1.0f
+    };
+
+    CubeMapPushConstant m_cubeMapPC {
+      .position = glm::vec3(0.0f),
+      .mix = 0.0f,
+      .refractionIndex = 1.4f,
+      .whiteMix = 0.2f,
+      .noiseAmplitude = 0.0f,
+      .noiseFrequency = 0.1f
+    };
+
+    void createCommandPool();
+
+    void createDescriptorPool();
+
     void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
-                                       const std::shared_ptr<PipelineManager>& pipelineManager) const;
+                                       const std::shared_ptr<PipelineManager>& pipelineManager,
+                                       const std::shared_ptr<LightingManager>& lightingManager) const;
 
     void renderSmokeSystems(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
@@ -127,9 +263,24 @@ namespace vke {
                            const RenderInfo* renderInfo);
 
     void renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                             const std::shared_ptr<LightingManager>& lightingManager,
                              const RenderInfo* renderInfo,
                              PipelineType pipelineType,
                              const std::vector<std::shared_ptr<RenderObject>>* objects) const;
+
+    void createDescriptorSets();
+
+    [[nodiscard]] bool pipelineIsActive(PipelineType pipelineType) const;
+
+    void displayGui();
+
+    void displayCrossesGui();
+
+    void displayCurtainGui();
+
+    void displayEllipticalDotsGui();
+
+    void displayMiscGui();
   };
 } // vke
 

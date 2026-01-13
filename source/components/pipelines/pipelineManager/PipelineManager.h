@@ -18,13 +18,13 @@ namespace vke {
   class DotsPipeline;
   class PointLight;
   class Pipeline;
-  class Renderer;
+  class RenderingManager;
   class RenderObject;
 
   class PipelineManager {
   public:
     PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                    const std::shared_ptr<Renderer>& renderer,
+                    const std::shared_ptr<RenderingManager>& renderingManager,
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager);
 
@@ -53,25 +53,6 @@ namespace vke {
     void renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                   const std::vector<BendyPlant>* plants) const;
 
-    void renderRenderObjectPipeline(const RenderInfo* renderInfo,
-                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
-                                    PipelineType pipelineType) const;
-
-    void bindRenderObjectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                  PipelineType pipelineType) const;
-
-    void pushRenderObjectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           PipelineType pipelineType,
-                                           VkShaderStageFlags stageFlags,
-                                           uint32_t offset,
-                                           uint32_t size,
-                                           const void* values) const;
-
-    void bindRenderObjectPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                               PipelineType pipelineType,
-                                               VkDescriptorSet descriptorSet,
-                                               uint32_t location) const;
-
     void renderSmokePipeline(const RenderInfo* renderInfo,
                              const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
@@ -91,8 +72,6 @@ namespace vke {
 
     std::unique_ptr<DotsPipeline> m_dotsPipeline;
 
-    std::unordered_map<PipelineType, std::shared_ptr<GraphicsPipeline>> m_renderObjectPipelines;
-
     std::unique_ptr<SmokePipeline> m_smokePipeline;
 
     std::unique_ptr<LinePipeline> m_linePipeline;
@@ -105,25 +84,23 @@ namespace vke {
                                 const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                         const std::shared_ptr<Renderer>& renderer,
+                         const std::shared_ptr<RenderingManager>& renderingManager,
                          const std::shared_ptr<LightingManager>& lightingManager);
 
     void create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                           const std::shared_ptr<Renderer>& renderer);
+                           const std::shared_ptr<RenderingManager>& renderingManager);
 
     void createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                                     const std::shared_ptr<Renderer>& renderer,
+                                     const std::shared_ptr<RenderingManager>& renderingManager,
                                      const std::shared_ptr<LightingManager>& lightingManager);
 
     void createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                             const std::shared_ptr<Renderer>& renderer,
+                             const std::shared_ptr<RenderingManager>& renderingManager,
                              const std::shared_ptr<LightingManager>& lightingManager);
 
     void createCommandPool();
 
     void createDescriptorPool();
-
-    [[nodiscard]] std::shared_ptr<GraphicsPipeline> getRenderObjectPipeline(PipelineType pipelineType) const;
 
     [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
   };

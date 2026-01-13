@@ -14,13 +14,13 @@ namespace vke {
   class LinePipeline final : public GraphicsPipeline {
   public:
     LinePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                 std::shared_ptr<RenderPass> renderPass);
+                 const std::shared_ptr<RenderPass>& renderPass);
 
     ~LinePipeline() override;
 
     void render(const RenderInfo* renderInfo,
                 const VkCommandPool& commandPool,
-                const std::vector<LineVertex>* vertices);
+                const std::vector<LineVertex>* vertices) const;
 
   private:
     VkBuffer m_vertexBuffer = VK_NULL_HANDLE;

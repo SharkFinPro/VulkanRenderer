@@ -142,24 +142,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
 
 # implementations Pipeline Implementations
 set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
-  # RenderObject Pipelines
-  components/pipelines/implementations/renderObject/BumpyCurtain.cpp
-  components/pipelines/implementations/renderObject/BumpyCurtain.h
-  components/pipelines/implementations/renderObject/CrossesPipeline.cpp
-  components/pipelines/implementations/renderObject/CrossesPipeline.h
-  components/pipelines/implementations/renderObject/CubeMapPipeline.cpp
-  components/pipelines/implementations/renderObject/CubeMapPipeline.h
-  components/pipelines/implementations/renderObject/CurtainPipeline.cpp
-  components/pipelines/implementations/renderObject/CurtainPipeline.h
-  components/pipelines/implementations/renderObject/EllipticalDots.cpp
-  components/pipelines/implementations/renderObject/EllipticalDots.h
-  components/pipelines/implementations/renderObject/NoisyEllipticalDots.cpp
-  components/pipelines/implementations/renderObject/NoisyEllipticalDots.h
-  components/pipelines/implementations/renderObject/ObjectsPipeline.cpp
-  components/pipelines/implementations/renderObject/ObjectsPipeline.h
-  components/pipelines/implementations/renderObject/SnakePipeline.cpp
-  components/pipelines/implementations/renderObject/SnakePipeline.h
-
   # Other Pipelines
   components/pipelines/implementations/BendyPipeline.cpp
   components/pipelines/implementations/BendyPipeline.h

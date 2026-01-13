@@ -19,7 +19,7 @@ namespace vke {
   public:
     DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkCommandPool& commandPool,
-                 std::shared_ptr<RenderPass> renderPass,
+                 const std::shared_ptr<RenderPass>& renderPass,
                  VkDescriptorPool descriptorPool);
 
     ~DotsPipeline() override;
@@ -27,8 +27,7 @@ namespace vke {
     void compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
                  uint32_t currentFrame) const;
 
-    void render(const RenderInfo* renderInfo,
-                const std::vector<std::shared_ptr<RenderObject>>* objects) override;
+    void render(const RenderInfo* renderInfo);
 
   private:
     std::vector<VkBuffer> m_shaderStorageBuffers;
@@ -47,7 +46,7 @@ namespace vke {
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 
-    void updateUniformVariables(const RenderInfo* renderInfo) override;
+    void updateUniformVariables(const RenderInfo* renderInfo);
   };
 
 } // namespace vke

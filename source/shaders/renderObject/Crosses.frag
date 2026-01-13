@@ -2,35 +2,33 @@
 #extension GL_GOOGLE_include_directive : require
 #include "../common/Lighting.glsl"
 
-layout(set = 2, binding = 0) uniform PointLightsMetadata {
+layout(push_constant) uniform CrossesPC {
+  vec3 position;
+  float quantize;
+  float size;
+  float shininess;
+  float blueDepth;
+  float redDepth;
+  int level;
+  uint useChromaDepth;
+} pc;
+
+layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 2, binding = 1) readonly buffer PointLights {
+layout(set = 1, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 2, binding = 2) readonly buffer SpotLights {
+layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 2, binding = 3) uniform Camera {
+layout(set = 1, binding = 3) uniform Camera {
   vec3 position;
 } camera;
-
-layout(set = 1, binding = 4) uniform Crosses {
-  int level;
-  float quantize;
-  float size;
-  float shininess;
-} crosses;
-
-layout(std140, set = 1, binding = 6) uniform ChromaDepth {
-  bool use;
-  float blueDepth;
-  float redDepth;
-} chromaDepth;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNormal;
@@ -44,9 +42,9 @@ void main()
 {
   vec3 color = vec3(0.8);
 
-  if (chromaDepth.use)
+  if (pc.useChromaDepth == 1)
   {
-    float t = (2.0 / 3.0) * (abs(fragZ) - chromaDepth.redDepth) / (chromaDepth.blueDepth - chromaDepth.redDepth);
+    float t = (2.0 / 3.0) * (abs(fragZ) - pc.redDepth) / (pc.blueDepth - pc.redDepth);
     t = clamp(t, 0., 2./3.);
     color = Rainbow(t);
   }
@@ -54,12 +52,12 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
   {
-    result += StandardPointLightAffect(pointLights[i], color, fragNormal, fragPos, camera.position, crosses.shininess);
+    result += StandardPointLightAffect(pointLights[i], color, fragNormal, fragPos, camera.position, pc.shininess);
   }
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    result += StandardSpotLightAffect(spotLights[i], color, fragNormal, fragPos, camera.position, crosses.shininess);
+    result += StandardSpotLightAffect(spotLights[i], color, fragNormal, fragPos, camera.position, pc.shininess);
   }
 
   outColor = vec4(result, 1.0);

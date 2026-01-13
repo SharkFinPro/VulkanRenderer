@@ -2,36 +2,33 @@
 #extension GL_GOOGLE_include_directive : require
 #include "../common/Lighting.glsl"
 
-layout(set = 2, binding = 0) uniform PointLightsMetadata {
-  int numPointLights;
-  int numSpotLights;
-};
-
-layout(set = 2, binding = 1) readonly buffer PointLights {
-  PointLight pointLights[];
-};
-
-layout(set = 2, binding = 2) readonly buffer SpotLights {
-  SpotLight spotLights[];
-};
-
-layout(set = 2, binding = 3) uniform Camera {
-  vec3 position;
-} camera;
-
-layout(set = 1, binding = 4) uniform EllipticalDots {
+layout(push_constant) uniform PushConstants {
   float shininess;
   float sDiameter;
   float tDiameter;
   float blendFactor;
-} ellipticalDots;
+  float noiseAmplitude;
+  float noiseFrequency;
+} pc;
 
-layout(set = 1, binding = 6) uniform NoiseOptions {
-  float amplitude;
-  float frequency;
-} noiseOptions;
+layout(set = 1, binding = 0) uniform PointLightsMetadata {
+  int numPointLights;
+  int numSpotLights;
+};
 
-layout(set = 1, binding = 7) uniform sampler3D Noise3;
+layout(set = 1, binding = 1) readonly buffer PointLights {
+  PointLight pointLights[];
+};
+
+layout(set = 1, binding = 2) readonly buffer SpotLights {
+  SpotLight spotLights[];
+};
+
+layout(set = 1, binding = 3) uniform Camera {
+  vec3 position;
+} camera;
+
+layout(set = 2, binding = 0) uniform sampler3D Noise3;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
@@ -44,21 +41,21 @@ const vec3 ELLIPSECOLOR = vec3(0.6235, 0.8863, 0.7490);
 
 void main()
 {
-  vec4 nv = texture(Noise3, noiseOptions.frequency * fragPos);
+  vec4 nv = texture(Noise3, pc.noiseFrequency * fragPos);
 
   float n = nv.r + nv.g + nv.b + nv.a;
   n -= 2.0;
-  n *= noiseOptions.amplitude;
+  n *= pc.noiseAmplitude;
 
-  int numins = int(fragTexCoord.s / ellipticalDots.sDiameter);
-  int numint = int(fragTexCoord.t / ellipticalDots.tDiameter);
+  int numins = int(fragTexCoord.s / pc.sDiameter);
+  int numint = int(fragTexCoord.t / pc.tDiameter);
 
   // Calculate ellipse equation
-  float Ar = ellipticalDots.sDiameter / 2.0;
-  float Br = ellipticalDots.tDiameter / 2.0;
+  float Ar = pc.sDiameter / 2.0;
+  float Br = pc.tDiameter / 2.0;
 
-  float sc = numins * ellipticalDots.sDiameter + Ar;
-  float tc = numint * ellipticalDots.tDiameter + Br;
+  float sc = numins * pc.sDiameter + Ar;
+  float tc = numint * pc.tDiameter + Br;
 
   //
   float ds = fragTexCoord.s - sc;
@@ -70,19 +67,19 @@ void main()
   float dist = pow((ds * scale) / Ar, 2.0) + pow((dt * scale) / Br, 2.0);
 
   // Smooth blending based on ellipse distance
-  float t = smoothstep(1.0 - ellipticalDots.blendFactor, 1.0 + ellipticalDots.blendFactor, dist);
+  float t = smoothstep(1.0 - pc.blendFactor, 1.0 + pc.blendFactor, dist);
   vec3 fragColor = mix(ELLIPSECOLOR, OBJECTCOLOR, t);
 
   // now use fragColor in the per-fragment lighting equations:
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
   {
-    result += StandardPointLightAffect(pointLights[i], fragColor, fragNormal, fragPos, camera.position, ellipticalDots.shininess);
+    result += StandardPointLightAffect(pointLights[i], fragColor, fragNormal, fragPos, camera.position, pc.shininess);
   }
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, ellipticalDots.shininess);
+    result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, pc.shininess);
   }
 
   outColor = vec4(result, 1.0);
