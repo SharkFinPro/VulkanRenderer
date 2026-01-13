@@ -2,6 +2,7 @@
 #include "MousePicker.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
+#include "../../assets/textures/Texture3D.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -19,6 +20,30 @@ namespace vke {
     createDescriptorPool();
 
     m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, std::move(window), m_commandPool);
+
+    m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, m_commandPool, "assets/noise/noise3d.064.tex",
+                                                 VK_SAMPLER_ADDRESS_MODE_REPEAT);
+
+    constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    };
+
+    std::vector<VkDescriptorSetLayoutBinding> noiseLayoutBindings {
+      noiseSamplerLayout
+    };
+
+    m_noiseDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, noiseLayoutBindings);
+    m_noiseDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_noiseTexture->getDescriptorSet(0, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
   }
 
   Renderer3D::~Renderer3D()

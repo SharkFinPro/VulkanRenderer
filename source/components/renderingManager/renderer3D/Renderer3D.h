@@ -12,6 +12,7 @@ namespace vke {
 
   class AssetManager;
   class CommandBuffer;
+  class DescriptorSet;
   class LightingManager;
   struct LineVertex;
   class LogicalDevice;
@@ -21,6 +22,7 @@ namespace vke {
   struct RenderInfo;
   class RenderObject;
   class SmokeSystem;
+  class Texture3D;
   class Window;
 
   struct BendyPlant {
@@ -143,6 +145,10 @@ namespace vke {
     std::vector<BendyPlant> m_bendyPlantsToRender;
 
     std::vector<std::shared_ptr<SmokeSystem>> m_smokeSystemsToRender;
+
+    std::shared_ptr<Texture3D> m_noiseTexture;
+
+    std::shared_ptr<DescriptorSet> m_noiseDescriptorSet;
 
     MagnifyWhirlMosaicPushConstant m_magnifyWhirlMosaicPC {
       .lensS = 0.5f,
