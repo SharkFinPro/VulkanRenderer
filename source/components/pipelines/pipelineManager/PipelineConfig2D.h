@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_PIPELINECONFIG2D_H
 #define VULKANPROJECT_PIPELINECONFIG2D_H
 
-#include "common/GraphicsPipelineStates.h"
+#include "../implementations/common/GraphicsPipelineStates.h"
 #include "../GraphicsPipeline.h"
 #include "../../renderingManager/renderer2D/Primitives2D.h"
 

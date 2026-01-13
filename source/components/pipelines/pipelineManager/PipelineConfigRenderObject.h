@@ -1,9 +1,9 @@
 #ifndef VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H
 #define VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H
 
-#include "../common/GraphicsPipelineStates.h"
-#include "../../GraphicsPipeline.h"
-#include "../../../renderingManager/renderer3D/Renderer3D.h"
+#include "../implementations/common/GraphicsPipelineStates.h"
+#include "../GraphicsPipeline.h"
+#include "../../renderingManager/renderer3D/Renderer3D.h"
 
 namespace vke::PipelineConfig {
 

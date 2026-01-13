@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_PIPELINECONFIG_H
 #define VULKANPROJECT_PIPELINECONFIG_H
 
-#include "common/GraphicsPipelineStates.h"
+#include "../implementations/common/GraphicsPipelineStates.h"
 #include "../GraphicsPipeline.h"
 #include "../../renderingManager/renderer3D/Renderer3D.h"
 
