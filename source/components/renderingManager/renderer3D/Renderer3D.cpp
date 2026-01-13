@@ -22,62 +22,7 @@ namespace vke {
 
     m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, std::move(window), m_commandPool);
 
-    m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, m_commandPool, "assets/noise/noise3d.064.tex",
-                                                 VK_SAMPLER_ADDRESS_MODE_REPEAT);
-
-    std::array<std::string, 6> paths {
-      "assets/cubeMap/nvposx.bmp",
-      "assets/cubeMap/nvnegx.bmp",
-      "assets/cubeMap/nvposy.bmp",
-      "assets/cubeMap/nvnegy.bmp",
-      "assets/cubeMap/nvposz.bmp",
-      "assets/cubeMap/nvnegz.bmp"
-    };
-    m_cubeMapTexture = std::make_shared<TextureCubemap>(m_logicalDevice, m_commandPool, paths);
-
-    constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
-      .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-    };
-
-    std::vector<VkDescriptorSetLayoutBinding> noiseLayoutBindings {
-      noiseSamplerLayout
-    };
-
-    m_noiseDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, noiseLayoutBindings);
-    m_noiseDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
-    {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
-        m_noiseTexture->getDescriptorSet(0, descriptorSet)
-      }};
-
-      return descriptorWrites;
-    });
-
-    constexpr VkDescriptorSetLayoutBinding cubeMapSamplerLayout {
-      .binding = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-    };
-
-    std::vector<VkDescriptorSetLayoutBinding> cubeMapLayoutBindings {
-      noiseSamplerLayout,
-      cubeMapSamplerLayout
-    };
-
-    m_cubeMapDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, cubeMapLayoutBindings);
-    m_cubeMapDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
-    {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
-        m_noiseTexture->getDescriptorSet(0, descriptorSet),
-        m_cubeMapTexture->getDescriptorSet(1, descriptorSet)
-      }};
-
-      return descriptorWrites;
-    });
+    createDescriptorSets();
   }
 
   Renderer3D::~Renderer3D()
@@ -477,6 +422,66 @@ namespace vke {
 
       object->draw(renderInfo->commandBuffer);
     }
+  }
+
+  void Renderer3D::createDescriptorSets()
+  {
+    m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, m_commandPool, "assets/noise/noise3d.064.tex",
+                                                 VK_SAMPLER_ADDRESS_MODE_REPEAT);
+
+    std::array<std::string, 6> paths {
+      "assets/cubeMap/nvposx.bmp",
+      "assets/cubeMap/nvnegx.bmp",
+      "assets/cubeMap/nvposy.bmp",
+      "assets/cubeMap/nvnegy.bmp",
+      "assets/cubeMap/nvposz.bmp",
+      "assets/cubeMap/nvnegz.bmp"
+    };
+    m_cubeMapTexture = std::make_shared<TextureCubemap>(m_logicalDevice, m_commandPool, paths);
+
+    constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    };
+
+    std::vector<VkDescriptorSetLayoutBinding> noiseLayoutBindings {
+      noiseSamplerLayout
+    };
+
+    m_noiseDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, noiseLayoutBindings);
+    m_noiseDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_noiseTexture->getDescriptorSet(0, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
+
+    constexpr VkDescriptorSetLayoutBinding cubeMapSamplerLayout {
+      .binding = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    };
+
+    std::vector<VkDescriptorSetLayoutBinding> cubeMapLayoutBindings {
+      noiseSamplerLayout,
+      cubeMapSamplerLayout
+    };
+
+    m_cubeMapDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, cubeMapLayoutBindings);
+    m_cubeMapDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_noiseTexture->getDescriptorSet(0, descriptorSet),
+        m_cubeMapTexture->getDescriptorSet(1, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
   }
 
   bool Renderer3D::pipelineIsActive(const PipelineType pipelineType) const

@@ -268,6 +268,8 @@ namespace vke {
                              PipelineType pipelineType,
                              const std::vector<std::shared_ptr<RenderObject>>* objects) const;
 
+    void createDescriptorSets();
+
     [[nodiscard]] bool pipelineIsActive(PipelineType pipelineType) const;
 
     void displayGui();
