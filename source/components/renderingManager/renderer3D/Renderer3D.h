@@ -123,6 +123,8 @@ namespace vke {
 
     [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;;
 
+    [[nodiscard]] VkDescriptorSetLayout getNoiseDescriptorSetLayout() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

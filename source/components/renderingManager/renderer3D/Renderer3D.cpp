@@ -279,6 +279,11 @@ namespace vke {
     return m_smokeSystemsToRender;
   }
 
+  VkDescriptorSetLayout Renderer3D::getNoiseDescriptorSetLayout() const
+  {
+    return m_noiseDescriptorSet->getDescriptorSetLayout();
+  }
+
   void Renderer3D::createCommandPool()
   {
     const VkCommandPoolCreateInfo poolInfo {

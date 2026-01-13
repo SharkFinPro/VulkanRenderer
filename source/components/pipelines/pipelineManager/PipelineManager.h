@@ -18,13 +18,13 @@ namespace vke {
   class DotsPipeline;
   class PointLight;
   class Pipeline;
-  class Renderer;
+  class RenderingManager;
   class RenderObject;
 
   class PipelineManager {
   public:
     PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                    const std::shared_ptr<Renderer>& renderer,
+                    const std::shared_ptr<RenderingManager>& renderingManager,
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager);
 
@@ -105,18 +105,18 @@ namespace vke {
                                 const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                         const std::shared_ptr<Renderer>& renderer,
+                         const std::shared_ptr<RenderingManager>& renderingManager,
                          const std::shared_ptr<LightingManager>& lightingManager);
 
     void create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                           const std::shared_ptr<Renderer>& renderer);
+                           const std::shared_ptr<RenderingManager>& renderingManager);
 
     void createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                                     const std::shared_ptr<Renderer>& renderer,
+                                     const std::shared_ptr<RenderingManager>& renderingManager,
                                      const std::shared_ptr<LightingManager>& lightingManager);
 
     void createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                             const std::shared_ptr<Renderer>& renderer,
+                             const std::shared_ptr<RenderingManager>& renderingManager,
                              const std::shared_ptr<LightingManager>& lightingManager);
 
     void createCommandPool();

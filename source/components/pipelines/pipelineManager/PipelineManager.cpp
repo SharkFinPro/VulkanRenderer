@@ -13,10 +13,12 @@
 #include "../../renderingManager/Renderer.h"
 #include <ranges>
 
+#include "../../renderingManager/RenderingManager.h"
+
 namespace vke {
 
   PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                                   const std::shared_ptr<Renderer>& renderer,
+                                   const std::shared_ptr<RenderingManager>& renderingManager,
                                    const std::shared_ptr<LightingManager>& lightingManager,
                                    const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice))
@@ -25,7 +27,7 @@ namespace vke {
 
     createDescriptorPool();
 
-    createPipelines(assetManager, renderer, lightingManager);
+    createPipelines(assetManager, renderingManager, lightingManager);
   }
 
   PipelineManager::~PipelineManager()
@@ -148,20 +150,20 @@ namespace vke {
   }
 
   void PipelineManager::createPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                                        const std::shared_ptr<Renderer>& renderer,
+                                        const std::shared_ptr<RenderingManager>& renderingManager,
                                         const std::shared_ptr<LightingManager>& lightingManager)
   {
-    create2DPipelines(assetManager, renderer);
+    create2DPipelines(assetManager, renderingManager);
 
-    createRenderObjectPipelines(assetManager, renderer, lightingManager);
+    createRenderObjectPipelines(assetManager, renderingManager, lightingManager);
 
-    createMiscPipelines(assetManager, renderer, lightingManager);
+    createMiscPipelines(assetManager, renderingManager, lightingManager);
   }
 
   void PipelineManager::create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                                          const std::shared_ptr<Renderer>& renderer)
+                                          const std::shared_ptr<RenderingManager>& renderingManager)
   {
-    const auto renderPass = renderer->getSwapchainRenderPass();
+    const auto renderPass = renderingManager->getRenderer()->getSwapchainRenderPass();
 
     createGraphicsPipeline(PipelineType::rect,
       PipelineConfig::createRectPipelineOptions(m_logicalDevice, renderPass));
@@ -177,10 +179,10 @@ namespace vke {
   }
 
   void PipelineManager::createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                                                    const std::shared_ptr<Renderer>& renderer,
+                                                    const std::shared_ptr<RenderingManager>& renderingManager,
                                                     const std::shared_ptr<LightingManager>& lightingManager)
   {
-    const auto renderPass = renderer->getSwapchainRenderPass();
+    const auto renderPass = renderingManager->getRenderer()->getSwapchainRenderPass();
     const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
     const auto lightingDescriptorSetLayout = lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout();
 
@@ -225,10 +227,10 @@ namespace vke {
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::shadow,
-      PipelineConfig::createShadowMapPipelineOptions(renderer->getShadowRenderPass(), objectDescriptorSetLayout));
+      PipelineConfig::createShadowMapPipelineOptions(renderingManager->getRenderer()->getShadowRenderPass(), objectDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::pointLightShadowMap,
-      PipelineConfig::createPointLightShadowMapPipelineOptions(renderer->getShadowCubeRenderPass(), objectDescriptorSetLayout,
+      PipelineConfig::createPointLightShadowMapPipelineOptions(renderingManager->getRenderer()->getShadowCubeRenderPass(), objectDescriptorSetLayout,
       lightingManager->getPointLightDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::mousePicking,
@@ -236,10 +238,10 @@ namespace vke {
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                                            const std::shared_ptr<Renderer>& renderer,
+                                            const std::shared_ptr<RenderingManager>& renderingManager,
                                             const std::shared_ptr<LightingManager>& lightingManager)
   {
-    const auto renderPass = renderer->getSwapchainRenderPass();
+    const auto renderPass = renderingManager->getRenderer()->getSwapchainRenderPass();
 
     createGraphicsPipeline(PipelineType::gui,
       PipelineConfig::createUIPipelineOptions(m_logicalDevice, renderPass));
