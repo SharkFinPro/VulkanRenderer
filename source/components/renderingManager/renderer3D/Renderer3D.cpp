@@ -421,12 +421,6 @@ namespace vke {
         continue;
       }
 
-      // if (pipelineType == PipelineType::cubeMap)
-      // {
-      //   pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
-      //   continue;
-      // }
-
       renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
     }
 

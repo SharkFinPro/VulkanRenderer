@@ -53,25 +53,6 @@ namespace vke {
     void renderBendyPlantPipeline(const RenderInfo* renderInfo,
                                   const std::vector<BendyPlant>* plants) const;
 
-    void renderRenderObjectPipeline(const RenderInfo* renderInfo,
-                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
-                                    PipelineType pipelineType) const;
-
-    void bindRenderObjectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                  PipelineType pipelineType) const;
-
-    void pushRenderObjectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           PipelineType pipelineType,
-                                           VkShaderStageFlags stageFlags,
-                                           uint32_t offset,
-                                           uint32_t size,
-                                           const void* values) const;
-
-    void bindRenderObjectPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                               PipelineType pipelineType,
-                                               VkDescriptorSet descriptorSet,
-                                               uint32_t location) const;
-
     void renderSmokePipeline(const RenderInfo* renderInfo,
                              const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
@@ -90,8 +71,6 @@ namespace vke {
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
     std::unique_ptr<DotsPipeline> m_dotsPipeline;
-
-    std::unordered_map<PipelineType, std::shared_ptr<GraphicsPipeline>> m_renderObjectPipelines;
 
     std::unique_ptr<SmokePipeline> m_smokePipeline;
 
@@ -122,8 +101,6 @@ namespace vke {
     void createCommandPool();
 
     void createDescriptorPool();
-
-    [[nodiscard]] std::shared_ptr<GraphicsPipeline> getRenderObjectPipeline(PipelineType pipelineType) const;
 
     [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
   };

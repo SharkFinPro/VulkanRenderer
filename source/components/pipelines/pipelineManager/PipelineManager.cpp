@@ -8,9 +8,8 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../renderingManager/Renderer.h"
-#include <ranges>
-
 #include "../../renderingManager/RenderingManager.h"
+#include <ranges>
 
 namespace vke {
 
@@ -79,46 +78,6 @@ namespace vke {
                                                  const std::vector<BendyPlant>* plants) const
   {
     m_bendyPipeline->render(renderInfo, plants);
-  }
-
-  void PipelineManager::renderRenderObjectPipeline(const RenderInfo* renderInfo,
-                                                   const std::vector<std::shared_ptr<RenderObject>>* objects,
-                                                   const PipelineType pipelineType) const
-  {
-    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
-
-    graphicsPipeline->displayGui();
-    graphicsPipeline->render(renderInfo, objects);
-  }
-
-  void PipelineManager::bindRenderObjectPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                 const PipelineType pipelineType) const
-  {
-    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
-
-    graphicsPipeline->bind(commandBuffer);
-  }
-
-  void PipelineManager::pushRenderObjectPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                          const PipelineType pipelineType,
-                                                          const VkShaderStageFlags stageFlags,
-                                                          const uint32_t offset,
-                                                          const uint32_t size,
-                                                          const void* values) const
-  {
-    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
-
-    graphicsPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
-  }
-
-  void PipelineManager::bindRenderObjectPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                              const PipelineType pipelineType,
-                                                              VkDescriptorSet descriptorSet,
-                                                              const uint32_t location) const
-  {
-    const auto graphicsPipeline = getRenderObjectPipeline(pipelineType);
-
-    graphicsPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::renderSmokePipeline(const RenderInfo* renderInfo,
@@ -283,17 +242,6 @@ namespace vke {
     };
 
     m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
-  }
-
-  std::shared_ptr<GraphicsPipeline> PipelineManager::getRenderObjectPipeline(const PipelineType pipelineType) const
-  {
-    const auto it = m_renderObjectPipelines.find(pipelineType);
-    if (it == m_renderObjectPipelines.end())
-    {
-      throw std::runtime_error("Pipeline for object type does not exist");
-    }
-
-    return it->second;
   }
 
   const GraphicsPipeline& PipelineManager::getGraphicsPipeline(const PipelineType pipelineType) const
