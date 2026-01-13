@@ -273,6 +273,12 @@ namespace vke {
     [[nodiscard]] bool pipelineIsActive(PipelineType pipelineType) const;
 
     void displayGui();
+
+    void displayEllipticalDotsGui();
+
+    void displayCurtainGui();
+
+    void displayMiscGui();
   };
 } // vke
 

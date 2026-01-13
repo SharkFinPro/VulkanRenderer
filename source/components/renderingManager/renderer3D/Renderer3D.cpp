@@ -491,6 +491,77 @@ namespace vke {
 
   void Renderer3D::displayGui()
   {
+    displayCurtainGui();
+
+    displayEllipticalDotsGui();
+
+    displayMiscGui();
+  }
+
+  void Renderer3D::displayEllipticalDotsGui()
+  {
+    if (pipelineIsActive(PipelineType::ellipticalDots))
+    {
+      ImGui::Begin("Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::noisyEllipticalDots))
+    {
+      ImGui::Begin("Noisy Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
+
+      ImGui::End();
+    }
+  }
+
+  void Renderer3D::displayCurtainGui()
+  {
+    if (pipelineIsActive(PipelineType::bumpyCurtain))
+    {
+      ImGui::Begin("Bumpy Curtain");
+
+      ImGui::SliderFloat("Amplitude", &m_bumpyCurtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &m_bumpyCurtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &m_bumpyCurtainPC.shininess, 1.0f, 100.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_bumpyCurtainPC.noiseAmplitude, 0.0f, 10.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_bumpyCurtainPC.noiseFrequency, 0.1f, 10.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::curtain))
+    {
+      ImGui::Begin("Curtain");
+
+      ImGui::SliderFloat("Amplitude", &m_curtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &m_curtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &m_curtainPC.shininess, 1.0f, 100.0f);
+
+      ImGui::End();
+    }
+  }
+
+  void Renderer3D::displayMiscGui()
+  {
     if (pipelineIsActive(PipelineType::magnifyWhirlMosaic))
     {
       ImGui::Begin("Magnify Whirl Mosaic");
@@ -504,18 +575,6 @@ namespace vke {
       ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
       ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
       ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
-
-      ImGui::End();
-    }
-
-    if (pipelineIsActive(PipelineType::ellipticalDots))
-    {
-      ImGui::Begin("Elliptical Dots");
-
-      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
 
       ImGui::End();
     }
@@ -547,33 +606,6 @@ namespace vke {
       ImGui::End();
     }
 
-    if (pipelineIsActive(PipelineType::curtain))
-    {
-      ImGui::Begin("Curtain");
-
-      ImGui::SliderFloat("Amplitude", &m_curtainPC.amplitude, 0.001f, 3.0f);
-      ImGui::SliderFloat("Period", &m_curtainPC.period, 0.1f, 10.0f);
-      ImGui::SliderFloat("Shininess", &m_curtainPC.shininess, 1.0f, 100.0f);
-
-      ImGui::End();
-    }
-
-    if (pipelineIsActive(PipelineType::bumpyCurtain))
-    {
-      ImGui::Begin("Bumpy Curtain");
-
-      ImGui::SliderFloat("Amplitude", &m_bumpyCurtainPC.amplitude, 0.001f, 3.0f);
-      ImGui::SliderFloat("Period", &m_bumpyCurtainPC.period, 0.1f, 10.0f);
-      ImGui::SliderFloat("Shininess", &m_bumpyCurtainPC.shininess, 1.0f, 100.0f);
-
-      ImGui::Separator();
-
-      ImGui::SliderFloat("Noise Amplitude", &m_bumpyCurtainPC.noiseAmplitude, 0.0f, 10.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_bumpyCurtainPC.noiseFrequency, 0.1f, 10.0f);
-
-      ImGui::End();
-    }
-
     if (pipelineIsActive(PipelineType::snake))
     {
       ImGui::Begin("Snake");
@@ -586,23 +618,6 @@ namespace vke {
       w += 0.025f;
 
       m_snakePC.wiggle = sin(w);
-    }
-
-    if (pipelineIsActive(PipelineType::noisyEllipticalDots))
-    {
-      ImGui::Begin("Noisy Elliptical Dots");
-
-      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
-
-      ImGui::Separator();
-
-      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
-
-      ImGui::End();
     }
 
     if (pipelineIsActive(PipelineType::cubeMap))
