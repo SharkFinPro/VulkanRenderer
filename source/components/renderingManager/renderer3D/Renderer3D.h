@@ -75,6 +75,15 @@ namespace vke {
     float wiggle;
   };
 
+  struct NoisyEllipticalDotsPushConstant {
+    float shininess;
+    float sDiameter;
+    float tDiameter;
+    float blendFactor;
+    float amplitude;
+    float frequency;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -187,6 +196,15 @@ namespace vke {
 
     SnakePushConstant m_snakePC {
       .wiggle = 0
+    };
+
+    NoisyEllipticalDotsPushConstant m_noisyEllipticalDotsPC {
+      .shininess = 10.0f,
+      .sDiameter = 0.025f,
+      .tDiameter = 0.025f,
+      .blendFactor = 0.0f,
+      .amplitude = 0.5f,
+      .frequency = 1.0f
     };
 
     void createCommandPool();

@@ -172,6 +172,24 @@ namespace vke {
       m_snakePC.wiggle = sin(w);
     }
 
+    if (m_renderObjectsToRender.contains(PipelineType::noisyEllipticalDots) &&
+        !m_renderObjectsToRender.at(PipelineType::noisyEllipticalDots).empty())
+    {
+      ImGui::Begin("Noisy Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.amplitude, 0.0f, 1.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.frequency, 0.0f, 10.0f);
+
+      ImGui::End();
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -328,8 +346,7 @@ namespace vke {
         continue;
       }
 
-      if (pipelineType == PipelineType::noisyEllipticalDots ||
-          pipelineType == PipelineType::bumpyCurtain ||
+      if (pipelineType == PipelineType::bumpyCurtain ||
           pipelineType == PipelineType::cubeMap)
       {
         pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
@@ -445,11 +462,31 @@ namespace vke {
       );
     }
 
+    if (pipelineType == PipelineType::noisyEllipticalDots)
+    {
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_noisyEllipticalDotsPC),
+        &m_noisyEllipticalDotsPC
+      );
+
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        pipelineType,
+        m_noiseDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+        2
+      );
+    }
+
     if (pipelineType == PipelineType::ellipticalDots ||
         pipelineType == PipelineType::crosses ||
         pipelineType == PipelineType::curtain ||
         pipelineType == PipelineType::object ||
-        pipelineType == PipelineType::snake)
+        pipelineType == PipelineType::snake ||
+        pipelineType == PipelineType::noisyEllipticalDots)
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
