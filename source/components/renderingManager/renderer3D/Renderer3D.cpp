@@ -120,145 +120,7 @@ namespace vke {
                           const std::shared_ptr<PipelineManager>& pipelineManager,
                           const std::shared_ptr<LightingManager>& lightingManager)
   {
-    if (m_renderObjectsToRender.contains(PipelineType::magnifyWhirlMosaic) &&
-        !m_renderObjectsToRender.at(PipelineType::magnifyWhirlMosaic).empty())
-    {
-      ImGui::Begin("Magnify Whirl Mosaic");
-
-      ImGui::SliderFloat("Lens S Center", &m_magnifyWhirlMosaicPC.lensS, 0.0f, 1.0f);
-      ImGui::SliderFloat("Lens T Center", &m_magnifyWhirlMosaicPC.lensT, 0.0f, 1.0f);
-      ImGui::SliderFloat("Lens Radius", &m_magnifyWhirlMosaicPC.lensRadius, 0.01f, 0.75f);
-
-      ImGui::Separator();
-
-      ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
-      ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
-      ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
-
-      ImGui::End();
-    }
-
-    if (m_renderObjectsToRender.contains(PipelineType::ellipticalDots) &&
-        !m_renderObjectsToRender.at(PipelineType::ellipticalDots).empty())
-    {
-      ImGui::Begin("Elliptical Dots");
-
-      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
-
-      ImGui::End();
-    }
-
-    if (m_renderObjectsToRender.contains(PipelineType::crosses) &&
-        !m_renderObjectsToRender.at(PipelineType::crosses).empty())
-    {
-      ImGui::Begin("Crosses");
-
-      ImGui::SliderInt("Level", &m_crossesPC.level, 0, 3);
-
-      ImGui::SliderFloat("Quantize", &m_crossesPC.quantize, 2.0f, 50.0f);
-
-      ImGui::SliderFloat("Size", &m_crossesPC.size, 0.0001f, 0.1f);
-
-      ImGui::SliderFloat("Shininess", &m_crossesPC.shininess, 2.0f, 50.0f);
-
-      ImGui::Separator();
-
-      ImGui::Text("Chroma Depth");
-
-      bool useChromaDepth = m_crossesPC.useChromaDepth;
-      ImGui::Checkbox("Use Chroma Depth", &useChromaDepth);
-      m_crossesPC.useChromaDepth = useChromaDepth;
-
-      ImGui::SliderFloat("Blue Depth", &m_crossesPC.blueDepth, 0.0f, 50.0f);
-
-      ImGui::SliderFloat("Red Depth", &m_crossesPC.redDepth, 0.0f, 50.0f);
-
-      ImGui::End();
-    }
-
-    if (m_renderObjectsToRender.contains(PipelineType::curtain) &&
-        !m_renderObjectsToRender.at(PipelineType::curtain).empty())
-    {
-      ImGui::Begin("Curtain");
-
-      ImGui::SliderFloat("Amplitude", &m_curtainPC.amplitude, 0.001f, 3.0f);
-      ImGui::SliderFloat("Period", &m_curtainPC.period, 0.1f, 10.0f);
-      ImGui::SliderFloat("Shininess", &m_curtainPC.shininess, 1.0f, 100.0f);
-
-      ImGui::End();
-    }
-
-    if (m_renderObjectsToRender.contains(PipelineType::bumpyCurtain) &&
-        !m_renderObjectsToRender.at(PipelineType::bumpyCurtain).empty())
-    {
-      ImGui::Begin("Bumpy Curtain");
-
-      ImGui::SliderFloat("Amplitude", &m_bumpyCurtainPC.amplitude, 0.001f, 3.0f);
-      ImGui::SliderFloat("Period", &m_bumpyCurtainPC.period, 0.1f, 10.0f);
-      ImGui::SliderFloat("Shininess", &m_bumpyCurtainPC.shininess, 1.0f, 100.0f);
-
-      ImGui::Separator();
-
-      ImGui::SliderFloat("Noise Amplitude", &m_bumpyCurtainPC.noiseAmplitude, 0.0f, 10.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_bumpyCurtainPC.noiseFrequency, 0.1f, 10.0f);
-
-      ImGui::End();
-    }
-
-    if (m_renderObjectsToRender.contains(PipelineType::snake) &&
-        !m_renderObjectsToRender.at(PipelineType::snake).empty())
-    {
-      ImGui::Begin("Snake");
-
-      ImGui::SliderFloat("Wiggle", &m_snakePC.wiggle, -1.0f, 1.0f);
-
-      ImGui::End();
-
-      static float w = 0.0f;
-      w += 0.025f;
-
-      m_snakePC.wiggle = sin(w);
-    }
-
-    if (m_renderObjectsToRender.contains(PipelineType::noisyEllipticalDots) &&
-        !m_renderObjectsToRender.at(PipelineType::noisyEllipticalDots).empty())
-    {
-      ImGui::Begin("Noisy Elliptical Dots");
-
-      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
-
-      ImGui::Separator();
-
-      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
-
-      ImGui::End();
-    }
-
-    if (m_renderObjectsToRender.contains(PipelineType::cubeMap) &&
-        !m_renderObjectsToRender.at(PipelineType::cubeMap).empty())
-    {
-      ImGui::Begin("Cube Map");
-
-      ImGui::SliderFloat("Refract | Reflect -> Blend", &m_cubeMapPC.mix, 0.0f, 1.0f);
-      ImGui::SliderFloat("Index of Refraction", &m_cubeMapPC.refractionIndex, 0.0f, 5.0f);
-      ImGui::SliderFloat("White Mix", &m_cubeMapPC.whiteMix, 0.0f, 1.0f);
-
-      ImGui::Separator();
-
-      ImGui::SliderFloat("Noise Amplitude", &m_cubeMapPC.noiseAmplitude, 0.0f, 5.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_cubeMapPC.noiseFrequency, 0.0f, 0.5f);
-
-      ImGui::End();
-
-      m_cubeMapPC.position = m_viewPosition;
-    }
+    displayGui();
 
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
@@ -267,6 +129,8 @@ namespace vke {
       .viewMatrix = m_viewMatrix,
       .extent = renderInfo->extent
     };
+
+    m_cubeMapPC.position = renderInfo3D.viewPosition;
 
     renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager, lightingManager);
 
@@ -612,6 +476,144 @@ namespace vke {
       );
 
       object->draw(renderInfo->commandBuffer);
+    }
+  }
+
+  bool Renderer3D::pipelineIsActive(const PipelineType pipelineType) const
+  {
+    return m_renderObjectsToRender.contains(pipelineType) && !m_renderObjectsToRender.at(pipelineType).empty();
+  }
+
+  void Renderer3D::displayGui()
+  {
+    if (pipelineIsActive(PipelineType::magnifyWhirlMosaic))
+    {
+      ImGui::Begin("Magnify Whirl Mosaic");
+
+      ImGui::SliderFloat("Lens S Center", &m_magnifyWhirlMosaicPC.lensS, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens T Center", &m_magnifyWhirlMosaicPC.lensT, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens Radius", &m_magnifyWhirlMosaicPC.lensRadius, 0.01f, 0.75f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
+      ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
+      ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::ellipticalDots))
+    {
+      ImGui::Begin("Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::crosses))
+    {
+      ImGui::Begin("Crosses");
+
+      ImGui::SliderInt("Level", &m_crossesPC.level, 0, 3);
+
+      ImGui::SliderFloat("Quantize", &m_crossesPC.quantize, 2.0f, 50.0f);
+
+      ImGui::SliderFloat("Size", &m_crossesPC.size, 0.0001f, 0.1f);
+
+      ImGui::SliderFloat("Shininess", &m_crossesPC.shininess, 2.0f, 50.0f);
+
+      ImGui::Separator();
+
+      ImGui::Text("Chroma Depth");
+
+      bool useChromaDepth = m_crossesPC.useChromaDepth;
+      ImGui::Checkbox("Use Chroma Depth", &useChromaDepth);
+      m_crossesPC.useChromaDepth = useChromaDepth;
+
+      ImGui::SliderFloat("Blue Depth", &m_crossesPC.blueDepth, 0.0f, 50.0f);
+
+      ImGui::SliderFloat("Red Depth", &m_crossesPC.redDepth, 0.0f, 50.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::curtain))
+    {
+      ImGui::Begin("Curtain");
+
+      ImGui::SliderFloat("Amplitude", &m_curtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &m_curtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &m_curtainPC.shininess, 1.0f, 100.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::bumpyCurtain))
+    {
+      ImGui::Begin("Bumpy Curtain");
+
+      ImGui::SliderFloat("Amplitude", &m_bumpyCurtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &m_bumpyCurtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &m_bumpyCurtainPC.shininess, 1.0f, 100.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_bumpyCurtainPC.noiseAmplitude, 0.0f, 10.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_bumpyCurtainPC.noiseFrequency, 0.1f, 10.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::snake))
+    {
+      ImGui::Begin("Snake");
+
+      ImGui::SliderFloat("Wiggle", &m_snakePC.wiggle, -1.0f, 1.0f);
+
+      ImGui::End();
+
+      static float w = 0.0f;
+      w += 0.025f;
+
+      m_snakePC.wiggle = sin(w);
+    }
+
+    if (pipelineIsActive(PipelineType::noisyEllipticalDots))
+    {
+      ImGui::Begin("Noisy Elliptical Dots");
+
+      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
+
+      ImGui::End();
+    }
+
+    if (pipelineIsActive(PipelineType::cubeMap))
+    {
+      ImGui::Begin("Cube Map");
+
+      ImGui::SliderFloat("Refract | Reflect -> Blend", &m_cubeMapPC.mix, 0.0f, 1.0f);
+      ImGui::SliderFloat("Index of Refraction", &m_cubeMapPC.refractionIndex, 0.0f, 5.0f);
+      ImGui::SliderFloat("White Mix", &m_cubeMapPC.whiteMix, 0.0f, 1.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_cubeMapPC.noiseAmplitude, 0.0f, 5.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_cubeMapPC.noiseFrequency, 0.0f, 0.5f);
+
+      ImGui::End();
     }
   }
 } // vke

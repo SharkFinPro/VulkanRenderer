@@ -267,6 +267,10 @@ namespace vke {
                              const RenderInfo* renderInfo,
                              PipelineType pipelineType,
                              const std::vector<std::shared_ptr<RenderObject>>* objects) const;
+
+    [[nodiscard]] bool pipelineIsActive(PipelineType pipelineType) const;
+
+    void displayGui();
   };
 } // vke
 
