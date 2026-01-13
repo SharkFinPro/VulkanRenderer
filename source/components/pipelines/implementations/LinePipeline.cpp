@@ -10,7 +10,7 @@
 namespace vke {
 
   LinePipeline::LinePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                             std::shared_ptr<RenderPass> renderPass)
+                             const std::shared_ptr<RenderPass>& renderPass)
     : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
@@ -52,14 +52,14 @@ namespace vke {
 
   void LinePipeline::render(const RenderInfo* renderInfo,
                             const VkCommandPool& commandPool,
-                            const std::vector<LineVertex>* vertices)
+                            const std::vector<LineVertex>* vertices) const
   {
     if (vertices->empty())
     {
       return;
     }
 
-    GraphicsPipeline::render(renderInfo, nullptr);
+    bind(renderInfo->commandBuffer);
 
     const VkDeviceSize bufferSize = sizeof(LineVertex) * vertices->size();
 

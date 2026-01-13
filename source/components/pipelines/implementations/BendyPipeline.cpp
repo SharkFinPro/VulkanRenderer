@@ -10,7 +10,7 @@
 namespace vke {
 
   BendyPipeline::BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                               std::shared_ptr<RenderPass> renderPass,
+                               const std::shared_ptr<RenderPass>& renderPass,
                                const VkCommandPool& commandPool,
                                VkDescriptorPool descriptorPool,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
@@ -61,7 +61,11 @@ namespace vke {
       return;
     }
 
-    GraphicsPipeline::render(renderInfo, nullptr);
+    bind(renderInfo->commandBuffer);
+
+    updateUniformVariables(renderInfo);
+
+    bindDescriptorSets(renderInfo);
 
     for (const auto&[position, numFins, leafLength, pitch, bendStrength] : *plants)
     {
@@ -118,13 +122,19 @@ namespace vke {
     m_bendyUniform->update(renderInfo->currentFrame, &m_bendyUBO);
   }
 
-  void BendyPipeline::bindDescriptorSet(const RenderInfo* renderInfo)
+  void BendyPipeline::bindDescriptorSets(const RenderInfo* renderInfo) const
   {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                                                  &m_BendyPipelineDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+    bindDescriptorSet(
+      renderInfo->commandBuffer,
+      m_BendyPipelineDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
 
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 1, 1,
-                                                  &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+    bindDescriptorSet(
+      renderInfo->commandBuffer,
+      m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      1
+    );
   }
 
 } // namespace vke

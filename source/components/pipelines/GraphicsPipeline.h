@@ -14,7 +14,6 @@
 namespace vke {
 
   class CommandBuffer;
-  class RenderObject;
   class RenderPass;
 
   struct RenderInfo {
@@ -127,9 +126,6 @@ namespace vke {
     GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                      const GraphicsPipelineOptions& graphicsPipelineOptions);
 
-    virtual void render(const RenderInfo* renderInfo,
-                        const std::vector<std::shared_ptr<RenderObject>>* objects);
-
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -140,10 +136,6 @@ namespace vke {
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
-
-    virtual void updateUniformVariables(const RenderInfo* renderInfo) {}
-
-    virtual void bindDescriptorSet(const RenderInfo* renderInfo) {}
   };
 
 } // namespace vke

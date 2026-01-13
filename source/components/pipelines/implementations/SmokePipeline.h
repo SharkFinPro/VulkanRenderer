@@ -17,7 +17,7 @@ namespace vke {
   class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
     SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                  std::shared_ptr<RenderPass> renderPass,
+                  const std::shared_ptr<RenderPass>& renderPass,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
                   VkDescriptorSetLayout smokeSystemDescriptorSetLayout);
 
@@ -26,12 +26,10 @@ namespace vke {
                  const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
     void render(const RenderInfo* renderInfo,
-                const std::vector<std::shared_ptr<SmokeSystem>>* systems);
+                const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
   private:
     std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
-
-    void bindDescriptorSet(const RenderInfo* renderInfo) override;
   };
 
 } // namespace vke

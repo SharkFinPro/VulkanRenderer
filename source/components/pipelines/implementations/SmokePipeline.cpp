@@ -9,7 +9,7 @@
 namespace vke {
 
   SmokePipeline::SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                               std::shared_ptr<RenderPass> renderPass,
+                               const std::shared_ptr<RenderPass>& renderPass,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
                                VkDescriptorSetLayout smokeSystemDescriptorSetLayout)
     : ComputePipeline(logicalDevice), GraphicsPipeline(std::move(logicalDevice)),
@@ -72,9 +72,15 @@ namespace vke {
   }
 
   void SmokePipeline::render(const RenderInfo* renderInfo,
-                             const std::vector<std::shared_ptr<SmokeSystem>>* systems)
+                             const std::vector<std::shared_ptr<SmokeSystem>>* systems) const
   {
-    GraphicsPipeline::render(renderInfo, nullptr);
+    bind(renderInfo->commandBuffer);
+
+    bindDescriptorSet(
+      renderInfo->commandBuffer,
+      m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      1
+    );
 
     constexpr VkDeviceSize offsets[] = {0};
 
@@ -97,12 +103,6 @@ namespace vke {
 
       renderInfo->commandBuffer->draw(system->getNumParticles(), 1, 0, 0);
     }
-  }
-
-  void SmokePipeline::bindDescriptorSet(const RenderInfo* renderInfo)
-  {
-    renderInfo->commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline::m_pipelineLayout, 1, 1,
-                                                  &m_lightingDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
   }
 
 } // namespace vke

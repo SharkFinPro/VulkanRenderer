@@ -3,7 +3,6 @@
 
 #include "common/Uniforms.h"
 #include "../GraphicsPipeline.h"
-#include <glm/vec3.hpp>
 #include <chrono>
 
 namespace vke {
@@ -18,7 +17,7 @@ namespace vke {
   class BendyPipeline final : public GraphicsPipeline {
   public:
     BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                  std::shared_ptr<RenderPass> renderPass,
+                  const std::shared_ptr<RenderPass>& renderPass,
                   const VkCommandPool& commandPool,
                   VkDescriptorPool descriptorPool,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
@@ -45,9 +44,9 @@ namespace vke {
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 
-    void updateUniformVariables(const RenderInfo* renderInfo) override;
+    void updateUniformVariables(const RenderInfo* renderInfo);
 
-    void bindDescriptorSet(const RenderInfo* renderInfo) override;
+    void bindDescriptorSets(const RenderInfo* renderInfo) const;
   };
 
 } // namespace vke

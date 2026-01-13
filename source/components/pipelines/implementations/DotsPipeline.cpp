@@ -1,6 +1,5 @@
 #include "DotsPipeline.h"
 #include "common/GraphicsPipelineStates.h"
-#include "common/Uniforms.h"
 #include "vertexInputs/Particle.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../uniformBuffers/UniformBuffer.h"
@@ -36,8 +35,8 @@ namespace vke {
 
   DotsPipeline::DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                              const VkCommandPool& commandPool,
-                             std::shared_ptr<RenderPass> renderPass,
-                             const VkDescriptorPool descriptorPool)
+                             const std::shared_ptr<RenderPass>& renderPass,
+                             VkDescriptorPool descriptorPool)
     : ComputePipeline(logicalDevice), GraphicsPipeline(std::move(logicalDevice)),
       m_previousTime(std::chrono::steady_clock::now())
   {
@@ -97,10 +96,11 @@ namespace vke {
     commandBuffer->dispatch(PARTICLE_COUNT / 256, 1, 1);
   }
 
-  void DotsPipeline::render(const RenderInfo* renderInfo,
-                            const std::vector<std::shared_ptr<RenderObject>>* objects)
+  void DotsPipeline::render(const RenderInfo* renderInfo)
   {
-    GraphicsPipeline::render(renderInfo, objects);
+    bind(renderInfo->commandBuffer);
+
+    updateUniformVariables(renderInfo);
 
     constexpr VkDeviceSize offsets[] = {0};
     renderInfo->commandBuffer->bindVertexBuffers(0, 1, &m_shaderStorageBuffers[renderInfo->currentFrame], offsets);

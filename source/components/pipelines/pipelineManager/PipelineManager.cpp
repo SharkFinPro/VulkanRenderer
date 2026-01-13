@@ -65,7 +65,7 @@ namespace vke {
 
   void PipelineManager::renderDotsPipeline(const RenderInfo* renderInfo) const
   {
-    m_dotsPipeline->render(renderInfo, nullptr);
+    m_dotsPipeline->render(renderInfo);
   }
 
   void PipelineManager::computeDotsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
