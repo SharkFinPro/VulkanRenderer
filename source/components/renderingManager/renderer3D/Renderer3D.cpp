@@ -3,6 +3,7 @@
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../assets/textures/Texture3D.h"
+#include "../../assets/textures/TextureCubemap.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -24,6 +25,16 @@ namespace vke {
     m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, m_commandPool, "assets/noise/noise3d.064.tex",
                                                  VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
+    std::array<std::string, 6> paths {
+      "assets/cubeMap/nvposx.bmp",
+      "assets/cubeMap/nvnegx.bmp",
+      "assets/cubeMap/nvposy.bmp",
+      "assets/cubeMap/nvnegy.bmp",
+      "assets/cubeMap/nvposz.bmp",
+      "assets/cubeMap/nvnegz.bmp"
+    };
+    m_cubeMapTexture = std::make_shared<TextureCubemap>(m_logicalDevice, m_commandPool, paths);
+
     constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -40,6 +51,29 @@ namespace vke {
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
         m_noiseTexture->getDescriptorSet(0, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
+
+    constexpr VkDescriptorSetLayoutBinding cubeMapSamplerLayout {
+      .binding = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    };
+
+    std::vector<VkDescriptorSetLayoutBinding> cubeMapLayoutBindings {
+      noiseSamplerLayout,
+      cubeMapSamplerLayout
+    };
+
+    m_cubeMapDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, cubeMapLayoutBindings);
+    m_cubeMapDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_noiseTexture->getDescriptorSet(0, descriptorSet),
+        m_cubeMapTexture->getDescriptorSet(1, descriptorSet)
       }};
 
       return descriptorWrites;
@@ -207,6 +241,25 @@ namespace vke {
       ImGui::End();
     }
 
+    if (m_renderObjectsToRender.contains(PipelineType::cubeMap) &&
+        !m_renderObjectsToRender.at(PipelineType::cubeMap).empty())
+    {
+      ImGui::Begin("Cube Map");
+
+      ImGui::SliderFloat("Refract | Reflect -> Blend", &m_cubeMapPC.mix, 0.0f, 1.0f);
+      ImGui::SliderFloat("Index of Refraction", &m_cubeMapPC.refractionIndex, 0.0f, 5.0f);
+      ImGui::SliderFloat("White Mix", &m_cubeMapPC.whiteMix, 0.0f, 1.0f);
+
+      ImGui::Separator();
+
+      ImGui::SliderFloat("Noise Amplitude", &m_cubeMapPC.noiseAmplitude, 0.0f, 5.0f);
+      ImGui::SliderFloat("Noise Frequency", &m_cubeMapPC.noiseFrequency, 0.0f, 0.5f);
+
+      ImGui::End();
+
+      m_cubeMapPC.position = m_viewPosition;
+    }
+
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -319,6 +372,11 @@ namespace vke {
     return m_noiseDescriptorSet->getDescriptorSetLayout();
   }
 
+  VkDescriptorSetLayout Renderer3D::getCubeMapDescriptorSetLayout() const
+  {
+    return m_cubeMapDescriptorSet->getDescriptorSetLayout();
+  }
+
   void Renderer3D::createCommandPool()
   {
     const VkCommandPoolCreateInfo poolInfo {
@@ -363,11 +421,11 @@ namespace vke {
         continue;
       }
 
-      if (pipelineType == PipelineType::cubeMap)
-      {
-        pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
-        continue;
-      }
+      // if (pipelineType == PipelineType::cubeMap)
+      // {
+      //   pipelineManager->renderRenderObjectPipeline(renderInfo, &objects, pipelineType);
+      //   continue;
+      // }
 
       renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
     }
@@ -499,6 +557,25 @@ namespace vke {
         0,
         sizeof(m_noisyEllipticalDotsPC),
         &m_noisyEllipticalDotsPC
+      );
+    }
+
+    if (pipelineType == PipelineType::cubeMap)
+    {
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        pipelineType,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(m_cubeMapPC),
+        &m_cubeMapPC
+      );
+
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        pipelineType,
+        m_cubeMapDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+        1
       );
     }
 

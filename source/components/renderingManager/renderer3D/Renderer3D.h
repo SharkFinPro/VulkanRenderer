@@ -23,6 +23,7 @@ namespace vke {
   class RenderObject;
   class SmokeSystem;
   class Texture3D;
+  class TextureCubemap;
   class Window;
 
   struct BendyPlant {
@@ -92,6 +93,15 @@ namespace vke {
     float noiseFrequency;
   };
 
+  struct CubeMapPushConstant {
+    glm::vec3 position;
+    float mix;
+    float refractionIndex;
+    float whiteMix;
+    float noiseAmplitude;
+    float noiseFrequency;
+  };
+
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -142,6 +152,8 @@ namespace vke {
 
     [[nodiscard]] VkDescriptorSetLayout getNoiseDescriptorSetLayout() const;
 
+    [[nodiscard]] VkDescriptorSetLayout getCubeMapDescriptorSetLayout() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -167,7 +179,11 @@ namespace vke {
 
     std::shared_ptr<Texture3D> m_noiseTexture;
 
+    std::shared_ptr<TextureCubemap> m_cubeMapTexture;
+
     std::shared_ptr<DescriptorSet> m_noiseDescriptorSet;
+
+    std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
 
     MagnifyWhirlMosaicPushConstant m_magnifyWhirlMosaicPC {
       .lensS = 0.5f,
@@ -221,6 +237,15 @@ namespace vke {
       .blendFactor = 0.0f,
       .noiseAmplitude = 0.5f,
       .noiseFrequency = 1.0f
+    };
+
+    CubeMapPushConstant m_cubeMapPC {
+      .position = glm::vec3(0.0f),
+      .mix = 0.0f,
+      .refractionIndex = 1.4f,
+      .whiteMix = 0.2f,
+      .noiseAmplitude = 0.0f,
+      .noiseFrequency = 0.1f
     };
 
     void createCommandPool();

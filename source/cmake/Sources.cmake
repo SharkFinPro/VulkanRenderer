@@ -142,10 +142,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
 
 # implementations Pipeline Implementations
 set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
-  # RenderObject Pipelines
-  components/pipelines/implementations/renderObject/CubeMapPipeline.cpp
-  components/pipelines/implementations/renderObject/CubeMapPipeline.h
-
   # Other Pipelines
   components/pipelines/implementations/BendyPipeline.cpp
   components/pipelines/implementations/BendyPipeline.h

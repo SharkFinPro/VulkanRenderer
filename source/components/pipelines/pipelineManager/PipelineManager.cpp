@@ -2,7 +2,6 @@
 #include "../descriptorSets/DescriptorSet.h"
 #include "../implementations/PipelineConfig.h"
 #include "../implementations/PipelineConfig2D.h"
-#include "../implementations/renderObject/CubeMapPipeline.h"
 #include "../implementations/renderObject/PipelineConfigRenderObject.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
@@ -207,8 +206,9 @@ namespace vke {
       PipelineConfig::createCurtainPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
-    m_renderObjectPipelines[PipelineType::cubeMap] = std::make_shared<CubeMapPipeline>(
-      m_logicalDevice, renderPass, m_commandPool, m_descriptorPool, objectDescriptorSetLayout);
+    createGraphicsPipeline(PipelineType::cubeMap,
+      PipelineConfig::createCubeMapPipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout,
+      renderingManager->getRenderer3D()->getCubeMapDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::texturedPlane,
       PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, renderPass, objectDescriptorSetLayout));

@@ -437,6 +437,41 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createCubeMapPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                   const std::shared_ptr<RenderPass>& renderPass,
+                                                                   VkDescriptorSetLayout objectDescriptorSetLayout,
+                                                                   VkDescriptorSetLayout cubeMapDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/StandardObject.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/CubeMap.frag.spv"
+      },
+      .states {
+        .colorBlendState = GraphicsPipelineStates::colorBlendState,
+        .depthStencilState = GraphicsPipelineStates::depthStencilState,
+        .dynamicState = GraphicsPipelineStates::dynamicState,
+        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
+        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
+        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
+        .viewportState = GraphicsPipelineStates::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(CubeMapPushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout,
+        cubeMapDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H
