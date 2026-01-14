@@ -593,9 +593,10 @@ namespace vke {
 
   void LightingManager::createDescriptorPool()
   {
-    const std::array<VkDescriptorPoolSize, 2> poolSizes {{
+    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * MAX_SHADOW_MAPS * 2}
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * MAX_SHADOW_MAPS * 2},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 20}
     }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
