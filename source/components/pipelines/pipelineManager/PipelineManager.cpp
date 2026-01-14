@@ -230,8 +230,9 @@ namespace vke {
 
   void PipelineManager::createDescriptorPool()
   {
-    const std::array<VkDescriptorPoolSize, 1> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30}
+    const std::array<VkDescriptorPoolSize, 2> poolSizes {{
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 2}
     }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
