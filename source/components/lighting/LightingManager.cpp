@@ -595,7 +595,7 @@ namespace vke {
   {
     const std::array<VkDescriptorPoolSize, 2> poolSizes {{
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 20}
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * MAX_SHADOW_MAPS * 2}
     }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
