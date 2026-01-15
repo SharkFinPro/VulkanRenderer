@@ -3,12 +3,15 @@
 #include <stdexcept>
 
 namespace vke {
+  CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
+  {}
 
   CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                                VkCommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice))
   {
-    allocateCommandBuffers(commandPool);
+    CommandBuffer::allocateCommandBuffers(commandPool);
   }
 
   void CommandBuffer::setCurrentFrame(const uint32_t currentFrame)

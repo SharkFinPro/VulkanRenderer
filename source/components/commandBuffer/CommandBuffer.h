@@ -12,12 +12,16 @@ namespace vke {
 
   class CommandBuffer {
   public:
+    explicit CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice);
+
     CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                   VkCommandPool commandPool);
 
+    virtual ~CommandBuffer() = default;
+
     void setCurrentFrame(uint32_t currentFrame);
 
-    void record(const std::function<void()>& renderFunction) const;
+    virtual void record(const std::function<void()>& renderFunction) const;
 
     void resetCommandBuffer() const;
 
@@ -86,14 +90,14 @@ namespace vke {
 
     friend class ImGuiInstance;
 
-  private:
+  protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     std::vector<VkCommandBuffer> m_commandBuffers;
 
     uint32_t m_currentFrame = 0;
 
-    void allocateCommandBuffers(VkCommandPool commandPool);
+    virtual void allocateCommandBuffers(VkCommandPool commandPool);
   };
 
 } // namespace vke
