@@ -88,6 +88,11 @@ namespace vke {
     void clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
                           const std::vector<VkClearRect>& clearRects) const;
 
+    void copyImageToBuffer(VkImage srcImage,
+                           VkImageLayout srcImageLayout,
+                           VkBuffer dstBuffer,
+                           const std::vector<VkBufferImageCopy>& regions) const;
+
     friend class ImGuiInstance;
 
   protected:

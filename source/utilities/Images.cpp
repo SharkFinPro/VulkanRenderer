@@ -1,5 +1,6 @@
 #include "Images.h"
 #include "Buffers.h"
+#include "../components/commandBuffer/SingleUseCommandBuffer.h"
 #include "../components/logicalDevice/LogicalDevice.h"
 #include "../components/physicalDevice/PhysicalDevice.h"
 #include <stdexcept>
@@ -281,7 +282,7 @@ namespace vke::Images {
   void copyImageToBuffer(const VkImage& image,
                          const VkOffset3D offset,
                          const VkExtent3D extent,
-                         VkCommandBuffer commandBuffer,
+                         const SingleUseCommandBuffer& commandBuffer,
                          VkBuffer stagingBuffer)
   {
     const VkBufferImageCopy region{
@@ -298,13 +299,11 @@ namespace vke::Images {
       .imageExtent = extent
     };
 
-    vkCmdCopyImageToBuffer(
-      commandBuffer,
+    commandBuffer.copyImageToBuffer(
       image,
       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
       stagingBuffer,
-      1,
-      &region
+      { region }
     );
   }
 

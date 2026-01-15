@@ -8,6 +8,7 @@ namespace vke {
 
   class LogicalDevice;
   class PhysicalDevice;
+  class SingleUseCommandBuffer;
 
   namespace Images {
 
@@ -49,7 +50,7 @@ namespace vke {
     void copyImageToBuffer(const VkImage& image,
                            VkOffset3D offset,
                            VkExtent3D extent,
-                           VkCommandBuffer commandBuffer,
+                           const SingleUseCommandBuffer& commandBuffer,
                            VkBuffer stagingBuffer);
 
     VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice,

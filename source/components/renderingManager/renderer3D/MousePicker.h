@@ -18,6 +18,7 @@ namespace vke {
   class RenderObject;
   class RenderPass;
   class RenderTarget;
+  class SingleUseCommandBuffer;
   class Window;
 
   class MousePicker {
@@ -70,10 +71,10 @@ namespace vke {
 
     [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
 
-    static void transitionImageForReading(VkCommandBuffer commandBuffer,
+    static void transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
                                           VkImage image);
 
-    static void transitionImageForWriting(VkCommandBuffer commandBuffer,
+    static void transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
                                           VkImage image);
   };
 
