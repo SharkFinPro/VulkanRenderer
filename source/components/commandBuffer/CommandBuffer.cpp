@@ -3,12 +3,15 @@
 #include <stdexcept>
 
 namespace vke {
+  CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
+  {}
 
   CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                                VkCommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice))
   {
-    allocateCommandBuffers(commandPool);
+    CommandBuffer::allocateCommandBuffers(commandPool);
   }
 
   void CommandBuffer::setCurrentFrame(const uint32_t currentFrame)
@@ -169,6 +172,68 @@ namespace vke {
       clearAttachments.data(),
       clearRects.size(),
       clearRects.data()
+    );
+  }
+
+  void CommandBuffer::copyImageToBuffer(VkImage srcImage,
+                                        const VkImageLayout srcImageLayout,
+                                        VkBuffer dstBuffer,
+                                        const std::vector<VkBufferImageCopy>& regions) const
+  {
+    vkCmdCopyImageToBuffer(
+      m_commandBuffers[m_currentFrame],
+      srcImage,
+      srcImageLayout,
+      dstBuffer,
+      regions.size(),
+      regions.data()
+    );
+  }
+
+  void CommandBuffer::copyBufferToImage(VkBuffer srcBuffer,
+                                        VkImage dstImage,
+                                        const VkImageLayout dstImageLayout,
+                                        const std::vector<VkBufferImageCopy>& regions) const
+  {
+    vkCmdCopyBufferToImage(
+      m_commandBuffers[m_currentFrame],
+      srcBuffer,
+      dstImage,
+      dstImageLayout,
+      regions.size(),
+      regions.data()
+    );
+  }
+
+  void CommandBuffer::blitImage(VkImage srcImage,
+                                const VkImageLayout srcImageLayout,
+                                VkImage dstImage,
+                                const VkImageLayout dstImageLayout,
+                                const std::vector<VkImageBlit>& regions,
+                                const VkFilter filter) const
+  {
+    vkCmdBlitImage(
+      m_commandBuffers[m_currentFrame],
+      srcImage,
+      srcImageLayout,
+      dstImage,
+      dstImageLayout,
+      regions.size(),
+      regions.data(),
+      filter
+    );
+  }
+
+  void CommandBuffer::copyBuffer(VkBuffer srcBuffer,
+                                 VkBuffer dstBuffer,
+                                 const std::vector<VkBufferCopy>& regions) const
+  {
+    vkCmdCopyBuffer(
+      m_commandBuffers[m_currentFrame],
+      srcBuffer,
+      dstBuffer,
+      regions.size(),
+      regions.data()
     );
   }
 

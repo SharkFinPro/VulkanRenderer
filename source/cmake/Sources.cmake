@@ -37,6 +37,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Command Buffer Management
   components/commandBuffer/CommandBuffer.cpp
   components/commandBuffer/CommandBuffer.h
+  components/commandBuffer/SingleUseCommandBuffer.cpp
+  components/commandBuffer/SingleUseCommandBuffer.h
 
   # Computing
   components/computingManager/ComputingManager.cpp

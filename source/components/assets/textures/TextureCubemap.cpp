@@ -1,4 +1,5 @@
 #include "TextureCubemap.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../../utilities/Buffers.h"
@@ -115,18 +116,16 @@ namespace vke {
       bufferCopyRegions[i].imageExtent = { textureWidth, textureHeight, 1 };
     }
 
-    const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    vkCmdCopyBufferToImage(
-      commandBuffer,
-      stagingBuffer,
-      m_textureImage,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      static_cast<uint32_t>(bufferCopyRegions.size()),
-      bufferCopyRegions.data()
-    );
-
-    Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
+    commandBuffer.record([this, commandBuffer, stagingBuffer, bufferCopyRegions] {
+      commandBuffer.copyBufferToImage(
+        stagingBuffer,
+        m_textureImage,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        bufferCopyRegions
+      );
+    });
   }
 
   void TextureCubemap::createImageView()

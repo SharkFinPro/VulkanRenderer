@@ -12,12 +12,16 @@ namespace vke {
 
   class CommandBuffer {
   public:
+    explicit CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice);
+
     CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                   VkCommandPool commandPool);
 
+    virtual ~CommandBuffer() = default;
+
     void setCurrentFrame(uint32_t currentFrame);
 
-    void record(const std::function<void()>& renderFunction) const;
+    virtual void record(const std::function<void()>& renderFunction) const;
 
     void resetCommandBuffer() const;
 
@@ -84,16 +88,37 @@ namespace vke {
     void clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
                           const std::vector<VkClearRect>& clearRects) const;
 
+    void copyImageToBuffer(VkImage srcImage,
+                           VkImageLayout srcImageLayout,
+                           VkBuffer dstBuffer,
+                           const std::vector<VkBufferImageCopy>& regions) const;
+
+    void copyBufferToImage(VkBuffer srcBuffer,
+                           VkImage dstImage,
+                           VkImageLayout dstImageLayout,
+                           const std::vector<VkBufferImageCopy>& regions) const;
+
+    void blitImage(VkImage srcImage,
+                   VkImageLayout srcImageLayout,
+                   VkImage dstImage,
+                   VkImageLayout dstImageLayout,
+                   const std::vector<VkImageBlit>& regions,
+                   VkFilter filter) const;
+
+    void copyBuffer(VkBuffer srcBuffer,
+                    VkBuffer dstBuffer,
+                    const std::vector<VkBufferCopy>& regions) const;
+
     friend class ImGuiInstance;
 
-  private:
+  protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     std::vector<VkCommandBuffer> m_commandBuffers;
 
     uint32_t m_currentFrame = 0;
 
-    void allocateCommandBuffers(VkCommandPool commandPool);
+    virtual void allocateCommandBuffers(VkCommandPool commandPool);
   };
 
 } // namespace vke

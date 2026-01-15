@@ -1,4 +1,5 @@
 #include "TextureGlyph.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
@@ -101,32 +102,30 @@ namespace vke {
                                        const uint32_t height,
                                        const VkBuffer& stagingBuffer) const
   {
-    const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    const VkBufferImageCopy region {
-      .bufferOffset = 0,
-      .bufferRowLength = 0,
-      .bufferImageHeight = 0,
-      .imageSubresource = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .mipLevel = 0,
-        .baseArrayLayer = 0,
-        .layerCount = 1,
-      },
-      .imageOffset = {0, 0, 0},
-      .imageExtent = {width, height, 1}
-    };
+    commandBuffer.record([this, commandBuffer, width, height, stagingBuffer] {
+      const VkBufferImageCopy region {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .mipLevel = 0,
+          .baseArrayLayer = 0,
+          .layerCount = 1,
+        },
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {width, height, 1}
+      };
 
-    vkCmdCopyBufferToImage(
-      commandBuffer,
-      stagingBuffer,
-      m_textureImage,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      1,
-      &region
-    );
-
-    Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
+      commandBuffer.copyBufferToImage(
+        stagingBuffer,
+        m_textureImage,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        { region }
+      );
+    });
   }
 
   void TextureGlyph::transitionImageToShaderReadable(const VkCommandPool& commandPool) const

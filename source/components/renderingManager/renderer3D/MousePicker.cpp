@@ -1,5 +1,6 @@
 #include "MousePicker.h"
 #include "../../assets/objects/RenderObject.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../window/Window.h"
@@ -128,26 +129,21 @@ namespace vke {
                                                    const int32_t mouseX,
                                                    const int32_t mouseY) const
   {
-    const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, m_commandPool);
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
 
-    transitionImageForReading(commandBuffer, image);
+    commandBuffer.record([this, commandBuffer, image, mouseX, mouseY] {
+      transitionImageForReading(commandBuffer, image);
 
-    Images::copyImageToBuffer(
-      image,
-      { mouseX, mouseY, 0 },
-      { 1, 1, 1 },
-      commandBuffer,
-      m_stagingBuffer
-    );
+      Images::copyImageToBuffer(
+        image,
+        { mouseX, mouseY, 0 },
+        { 1, 1, 1 },
+        commandBuffer,
+        m_stagingBuffer
+      );
 
-    transitionImageForWriting(commandBuffer, image);
-
-    Buffers::endSingleTimeCommands(
-      m_logicalDevice,
-      m_commandPool,
-      m_logicalDevice->getGraphicsQueue(),
-      commandBuffer
-    );
+      transitionImageForWriting(commandBuffer, image);
+    });
 
     return getObjectIDFromBuffer(m_stagingBufferMemory);
   }
@@ -167,10 +163,10 @@ namespace vke {
     return objectID;
   }
 
-  void MousePicker::transitionImageForReading(VkCommandBuffer commandBuffer,
+  void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
                                               VkImage image)
   {
-    const VkImageMemoryBarrier barrier {
+    const VkImageMemoryBarrier imageMemoryBarrier {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
       .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
       .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
@@ -188,21 +184,20 @@ namespace vke {
       }
     };
 
-    vkCmdPipelineBarrier(
-      commandBuffer,
+    commandBuffer.pipelineBarrier(
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrier
+      {},
+      {},
+      { imageMemoryBarrier }
     );
   }
 
-  void MousePicker::transitionImageForWriting(VkCommandBuffer commandBuffer,
+  void MousePicker::transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
                                               VkImage image)
   {
-    const VkImageMemoryBarrier barrierBack {
+    const VkImageMemoryBarrier imageMemoryBarrier {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
       .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
       .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -220,14 +215,13 @@ namespace vke {
       }
     };
 
-    vkCmdPipelineBarrier(
-      commandBuffer,
+    commandBuffer.pipelineBarrier(
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
       0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrierBack
+      {},
+      {},
+      { imageMemoryBarrier }
     );
   }
 } // namespace vke

@@ -1,5 +1,6 @@
 #include "Images.h"
 #include "Buffers.h"
+#include "../components/commandBuffer/SingleUseCommandBuffer.h"
 #include "../components/logicalDevice/LogicalDevice.h"
 #include "../components/physicalDevice/PhysicalDevice.h"
 #include <stdexcept>
@@ -196,92 +197,90 @@ namespace vke::Images {
   }
 
   void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const VkCommandPool& commandPool,
-                             const VkImage image,
+                             VkCommandPool commandPool,
+                             VkImage image,
                              const VkFormat format,
                              const VkImageLayout oldLayout,
                              const VkImageLayout newLayout,
                              const uint32_t mipLevels,
                              const uint32_t layerCount)
   {
-    const auto [aspectMask,
+    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([commandBuffer, image, format, oldLayout, newLayout, mipLevels, layerCount] {
+      const auto [aspectMask,
                 srcAccessMask,
                 dstAccessMask,
                 sourceStage,
                 destinationStage] = getTransitionInfo(oldLayout, newLayout, format);
 
-    const auto commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
+      const VkImageMemoryBarrier imageMemoryBarrier {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask = srcAccessMask,
+        .dstAccessMask = dstAccessMask,
+        .oldLayout = oldLayout,
+        .newLayout = newLayout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = {
+          .aspectMask = aspectMask,
+          .baseMipLevel = 0,
+          .levelCount = mipLevels,
+          .baseArrayLayer = 0,
+          .layerCount = layerCount
+        }
+      };
 
-    const VkImageMemoryBarrier barrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = srcAccessMask,
-      .dstAccessMask = dstAccessMask,
-      .oldLayout = oldLayout,
-      .newLayout = newLayout,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = image,
-      .subresourceRange = {
-        .aspectMask = aspectMask,
-        .baseMipLevel = 0,
-        .levelCount = mipLevels,
-        .baseArrayLayer = 0,
-        .layerCount = layerCount
-      }
-    };
-
-    vkCmdPipelineBarrier(
-      commandBuffer,
-      sourceStage, destinationStage,
-      0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrier
-    );
-
-    Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+      commandBuffer.pipelineBarrier(
+        sourceStage,
+        destinationStage,
+        0,
+        {},
+        {},
+        { imageMemoryBarrier }
+      );
+    });
   }
 
   void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const VkCommandPool& commandPool,
-                         const VkBuffer buffer,
-                         const VkImage image,
+                         VkCommandPool commandPool,
+                         VkBuffer buffer,
+                         VkImage image,
                          const uint32_t width,
                          const uint32_t height,
                          const uint32_t depth)
   {
-    const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
+    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
-    const VkBufferImageCopy region {
-      .bufferOffset = 0,
-      .bufferRowLength = 0,
-      .bufferImageHeight = 0,
-      .imageSubresource = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .mipLevel = 0,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-      },
-      .imageOffset = {0, 0, 0},
-      .imageExtent = {width, height, depth}
-    };
+    commandBuffer.record([commandBuffer, buffer, image, width, height, depth] {
+      const VkBufferImageCopy region {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .mipLevel = 0,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+        },
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {width, height, depth}
+      };
 
-    vkCmdCopyBufferToImage(
-      commandBuffer,
-      buffer,
-      image,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      1,
-      &region
-    );
-
-    Buffers::endSingleTimeCommands(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), commandBuffer);
+      commandBuffer.copyBufferToImage(
+        buffer,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        { region }
+      );
+    });
   }
 
   void copyImageToBuffer(const VkImage& image,
                          const VkOffset3D offset,
                          const VkExtent3D extent,
-                         VkCommandBuffer commandBuffer,
+                         const SingleUseCommandBuffer& commandBuffer,
                          VkBuffer stagingBuffer)
   {
     const VkBufferImageCopy region{
@@ -298,18 +297,16 @@ namespace vke::Images {
       .imageExtent = extent
     };
 
-    vkCmdCopyImageToBuffer(
-      commandBuffer,
+    commandBuffer.copyImageToBuffer(
       image,
       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
       stagingBuffer,
-      1,
-      &region
+      { region }
     );
   }
 
   VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                              const VkImage image,
+                              VkImage image,
                               const VkFormat format,
                               const VkImageAspectFlags aspectFlags,
                               const uint32_t mipLevels,

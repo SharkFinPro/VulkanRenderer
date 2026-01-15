@@ -17,8 +17,8 @@ namespace vke {
                       VkDeviceMemory& bufferMemory);
 
     void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                    const VkCommandPool& commandPool,
-                    const VkQueue& queue,
+                    VkCommandPool commandPool,
+                    VkQueue queue,
                     VkBuffer srcBuffer,
                     VkBuffer dstBuffer,
                     VkDeviceSize size);
@@ -26,14 +26,6 @@ namespace vke {
     void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        VkBuffer& buffer,
                        VkDeviceMemory& bufferMemory);
-
-    VkCommandBuffer beginSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                            VkCommandPool commandPool);
-
-    void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                               VkCommandPool commandPool,
-                               VkQueue queue,
-                               VkCommandBuffer commandBuffer);
   }
 
 } // namespace vke

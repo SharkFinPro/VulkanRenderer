@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../../utilities/Buffers.h"
@@ -58,7 +59,7 @@ namespace vke {
   }
 
   void Texture::generateMipmaps(const VkCommandPool& commandPool,
-                                const VkImage image,
+                                VkImage image,
                                 const VkFormat imageFormat,
                                 const int32_t texWidth,
                                 const int32_t texHeight,
@@ -71,49 +72,49 @@ namespace vke {
       throw std::runtime_error("texture image format does not support linear blitting!");
     }
 
-    const auto commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    VkImageMemoryBarrier barrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = image,
-      .subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-      }
-    };
+    commandBuffer.record([commandBuffer, image, texWidth, texHeight, mipLevels] {
+      VkImageMemoryBarrier barrier {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = {
+          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+        }
+      };
 
-    int32_t mipWidth = texWidth;
-    int32_t mipHeight = texHeight;
+      int32_t mipWidth = texWidth;
+      int32_t mipHeight = texHeight;
 
-    for (uint32_t i = 1; i < mipLevels; i++)
-    {
-      transitionMipLevelToTransferSrc(commandBuffer, barrier, i - 1);
-
-      blitImage(commandBuffer, image, i - 1, mipWidth, mipHeight);
-
-      transitionMipLevelToShaderRead(commandBuffer, barrier);
-
-      if (mipWidth > 1)
+      for (uint32_t i = 1; i < mipLevels; i++)
       {
-        mipWidth /= 2;
+        transitionMipLevelToTransferSrc(commandBuffer, barrier, i - 1);
+
+        blitImage(commandBuffer, image, i - 1, mipWidth, mipHeight);
+
+        transitionMipLevelToShaderRead(commandBuffer, barrier);
+
+        if (mipWidth > 1)
+        {
+          mipWidth /= 2;
+        }
+
+        if (mipHeight > 1)
+        {
+          mipHeight /= 2;
+        }
       }
 
-      if (mipHeight > 1)
-      {
-        mipHeight /= 2;
-      }
-    }
-
-    transitionFinalMipLevelToShaderRead(commandBuffer, barrier, mipLevels - 1);
-
-    Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
+      transitionFinalMipLevelToShaderRead(commandBuffer, barrier, mipLevels - 1);
+    });
   }
 
-  void Texture::blitImage(VkCommandBuffer commandBuffer,
+  void Texture::blitImage(const SingleUseCommandBuffer& commandBuffer,
                           VkImage image,
                           const uint32_t mipLevel,
                           const int32_t mipWidth,
@@ -142,16 +143,17 @@ namespace vke {
       }
     };
 
-    vkCmdBlitImage(
-      commandBuffer,
-      image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      1, &blit,
+    commandBuffer.blitImage(
+      image,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      image,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      { blit },
       VK_FILTER_LINEAR
     );
   }
 
-  void Texture::transitionMipLevelToTransferSrc(VkCommandBuffer commandBuffer,
+  void Texture::transitionMipLevelToTransferSrc(const SingleUseCommandBuffer& commandBuffer,
                                                 VkImageMemoryBarrier& barrier,
                                                 const uint32_t mipLevel)
   {
@@ -161,18 +163,17 @@ namespace vke {
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-    vkCmdPipelineBarrier(
-      commandBuffer,
+    commandBuffer.pipelineBarrier(
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrier
+      {},
+      {},
+      { barrier }
     );
   }
 
-  void Texture::transitionMipLevelToShaderRead(VkCommandBuffer commandBuffer,
+  void Texture::transitionMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
                                                VkImageMemoryBarrier& barrier)
   {
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
@@ -180,18 +181,17 @@ namespace vke {
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    vkCmdPipelineBarrier(
-      commandBuffer,
+    commandBuffer.pipelineBarrier(
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
       0,
-      0, nullptr,
-      0, nullptr,
-      1, &barrier
+      {},
+      {},
+      { barrier }
     );
   }
 
-  void Texture::transitionFinalMipLevelToShaderRead(VkCommandBuffer commandBuffer,
+  void Texture::transitionFinalMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
                                                     VkImageMemoryBarrier& barrier,
                                                     const uint32_t mipLevel)
   {
@@ -201,14 +201,13 @@ namespace vke {
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    vkCmdPipelineBarrier(
-      commandBuffer,
+    commandBuffer.pipelineBarrier(
       VK_PIPELINE_STAGE_TRANSFER_BIT,
       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
       0,
-      0,nullptr,
-      0, nullptr,
-      1, &barrier
+      {},
+      {},
+      { barrier }
     );
   }
 
