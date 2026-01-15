@@ -8,6 +8,7 @@
 namespace vke {
 
   class LogicalDevice;
+  class SingleUseCommandBuffer;
 
   class Texture {
   public:
@@ -42,20 +43,20 @@ namespace vke {
                          int32_t texHeight,
                          uint32_t mipLevels) const;
 
-    static void blitImage(VkCommandBuffer commandBuffer,
+    static void blitImage(const SingleUseCommandBuffer& commandBuffer,
                           VkImage image,
                           uint32_t mipLevel,
                           int32_t mipWidth,
                           int32_t mipHeight);
 
-    static void transitionMipLevelToTransferSrc(VkCommandBuffer commandBuffer,
+    static void transitionMipLevelToTransferSrc(const SingleUseCommandBuffer& commandBuffer,
                                                 VkImageMemoryBarrier& barrier,
                                                 uint32_t mipLevel);
 
-    static void transitionMipLevelToShaderRead(VkCommandBuffer commandBuffer,
+    static void transitionMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
                                                VkImageMemoryBarrier& barrier);
 
-    static void transitionFinalMipLevelToShaderRead(VkCommandBuffer commandBuffer,
+    static void transitionFinalMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
                                                     VkImageMemoryBarrier& barrier,
                                                     uint32_t mipLevel);
 
