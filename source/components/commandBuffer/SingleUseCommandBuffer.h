@@ -1,0 +1,9 @@
+#ifndef VULKANPROJECT_SINGLEUSECOMMANDBUFFER_H
+#define VULKANPROJECT_SINGLEUSECOMMANDBUFFER_H
+
+namespace vke {
+  class SingleUseCommandBuffer {
+  };
+} // vke
+
+#endif //VULKANPROJECT_SINGLEUSECOMMANDBUFFER_H
