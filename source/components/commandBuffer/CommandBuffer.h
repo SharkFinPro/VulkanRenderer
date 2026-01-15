@@ -93,6 +93,11 @@ namespace vke {
                            VkBuffer dstBuffer,
                            const std::vector<VkBufferImageCopy>& regions) const;
 
+    void copyBufferToImage(VkBuffer srcBuffer,
+                           VkImage dstImage,
+                           VkImageLayout dstImageLayout,
+                           const std::vector<VkBufferImageCopy>& regions) const;
+
     void blitImage(VkImage srcImage,
                    VkImageLayout srcImageLayout,
                    VkImage dstImage,

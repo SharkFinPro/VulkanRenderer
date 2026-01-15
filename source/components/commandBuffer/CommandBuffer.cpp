@@ -190,6 +190,21 @@ namespace vke {
     );
   }
 
+  void CommandBuffer::copyBufferToImage(VkBuffer srcBuffer,
+                                        VkImage dstImage,
+                                        const VkImageLayout dstImageLayout,
+                                        const std::vector<VkBufferImageCopy>& regions) const
+  {
+    vkCmdCopyBufferToImage(
+      m_commandBuffers[m_currentFrame],
+      srcBuffer,
+      dstImage,
+      dstImageLayout,
+      regions.size(),
+      regions.data()
+    );
+  }
+
   void CommandBuffer::blitImage(VkImage srcImage,
                                 const VkImageLayout srcImageLayout,
                                 VkImage dstImage,
