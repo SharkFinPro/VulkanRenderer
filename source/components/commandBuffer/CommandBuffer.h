@@ -100,6 +100,10 @@ namespace vke {
                    const std::vector<VkImageBlit>& regions,
                    VkFilter filter) const;
 
+    void copyBuffer(VkBuffer srcBuffer,
+                    VkBuffer dstBuffer,
+                    const std::vector<VkBufferCopy>& regions) const;
+
     friend class ImGuiInstance;
 
   protected:

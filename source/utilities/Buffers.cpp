@@ -1,7 +1,7 @@
 #include "Buffers.h"
+#include "../components/commandBuffer/SingleUseCommandBuffer.h"
 #include "../components/logicalDevice/LogicalDevice.h"
 #include "../components/physicalDevice/PhysicalDevice.h"
-#include <stdexcept>
 
 namespace vke::Buffers {
 
@@ -35,20 +35,25 @@ namespace vke::Buffers {
     }
 
     void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                    const VkCommandPool& commandPool,
-                    const VkQueue& queue,
-                    const VkBuffer srcBuffer,
-                    const VkBuffer dstBuffer,
+                    VkCommandPool commandPool,
+                    VkQueue queue,
+                    VkBuffer srcBuffer,
+                    VkBuffer dstBuffer,
                     const VkDeviceSize size)
     {
-      const VkCommandBuffer commandBuffer = beginSingleTimeCommands(logicalDevice, commandPool);
+      const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, queue);
 
-      const VkBufferCopy copyRegion {
-        .size = size
-      };
-      vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+      commandBuffer.record([commandBuffer, srcBuffer, dstBuffer, size] {
+        const VkBufferCopy copyRegion {
+          .size = size
+        };
 
-      endSingleTimeCommands(logicalDevice, commandPool, queue, commandBuffer);
+        commandBuffer.copyBuffer(
+          srcBuffer,
+          dstBuffer,
+          { copyRegion }
+        );
+      });
     }
 
     void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
