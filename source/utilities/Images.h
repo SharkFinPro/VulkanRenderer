@@ -31,7 +31,7 @@ namespace vke {
                      VkDeviceMemory& imageMemory);
 
     void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                               const VkCommandPool& commandPool,
+                               VkCommandPool commandPool,
                                VkImage image,
                                VkFormat format,
                                VkImageLayout oldLayout,
@@ -40,7 +40,7 @@ namespace vke {
                                uint32_t layerCount);
 
     void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const VkCommandPool& commandPool,
+                           VkCommandPool commandPool,
                            VkBuffer buffer,
                            VkImage image,
                            uint32_t width,
