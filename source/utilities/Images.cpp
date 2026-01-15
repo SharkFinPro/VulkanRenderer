@@ -205,16 +205,15 @@ namespace vke::Images {
                              const uint32_t mipLevels,
                              const uint32_t layerCount)
   {
-    const auto [aspectMask,
+    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([commandBuffer, image, format, oldLayout, newLayout, mipLevels, layerCount] {
+      const auto [aspectMask,
                 srcAccessMask,
                 dstAccessMask,
                 sourceStage,
                 destinationStage] = getTransitionInfo(oldLayout, newLayout, format);
 
-    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
-
-    commandBuffer.record([commandBuffer, image, aspectMask, srcAccessMask, dstAccessMask, sourceStage,
-                                          destinationStage, oldLayout, newLayout, mipLevels, layerCount] {
       const VkImageMemoryBarrier imageMemoryBarrier {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .srcAccessMask = srcAccessMask,
