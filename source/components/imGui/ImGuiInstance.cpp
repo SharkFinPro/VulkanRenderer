@@ -241,6 +241,11 @@ namespace vke {
     return ImGui::GetCurrentContext();
   }
 
+  void ImGuiInstance::setMenuHeight(const float height)
+  {
+    m_menuHeight = height;
+  }
+
   void ImGuiInstance::createDescriptorPool(const uint32_t maxImGuiTextures)
   {
     const std::array<VkDescriptorPoolSize, 1> poolSizes {
