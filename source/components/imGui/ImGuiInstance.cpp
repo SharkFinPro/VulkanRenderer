@@ -92,8 +92,8 @@ namespace vke {
       return;
     }
 
-    ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowPos(ImVec2(0.0f, m_menuBarHeight));
+    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y - m_menuBarHeight));
     ImGui::SetNextWindowBgAlpha(1.0f);
 
     const ImGuiID id = ImGui::GetID("WindowDockSpace");
@@ -241,9 +241,9 @@ namespace vke {
     return ImGui::GetCurrentContext();
   }
 
-  void ImGuiInstance::setMenuHeight(const float height)
+  void ImGuiInstance::setMenuBarHeight(const float height)
   {
-    m_menuHeight = height;
+    m_menuBarHeight = height;
   }
 
   void ImGuiInstance::createDescriptorPool(const uint32_t maxImGuiTextures)
