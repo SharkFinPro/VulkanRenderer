@@ -48,6 +48,8 @@ namespace vke {
 
     static ImGuiContext* getImGuiContext();
 
+    void setMenuBarHeight(float height);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -70,6 +72,8 @@ namespace vke {
     ImGuiID m_centerDock = 0;
 
     float m_contentScale = 1.0f;
+
+    float m_menuBarHeight = 0.0f;
 
     void createDescriptorPool(uint32_t maxImGuiTextures);
 
