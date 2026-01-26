@@ -74,7 +74,9 @@ namespace vke {
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    std::vector<VkDescriptorPool> m_descriptorPools;
+    uint32_t m_descriptorPoolSize = 500;
+    uint32_t m_currentDescriptorPoolSize = 0;
 
     VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
 
@@ -103,6 +105,8 @@ namespace vke {
     void createCommandPool();
 
     void createDescriptorPool();
+
+    VkDescriptorPool getDescriptorPool();
   };
 
 } // namespace vke
