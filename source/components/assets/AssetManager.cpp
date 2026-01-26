@@ -29,7 +29,10 @@ namespace vke {
 
     m_logicalDevice->destroyDescriptorSetLayout(m_smokeSystemDescriptorSetLayout);
 
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+    for (auto& descriptorPool : m_descriptorPools)
+    {
+      m_logicalDevice->destroyDescriptorPool(descriptorPool);
+    }
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
   }
@@ -65,7 +68,7 @@ namespace vke {
   {
     auto renderObject = std::make_shared<RenderObject>(
       m_logicalDevice,
-      m_descriptorPool,
+      getDescriptorPool(),
       m_objectDescriptorSetLayout,
       texture,
       specularMap,
@@ -104,7 +107,7 @@ namespace vke {
     return std::make_shared<SmokeSystem>(
       m_logicalDevice,
       m_commandPool,
-      m_descriptorPool,
+      getDescriptorPool(),
       m_smokeSystemDescriptorSetLayout,
       position,
       numParticles
@@ -250,7 +253,7 @@ namespace vke {
     }
 
     auto font = std::make_shared<Font>(
-      m_logicalDevice, fontPath->second, fontSize, m_commandPool, m_descriptorPool, m_fontDescriptorSetLayout);
+      m_logicalDevice, fontPath->second, fontSize, m_commandPool, getDescriptorPool(), m_fontDescriptorSetLayout);
 
     m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
   }
@@ -268,18 +271,31 @@ namespace vke {
   void AssetManager::createDescriptorPool()
   {
     const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize}
     }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 1000,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
     };
 
-    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+    m_descriptorPools.push_back(m_logicalDevice->createDescriptorPool(poolCreateInfo));
+  }
+
+  VkDescriptorPool AssetManager::getDescriptorPool()
+  {
+    m_currentDescriptorPoolSize++;
+
+    if (m_currentDescriptorPoolSize > m_descriptorPoolSize)
+    {
+      m_currentDescriptorPoolSize = 1;
+      createDescriptorPool();
+    }
+
+    return m_descriptorPools.back();
   }
 } // namespace vke
