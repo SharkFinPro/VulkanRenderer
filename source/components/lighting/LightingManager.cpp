@@ -197,6 +197,8 @@ namespace vke {
 
         m_lightMetadataUniform->update(currentFrame, &lightMetadataUBO);
 
+        m_prevNumPointLights = 0;
+
         return;
       }
 
