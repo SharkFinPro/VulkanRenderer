@@ -84,10 +84,6 @@ namespace vke {
 
     VkDescriptorSetLayout m_smokeSystemDescriptorSetLayout = VK_NULL_HANDLE;
 
-    std::vector<std::shared_ptr<Texture>> m_textures;
-    std::vector<std::shared_ptr<Model>> m_models;
-    std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
-
     std::unordered_map<std::string, std::string> m_fontNames;
     std::unordered_map<FontKey, std::shared_ptr<Font>, FontKeyHash> m_fonts;
 

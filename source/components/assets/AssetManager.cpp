@@ -40,9 +40,12 @@ namespace vke {
   std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path,
                                                        const bool repeat)
   {
-    auto texture = std::make_shared<Texture2D>(m_logicalDevice, m_commandPool, path,
-                                               repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-    m_textures.push_back(texture);
+    auto texture = std::make_shared<Texture2D>(
+      m_logicalDevice,
+      m_commandPool,
+      path,
+      repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+    );
 
     return texture;
   }
@@ -56,8 +59,6 @@ namespace vke {
       path,
       rotation
     );
-
-    m_models.push_back(model);
 
     return model;
   }
@@ -74,8 +75,6 @@ namespace vke {
       specularMap,
       model
     );
-
-    m_renderObjects.push_back(renderObject);
 
     return renderObject;
   }
