@@ -5,8 +5,9 @@
 #include "../../utilities/EventSystem.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <memory>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace vke {
 
@@ -34,7 +35,11 @@ namespace vke {
     double yoffset;
   };
 
-  class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent> {
+  struct DropEvent {
+    std::vector<std::string> paths;
+  };
+
+  class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent, DropEvent> {
   public:
     explicit Window(const EngineConfig::Window& config);
     ~Window();
@@ -93,6 +98,10 @@ namespace vke {
                             int scancode,
                             int action,
                             int mods);
+
+    static void dropCallback(GLFWwindow* window,
+                             int pathCount,
+                             const char* paths[]);
   };
 
 } // namespace vke
