@@ -102,7 +102,7 @@ namespace vke {
 
     void createDescriptorPool();
 
-    VkDescriptorPool getDescriptorPool();
+    [[nodiscard]] VkDescriptorPool getDescriptorPool();
   };
 
 } // namespace vke
