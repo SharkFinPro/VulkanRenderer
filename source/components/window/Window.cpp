@@ -48,6 +48,8 @@ namespace vke {
     glfwSetKeyCallback(m_window, keyCallback);
 
     glfwSetWindowContentScaleCallback(m_window, contentScaleCallback);
+
+    glfwSetDropCallback(m_window, dropCallback);
   }
 
   Window::~Window()
@@ -168,4 +170,18 @@ namespace vke {
     app->emit(KeyCallbackEvent{key, scancode, action, mods});
   }
 
+  void Window::dropCallback(GLFWwindow* window,
+                            const int pathCount,
+                            const char* paths[])
+  {
+    const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+    std::vector<std::string> pathsVec(pathCount);
+    for (int i = 0; i < pathCount; ++i)
+    {
+      pathsVec[i] = paths[i];
+    }
+
+    app->emit(DropEvent{ pathsVec });
+  }
 } // namespace vke
