@@ -66,8 +66,6 @@ namespace vke {
       m_renderer
     );
 
-    m_lights.push_back(light);
-
     return light;
   }
 
@@ -91,8 +89,6 @@ namespace vke {
       m_commandPool,
       m_renderer
     );
-
-    m_lights.push_back(light);
 
     return light;
   }

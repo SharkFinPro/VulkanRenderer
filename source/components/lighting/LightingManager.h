@@ -64,8 +64,6 @@ namespace vke {
     int m_prevNumPointLights = 0;
     int m_prevNumSpotLights = 0;
 
-    std::vector<std::shared_ptr<Light>> m_lights;
-
     std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
     std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
 
