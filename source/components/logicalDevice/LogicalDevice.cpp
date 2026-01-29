@@ -351,6 +351,8 @@ namespace vke {
       return;
     }
 
+    waitIdle();
+
     vkFreeMemory(m_device, memory, nullptr);
 
     memory = VK_NULL_HANDLE;
@@ -401,6 +403,13 @@ namespace vke {
 
   void LogicalDevice::destroyImageView(VkImageView& imageView) const
   {
+    if (imageView == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    waitIdle();
+
     vkDestroyImageView(m_device, imageView, nullptr);
 
     imageView = VK_NULL_HANDLE;

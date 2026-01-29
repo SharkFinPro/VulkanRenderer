@@ -38,7 +38,10 @@ namespace vke {
 
     m_logicalDevice->destroyDescriptorSetLayout(m_pointLightDescriptorSetLayout);
 
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+    for (auto& descriptorPool : m_descriptorPools)
+    {
+      m_logicalDevice->destroyDescriptorPool(descriptorPool);
+    }
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
   }
@@ -61,12 +64,10 @@ namespace vke {
       m_logicalDevice,
       commonLightData,
       m_commandPool,
-      m_descriptorPool,
+      getDescriptorPool(),
       m_pointLightDescriptorSetLayout,
       m_renderer
     );
-
-    m_lights.push_back(light);
 
     return light;
   }
@@ -91,8 +92,6 @@ namespace vke {
       m_commandPool,
       m_renderer
     );
-
-    m_lights.push_back(light);
 
     return light;
   }
@@ -155,7 +154,7 @@ namespace vke {
 
   void LightingManager::createDescriptorSet()
   {
-    m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, LayoutBindings::lightingLayoutBindings);
+    m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, getDescriptorPool(), LayoutBindings::lightingLayoutBindings);
     m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
@@ -594,18 +593,31 @@ namespace vke {
   void LightingManager::createDescriptorPool()
   {
     const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * MAX_SHADOW_MAPS * 2},
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 20}
     }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
     };
 
-    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+    m_descriptorPools.push_back(m_logicalDevice->createDescriptorPool(poolCreateInfo));
+  }
+
+  VkDescriptorPool LightingManager::getDescriptorPool()
+  {
+    m_currentDescriptorPoolSize++;
+
+    if (m_currentDescriptorPoolSize > m_descriptorPoolSize)
+    {
+      m_currentDescriptorPoolSize = 1;
+      createDescriptorPool();
+    }
+
+    return m_descriptorPools.back();
   }
 } // namespace vke
