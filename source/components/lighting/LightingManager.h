@@ -115,6 +115,8 @@ namespace vke {
     void createDescriptorPool();
 
     [[nodiscard]] VkDescriptorPool getDescriptorPool();
+
+    void updateLightMetadataUniform() const;
   };
 
 } // namespace vke

@@ -79,11 +79,11 @@ void main()
     float bias = 0.0001;
     projCoords.z -= bias;
 
-    float shadow = texture(spotLightShadowMaps[i], projCoords);
+    float shadow = texture(spotLightShadowMaps[nonuniformEXT(i)], projCoords);
 
     if (shadow > 0.5)
     {
-      result += SpecularMapSpotLightAffect(spotLights[nonuniformEXT(i)], texColor, specColor, fragNormal, fragPos, camera.position, 32);
+      result += SpecularMapSpotLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
     else
     {

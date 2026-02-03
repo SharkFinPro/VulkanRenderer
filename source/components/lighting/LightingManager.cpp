@@ -179,6 +179,8 @@ namespace vke {
     };
     m_cameraUniform->update(currentFrame, &cameraUBO);
 
+    updateLightMetadataUniform();
+
     updatePointLightUniforms(currentFrame);
 
     updateSpotLightUniforms(currentFrame);
@@ -190,13 +192,6 @@ namespace vke {
     {
       if (m_pointLightsToRender.empty())
       {
-        const LightMetadataUniform lightMetadataUBO {
-          .numPointLights = 0,
-          .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
-        };
-
-        m_lightMetadataUniform->update(currentFrame, &lightMetadataUBO);
-
         m_prevNumPointLights = 0;
 
         return;
@@ -210,15 +205,8 @@ namespace vke {
 
       m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
-      const LightMetadataUniform lightMetadataUBO {
-        .numPointLights = static_cast<int>(m_pointLightsToRender.size()),
-        .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
-      };
-
-      m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](VkDescriptorSet descriptorSet, const size_t frame)
+      m_lightingDescriptorSet->updateDescriptorSets([this, currentFrame](VkDescriptorSet descriptorSet, const size_t frame)
       {
-        m_lightMetadataUniform->update(frame, &lightMetadataUBO);
-
         std::vector<VkWriteDescriptorSet> descriptorWrites{{
           m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame)
         }};
@@ -295,13 +283,6 @@ namespace vke {
     {
       if (m_spotLightsToRender.empty())
       {
-        const LightMetadataUniform lightMetadataUBO {
-          .numPointLights = static_cast<int>(m_pointLightsToRender.size()),
-          .numSpotLights = 0
-        };
-
-        m_lightMetadataUniform->update(currentFrame, &lightMetadataUBO);
-
         m_prevNumSpotLights = 0;
 
         return;
@@ -315,15 +296,8 @@ namespace vke {
 
       m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
-      const LightMetadataUniform lightMetadataUBO {
-        .numPointLights = static_cast<int>(m_pointLightsToRender.size()),
-        .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
-      };
-
-      m_lightingDescriptorSet->updateDescriptorSets([this, lightMetadataUBO](VkDescriptorSet descriptorSet, const size_t frame)
+      m_lightingDescriptorSet->updateDescriptorSets([this, currentFrame](VkDescriptorSet descriptorSet, const size_t frame)
       {
-        m_lightMetadataUniform->update(frame, &lightMetadataUBO);
-
         std::vector<VkWriteDescriptorSet> descriptorWrites{{
           m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame)
         }};
@@ -623,5 +597,24 @@ namespace vke {
     }
 
     return m_descriptorPools.back();
+  }
+
+  void LightingManager::updateLightMetadataUniform() const
+  {
+    if (m_prevNumPointLights == m_pointLightsToRender.size() &&
+        m_prevNumSpotLights == m_spotLightsToRender.size())
+    {
+      return;
+    }
+
+    const LightMetadataUniform lightMetadataUBO {
+      .numPointLights = static_cast<int>(m_pointLightsToRender.size()),
+      .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
+    };
+
+    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
+    {
+      m_lightMetadataUniform->update(i, &lightMetadataUBO);
+    }
   }
 } // namespace vke
