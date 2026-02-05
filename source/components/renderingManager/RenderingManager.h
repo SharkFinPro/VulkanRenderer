@@ -1,6 +1,7 @@
 #ifndef VKE_RENDERINGMANAGER_H
 #define VKE_RENDERINGMANAGER_H
 
+#include "../../utilities/EventSystem.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -10,6 +11,7 @@ namespace vke {
 
   class AssetManager;
   class CommandBuffer;
+  struct FramebufferResizeEvent;
   class LightingManager;
   class LogicalDevice;
   class PipelineManager;
@@ -83,6 +85,8 @@ namespace vke {
     std::shared_ptr<Renderer2D> m_renderer2D;
 
     std::shared_ptr<Renderer3D> m_renderer3D;
+
+    EventListener<FramebufferResizeEvent> m_framebufferResizeEventListener;
 
     void renderGuiScene(uint32_t imageIndex);
 

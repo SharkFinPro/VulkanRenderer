@@ -16,7 +16,7 @@ namespace vke {
                                std::shared_ptr<LogicalDevice> logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const EngineConfig::ImGui& config)
-    : m_logicalDevice(std::move(logicalDevice)), m_useDockSpace(config.useDockspace)
+    : m_logicalDevice(std::move(logicalDevice)), m_window(window), m_useDockSpace(config.useDockspace)
   {
     createDescriptorPool(config.maxTextures);
 
@@ -24,7 +24,7 @@ namespace vke {
 
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
 
-    initFromWindow(window);
+    initFromWindow();
 
     const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
@@ -79,6 +79,8 @@ namespace vke {
     ImGui::DestroyContext();
 
     m_logicalDevice->destroyDescriptorPool(descriptorPool);
+
+    m_window->removeListener(m_contentScaleEventListener);
   }
 
   void ImGuiInstance::createNewFrame()
@@ -269,17 +271,17 @@ namespace vke {
     m_dockNeedsUpdate = true;
   }
 
-  void ImGuiInstance::initFromWindow(const std::shared_ptr<Window>& window)
+  void ImGuiInstance::initFromWindow()
   {
     float xscale, yscale;
-    glfwGetWindowContentScale(window->getWindow(), &xscale, &yscale);
+    glfwGetWindowContentScale(m_window->getWindow(), &xscale, &yscale);
 
     ImGui::GetStyle().ScaleAllSizes(xscale);
     ImGui::GetIO().FontGlobalScale = xscale;
 
     m_contentScale = xscale;
 
-    window->on<ContentScaleEvent>([this](const ContentScaleEvent& e) {
+    m_contentScaleEventListener = m_window->on<ContentScaleEvent>([this](const ContentScaleEvent& e) {
       ImGui::GetStyle().ScaleAllSizes(1.0f / m_contentScale);
       ImGui::GetStyle().ScaleAllSizes(e.xscale);
       ImGui::GetIO().FontGlobalScale = e.xscale;
