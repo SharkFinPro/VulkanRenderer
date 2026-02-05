@@ -2,6 +2,7 @@
 #define VKE_IMGUIINSTANCE_H
 
 #include "../../EngineConfig.h"
+#include "../../utilities/EventSystem.h"
 #include <imgui.h>
 #include <vulkan/vulkan.h>
 #include <memory>
@@ -9,6 +10,7 @@
 namespace vke {
 
   class CommandBuffer;
+  struct ContentScaleEvent;
   class Window;
   class Instance;
   class PhysicalDevice;
@@ -53,6 +55,8 @@ namespace vke {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
+    std::shared_ptr<Window> m_window;
+
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
     bool m_dockNeedsUpdate = true;
@@ -75,11 +79,13 @@ namespace vke {
 
     float m_menuBarHeight = 0.0f;
 
+    EventListener<ContentScaleEvent> m_contentScaleEventListener;
+
     void createDescriptorPool(uint32_t maxImGuiTextures);
 
     void markDockNeedsUpdate();
 
-    void initFromWindow(const std::shared_ptr<Window>& window);
+    void initFromWindow();
   };
 
 } // namespace vke
