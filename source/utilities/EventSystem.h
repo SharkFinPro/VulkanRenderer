@@ -2,14 +2,15 @@
 #define VULKANPROJECT_EVENTSYSTEM_H
 
 #include <functional>
-#include <vector>
+#include <memory>
 #include <tuple>
+#include <vector>
 
 namespace vke {
 
   template<typename EventType>
   struct EventListener {
-    std::function<void(const EventType&)>* callback;
+    std::shared_ptr<std::function<void(const EventType&)>> pCallback = nullptr;
   };
 
   template<typename... EventTypes>
@@ -19,33 +20,33 @@ namespace vke {
     [[nodiscard]] EventListener<EventType> on(Callback&& callback)
     {
       auto& listeners = getListeners<EventType>();
-      listeners.emplace_back(std::forward<Callback>(callback));
+      const auto pCallback = std::make_shared<std::function<void(const EventType&)>>(std::forward<Callback>(callback));
+
+      listeners.push_back(pCallback);
 
       return {
-        &listeners.back()
+        pCallback
       };
     }
 
     template<typename EventType>
     void emit(const EventType& event) const
     {
-      for (const auto& callback : getListeners<EventType>())
+      for (const auto& pCallback : getListeners<EventType>())
       {
-        callback(event);
+        if (pCallback)
+        {
+          (*pCallback)(event);
+        }
       }
     }
 
     template<typename EventType>
     void removeListener(EventListener<EventType>& listener)
     {
-      auto& listeners = getListeners<EventType>();
+      std::erase_if(getListeners<EventType>(), [&](auto& cb) { return cb == listener.pCallback; });
 
-      listeners.erase(std::remove_if(
-        listeners.begin(),
-        listeners.end(),
-        [&](auto& cb) { return &cb == listener.callback; }),
-        listeners.end()
-      );
+      listener.pCallback.reset();
     }
 
   protected:
@@ -53,7 +54,7 @@ namespace vke {
 
   private:
     template<typename EventType>
-    using ListenerVector = std::vector<std::function<void(const EventType&)>>;
+    using ListenerVector = std::vector<std::shared_ptr<std::function<void(const EventType&)>>>;
 
     std::tuple<ListenerVector<EventTypes>...> m_listeners;
 
