@@ -7,13 +7,23 @@
 
 namespace vke {
 
+  template<typename EventType>
+  struct EventListener {
+    std::function<void(const EventType&)>* callback;
+  };
+
   template<typename... EventTypes>
   class EventSystem {
   public:
     template<typename EventType, typename Callback>
-    void on(Callback&& callback)
+    [[nodiscard]] EventListener<EventType> on(Callback&& callback)
     {
-      getListeners<EventType>().emplace_back(std::forward<Callback>(callback));
+      auto& listeners = getListeners<EventType>();
+      listeners.emplace_back(std::forward<Callback>(callback));
+
+      return {
+        &listeners.back()
+      };
     }
 
     template<typename EventType>
@@ -23,6 +33,19 @@ namespace vke {
       {
         callback(event);
       }
+    }
+
+    template<typename EventType>
+    void removeListener(EventListener<EventType>& listener)
+    {
+      auto& listeners = getListeners<EventType>();
+
+      listeners.erase(std::remove_if(
+        listeners.begin(),
+        listeners.end(),
+        [&](auto& cb) { return &cb == listener.callback; }),
+        listeners.end()
+      );
     }
 
   protected:
