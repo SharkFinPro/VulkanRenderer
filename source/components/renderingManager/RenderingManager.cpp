@@ -47,7 +47,7 @@ namespace vke {
     // m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
     m_renderer = std::make_shared<DynamicRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
 
-    m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
+    m_framebufferResizeEventListener = m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
       m_framebufferResized = true;
     });
   }
@@ -55,6 +55,8 @@ namespace vke {
   RenderingManager::~RenderingManager()
   {
     m_logicalDevice->destroyCommandPool(m_commandPool);
+
+    m_window->removeListener(m_framebufferResizeEventListener);
   }
 
   void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
