@@ -192,9 +192,11 @@ namespace vke {
 
     float currentX = x;
 
-    for (const auto& character : text)
+    const auto codepoints = decodeUTF8(text);
+
+    for (const auto& codepoint : codepoints)
     {
-      if (const auto glyphInfo = m_currentFont->getGlyphInfo(character))
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
         m_glyphsToRender[m_currentFontName][m_currentFontSize].push_back({
           .bounds = glm::vec4(
