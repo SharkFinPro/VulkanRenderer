@@ -7,8 +7,6 @@
 #include <stdexcept>
 #include <utility>
 
-constexpr uint32_t MAX_ASCII_CODE = 255;
-
 namespace vke {
 
   Font::Font(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -26,9 +24,9 @@ namespace vke {
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
-  GlyphInfo* Font::getGlyphInfo(const char character)
+  GlyphInfo* Font::getGlyphInfo(const uint32_t codepoint)
   {
-    const auto it = m_glyphMap.find(character);
+    const auto it = m_glyphMap.find(codepoint);
 
     return it != m_glyphMap.end() ? &it->second : nullptr;
   }
@@ -113,10 +111,7 @@ namespace vke {
     FT_ULong charcode = FT_Get_First_Char(face, &gindex);
     while (gindex != 0)
     {
-      if (charcode <= MAX_ASCII_CODE)
-      {
-        charset.push_back(charcode);
-      }
+      charset.push_back(charcode);
       charcode = FT_Get_Next_Char(face, charcode, &gindex);
     }
 
@@ -186,7 +181,7 @@ namespace vke {
         }
       }
 
-      m_glyphMap[static_cast<char>(charcode)] = {
+      m_glyphMap.emplace(charcode, GlyphInfo {
         .u0 = static_cast<float>(x) / static_cast<float>(atlasWidth),
         .v0 = static_cast<float>(y) / static_cast<float>(atlasHeight),
         .u1 = static_cast<float>(x + bitmap.width) / static_cast<float>(atlasWidth),
@@ -196,7 +191,7 @@ namespace vke {
         .bearingX = static_cast<float>(face->glyph->bitmap_left),
         .bearingY = static_cast<float>(face->glyph->bitmap_top),
         .advance = static_cast<float>(face->glyph->advance.x >> 6)
-      };
+      });
 
       x += maxGlyphWidth;
       currentGlyph++;
