@@ -37,7 +37,7 @@ namespace vke {
         codepoint = byte;
         i += 1;
       }
-      else if ((byte & 0xE0) == 0xC0) // 2-byte
+      else if ((byte & 0xE0) == 0xC0 && i + 1 < utf8String.length()) // 2-byte
       {
         codepoint = ((byte & 0x1F) << 6) | (utf8String[i + 1] & 0x3F);
         i += 2;
