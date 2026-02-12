@@ -101,6 +101,9 @@ namespace vke {
     );
 
     m_maxGlyphHeight = static_cast<float>(maxGlyphHeight);
+
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
   }
 
   std::vector<FT_ULong> Font::getCharset(FT_Face face)
