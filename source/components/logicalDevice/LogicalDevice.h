@@ -163,6 +163,11 @@ namespace vke {
                                             const uint32_t* maxPrimitiveCounts,
                                             VkAccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const;
 
+    void buildAccelerationStructures(VkCommandBuffer commandBuffer,
+                                     uint32_t infoCount,
+                                     const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+                                     const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const;
+
     friend class ImGuiInstance;
 
   private:
@@ -191,6 +196,7 @@ namespace vke {
     PFN_vkCreateAccelerationStructureKHR m_vkCreateAccelerationStructureKHR = nullptr;
     PFN_vkDestroyAccelerationStructureKHR m_vkDestroyAccelerationStructureKHR = nullptr;
     PFN_vkGetAccelerationStructureBuildSizesKHR m_vkGetAccelerationStructureBuildSizesKHR = nullptr;
+    PFN_vkCmdBuildAccelerationStructuresKHR m_vkCmdBuildAccelerationStructuresKHR = nullptr;
 
     void createDevice();
 

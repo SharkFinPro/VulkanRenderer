@@ -240,7 +240,7 @@ namespace vke {
   void CommandBuffer::buildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                                                  const VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const
   {
-    vkCmdBuildAccelerationStructuresKHR(
+    m_logicalDevice->buildAccelerationStructures(
       m_commandBuffers[m_currentFrame],
       1,
       &buildGeometryInfo,
