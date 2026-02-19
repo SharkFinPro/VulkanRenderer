@@ -33,7 +33,7 @@ namespace vke {
     const VkSubmitInfo submitInfo {
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
       .commandBufferCount = 1,
-      .pCommandBuffers = m_commandBuffers.data()
+      .pCommandBuffers = &m_commandBuffers[m_currentFrame]
     };
 
     if (vkQueueSubmit(m_queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
