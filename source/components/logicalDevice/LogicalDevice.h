@@ -188,9 +188,15 @@ namespace vke {
 
     uint8_t m_maxFramesInFlight = 2;
 
+    PFN_vkCreateAccelerationStructureKHR m_vkCreateAccelerationStructureKHR = nullptr;
+    PFN_vkDestroyAccelerationStructureKHR m_vkDestroyAccelerationStructureKHR = nullptr;
+    PFN_vkGetAccelerationStructureBuildSizesKHR m_vkGetAccelerationStructureBuildSizesKHR = nullptr;
+
     void createDevice();
 
     void createSyncObjects();
+
+    void loadRayTracingFunctions();
   };
 
 } // namespace vke
