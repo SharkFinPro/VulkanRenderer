@@ -249,20 +249,20 @@ namespace vke {
 
     m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_blas);
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    VkBuffer scratchBuffer;
+    VkDeviceMemory scratchBufferMemory;
 
     Buffers::createBuffer(
       m_logicalDevice,
       buildSizesInfo.buildScratchSize,
       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      stagingBuffer,
-      stagingBufferMemory
+      scratchBuffer,
+      scratchBufferMemory
     );
 
     buildGeometryInfo.dstAccelerationStructure = m_blas;
-    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(stagingBuffer);
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
 
     const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
       .primitiveCount = primitiveCount,
@@ -277,7 +277,7 @@ namespace vke {
       commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
     });
 
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
   }
 
   void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
