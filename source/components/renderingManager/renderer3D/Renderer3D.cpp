@@ -749,6 +749,24 @@ namespace vke {
     };
 
     m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.accelerationStructureSize,
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_tlasBuffer,
+      m_tlasBufferMemory
+    );
+
+    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+      .buffer = m_tlasBuffer,
+      .size = buildSizesInfo.accelerationStructureSize,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
+    };
+
+    m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_tlas);
   }
 
   void Renderer3D::destroyTLAS()
