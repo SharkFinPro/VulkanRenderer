@@ -678,19 +678,62 @@ namespace vke {
 
       instances.push_back(instance);
     }
+
+    const VkDeviceSize instancesBufferSize = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      instancesBufferSize,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
+
+    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [instances, instancesBufferSize](void* data) {
+      memcpy(data, instances.data(), instancesBufferSize);
+    });
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      instancesBufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_tlasInstanceBuffer,
+      m_tlasInstanceBufferMemory
+    );
+
+    Buffers::copyBuffer(
+      m_logicalDevice,
+      m_commandPool,
+      m_logicalDevice->getGraphicsQueue(),
+      stagingBuffer,
+      m_tlasInstanceBuffer,
+      instancesBufferSize
+    );
+
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
   void Renderer3D::destroyTLAS()
   {
-    if (m_tlas == VK_NULL_HANDLE)
+    if (m_tlas != VK_NULL_HANDLE)
     {
-      return;
+      m_logicalDevice->destroyAccelerationStructureKHR(m_tlas);
     }
 
-    m_logicalDevice->destroyAccelerationStructureKHR(m_tlas);
+    if (m_tlasBuffer != VK_NULL_HANDLE)
+    {
+      Buffers::destroyBuffer(m_logicalDevice, m_tlasBuffer, m_tlasBufferMemory);
+    }
 
-    Buffers::destroyBuffer(m_logicalDevice, m_tlasBuffer, m_tlasBufferMemory);
-
-    Buffers::destroyBuffer(m_logicalDevice, m_tlasInstanceBuffer, m_tlasInstanceBufferMemory);
+    if (m_tlasInstanceBuffer != VK_NULL_HANDLE)
+    {
+      Buffers::destroyBuffer(m_logicalDevice, m_tlasInstanceBuffer, m_tlasInstanceBufferMemory);
+    }
   }
 } // vke
