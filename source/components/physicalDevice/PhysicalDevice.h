@@ -19,9 +19,12 @@ namespace vke {
     "VK_KHR_portability_subset"
   };
   #else
-  constexpr std::array<const char*, 2> deviceExtensions {
+  constexpr std::array<const char*, 5> deviceExtensions {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
+    VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+    VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+    VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+    VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME
   };
   #endif
 
