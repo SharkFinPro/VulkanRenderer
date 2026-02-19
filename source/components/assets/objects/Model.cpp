@@ -160,6 +160,11 @@ namespace vke {
     commandBuffer->bindIndexBuffer(m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
   }
 
+  void Model::createBLAS(const VkCommandPool& commandPool)
+  {
+
+  }
+
   void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     bind(commandBuffer);
