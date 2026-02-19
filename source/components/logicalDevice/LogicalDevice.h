@@ -154,6 +154,11 @@ namespace vke {
 
     [[nodiscard]] VkDeviceAddress getBufferDeviceAddress(const VkBuffer& buffer) const;
 
+    void createAccelerationStructure(const VkAccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
+                                     VkAccelerationStructureKHR* accelerationStructure) const;
+
+    void destroyAccelerationStructureKHR(VkAccelerationStructureKHR& accelerationStructure) const;
+
     friend class ImGuiInstance;
 
   private:

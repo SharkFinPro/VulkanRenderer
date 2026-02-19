@@ -608,6 +608,24 @@ namespace vke {
     return vkGetBufferDeviceAddressKHR(m_device, &bufferDeviceAddressInfo);
   }
 
+  void LogicalDevice::createAccelerationStructure(const VkAccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
+                                                  VkAccelerationStructureKHR* accelerationStructure) const
+  {
+    vkCreateAccelerationStructureKHR(m_device, &accelerationStructureCreateInfo, nullptr, accelerationStructure);
+  }
+
+  void LogicalDevice::destroyAccelerationStructureKHR(VkAccelerationStructureKHR& accelerationStructure) const
+  {
+    if (accelerationStructure == VK_NULL_HANDLE)
+    {
+      return;
+    }
+    
+    vkDestroyAccelerationStructureKHR(m_device, accelerationStructure, nullptr);
+
+    accelerationStructure = VK_NULL_HANDLE;
+  }
+
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              VkCommandBuffer* commandBuffers) const
   {
