@@ -647,6 +647,11 @@ namespace vke {
     m_vkCmdBuildAccelerationStructuresKHR(commandBuffer, infoCount, pInfos, ppBuildRangeInfos);
   }
 
+  VkDeviceAddress LogicalDevice::getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const
+  {
+    return m_vkGetAccelerationStructureDeviceAddressKHR(m_device, accelerationStructureDeviceAddressInfo);
+  }
+
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              VkCommandBuffer* commandBuffers) const
   {
@@ -823,10 +828,14 @@ namespace vke {
     m_vkCmdBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(
       vkGetDeviceProcAddr(m_device, "vkCmdBuildAccelerationStructuresKHR"));
 
+    m_vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(
+      vkGetDeviceProcAddr(m_device, "vkGetAccelerationStructureDeviceAddressKHR"));
+
     if (!m_vkCreateAccelerationStructureKHR ||
         !m_vkDestroyAccelerationStructureKHR ||
         !m_vkGetAccelerationStructureBuildSizesKHR ||
-        !m_vkCmdBuildAccelerationStructuresKHR)
+        !m_vkCmdBuildAccelerationStructuresKHR ||
+        !m_vkGetAccelerationStructureDeviceAddressKHR)
     {
       throw std::runtime_error("Failed to load acceleration structure functions");
     }

@@ -168,6 +168,8 @@ namespace vke {
                                      const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
                                      const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const;
 
+    [[nodiscard]] VkDeviceAddress getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
+
     friend class ImGuiInstance;
 
   private:
@@ -197,6 +199,7 @@ namespace vke {
     PFN_vkDestroyAccelerationStructureKHR m_vkDestroyAccelerationStructureKHR = nullptr;
     PFN_vkGetAccelerationStructureBuildSizesKHR m_vkGetAccelerationStructureBuildSizesKHR = nullptr;
     PFN_vkCmdBuildAccelerationStructuresKHR m_vkCmdBuildAccelerationStructuresKHR = nullptr;
+    PFN_vkGetAccelerationStructureDeviceAddressKHR m_vkGetAccelerationStructureDeviceAddressKHR = nullptr;
 
     void createDevice();
 
