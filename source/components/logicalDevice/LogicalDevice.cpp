@@ -598,6 +598,16 @@ namespace vke {
     pipeline = VK_NULL_HANDLE;
   }
 
+  VkDeviceAddress LogicalDevice::getBufferDeviceAddress(const VkBuffer& buffer) const
+  {
+    const VkBufferDeviceAddressInfo bufferDeviceAddressInfo {
+      .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+      .buffer = buffer
+    };
+
+    return vkGetBufferDeviceAddressKHR(m_device, &bufferDeviceAddressInfo);
+  }
+
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              VkCommandBuffer* commandBuffers) const
   {

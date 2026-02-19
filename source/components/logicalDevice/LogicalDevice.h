@@ -152,6 +152,8 @@ namespace vke {
 
     void destroyPipeline(VkPipeline& pipeline) const;
 
+    [[nodiscard]] VkDeviceAddress getBufferDeviceAddress(const VkBuffer& buffer) const;
+
     friend class ImGuiInstance;
 
   private:
