@@ -712,7 +712,8 @@ namespace vke {
       .pNext = &vulkan13Features,
       .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
       .descriptorBindingPartiallyBound = VK_TRUE,
-      .runtimeDescriptorArray = VK_TRUE
+      .runtimeDescriptorArray = VK_TRUE,
+      .bufferDeviceAddress = VK_TRUE
     };
 
     VkPhysicalDeviceVulkan11Features vulkan11Features {
@@ -747,6 +748,8 @@ namespace vke {
     vkGetDeviceQueue(m_device, queueFamilyIndices.computeFamily.value(), 0, &m_computeQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
+
+    loadRayTracingFunctions();
   }
 
   void LogicalDevice::createSyncObjects()
