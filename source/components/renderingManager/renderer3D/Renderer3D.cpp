@@ -717,6 +717,38 @@ namespace vke {
     );
 
     Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+
+    VkAccelerationStructureGeometryInstancesDataKHR instancesData {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
+      .arrayOfPointers = VK_FALSE,
+      .data = {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
+      }
+    };
+
+    VkAccelerationStructureGeometryKHR geometry {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+      .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
+      .geometry = {
+        .instances = instancesData
+      }
+    };
+
+    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
+      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+      .geometryCount = 1,
+      .pGeometries = &geometry
+    };
+
+    const auto primitiveCount = static_cast<uint32_t>(instances.size());
+
+    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
+    };
+
+    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
   }
 
   void Renderer3D::destroyTLAS()
