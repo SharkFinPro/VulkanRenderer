@@ -10,6 +10,7 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../../utilities/Buffers.h"
 
 namespace vke {
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -27,6 +28,8 @@ namespace vke {
 
   Renderer3D::~Renderer3D()
   {
+    destroyTLAS();
+
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
@@ -66,6 +69,8 @@ namespace vke {
                           const std::shared_ptr<LightingManager>& lightingManager)
   {
     displayGui();
+
+    createTLAS();
 
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
@@ -640,5 +645,24 @@ namespace vke {
 
       ImGui::End();
     }
+  }
+
+  void Renderer3D::createTLAS()
+  {
+    destroyTLAS();
+  }
+
+  void Renderer3D::destroyTLAS()
+  {
+    if (m_tlas == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    m_logicalDevice->destroyAccelerationStructureKHR(m_tlas);
+
+    Buffers::destroyBuffer(m_logicalDevice, m_tlasBuffer, m_tlasBufferMemory);
+
+    Buffers::destroyBuffer(m_logicalDevice, m_tlasInstanceBuffer, m_tlasInstanceBufferMemory);
   }
 } // vke
