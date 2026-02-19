@@ -702,12 +702,18 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceVulkan13Features vulkan13Features{
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+      .accelerationStructure = VK_TRUE
+    };
+
+    VkPhysicalDeviceVulkan13Features vulkan13Features {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+      .pNext = &accelerationStructureFeatures,
       .dynamicRendering = VK_TRUE
     };
 
-    VkPhysicalDeviceVulkan12Features vulkan12Features{
+    VkPhysicalDeviceVulkan12Features vulkan12Features {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
       .pNext = &vulkan13Features,
       .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
