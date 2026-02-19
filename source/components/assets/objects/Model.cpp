@@ -1,5 +1,6 @@
 #include "Model.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include "../../../utilities/Buffers.h"
@@ -38,6 +39,10 @@ namespace vke {
 
   Model::~Model()
   {
+    m_logicalDevice->destroyAccelerationStructureKHR(m_blas);
+
+    Buffers::destroyBuffer(m_logicalDevice, m_blasBuffer, m_blasBufferMemory);
+
     Buffers::destroyBuffer(m_logicalDevice, m_indexBuffer, m_indexBufferMemory);
 
     Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
@@ -111,17 +116,28 @@ namespace vke {
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          stagingBuffer, stagingBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
 
     m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
       memcpy(data, m_vertices.data(), bufferSize);
     });
 
-    Buffers::createBuffer(m_logicalDevice, bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_vertexBuffer,
+      m_vertexBufferMemory
+    );
 
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
                         m_vertexBuffer, bufferSize);
@@ -136,17 +152,28 @@ namespace vke {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          stagingBuffer, stagingBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
 
     m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
       memcpy(data, m_indices.data(), bufferSize);
     });
 
-    Buffers::createBuffer(m_logicalDevice, bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_indexBuffer,
+      m_indexBufferMemory
+    );
 
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
                         m_indexBuffer, bufferSize);
@@ -167,6 +194,9 @@ namespace vke {
     const VkAccelerationStructureGeometryTrianglesDataKHR trianglesData {
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
       .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
+      .vertexData {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_vertexBuffer)
+      },
       .vertexStride = sizeof(Vertex),
       .maxVertex = static_cast<uint32_t>(m_vertices.size() - 1),
       .indexType = VK_INDEX_TYPE_UINT32,
@@ -185,7 +215,7 @@ namespace vke {
       .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
     };
 
-    const VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
       .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
       .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
@@ -218,6 +248,36 @@ namespace vke {
     };
 
     m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_blas);
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.buildScratchSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
+
+    buildGeometryInfo.dstAccelerationStructure = m_blas;
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(stagingBuffer);
+
+    const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+      .primitiveCount = primitiveCount,
+      .primitiveOffset = 0,
+      .firstVertex = 0,
+      .transformOffset = 0
+    };
+
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+      commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
+    });
+
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
   void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
