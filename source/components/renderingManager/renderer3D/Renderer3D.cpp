@@ -6,6 +6,7 @@
 #include "../../assets/textures/Texture3D.h"
 #include "../../assets/textures/TextureCubemap.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
@@ -767,6 +768,36 @@ namespace vke {
     };
 
     m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_tlas);
+
+    VkBuffer scratchBuffer;
+    VkDeviceMemory scratchBufferMemory;
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.buildScratchSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      scratchBuffer,
+      scratchBufferMemory
+    );
+
+    buildGeometryInfo.dstAccelerationStructure = m_tlas;
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
+
+    const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+      .primitiveCount = primitiveCount,
+      .primitiveOffset = 0,
+      .firstVertex = 0,
+      .transformOffset = 0
+    };
+
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+      commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
+    });
+
+    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
   }
 
   void Renderer3D::destroyTLAS()
