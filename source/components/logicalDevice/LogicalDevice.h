@@ -159,6 +159,10 @@ namespace vke {
 
     void destroyAccelerationStructureKHR(VkAccelerationStructureKHR& accelerationStructure) const;
 
+    void getAccelerationStructureBuildSizes(const VkAccelerationStructureBuildGeometryInfoKHR* accelerationStructureBuildGeometryInfo,
+                                            const uint32_t* maxPrimitiveCounts,
+                                            VkAccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const;
+
     friend class ImGuiInstance;
 
   private:

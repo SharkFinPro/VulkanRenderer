@@ -620,10 +620,23 @@ namespace vke {
     {
       return;
     }
-    
+
     vkDestroyAccelerationStructureKHR(m_device, accelerationStructure, nullptr);
 
     accelerationStructure = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::getAccelerationStructureBuildSizes(const VkAccelerationStructureBuildGeometryInfoKHR* accelerationStructureBuildGeometryInfo,
+                                                         const uint32_t* maxPrimitiveCounts,
+                                                         VkAccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const
+  {
+    vkGetAccelerationStructureBuildSizesKHR(
+      m_device,
+      VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+      accelerationStructureBuildGeometryInfo,
+      maxPrimitiveCounts,
+      accelerationStructureBuildSizesInfo
+    );
   }
 
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
