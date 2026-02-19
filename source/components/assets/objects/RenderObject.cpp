@@ -107,6 +107,11 @@ namespace vke {
     return m_descriptorSet->getDescriptorSet(currentFrame);
   }
 
+  std::shared_ptr<Model> RenderObject::getModel() const
+  {
+    return m_model;
+  }
+
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          VkDescriptorPool descriptorPool,
                                          VkDescriptorSetLayout descriptorSetLayout)

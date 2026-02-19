@@ -46,6 +46,8 @@ namespace vke {
 
     [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
+    [[nodiscard]] std::shared_ptr<Model> getModel() const;
+
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 
