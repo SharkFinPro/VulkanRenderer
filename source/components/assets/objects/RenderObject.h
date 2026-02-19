@@ -48,6 +48,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Model> getModel() const;
 
+    [[nodiscard]] glm::mat4 getModelMatrix() const;
+
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 
@@ -64,8 +66,6 @@ namespace vke {
     void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              VkDescriptorPool descriptorPool,
                              VkDescriptorSetLayout descriptorSetLayout);
-
-    [[nodiscard]] glm::mat4 createModelMatrix() const;
   };
 
 } // namespace vke

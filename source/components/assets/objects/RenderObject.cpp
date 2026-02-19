@@ -49,7 +49,7 @@ namespace vke {
                                          const glm::mat4& projectionMatrix) const
   {
     const TransformUniform transformUBO {
-      .model = createModelMatrix(),
+      .model = getModelMatrix(),
       .view = viewMatrix,
       .proj = projectionMatrix
     };
@@ -112,6 +112,15 @@ namespace vke {
     return m_model;
   }
 
+  glm::mat4 RenderObject::getModelMatrix() const
+  {
+    const glm::mat4 model = glm::translate(glm::mat4(1.0f), m_position)
+                            * glm::mat4(m_orientation)
+                            * glm::scale(glm::mat4(1.0f), m_scale);
+
+    return model;
+  }
+
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          VkDescriptorPool descriptorPool,
                                          VkDescriptorSetLayout descriptorSetLayout)
@@ -127,15 +136,6 @@ namespace vke {
 
       return descriptorWrites;
     });
-  }
-
-  glm::mat4 RenderObject::createModelMatrix() const
-  {
-    const glm::mat4 model = glm::translate(glm::mat4(1.0f), m_position)
-                            * glm::mat4(m_orientation)
-                            * glm::scale(glm::mat4(1.0f), m_scale);
-
-    return model;
   }
 
 } // namespace vke
