@@ -164,7 +164,7 @@ namespace vke {
 
   void Model::createBLAS(const VkCommandPool& commandPool)
   {
-    VkAccelerationStructureGeometryTrianglesDataKHR trianglesData {
+    const VkAccelerationStructureGeometryTrianglesDataKHR trianglesData {
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
       .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
       .vertexStride = sizeof(Vertex),
@@ -185,7 +185,7 @@ namespace vke {
       .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
     };
 
-    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+    const VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
       .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
       .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
@@ -210,7 +210,7 @@ namespace vke {
       m_blasBufferMemory
     );
 
-    VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
       .buffer = m_blasBuffer,
       .size = buildSizesInfo.accelerationStructureSize,
