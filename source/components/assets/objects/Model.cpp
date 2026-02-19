@@ -20,6 +20,7 @@ namespace vke {
 
     createVertexBuffer(commandPool);
     createIndexBuffer(commandPool);
+    createBLAS(commandPool);
   }
 
   Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -32,6 +33,7 @@ namespace vke {
 
     createVertexBuffer(commandPool);
     createIndexBuffer(commandPool);
+    createBLAS(commandPool);
   }
 
   Model::~Model()
@@ -118,7 +120,7 @@ namespace vke {
     });
 
     Buffers::createBuffer(m_logicalDevice, bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
@@ -143,7 +145,7 @@ namespace vke {
     });
 
     Buffers::createBuffer(m_logicalDevice, bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
 
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
@@ -162,7 +164,42 @@ namespace vke {
 
   void Model::createBLAS(const VkCommandPool& commandPool)
   {
+    VkAccelerationStructureGeometryTrianglesDataKHR trianglesData {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
+      .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
+      .vertexStride = sizeof(Vertex),
+      .maxVertex = static_cast<uint32_t>(m_vertices.size() - 1),
+      .indexType = VK_INDEX_TYPE_UINT32,
+      .indexData {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_indexBuffer)
+      },
+      .transformData = {}
+    };
 
+    VkAccelerationStructureGeometryKHR geometry {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+      .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
+      .geometry = {
+        .triangles = trianglesData
+      },
+      .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
+    };
+
+    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+      .geometryCount = 1,
+      .pGeometries = &geometry
+    };
+
+    const auto primitiveCount = static_cast<uint32_t>(m_indices.size() / 3);
+
+    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
+    };
+
+    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
   }
 
   void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
