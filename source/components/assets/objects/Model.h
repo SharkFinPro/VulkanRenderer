@@ -30,6 +30,8 @@ namespace vke {
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
+    [[nodiscard]] VkAccelerationStructureKHR getBLAS() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

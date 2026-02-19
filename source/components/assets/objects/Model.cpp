@@ -287,4 +287,8 @@ namespace vke {
     commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
   }
 
+  VkAccelerationStructureKHR Model::getBLAS() const
+  {
+    return m_blas;
+  }
 } // namespace vke
