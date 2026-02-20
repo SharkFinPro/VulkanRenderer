@@ -208,8 +208,7 @@ namespace vke {
       .indexType = VK_INDEX_TYPE_UINT32,
       .indexData {
         .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_indexBuffer)
-      },
-      .transformData = {}
+      }
     };
 
     VkAccelerationStructureGeometryKHR geometry {
@@ -255,6 +254,14 @@ namespace vke {
 
     m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_blas);
 
+    populateBLAS(commandPool, buildGeometryInfo, buildSizesInfo, primitiveCount);
+  }
+
+  void Model::populateBLAS(const VkCommandPool& commandPool,
+                           VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                           const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+                           const uint32_t primitiveCount) const
+  {
     VkBuffer scratchBuffer;
     VkDeviceMemory scratchBufferMemory;
 

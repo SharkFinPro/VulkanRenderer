@@ -63,6 +63,11 @@ namespace vke {
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     void createBLAS(const VkCommandPool& commandPool);
+
+    void populateBLAS(const VkCommandPool& commandPool,
+                      VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                      const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+                      uint32_t primitiveCount) const;
   };
 
 } // namespace vke
