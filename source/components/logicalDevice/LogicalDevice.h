@@ -172,6 +172,10 @@ namespace vke {
 
     [[nodiscard]] VkDeviceAddress getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
 
+    void getRayTracingShaderGroupHandles(VkPipeline pipeline,
+                                         uint32_t groupCount,
+                                         std::vector<uint8_t>& handles) const;
+
     friend class ImGuiInstance;
 
   private:
@@ -203,6 +207,7 @@ namespace vke {
     PFN_vkCmdBuildAccelerationStructuresKHR m_vkCmdBuildAccelerationStructuresKHR = nullptr;
     PFN_vkGetAccelerationStructureDeviceAddressKHR m_vkGetAccelerationStructureDeviceAddressKHR = nullptr;
     PFN_vkCreateRayTracingPipelinesKHR m_vkCreateRayTracingPipelinesKHR = nullptr;
+    PFN_vkGetRayTracingShaderGroupHandlesKHR m_vkGetRayTracingShaderGroupHandlesKHR = nullptr;
 
     void createDevice();
 

@@ -664,6 +664,20 @@ namespace vke {
     return m_vkGetAccelerationStructureDeviceAddressKHR(m_device, accelerationStructureDeviceAddressInfo);
   }
 
+  void LogicalDevice::getRayTracingShaderGroupHandles(VkPipeline pipeline,
+                                                      const uint32_t groupCount,
+                                                      std::vector<uint8_t>& handles) const
+  {
+    m_vkGetRayTracingShaderGroupHandlesKHR(
+      m_device,
+      pipeline,
+      0,
+      groupCount,
+      handles.size(),
+      handles.data()
+    );
+  }
+
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              VkCommandBuffer* commandBuffers) const
   {
@@ -864,12 +878,16 @@ namespace vke {
     m_vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(
       vkGetDeviceProcAddr(m_device, "vkCreateRayTracingPipelinesKHR"));
 
+    m_vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(
+      vkGetDeviceProcAddr(m_device, "vkGetRayTracingShaderGroupHandlesKHR"));
+
     if (!m_vkCreateAccelerationStructureKHR ||
         !m_vkDestroyAccelerationStructureKHR ||
         !m_vkGetAccelerationStructureBuildSizesKHR ||
         !m_vkCmdBuildAccelerationStructuresKHR ||
         !m_vkGetAccelerationStructureDeviceAddressKHR ||
-        !m_vkCreateRayTracingPipelinesKHR)
+        !m_vkCreateRayTracingPipelinesKHR ||
+        !m_vkGetRayTracingShaderGroupHandlesKHR)
     {
       throw std::runtime_error("Failed to load acceleration structure functions");
     }
