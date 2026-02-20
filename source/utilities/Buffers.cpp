@@ -23,8 +23,14 @@ namespace vke::Buffers {
 
       const VkMemoryRequirements memoryRequirements = logicalDevice->getBufferMemoryRequirements(buffer);
 
+      const VkMemoryAllocateFlagsInfo allocateFlagsInfo {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
+        .flags = (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) ? VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT : static_cast<VkMemoryAllocateFlags>(0)
+      };
+
       const VkMemoryAllocateInfo allocateInfo {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = &allocateFlagsInfo,
         .allocationSize = memoryRequirements.size,
         .memoryTypeIndex = logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits, properties)
       };

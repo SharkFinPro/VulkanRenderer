@@ -1,6 +1,8 @@
 #include "Model.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include "../../../utilities/Buffers.h"
 #include <assimp/Importer.hpp>
@@ -20,6 +22,7 @@ namespace vke {
 
     createVertexBuffer(commandPool);
     createIndexBuffer(commandPool);
+    createBLAS(commandPool);
   }
 
   Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -32,10 +35,15 @@ namespace vke {
 
     createVertexBuffer(commandPool);
     createIndexBuffer(commandPool);
+    createBLAS(commandPool);
   }
 
   Model::~Model()
   {
+    m_logicalDevice->destroyAccelerationStructureKHR(m_blas);
+
+    Buffers::destroyBuffer(m_logicalDevice, m_blasBuffer, m_blasBufferMemory);
+
     Buffers::destroyBuffer(m_logicalDevice, m_indexBuffer, m_indexBufferMemory);
 
     Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
@@ -109,17 +117,28 @@ namespace vke {
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          stagingBuffer, stagingBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
 
     m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
       memcpy(data, m_vertices.data(), bufferSize);
     });
 
-    Buffers::createBuffer(m_logicalDevice, bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_vertexBuffer,
+      m_vertexBufferMemory
+    );
 
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
                         m_vertexBuffer, bufferSize);
@@ -134,17 +153,28 @@ namespace vke {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          stagingBuffer, stagingBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
 
     m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
       memcpy(data, m_indices.data(), bufferSize);
     });
 
-    Buffers::createBuffer(m_logicalDevice, bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_indexBuffer,
+      m_indexBufferMemory
+    );
 
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), stagingBuffer,
                         m_indexBuffer, bufferSize);
@@ -160,6 +190,120 @@ namespace vke {
     commandBuffer->bindIndexBuffer(m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
   }
 
+  void Model::createBLAS(const VkCommandPool& commandPool)
+  {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
+    VkAccelerationStructureGeometryTrianglesDataKHR trianglesData{};
+    VkAccelerationStructureGeometryKHR geometry{};
+    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo{};
+
+    createCoreBLASData(trianglesData, geometry, buildGeometryInfo);
+
+    const auto primitiveCount = static_cast<uint32_t>(m_indices.size() / 3);
+
+    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
+    };
+
+    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.accelerationStructureSize,
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_blasBuffer,
+      m_blasBufferMemory
+    );
+
+    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+      .buffer = m_blasBuffer,
+      .size = buildSizesInfo.accelerationStructureSize,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
+    };
+
+    m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_blas);
+
+    populateBLAS(commandPool, buildGeometryInfo, buildSizesInfo, primitiveCount);
+  }
+
+  void Model::createCoreBLASData(VkAccelerationStructureGeometryTrianglesDataKHR& trianglesData,
+                                 VkAccelerationStructureGeometryKHR& geometry,
+                                 VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const
+  {
+    trianglesData = {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
+      .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
+      .vertexData {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_vertexBuffer)
+      },
+      .vertexStride = sizeof(Vertex),
+      .maxVertex = static_cast<uint32_t>(m_vertices.size() - 1),
+      .indexType = VK_INDEX_TYPE_UINT32,
+      .indexData {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_indexBuffer)
+      }
+    };
+
+    geometry = {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+      .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
+      .geometry = {
+        .triangles = trianglesData
+      },
+      .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
+    };
+
+    buildGeometryInfo = {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+      .geometryCount = 1,
+      .pGeometries = &geometry
+    };
+  }
+
+  void Model::populateBLAS(const VkCommandPool& commandPool,
+                           VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                           const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+                           const uint32_t primitiveCount) const
+  {
+    VkBuffer scratchBuffer;
+    VkDeviceMemory scratchBufferMemory;
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.buildScratchSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      scratchBuffer,
+      scratchBufferMemory
+    );
+
+    buildGeometryInfo.dstAccelerationStructure = m_blas;
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
+
+    const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+      .primitiveCount = primitiveCount,
+      .primitiveOffset = 0,
+      .firstVertex = 0,
+      .transformOffset = 0
+    };
+
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+      commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
+    });
+
+    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
+  }
+
   void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     bind(commandBuffer);
@@ -167,4 +311,8 @@ namespace vke {
     commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
   }
 
+  VkAccelerationStructureKHR Model::getBLAS() const
+  {
+    return m_blas;
+  }
 } // namespace vke

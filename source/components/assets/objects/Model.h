@@ -30,6 +30,8 @@ namespace vke {
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
+    [[nodiscard]] VkAccelerationStructureKHR getBLAS() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -41,6 +43,10 @@ namespace vke {
 
     VkBuffer m_indexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_indexBufferMemory = VK_NULL_HANDLE;
+
+    VkBuffer m_blasBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_blasBufferMemory = VK_NULL_HANDLE;
+    VkAccelerationStructureKHR m_blas = VK_NULL_HANDLE;
 
     void loadModel(const char* path,
                    glm::quat orientation);
@@ -55,6 +61,17 @@ namespace vke {
     void createIndexBuffer(const VkCommandPool& commandPool);
 
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void createBLAS(const VkCommandPool& commandPool);
+
+    void createCoreBLASData(VkAccelerationStructureGeometryTrianglesDataKHR& trianglesData,
+                            VkAccelerationStructureGeometryKHR& geometry,
+                            VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const;
+
+    void populateBLAS(const VkCommandPool& commandPool,
+                      VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                      const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+                      uint32_t primitiveCount) const;
   };
 
 } // namespace vke

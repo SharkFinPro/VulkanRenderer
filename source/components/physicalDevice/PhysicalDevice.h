@@ -25,6 +25,12 @@ namespace vke {
   };
   #endif
 
+  constexpr std::array<const char*, 3> rayTracingDeviceExtensions {
+    VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+    VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+    VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME
+  };
+
   struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
@@ -72,6 +78,8 @@ namespace vke {
                                                VkImageTiling tiling,
                                                VkFormatFeatureFlags features) const;
 
+    [[nodiscard]] bool supportsRayTracing() const;
+
     friend class ImGuiInstance;
 
   private:
@@ -85,6 +93,8 @@ namespace vke {
 
     SwapChainSupportDetails m_swapChainSupportDetails;
 
+    bool m_supportsRayTracing = false;
+
     void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
 
     bool isDeviceSuitable(VkPhysicalDevice device) const;
@@ -92,6 +102,8 @@ namespace vke {
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
 
     static bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+
+    static bool checkDeviceRayTracingExtensionSupport(VkPhysicalDevice device);
 
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) const;
 

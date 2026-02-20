@@ -248,6 +248,14 @@ namespace vke {
       .noiseFrequency = 0.1f
     };
 
+    VkBuffer m_tlasInstanceBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_tlasInstanceBufferMemory = VK_NULL_HANDLE;
+
+    VkBuffer m_tlasBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_tlasBufferMemory = VK_NULL_HANDLE;
+
+    VkAccelerationStructureKHR m_tlas = VK_NULL_HANDLE;
+
     void createCommandPool();
 
     void createDescriptorPool();
@@ -281,6 +289,10 @@ namespace vke {
     void displayEllipticalDotsGui();
 
     void displayMiscGui();
+
+    void createTLAS();
+
+    void destroyTLAS();
   };
 } // vke
 

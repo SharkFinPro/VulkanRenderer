@@ -152,6 +152,24 @@ namespace vke {
 
     void destroyPipeline(VkPipeline& pipeline) const;
 
+    [[nodiscard]] VkDeviceAddress getBufferDeviceAddress(const VkBuffer& buffer) const;
+
+    void createAccelerationStructure(const VkAccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
+                                     VkAccelerationStructureKHR* accelerationStructure) const;
+
+    void destroyAccelerationStructureKHR(VkAccelerationStructureKHR& accelerationStructure) const;
+
+    void getAccelerationStructureBuildSizes(const VkAccelerationStructureBuildGeometryInfoKHR* accelerationStructureBuildGeometryInfo,
+                                            const uint32_t* maxPrimitiveCounts,
+                                            VkAccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const;
+
+    void buildAccelerationStructures(VkCommandBuffer commandBuffer,
+                                     uint32_t infoCount,
+                                     const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+                                     const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const;
+
+    [[nodiscard]] VkDeviceAddress getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
+
     friend class ImGuiInstance;
 
   private:
@@ -177,9 +195,17 @@ namespace vke {
 
     uint8_t m_maxFramesInFlight = 2;
 
+    PFN_vkCreateAccelerationStructureKHR m_vkCreateAccelerationStructureKHR = nullptr;
+    PFN_vkDestroyAccelerationStructureKHR m_vkDestroyAccelerationStructureKHR = nullptr;
+    PFN_vkGetAccelerationStructureBuildSizesKHR m_vkGetAccelerationStructureBuildSizesKHR = nullptr;
+    PFN_vkCmdBuildAccelerationStructuresKHR m_vkCmdBuildAccelerationStructuresKHR = nullptr;
+    PFN_vkGetAccelerationStructureDeviceAddressKHR m_vkGetAccelerationStructureDeviceAddressKHR = nullptr;
+
     void createDevice();
 
     void createSyncObjects();
+
+    void loadRayTracingFunctions();
   };
 
 } // namespace vke

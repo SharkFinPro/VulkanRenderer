@@ -237,6 +237,17 @@ namespace vke {
     );
   }
 
+  void CommandBuffer::buildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                                                 const VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const
+  {
+    m_logicalDevice->buildAccelerationStructures(
+      m_commandBuffers[m_currentFrame],
+      1,
+      &buildGeometryInfo,
+      &buildRangeInfo
+    );
+  }
+
   void CommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)
   {
     m_commandBuffers.resize(m_logicalDevice->getMaxFramesInFlight());

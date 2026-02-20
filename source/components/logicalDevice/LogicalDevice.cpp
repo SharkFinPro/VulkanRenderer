@@ -598,6 +598,60 @@ namespace vke {
     pipeline = VK_NULL_HANDLE;
   }
 
+  VkDeviceAddress LogicalDevice::getBufferDeviceAddress(const VkBuffer& buffer) const
+  {
+    const VkBufferDeviceAddressInfo bufferDeviceAddressInfo {
+      .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+      .buffer = buffer
+    };
+
+    return vkGetBufferDeviceAddress(m_device, &bufferDeviceAddressInfo);
+  }
+
+  void LogicalDevice::createAccelerationStructure(const VkAccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
+                                                  VkAccelerationStructureKHR* accelerationStructure) const
+  {
+    m_vkCreateAccelerationStructureKHR(m_device, &accelerationStructureCreateInfo, nullptr, accelerationStructure);
+  }
+
+  void LogicalDevice::destroyAccelerationStructureKHR(VkAccelerationStructureKHR& accelerationStructure) const
+  {
+    if (accelerationStructure == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    m_vkDestroyAccelerationStructureKHR(m_device, accelerationStructure, nullptr);
+
+    accelerationStructure = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::getAccelerationStructureBuildSizes(const VkAccelerationStructureBuildGeometryInfoKHR* accelerationStructureBuildGeometryInfo,
+                                                         const uint32_t* maxPrimitiveCounts,
+                                                         VkAccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const
+  {
+    m_vkGetAccelerationStructureBuildSizesKHR(
+      m_device,
+      VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+      accelerationStructureBuildGeometryInfo,
+      maxPrimitiveCounts,
+      accelerationStructureBuildSizesInfo
+    );
+  }
+
+  void LogicalDevice::buildAccelerationStructures(const VkCommandBuffer commandBuffer,
+                                                  const uint32_t infoCount,
+                                                  const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+                                                  const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const
+  {
+    m_vkCmdBuildAccelerationStructuresKHR(commandBuffer, infoCount, pInfos, ppBuildRangeInfos);
+  }
+
+  VkDeviceAddress LogicalDevice::getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const
+  {
+    return m_vkGetAccelerationStructureDeviceAddressKHR(m_device, accelerationStructureDeviceAddressInfo);
+  }
+
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              VkCommandBuffer* commandBuffers) const
   {
@@ -661,17 +715,24 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceVulkan13Features vulkan13Features{
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+      .accelerationStructure = VK_TRUE
+    };
+
+    VkPhysicalDeviceVulkan13Features vulkan13Features {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+      .pNext = getPhysicalDevice()->supportsRayTracing() ? &accelerationStructureFeatures : nullptr,
       .dynamicRendering = VK_TRUE
     };
 
-    VkPhysicalDeviceVulkan12Features vulkan12Features{
+    VkPhysicalDeviceVulkan12Features vulkan12Features {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
       .pNext = &vulkan13Features,
       .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
       .descriptorBindingPartiallyBound = VK_TRUE,
-      .runtimeDescriptorArray = VK_TRUE
+      .runtimeDescriptorArray = VK_TRUE,
+      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE
     };
 
     VkPhysicalDeviceVulkan11Features vulkan11Features {
@@ -690,6 +751,13 @@ namespace vke {
       }
     };
 
+    auto extensions = std::vector<const char*>(deviceExtensions.begin(), deviceExtensions.end());
+
+    if (m_physicalDevice->supportsRayTracing())
+    {
+      extensions.insert(extensions.end(), rayTracingDeviceExtensions.begin(), rayTracingDeviceExtensions.end());
+    }
+
     const VkDeviceCreateInfo createInfo {
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pNext = &deviceFeatures2,
@@ -697,8 +765,8 @@ namespace vke {
       .pQueueCreateInfos = queueCreateInfos.data(),
       .enabledLayerCount = Instance::validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
       .ppEnabledLayerNames = Instance::validationLayersEnabled() ? validationLayers.data() : nullptr,
-      .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
-      .ppEnabledExtensionNames = deviceExtensions.data()
+      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+      .ppEnabledExtensionNames = extensions.data()
     };
 
     m_device = m_physicalDevice->createLogicalDevice(createInfo);
@@ -706,6 +774,8 @@ namespace vke {
     vkGetDeviceQueue(m_device, queueFamilyIndices.computeFamily.value(), 0, &m_computeQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
+
+    loadRayTracingFunctions();
   }
 
   void LogicalDevice::createSyncObjects()
@@ -751,4 +821,35 @@ namespace vke {
     }
   }
 
+  void LogicalDevice::loadRayTracingFunctions()
+  {
+    if (!getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
+    m_vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(
+      vkGetDeviceProcAddr(m_device, "vkCreateAccelerationStructureKHR"));
+
+    m_vkDestroyAccelerationStructureKHR = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(
+      vkGetDeviceProcAddr(m_device, "vkDestroyAccelerationStructureKHR"));
+
+    m_vkGetAccelerationStructureBuildSizesKHR = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(
+      vkGetDeviceProcAddr(m_device, "vkGetAccelerationStructureBuildSizesKHR"));
+
+    m_vkCmdBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(
+      vkGetDeviceProcAddr(m_device, "vkCmdBuildAccelerationStructuresKHR"));
+
+    m_vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(
+      vkGetDeviceProcAddr(m_device, "vkGetAccelerationStructureDeviceAddressKHR"));
+
+    if (!m_vkCreateAccelerationStructureKHR ||
+        !m_vkDestroyAccelerationStructureKHR ||
+        !m_vkGetAccelerationStructureBuildSizesKHR ||
+        !m_vkCmdBuildAccelerationStructuresKHR ||
+        !m_vkGetAccelerationStructureDeviceAddressKHR)
+    {
+      throw std::runtime_error("Failed to load acceleration structure functions");
+    }
+  }
 } // namespace vke

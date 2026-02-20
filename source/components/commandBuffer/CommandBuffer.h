@@ -109,6 +109,9 @@ namespace vke {
                     VkBuffer dstBuffer,
                     const std::vector<VkBufferCopy>& regions) const;
 
+    void buildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                                    const VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const;
+
     friend class ImGuiInstance;
 
   protected:

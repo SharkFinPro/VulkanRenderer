@@ -1,15 +1,18 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
+#include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../assets/textures/Texture3D.h"
 #include "../../assets/textures/TextureCubemap.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../../utilities/Buffers.h"
 
 namespace vke {
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -27,6 +30,8 @@ namespace vke {
 
   Renderer3D::~Renderer3D()
   {
+    destroyTLAS();
+
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
@@ -66,6 +71,8 @@ namespace vke {
                           const std::shared_ptr<LightingManager>& lightingManager)
   {
     displayGui();
+
+    createTLAS();
 
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
@@ -639,6 +646,180 @@ namespace vke {
       ImGui::SliderFloat("Noise Frequency", &m_cubeMapPC.noiseFrequency, 0.0f, 0.5f);
 
       ImGui::End();
+    }
+  }
+
+  void Renderer3D::createTLAS()
+  {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
+    destroyTLAS();
+
+    std::vector<VkAccelerationStructureInstanceKHR> instances;
+    instances.reserve(m_renderObjectsToRenderFlattened.size());
+
+    for (const auto& renderObject : m_renderObjectsToRenderFlattened)
+    {
+      const glm::mat4 modelMatrix = glm::transpose(renderObject->getModelMatrix());
+
+      VkTransformMatrixKHR transformMatrix;
+      memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
+
+      const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+        .accelerationStructure = renderObject->getModel()->getBLAS()
+      };
+
+      const VkAccelerationStructureInstanceKHR instance {
+        .transform = transformMatrix,
+        .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
+        .mask = 0xFF,
+        .instanceShaderBindingTableRecordOffset = 0,
+        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
+        .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
+      };
+
+      instances.push_back(instance);
+    }
+
+    const VkDeviceSize instancesBufferSize = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      instancesBufferSize,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
+
+    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [instances, instancesBufferSize](void* data) {
+      memcpy(data, instances.data(), instancesBufferSize);
+    });
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      instancesBufferSize,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_tlasInstanceBuffer,
+      m_tlasInstanceBufferMemory
+    );
+
+    Buffers::copyBuffer(
+      m_logicalDevice,
+      m_commandPool,
+      m_logicalDevice->getGraphicsQueue(),
+      stagingBuffer,
+      m_tlasInstanceBuffer,
+      instancesBufferSize
+    );
+
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+
+    VkAccelerationStructureGeometryInstancesDataKHR instancesData {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
+      .arrayOfPointers = VK_FALSE,
+      .data = {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
+      }
+    };
+
+    VkAccelerationStructureGeometryKHR geometry {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+      .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
+      .geometry = {
+        .instances = instancesData
+      }
+    };
+
+    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
+      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+      .geometryCount = 1,
+      .pGeometries = &geometry
+    };
+
+    const auto primitiveCount = static_cast<uint32_t>(instances.size());
+
+    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
+    };
+
+    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.accelerationStructureSize,
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_tlasBuffer,
+      m_tlasBufferMemory
+    );
+
+    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+      .buffer = m_tlasBuffer,
+      .size = buildSizesInfo.accelerationStructureSize,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
+    };
+
+    m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_tlas);
+
+    VkBuffer scratchBuffer;
+    VkDeviceMemory scratchBufferMemory;
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.buildScratchSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      scratchBuffer,
+      scratchBufferMemory
+    );
+
+    buildGeometryInfo.dstAccelerationStructure = m_tlas;
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
+
+    const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+      .primitiveCount = primitiveCount,
+      .primitiveOffset = 0,
+      .firstVertex = 0,
+      .transformOffset = 0
+    };
+
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+      commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
+    });
+
+    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
+  }
+
+  void Renderer3D::destroyTLAS()
+  {
+    if (m_tlas != VK_NULL_HANDLE)
+    {
+      m_logicalDevice->destroyAccelerationStructureKHR(m_tlas);
+    }
+
+    if (m_tlasBuffer != VK_NULL_HANDLE)
+    {
+      Buffers::destroyBuffer(m_logicalDevice, m_tlasBuffer, m_tlasBufferMemory);
+    }
+
+    if (m_tlasInstanceBuffer != VK_NULL_HANDLE)
+    {
+      Buffers::destroyBuffer(m_logicalDevice, m_tlasInstanceBuffer, m_tlasInstanceBufferMemory);
     }
   }
 } // vke
