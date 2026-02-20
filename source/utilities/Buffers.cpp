@@ -25,7 +25,7 @@ namespace vke::Buffers {
 
       const VkMemoryAllocateFlagsInfo allocateFlagsInfo {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
-        .flags = usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT ? VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT : static_cast<VkMemoryAllocateFlags>(0)
+        .flags = (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) ? VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT : static_cast<VkMemoryAllocateFlags>(0)
       };
 
       const VkMemoryAllocateInfo allocateInfo {
