@@ -197,36 +197,11 @@ namespace vke {
       return;
     }
 
-    const VkAccelerationStructureGeometryTrianglesDataKHR trianglesData {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
-      .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
-      .vertexData {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_vertexBuffer)
-      },
-      .vertexStride = sizeof(Vertex),
-      .maxVertex = static_cast<uint32_t>(m_vertices.size() - 1),
-      .indexType = VK_INDEX_TYPE_UINT32,
-      .indexData {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_indexBuffer)
-      }
-    };
+    VkAccelerationStructureGeometryTrianglesDataKHR trianglesData{};
+    VkAccelerationStructureGeometryKHR geometry{};
+    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo{};
 
-    VkAccelerationStructureGeometryKHR geometry {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
-      .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
-      .geometry = {
-        .triangles = trianglesData
-      },
-      .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
-    };
-
-    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
-      .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
-      .geometryCount = 1,
-      .pGeometries = &geometry
-    };
+    createCoreBLASData(trianglesData, geometry, buildGeometryInfo);
 
     const auto primitiveCount = static_cast<uint32_t>(m_indices.size() / 3);
 
@@ -255,6 +230,42 @@ namespace vke {
     m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_blas);
 
     populateBLAS(commandPool, buildGeometryInfo, buildSizesInfo, primitiveCount);
+  }
+
+  void Model::createCoreBLASData(VkAccelerationStructureGeometryTrianglesDataKHR& trianglesData,
+                                 VkAccelerationStructureGeometryKHR& geometry,
+                                 VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const
+  {
+    trianglesData = {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
+      .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
+      .vertexData {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_vertexBuffer)
+      },
+      .vertexStride = sizeof(Vertex),
+      .maxVertex = static_cast<uint32_t>(m_vertices.size() - 1),
+      .indexType = VK_INDEX_TYPE_UINT32,
+      .indexData {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_indexBuffer)
+      }
+    };
+
+    geometry = {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+      .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
+      .geometry = {
+        .triangles = trianglesData
+      },
+      .flags = VK_GEOMETRY_OPAQUE_BIT_KHR
+    };
+
+    buildGeometryInfo = {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+      .geometryCount = 1,
+      .pGeometries = &geometry
+    };
   }
 
   void Model::populateBLAS(const VkCommandPool& commandPool,

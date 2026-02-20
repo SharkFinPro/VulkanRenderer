@@ -64,6 +64,10 @@ namespace vke {
 
     void createBLAS(const VkCommandPool& commandPool);
 
+    void createCoreBLASData(VkAccelerationStructureGeometryTrianglesDataKHR& trianglesData,
+                            VkAccelerationStructureGeometryKHR& geometry,
+                            VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const;
+
     void populateBLAS(const VkCommandPool& commandPool,
                       VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                       const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
