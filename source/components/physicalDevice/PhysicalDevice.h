@@ -81,6 +81,8 @@ namespace vke {
 
     [[nodiscard]] bool supportsRayTracing() const;
 
+    [[nodiscard]] VkPhysicalDeviceRayTracingPipelinePropertiesKHR getRayTracingPipelineProperties() const;
+
     friend class ImGuiInstance;
 
   private:

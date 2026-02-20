@@ -114,6 +114,22 @@ namespace vke {
     return m_supportsRayTracing;
   }
 
+  VkPhysicalDeviceRayTracingPipelinePropertiesKHR PhysicalDevice::getRayTracingPipelineProperties() const
+  {
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingPipelineProperties {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR
+    };
+
+    VkPhysicalDeviceProperties2 physicalDeviceProperties {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+      .pNext = &rayTracingPipelineProperties
+    };
+
+    vkGetPhysicalDeviceProperties2(m_physicalDevice, &physicalDeviceProperties);
+
+    return rayTracingPipelineProperties;
+  }
+
   void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
   {
     for (const auto& device : instance->getPhysicalDevices())
