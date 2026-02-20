@@ -1,0 +1,9 @@
+#ifndef VULKANPROJECT_RAYTRACINGPIPELINE_H
+#define VULKANPROJECT_RAYTRACINGPIPELINE_H
+
+namespace vke {
+  class RayTracingPipeline {
+  };
+} // vke
+
+#endif //VULKANPROJECT_RAYTRACINGPIPELINE_H
