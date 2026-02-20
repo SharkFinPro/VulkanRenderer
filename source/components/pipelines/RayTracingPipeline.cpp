@@ -2,6 +2,7 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../../utilities/Buffers.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include <cstring>
 
 namespace vke {
   RayTracingPipeline::RayTracingPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
