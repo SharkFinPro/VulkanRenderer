@@ -59,10 +59,27 @@ namespace vke {
     RayTracingPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                        const RayTracingPipelineConfig& config);
 
+    ~RayTracingPipeline() override;
+
+    [[nodiscard]] VkStridedDeviceAddressRegionKHR getRayGenerationRegion() const { return m_rayGenerationRegion; }
+    [[nodiscard]] VkStridedDeviceAddressRegionKHR getMissRegion() const { return m_missRegion; }
+    [[nodiscard]] VkStridedDeviceAddressRegionKHR getHitRegion() const { return m_hitRegion; }
+    [[nodiscard]] VkStridedDeviceAddressRegionKHR getCallableRegion() const { return m_callableRegion; }
+
   protected:
+    VkBuffer m_shaderBindingTableBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_shaderBindingTableMemory = VK_NULL_HANDLE;
+
+    VkStridedDeviceAddressRegionKHR m_rayGenerationRegion{};
+    VkStridedDeviceAddressRegionKHR m_missRegion{};
+    VkStridedDeviceAddressRegionKHR m_hitRegion{};
+    VkStridedDeviceAddressRegionKHR m_callableRegion{};
+
     void createPipelineLayout(const RayTracingPipelineConfig& config);
 
     void createPipeline(const RayTracingPipelineConfig& config);
+
+    void createShaderBindingTable();
   };
 } // vke
 

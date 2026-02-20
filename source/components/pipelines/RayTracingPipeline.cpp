@@ -1,5 +1,7 @@
 #include "RayTracingPipeline.h"
 #include "../logicalDevice/LogicalDevice.h"
+#include "../../utilities/Buffers.h"
+#include "../physicalDevice/PhysicalDevice.h"
 
 namespace vke {
   RayTracingPipeline::RayTracingPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -7,6 +9,13 @@ namespace vke {
     : Pipeline(std::move(logicalDevice))
   {
     createPipeline(config);
+
+    createShaderBindingTable();
+  }
+
+  RayTracingPipeline::~RayTracingPipeline()
+  {
+    Buffers::destroyBuffer(m_logicalDevice, m_shaderBindingTableBuffer, m_shaderBindingTableMemory);
   }
 
   void RayTracingPipeline::createPipelineLayout(const RayTracingPipelineConfig& config)
@@ -69,5 +78,63 @@ namespace vke {
     };
 
     m_pipeline = m_logicalDevice->createPipeline(rayTracingPipelineCreateInfo);
+  }
+
+  void RayTracingPipeline::createShaderBindingTable()
+  {
+    const auto rayTracingPipelineProperties = m_logicalDevice->getPhysicalDevice()->getRayTracingPipelineProperties();
+
+    const uint32_t shaderGroupHandleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
+    const uint32_t shaderGroupHandleAlignment = rayTracingPipelineProperties.shaderGroupHandleAlignment;
+    const uint32_t shaderGroupBaseAlignment = rayTracingPipelineProperties.shaderGroupBaseAlignment;
+
+    const uint32_t alignedHandleSize = (shaderGroupHandleSize + shaderGroupHandleAlignment - 1) & ~(shaderGroupHandleAlignment - 1);
+
+    constexpr uint32_t groupCount = 3;
+
+    const uint32_t shaderBindingTableSize = groupCount * shaderGroupBaseAlignment;
+
+    std::vector<uint8_t> handles(groupCount * shaderGroupHandleSize);
+
+    m_logicalDevice->getRayTracingShaderGroupHandles(m_pipeline, groupCount, handles);
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      shaderBindingTableSize,
+      VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      m_shaderBindingTableBuffer,
+      m_shaderBindingTableMemory
+    );
+
+    m_logicalDevice->doMappedMemoryOperation(m_shaderBindingTableMemory, [handles, shaderGroupBaseAlignment, shaderGroupHandleSize](void* data) {
+      auto* dst = static_cast<uint8_t*>(data);
+      for (uint32_t i = 0; i < groupCount; ++i)
+      {
+        memcpy(dst + i * shaderGroupBaseAlignment, handles.data() + i * shaderGroupHandleSize, shaderGroupHandleSize);
+      }
+    });
+
+    const auto shaderBindingTableAddress = m_logicalDevice->getBufferDeviceAddress(m_shaderBindingTableBuffer);
+
+    m_rayGenerationRegion = {
+      .deviceAddress = shaderBindingTableAddress,
+      .stride = shaderGroupBaseAlignment,
+      .size = shaderGroupBaseAlignment
+    };
+
+    m_missRegion = {
+      .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment,
+      .stride = alignedHandleSize,
+      .size = alignedHandleSize
+    };
+
+    m_hitRegion = {
+      .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment * 2,
+      .stride = alignedHandleSize,
+      .size = alignedHandleSize
+    };
+
+    m_callableRegion = {};
   }
 } // vke
