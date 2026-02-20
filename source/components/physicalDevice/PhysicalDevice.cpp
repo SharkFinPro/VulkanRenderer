@@ -109,6 +109,11 @@ namespace vke {
     throw std::runtime_error("failed to find supported format!");
   }
 
+  bool PhysicalDevice::supportsRayTracing() const
+  {
+    return m_supportsRayTracing;
+  }
+
   void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
   {
     for (const auto& device : instance->getPhysicalDevices())
@@ -125,6 +130,8 @@ namespace vke {
     {
       throw std::runtime_error("failed to find a suitable GPU!");
     }
+
+    m_supportsRayTracing = checkDeviceRayTracingExtensionSupport(m_physicalDevice);
   }
 
   bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device) const
@@ -197,6 +204,24 @@ namespace vke {
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
     std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+    for (const auto& extension : availableExtensions)
+    {
+      requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
+  }
+
+  bool PhysicalDevice::checkDeviceRayTracingExtensionSupport(VkPhysicalDevice device)
+  {
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    std::set<std::string> requiredExtensions(rayTracingDeviceExtensions.begin(), rayTracingDeviceExtensions.end());
 
     for (const auto& extension : availableExtensions)
     {

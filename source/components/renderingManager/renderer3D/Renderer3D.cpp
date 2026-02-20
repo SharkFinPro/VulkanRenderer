@@ -651,6 +651,11 @@ namespace vke {
 
   void Renderer3D::createTLAS()
   {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
     destroyTLAS();
 
     std::vector<VkAccelerationStructureInstanceKHR> instances;

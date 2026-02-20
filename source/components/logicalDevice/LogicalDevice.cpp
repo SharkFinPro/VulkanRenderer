@@ -722,7 +722,7 @@ namespace vke {
 
     VkPhysicalDeviceVulkan13Features vulkan13Features {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-      .pNext = &accelerationStructureFeatures,
+      .pNext = getPhysicalDevice()->supportsRayTracing() ? &accelerationStructureFeatures : nullptr,
       .dynamicRendering = VK_TRUE
     };
 
@@ -732,7 +732,7 @@ namespace vke {
       .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
       .descriptorBindingPartiallyBound = VK_TRUE,
       .runtimeDescriptorArray = VK_TRUE,
-      .bufferDeviceAddress = VK_TRUE
+      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE
     };
 
     VkPhysicalDeviceVulkan11Features vulkan11Features {
@@ -751,6 +751,13 @@ namespace vke {
       }
     };
 
+    auto extensions = std::vector<const char*>(deviceExtensions.begin(), deviceExtensions.end());
+
+    if (m_physicalDevice->supportsRayTracing())
+    {
+      extensions.insert(extensions.end(), rayTracingDeviceExtensions.begin(), rayTracingDeviceExtensions.end());
+    }
+
     const VkDeviceCreateInfo createInfo {
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pNext = &deviceFeatures2,
@@ -758,8 +765,8 @@ namespace vke {
       .pQueueCreateInfos = queueCreateInfos.data(),
       .enabledLayerCount = Instance::validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
       .ppEnabledLayerNames = Instance::validationLayersEnabled() ? validationLayers.data() : nullptr,
-      .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
-      .ppEnabledExtensionNames = deviceExtensions.data()
+      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+      .ppEnabledExtensionNames = extensions.data()
     };
 
     m_device = m_physicalDevice->createLogicalDevice(createInfo);
@@ -816,6 +823,11 @@ namespace vke {
 
   void LogicalDevice::loadRayTracingFunctions()
   {
+    if (!getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
     m_vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(
       vkGetDeviceProcAddr(m_device, "vkCreateAccelerationStructureKHR"));
 

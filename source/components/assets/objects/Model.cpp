@@ -2,6 +2,7 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include "../../../utilities/Buffers.h"
 #include <assimp/Importer.hpp>
@@ -133,7 +134,7 @@ namespace vke {
       m_logicalDevice,
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       m_vertexBuffer,
       m_vertexBufferMemory
@@ -169,7 +170,7 @@ namespace vke {
       m_logicalDevice,
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       m_indexBuffer,
       m_indexBufferMemory
@@ -191,6 +192,11 @@ namespace vke {
 
   void Model::createBLAS(const VkCommandPool& commandPool)
   {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
     const VkAccelerationStructureGeometryTrianglesDataKHR trianglesData {
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
       .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
