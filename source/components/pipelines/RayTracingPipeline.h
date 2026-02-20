@@ -33,7 +33,7 @@ namespace vke {
 
         shaderModules.emplace_back(logicalDevice, closestHitShader.c_str(), VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
 
-        return std::move(shaderModules);
+        return shaderModules;
       }
 
       static std::vector<VkPipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
@@ -45,7 +45,7 @@ namespace vke {
           pipelineShaderStageCreateInfos.push_back(shaderModule.getShaderStageCreateInfo());
         }
 
-        return std::move(pipelineShaderStageCreateInfos);
+        return pipelineShaderStageCreateInfos;
       }
     } shaders;
 
