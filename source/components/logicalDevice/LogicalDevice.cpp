@@ -586,6 +586,18 @@ namespace vke {
     return pipeline;
   }
 
+  VkPipeline LogicalDevice::createPipeline(const VkRayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const
+  {
+    VkPipeline pipeline = VK_NULL_HANDLE;
+
+    if (m_vkCreateRayTracingPipelinesKHR(m_device, VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &rayTracingPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create ray tracing pipeline!");
+    }
+
+    return pipeline;
+  }
+
   void LogicalDevice::destroyPipeline(VkPipeline&pipeline) const
   {
     if (pipeline == VK_NULL_HANDLE)
@@ -652,6 +664,20 @@ namespace vke {
     return m_vkGetAccelerationStructureDeviceAddressKHR(m_device, accelerationStructureDeviceAddressInfo);
   }
 
+  void LogicalDevice::getRayTracingShaderGroupHandles(VkPipeline pipeline,
+                                                      const uint32_t groupCount,
+                                                      std::vector<uint8_t>& handles) const
+  {
+    m_vkGetRayTracingShaderGroupHandlesKHR(
+      m_device,
+      pipeline,
+      0,
+      groupCount,
+      handles.size(),
+      handles.data()
+    );
+  }
+
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              VkCommandBuffer* commandBuffers) const
   {
@@ -715,8 +741,14 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
+      .rayTracingPipeline = VK_TRUE
+    };
+
     VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+      .pNext = &rayTracingPipelineFeatures,
       .accelerationStructure = VK_TRUE
     };
 
@@ -843,11 +875,19 @@ namespace vke {
     m_vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(
       vkGetDeviceProcAddr(m_device, "vkGetAccelerationStructureDeviceAddressKHR"));
 
+    m_vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(
+      vkGetDeviceProcAddr(m_device, "vkCreateRayTracingPipelinesKHR"));
+
+    m_vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(
+      vkGetDeviceProcAddr(m_device, "vkGetRayTracingShaderGroupHandlesKHR"));
+
     if (!m_vkCreateAccelerationStructureKHR ||
         !m_vkDestroyAccelerationStructureKHR ||
         !m_vkGetAccelerationStructureBuildSizesKHR ||
         !m_vkCmdBuildAccelerationStructuresKHR ||
-        !m_vkGetAccelerationStructureDeviceAddressKHR)
+        !m_vkGetAccelerationStructureDeviceAddressKHR ||
+        !m_vkCreateRayTracingPipelinesKHR ||
+        !m_vkGetRayTracingShaderGroupHandlesKHR)
     {
       throw std::runtime_error("Failed to load acceleration structure functions");
     }

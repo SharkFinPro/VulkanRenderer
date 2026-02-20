@@ -150,6 +150,8 @@ namespace vke {
 
     [[nodiscard]] VkPipeline createPipeline(const VkComputePipelineCreateInfo& computePipelineCreateInfo) const;
 
+    [[nodiscard]] VkPipeline createPipeline(const VkRayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const;
+
     void destroyPipeline(VkPipeline& pipeline) const;
 
     [[nodiscard]] VkDeviceAddress getBufferDeviceAddress(const VkBuffer& buffer) const;
@@ -169,6 +171,10 @@ namespace vke {
                                      const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const;
 
     [[nodiscard]] VkDeviceAddress getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
+
+    void getRayTracingShaderGroupHandles(VkPipeline pipeline,
+                                         uint32_t groupCount,
+                                         std::vector<uint8_t>& handles) const;
 
     friend class ImGuiInstance;
 
@@ -200,6 +206,8 @@ namespace vke {
     PFN_vkGetAccelerationStructureBuildSizesKHR m_vkGetAccelerationStructureBuildSizesKHR = nullptr;
     PFN_vkCmdBuildAccelerationStructuresKHR m_vkCmdBuildAccelerationStructuresKHR = nullptr;
     PFN_vkGetAccelerationStructureDeviceAddressKHR m_vkGetAccelerationStructureDeviceAddressKHR = nullptr;
+    PFN_vkCreateRayTracingPipelinesKHR m_vkCreateRayTracingPipelinesKHR = nullptr;
+    PFN_vkGetRayTracingShaderGroupHandlesKHR m_vkGetRayTracingShaderGroupHandlesKHR = nullptr;
 
     void createDevice();
 
