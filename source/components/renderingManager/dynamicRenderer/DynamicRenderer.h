@@ -55,6 +55,15 @@ namespace vke {
 
     static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    VkImage image);
+
+    void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                          uint32_t imageIndex) const;
+
+    void transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           uint32_t imageIndex) const;
+
+    void copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             uint32_t imageIndex) const;
   };
 
 } // namespace vke
