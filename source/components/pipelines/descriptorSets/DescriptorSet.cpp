@@ -6,20 +6,22 @@ namespace vke {
 
   DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
                                VkDescriptorPool descriptorPool,
-                               const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
+                               const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings,
+                               void* allocationPNext)
     : m_logicalDevice(std::move(logicalDevice))
   {
     createDescriptorSetLayout(layoutBindings);
 
-    allocateDescriptorSets(descriptorPool);
+    allocateDescriptorSets(descriptorPool, allocationPNext);
   }
 
   DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
                                VkDescriptorPool descriptorPool,
-                               VkDescriptorSetLayout descriptorSetLayout)
+                               VkDescriptorSetLayout descriptorSetLayout,
+                               void* allocationPNext)
     : m_logicalDevice(std::move(logicalDevice)), m_descriptorSetLayout(descriptorSetLayout)
   {
-    allocateDescriptorSets(descriptorPool);
+    allocateDescriptorSets(descriptorPool, allocationPNext);
   }
 
   DescriptorSet::~DescriptorSet()
@@ -63,11 +65,13 @@ namespace vke {
     m_ownsLayout = true;
   }
 
-  void DescriptorSet::allocateDescriptorSets(VkDescriptorPool descriptorPool)
+  void DescriptorSet::allocateDescriptorSets(VkDescriptorPool descriptorPool,
+                                             void* allocationPNext)
   {
     const std::vector<VkDescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
     const VkDescriptorSetAllocateInfo allocateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+      .pNext = allocationPNext,
       .descriptorPool = descriptorPool,
       .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
       .pSetLayouts = layouts.data()
