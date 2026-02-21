@@ -44,6 +44,8 @@ namespace vke {
     m_swapchainRenderTarget.reset();
 
     createSwapchainRenderTarget(swapChain);
+
+    resetRayTracingImageResources(swapChain->getExtent());
   }
 
   void Renderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
@@ -121,6 +123,8 @@ namespace vke {
     };
 
     m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+
+    createRayTracingImageResource(swapChain->getExtent());
   }
 
   void Renderer::createOffscreenRenderTarget(const VkExtent2D extent)
