@@ -6,6 +6,7 @@
 #include <source/components/lighting/lights/Light.h>
 #include <source/components/lighting/lights/SpotLight.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
+#include <source/components/renderingManager/Renderer.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -172,17 +173,20 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
     }
   }
 
-  bool rayTracingEnabled = renderingManager->isRayTracingEnabled();
-
-  if (ImGui::Checkbox("Do Ray Tracing", &rayTracingEnabled))
+  if (renderingManager->getRenderer()->supportsRayTracing())
   {
-    if (rayTracingEnabled)
+    bool rayTracingEnabled = renderingManager->isRayTracingEnabled();
+
+    if (ImGui::Checkbox("Do Ray Tracing", &rayTracingEnabled))
     {
-      renderingManager->enableRayTracing();
-    }
-    else
-    {
-      renderingManager->disableRayTracing();
+      if (rayTracingEnabled)
+      {
+        renderingManager->enableRayTracing();
+      }
+      else
+      {
+        renderingManager->disableRayTracing();
+      }
     }
   }
 
