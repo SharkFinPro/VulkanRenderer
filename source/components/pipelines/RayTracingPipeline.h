@@ -10,6 +10,9 @@
 
 namespace vke {
 
+  class DescriptorSet;
+  struct RenderInfo;
+
   struct RayTracingPipelineConfig {
     struct {
       std::string rayGenerationShader;
@@ -65,6 +68,9 @@ namespace vke {
     [[nodiscard]] VkStridedDeviceAddressRegionKHR getMissRegion() const { return m_missRegion; }
     [[nodiscard]] VkStridedDeviceAddressRegionKHR getHitRegion() const { return m_hitRegion; }
     [[nodiscard]] VkStridedDeviceAddressRegionKHR getCallableRegion() const { return m_callableRegion; }
+
+    void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                      VkExtent2D extent) const;
 
   protected:
     VkBuffer m_shaderBindingTableBuffer = VK_NULL_HANDLE;

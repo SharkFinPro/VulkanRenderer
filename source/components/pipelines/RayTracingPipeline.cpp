@@ -1,7 +1,8 @@
 #include "RayTracingPipeline.h"
+#include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
-#include "../../utilities/Buffers.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include "../../utilities/Buffers.h"
 #include <cstring>
 
 namespace vke {
@@ -17,6 +18,22 @@ namespace vke {
   RayTracingPipeline::~RayTracingPipeline()
   {
     Buffers::destroyBuffer(m_logicalDevice, m_shaderBindingTableBuffer, m_shaderBindingTableMemory);
+  }
+
+  void RayTracingPipeline::doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                        const VkExtent2D extent) const
+  {
+    commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_pipeline);
+
+    // commandBuffer->traceRays(
+    //   &m_rayGenerationRegion,
+    //   &m_missRegion,
+    //   &m_hitRegion,
+    //   &m_callableRegion,
+    //   extent.width,
+    //   extent.height,
+    //   1
+    // );
   }
 
   void RayTracingPipeline::createPipelineLayout(const RayTracingPipelineConfig& config)
