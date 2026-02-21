@@ -112,6 +112,14 @@ namespace vke {
     void buildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                                     const VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const;
 
+    void traceRays(const VkStridedDeviceAddressRegionKHR* raygenShaderBindingTable,
+                   const VkStridedDeviceAddressRegionKHR* missShaderBindingTable,
+                   const VkStridedDeviceAddressRegionKHR* hitShaderBindingTable,
+                   const VkStridedDeviceAddressRegionKHR* callableShaderBindingTable,
+                   uint32_t width,
+                   uint32_t height,
+                   uint32_t depth) const;
+
     friend class ImGuiInstance;
 
   protected:

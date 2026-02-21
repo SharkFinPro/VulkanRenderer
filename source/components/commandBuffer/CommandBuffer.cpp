@@ -248,6 +248,26 @@ namespace vke {
     );
   }
 
+  void CommandBuffer::traceRays(const VkStridedDeviceAddressRegionKHR* raygenShaderBindingTable,
+                                const VkStridedDeviceAddressRegionKHR* missShaderBindingTable,
+                                const VkStridedDeviceAddressRegionKHR* hitShaderBindingTable,
+                                const VkStridedDeviceAddressRegionKHR* callableShaderBindingTable,
+                                const uint32_t width,
+                                const uint32_t height,
+                                const uint32_t depth) const
+  {
+    m_logicalDevice->traceRays(
+      m_commandBuffers[m_currentFrame],
+      raygenShaderBindingTable,
+      missShaderBindingTable,
+      hitShaderBindingTable,
+      callableShaderBindingTable,
+      width,
+      height,
+      depth
+    );
+  }
+
   void CommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)
   {
     m_commandBuffers.resize(m_logicalDevice->getMaxFramesInFlight());

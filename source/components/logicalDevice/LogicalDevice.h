@@ -176,6 +176,15 @@ namespace vke {
                                          uint32_t groupCount,
                                          std::vector<uint8_t>& handles) const;
 
+    void traceRays(VkCommandBuffer commandBuffer,
+                   const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+                   const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+                   const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+                   const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+                   uint32_t width,
+                   uint32_t height,
+                   uint32_t depth) const;
+
     friend class ImGuiInstance;
 
   private:
@@ -199,7 +208,8 @@ namespace vke {
     std::vector<VkSemaphore> m_computeFinishedSemaphores;
     std::vector<VkFence> m_computeInFlightFences;
 
-    uint8_t m_maxFramesInFlight = 2;
+    // uint8_t m_maxFramesInFlight = 2;
+    uint8_t m_maxFramesInFlight = 1; // TODO: revert
 
     PFN_vkCreateAccelerationStructureKHR m_vkCreateAccelerationStructureKHR = nullptr;
     PFN_vkDestroyAccelerationStructureKHR m_vkDestroyAccelerationStructureKHR = nullptr;
@@ -208,6 +218,7 @@ namespace vke {
     PFN_vkGetAccelerationStructureDeviceAddressKHR m_vkGetAccelerationStructureDeviceAddressKHR = nullptr;
     PFN_vkCreateRayTracingPipelinesKHR m_vkCreateRayTracingPipelinesKHR = nullptr;
     PFN_vkGetRayTracingShaderGroupHandlesKHR m_vkGetRayTracingShaderGroupHandlesKHR = nullptr;
+    PFN_vkCmdTraceRaysKHR m_vkCmdTraceRaysKHR = nullptr;
 
     void createDevice();
 
