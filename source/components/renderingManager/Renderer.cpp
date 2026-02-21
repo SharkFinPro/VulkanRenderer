@@ -44,8 +44,6 @@ namespace vke {
     m_swapchainRenderTarget.reset();
 
     createSwapchainRenderTarget(swapChain);
-
-    resetRayTracingImageResources(swapChain->getExtent());
   }
 
   void Renderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
@@ -53,6 +51,8 @@ namespace vke {
     m_offscreenRenderTarget.reset();
 
     createOffscreenRenderTarget(offscreenViewportExtent);
+
+    resetRayTracingImageResources(offscreenViewportExtent);
   }
 
   void Renderer::resetMousePickingImageResources(const VkExtent2D mousePickingExtent)
@@ -123,8 +123,6 @@ namespace vke {
     };
 
     m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
-
-    createRayTracingImageResource(swapChain->getExtent());
   }
 
   void Renderer::createOffscreenRenderTarget(const VkExtent2D extent)
@@ -141,6 +139,8 @@ namespace vke {
     };
 
     m_offscreenRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+
+    createRayTracingImageResource(extent);
   }
 
   void Renderer::createMousePickingRenderTarget(const VkExtent2D extent)
