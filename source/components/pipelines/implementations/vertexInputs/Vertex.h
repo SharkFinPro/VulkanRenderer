@@ -10,8 +10,11 @@ namespace vke {
 
   struct Vertex {
     glm::vec3 pos;
+    float padding1;
     glm::vec3 normal;
+    float padding2;
     glm::vec2 texCoord;
+    glm::vec2 padding3;
 
     static constexpr VkVertexInputBindingDescription getBindingDescription()
     {

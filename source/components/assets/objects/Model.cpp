@@ -134,7 +134,7 @@ namespace vke {
       m_logicalDevice,
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
+      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       m_vertexBuffer,
       m_vertexBufferMemory
@@ -170,7 +170,7 @@ namespace vke {
       m_logicalDevice,
       bufferSize,
       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
+      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR : 0),
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
       m_indexBuffer,
       m_indexBufferMemory
@@ -314,5 +314,15 @@ namespace vke {
   VkAccelerationStructureKHR Model::getBLAS() const
   {
     return m_blas;
+  }
+
+  const std::vector<Vertex>& Model::getVertices() const
+  {
+    return m_vertices;
+  }
+
+  const std::vector<uint32_t>& Model::getIndices() const
+  {
+    return m_indices;
   }
 } // namespace vke

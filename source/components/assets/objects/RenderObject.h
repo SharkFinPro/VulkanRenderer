@@ -50,6 +50,8 @@ namespace vke {
 
     [[nodiscard]] glm::mat4 getModelMatrix() const;
 
+    [[nodiscard]] std::shared_ptr<Texture> getTexture() const;
+
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 

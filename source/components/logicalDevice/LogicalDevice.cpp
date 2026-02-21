@@ -784,6 +784,7 @@ namespace vke {
       .pNext = &vulkan13Features,
       .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
       .descriptorBindingPartiallyBound = VK_TRUE,
+      .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE,
       .runtimeDescriptorArray = VK_TRUE,
       .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE
     };
