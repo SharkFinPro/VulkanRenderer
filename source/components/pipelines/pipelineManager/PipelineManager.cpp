@@ -31,6 +31,9 @@ namespace vke {
         .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
         .missShader = "assets/shaders/rayTracing/object.rmiss.spv",
         .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
+      },
+      .descriptorSetLayouts {
+        assetManager->getRayTracingDescriptorSetLayout()
       }
     };
     m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
