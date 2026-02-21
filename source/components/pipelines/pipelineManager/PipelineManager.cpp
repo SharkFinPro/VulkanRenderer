@@ -118,6 +118,13 @@ namespace vke {
     m_rayTracingPipeline->doRayTracing(commandBuffer, extent);
   }
 
+  void PipelineManager::bindRayTracingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                            VkDescriptorSet descriptorSet,
+                                                            const uint32_t location) const
+  {
+    m_rayTracingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
+  }
+
   void PipelineManager::createGraphicsPipeline(const PipelineType pipelineType,
                                                const GraphicsPipelineOptions& graphicsPipelineOptions)
   {

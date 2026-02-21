@@ -67,6 +67,10 @@ namespace vke {
     void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
                       VkExtent2D extent) const;
 
+    void bindRayTracingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             VkDescriptorSet descriptorSet,
+                                             uint32_t location) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
