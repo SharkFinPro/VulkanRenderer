@@ -172,6 +172,20 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
     }
   }
 
+  bool rayTracingEnabled = renderingManager->isRayTracingEnabled();
+
+  if (ImGui::Checkbox("Do Ray Tracing", &rayTracingEnabled))
+  {
+    if (rayTracingEnabled)
+    {
+      renderingManager->enableRayTracing();
+    }
+    else
+    {
+      renderingManager->disableRayTracing();
+    }
+  }
+
   ImGui::End();
 }
 
