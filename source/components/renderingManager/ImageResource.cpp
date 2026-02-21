@@ -94,6 +94,8 @@ namespace vke {
       {
         imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
+        imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT; // TODO: Don't apply this to everything
+
         if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
         {
           imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
