@@ -18,6 +18,7 @@ namespace vke {
   class DotsPipeline;
   class PointLight;
   class Pipeline;
+  class RayTracingPipeline;
   class RenderingManager;
   class RenderObject;
 
@@ -63,6 +64,9 @@ namespace vke {
     void renderLinePipeline(const RenderInfo* renderInfo,
                             const std::vector<LineVertex>* lineVertices) const;
 
+    void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                      VkExtent2D extent) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -79,6 +83,8 @@ namespace vke {
     std::unique_ptr<BendyPipeline> m_bendyPipeline;
 
     std::unordered_map<PipelineType, std::unique_ptr<GraphicsPipeline>> m_graphicsPipelines;
+
+    std::unique_ptr<RayTracingPipeline> m_rayTracingPipeline;
 
     void createGraphicsPipeline(PipelineType pipelineType,
                                 const GraphicsPipelineOptions& graphicsPipelineOptions);
