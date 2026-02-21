@@ -23,6 +23,8 @@ namespace vke {
 
   AssetManager::~AssetManager()
   {
+    m_logicalDevice->destroyDescriptorSetLayout(m_rayTracingDescriptorSetLayout);
+
     m_logicalDevice->destroyDescriptorSetLayout(m_objectDescriptorSetLayout);
 
     m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
