@@ -32,6 +32,10 @@ namespace vke {
 
     [[nodiscard]] VkAccelerationStructureKHR getBLAS() const;
 
+    [[nodiscard]] const std::vector<Vertex>& getVertices() const;
+
+    [[nodiscard]] const std::vector<uint32_t>& getIndices() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
