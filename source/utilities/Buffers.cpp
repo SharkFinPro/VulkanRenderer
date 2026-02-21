@@ -67,8 +67,10 @@ namespace vke::Buffers {
                        VkDeviceMemory& bufferMemory)
     {
       logicalDevice->freeMemory(bufferMemory);
+      bufferMemory = VK_NULL_HANDLE;
 
       logicalDevice->destroyBuffer(buffer);
+      buffer = VK_NULL_HANDLE;
     }
 
 } // namespace vke::Buffers
