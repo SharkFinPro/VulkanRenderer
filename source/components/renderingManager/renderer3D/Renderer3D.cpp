@@ -972,6 +972,17 @@ namespace vke {
 
     m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
+      auto storageBuffer = [&](uint32_t binding, const VkDescriptorBufferInfo* info) {
+        return VkWriteDescriptorSet {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = binding,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .pBufferInfo = info
+        };
+      };
+
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
         {
           .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -990,30 +1001,9 @@ namespace vke {
           .pImageInfo = &imageResource->getDescriptorImageInfo()
         },
         m_cameraUniformRT->getDescriptorSet(2, descriptorSet, currentFrame),
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 3,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .pBufferInfo = &m_vertexBufferInfo
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 4,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .pBufferInfo = &m_indexBufferInfo
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 5,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .pBufferInfo = &m_meshInfoInfo
-        },
+        storageBuffer(3, &m_vertexBufferInfo),
+        storageBuffer(4, &m_indexBufferInfo),
+        storageBuffer(5, &m_meshInfoInfo),
         {
           .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
