@@ -909,6 +909,13 @@ namespace vke {
       mergedIndices.insert(mergedIndices.end(), indices.begin(), indices.end());
     }
 
+    uploadRTSceneInfoBuffers(mergedVertices, mergedIndices, meshInfos);
+  }
+
+  void Renderer3D::uploadRTSceneInfoBuffers(const std::vector<Vertex>& mergedVertices,
+                                            const std::vector<uint32_t>& mergedIndices,
+                                            const std::vector<MeshInfo>& meshInfos)
+  {
     auto uploadBuffer = [&]<typename T>(const std::vector<T>& data,
                                         VkBuffer& outBuffer,
                                         VkDeviceMemory& outMemory)

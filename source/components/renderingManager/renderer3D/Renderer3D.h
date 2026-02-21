@@ -26,6 +26,7 @@ namespace vke {
   class Texture3D;
   class TextureCubemap;
   class UniformBuffer;
+  struct Vertex;
   class Window;
 
   struct MeshInfo {
@@ -331,6 +332,10 @@ namespace vke {
     void destroyTLAS();
 
     void updateRTSceneInfo();
+
+    void uploadRTSceneInfoBuffers(const std::vector<Vertex>& mergedVertices,
+                                  const std::vector<uint32_t>& mergedIndices,
+                                  const std::vector<MeshInfo>& meshInfos);
 
     void updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
                                 VkExtent2D extent,
