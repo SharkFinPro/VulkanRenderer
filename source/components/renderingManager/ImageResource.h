@@ -12,6 +12,7 @@ namespace vke {
     Color,
     Depth,
     Resolve,
+    RayTracingOutput,
     Undefined
   };
 

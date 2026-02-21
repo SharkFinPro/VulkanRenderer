@@ -60,10 +60,27 @@ namespace vke {
     createMousePickingRenderTarget(mousePickingExtent);
   }
 
+  void Renderer::resetRayTracingImageResources(VkExtent2D extent)
+  {
+    if (!supportsRayTracing())
+    {
+      return;
+    }
+
+    m_rayTracingRenderTarget.reset();
+
+    createRayTracingRenderTarget(extent);
+  }
+
   uint32_t Renderer::registerShadowMapRenderTarget([[maybe_unused]] std::shared_ptr<RenderTarget> renderTarget,
                                                    [[maybe_unused]] bool isCubeMap)
   {
     return ++m_currentShadowMapRenderTargetID;
+  }
+
+  std::shared_ptr<RenderTarget> Renderer::getRayTracingRenderTarget() const
+  {
+    return m_rayTracingRenderTarget;
   }
 
   void Renderer::createSampler()
@@ -134,5 +151,19 @@ namespace vke {
     };
 
     m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+  }
+
+  void Renderer::createRayTracingImageResource(const VkExtent2D extent)
+  {
+    ImageResourceConfig imageResourceConfig {
+      .imageResourceType = ImageResourceType::RayTracingOutput,
+      .logicalDevice = m_logicalDevice,
+      .extent = extent,
+      .commandPool = m_commandPool,
+      .resolveFormat = VK_FORMAT_B8G8R8A8_UNORM,
+      .numSamples = VK_SAMPLE_COUNT_1_BIT
+    };
+
+    m_rayTracingImageResource = std::make_shared<ImageResource>(imageResourceConfig);
   }
 } // namespace vke
