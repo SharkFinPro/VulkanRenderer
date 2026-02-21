@@ -25,15 +25,15 @@ namespace vke {
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_pipeline);
 
-    // commandBuffer->traceRays(
-    //   &m_rayGenerationRegion,
-    //   &m_missRegion,
-    //   &m_hitRegion,
-    //   &m_callableRegion,
-    //   extent.width,
-    //   extent.height,
-    //   1
-    // );
+    commandBuffer->traceRays(
+      &m_rayGenerationRegion,
+      &m_missRegion,
+      &m_hitRegion,
+      &m_callableRegion,
+      extent.width,
+      extent.height,
+      1
+    );
   }
 
   void RayTracingPipeline::bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,

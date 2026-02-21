@@ -129,6 +129,12 @@ namespace vke {
       return descriptorWrites;
     });
 
+    pipelineManager->bindRayTracingPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      m_rayTracingDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
     pipelineManager->doRayTracing(renderInfo->commandBuffer, renderInfo->extent);
   }
 
