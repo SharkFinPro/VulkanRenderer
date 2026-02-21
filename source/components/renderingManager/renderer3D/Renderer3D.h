@@ -25,6 +25,7 @@ namespace vke {
   class SmokeSystem;
   class Texture3D;
   class TextureCubemap;
+  class UniformBuffer;
   class Window;
 
   struct BendyPlant {
@@ -264,6 +265,8 @@ namespace vke {
 
     VkAccelerationStructureKHR m_tlas = VK_NULL_HANDLE;
     VkWriteDescriptorSetAccelerationStructureKHR m_tlasInfo{};
+
+    std::shared_ptr<UniformBuffer> m_cameraUniformRT;
 
     std::shared_ptr<DescriptorSet> m_rayTracingDescriptorSet;
 

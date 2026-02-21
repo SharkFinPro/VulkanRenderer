@@ -17,6 +17,13 @@
 #include "../../../utilities/Buffers.h"
 
 namespace vke {
+
+  struct CameraUniformRT {
+    glm::mat4 viewInverse;
+    glm::mat4 projInverse;
+    glm::vec3 viewPosition;
+  };
+
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
                          std::shared_ptr<AssetManager> assetManager,
                          std::shared_ptr<Window> window)
@@ -105,7 +112,24 @@ namespace vke {
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const std::shared_ptr<ImageResource>& imageResource)
   {
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    auto projectionMatrix = glm::perspective(
+      glm::radians(45.0f),
+      static_cast<float>(renderInfo->extent.width) / static_cast<float>(renderInfo->extent.height),
+      0.1f,
+      1000.0f
+    );
+
+    projectionMatrix[1][1] *= -1;
+
+    const CameraUniformRT cameraUBORT {
+      .viewInverse = glm::inverse(m_viewMatrix),
+      .projInverse = glm::inverse(projectionMatrix),
+      .viewPosition = m_viewPosition
+    };
+
+    m_cameraUniformRT->update(renderInfo->currentFrame, &cameraUBORT);
+
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, renderInfo](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
         {
@@ -123,7 +147,8 @@ namespace vke {
           .descriptorCount = 1,
           .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
           .pImageInfo = &imageResource->getDescriptorImageInfo()
-        }
+        },
+        m_cameraUniformRT->getDescriptorSet(2, descriptorSet, renderInfo->currentFrame)
       }};
 
       return descriptorWrites;
@@ -531,6 +556,8 @@ namespace vke {
     });
 
     m_rayTracingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, m_assetManager->getRayTracingDescriptorSetLayout());
+
+    m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
   }
 
   bool Renderer3D::pipelineIsActive(const PipelineType pipelineType) const
