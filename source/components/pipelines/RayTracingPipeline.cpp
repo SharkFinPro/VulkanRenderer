@@ -36,6 +36,19 @@ namespace vke {
     // );
   }
 
+  void RayTracingPipeline::bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             VkDescriptorSet descriptorSet,
+                                             const uint32_t location) const
+  {
+    commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
+      m_pipelineLayout,
+      location,
+      1,
+      &descriptorSet
+    );
+  }
+
   void RayTracingPipeline::createPipelineLayout(const RayTracingPipelineConfig& config)
   {
     const VkPipelineLayoutCreateInfo pipelineLayoutInfo {

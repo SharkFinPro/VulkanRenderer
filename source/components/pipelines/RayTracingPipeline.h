@@ -72,6 +72,10 @@ namespace vke {
     void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
                       VkExtent2D extent) const;
 
+    void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                           VkDescriptorSet descriptorSet,
+                           uint32_t location) const;
+
   protected:
     VkBuffer m_shaderBindingTableBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_shaderBindingTableMemory = VK_NULL_HANDLE;
