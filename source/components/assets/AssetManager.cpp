@@ -253,13 +253,13 @@ namespace vke {
     const std::vector<VkDescriptorSetLayoutBinding> rayTracingDescriptorSetLayoutBinding {{
       {
         .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR
       },
       {
         .binding = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
         .descriptorCount = 1,
         .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR
       }
