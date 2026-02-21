@@ -180,6 +180,21 @@ namespace vke {
     return m_renderer3D;
   }
 
+  void RenderingManager::enableRayTracing()
+  {
+    m_rayTracingEnabled = true;
+  }
+
+  void RenderingManager::disableRayTracing()
+  {
+    m_rayTracingEnabled = false;
+  }
+
+  bool RenderingManager::isRayTracingEnabled() const
+  {
+    return m_rayTracingEnabled;
+  }
+
   void RenderingManager::renderGuiScene(const uint32_t imageIndex)
   {
     if (!m_shouldRenderOffscreen)
@@ -250,7 +265,7 @@ namespace vke {
         .extent = m_offscreenViewportExtent
       };
 
-      if (m_renderer->supportsRayTracing())
+      if (m_renderer->supportsRayTracing() && m_rayTracingEnabled)
       {
         m_renderer->beginRayTracingRendering(imageIndex, m_offscreenCommandBuffer);
         m_renderer3D->doRayTracing(&renderInfo, pipelineManager, m_renderer->getRayTracingImageResource());
