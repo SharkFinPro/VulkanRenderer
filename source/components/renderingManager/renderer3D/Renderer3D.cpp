@@ -972,7 +972,7 @@ namespace vke {
 
     m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
-      auto storageBuffer = [&](uint32_t binding, const VkDescriptorBufferInfo* info) {
+      auto storageBuffer = [&](const uint32_t binding, const VkDescriptorBufferInfo* info) {
         return VkWriteDescriptorSet {
           .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
