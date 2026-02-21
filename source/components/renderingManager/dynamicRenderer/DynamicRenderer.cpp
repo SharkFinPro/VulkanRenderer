@@ -5,6 +5,7 @@
 #include "../../lighting/lights/Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../window/SwapChain.h"
+#include "../../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
 namespace vke {
@@ -207,7 +208,32 @@ namespace vke {
   void DynamicRenderer::beginRayTracingRendering(const uint32_t imageIndex,
                                                  const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
-    // TODO: Transition image
+    const VkImageMemoryBarrier imageMemoryBarrier {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      .srcAccessMask = VK_ACCESS_NONE,
+      .dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+      .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .image = m_rayTracingImageResource->getImage(),
+      .subresourceRange = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+      VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+      0,
+      {},
+      {},
+      { imageMemoryBarrier }
+    );
   }
 
   void DynamicRenderer::endRayTracingRendering(const uint32_t imageIndex,
