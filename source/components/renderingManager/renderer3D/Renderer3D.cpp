@@ -808,18 +808,32 @@ namespace vke {
     std::vector<MeshInfo> meshInfos;
     m_textureImageInfos.clear();
 
+    std::unordered_map<std::shared_ptr<Texture>, uint32_t> textureIndices;
+
     for (const auto& renderObject : m_renderObjectsToRenderFlattened)
     {
       const auto& model = renderObject->getModel();
 
+      uint32_t textureIndex = 0;
+      if (textureIndices.contains(renderObject->getTexture()))
+      {
+        textureIndex = textureIndices.at(renderObject->getTexture());
+      }
+      else
+      {
+        textureIndex = static_cast<uint32_t>(textureIndices.size());
+
+        textureIndices.emplace(renderObject->getTexture(), textureIndex);
+
+        m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
+      }
+
       meshInfos.push_back({
         .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
         .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
-        .textureIndex = static_cast<uint32_t>(m_textureImageInfos.size()),
+        .textureIndex = textureIndex,
         .padding = 0
       });
-
-      m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
 
       const auto& vertices = model->getVertices();
       const auto& indices = model->getIndices();
