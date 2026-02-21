@@ -190,6 +190,11 @@ namespace vke {
         return config.resolveFormat;
       }
 
+      if (config.imageResourceType == ImageResourceType::RayTracingOutput)
+      {
+        return config.resolveFormat;
+      }
+
       return VK_FORMAT_UNDEFINED;
     }
 } // vke
