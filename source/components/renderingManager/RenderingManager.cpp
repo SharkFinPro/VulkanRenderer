@@ -242,8 +242,6 @@ namespace vke {
         return;
       }
 
-      m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
-
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
         .currentFrame = currentFrame,
@@ -251,6 +249,17 @@ namespace vke {
         .viewMatrix = {},
         .extent = m_offscreenViewportExtent
       };
+
+      if (m_renderer->supportsRayTracing())
+      {
+        m_renderer->beginRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
+        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, m_renderer->getRayTracingImageResource());
+        m_renderer->endRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
+
+        return;
+      }
+
+      m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
       const VkViewport viewport = {
         .x = 0.0f,
@@ -281,10 +290,6 @@ namespace vke {
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
       m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
-
-      m_renderer->beginRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
-      m_renderer3D->doRayTracing(&renderInfo, pipelineManager, m_renderer->getRayTracingImageResource());
-      m_renderer->endRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
     });
   }
 

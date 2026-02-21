@@ -82,8 +82,6 @@ namespace vke {
   {
     displayGui();
 
-    createTLAS();
-
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -112,6 +110,8 @@ namespace vke {
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const std::shared_ptr<ImageResource>& imageResource)
   {
+    createTLAS();
+
     auto projectionMatrix = glm::perspective(
       glm::radians(45.0f),
       static_cast<float>(renderInfo->extent.width) / static_cast<float>(renderInfo->extent.height),
