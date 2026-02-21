@@ -288,11 +288,34 @@ namespace vke {
         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
         .descriptorCount = 1,
         .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+      },
+      {
+        .binding = 6,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .descriptorCount = 256,
+        .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
       }
     }};
 
+    std::vector<VkDescriptorBindingFlags> bindingFlags {
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+    };
+
+    VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo {
+      .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+      .bindingCount  = static_cast<uint32_t>(bindingFlags.size()),
+      .pBindingFlags = bindingFlags.data()
+    };
+
     const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .pNext = &flagsInfo,
       .bindingCount = static_cast<uint32_t>(rayTracingDescriptorSetLayoutBinding.size()),
       .pBindings = rayTracingDescriptorSetLayoutBinding.data()
     };
