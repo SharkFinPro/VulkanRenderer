@@ -268,6 +268,23 @@ namespace vke {
     );
   }
 
+  void CommandBuffer::copyImage(VkImage srcImage,
+                                const VkImageLayout srcImageLayout,
+                                VkImage dstImage,
+                                const VkImageLayout dstImageLayout,
+                                const std::vector<VkImageCopy>& regions) const
+  {
+    vkCmdCopyImage(
+      m_commandBuffers[m_currentFrame],
+      srcImage,
+      srcImageLayout,
+      dstImage,
+      dstImageLayout,
+      regions.size(),
+      regions.data()
+    );
+  }
+
   void CommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)
   {
     m_commandBuffers.resize(m_logicalDevice->getMaxFramesInFlight());

@@ -120,6 +120,12 @@ namespace vke {
                    uint32_t height,
                    uint32_t depth) const;
 
+    void copyImage(VkImage srcImage,
+                   VkImageLayout srcImageLayout,
+                   VkImage dstImage,
+                   VkImageLayout dstImageLayout,
+                   const std::vector<VkImageCopy>& regions) const;
+
     friend class ImGuiInstance;
 
   protected:
