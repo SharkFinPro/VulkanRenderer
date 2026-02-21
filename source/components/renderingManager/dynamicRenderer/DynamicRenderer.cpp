@@ -204,6 +204,18 @@ namespace vke {
     commandBuffer->endRendering();
   }
 
+  void DynamicRenderer::beginRayTracingRendering(const uint32_t imageIndex,
+                                                 const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    // TODO: Transition image
+  }
+
+  void DynamicRenderer::endRayTracingRendering(const uint32_t imageIndex,
+                                               const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    // TODO: Transition & copy image
+  }
+
   void DynamicRenderer::transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                           const VkImage image)
   {
