@@ -281,6 +281,10 @@ namespace vke {
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
       m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
+
+      m_renderer->beginRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
+      m_renderer3D->doRayTracing(&renderInfo, pipelineManager);
+      m_renderer->endRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
     });
   }
 

@@ -98,6 +98,12 @@ namespace vke {
     }
   }
 
+  void Renderer3D::doRayTracing(const RenderInfo* renderInfo,
+                                const std::shared_ptr<PipelineManager>& pipelineManager)
+  {
+    pipelineManager->doRayTracing(renderInfo->commandBuffer, renderInfo->extent);
+  }
+
   void Renderer3D::createNewFrame()
   {
     for (auto& [_, objects] : m_renderObjectsToRender)

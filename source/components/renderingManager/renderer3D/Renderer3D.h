@@ -123,6 +123,9 @@ namespace vke {
                 const std::shared_ptr<PipelineManager>& pipelineManager,
                 const std::shared_ptr<LightingManager>& lightingManager);
 
+    void doRayTracing(const RenderInfo* renderInfo,
+                      const std::shared_ptr<PipelineManager>& pipelineManager);
+
     void createNewFrame();
 
     void enableGrid();
