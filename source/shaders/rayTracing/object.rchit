@@ -1,6 +1,7 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
 #extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_nonuniform_qualifier  : require
 
 layout(location = 0) rayPayloadInEXT vec3 payload;
 
@@ -18,6 +19,8 @@ struct Vertex {
 struct MeshInfo {
   uint vertexOffset;
   uint indexOffset;
+  uint textureIndex;
+  uint padding;
 };
 
 layout(binding = 3, set = 0) readonly buffer VertexBuffer {
@@ -31,6 +34,8 @@ layout(binding = 4, set = 0) readonly buffer IndexBuffer {
 layout(binding = 5, set = 0) readonly buffer MeshInfoBuffer {
   MeshInfo meshInfos[];
 };
+
+layout(binding = 6, set = 0) uniform sampler2D textures[];
 
 void main()
 {
@@ -52,8 +57,11 @@ void main()
   vec2 texCoord =           bary.x * v0.texCoord + bary.y * v1.texCoord + bary.z * v2.texCoord;
 
   // Debug: normals as color
-  payload = normal * 0.5 + 0.5;
+//  payload = normal * 0.5 + 0.5;
 
   // Debug: UVs as color
   // payload = vec3(texCoord, 0.0);
+
+  vec4 color = texture(textures[nonuniformEXT(info.textureIndex)], texCoord);
+  payload = color.rgb;
 }
