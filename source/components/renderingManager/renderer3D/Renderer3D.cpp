@@ -177,6 +177,14 @@ namespace vke {
           .descriptorCount = 1,
           .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           .pBufferInfo = &m_meshInfoInfo
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 6,
+          .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
+          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+          .pImageInfo = m_textureImageInfos.data()
         }
       }};
 
@@ -300,7 +308,7 @@ namespace vke {
   void Renderer3D::createDescriptorPool()
   {
     const std::array<VkDescriptorPoolSize, 4> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 256},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_logicalDevice->getMaxFramesInFlight() * 4},
       {VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, m_logicalDevice->getMaxFramesInFlight() * 4},
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 10},
@@ -587,7 +595,16 @@ namespace vke {
       return descriptorWrites;
     });
 
-    m_rayTracingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, m_assetManager->getRayTracingDescriptorSetLayout());
+    uint32_t maxTextures = 256;
+
+    VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo {
+      .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+      .descriptorSetCount = 1,
+      .pDescriptorCounts  = &maxTextures
+    };
+
+    m_rayTracingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool,
+      m_assetManager->getRayTracingDescriptorSetLayout(), &variableCountInfo);
 
     m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
   }
@@ -789,6 +806,7 @@ namespace vke {
     std::vector<Vertex> mergedVertices;
     std::vector<uint32_t> mergedIndices;
     std::vector<MeshInfo> meshInfos;
+    m_textureImageInfos.clear();
 
     for (const auto& renderObject : m_renderObjectsToRenderFlattened)
     {
@@ -796,8 +814,12 @@ namespace vke {
 
       meshInfos.push_back({
         .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
-        .indexOffset = static_cast<uint32_t>(mergedIndices.size())
+        .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
+        .textureIndex = static_cast<uint32_t>(m_textureImageInfos.size()),
+        .padding = 0
       });
+
+      m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
 
       const auto& vertices = model->getVertices();
       const auto& indices = model->getIndices();

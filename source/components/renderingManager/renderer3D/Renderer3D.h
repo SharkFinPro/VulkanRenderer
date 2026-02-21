@@ -31,6 +31,8 @@ namespace vke {
   struct MeshInfo {
     uint32_t vertexOffset;
     uint32_t indexOffset;
+    uint32_t textureIndex;
+    uint32_t padding;
   };
 
   struct BendyPlant {
@@ -287,6 +289,8 @@ namespace vke {
     VkDescriptorBufferInfo m_vertexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
     VkDescriptorBufferInfo m_indexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
     VkDescriptorBufferInfo m_meshInfoInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
+
+    std::vector<VkDescriptorImageInfo> m_textureImageInfos;
 
     void createCommandPool();
 
