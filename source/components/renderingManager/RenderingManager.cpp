@@ -190,6 +190,11 @@ namespace vke {
     m_rayTracingEnabled = false;
   }
 
+  bool RenderingManager::isRayTracingEnabled() const
+  {
+    return m_rayTracingEnabled;
+  }
+
   void RenderingManager::renderGuiScene(const uint32_t imageIndex)
   {
     if (!m_shouldRenderOffscreen)

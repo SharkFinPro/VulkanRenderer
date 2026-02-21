@@ -55,6 +55,8 @@ namespace vke {
 
     void disableRayTracing();
 
+    [[nodiscard]] bool isRayTracingEnabled() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
