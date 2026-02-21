@@ -128,6 +128,11 @@ namespace vke {
     return m_smokeSystemDescriptorSetLayout;
   }
 
+  VkDescriptorSetLayout AssetManager::getRayTracingDescriptorSetLayout() const
+  {
+    return m_rayTracingDescriptorSetLayout;
+  }
+
   void AssetManager::createDescriptorSetLayouts()
   {
     createObjectDescriptorSetLayout();
@@ -135,6 +140,8 @@ namespace vke {
     createFontDescriptorSetLayout();
 
     createSmokeSystemDescriptorSetLayout();
+
+    createRayTracingDescriptorSetLayout();
   }
 
   void AssetManager::createObjectDescriptorSetLayout()
@@ -239,6 +246,32 @@ namespace vke {
     };
 
     m_smokeSystemDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+  }
+
+  void AssetManager::createRayTracingDescriptorSetLayout()
+  {
+    const std::vector<VkDescriptorSetLayoutBinding> rayTracingDescriptorSetLayoutBinding {{
+      {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+      },
+      {
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR
+      }
+    }};
+
+    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(rayTracingDescriptorSetLayoutBinding.size()),
+      .pBindings = rayTracingDescriptorSetLayoutBinding.data()
+    };
+
+    m_rayTracingDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
   void AssetManager::loadFont(const std::string& fontName,
