@@ -67,9 +67,9 @@ namespace vke {
       return;
     }
 
-    m_rayTracingRenderTarget.reset();
+    m_rayTracingImageResource.reset();
 
-    createRayTracingRenderTarget(extent);
+    createRayTracingImageResource(extent);
   }
 
   uint32_t Renderer::registerShadowMapRenderTarget([[maybe_unused]] std::shared_ptr<RenderTarget> renderTarget,
@@ -78,9 +78,9 @@ namespace vke {
     return ++m_currentShadowMapRenderTargetID;
   }
 
-  std::shared_ptr<RenderTarget> Renderer::getRayTracingRenderTarget() const
+  std::shared_ptr<ImageResource> Renderer::getRayTracingImageResource() const
   {
-    return m_rayTracingRenderTarget;
+    return m_rayTracingImageResource;
   }
 
   void Renderer::createSampler()

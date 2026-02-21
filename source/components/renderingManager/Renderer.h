@@ -83,7 +83,7 @@ namespace vke {
     virtual void endRayTracingRendering(uint32_t imageIndex,
                                         const std::shared_ptr<CommandBuffer>& commandBuffer) {}
 
-    [[nodiscard]] std::shared_ptr<RenderTarget> getRayTracingRenderTarget() const;
+    [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource() const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
