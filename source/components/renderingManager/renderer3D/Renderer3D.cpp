@@ -113,83 +113,9 @@ namespace vke {
   {
     createTLAS();
 
-    auto projectionMatrix = glm::perspective(
-      glm::radians(45.0f),
-      static_cast<float>(renderInfo->extent.width) / static_cast<float>(renderInfo->extent.height),
-      0.1f,
-      1000.0f
-    );
+    updateRTSceneInfo();
 
-    projectionMatrix[1][1] *= -1;
-
-    const CameraUniformRT cameraUBORT {
-      .viewInverse = glm::inverse(m_viewMatrix),
-      .projInverse = glm::inverse(projectionMatrix),
-      .viewPosition = m_viewPosition
-    };
-
-    m_cameraUniformRT->update(renderInfo->currentFrame, &cameraUBORT);
-
-    m_vertexBufferInfo.buffer = m_mergedVertexBuffer;
-    m_indexBufferInfo.buffer = m_mergedIndexBuffer;
-    m_meshInfoInfo.buffer = m_meshInfoBuffer;
-
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, renderInfo](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
-    {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .pNext = &m_tlasInfo,
-          .dstSet = descriptorSet,
-          .dstBinding = 0,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 1,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-          .pImageInfo = &imageResource->getDescriptorImageInfo()
-        },
-        m_cameraUniformRT->getDescriptorSet(2, descriptorSet, renderInfo->currentFrame),
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 3,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .pBufferInfo = &m_vertexBufferInfo
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 4,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .pBufferInfo = &m_indexBufferInfo
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 5,
-          .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .pBufferInfo = &m_meshInfoInfo
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-          .dstSet = descriptorSet,
-          .dstBinding = 6,
-          .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
-          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-          .pImageInfo = m_textureImageInfos.data()
-        }
-      }};
-
-      return descriptorWrites;
-    });
+    updateRTDescriptorSets(imageResource, renderInfo->extent, renderInfo->currentFrame);
 
     pipelineManager->bindRayTracingPipelineDescriptorSet(
       renderInfo->commandBuffer,
@@ -803,92 +729,6 @@ namespace vke {
       instances.push_back(instance);
     }
 
-    std::vector<Vertex> mergedVertices;
-    std::vector<uint32_t> mergedIndices;
-    std::vector<MeshInfo> meshInfos;
-    m_textureImageInfos.clear();
-
-    std::unordered_map<std::shared_ptr<Texture>, uint32_t> textureIndices;
-
-    for (const auto& renderObject : m_renderObjectsToRenderFlattened)
-    {
-      const auto& model = renderObject->getModel();
-
-      uint32_t textureIndex = 0;
-      if (textureIndices.contains(renderObject->getTexture()))
-      {
-        textureIndex = textureIndices.at(renderObject->getTexture());
-      }
-      else
-      {
-        textureIndex = static_cast<uint32_t>(textureIndices.size());
-
-        textureIndices.emplace(renderObject->getTexture(), textureIndex);
-
-        m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
-      }
-
-      meshInfos.push_back({
-        .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
-        .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
-        .textureIndex = textureIndex,
-        .padding = 0
-      });
-
-      const auto& vertices = model->getVertices();
-      const auto& indices = model->getIndices();
-
-      mergedVertices.insert(mergedVertices.end(), vertices.begin(), vertices.end());
-      mergedIndices.insert(mergedIndices.end(), indices.begin(), indices.end());
-    }
-
-    auto uploadBuffer = [&]<typename T>(const std::vector<T>& data,
-                                        VkBuffer& outBuffer,
-                                        VkDeviceMemory& outMemory)
-    {
-      const VkDeviceSize size = data.size() * sizeof(T);
-
-      VkBuffer stagingBuffer;
-      VkDeviceMemory stagingMemory;
-
-      Buffers::createBuffer(
-        m_logicalDevice,
-        size,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer,
-        stagingMemory
-      );
-
-      m_logicalDevice->doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
-        memcpy(ptr, data.data(), size);
-      });
-
-      Buffers::createBuffer(
-        m_logicalDevice,
-        size,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        outBuffer,
-        outMemory
-      );
-
-      Buffers::copyBuffer(
-        m_logicalDevice,
-        m_commandPool,
-        m_logicalDevice->getGraphicsQueue(),
-        stagingBuffer,
-        outBuffer,
-        size
-      );
-
-      Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingMemory);
-    };
-
-    uploadBuffer(mergedVertices, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
-    uploadBuffer(mergedIndices, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
-    uploadBuffer(meshInfos, m_meshInfoBuffer, m_meshInfoBufferMemory);
-
     const VkDeviceSize instancesBufferSize = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
 
     VkBuffer stagingBuffer;
@@ -1026,5 +866,177 @@ namespace vke {
     Buffers::destroyBuffer(m_logicalDevice, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
 
     Buffers::destroyBuffer(m_logicalDevice, m_meshInfoBuffer, m_meshInfoBufferMemory);
+  }
+
+  void Renderer3D::updateRTSceneInfo()
+  {
+    std::vector<Vertex> mergedVertices;
+    std::vector<uint32_t> mergedIndices;
+    std::vector<MeshInfo> meshInfos;
+    m_textureImageInfos.clear();
+
+    std::unordered_map<std::shared_ptr<Texture>, uint32_t> textureIndices;
+
+    for (const auto& renderObject : m_renderObjectsToRenderFlattened)
+    {
+      const auto& model = renderObject->getModel();
+
+      uint32_t textureIndex = 0;
+      if (textureIndices.contains(renderObject->getTexture()))
+      {
+        textureIndex = textureIndices.at(renderObject->getTexture());
+      }
+      else
+      {
+        textureIndex = static_cast<uint32_t>(textureIndices.size());
+
+        textureIndices.emplace(renderObject->getTexture(), textureIndex);
+
+        m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
+      }
+
+      meshInfos.push_back({
+        .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
+        .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
+        .textureIndex = textureIndex,
+        .padding = 0
+      });
+
+      const auto& vertices = model->getVertices();
+      const auto& indices = model->getIndices();
+
+      mergedVertices.insert(mergedVertices.end(), vertices.begin(), vertices.end());
+      mergedIndices.insert(mergedIndices.end(), indices.begin(), indices.end());
+    }
+
+    auto uploadBuffer = [&]<typename T>(const std::vector<T>& data,
+                                        VkBuffer& outBuffer,
+                                        VkDeviceMemory& outMemory)
+    {
+      const VkDeviceSize size = data.size() * sizeof(T);
+
+      VkBuffer stagingBuffer;
+      VkDeviceMemory stagingMemory;
+
+      Buffers::createBuffer(
+        m_logicalDevice,
+        size,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingBuffer,
+        stagingMemory
+      );
+
+      m_logicalDevice->doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
+        memcpy(ptr, data.data(), size);
+      });
+
+      Buffers::createBuffer(
+        m_logicalDevice,
+        size,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        outBuffer,
+        outMemory
+      );
+
+      Buffers::copyBuffer(
+        m_logicalDevice,
+        m_commandPool,
+        m_logicalDevice->getGraphicsQueue(),
+        stagingBuffer,
+        outBuffer,
+        size
+      );
+
+      Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingMemory);
+    };
+
+    uploadBuffer(mergedVertices, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
+    uploadBuffer(mergedIndices, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
+    uploadBuffer(meshInfos, m_meshInfoBuffer, m_meshInfoBufferMemory);
+  }
+
+  void Renderer3D::updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
+                                          const VkExtent2D extent,
+                                          const uint32_t currentFrame)
+  {
+    auto projectionMatrix = glm::perspective(
+      glm::radians(45.0f),
+      static_cast<float>(extent.width) / static_cast<float>(extent.height),
+      0.1f,
+      1000.0f
+    );
+
+    projectionMatrix[1][1] *= -1;
+
+    const CameraUniformRT cameraUBORT {
+      .viewInverse = glm::inverse(m_viewMatrix),
+      .projInverse = glm::inverse(projectionMatrix),
+      .viewPosition = m_viewPosition
+    };
+
+    m_cameraUniformRT->update(currentFrame, &cameraUBORT);
+
+    m_vertexBufferInfo.buffer = m_mergedVertexBuffer;
+    m_indexBufferInfo.buffer = m_mergedIndexBuffer;
+    m_meshInfoInfo.buffer = m_meshInfoBuffer;
+
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .pNext = &m_tlasInfo,
+          .dstSet = descriptorSet,
+          .dstBinding = 0,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 1,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+          .pImageInfo = &imageResource->getDescriptorImageInfo()
+        },
+        m_cameraUniformRT->getDescriptorSet(2, descriptorSet, currentFrame),
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 3,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .pBufferInfo = &m_vertexBufferInfo
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 4,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .pBufferInfo = &m_indexBufferInfo
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 5,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .pBufferInfo = &m_meshInfoInfo
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 6,
+          .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
+          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+          .pImageInfo = m_textureImageInfos.data()
+        }
+      }};
+
+      return descriptorWrites;
+    });
   }
 } // vke

@@ -329,6 +329,12 @@ namespace vke {
     void createTLAS();
 
     void destroyTLAS();
+
+    void updateRTSceneInfo();
+
+    void updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
+                                VkExtent2D extent,
+                                uint32_t currentFrame);
   };
 } // vke
 
