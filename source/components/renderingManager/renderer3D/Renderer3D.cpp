@@ -13,6 +13,7 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
+#include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../../utilities/Buffers.h"
 
@@ -129,6 +130,10 @@ namespace vke {
 
     m_cameraUniformRT->update(renderInfo->currentFrame, &cameraUBORT);
 
+    m_vertexBufferInfo.buffer = m_mergedVertexBuffer;
+    m_indexBufferInfo.buffer = m_mergedIndexBuffer;
+    m_meshInfoInfo.buffer = m_meshInfoBuffer;
+
     m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, renderInfo](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
@@ -148,7 +153,31 @@ namespace vke {
           .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
           .pImageInfo = &imageResource->getDescriptorImageInfo()
         },
-        m_cameraUniformRT->getDescriptorSet(2, descriptorSet, renderInfo->currentFrame)
+        m_cameraUniformRT->getDescriptorSet(2, descriptorSet, renderInfo->currentFrame),
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 3,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .pBufferInfo = &m_vertexBufferInfo
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 4,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .pBufferInfo = &m_indexBufferInfo
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 5,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .pBufferInfo = &m_meshInfoInfo
+        }
       }};
 
       return descriptorWrites;
@@ -270,9 +299,12 @@ namespace vke {
 
   void Renderer3D::createDescriptorPool()
   {
-    const std::array<VkDescriptorPoolSize, 1> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
-    }};
+    const std::array<VkDescriptorPoolSize, 4> poolSizes {{
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10},
+      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_logicalDevice->getMaxFramesInFlight() * 4},
+      {VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, m_logicalDevice->getMaxFramesInFlight() * 4},
+      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 10},
+  }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -754,6 +786,73 @@ namespace vke {
       instances.push_back(instance);
     }
 
+    std::vector<Vertex> mergedVertices;
+    std::vector<uint32_t> mergedIndices;
+    std::vector<MeshInfo> meshInfos;
+
+    for (const auto& renderObject : m_renderObjectsToRenderFlattened)
+    {
+      const auto& model = renderObject->getModel();
+
+      meshInfos.push_back({
+        .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
+        .indexOffset = static_cast<uint32_t>(mergedIndices.size())
+      });
+
+      const auto& vertices = model->getVertices();
+      const auto& indices = model->getIndices();
+
+      mergedVertices.insert(mergedVertices.end(), vertices.begin(), vertices.end());
+      mergedIndices.insert(mergedIndices.end(), indices.begin(), indices.end());
+    }
+
+    auto uploadBuffer = [&]<typename T>(const std::vector<T>& data,
+                                        VkBuffer& outBuffer,
+                                        VkDeviceMemory& outMemory)
+    {
+      const VkDeviceSize size = data.size() * sizeof(T);
+
+      VkBuffer stagingBuffer;
+      VkDeviceMemory stagingMemory;
+
+      Buffers::createBuffer(
+        m_logicalDevice,
+        size,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingBuffer,
+        stagingMemory
+      );
+
+      m_logicalDevice->doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
+        memcpy(ptr, data.data(), size);
+      });
+
+      Buffers::createBuffer(
+        m_logicalDevice,
+        size,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        outBuffer,
+        outMemory
+      );
+
+      Buffers::copyBuffer(
+        m_logicalDevice,
+        m_commandPool,
+        m_logicalDevice->getGraphicsQueue(),
+        stagingBuffer,
+        outBuffer,
+        size
+      );
+
+      Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingMemory);
+    };
+
+    uploadBuffer(mergedVertices, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
+    uploadBuffer(mergedIndices, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
+    uploadBuffer(meshInfos, m_meshInfoBuffer, m_meshInfoBufferMemory);
+
     const VkDeviceSize instancesBufferSize = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
 
     VkBuffer stagingBuffer;
@@ -882,19 +981,14 @@ namespace vke {
 
   void Renderer3D::destroyTLAS()
   {
-    if (m_tlas != VK_NULL_HANDLE)
-    {
-      m_logicalDevice->destroyAccelerationStructureKHR(m_tlas);
-    }
+    m_logicalDevice->destroyAccelerationStructureKHR(m_tlas);
 
-    if (m_tlasBuffer != VK_NULL_HANDLE)
-    {
-      Buffers::destroyBuffer(m_logicalDevice, m_tlasBuffer, m_tlasBufferMemory);
-    }
+    Buffers::destroyBuffer(m_logicalDevice, m_tlasBuffer, m_tlasBufferMemory);
+    Buffers::destroyBuffer(m_logicalDevice, m_tlasInstanceBuffer, m_tlasInstanceBufferMemory);
 
-    if (m_tlasInstanceBuffer != VK_NULL_HANDLE)
-    {
-      Buffers::destroyBuffer(m_logicalDevice, m_tlasInstanceBuffer, m_tlasInstanceBufferMemory);
-    }
+    Buffers::destroyBuffer(m_logicalDevice, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
+    Buffers::destroyBuffer(m_logicalDevice, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
+
+    Buffers::destroyBuffer(m_logicalDevice, m_meshInfoBuffer, m_meshInfoBufferMemory);
   }
 } // vke

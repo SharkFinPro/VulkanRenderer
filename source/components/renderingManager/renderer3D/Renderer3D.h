@@ -28,6 +28,11 @@ namespace vke {
   class UniformBuffer;
   class Window;
 
+  struct MeshInfo {
+    uint32_t vertexOffset;
+    uint32_t indexOffset;
+  };
+
   struct BendyPlant {
     glm::vec3 position = glm::vec3(0.0f);
     int numFins = 21;
@@ -269,6 +274,19 @@ namespace vke {
     std::shared_ptr<UniformBuffer> m_cameraUniformRT;
 
     std::shared_ptr<DescriptorSet> m_rayTracingDescriptorSet;
+
+    VkBuffer m_mergedVertexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_mergedVertexBufferMemory = VK_NULL_HANDLE;
+
+    VkBuffer m_mergedIndexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_mergedIndexBufferMemory = VK_NULL_HANDLE;
+
+    VkBuffer m_meshInfoBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_meshInfoBufferMemory = VK_NULL_HANDLE;
+
+    VkDescriptorBufferInfo m_vertexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
+    VkDescriptorBufferInfo m_indexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
+    VkDescriptorBufferInfo m_meshInfoInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
 
     void createCommandPool();
 
