@@ -22,6 +22,8 @@ namespace vke {
 
     [[nodiscard]] ImTextureID getImGuiTexture();
 
+    [[nodiscard]] VkDescriptorImageInfo getImageInfo() const;
+
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

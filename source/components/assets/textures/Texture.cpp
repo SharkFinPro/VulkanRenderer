@@ -58,6 +58,11 @@ namespace vke {
     return reinterpret_cast<ImTextureID>(m_imGuiTexture);
   }
 
+  VkDescriptorImageInfo Texture::getImageInfo() const
+  {
+    return m_imageInfo;
+  }
+
   void Texture::generateMipmaps(const VkCommandPool& commandPool,
                                 VkImage image,
                                 const VkFormat imageFormat,
