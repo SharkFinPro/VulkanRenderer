@@ -13,6 +13,7 @@ namespace vke {
   class AssetManager;
   class CommandBuffer;
   class DescriptorSet;
+  class ImageResource;
   class LightingManager;
   struct LineVertex;
   class LogicalDevice;
@@ -24,6 +25,7 @@ namespace vke {
   class SmokeSystem;
   class Texture3D;
   class TextureCubemap;
+  class UniformBuffer;
   class Window;
 
   struct BendyPlant {
@@ -105,6 +107,7 @@ namespace vke {
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
+               std::shared_ptr<AssetManager> assetManager,
                std::shared_ptr<Window> window);
 
     ~Renderer3D();
@@ -122,6 +125,10 @@ namespace vke {
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
                 const std::shared_ptr<LightingManager>& lightingManager);
+
+    void doRayTracing(const RenderInfo* renderInfo,
+                      const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const std::shared_ptr<ImageResource>& imageResource);
 
     void createNewFrame();
 
@@ -156,6 +163,8 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<AssetManager> m_assetManager;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
@@ -255,6 +264,11 @@ namespace vke {
     VkDeviceMemory m_tlasBufferMemory = VK_NULL_HANDLE;
 
     VkAccelerationStructureKHR m_tlas = VK_NULL_HANDLE;
+    VkWriteDescriptorSetAccelerationStructureKHR m_tlasInfo{};
+
+    std::shared_ptr<UniformBuffer> m_cameraUniformRT;
+
+    std::shared_ptr<DescriptorSet> m_rayTracingDescriptorSet;
 
     void createCommandPool();
 

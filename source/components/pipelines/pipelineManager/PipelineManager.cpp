@@ -3,6 +3,7 @@
 #include "PipelineConfig2D.h"
 #include "PipelineConfigRenderObject.h"
 #include "../descriptorSets/DescriptorSet.h"
+#include "../RayTracingPipeline.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -24,6 +25,18 @@ namespace vke {
     createDescriptorPool();
 
     createPipelines(assetManager, renderingManager, lightingManager);
+
+    RayTracingPipelineConfig rtConfig {
+      .shaders {
+        .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
+        .missShader = "assets/shaders/rayTracing/object.rmiss.spv",
+        .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
+      },
+      .descriptorSetLayouts {
+        assetManager->getRayTracingDescriptorSetLayout()
+      }
+    };
+    m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
   }
 
   PipelineManager::~PipelineManager()
@@ -97,6 +110,19 @@ namespace vke {
                                            const std::vector<LineVertex>* lineVertices) const
   {
     m_linePipeline->render(renderInfo, m_commandPool, lineVertices);
+  }
+
+  void PipelineManager::doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                     const VkExtent2D extent) const
+  {
+    m_rayTracingPipeline->doRayTracing(commandBuffer, extent);
+  }
+
+  void PipelineManager::bindRayTracingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                            VkDescriptorSet descriptorSet,
+                                                            const uint32_t location) const
+  {
+    m_rayTracingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
   void PipelineManager::createGraphicsPipeline(const PipelineType pipelineType,

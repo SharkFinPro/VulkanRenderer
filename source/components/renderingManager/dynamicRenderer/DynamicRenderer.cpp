@@ -5,6 +5,7 @@
 #include "../../lighting/lights/Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../window/SwapChain.h"
+#include "../../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
 
 namespace vke {
@@ -204,6 +205,47 @@ namespace vke {
     commandBuffer->endRendering();
   }
 
+  void DynamicRenderer::beginRayTracingRendering(const uint32_t imageIndex,
+                                                 const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    const VkImageMemoryBarrier imageMemoryBarrier {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      .srcAccessMask = VK_ACCESS_NONE,
+      .dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+      .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .image = m_rayTracingImageResource->getImage(),
+      .subresourceRange = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+      VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+      0,
+      {},
+      {},
+      { imageMemoryBarrier }
+    );
+  }
+
+  void DynamicRenderer::endRayTracingRendering(const uint32_t imageIndex,
+                                               const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    transitionRayTracingImagePreCopy(commandBuffer, imageIndex);
+
+    copyRayTracingImageToOffscreenImage(commandBuffer, imageIndex);
+
+    transitionRayTracingImagePostCopy(commandBuffer, imageIndex);
+  }
+
   void DynamicRenderer::transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                           const VkImage image)
   {
@@ -262,4 +304,124 @@ namespace vke {
     );
   }
 
+  void DynamicRenderer::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                         const uint32_t imageIndex) const
+  {
+    const auto rtImage = m_rayTracingImageResource->getImage();
+    const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(imageIndex).getImage();
+
+    // Transition RT image: GENERAL -> TRANSFER_SRC_OPTIMAL
+    // Transition offscreen resolve image: UNDEFINED -> TRANSFER_DST_OPTIMAL
+    const std::vector<VkImageMemoryBarrier> preTransferBarriers {
+        {
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+          .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+          .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+          .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .image = rtImage,
+          .subresourceRange = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+          }
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+          .srcAccessMask = VK_ACCESS_NONE,
+          .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+          .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .image = offscreenImage,
+          .subresourceRange = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+          }
+        }
+    };
+
+    commandBuffer->pipelineBarrier(
+      VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      0,
+      {},
+      {},
+      preTransferBarriers
+    );
+  }
+
+  void DynamicRenderer::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                          const uint32_t imageIndex) const
+  {
+    const auto rtImage = m_rayTracingImageResource->getImage();
+    const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(imageIndex).getImage();
+
+    // Transition offscreen resolve: TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL
+    // Transition RT image back: TRANSFER_SRC_OPTIMAL -> GENERAL
+    const std::vector<VkImageMemoryBarrier> postTransferBarriers {
+        {
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+          .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+          .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+          .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+          .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .image = offscreenImage,
+          .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+          .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+          .dstAccessMask = VK_ACCESS_NONE,
+          .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+          .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .image = rtImage,
+          .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
+        }
+    };
+
+    commandBuffer->pipelineBarrier(
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+      0,
+      {},
+      {},
+      postTransferBarriers
+    );
+  }
+
+  void DynamicRenderer::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                            const uint32_t imageIndex) const
+  {
+    const auto rtImage = m_rayTracingImageResource->getImage();
+    const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(imageIndex).getImage();
+
+    const auto extent = m_offscreenRenderTarget->getExtent();
+
+    const VkImageCopy imageCopy {
+      .srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 },
+      .srcOffset = { 0, 0, 0 },
+      .dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 },
+      .dstOffset = { 0, 0, 0 },
+      .extent = { extent.width, extent.height, 1 }
+    };
+
+    commandBuffer->copyImage(
+      rtImage,      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      offscreenImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      { imageCopy }
+    );
+  }
 } // namespace vke

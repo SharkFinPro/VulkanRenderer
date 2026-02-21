@@ -36,7 +36,7 @@ namespace vke {
   {
     createCommandPool();
 
-    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, m_window);
+    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, assetManager, m_window);
 
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -242,8 +242,6 @@ namespace vke {
         return;
       }
 
-      m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
-
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
         .currentFrame = currentFrame,
@@ -251,6 +249,17 @@ namespace vke {
         .viewMatrix = {},
         .extent = m_offscreenViewportExtent
       };
+
+      if (m_renderer->supportsRayTracing())
+      {
+        m_renderer->beginRayTracingRendering(imageIndex, m_offscreenCommandBuffer);
+        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, m_renderer->getRayTracingImageResource());
+        m_renderer->endRayTracingRendering(imageIndex, m_offscreenCommandBuffer);
+
+        return;
+      }
+
+      m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
       const VkViewport viewport = {
         .x = 0.0f,

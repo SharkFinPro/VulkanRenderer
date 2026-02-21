@@ -7,6 +7,7 @@
 namespace vke {
 
   class CommandBuffer;
+  class ImageResource;
   class Light;
   class LogicalDevice;
   class RenderPass;
@@ -41,6 +42,8 @@ namespace vke {
 
     virtual void resetMousePickingImageResources(VkExtent2D mousePickingExtent);
 
+    virtual void resetRayTracingImageResources(VkExtent2D extent);
+
     virtual void beginSwapchainRendering(uint32_t imageIndex,
                                          VkExtent2D extent,
                                          std::shared_ptr<CommandBuffer> commandBuffer,
@@ -72,6 +75,16 @@ namespace vke {
     [[nodiscard]] virtual uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget,
                                                                  bool isCubeMap);
 
+    [[nodiscard]] virtual bool supportsRayTracing() const { return false; }
+
+    virtual void beginRayTracingRendering(uint32_t imageIndex,
+                                          const std::shared_ptr<CommandBuffer>& commandBuffer) {}
+
+    virtual void endRayTracingRendering(uint32_t imageIndex,
+                                        const std::shared_ptr<CommandBuffer>& commandBuffer) {}
+
+    [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource() const;
+
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -82,6 +95,8 @@ namespace vke {
     std::shared_ptr<RenderTarget> m_swapchainRenderTarget;
 
     std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
+
+    std::shared_ptr<ImageResource> m_rayTracingImageResource;
 
     VkSampler m_sampler = VK_NULL_HANDLE;
 
@@ -94,6 +109,8 @@ namespace vke {
     void createOffscreenRenderTarget(VkExtent2D extent);
 
     void createMousePickingRenderTarget(VkExtent2D extent);
+
+    void createRayTracingImageResource(VkExtent2D extent);
   };
 
 } // namespace vke

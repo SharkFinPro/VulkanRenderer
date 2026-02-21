@@ -1,5 +1,7 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
+#include "../ImageResource.h"
+#include "../../assets/AssetManager.h"
 #include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
@@ -15,9 +17,17 @@
 #include "../../../utilities/Buffers.h"
 
 namespace vke {
+
+  struct CameraUniformRT {
+    glm::mat4 viewInverse;
+    glm::mat4 projInverse;
+    glm::vec3 viewPosition;
+  };
+
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
+                         std::shared_ptr<AssetManager> assetManager,
                          std::shared_ptr<Window> window)
-    : m_logicalDevice(std::move(logicalDevice))
+    : m_logicalDevice(std::move(logicalDevice)), m_assetManager(std::move(assetManager))
   {
     createCommandPool();
 
@@ -72,8 +82,6 @@ namespace vke {
   {
     displayGui();
 
-    createTLAS();
-
     const RenderInfo renderInfo3D {
       .commandBuffer = renderInfo->commandBuffer,
       .currentFrame = renderInfo->currentFrame,
@@ -96,6 +104,63 @@ namespace vke {
     {
       renderGrid(pipelineManager, &renderInfo3D);
     }
+  }
+
+  void Renderer3D::doRayTracing(const RenderInfo* renderInfo,
+                                const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const std::shared_ptr<ImageResource>& imageResource)
+  {
+    createTLAS();
+
+    auto projectionMatrix = glm::perspective(
+      glm::radians(45.0f),
+      static_cast<float>(renderInfo->extent.width) / static_cast<float>(renderInfo->extent.height),
+      0.1f,
+      1000.0f
+    );
+
+    projectionMatrix[1][1] *= -1;
+
+    const CameraUniformRT cameraUBORT {
+      .viewInverse = glm::inverse(m_viewMatrix),
+      .projInverse = glm::inverse(projectionMatrix),
+      .viewPosition = m_viewPosition
+    };
+
+    m_cameraUniformRT->update(renderInfo->currentFrame, &cameraUBORT);
+
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, renderInfo](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .pNext = &m_tlasInfo,
+          .dstSet = descriptorSet,
+          .dstBinding = 0,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+        },
+        {
+          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+          .dstSet = descriptorSet,
+          .dstBinding = 1,
+          .descriptorCount = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+          .pImageInfo = &imageResource->getDescriptorImageInfo()
+        },
+        m_cameraUniformRT->getDescriptorSet(2, descriptorSet, renderInfo->currentFrame)
+      }};
+
+      return descriptorWrites;
+    });
+
+    pipelineManager->bindRayTracingPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      m_rayTracingDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    pipelineManager->doRayTracing(renderInfo->commandBuffer, renderInfo->extent);
   }
 
   void Renderer3D::createNewFrame()
@@ -489,6 +554,10 @@ namespace vke {
 
       return descriptorWrites;
     });
+
+    m_rayTracingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, m_assetManager->getRayTracingDescriptorSetLayout());
+
+    m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
   }
 
   bool Renderer3D::pipelineIsActive(const PipelineType pipelineType) const
@@ -803,6 +872,12 @@ namespace vke {
     });
 
     Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
+
+    m_tlasInfo = {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
+      .accelerationStructureCount = 1,
+      .pAccelerationStructures = &m_tlas
+    };
   }
 
   void Renderer3D::destroyTLAS()

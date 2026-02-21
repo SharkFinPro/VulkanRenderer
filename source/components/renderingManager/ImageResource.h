@@ -12,6 +12,7 @@ namespace vke {
     Color,
     Depth,
     Resolve,
+    RayTracingOutput,
     Undefined
   };
 
@@ -40,6 +41,8 @@ namespace vke {
 
     [[nodiscard]] VkDescriptorSet getDescriptorSet() const;
 
+    [[nodiscard]] const VkDescriptorImageInfo& getDescriptorImageInfo() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -48,6 +51,8 @@ namespace vke {
     VkDeviceMemory m_imageMemory = VK_NULL_HANDLE;
 
     VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
+
+    VkDescriptorImageInfo m_descriptorImageInfo{};
 
     void createImage(const ImageResourceConfig& config);
 

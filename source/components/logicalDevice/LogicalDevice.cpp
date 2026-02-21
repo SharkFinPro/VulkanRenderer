@@ -678,6 +678,27 @@ namespace vke {
     );
   }
 
+  void LogicalDevice::traceRays(VkCommandBuffer commandBuffer,
+                                const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+                                const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
+                                const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+                                const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
+                                const uint32_t width,
+                                const uint32_t height,
+                                const uint32_t depth) const
+  {
+    m_vkCmdTraceRaysKHR(
+      commandBuffer,
+      pRaygenShaderBindingTable,
+      pMissShaderBindingTable,
+      pHitShaderBindingTable,
+      pCallableShaderBindingTable,
+      width,
+      height,
+      depth
+    );
+  }
+
   void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              VkCommandBuffer* commandBuffers) const
   {
@@ -881,13 +902,17 @@ namespace vke {
     m_vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(
       vkGetDeviceProcAddr(m_device, "vkGetRayTracingShaderGroupHandlesKHR"));
 
+    m_vkCmdTraceRaysKHR = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(
+      vkGetDeviceProcAddr(m_device, "vkCmdTraceRaysKHR"));
+
     if (!m_vkCreateAccelerationStructureKHR ||
         !m_vkDestroyAccelerationStructureKHR ||
         !m_vkGetAccelerationStructureBuildSizesKHR ||
         !m_vkCmdBuildAccelerationStructuresKHR ||
         !m_vkGetAccelerationStructureDeviceAddressKHR ||
         !m_vkCreateRayTracingPipelinesKHR ||
-        !m_vkGetRayTracingShaderGroupHandlesKHR)
+        !m_vkGetRayTracingShaderGroupHandlesKHR ||
+        !m_vkCmdTraceRaysKHR)
     {
       throw std::runtime_error("Failed to load acceleration structure functions");
     }

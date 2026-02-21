@@ -21,6 +21,14 @@ namespace vke {
           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         );
       }
+
+      if (config.imageResourceType == ImageResourceType::RayTracingOutput)
+      {
+        m_descriptorImageInfo = {
+          .imageView = m_imageView,
+          .imageLayout = VK_IMAGE_LAYOUT_GENERAL
+        };
+      }
     }
 
     ImageResource::~ImageResource()
@@ -48,6 +56,11 @@ namespace vke {
     VkDescriptorSet ImageResource::getDescriptorSet() const
     {
       return m_descriptorSet;
+    }
+
+    const VkDescriptorImageInfo& ImageResource::getDescriptorImageInfo() const
+    {
+      return m_descriptorImageInfo;
     }
 
     void ImageResource::createImage(const ImageResourceConfig& config)
@@ -81,33 +94,39 @@ namespace vke {
       {
         imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
+        imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT; // TODO: Don't apply this to everything
+
         if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
         {
           imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
         }
       }
-
-    Images::createImage(
-      m_logicalDevice,
+      else if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
-        .flags = static_cast<VkImageCreateFlags>(config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0),
-        .extent = {
-          .width = config.extent.width,
-          .height = config.extent.height,
-          .depth = 1,
+        imageUsageFlags |= VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+      }
+
+      Images::createImage(
+        m_logicalDevice,
+        {
+          .flags = static_cast<VkImageCreateFlags>(config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0),
+          .extent = {
+            .width = config.extent.width,
+            .height = config.extent.height,
+            .depth = 1,
+          },
+          .mipLevels = 1,
+          .numSamples = config.numSamples,
+          .format = getFormat(config),
+          .tiling = VK_IMAGE_TILING_OPTIMAL,
+          .usage = imageUsageFlags,
+          .imageType = VK_IMAGE_TYPE_2D,
+          .layerCount = static_cast<uint32_t>(config.isCubeMap ? 6 : 1),
+          .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         },
-        .mipLevels = 1,
-        .numSamples = config.numSamples,
-        .format = getFormat(config),
-        .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = imageUsageFlags,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .layerCount = static_cast<uint32_t>(config.isCubeMap ? 6 : 1),
-        .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-      },
-      m_image,
-      m_imageMemory
-    );
+        m_image,
+        m_imageMemory
+      );
     }
 
     void ImageResource::createImageView(const ImageResourceConfig& config)
@@ -115,7 +134,8 @@ namespace vke {
       VkImageAspectFlags imageAspectFlags = 0;
 
       if (config.imageResourceType == ImageResourceType::Color ||
-          config.imageResourceType == ImageResourceType::Resolve)
+          config.imageResourceType == ImageResourceType::Resolve ||
+          config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
         imageAspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
       }
@@ -151,6 +171,10 @@ namespace vke {
       {
         imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       }
+      else if (config.imageResourceType == ImageResourceType::RayTracingOutput)
+      {
+        imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+      }
 
       Images::transitionImageLayout(
         m_logicalDevice,
@@ -177,6 +201,11 @@ namespace vke {
       }
 
       if (config.imageResourceType == ImageResourceType::Resolve)
+      {
+        return config.resolveFormat;
+      }
+
+      if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
         return config.resolveFormat;
       }

@@ -41,12 +41,29 @@ namespace vke {
 
     void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
+    [[nodiscard]] bool supportsRayTracing() const override { return true; };
+
+    void beginRayTracingRendering(uint32_t imageIndex,
+                                  const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+
+    void endRayTracingRendering(uint32_t imageIndex,
+                                const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+
   private:
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   VkImage image);
 
     static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    VkImage image);
+
+    void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                          uint32_t imageIndex) const;
+
+    void transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           uint32_t imageIndex) const;
+
+    void copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             uint32_t imageIndex) const;
   };
 
 } // namespace vke
