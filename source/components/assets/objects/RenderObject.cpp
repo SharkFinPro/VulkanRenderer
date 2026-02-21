@@ -121,6 +121,11 @@ namespace vke {
     return model;
   }
 
+  std::shared_ptr<Texture> RenderObject::getTexture() const
+  {
+    return m_texture;
+  }
+
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          VkDescriptorPool descriptorPool,
                                          VkDescriptorSetLayout descriptorSetLayout)
