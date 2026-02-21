@@ -36,7 +36,7 @@ namespace vke {
   {
     createCommandPool();
 
-    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, m_window);
+    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, assetManager, m_window);
 
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
@@ -283,7 +283,7 @@ namespace vke {
       m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
 
       m_renderer->beginRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
-      m_renderer3D->doRayTracing(&renderInfo, pipelineManager);
+      m_renderer3D->doRayTracing(&renderInfo, pipelineManager, m_renderer->getRayTracingImageResource());
       m_renderer->endRayTracingRendering(currentFrame, m_offscreenCommandBuffer);
     });
   }

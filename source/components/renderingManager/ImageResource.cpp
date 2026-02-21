@@ -21,6 +21,14 @@ namespace vke {
           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         );
       }
+
+      if (config.imageResourceType == ImageResourceType::RayTracingOutput)
+      {
+        m_descriptorImageInfo = {
+          .imageView = m_imageView,
+          .imageLayout = VK_IMAGE_LAYOUT_GENERAL
+        };
+      }
     }
 
     ImageResource::~ImageResource()
@@ -48,6 +56,11 @@ namespace vke {
     VkDescriptorSet ImageResource::getDescriptorSet() const
     {
       return m_descriptorSet;
+    }
+
+    const VkDescriptorImageInfo& ImageResource::getDescriptorImageInfo() const
+    {
+      return m_descriptorImageInfo;
     }
 
     void ImageResource::createImage(const ImageResourceConfig& config)
