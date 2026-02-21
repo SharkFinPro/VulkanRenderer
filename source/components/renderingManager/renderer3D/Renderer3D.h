@@ -335,6 +335,9 @@ namespace vke {
     void updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
                                 VkExtent2D extent,
                                 uint32_t currentFrame);
+
+    void updateRTDescriptorSetData(VkExtent2D extent,
+                                   uint32_t currentFrame);
   };
 } // vke
 

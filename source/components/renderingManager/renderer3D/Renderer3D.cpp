@@ -961,26 +961,7 @@ namespace vke {
                                           const VkExtent2D extent,
                                           const uint32_t currentFrame)
   {
-    auto projectionMatrix = glm::perspective(
-      glm::radians(45.0f),
-      static_cast<float>(extent.width) / static_cast<float>(extent.height),
-      0.1f,
-      1000.0f
-    );
-
-    projectionMatrix[1][1] *= -1;
-
-    const CameraUniformRT cameraUBORT {
-      .viewInverse = glm::inverse(m_viewMatrix),
-      .projInverse = glm::inverse(projectionMatrix),
-      .viewPosition = m_viewPosition
-    };
-
-    m_cameraUniformRT->update(currentFrame, &cameraUBORT);
-
-    m_vertexBufferInfo.buffer = m_mergedVertexBuffer;
-    m_indexBufferInfo.buffer = m_mergedIndexBuffer;
-    m_meshInfoInfo.buffer = m_meshInfoBuffer;
+    updateRTDescriptorSetData(extent, currentFrame);
 
     m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
@@ -1038,5 +1019,30 @@ namespace vke {
 
       return descriptorWrites;
     });
+  }
+
+  void Renderer3D::updateRTDescriptorSetData(const VkExtent2D extent,
+                                             const uint32_t currentFrame)
+  {
+    auto projectionMatrix = glm::perspective(
+      glm::radians(45.0f),
+      static_cast<float>(extent.width) / static_cast<float>(extent.height),
+      0.1f,
+      1000.0f
+    );
+
+    projectionMatrix[1][1] *= -1;
+
+    const CameraUniformRT cameraUBORT {
+      .viewInverse = glm::inverse(m_viewMatrix),
+      .projInverse = glm::inverse(projectionMatrix),
+      .viewPosition = m_viewPosition
+    };
+
+    m_cameraUniformRT->update(currentFrame, &cameraUBORT);
+
+    m_vertexBufferInfo.buffer = m_mergedVertexBuffer;
+    m_indexBufferInfo.buffer = m_mergedIndexBuffer;
+    m_meshInfoInfo.buffer = m_meshInfoBuffer;
   }
 } // vke
