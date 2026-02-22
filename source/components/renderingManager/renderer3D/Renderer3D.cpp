@@ -902,11 +902,25 @@ namespace vke {
         m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
       }
 
+      uint32_t specularIndex = 0;
+      if (textureIndices.contains(renderObject->getTexture()))
+      {
+        specularIndex = textureIndices.at(renderObject->getTexture());
+      }
+      else
+      {
+        specularIndex = static_cast<uint32_t>(textureIndices.size());
+
+        textureIndices.emplace(renderObject->getTexture(), specularIndex);
+
+        m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
+      }
+
       meshInfos.push_back({
         .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
         .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
         .textureIndex = textureIndex,
-        .padding = 0
+        .specularIndex = specularIndex
       });
 
       const auto& vertices = model->getVertices();

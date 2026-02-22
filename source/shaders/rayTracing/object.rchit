@@ -26,7 +26,7 @@ struct MeshInfo {
   uint vertexOffset;
   uint indexOffset;
   uint textureIndex;
-  uint padding;
+  uint specularIndex;
 };
 
 layout(binding = 3, set = 0) readonly buffer VertexBuffer {
@@ -86,7 +86,7 @@ void main()
 //  payload = vec3(texCoord, 0.0);
 
   vec3 texColor = texture(textures[nonuniformEXT(info.textureIndex)], texCoord).rgb;
-  vec3 specColor = vec3(0);
+  vec3 specColor = texture(textures[nonuniformEXT(info.specularIndex)], texCoord).rgb;
 
   vec3 localPos = bary.x * v0.pos + bary.y * v1.pos + bary.z * v2.pos;
   vec3 fragPos = vec3(gl_ObjectToWorldEXT * vec4(localPos, 1.0));

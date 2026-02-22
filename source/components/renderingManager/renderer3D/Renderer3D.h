@@ -33,7 +33,7 @@ namespace vke {
     uint32_t vertexOffset;
     uint32_t indexOffset;
     uint32_t textureIndex;
-    uint32_t padding;
+    uint32_t specularIndex;
   };
 
   struct BendyPlant {
