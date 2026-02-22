@@ -136,6 +136,7 @@ namespace vke {
 
     void doRayTracing(const RenderInfo* renderInfo,
                       const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const std::shared_ptr<LightingManager>& lightingManager,
                       const std::shared_ptr<ImageResource>& imageResource);
 
     void createNewFrame();

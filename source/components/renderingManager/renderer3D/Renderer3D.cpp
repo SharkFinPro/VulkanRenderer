@@ -109,6 +109,7 @@ namespace vke {
 
   void Renderer3D::doRayTracing(const RenderInfo* renderInfo,
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const std::shared_ptr<LightingManager>& lightingManager,
                                 const std::shared_ptr<ImageResource>& imageResource)
   {
     createTLAS();
@@ -121,6 +122,12 @@ namespace vke {
       renderInfo->commandBuffer,
       m_rayTracingDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
       0
+    );
+
+    pipelineManager->bindRayTracingPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      lightingManager->getLightingDescriptorSet()->getDescriptorSet(renderInfo->currentFrame),
+      1
     );
 
     pipelineManager->doRayTracing(renderInfo->commandBuffer, renderInfo->extent);
