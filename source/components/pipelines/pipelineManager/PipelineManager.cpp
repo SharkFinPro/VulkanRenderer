@@ -29,11 +29,15 @@ namespace vke {
     RayTracingPipelineConfig rtConfig {
       .shaders {
         .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
-        .missShader = "assets/shaders/rayTracing/object.rmiss.spv",
+        .missShaders = {
+          "assets/shaders/rayTracing/object.rmiss.spv",
+          "assets/shaders/rayTracing/shadow.rmiss.spv"
+        },
         .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
       },
       .descriptorSetLayouts {
-        assetManager->getRayTracingDescriptorSetLayout()
+        assetManager->getRayTracingDescriptorSetLayout(),
+        lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout()
       }
     };
     m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);

@@ -12,21 +12,21 @@ namespace vke::LayoutBindings {
     .binding = 0,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
   };
 
   constexpr VkDescriptorSetLayoutBinding pointLightsLayout {
     .binding = 1,
     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
   };
 
   constexpr VkDescriptorSetLayoutBinding spotLightsLayout {
     .binding = 2,
     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
   };
 
   constexpr VkDescriptorSetLayoutBinding spotLightsSamplerLayout {
@@ -47,7 +47,7 @@ namespace vke::LayoutBindings {
     .binding = 3,
     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
   };
 
   constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {

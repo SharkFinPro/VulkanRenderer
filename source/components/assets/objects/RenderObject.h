@@ -52,6 +52,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Texture> getTexture() const;
 
+    [[nodiscard]] std::shared_ptr<Texture> getSpecularMap() const;
+
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 

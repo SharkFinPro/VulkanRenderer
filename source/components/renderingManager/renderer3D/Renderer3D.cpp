@@ -109,6 +109,7 @@ namespace vke {
 
   void Renderer3D::doRayTracing(const RenderInfo* renderInfo,
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const std::shared_ptr<LightingManager>& lightingManager,
                                 const std::shared_ptr<ImageResource>& imageResource)
   {
     createTLAS();
@@ -121,6 +122,12 @@ namespace vke {
       renderInfo->commandBuffer,
       m_rayTracingDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
       0
+    );
+
+    pipelineManager->bindRayTracingPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      lightingManager->getLightingDescriptorSet()->getDescriptorSet(renderInfo->currentFrame),
+      1
     );
 
     pipelineManager->doRayTracing(renderInfo->commandBuffer, renderInfo->extent);
@@ -881,25 +888,41 @@ namespace vke {
     {
       const auto& model = renderObject->getModel();
 
+      auto texture = renderObject->getTexture();
       uint32_t textureIndex = 0;
-      if (textureIndices.contains(renderObject->getTexture()))
+      if (textureIndices.contains(texture))
       {
-        textureIndex = textureIndices.at(renderObject->getTexture());
+        textureIndex = textureIndices.at(texture);
       }
       else
       {
         textureIndex = static_cast<uint32_t>(textureIndices.size());
 
-        textureIndices.emplace(renderObject->getTexture(), textureIndex);
+        textureIndices.emplace(texture, textureIndex);
 
-        m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
+        m_textureImageInfos.push_back(texture->getImageInfo());
+      }
+
+      auto specularMap = renderObject->getSpecularMap();
+      uint32_t specularIndex = 0;
+      if (textureIndices.contains(specularMap))
+      {
+        specularIndex = textureIndices.at(specularMap);
+      }
+      else
+      {
+        specularIndex = static_cast<uint32_t>(textureIndices.size());
+
+        textureIndices.emplace(specularMap, specularIndex);
+
+        m_textureImageInfos.push_back(specularMap->getImageInfo());
       }
 
       meshInfos.push_back({
         .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
         .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
         .textureIndex = textureIndex,
-        .padding = 0
+        .specularIndex = specularIndex
       });
 
       const auto& vertices = model->getVertices();

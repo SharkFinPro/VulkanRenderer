@@ -33,7 +33,7 @@ namespace vke {
     uint32_t vertexOffset;
     uint32_t indexOffset;
     uint32_t textureIndex;
-    uint32_t padding;
+    uint32_t specularIndex;
   };
 
   struct BendyPlant {
@@ -136,6 +136,7 @@ namespace vke {
 
     void doRayTracing(const RenderInfo* renderInfo,
                       const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const std::shared_ptr<LightingManager>& lightingManager,
                       const std::shared_ptr<ImageResource>& imageResource);
 
     void createNewFrame();
