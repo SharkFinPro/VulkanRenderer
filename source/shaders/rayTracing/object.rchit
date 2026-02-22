@@ -91,7 +91,7 @@ void main()
   vec3 localPos = bary.x * v0.pos + bary.y * v1.pos + bary.z * v2.pos;
   vec3 fragPos = vec3(gl_ObjectToWorldEXT * vec4(localPos, 1.0));
 
-  vec3 fragNormal = normalize(mat3(gl_WorldToObjectEXT) * normal);
+  vec3 fragNormal = normalize(normal * mat3(gl_WorldToObjectEXT));
 
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
