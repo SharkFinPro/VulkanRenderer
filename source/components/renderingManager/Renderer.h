@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <vector>
 
 namespace vke {
 
@@ -77,13 +78,14 @@ namespace vke {
 
     [[nodiscard]] virtual bool supportsRayTracing() const { return false; }
 
-    virtual void beginRayTracingRendering(uint32_t imageIndex,
-                                          const std::shared_ptr<CommandBuffer>& commandBuffer) {}
+    virtual void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                          uint32_t currentFrame) {}
 
-    virtual void endRayTracingRendering(uint32_t imageIndex,
-                                        const std::shared_ptr<CommandBuffer>& commandBuffer) {}
+    virtual void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                        uint32_t currentFrame,
+                                        uint32_t imageIndex) {}
 
-    [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource() const;
+    [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource(uint32_t currentFrame) const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -96,7 +98,7 @@ namespace vke {
 
     std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
 
-    std::shared_ptr<ImageResource> m_rayTracingImageResource;
+    std::vector<std::shared_ptr<ImageResource>> m_rayTracingImageResources;
 
     VkSampler m_sampler = VK_NULL_HANDLE;
 

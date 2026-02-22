@@ -528,12 +528,16 @@ namespace vke {
       return descriptorWrites;
     });
 
-    uint32_t maxTextures = 256;
+    std::vector<uint32_t> maxTextures;
+    for (uint32_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
+    {
+      maxTextures.push_back(256);
+    }
 
     VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo {
       .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
-      .descriptorSetCount = 1,
-      .pDescriptorCounts  = &maxTextures
+      .descriptorSetCount = static_cast<uint32_t>(maxTextures.size()),
+      .pDescriptorCounts  = maxTextures.data()
     };
 
     m_rayTracingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool,
