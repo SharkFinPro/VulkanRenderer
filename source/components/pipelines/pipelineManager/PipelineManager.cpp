@@ -33,7 +33,8 @@ namespace vke {
         .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
       },
       .descriptorSetLayouts {
-        assetManager->getRayTracingDescriptorSetLayout()
+        assetManager->getRayTracingDescriptorSetLayout(),
+        lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout()
       }
     };
     m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
