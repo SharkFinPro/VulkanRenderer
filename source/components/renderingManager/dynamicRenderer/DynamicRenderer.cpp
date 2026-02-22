@@ -5,8 +5,6 @@
 #include "../../lighting/lights/Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../window/SwapChain.h"
-#include "../../../utilities/Images.h"
-#include <backends/imgui_impl_vulkan.h>
 
 namespace vke {
 
