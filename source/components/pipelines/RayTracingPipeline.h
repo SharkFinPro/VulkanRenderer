@@ -16,13 +16,13 @@ namespace vke {
   struct RayTracingPipelineConfig {
     struct {
       std::string rayGenerationShader;
-      std::string missShader;
+      std::vector<std::string> missShaders;
       std::string closestHitShader;
 
       [[nodiscard]] std::vector<ShaderModule> getShaderModules(const std::shared_ptr<LogicalDevice>& logicalDevice) const
       {
         if (rayGenerationShader.empty() ||
-            missShader.empty() ||
+            missShaders.empty() ||
             closestHitShader.empty())
         {
           throw std::runtime_error("Missing required ray tracing shaders!");
@@ -32,7 +32,10 @@ namespace vke {
 
         shaderModules.emplace_back(logicalDevice, rayGenerationShader.c_str(), VK_SHADER_STAGE_RAYGEN_BIT_KHR);
 
-        shaderModules.emplace_back(logicalDevice, missShader.c_str(), VK_SHADER_STAGE_MISS_BIT_KHR);
+        for (const auto& missShader : missShaders)
+        {
+          shaderModules.emplace_back(logicalDevice, missShader.c_str(), VK_SHADER_STAGE_MISS_BIT_KHR);
+        }
 
         shaderModules.emplace_back(logicalDevice, closestHitShader.c_str(), VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
 
@@ -89,7 +92,7 @@ namespace vke {
 
     void createPipeline(const RayTracingPipelineConfig& config);
 
-    void createShaderBindingTable();
+    void createShaderBindingTable(const RayTracingPipelineConfig& config);
   };
 } // vke
 

@@ -12,7 +12,7 @@ namespace vke {
   {
     createPipeline(config);
 
-    createShaderBindingTable();
+    createShaderBindingTable(config);
   }
 
   RayTracingPipeline::~RayTracingPipeline()
@@ -69,32 +69,37 @@ namespace vke {
     const auto shaderModules = config.shaders.getShaderModules(m_logicalDevice);
     const auto shaderStages = config.shaders.getShaderStages(shaderModules);
 
-    const std::vector<VkRayTracingShaderGroupCreateInfoKHR> groups {
-      {
+    std::vector<VkRayTracingShaderGroupCreateInfoKHR> groups;
+
+    groups.push_back({
+      .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
+      .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR,
+      .generalShader = static_cast<uint32_t>(groups.size()),
+      .closestHitShader = VK_SHADER_UNUSED_KHR,
+      .anyHitShader = VK_SHADER_UNUSED_KHR,
+      .intersectionShader = VK_SHADER_UNUSED_KHR
+    });
+
+    for (const auto& _ : config.shaders.missShaders)
+    {
+      groups.push_back({
         .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
         .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR,
-        .generalShader = 0,
+        .generalShader = static_cast<uint32_t>(groups.size()),
         .closestHitShader = VK_SHADER_UNUSED_KHR,
         .anyHitShader = VK_SHADER_UNUSED_KHR,
         .intersectionShader = VK_SHADER_UNUSED_KHR
-      },
-      {
-        .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
-        .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR,
-        .generalShader = 1,
-        .closestHitShader = VK_SHADER_UNUSED_KHR,
-        .anyHitShader = VK_SHADER_UNUSED_KHR,
-        .intersectionShader = VK_SHADER_UNUSED_KHR
-      },
-      {
-        .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
-        .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR,
-        .generalShader = VK_SHADER_UNUSED_KHR,
-        .closestHitShader = 2,
-        .anyHitShader = VK_SHADER_UNUSED_KHR,
-        .intersectionShader = VK_SHADER_UNUSED_KHR
-      }
-    };
+      });
+    }
+
+    groups.push_back({
+      .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
+      .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR,
+      .generalShader = VK_SHADER_UNUSED_KHR,
+      .closestHitShader = static_cast<uint32_t>(groups.size()),
+      .anyHitShader = VK_SHADER_UNUSED_KHR,
+      .intersectionShader = VK_SHADER_UNUSED_KHR
+    });
 
     const VkRayTracingPipelineCreateInfoKHR rayTracingPipelineCreateInfo {
       .sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
@@ -111,7 +116,7 @@ namespace vke {
     m_pipeline = m_logicalDevice->createPipeline(rayTracingPipelineCreateInfo);
   }
 
-  void RayTracingPipeline::createShaderBindingTable()
+  void RayTracingPipeline::createShaderBindingTable(const RayTracingPipelineConfig& config)
   {
     const auto rayTracingPipelineProperties = m_logicalDevice->getPhysicalDevice()->getRayTracingPipelineProperties();
 
@@ -121,7 +126,9 @@ namespace vke {
 
     const uint32_t alignedHandleSize = (shaderGroupHandleSize + shaderGroupHandleAlignment - 1) & ~(shaderGroupHandleAlignment - 1);
 
-    constexpr uint32_t groupCount = 3;
+    const auto missCount = static_cast<uint32_t>(config.shaders.missShaders.size());
+
+    const uint32_t groupCount = 1 + missCount + 1;
 
     const uint32_t shaderBindingTableSize = groupCount * shaderGroupBaseAlignment;
 
@@ -138,7 +145,7 @@ namespace vke {
       m_shaderBindingTableMemory
     );
 
-    m_logicalDevice->doMappedMemoryOperation(m_shaderBindingTableMemory, [handles, shaderGroupBaseAlignment, shaderGroupHandleSize](void* data) {
+    m_logicalDevice->doMappedMemoryOperation(m_shaderBindingTableMemory, [groupCount, handles, shaderGroupBaseAlignment, shaderGroupHandleSize](void* data) {
       auto* dst = static_cast<uint8_t*>(data);
       for (uint32_t i = 0; i < groupCount; ++i)
       {
@@ -156,12 +163,12 @@ namespace vke {
 
     m_missRegion = {
       .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment,
-      .stride = alignedHandleSize,
-      .size = alignedHandleSize
+      .stride = shaderGroupBaseAlignment,
+      .size = shaderGroupBaseAlignment * missCount
     };
 
     m_hitRegion = {
-      .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment * 2,
+      .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment * (1 + missCount),
       .stride = alignedHandleSize,
       .size = alignedHandleSize
     };
