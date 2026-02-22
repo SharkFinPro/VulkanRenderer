@@ -126,6 +126,11 @@ namespace vke {
     return m_texture;
   }
 
+  std::shared_ptr<Texture> RenderObject::getSpecularMap() const
+  {
+    return m_specularMap;
+  }
+
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          VkDescriptorPool descriptorPool,
                                          VkDescriptorSetLayout descriptorSetLayout)

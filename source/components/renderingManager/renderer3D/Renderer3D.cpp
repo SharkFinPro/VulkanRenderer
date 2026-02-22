@@ -888,32 +888,34 @@ namespace vke {
     {
       const auto& model = renderObject->getModel();
 
+      auto texture = renderObject->getTexture();
       uint32_t textureIndex = 0;
-      if (textureIndices.contains(renderObject->getTexture()))
+      if (textureIndices.contains(texture))
       {
-        textureIndex = textureIndices.at(renderObject->getTexture());
+        textureIndex = textureIndices.at(texture);
       }
       else
       {
         textureIndex = static_cast<uint32_t>(textureIndices.size());
 
-        textureIndices.emplace(renderObject->getTexture(), textureIndex);
+        textureIndices.emplace(texture, textureIndex);
 
-        m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
+        m_textureImageInfos.push_back(texture->getImageInfo());
       }
 
+      auto specularMap = renderObject->getSpecularMap();
       uint32_t specularIndex = 0;
-      if (textureIndices.contains(renderObject->getTexture()))
+      if (textureIndices.contains(specularMap))
       {
-        specularIndex = textureIndices.at(renderObject->getTexture());
+        specularIndex = textureIndices.at(specularMap);
       }
       else
       {
         specularIndex = static_cast<uint32_t>(textureIndices.size());
 
-        textureIndices.emplace(renderObject->getTexture(), specularIndex);
+        textureIndices.emplace(specularMap, specularIndex);
 
-        m_textureImageInfos.push_back(renderObject->getTexture()->getImageInfo());
+        m_textureImageInfos.push_back(specularMap->getImageInfo());
       }
 
       meshInfos.push_back({
