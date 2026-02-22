@@ -69,7 +69,7 @@ namespace vke {
       return;
     }
 
-    m_rayTracingImageResource.reset();
+    m_rayTracingImageResources.clear();
 
     createRayTracingImageResource(extent);
   }
@@ -80,9 +80,9 @@ namespace vke {
     return ++m_currentShadowMapRenderTargetID;
   }
 
-  std::shared_ptr<ImageResource> Renderer::getRayTracingImageResource() const
+  std::shared_ptr<ImageResource> Renderer::getRayTracingImageResource(const uint32_t currentFrame) const
   {
-    return m_rayTracingImageResource;
+    return m_rayTracingImageResources.at(currentFrame);
   }
 
   void Renderer::createSampler()
@@ -168,6 +168,9 @@ namespace vke {
       .numSamples = VK_SAMPLE_COUNT_1_BIT
     };
 
-    m_rayTracingImageResource = std::make_shared<ImageResource>(imageResourceConfig);
+    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
+    {
+      m_rayTracingImageResources.emplace_back(std::make_shared<ImageResource>(imageResourceConfig));
+    }
   }
 } // namespace vke

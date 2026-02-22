@@ -43,11 +43,12 @@ namespace vke {
 
     [[nodiscard]] bool supportsRayTracing() const override { return true; };
 
-    void beginRayTracingRendering(uint32_t imageIndex,
-                                  const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+    void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                  uint32_t currentFrame) override;
 
-    void endRayTracingRendering(uint32_t imageIndex,
-                                const std::shared_ptr<CommandBuffer>& commandBuffer) override;
+    void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                uint32_t currentFrame,
+                                uint32_t imageIndex) override;
 
   private:
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -57,12 +58,15 @@ namespace vke {
                                                    VkImage image);
 
     void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                          uint32_t currentFrame,
                                           uint32_t imageIndex) const;
 
     void transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           uint32_t currentFrame,
                                            uint32_t imageIndex) const;
 
     void copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             uint32_t currentFrame,
                                              uint32_t imageIndex) const;
   };
 

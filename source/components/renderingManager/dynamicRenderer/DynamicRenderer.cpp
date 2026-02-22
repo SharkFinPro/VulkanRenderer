@@ -203,8 +203,8 @@ namespace vke {
     commandBuffer->endRendering();
   }
 
-  void DynamicRenderer::beginRayTracingRendering(const uint32_t imageIndex,
-                                                 const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void DynamicRenderer::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                 const uint32_t currentFrame)
   {
     const VkImageMemoryBarrier imageMemoryBarrier {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -214,7 +214,7 @@ namespace vke {
       .newLayout = VK_IMAGE_LAYOUT_GENERAL,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = m_rayTracingImageResource->getImage(),
+      .image = getRayTracingImageResource(currentFrame)->getImage(),
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
@@ -234,14 +234,15 @@ namespace vke {
     );
   }
 
-  void DynamicRenderer::endRayTracingRendering(const uint32_t imageIndex,
-                                               const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void DynamicRenderer::endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                               const uint32_t currentFrame,
+                                               const uint32_t imageIndex)
   {
-    transitionRayTracingImagePreCopy(commandBuffer, imageIndex);
+    transitionRayTracingImagePreCopy(commandBuffer, currentFrame, imageIndex);
 
-    copyRayTracingImageToOffscreenImage(commandBuffer, imageIndex);
+    copyRayTracingImageToOffscreenImage(commandBuffer, currentFrame, imageIndex);
 
-    transitionRayTracingImagePostCopy(commandBuffer, imageIndex);
+    transitionRayTracingImagePostCopy(commandBuffer, currentFrame, imageIndex);
   }
 
   void DynamicRenderer::transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -303,9 +304,10 @@ namespace vke {
   }
 
   void DynamicRenderer::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                         const uint32_t currentFrame,
                                                          const uint32_t imageIndex) const
   {
-    const auto rtImage = m_rayTracingImageResource->getImage();
+    const auto rtImage = getRayTracingImageResource(currentFrame)->getImage();
     const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(imageIndex).getImage();
 
     // Transition RT image: GENERAL -> TRANSFER_SRC_OPTIMAL
@@ -358,9 +360,10 @@ namespace vke {
   }
 
   void DynamicRenderer::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                          const uint32_t currentFrame,
                                                           const uint32_t imageIndex) const
   {
-    const auto rtImage = m_rayTracingImageResource->getImage();
+    const auto rtImage = getRayTracingImageResource(currentFrame)->getImage();
     const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(imageIndex).getImage();
 
     // Transition offscreen resolve: TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL
@@ -401,9 +404,10 @@ namespace vke {
   }
 
   void DynamicRenderer::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                            const uint32_t currentFrame,
                                                             const uint32_t imageIndex) const
   {
-    const auto rtImage = m_rayTracingImageResource->getImage();
+    const auto rtImage = getRayTracingImageResource(currentFrame)->getImage();
     const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(imageIndex).getImage();
 
     const auto extent = m_offscreenRenderTarget->getExtent();
