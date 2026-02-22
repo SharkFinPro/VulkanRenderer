@@ -208,8 +208,7 @@ namespace vke {
     std::vector<VkSemaphore> m_computeFinishedSemaphores;
     std::vector<VkFence> m_computeInFlightFences;
 
-    // uint8_t m_maxFramesInFlight = 2;
-    uint8_t m_maxFramesInFlight = 1; // TODO: revert
+    uint8_t m_maxFramesInFlight = 2;
 
     PFN_vkCreateAccelerationStructureKHR m_vkCreateAccelerationStructureKHR = nullptr;
     PFN_vkDestroyAccelerationStructureKHR m_vkDestroyAccelerationStructureKHR = nullptr;
