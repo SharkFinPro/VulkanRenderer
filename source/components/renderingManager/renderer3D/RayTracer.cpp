@@ -5,7 +5,7 @@
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/textures/Texture.h"
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
-#include "../../lighting/lightingManager.h"
+#include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/GraphicsPipeline.h"
