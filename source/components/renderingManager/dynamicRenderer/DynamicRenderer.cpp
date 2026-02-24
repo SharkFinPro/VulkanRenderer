@@ -4,6 +4,7 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/lights/Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../window/SwapChain.h"
 
 namespace vke {
@@ -201,6 +202,11 @@ namespace vke {
   void DynamicRenderer::endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->endRendering();
+  }
+
+  bool DynamicRenderer::supportsRayTracing() const
+  {
+    return m_logicalDevice->getPhysicalDevice()->supportsRayTracing();
   }
 
   void DynamicRenderer::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,

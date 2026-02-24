@@ -265,7 +265,7 @@ namespace vke {
         .extent = m_offscreenViewportExtent
       };
 
-      if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() && m_renderer->supportsRayTracing() && m_rayTracingEnabled)
+      if (m_renderer->supportsRayTracing() && m_rayTracingEnabled)
       {
         m_renderer->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
         m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getRayTracingImageResource(currentFrame));

@@ -41,7 +41,7 @@ namespace vke {
 
     void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
-    [[nodiscard]] bool supportsRayTracing() const override { return true; };
+    [[nodiscard]] bool supportsRayTracing() const override;
 
     void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                   uint32_t currentFrame) override;
