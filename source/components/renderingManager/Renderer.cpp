@@ -159,6 +159,11 @@ namespace vke {
 
   void Renderer::createRayTracingImageResource(const VkExtent2D extent)
   {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+    
     ImageResourceConfig imageResourceConfig {
       .imageResourceType = ImageResourceType::RayTracingOutput,
       .logicalDevice = m_logicalDevice,

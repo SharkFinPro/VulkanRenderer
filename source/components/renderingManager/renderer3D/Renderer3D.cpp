@@ -30,7 +30,10 @@ namespace vke {
 
     createDescriptorSets();
 
-    m_rayTracer = std::make_unique<RayTracer>(m_logicalDevice, m_assetManager, m_commandPool, m_descriptorPool);
+    if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      m_rayTracer = std::make_unique<RayTracer>(m_logicalDevice, m_assetManager, m_commandPool, m_descriptorPool);
+    }
   }
 
   Renderer3D::~Renderer3D()
@@ -223,12 +226,16 @@ namespace vke {
 
   void Renderer3D::createDescriptorPool()
   {
-    const std::array<VkDescriptorPoolSize, 4> poolSizes {{
+    std::vector<VkDescriptorPoolSize> poolSizes {{
       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 256},
       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_logicalDevice->getMaxFramesInFlight() * 4},
-      {VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, m_logicalDevice->getMaxFramesInFlight() * 4},
       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 10},
-  }};
+    }};
+
+    if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      poolSizes.push_back({VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, m_logicalDevice->getMaxFramesInFlight() * 4});
+    }
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,

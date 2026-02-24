@@ -252,6 +252,11 @@ namespace vke {
 
   void AssetManager::createRayTracingDescriptorSetLayout()
   {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+    
     const std::vector<VkDescriptorSetLayoutBinding> rayTracingDescriptorSetLayoutBinding {{
       {
         .binding = 0,
