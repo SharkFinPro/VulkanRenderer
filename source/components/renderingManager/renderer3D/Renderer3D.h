@@ -1,11 +1,14 @@
 #ifndef VULKANPROJECT_RENDERER3D_H
 #define VULKANPROJECT_RENDERER3D_H
 
+#include "Renderer3DPushConstants.h"
+#include "../../pipelines/implementations/common/PipelineTypes.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace vke {
@@ -19,7 +22,6 @@ namespace vke {
   class LogicalDevice;
   class MousePicker;
   class PipelineManager;
-  enum class PipelineType;
   struct RenderInfo;
   class RenderObject;
   class SmokeSystem;
@@ -44,72 +46,20 @@ namespace vke {
     float bendStrength = -0.07;
   };
 
-  struct GridPushConstant {
-    glm::mat4 viewProj;
-    glm::vec3 viewPosition;
-  };
+  using PushConstantVariant = std::variant<
+    MagnifyWhirlMosaicPushConstant,
+    EllipticalDotsPushConstant,
+    CrossesPushConstant,
+    CurtainPushConstant,
+    BumpyCurtainPushConstant,
+    SnakePushConstant,
+    NoisyEllipticalDotsPushConstant,
+    CubeMapPushConstant
+  >;
 
-  struct MagnifyWhirlMosaicPushConstant {
-    float lensS;
-    float lensT;
-    float lensRadius;
-    float magnification;
-    float whirl;
-    float mosaic;
-  };
-
-  struct EllipticalDotsPushConstant {
-    float shininess;
-    float sDiameter;
-    float tDiameter;
-    float blendFactor;
-  };
-
-  struct CrossesPushConstant {
-    glm::vec3 position;
-    float quantize;
-    float size;
-    float shininess;
-    float blueDepth;
-    float redDepth;
-    int level;
-    uint32_t useChromaDepth;
-  };
-
-  struct CurtainPushConstant {
-    float amplitude;
-    float period;
-    float shininess;
-  };
-
-  struct BumpyCurtainPushConstant {
-    float amplitude;
-    float period;
-    float shininess;
-    float noiseAmplitude;
-    float noiseFrequency;
-  };
-
-  struct SnakePushConstant {
-    float wiggle;
-  };
-
-  struct NoisyEllipticalDotsPushConstant {
-    float shininess;
-    float sDiameter;
-    float tDiameter;
-    float blendFactor;
-    float noiseAmplitude;
-    float noiseFrequency;
-  };
-
-  struct CubeMapPushConstant {
-    glm::vec3 position;
-    float mix;
-    float refractionIndex;
-    float whiteMix;
-    float noiseAmplitude;
-    float noiseFrequency;
+  struct PushConstantEntry {
+    PushConstantVariant data;
+    VkShaderStageFlags stages;
   };
 
   class Renderer3D {
@@ -203,67 +153,15 @@ namespace vke {
 
     std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
 
-    MagnifyWhirlMosaicPushConstant m_magnifyWhirlMosaicPC {
-      .lensS = 0.5f,
-      .lensT = 0.5f,
-      .lensRadius = 0.25f,
-      .magnification = 1.0f,
-      .whirl = 0.0f,
-      .mosaic = 0.001f
-    };
-
-    EllipticalDotsPushConstant m_ellipticalDotsPC {
-      .shininess = 10.0f,
-      .sDiameter = 0.025f,
-      .tDiameter = 0.025f,
-      .blendFactor = 0.0f
-    };
-
-    CrossesPushConstant m_crossesPC {
-      .position = glm::vec3(0.0f),
-      .quantize = 50.0f,
-      .size = 0.01f,
-      .shininess = 10.0f,
-      .blueDepth = 4.4f,
-      .redDepth = 1.0f,
-      .level = 1,
-      .useChromaDepth = false
-    };
-
-    CurtainPushConstant m_curtainPC {
-      .amplitude = 0.1,
-      .period = 1,
-      .shininess = 10
-    };
-
-    BumpyCurtainPushConstant m_bumpyCurtainPC {
-      .amplitude = 0.1,
-      .period = 1,
-      .shininess = 10,
-      .noiseAmplitude = 0.5f,
-      .noiseFrequency = 1.0f
-    };
-
-    SnakePushConstant m_snakePC {
-      .wiggle = 0
-    };
-
-    NoisyEllipticalDotsPushConstant m_noisyEllipticalDotsPC {
-      .shininess = 10.0f,
-      .sDiameter = 0.025f,
-      .tDiameter = 0.025f,
-      .blendFactor = 0.0f,
-      .noiseAmplitude = 0.5f,
-      .noiseFrequency = 1.0f
-    };
-
-    CubeMapPushConstant m_cubeMapPC {
-      .position = glm::vec3(0.0f),
-      .mix = 0.0f,
-      .refractionIndex = 1.4f,
-      .whiteMix = 0.2f,
-      .noiseAmplitude = 0.0f,
-      .noiseFrequency = 0.1f
+    std::unordered_map<PipelineType, PushConstantEntry> m_pushConstants = {
+      { PipelineType::magnifyWhirlMosaic,  { MagnifyWhirlMosaicPushConstant{},  VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::ellipticalDots,      { EllipticalDotsPushConstant{},      VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::crosses,             { CrossesPushConstant{},             VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::curtain,             { CurtainPushConstant{},             VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::bumpyCurtain,        { BumpyCurtainPushConstant{},        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::snake,               { SnakePushConstant{},               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::noisyEllipticalDots, { NoisyEllipticalDotsPushConstant{}, VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::cubeMap,             { CubeMapPushConstant{},             VK_SHADER_STAGE_FRAGMENT_BIT } },
     };
 
     VkBuffer m_tlasInstanceBuffer = VK_NULL_HANDLE;
@@ -313,6 +211,16 @@ namespace vke {
                              const RenderInfo* renderInfo,
                              PipelineType pipelineType,
                              const std::vector<std::shared_ptr<RenderObject>>* objects) const;
+
+    void bindPushConstant(const std::shared_ptr<PipelineManager>& pipelineManager,
+                          const std::shared_ptr<CommandBuffer>& commandBuffer,
+                          PipelineType pipelineType) const;
+
+    void bindDescriptorSets(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const std::shared_ptr<LightingManager>& lightingManager,
+                            const std::shared_ptr<CommandBuffer>& commandBuffer,
+                            PipelineType pipelineType,
+                            uint32_t currentFrame) const;
 
     void createDescriptorSets();
 
