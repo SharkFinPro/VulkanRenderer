@@ -79,6 +79,8 @@ namespace vke {
 
     void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 
+    [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+
     void destroyTLAS();
 
     void updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);

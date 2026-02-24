@@ -94,6 +94,95 @@ namespace vke {
 
     destroyTLAS();
 
+    const auto primitiveCount = createTLASInstanceBuffer(renderObjects);
+
+    VkAccelerationStructureGeometryInstancesDataKHR instancesData {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
+      .arrayOfPointers = VK_FALSE,
+      .data = {
+        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
+      }
+    };
+
+    VkAccelerationStructureGeometryKHR geometry {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+      .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
+      .geometry = {
+        .instances = instancesData
+      }
+    };
+
+    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
+      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+      .geometryCount = 1,
+      .pGeometries = &geometry
+    };
+
+    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
+    };
+
+    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.accelerationStructureSize,
+      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_tlasBuffer,
+      m_tlasBufferMemory
+    );
+
+    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+      .buffer = m_tlasBuffer,
+      .size = buildSizesInfo.accelerationStructureSize,
+      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
+    };
+
+    m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_tlas);
+
+    VkBuffer scratchBuffer;
+    VkDeviceMemory scratchBufferMemory;
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      buildSizesInfo.buildScratchSize,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      scratchBuffer,
+      scratchBufferMemory
+    );
+
+    buildGeometryInfo.dstAccelerationStructure = m_tlas;
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
+
+    const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+      .primitiveCount = primitiveCount,
+      .primitiveOffset = 0,
+      .firstVertex = 0,
+      .transformOffset = 0
+    };
+
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+      commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
+    });
+
+    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
+
+    m_tlasInfo = {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
+      .accelerationStructureCount = 1,
+      .pAccelerationStructures = &m_tlas
+    };
+  }
+
+  uint32_t RayTracer::createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
+  {
     std::vector<VkAccelerationStructureInstanceKHR> instances;
     instances.reserve(renderObjects.size());
 
@@ -160,91 +249,7 @@ namespace vke {
 
     Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
-    VkAccelerationStructureGeometryInstancesDataKHR instancesData {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
-      .arrayOfPointers = VK_FALSE,
-      .data = {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
-      }
-    };
-
-    VkAccelerationStructureGeometryKHR geometry {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
-      .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
-      .geometry = {
-        .instances = instancesData
-      }
-    };
-
-    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
-      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
-      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
-      .geometryCount = 1,
-      .pGeometries = &geometry
-    };
-
-    const auto primitiveCount = static_cast<uint32_t>(instances.size());
-
-    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
-    };
-
-    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
-
-    Buffers::createBuffer(
-      m_logicalDevice,
-      buildSizesInfo.accelerationStructureSize,
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      m_tlasBuffer,
-      m_tlasBufferMemory
-    );
-
-    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
-      .buffer = m_tlasBuffer,
-      .size = buildSizesInfo.accelerationStructureSize,
-      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
-    };
-
-    m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_tlas);
-
-    VkBuffer scratchBuffer;
-    VkDeviceMemory scratchBufferMemory;
-
-    Buffers::createBuffer(
-      m_logicalDevice,
-      buildSizesInfo.buildScratchSize,
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      scratchBuffer,
-      scratchBufferMemory
-    );
-
-    buildGeometryInfo.dstAccelerationStructure = m_tlas;
-    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
-
-    const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
-      .primitiveCount = primitiveCount,
-      .primitiveOffset = 0,
-      .firstVertex = 0,
-      .transformOffset = 0
-    };
-
-    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
-
-    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
-      commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
-    });
-
-    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
-
-    m_tlasInfo = {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
-      .accelerationStructureCount = 1,
-      .pAccelerationStructures = &m_tlas
-    };
+    return static_cast<uint32_t>(instances.size());
   }
 
   void RayTracer::destroyTLAS()
