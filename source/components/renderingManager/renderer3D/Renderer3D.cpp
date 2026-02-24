@@ -1,5 +1,6 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
+#include "RayTracer.h"
 #include "../ImageResource.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/objects/Model.h"
