@@ -20,7 +20,6 @@ namespace vke {
   class UniformBuffer;
   struct Vertex;
 
-
   struct MeshInfo {
     uint32_t vertexOffset;
     uint32_t indexOffset;
