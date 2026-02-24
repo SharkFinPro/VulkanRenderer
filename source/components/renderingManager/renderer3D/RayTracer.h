@@ -84,6 +84,10 @@ namespace vke {
     void populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const;
 
+    void buildTLAS(VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                   const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+                   uint32_t primitiveCount);
+
     void destroyTLAS();
 
     void updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
