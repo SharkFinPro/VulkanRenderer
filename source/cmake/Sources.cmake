@@ -94,6 +94,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     # Renderer3D
     components/renderingManager/renderer3D/MousePicker.cpp
     components/renderingManager/renderer3D/MousePicker.h
+    components/renderingManager/renderer3D/RayTracer.cpp
+    components/renderingManager/renderer3D/RayTracer.h
     components/renderingManager/renderer3D/Renderer3D.cpp
     components/renderingManager/renderer3D/Renderer3D.h
 
