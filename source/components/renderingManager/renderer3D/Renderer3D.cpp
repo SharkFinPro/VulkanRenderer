@@ -234,7 +234,7 @@ namespace vke {
 
     if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
-      poolSizes.push_back({VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, m_logicalDevice->getMaxFramesInFlight() * 4},);
+      poolSizes.push_back({VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, m_logicalDevice->getMaxFramesInFlight() * 4});
     }
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
