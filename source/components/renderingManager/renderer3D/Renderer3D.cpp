@@ -91,7 +91,8 @@ namespace vke {
       .extent = renderInfo->extent
     };
 
-    m_cubeMapPC.position = renderInfo3D.viewPosition;
+    auto& cubeMapPC = std::get<CubeMapPushConstant>(m_pushConstants.at(PipelineType::cubeMap).data);
+    cubeMapPC.position = renderInfo3D.viewPosition;
 
     renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager, lightingManager);
 
@@ -324,101 +325,10 @@ namespace vke {
   {
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
 
-    if (pipelineType == PipelineType::magnifyWhirlMosaic)
-    {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_magnifyWhirlMosaicPC),
-        &m_magnifyWhirlMosaicPC
-      );
-    }
-
-    if (pipelineType == PipelineType::ellipticalDots)
-    {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_ellipticalDotsPC),
-        &m_ellipticalDotsPC
-      );
-    }
-
-    if (pipelineType == PipelineType::crosses)
-    {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_crossesPC),
-        &m_crossesPC
-      );
-    }
-
-    if (pipelineType == PipelineType::curtain)
-    {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_curtainPC),
-        &m_curtainPC
-      );
-    }
-
-    if (pipelineType == PipelineType::bumpyCurtain)
-    {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_bumpyCurtainPC),
-        &m_bumpyCurtainPC
-      );
-    }
-
-    if (pipelineType == PipelineType::snake)
-    {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_snakePC),
-        &m_snakePC
-      );
-    }
-
-    if (pipelineType == PipelineType::noisyEllipticalDots)
-    {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_noisyEllipticalDotsPC),
-        &m_noisyEllipticalDotsPC
-      );
-    }
+    bindPushConstant(pipelineManager, renderInfo->commandBuffer, pipelineType);
 
     if (pipelineType == PipelineType::cubeMap)
     {
-      pipelineManager->pushGraphicsPipelineConstants(
-        renderInfo->commandBuffer,
-        pipelineType,
-        VK_SHADER_STAGE_FRAGMENT_BIT,
-        0,
-        sizeof(m_cubeMapPC),
-        &m_cubeMapPC
-      );
-
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
         pipelineType,
@@ -467,6 +377,28 @@ namespace vke {
 
       object->draw(renderInfo->commandBuffer);
     }
+  }
+
+  void Renderer3D::bindPushConstant(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                    const PipelineType pipelineType) const
+  {
+    const auto it = m_pushConstants.find(pipelineType);
+    if (it == m_pushConstants.end())
+    {
+      return;
+    }
+
+    std::visit([&](const auto& pc) {
+      pipelineManager->pushGraphicsPipelineConstants(
+        commandBuffer,
+        pipelineType,
+        it->second.stages,
+        0,
+        sizeof(pc),
+        &pc
+      );
+    }, it->second.data);
   }
 
   void Renderer3D::createDescriptorSets()
@@ -535,9 +467,9 @@ namespace vke {
     }
 
     VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo {
-      .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
       .descriptorSetCount = static_cast<uint32_t>(maxTextures.size()),
-      .pDescriptorCounts  = maxTextures.data()
+      .pDescriptorCounts = maxTextures.data()
     };
 
     m_rayTracingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool,
@@ -566,27 +498,29 @@ namespace vke {
   {
     if (pipelineIsActive(PipelineType::crosses))
     {
+      auto& crossesPC = std::get<CrossesPushConstant>(m_pushConstants.at(PipelineType::crosses).data);
+
       ImGui::Begin("Crosses");
 
-      ImGui::SliderInt("Level", &m_crossesPC.level, 0, 3);
+      ImGui::SliderInt("Level", &crossesPC.level, 0, 3);
 
-      ImGui::SliderFloat("Quantize", &m_crossesPC.quantize, 2.0f, 50.0f);
+      ImGui::SliderFloat("Quantize", &crossesPC.quantize, 2.0f, 50.0f);
 
-      ImGui::SliderFloat("Size", &m_crossesPC.size, 0.0001f, 0.1f);
+      ImGui::SliderFloat("Size", &crossesPC.size, 0.0001f, 0.1f);
 
-      ImGui::SliderFloat("Shininess", &m_crossesPC.shininess, 2.0f, 50.0f);
+      ImGui::SliderFloat("Shininess", &crossesPC.shininess, 2.0f, 50.0f);
 
       ImGui::Separator();
 
       ImGui::Text("Chroma Depth");
 
-      bool useChromaDepth = m_crossesPC.useChromaDepth;
+      bool useChromaDepth = crossesPC.useChromaDepth;
       ImGui::Checkbox("Use Chroma Depth", &useChromaDepth);
-      m_crossesPC.useChromaDepth = useChromaDepth;
+      crossesPC.useChromaDepth = useChromaDepth;
 
-      ImGui::SliderFloat("Blue Depth", &m_crossesPC.blueDepth, 0.0f, 50.0f);
+      ImGui::SliderFloat("Blue Depth", &crossesPC.blueDepth, 0.0f, 50.0f);
 
-      ImGui::SliderFloat("Red Depth", &m_crossesPC.redDepth, 0.0f, 50.0f);
+      ImGui::SliderFloat("Red Depth", &crossesPC.redDepth, 0.0f, 50.0f);
 
       ImGui::End();
     }
@@ -596,27 +530,31 @@ namespace vke {
   {
     if (pipelineIsActive(PipelineType::bumpyCurtain))
     {
+      auto& bumpyCurtainPC = std::get<BumpyCurtainPushConstant>(m_pushConstants.at(PipelineType::bumpyCurtain).data);
+
       ImGui::Begin("Bumpy Curtain");
 
-      ImGui::SliderFloat("Amplitude", &m_bumpyCurtainPC.amplitude, 0.001f, 3.0f);
-      ImGui::SliderFloat("Period", &m_bumpyCurtainPC.period, 0.1f, 10.0f);
-      ImGui::SliderFloat("Shininess", &m_bumpyCurtainPC.shininess, 1.0f, 100.0f);
+      ImGui::SliderFloat("Amplitude", &bumpyCurtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &bumpyCurtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &bumpyCurtainPC.shininess, 1.0f, 100.0f);
 
       ImGui::Separator();
 
-      ImGui::SliderFloat("Noise Amplitude", &m_bumpyCurtainPC.noiseAmplitude, 0.0f, 10.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_bumpyCurtainPC.noiseFrequency, 0.1f, 10.0f);
+      ImGui::SliderFloat("Noise Amplitude", &bumpyCurtainPC.noiseAmplitude, 0.0f, 10.0f);
+      ImGui::SliderFloat("Noise Frequency", &bumpyCurtainPC.noiseFrequency, 0.1f, 10.0f);
 
       ImGui::End();
     }
 
     if (pipelineIsActive(PipelineType::curtain))
     {
+      auto& curtainPC = std::get<CurtainPushConstant>(m_pushConstants.at(PipelineType::curtain).data);
+
       ImGui::Begin("Curtain");
 
-      ImGui::SliderFloat("Amplitude", &m_curtainPC.amplitude, 0.001f, 3.0f);
-      ImGui::SliderFloat("Period", &m_curtainPC.period, 0.1f, 10.0f);
-      ImGui::SliderFloat("Shininess", &m_curtainPC.shininess, 1.0f, 100.0f);
+      ImGui::SliderFloat("Amplitude", &curtainPC.amplitude, 0.001f, 3.0f);
+      ImGui::SliderFloat("Period", &curtainPC.period, 0.1f, 10.0f);
+      ImGui::SliderFloat("Shininess", &curtainPC.shininess, 1.0f, 100.0f);
 
       ImGui::End();
     }
@@ -626,29 +564,33 @@ namespace vke {
   {
     if (pipelineIsActive(PipelineType::ellipticalDots))
     {
+      auto& ellipticalDotsPC = std::get<EllipticalDotsPushConstant>(m_pushConstants.at(PipelineType::ellipticalDots).data);
+
       ImGui::Begin("Elliptical Dots");
 
-      ImGui::SliderFloat("Shininess", &m_ellipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
+      ImGui::SliderFloat("Shininess", &ellipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &ellipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &ellipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &ellipticalDotsPC.blendFactor, 0.0f, 1.0f);
 
       ImGui::End();
     }
 
     if (pipelineIsActive(PipelineType::noisyEllipticalDots))
     {
+      auto& noisyEllipticalDotsPC = std::get<NoisyEllipticalDotsPushConstant>(m_pushConstants.at(PipelineType::noisyEllipticalDots).data);
+
       ImGui::Begin("Noisy Elliptical Dots");
 
-      ImGui::SliderFloat("Shininess", &m_noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
-      ImGui::SliderFloat("S Diameter", &m_noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("T Diameter", &m_noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
-      ImGui::SliderFloat("blendFactor", &m_noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
+      ImGui::SliderFloat("Shininess", &noisyEllipticalDotsPC.shininess, 1.0f, 25.0f);
+      ImGui::SliderFloat("S Diameter", &noisyEllipticalDotsPC.sDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("T Diameter", &noisyEllipticalDotsPC.tDiameter, 0.001f, 0.5f);
+      ImGui::SliderFloat("blendFactor", &noisyEllipticalDotsPC.blendFactor, 0.0f, 1.0f);
 
       ImGui::Separator();
 
-      ImGui::SliderFloat("Noise Amplitude", &m_noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
+      ImGui::SliderFloat("Noise Amplitude", &noisyEllipticalDotsPC.noiseAmplitude, 0.0f, 1.0f);
+      ImGui::SliderFloat("Noise Frequency", &noisyEllipticalDotsPC.noiseFrequency, 0.0f, 10.0f);
 
       ImGui::End();
     }
@@ -658,47 +600,53 @@ namespace vke {
   {
     if (pipelineIsActive(PipelineType::magnifyWhirlMosaic))
     {
+      auto& magnifyWhirlMosaicPC = std::get<MagnifyWhirlMosaicPushConstant>(m_pushConstants.at(PipelineType::magnifyWhirlMosaic).data);
+
       ImGui::Begin("Magnify Whirl Mosaic");
 
-      ImGui::SliderFloat("Lens S Center", &m_magnifyWhirlMosaicPC.lensS, 0.0f, 1.0f);
-      ImGui::SliderFloat("Lens T Center", &m_magnifyWhirlMosaicPC.lensT, 0.0f, 1.0f);
-      ImGui::SliderFloat("Lens Radius", &m_magnifyWhirlMosaicPC.lensRadius, 0.01f, 0.75f);
+      ImGui::SliderFloat("Lens S Center", &magnifyWhirlMosaicPC.lensS, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens T Center", &magnifyWhirlMosaicPC.lensT, 0.0f, 1.0f);
+      ImGui::SliderFloat("Lens Radius", &magnifyWhirlMosaicPC.lensRadius, 0.01f, 0.75f);
 
       ImGui::Separator();
 
-      ImGui::SliderFloat("Magnification", &m_magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
-      ImGui::SliderFloat("Whirl", &m_magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
-      ImGui::SliderFloat("Mosaic", &m_magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
+      ImGui::SliderFloat("Magnification", &magnifyWhirlMosaicPC.magnification, 0.1f, 7.5f);
+      ImGui::SliderFloat("Whirl", &magnifyWhirlMosaicPC.whirl, -30.0f, 30.0f);
+      ImGui::SliderFloat("Mosaic", &magnifyWhirlMosaicPC.mosaic, 0.001f, 0.1f);
 
       ImGui::End();
     }
 
     if (pipelineIsActive(PipelineType::snake))
     {
+      auto& snakePC = std::get<SnakePushConstant>(m_pushConstants.at(PipelineType::snake).data);
+
       ImGui::Begin("Snake");
 
-      ImGui::SliderFloat("Wiggle", &m_snakePC.wiggle, -1.0f, 1.0f);
+      ImGui::SliderFloat("Wiggle", &snakePC.wiggle, -1.0f, 1.0f);
 
       ImGui::End();
 
       static float w = 0.0f;
       w += 0.025f;
 
-      m_snakePC.wiggle = sin(w);
+      snakePC.wiggle = sin(w);
     }
 
     if (pipelineIsActive(PipelineType::cubeMap))
     {
+      auto& cubeMapPC = std::get<CubeMapPushConstant>(m_pushConstants.at(PipelineType::cubeMap).data);
+
       ImGui::Begin("Cube Map");
 
-      ImGui::SliderFloat("Refract | Reflect -> Blend", &m_cubeMapPC.mix, 0.0f, 1.0f);
-      ImGui::SliderFloat("Index of Refraction", &m_cubeMapPC.refractionIndex, 0.0f, 5.0f);
-      ImGui::SliderFloat("White Mix", &m_cubeMapPC.whiteMix, 0.0f, 1.0f);
+      ImGui::SliderFloat("Refract | Reflect -> Blend", &cubeMapPC.mix, 0.0f, 1.0f);
+      ImGui::SliderFloat("Index of Refraction", &cubeMapPC.refractionIndex, 0.0f, 5.0f);
+      ImGui::SliderFloat("White Mix", &cubeMapPC.whiteMix, 0.0f, 1.0f);
 
       ImGui::Separator();
 
-      ImGui::SliderFloat("Noise Amplitude", &m_cubeMapPC.noiseAmplitude, 0.0f, 5.0f);
-      ImGui::SliderFloat("Noise Frequency", &m_cubeMapPC.noiseFrequency, 0.0f, 0.5f);
+      ImGui::SliderFloat("Noise Amplitude", &cubeMapPC.noiseAmplitude, 0.0f, 5.0f);
+      ImGui::SliderFloat("Noise Frequency", &cubeMapPC.noiseFrequency, 0.0f, 0.5f);
 
       ImGui::End();
     }
