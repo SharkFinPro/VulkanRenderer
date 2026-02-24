@@ -26,21 +26,24 @@ namespace vke {
 
     createPipelines(assetManager, renderingManager, lightingManager);
 
-    RayTracingPipelineConfig rtConfig {
-      .shaders {
-        .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
-        .missShaders = {
-          "assets/shaders/rayTracing/object.rmiss.spv",
-          "assets/shaders/rayTracing/shadow.rmiss.spv"
+    if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      RayTracingPipelineConfig rtConfig {
+        .shaders {
+          .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
+          .missShaders = {
+            "assets/shaders/rayTracing/object.rmiss.spv",
+            "assets/shaders/rayTracing/shadow.rmiss.spv"
+          },
+          .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
         },
-        .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
-      },
-      .descriptorSetLayouts {
-        assetManager->getRayTracingDescriptorSetLayout(),
-        lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout()
-      }
-    };
-    m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
+        .descriptorSetLayouts {
+          assetManager->getRayTracingDescriptorSetLayout(),
+          lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout()
+        }
+      };
+      m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
+    }
   }
 
   PipelineManager::~PipelineManager()
