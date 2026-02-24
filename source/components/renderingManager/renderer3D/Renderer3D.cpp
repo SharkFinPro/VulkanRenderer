@@ -327,42 +327,7 @@ namespace vke {
 
     bindPushConstant(pipelineManager, renderInfo->commandBuffer, pipelineType);
 
-    if (pipelineType == PipelineType::cubeMap)
-    {
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        renderInfo->commandBuffer,
-        pipelineType,
-        m_cubeMapDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
-        1
-      );
-    }
-
-    if (pipelineType == PipelineType::bumpyCurtain ||
-        pipelineType == PipelineType::noisyEllipticalDots)
-    {
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        renderInfo->commandBuffer,
-        pipelineType,
-        m_noiseDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
-        2
-      );
-    }
-
-    if (pipelineType == PipelineType::ellipticalDots ||
-        pipelineType == PipelineType::crosses ||
-        pipelineType == PipelineType::curtain ||
-        pipelineType == PipelineType::bumpyCurtain ||
-        pipelineType == PipelineType::object ||
-        pipelineType == PipelineType::snake ||
-        pipelineType == PipelineType::noisyEllipticalDots)
-    {
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        renderInfo->commandBuffer,
-        pipelineType,
-        lightingManager->getLightingDescriptorSet()->getDescriptorSet(renderInfo->currentFrame),
-        1
-      );
-    }
+    bindDescriptorSets(pipelineManager, lightingManager, renderInfo->commandBuffer, pipelineType, renderInfo->currentFrame);
 
     for (const auto& object : *objects)
     {
@@ -399,6 +364,50 @@ namespace vke {
         &pc
       );
     }, it->second.data);
+  }
+
+  void Renderer3D::bindDescriptorSets(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      const std::shared_ptr<LightingManager>& lightingManager,
+                                      const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                      const PipelineType pipelineType,
+                                      const uint32_t currentFrame) const
+  {
+    if (pipelineType == PipelineType::cubeMap)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        commandBuffer,
+        pipelineType,
+        m_cubeMapDescriptorSet->getDescriptorSet(currentFrame),
+        1
+      );
+    }
+
+    if (pipelineType == PipelineType::bumpyCurtain ||
+        pipelineType == PipelineType::noisyEllipticalDots)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        commandBuffer,
+        pipelineType,
+        m_noiseDescriptorSet->getDescriptorSet(currentFrame),
+        2
+      );
+    }
+
+    if (pipelineType == PipelineType::ellipticalDots ||
+        pipelineType == PipelineType::crosses ||
+        pipelineType == PipelineType::curtain ||
+        pipelineType == PipelineType::bumpyCurtain ||
+        pipelineType == PipelineType::object ||
+        pipelineType == PipelineType::snake ||
+        pipelineType == PipelineType::noisyEllipticalDots)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        commandBuffer,
+        pipelineType,
+        lightingManager->getLightingDescriptorSet()->getDescriptorSet(currentFrame),
+        1
+      );
+    }
   }
 
   void Renderer3D::createDescriptorSets()

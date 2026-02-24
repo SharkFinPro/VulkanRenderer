@@ -216,6 +216,12 @@ namespace vke {
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
                           PipelineType pipelineType) const;
 
+    void bindDescriptorSets(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const std::shared_ptr<LightingManager>& lightingManager,
+                            const std::shared_ptr<CommandBuffer>& commandBuffer,
+                            PipelineType pipelineType,
+                            uint32_t currentFrame) const;
+
     void createDescriptorSets();
 
     [[nodiscard]] bool pipelineIsActive(PipelineType pipelineType) const;
