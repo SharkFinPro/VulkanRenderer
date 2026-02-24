@@ -186,29 +186,7 @@ namespace vke {
     std::vector<VkAccelerationStructureInstanceKHR> instances;
     instances.reserve(renderObjects.size());
 
-    for (const auto& renderObject : renderObjects)
-    {
-      const glm::mat4 modelMatrix = glm::transpose(renderObject->getModelMatrix());
-
-      VkTransformMatrixKHR transformMatrix;
-      memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
-
-      const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
-        .accelerationStructure = renderObject->getModel()->getBLAS()
-      };
-
-      const VkAccelerationStructureInstanceKHR instance {
-        .transform = transformMatrix,
-        .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
-        .mask = 0xFF,
-        .instanceShaderBindingTableRecordOffset = 0,
-        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
-        .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
-      };
-
-      instances.push_back(instance);
-    }
+    populateInstanceArray(instances, renderObjects);
 
     const VkDeviceSize instancesBufferSize = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
 
@@ -250,6 +228,34 @@ namespace vke {
     Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
     return static_cast<uint32_t>(instances.size());
+  }
+
+  void RayTracer::populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
+                                        const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const
+  {
+    for (const auto& renderObject : renderObjects)
+    {
+      const glm::mat4 modelMatrix = glm::transpose(renderObject->getModelMatrix());
+
+      VkTransformMatrixKHR transformMatrix;
+      memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
+
+      const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+        .accelerationStructure = renderObject->getModel()->getBLAS()
+      };
+
+      const VkAccelerationStructureInstanceKHR instance {
+        .transform = transformMatrix,
+        .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
+        .mask = 0xFF,
+        .instanceShaderBindingTableRecordOffset = 0,
+        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
+        .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
+      };
+
+      instances.push_back(instance);
+    }
   }
 
   void RayTracer::destroyTLAS()

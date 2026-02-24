@@ -81,6 +81,9 @@ namespace vke {
 
     [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 
+    void populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
+                               const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const;
+
     void destroyTLAS();
 
     void updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
