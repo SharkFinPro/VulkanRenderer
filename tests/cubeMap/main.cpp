@@ -94,15 +94,11 @@ void setupScene(const vke::VulkanEngine& renderer,
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
-  // const auto model = renderer.getAssetManager()->loadModel("assets/models/catH.obj");
-  // const auto model = renderer.getAssetManager()->loadModel("assets/models/cow.obj");
-  const auto model = renderer.getAssetManager()->loadModel("assets/models/cube.obj");
+  const auto model = renderer.getAssetManager()->loadModel("assets/models/catH.obj");
 
   object = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object->setPosition({ 0, 0, -5 });
-  // object->setScale(2.0f);
-  // object->setScale(1.0f);
-  object->setScale(3.0f);
+  object->setScale(2.0f);
 
   const auto planeModel = renderer.getAssetManager()->loadModel("assets/models/curtain.glb");
 
