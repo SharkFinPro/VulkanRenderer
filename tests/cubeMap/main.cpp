@@ -71,29 +71,7 @@ void renderScene(vke::VulkanEngine& renderer,
   gui->dockBottom("Reflection");
 
   // Render GUI
-  displayGui(gui, { light }, walls, renderer.getRenderingManager());
-
-  ImGui::Begin("Reflection");
-
-  auto reflectivity = object->getReflectivity();
-  if (ImGui::SliderFloat("Reflectivity", &reflectivity, 0.0f, 1.0f))
-  {
-    object->setReflectivity(reflectivity);
-  }
-
-  auto refractivity = object->getRefractivity();
-  if (ImGui::SliderFloat("Refractivity", &refractivity, 0.0f, 1.0f))
-  {
-    object->setRefractivity(refractivity);
-  }
-
-  auto indexOfRefraction = object->getIndexOfRefraction();
-  if (ImGui::SliderFloat("Index Of Refraction", &indexOfRefraction, 0.0f, 10.0f))
-  {
-    object->setIndexOfRefraction(indexOfRefraction);
-  }
-
-  ImGui::End();
+  displayGui(gui, { light }, { object }, renderer.getRenderingManager());
 
   // Render Objects
   r3d->renderObject(object, vke::PipelineType::cubeMap);
