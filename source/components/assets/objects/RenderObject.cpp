@@ -131,7 +131,7 @@ namespace vke {
     return m_specularMap;
   }
 
-  void RenderObject::setReflectivity(float reflectivity)
+  void RenderObject::setReflectivity(const float reflectivity)
   {
     m_reflectivity = reflectivity;
   }
