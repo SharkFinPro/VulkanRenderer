@@ -68,8 +68,6 @@ void renderScene(vke::VulkanEngine& renderer,
 
   gui->dockBottom("Cube Map");
 
-  gui->dockBottom("Reflection");
-
   // Render GUI
   displayGui(gui, { light }, { object }, renderer.getRenderingManager());
 
