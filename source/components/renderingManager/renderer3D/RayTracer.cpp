@@ -326,7 +326,9 @@ namespace vke {
         .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
         .textureIndex = textureIndex,
         .specularIndex = specularIndex,
-        .reflectivity = renderObject->getReflectivity()
+        .reflectivity = renderObject->getReflectivity(),
+        .refractivity = renderObject->getRefractivity(),
+        .indexOfRefraction = renderObject->getIndexOfRefraction()
       });
 
       const auto& vertices = model->getVertices();
