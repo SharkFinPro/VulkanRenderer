@@ -141,6 +141,26 @@ namespace vke {
     return m_reflectivity;
   }
 
+  void RenderObject::setRefractivity(const float refractivity)
+  {
+    m_refractivity = refractivity;
+  }
+
+  float RenderObject::getRefractivity() const
+  {
+    return m_refractivity;
+  }
+
+  void RenderObject::setIndexOfRefraction(const float indexOfRefraction)
+  {
+    m_indexOfRefraction = indexOfRefraction;
+  }
+
+  float RenderObject::getIndexOfRefraction() const
+  {
+    return m_indexOfRefraction;
+  }
+
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          VkDescriptorPool descriptorPool,
                                          VkDescriptorSetLayout descriptorSetLayout)
