@@ -59,6 +59,24 @@ inline void displayObjectGui(const std::shared_ptr<vke::RenderObject>& object,
     glm::vec3 rotation = object->getOrientationEuler();
     ImGui::SliderFloat3("Rotation", value_ptr(rotation), -90.0f, 90.0f);
     object->setOrientationEuler(rotation);
+
+    auto reflectivity = object->getReflectivity();
+    if (ImGui::SliderFloat("Reflectivity", &reflectivity, 0.0f, 1.0f))
+    {
+      object->setReflectivity(reflectivity);
+    }
+
+    auto refractivity = object->getRefractivity();
+    if (ImGui::SliderFloat("Refractivity", &refractivity, 0.0f, 1.0f))
+    {
+      object->setRefractivity(refractivity);
+    }
+
+    auto indexOfRefraction = object->getIndexOfRefraction();
+    if (ImGui::SliderFloat("Index Of Refraction", &indexOfRefraction, 0.0f, 10.0f))
+    {
+      object->setIndexOfRefraction(indexOfRefraction);
+    }
   }
 
   ImGui::PopID();

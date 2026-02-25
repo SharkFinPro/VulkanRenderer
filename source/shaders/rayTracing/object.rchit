@@ -5,9 +5,14 @@
 #extension GL_EXT_nonuniform_qualifier  : require
 #include "../common/Lighting.glsl"
 
+struct RayPayload {
+  vec3 color;
+  int depth;
+};
+
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
 
-layout(location = 0) rayPayloadInEXT vec3 payload;
+layout(location = 0) rayPayloadInEXT RayPayload payload;
 
 layout(location = 1) rayPayloadEXT bool isShadowed;
 
@@ -27,6 +32,10 @@ struct MeshInfo {
   uint indexOffset;
   uint textureIndex;
   uint specularIndex;
+  float reflectivity;
+  float refractivity;
+  float indexOfRefraction;
+  float padding;
 };
 
 layout(binding = 3, set = 0) readonly buffer VertexBuffer {
@@ -78,12 +87,6 @@ void main()
 
   vec3 normal = normalize(bary.x * v0.normal   + bary.y * v1.normal   + bary.z * v2.normal);
   vec2 texCoord = bary.x * v0.texCoord + bary.y * v1.texCoord + bary.z * v2.texCoord;
-
-  // Debug: normals as color
-//  payload = normal * 0.5 + 0.5;
-
-  // Debug: UVs as color
-//  payload = vec3(texCoord, 0.0);
 
   vec3 texColor = texture(textures[nonuniformEXT(info.textureIndex)], texCoord).rgb;
   vec3 specColor = texture(textures[nonuniformEXT(info.specularIndex)], texCoord).rgb;
@@ -158,5 +161,65 @@ void main()
     }
   }
 
-  payload = result;
+  int MAX_DEPTH = 5;
+
+  int currentDepth = payload.depth;
+
+  if (info.reflectivity > 0.0 && currentDepth < MAX_DEPTH)
+  {
+    vec3 reflectDir = reflect(gl_WorldRayDirectionEXT, fragNormal);
+
+    payload.depth = currentDepth + 1;
+    traceRayEXT(
+      tlas,
+      gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT,
+      0xFF,
+      0,
+      0,
+      0,
+      fragPos,
+      0.1,
+      reflectDir,
+      1000.0,
+      0
+    );
+
+    result = mix(result, payload.color, info.reflectivity);
+  }
+
+  if (info.refractivity > 0.0 && currentDepth < MAX_DEPTH)
+  {
+    float eta = gl_HitKindEXT == gl_HitKindFrontFacingTriangleEXT
+                ? (1.0 / info.indexOfRefraction)   // entering the object
+                : info.indexOfRefraction;          // exiting the object
+
+    vec3 refractNormal = gl_HitKindEXT == gl_HitKindFrontFacingTriangleEXT ? fragNormal : -fragNormal;
+
+    vec3 refractDir = refract(gl_WorldRayDirectionEXT, refractNormal, eta);
+
+    if (length(refractDir) < 0.001)
+    {
+      refractDir = reflect(gl_WorldRayDirectionEXT, refractNormal);
+    }
+
+    payload.depth = currentDepth + 1;
+    traceRayEXT(
+      tlas,
+      gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT,
+      0xFF,
+      0,
+      0,
+      0,
+      fragPos,
+      0.01,
+      refractDir,
+      1000.0,
+      0
+    );
+
+    result = mix(result, payload.color, info.refractivity);
+  }
+
+  payload.color = result;
+  payload.depth = currentDepth;
 }

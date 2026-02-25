@@ -107,7 +107,7 @@ namespace vke {
       .pStages = shaderStages.data(),
       .groupCount = static_cast<uint32_t>(groups.size()),
       .pGroups = groups.data(),
-      .maxPipelineRayRecursionDepth = 1,
+      .maxPipelineRayRecursionDepth = 5,
       .layout = m_pipelineLayout,
       .basePipelineHandle = VK_NULL_HANDLE,
       .basePipelineIndex = -1

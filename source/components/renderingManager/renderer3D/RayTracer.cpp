@@ -207,7 +207,7 @@ namespace vke {
         .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
         .mask = 0xFF,
         .instanceShaderBindingTableRecordOffset = 0,
-        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
+        .flags = 0,
         .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
       };
 
@@ -325,7 +325,10 @@ namespace vke {
         .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
         .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
         .textureIndex = textureIndex,
-        .specularIndex = specularIndex
+        .specularIndex = specularIndex,
+        .reflectivity = renderObject->getReflectivity(),
+        .refractivity = renderObject->getRefractivity(),
+        .indexOfRefraction = renderObject->getIndexOfRefraction()
       });
 
       const auto& vertices = model->getVertices();
