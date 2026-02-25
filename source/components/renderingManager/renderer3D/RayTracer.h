@@ -21,10 +21,14 @@ namespace vke {
   struct Vertex;
 
   struct MeshInfo {
-    uint32_t vertexOffset;
-    uint32_t indexOffset;
-    uint32_t textureIndex;
-    uint32_t specularIndex;
+    uint32_t vertexOffset = 0;
+    uint32_t indexOffset = 0;
+    uint32_t textureIndex = 0;
+    uint32_t specularIndex = 0;
+    float reflectivity = 0.0f;
+    float refractivity = 0.0f;
+    float indexOfRefraction = 1.0f;
+    float padding = 0.0f;
   };
 
   class RayTracer {
