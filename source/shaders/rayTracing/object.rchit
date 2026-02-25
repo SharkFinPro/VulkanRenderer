@@ -161,14 +161,18 @@ void main()
     }
   }
 
-  payload.depth++;
-  if (info.reflectivity > 0.0 && payload.depth < 5)
+  int MAX_DEPTH = 5;
+
+  int currentDepth = payload.depth;
+
+  if (info.reflectivity > 0.0 && currentDepth < MAX_DEPTH)
   {
     vec3 reflectDir = reflect(gl_WorldRayDirectionEXT, fragNormal);
 
+    payload.depth = currentDepth + 1;
     traceRayEXT(
       tlas,
-      gl_RayFlagsOpaqueEXT,
+      gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT,
       0xFF,
       0,
       0,
@@ -183,5 +187,39 @@ void main()
     result = mix(result, payload.color, info.reflectivity);
   }
 
+  if (info.refractivity > 0.0 && currentDepth < MAX_DEPTH)
+  {
+    float eta = gl_HitKindEXT == gl_HitKindFrontFacingTriangleEXT
+                ? (1.0 / info.indexOfRefraction)   // entering the object
+                : info.indexOfRefraction;          // exiting the object
+
+    vec3 refractNormal = gl_HitKindEXT == gl_HitKindFrontFacingTriangleEXT ? fragNormal : -fragNormal;
+
+    vec3 refractDir = refract(gl_WorldRayDirectionEXT, refractNormal, eta);
+
+    if (length(refractDir) < 0.001)
+    {
+      refractDir = reflect(gl_WorldRayDirectionEXT, refractNormal);
+    }
+
+    payload.depth = currentDepth + 1;
+    traceRayEXT(
+      tlas,
+      gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT,
+      0xFF,
+      0,
+      0,
+      0,
+      fragPos,
+      0.01,
+      refractDir,
+      1000.0,
+      0
+    );
+
+    result = mix(result, payload.color, info.refractivity);
+  }
+
   payload.color = result;
+  payload.depth = currentDepth;
 }

@@ -207,7 +207,7 @@ namespace vke {
         .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
         .mask = 0xFF,
         .instanceShaderBindingTableRecordOffset = 0,
-        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
+        .flags = 0,
         .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
       };
 

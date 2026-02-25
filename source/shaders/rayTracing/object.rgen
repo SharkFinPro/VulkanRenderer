@@ -26,10 +26,10 @@ void main()
   vec4 target = camera.projInverse * vec4(ndc.x, ndc.y, 1.0, 1.0);
   vec3 direction = (camera.viewInverse * vec4(normalize(target.xyz / target.w), 0.0)).xyz;
 
-  payload.depth = 0;
+  payload.depth = 1;
   traceRayEXT(
     tlas,
-    gl_RayFlagsOpaqueEXT,
+    gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT,
     0xFF,          // cull mask
     0,             // sbt record offset
     0,             // sbt record stride
