@@ -1,6 +1,7 @@
 #include "../common/gui.h"
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/AssetManager.h>
+#include <source/components/lighting/LightingManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
@@ -9,7 +10,8 @@
 void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::ImGuiInstance>& gui,
                  const std::shared_ptr<vke::RenderObject>& object,
-                 const std::vector<std::shared_ptr<vke::RenderObject>>& walls);
+                 const std::vector<std::shared_ptr<vke::RenderObject>>& walls,
+                 const std::shared_ptr<vke::Light>& light);
 
 void setupScene(const vke::VulkanEngine& renderer,
                 std::shared_ptr<vke::RenderObject>& object,
@@ -40,9 +42,11 @@ int main()
 
     setupScene(renderer, object, walls);
 
+    const auto light = renderer.getLightingManager()->createPointLight({0, 0, 0}, {1.0f, 1.0f, 1.0f}, 1.0f, 0.0f, 0.0f);
+
     while (renderer.isActive())
     {
-      renderScene(renderer, gui, object, walls);
+      renderScene(renderer, gui, object, walls, light);
     }
   }
   catch (const std::exception& e)
@@ -57,18 +61,27 @@ int main()
 void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::ImGuiInstance>& gui,
                  const std::shared_ptr<vke::RenderObject>& object,
-                 const std::vector<std::shared_ptr<vke::RenderObject>>& walls)
+                 const std::vector<std::shared_ptr<vke::RenderObject>>& walls,
+                 const std::shared_ptr<vke::Light>& light)
 {
   const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
-  gui->dockCenter("Scene View");
-  gui->dockBottom("Objects");
   gui->dockBottom("Cube Map");
 
-  gui->setBottomDockPercent(0.42);
+  gui->dockBottom("Reflection");
 
   // Render GUI
-  displayObjectGuis({ object });
+  displayGui(gui, { light }, walls, renderer.getRenderingManager());
+
+  ImGui::Begin("Reflection");
+
+  auto reflectivity = object->getReflectivity();
+  if (ImGui::SliderFloat("Reflectivity", &reflectivity, 0.0f, 1.0f))
+  {
+    object->setReflectivity(reflectivity);
+  }
+
+  ImGui::End();
 
   // Render Objects
   r3d->renderObject(object, vke::PipelineType::cubeMap);
@@ -77,6 +90,9 @@ void renderScene(vke::VulkanEngine& renderer,
   {
     r3d->renderObject(wall, vke::PipelineType::texturedPlane);
   }
+
+  const auto lightingManager = renderer.getLightingManager();
+  lightingManager->renderLight(light);
 
   // Render Frame
   renderer.render();
@@ -88,11 +104,13 @@ void setupScene(const vke::VulkanEngine& renderer,
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
-  const auto model = renderer.getAssetManager()->loadModel("assets/models/catH.obj");
+  // const auto model = renderer.getAssetManager()->loadModel("assets/models/catH.obj");
+  const auto model = renderer.getAssetManager()->loadModel("assets/models/cow.obj");
 
   object = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object->setPosition({ 0, 0, -5 });
-  object->setScale(2.0f);
+  // object->setScale(2.0f);
+  object->setScale(1.0f);
 
   const auto planeModel = renderer.getAssetManager()->loadModel("assets/models/curtain.glb");
 
