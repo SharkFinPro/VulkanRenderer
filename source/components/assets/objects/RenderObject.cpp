@@ -131,6 +131,16 @@ namespace vke {
     return m_specularMap;
   }
 
+  void RenderObject::setReflectivity(float reflectivity)
+  {
+    m_reflectivity = reflectivity;
+  }
+
+  float RenderObject::getReflectivity() const
+  {
+    return m_reflectivity;
+  }
+
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          VkDescriptorPool descriptorPool,
                                          VkDescriptorSetLayout descriptorSetLayout)

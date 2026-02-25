@@ -54,6 +54,10 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Texture> getSpecularMap() const;
 
+    void setReflectivity(float reflectivity);
+
+    [[nodiscard]] float getReflectivity() const;
+
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 
@@ -66,6 +70,8 @@ namespace vke {
     glm::quat m_orientation = glm::quat(1, 0, 0, 0);
 
     std::unique_ptr<UniformBuffer> m_transformUniform;
+
+    float m_reflectivity = 0.0f;
 
     void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              VkDescriptorPool descriptorPool,
