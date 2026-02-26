@@ -224,7 +224,8 @@ namespace vke {
       lightingManager->getPointLightDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::mousePicking,
-      PipelineConfig::createMousePickingPipelineOptions(renderPass, objectDescriptorSetLayout));
+      PipelineConfig::createMousePickingPipelineOptions(renderingManager->getRenderer()->getMousePickingRenderPass(),
+        objectDescriptorSetLayout));
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,

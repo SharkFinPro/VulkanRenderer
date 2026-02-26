@@ -52,7 +52,7 @@ namespace vke {
     {
       initInfo.UseDynamicRendering = true;
 
-      constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+      constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
       initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
