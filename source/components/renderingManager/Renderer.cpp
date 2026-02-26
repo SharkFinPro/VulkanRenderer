@@ -131,9 +131,9 @@ namespace vke {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
-      .colorFormat = VK_FORMAT_B8G8R8A8_UNORM,
+      .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
       .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .resolveFormat = VK_FORMAT_B8G8R8A8_UNORM,
+      .resolveFormat = VK_FORMAT_R8G8B8A8_UNORM,
       .numSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
       .sampler = m_sampler
     };
@@ -169,7 +169,7 @@ namespace vke {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
-      .resolveFormat = VK_FORMAT_B8G8R8A8_UNORM,
+      .resolveFormat = VK_FORMAT_R8G8B8A8_UNORM,
       .numSamples = VK_SAMPLE_COUNT_1_BIT
     };
 

@@ -207,7 +207,7 @@ namespace vke {
     m_swapchainRenderPass = std::make_shared<RenderPass>(m_logicalDevice, swapchainRenderPassConfig);
 
     RenderPassConfig offscreenRenderPassConfig {
-      .imageFormat = VK_FORMAT_B8G8R8A8_UNORM,
+      .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
       .msaaSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
       .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
       .hasColorAttachment = true,
