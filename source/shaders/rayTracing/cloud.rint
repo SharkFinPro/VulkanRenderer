@@ -95,8 +95,7 @@ void main()
     uvw.y *= pc.yScale;
 
     float n = cloudDensity(uvw + vec3(pc.time, 0, 0), pc.frequency) * pc.amplitude;
-    vec3 color = vec3(n);
-    total += vec4(color, n) / float(numSamples);
+    total += vec4(vec3(n), n) / float(numSamples);
   }
 
   cloudHit.color = total;
