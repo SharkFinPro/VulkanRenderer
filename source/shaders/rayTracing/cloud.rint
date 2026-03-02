@@ -82,7 +82,6 @@ void main()
 
   float traveled = tExit - tEnter;
 
-//  uint numSamples = 150;
   uint numSamples = uint(clamp(traveled, 8.0, 150.0));
 
   vec4 total = vec4(0);
@@ -94,7 +93,6 @@ void main()
 
     uvw.y *= pc.yScale;
 
-//    float n = noise3(uvw * pc.frequency) * pc.amplitude;
     float n = cloudDensity(uvw, pc.frequency) * pc.amplitude;
     vec3 color = vec3(n);
     total += vec4(color, n) / float(numSamples);

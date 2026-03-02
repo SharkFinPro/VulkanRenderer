@@ -33,10 +33,10 @@ namespace vke {
   };
 
   struct RTPushConstant {
-    float frequency = 1.0f;
-    float amplitude = 1.0f;
-    float density = 0.4f;
-    float yScale = 1.0f;
+    float frequency = 20.0f;
+    float amplitude = 25.0f;
+    float density = 0.55f;
+    float yScale = 0.3f;
   };
 
   class RayTracer {
