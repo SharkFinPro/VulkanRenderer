@@ -243,7 +243,7 @@ namespace vke {
     };
 
     const glm::mat4 modelTransform = glm::mat4(1.0f) *
-                                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 600.0f, 0.0f)) *
+                                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 500.0f, 0.0f)) *
                                      glm::scale(glm::mat4(1.0f), glm::vec3(5500.0f, 400.0f, 5500.0f));
 
     // const glm::mat4 modelTransform = glm::mat4(1.0f) *
