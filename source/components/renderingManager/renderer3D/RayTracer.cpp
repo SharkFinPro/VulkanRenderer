@@ -1,6 +1,7 @@
 #include "RayTracer.h"
 #include "../ImageResource.h"
 #include "../../assets/AssetManager.h"
+#include "../../assets/objects/Cloud.h"
 #include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/textures/Texture.h"
@@ -47,6 +48,8 @@ namespace vke {
       assetManager->getRayTracingDescriptorSetLayout(), &variableCountInfo);
 
     m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
+
+    m_cloud = std::make_unique<Cloud>(m_logicalDevice, commandPool);
   }
 
   RayTracer::~RayTracer()
@@ -213,6 +216,34 @@ namespace vke {
 
       instances.push_back(instance);
     }
+
+    const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
+      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+      .accelerationStructure = m_cloud->getBLAS()
+    };
+
+    // const glm::mat4 modelTransform = glm::mat4(1.0f) *
+    //                                  glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 400.0f, 0.0f)) *
+    //                                  glm::scale(glm::mat4(1.0f), glm::vec3(500.0f, 200.0f, 500.0f));
+
+    const glm::mat4 modelTransform = glm::mat4(1.0f) *
+                                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)) *
+                                     glm::scale(glm::mat4(1.0f), glm::vec3(5));
+
+    const glm::mat4 modelMatrix = glm::transpose(modelTransform);
+    VkTransformMatrixKHR transformMatrix;
+    memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
+
+    const VkAccelerationStructureInstanceKHR instance {
+      .transform = transformMatrix,
+      .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
+      .mask = 0xFF,
+      .instanceShaderBindingTableRecordOffset = 1,
+      .flags = 0,
+      .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
+    };
+
+    instances.push_back(instance);
   }
 
   void RayTracer::buildTLAS(VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,

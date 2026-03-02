@@ -10,6 +10,7 @@
 namespace vke {
 
   class AssetManager;
+  class Cloud;
   class DescriptorSet;
   class ImageResource;
   class LightingManager;
@@ -80,6 +81,8 @@ namespace vke {
     VkDescriptorBufferInfo m_meshInfoInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
 
     std::vector<VkDescriptorImageInfo> m_textureImageInfos;
+
+    std::unique_ptr<Cloud> m_cloud;
 
     void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 
