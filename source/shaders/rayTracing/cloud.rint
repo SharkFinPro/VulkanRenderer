@@ -1,0 +1,50 @@
+#version 460
+#extension GL_EXT_ray_tracing : require
+
+struct CloudHitAttribute {
+  vec3 color;
+  float exit;
+};
+
+hitAttributeEXT CloudHitAttribute cloudHit;
+
+void main()
+{
+  const vec3 aabbMin = vec3(-1.0);
+  const vec3 aabbMax = vec3( 1.0);
+
+  vec3 invDir = 1.0 / gl_ObjectRayDirectionEXT;
+  vec3 t0 = (aabbMin - gl_ObjectRayOriginEXT) * invDir;
+  vec3 t1 = (aabbMax - gl_ObjectRayOriginEXT) * invDir;
+
+  float tEnter = max(max(min(t0.x,t1.x), min(t0.y,t1.y)), min(t0.z,t1.z));
+  float tExit  = min(min(max(t0.x,t1.x), max(t0.y,t1.y)), max(t0.z,t1.z));
+
+  if (tEnter > tExit || tExit < gl_RayTminEXT || tEnter > gl_RayTmaxEXT)
+  return;
+
+  tEnter = max(tEnter, gl_RayTminEXT);
+  tExit = min(tExit, gl_RayTmaxEXT);
+
+  float traveled = tExit - tEnter;
+
+  uint n = 50;
+
+  vec3 total = vec3(0);
+  for (uint i = 0; i < n; ++i)
+  {
+    float d = traveled / n * float(i);
+    vec3 pos = gl_ObjectRayOriginEXT + gl_ObjectRayDirectionEXT * (tEnter + d);
+    vec3 uvw = pos * 0.5 + 0.5;
+    total += uvw / float(n);
+  }
+
+  cloudHit.color = total;
+  cloudHit.exit = tExit;
+
+//  vec3 objectPos = gl_ObjectRayOriginEXT + gl_ObjectRayDirectionEXT * tEnter;
+//  vec3 uvw = objectPos * 0.5 + 0.5;
+//  cloudHit.color = uvw;
+
+  reportIntersectionEXT(tEnter, 0);
+}
