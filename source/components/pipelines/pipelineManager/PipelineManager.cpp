@@ -35,7 +35,10 @@ namespace vke {
             "assets/shaders/rayTracing/object.rmiss.spv",
             "assets/shaders/rayTracing/shadow.rmiss.spv"
           },
-          .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
+          .hitGroups = {
+            { "assets/shaders/rayTracing/object.rchit.spv", "" },
+            { "assets/shaders/rayTracing/cloud.rchit.spv", "assets/shaders/rayTracing/cloud.rint.spv" }
+          }
         },
         .descriptorSetLayouts {
           assetManager->getRayTracingDescriptorSetLayout(),
