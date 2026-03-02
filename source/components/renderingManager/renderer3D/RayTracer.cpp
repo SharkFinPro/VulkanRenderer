@@ -30,7 +30,8 @@ namespace vke {
                        const std::shared_ptr<AssetManager>& assetManager,
                        VkCommandPool commandPool,
                        VkDescriptorPool descriptorPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool),
+      m_previousTime(std::chrono::steady_clock::now())
   {
     std::vector<uint32_t> maxTextures;
     for (uint32_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
@@ -83,7 +84,15 @@ namespace vke {
 
     ImGui::DragFloat("Y Scale", &m_rtPushConstant.yScale, 0.001f, 0.0f, 2.0f);
 
+    ImGui::DragFloat("Speed", &m_speed, 0.01f);
+
     ImGui::End();
+
+    const auto currentTime = std::chrono::steady_clock::now();
+    const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count() / 250.0f;
+    m_previousTime = currentTime;
+
+    m_rtPushConstant.time += dt * m_speed;
 
     pipelineManager->pushRayTracingPipelineConstants(
       renderInfo->commandBuffer,

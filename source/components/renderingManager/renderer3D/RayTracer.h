@@ -4,6 +4,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
+#include <chrono>
 #include <memory>
 #include <vector>
 
@@ -37,6 +38,7 @@ namespace vke {
     float amplitude = 25.0f;
     float density = 0.55f;
     float yScale = 0.3f;
+    float time = 0.0f;
   };
 
   class RayTracer {
@@ -92,6 +94,10 @@ namespace vke {
     std::unique_ptr<Cloud> m_cloud;
 
     RTPushConstant m_rtPushConstant{};
+
+    std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
+
+    float m_speed = 1.0f;
 
     void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 

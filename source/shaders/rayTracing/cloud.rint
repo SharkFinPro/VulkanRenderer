@@ -6,6 +6,7 @@ layout(push_constant) uniform CloudPC {
   float amplitude;
   float density;
   float yScale;
+  float time;
 } pc;
 
 struct CloudHitAttribute {
@@ -93,7 +94,7 @@ void main()
 
     uvw.y *= pc.yScale;
 
-    float n = cloudDensity(uvw, pc.frequency) * pc.amplitude;
+    float n = cloudDensity(uvw + vec3(pc.time, 0, 0), pc.frequency) * pc.amplitude;
     vec3 color = vec3(n);
     total += vec4(color, n) / float(numSamples);
   }
