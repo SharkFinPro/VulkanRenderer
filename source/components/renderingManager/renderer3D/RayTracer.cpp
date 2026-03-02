@@ -73,6 +73,26 @@ namespace vke {
 
     updateRTDescriptorSets(imageResource, renderInfo->extent, renderInfo->currentFrame);
 
+    ImGui::Begin("Clouds");
+
+    ImGui::DragFloat("Frequency", &m_rtPushConstant.frequency, 0.01f, 0.0f);
+
+    ImGui::DragFloat("Amplitude", &m_rtPushConstant.amplitude, 0.01f, 0.0f);
+
+    ImGui::DragFloat("Density", &m_rtPushConstant.density, 0.001f, 0.0f, 1.0f);
+
+    ImGui::DragFloat("Y Scale", &m_rtPushConstant.yScale, 0.001f, 0.0f, 2.0f);
+
+    ImGui::End();
+
+    pipelineManager->pushRayTracingPipelineConstants(
+      renderInfo->commandBuffer,
+      VK_SHADER_STAGE_INTERSECTION_BIT_KHR,
+      0,
+      sizeof(m_rtPushConstant),
+      &m_rtPushConstant
+    );
+
     pipelineManager->bindRayTracingPipelineDescriptorSet(
       renderInfo->commandBuffer,
       m_rayTracingDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
@@ -222,13 +242,13 @@ namespace vke {
       .accelerationStructure = m_cloud->getBLAS()
     };
 
-    // const glm::mat4 modelTransform = glm::mat4(1.0f) *
-    //                                  glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 400.0f, 0.0f)) *
-    //                                  glm::scale(glm::mat4(1.0f), glm::vec3(500.0f, 200.0f, 500.0f));
-
     const glm::mat4 modelTransform = glm::mat4(1.0f) *
-                                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)) *
-                                     glm::scale(glm::mat4(1.0f), glm::vec3(5));
+                                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 600.0f, 0.0f)) *
+                                     glm::scale(glm::mat4(1.0f), glm::vec3(5500.0f, 400.0f, 5500.0f));
+
+    // const glm::mat4 modelTransform = glm::mat4(1.0f) *
+    //                                  glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)) *
+    //                                  glm::scale(glm::mat4(1.0f), glm::vec3(5));
 
     const glm::mat4 modelMatrix = glm::transpose(modelTransform);
     VkTransformMatrixKHR transformMatrix;

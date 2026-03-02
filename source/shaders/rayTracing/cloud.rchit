@@ -7,7 +7,7 @@ struct RayPayload {
 };
 
 struct CloudHitAttribute {
-  vec3 color;
+  vec4 color;
   float exit;
 };
 
@@ -19,7 +19,7 @@ hitAttributeEXT CloudHitAttribute cloudHit;
 
 void main()
 {
-  vec3 result = cloudHit.color;
+  vec3 result = cloudHit.color.xyz;
 
   int currentDepth = payload.depth;
   int MAX_DEPTH = 5;
@@ -41,7 +41,7 @@ void main()
       0
     );
 
-    result = mix(result, payload.color, 0.2);
+    result = mix(payload.color, result, cloudHit.color.a);
   }
 
   payload.color = result;

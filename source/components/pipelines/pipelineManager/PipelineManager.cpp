@@ -12,6 +12,8 @@
 #include "../../renderingManager/RenderingManager.h"
 #include <ranges>
 
+#include "../../renderingManager/renderer3D/RayTracer.h"
+
 namespace vke {
 
   PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -38,6 +40,13 @@ namespace vke {
           .hitGroups = {
             { "assets/shaders/rayTracing/object.rchit.spv", "" },
             { "assets/shaders/rayTracing/cloud.rchit.spv", "assets/shaders/rayTracing/cloud.rint.spv" }
+          },
+        },
+        .pushConstantRanges = {
+          {
+            .stageFlags = VK_SHADER_STAGE_INTERSECTION_BIT_KHR,
+            .offset = 0,
+            .size = sizeof(RTPushConstant)
           }
         },
         .descriptorSetLayouts {
@@ -133,6 +142,15 @@ namespace vke {
                                                             const uint32_t location) const
   {
     m_rayTracingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
+  }
+
+  void PipelineManager::pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                        const VkShaderStageFlags stageFlags,
+                                                        const uint32_t offset,
+                                                        const uint32_t size,
+                                                        const void* values) const
+  {
+    m_rayTracingPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
   void PipelineManager::createGraphicsPipeline(const PipelineType pipelineType,

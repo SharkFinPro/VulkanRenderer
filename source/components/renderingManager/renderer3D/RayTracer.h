@@ -32,6 +32,13 @@ namespace vke {
     float padding = 0.0f;
   };
 
+  struct RTPushConstant {
+    float frequency = 1.0f;
+    float amplitude = 1.0f;
+    float density = 0.4f;
+    float yScale = 1.0f;
+  };
+
   class RayTracer {
   public:
     explicit RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -83,6 +90,8 @@ namespace vke {
     std::vector<VkDescriptorImageInfo> m_textureImageInfos;
 
     std::unique_ptr<Cloud> m_cloud;
+
+    RTPushConstant m_rtPushConstant{};
 
     void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 
