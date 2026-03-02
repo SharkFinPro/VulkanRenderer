@@ -85,7 +85,8 @@ void main()
 
   float traveled = tExit - tEnter;
 
-  uint numSamples = uint(clamp(traveled, 8.0, 150.0));
+  float fixedStep = 0.1;
+  uint numSamples = uint(clamp(traveled / fixedStep, 16u, 150u));
 
   vec4 total = vec4(0);
   for (uint i = 0; i < numSamples; ++i)
