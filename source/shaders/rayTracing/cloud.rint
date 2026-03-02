@@ -74,7 +74,9 @@ void main()
   float tExit  = min(min(max(t0.x,t1.x), max(t0.y,t1.y)), max(t0.z,t1.z));
 
   if (tEnter > tExit || tExit < gl_RayTminEXT || tEnter > gl_RayTmaxEXT)
-  return;
+  {
+    return;
+  }
 
   tEnter = max(tEnter, gl_RayTminEXT);
   tExit = min(tExit, gl_RayTmaxEXT);
