@@ -13,6 +13,7 @@ function(compile_shaders)
     "${shadersSrc}/*.rchit"
     "${shadersSrc}/*.rgen"
     "${shadersSrc}/*.rmiss"
+    "${shadersSrc}/*.rint"
   )
 
   # Find all common shader files recursively
