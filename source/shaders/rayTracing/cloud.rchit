@@ -37,7 +37,7 @@ void main()
       gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * (cloudHit.exit + 0.001),
       0.001,
       gl_WorldRayDirectionEXT,
-      1000.0,
+      10000.0,
       0
     );
 
