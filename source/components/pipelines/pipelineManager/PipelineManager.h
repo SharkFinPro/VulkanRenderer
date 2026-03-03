@@ -119,6 +119,9 @@ namespace vke {
     void createDescriptorPool();
 
     [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
+
+    void createRayTracingPipeline(const std::shared_ptr<AssetManager>& assetManager,
+                                  const std::shared_ptr<LightingManager>& lightingManager);
   };
 
 } // namespace vke
