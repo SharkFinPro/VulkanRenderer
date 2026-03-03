@@ -170,6 +170,8 @@ inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
   gui->dockBottom("Rendering");
   gui->dockBottom("Snake");
 
+  gui->dockBottom("Clouds");
+
   gui->setBottomDockPercent(0.3);
 }
 

@@ -6,6 +6,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/fonts/Font.h
 
     # Objects - Renderable objects and data structures
+    components/assets/objects/Cloud.cpp
+    components/assets/objects/Cloud.h
     components/assets/objects/Model.cpp
     components/assets/objects/Model.h
     components/assets/objects/RenderObject.cpp

@@ -74,7 +74,7 @@ namespace vke {
     groups.push_back({
       .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
       .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR,
-      .generalShader = static_cast<uint32_t>(groups.size()),
+      .generalShader = 0,
       .closestHitShader = VK_SHADER_UNUSED_KHR,
       .anyHitShader = VK_SHADER_UNUSED_KHR,
       .intersectionShader = VK_SHADER_UNUSED_KHR
@@ -92,14 +92,21 @@ namespace vke {
       });
     }
 
-    groups.push_back({
-      .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
-      .type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR,
-      .generalShader = VK_SHADER_UNUSED_KHR,
-      .closestHitShader = static_cast<uint32_t>(groups.size()),
-      .anyHitShader = VK_SHADER_UNUSED_KHR,
-      .intersectionShader = VK_SHADER_UNUSED_KHR
-    });
+    uint32_t stageIndex = groups.size();
+
+    for (const auto& hitGroup : config.shaders.hitGroups)
+    {
+      const bool isProcedural = !hitGroup.intersectionShader.empty();
+
+      groups.push_back({
+        .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR,
+        .type = isProcedural ? VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR : VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR,
+        .generalShader = VK_SHADER_UNUSED_KHR,
+        .closestHitShader = stageIndex++,
+        .anyHitShader = VK_SHADER_UNUSED_KHR,
+        .intersectionShader = isProcedural ? stageIndex++ : VK_SHADER_UNUSED_KHR
+      });
+    }
 
     const VkRayTracingPipelineCreateInfoKHR rayTracingPipelineCreateInfo {
       .sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
@@ -128,7 +135,8 @@ namespace vke {
 
     const auto missCount = static_cast<uint32_t>(config.shaders.missShaders.size());
 
-    const uint32_t groupCount = 1 + missCount + 1;
+    const auto hitGroupCount = static_cast<uint32_t>(config.shaders.hitGroups.size());
+    const uint32_t groupCount = 1 + missCount + hitGroupCount;
 
     const uint32_t shaderBindingTableSize = groupCount * shaderGroupBaseAlignment;
 
@@ -169,8 +177,8 @@ namespace vke {
 
     m_hitRegion = {
       .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment * (1 + missCount),
-      .stride = alignedHandleSize,
-      .size = alignedHandleSize
+      .stride = shaderGroupBaseAlignment,
+      .size = shaderGroupBaseAlignment * hitGroupCount
     };
 
     m_callableRegion = {};

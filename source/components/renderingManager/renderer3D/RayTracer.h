@@ -10,6 +10,7 @@
 namespace vke {
 
   class AssetManager;
+  class Cloud;
   class DescriptorSet;
   class ImageResource;
   class LightingManager;
@@ -45,6 +46,7 @@ namespace vke {
                       const std::shared_ptr<LightingManager>& lightingManager,
                       const std::shared_ptr<ImageResource>& imageResource,
                       const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                      const std::shared_ptr<Cloud>& cloud,
                       const glm::vec3& viewPosition,
                       const glm::mat4& viewMatrix);
 
@@ -81,12 +83,19 @@ namespace vke {
 
     std::vector<VkDescriptorImageInfo> m_textureImageInfos;
 
-    void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+    std::shared_ptr<UniformBuffer> m_cloudUniform;
 
-    [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+    float m_speed = 1.0f;
+
+    void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                    const std::shared_ptr<Cloud>& cloud);
+
+    [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                                                    const std::shared_ptr<Cloud>& cloud);
 
     void populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
-                               const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const;
+                               const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                               const std::shared_ptr<Cloud>& cloud) const;
 
     void buildTLAS(VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                    const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,

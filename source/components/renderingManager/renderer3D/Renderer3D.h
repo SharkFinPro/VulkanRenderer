@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace vke {
+  class Cloud;
 
   class AssetManager;
   class CommandBuffer;
@@ -113,6 +114,8 @@ namespace vke {
 
     [[nodiscard]] VkDescriptorSetLayout getCubeMapDescriptorSetLayout() const;
 
+    void setCloudToRender(std::shared_ptr<Cloud> cloud);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -158,6 +161,8 @@ namespace vke {
     };
 
     std::unique_ptr<RayTracer> m_rayTracer;
+
+    std::shared_ptr<Cloud> m_cloudToRender;
 
     void createCommandPool();
 

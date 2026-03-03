@@ -37,7 +37,7 @@ void main()
     origin,
     0.001,         // tmin
     direction,
-    1000.0,        // tmax
+    10000.0,        // tmax
     0              // payload location
   );
 

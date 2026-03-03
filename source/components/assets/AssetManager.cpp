@@ -1,5 +1,6 @@
 #include "AssetManager.h"
 #include "fonts/Font.h"
+#include "objects/Cloud.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "particleSystems/SmokeSystem.h"
@@ -133,6 +134,11 @@ namespace vke {
   VkDescriptorSetLayout AssetManager::getRayTracingDescriptorSetLayout() const
   {
     return m_rayTracingDescriptorSetLayout;
+  }
+
+  std::shared_ptr<Cloud> AssetManager::createCloud()
+  {
+    return std::make_shared<Cloud>(m_logicalDevice, m_commandPool);
   }
 
   void AssetManager::createDescriptorSetLayouts()
@@ -296,6 +302,12 @@ namespace vke {
       },
       {
         .binding = 6,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_INTERSECTION_BIT_KHR
+      },
+      {
+        .binding = 7,
         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
         .descriptorCount = 256,
         .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
@@ -303,6 +315,7 @@ namespace vke {
     }};
 
     std::vector<VkDescriptorBindingFlags> bindingFlags {
+      0,
       0,
       0,
       0,

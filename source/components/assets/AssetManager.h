@@ -10,6 +10,7 @@
 
 namespace vke {
 
+  class Cloud;
   class Font;
   class LogicalDevice;
   class Model;
@@ -70,6 +71,8 @@ namespace vke {
     [[nodiscard]] VkDescriptorSetLayout getSmokeSystemDescriptorSetLayout() const;
 
     [[nodiscard]] VkDescriptorSetLayout getRayTracingDescriptorSetLayout() const;
+
+    [[nodiscard]] std::shared_ptr<Cloud> createCloud();
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;

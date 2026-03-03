@@ -10,6 +10,7 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../renderingManager/Renderer.h"
 #include "../../renderingManager/RenderingManager.h"
+#include "../../renderingManager/renderer3D/RayTracer.h"
 #include <ranges>
 
 namespace vke {
@@ -25,25 +26,6 @@ namespace vke {
     createDescriptorPool();
 
     createPipelines(assetManager, renderingManager, lightingManager);
-
-    if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
-    {
-      RayTracingPipelineConfig rtConfig {
-        .shaders {
-          .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
-          .missShaders = {
-            "assets/shaders/rayTracing/object.rmiss.spv",
-            "assets/shaders/rayTracing/shadow.rmiss.spv"
-          },
-          .closestHitShader = "assets/shaders/rayTracing/object.rchit.spv"
-        },
-        .descriptorSetLayouts {
-          assetManager->getRayTracingDescriptorSetLayout(),
-          lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout()
-        }
-      };
-      m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
-    }
   }
 
   PipelineManager::~PipelineManager()
@@ -132,6 +114,15 @@ namespace vke {
     m_rayTracingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
+  void PipelineManager::pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                        const VkShaderStageFlags stageFlags,
+                                                        const uint32_t offset,
+                                                        const uint32_t size,
+                                                        const void* values) const
+  {
+    m_rayTracingPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
+  }
+
   void PipelineManager::createGraphicsPipeline(const PipelineType pipelineType,
                                                const GraphicsPipelineOptions& graphicsPipelineOptions)
   {
@@ -147,6 +138,8 @@ namespace vke {
     createRenderObjectPipelines(assetManager, renderingManager, lightingManager);
 
     createMiscPipelines(assetManager, renderingManager, lightingManager);
+
+    createRayTracingPipeline(assetManager, lightingManager);
   }
 
   void PipelineManager::create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
@@ -289,5 +282,34 @@ namespace vke {
     }
 
     return *it->second;
+  }
+
+  void PipelineManager::createRayTracingPipeline(const std::shared_ptr<AssetManager>& assetManager,
+                                                 const std::shared_ptr<LightingManager>& lightingManager)
+  {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
+    RayTracingPipelineConfig rtConfig {
+      .shaders {
+        .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
+        .missShaders = {
+          "assets/shaders/rayTracing/object.rmiss.spv",
+          "assets/shaders/rayTracing/shadow.rmiss.spv"
+        },
+        .hitGroups = {
+          { "assets/shaders/rayTracing/object.rchit.spv", "" },
+          { "assets/shaders/rayTracing/cloud.rchit.spv", "assets/shaders/rayTracing/cloud.rint.spv" }
+        },
+      },
+      .descriptorSetLayouts {
+        assetManager->getRayTracingDescriptorSetLayout(),
+        lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout()
+      }
+    };
+
+    m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
   }
 } // namespace vke

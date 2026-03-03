@@ -71,6 +71,12 @@ namespace vke {
                                              VkDescriptorSet descriptorSet,
                                              uint32_t location) const;
 
+    void pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                         VkShaderStageFlags stageFlags,
+                                         uint32_t offset,
+                                         uint32_t size,
+                                         const void* values) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -113,6 +119,9 @@ namespace vke {
     void createDescriptorPool();
 
     [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
+
+    void createRayTracingPipeline(const std::shared_ptr<AssetManager>& assetManager,
+                                  const std::shared_ptr<LightingManager>& lightingManager);
   };
 
 } // namespace vke

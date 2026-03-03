@@ -1,4 +1,5 @@
 add_subdirectory(2D)
+add_subdirectory(clouds)
 add_subdirectory(crosses)
 add_subdirectory(cubeMap)
 add_subdirectory(magicLens)
@@ -14,6 +15,7 @@ add_subdirectory(snake)
 add_custom_target(build_all
   DEPENDS
   2D
+  clouds
   crosses
   cubeMap
   magicLens
