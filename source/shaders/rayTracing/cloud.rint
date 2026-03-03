@@ -143,6 +143,12 @@ void main()
   float brightness = 1.0 - (totalDensity / 2.0);
   float alpha = clamp(totalDensity * 3.0, 0.0, 1.0);
 
+  float maxDist = 10000.0;
+  float dNorm = clamp(tEnter / maxDist, 0.0, 1.0);
+
+  float horizonFade = pow(1.0 - dNorm, 6.0);
+  alpha *= horizonFade;
+
   cloudHit.color = vec4(vec3(brightness), alpha);
 
   reportIntersectionEXT(tEnter, 0);
