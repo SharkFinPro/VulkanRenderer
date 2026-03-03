@@ -10,9 +10,8 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../renderingManager/Renderer.h"
 #include "../../renderingManager/RenderingManager.h"
-#include <ranges>
-
 #include "../../renderingManager/renderer3D/RayTracer.h"
+#include <ranges>
 
 namespace vke {
 
