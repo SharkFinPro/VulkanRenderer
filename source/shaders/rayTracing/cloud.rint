@@ -127,7 +127,7 @@ void main()
   float fixedStep = 0.1;
   uint numSamples = uint(clamp(traveled / fixedStep, 16u, 150u));
 
-  vec4 total = vec4(0);
+  float totalDensity = 0.0f;
   for (uint i = 0; i < numSamples; ++i)
   {
     float d = traveled / numSamples * float(i);
@@ -137,10 +137,13 @@ void main()
     uvw.y *= pc.yScale;
 
     float density = cloudDensity(uvw + vec3(pc.time, 0, 0), pc.frequency) * pc.amplitude;
-    total += vec4(density) / float(numSamples);
+    totalDensity += density / float(numSamples);
   }
 
-  cloudHit.color = total;
+  float brightness = 1.0 - (totalDensity / 2.0);
+  float alpha = clamp(totalDensity * 3.0, 0.0, 1.0);
+
+  cloudHit.color = vec4(vec3(brightness), alpha);
 
   reportIntersectionEXT(tEnter, 0);
 }
