@@ -61,6 +61,16 @@ namespace vke {
     return m_uniformData.time;
   }
 
+  glm::vec3 Cloud::getTranslation() const
+  {
+    return m_translation;
+  }
+
+  glm::vec3 Cloud::getScale() const
+  {
+    return m_scale;
+  }
+
   void Cloud::setFrequency(const float frequency)
   {
     m_uniformData.frequency = frequency;
@@ -84,6 +94,16 @@ namespace vke {
   void Cloud::setTime(const float time)
   {
     m_uniformData.time = time;
+  }
+
+  void Cloud::setTranslation(const glm::vec3 translation)
+  {
+    m_translation = translation;
+  }
+
+  void Cloud::setScale(const glm::vec3 scale)
+  {
+    m_scale = scale;
   }
 
   void Cloud::createAABBBuffer(const VkCommandPool& commandPool)

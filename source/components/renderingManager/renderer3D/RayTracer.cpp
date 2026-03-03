@@ -234,9 +234,7 @@ namespace vke {
         .accelerationStructure = cloud->getBLAS()
       };
 
-      const glm::mat4 modelTransform = glm::mat4(1.0f) *
-                                       glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 500.0f, 0.0f)) *
-                                       glm::scale(glm::mat4(1.0f), glm::vec3(5500.0f, 400.0f, 5500.0f));
+      const glm::mat4 modelTransform = glm::scale(glm::translate(glm::mat4(1.0f), cloud->getTranslation()), cloud->getScale());
 
       const glm::mat4 modelMatrix = glm::transpose(modelTransform);
       VkTransformMatrixKHR transformMatrix;
