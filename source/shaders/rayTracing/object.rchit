@@ -180,7 +180,7 @@ void main()
       fragPos,
       0.1,
       reflectDir,
-      1000.0,
+      10000.0,
       0
     );
 
@@ -213,7 +213,7 @@ void main()
       fragPos,
       0.01,
       refractDir,
-      1000.0,
+      10000.0,
       0
     );
 
