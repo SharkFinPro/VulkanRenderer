@@ -1,20 +1,20 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
 
-layout(push_constant) uniform CloudPC {
-  float frequency;
-  float amplitude;
-  float density;
-  float yScale;
-  float time;
-} pc;
-
 struct CloudHitAttribute {
   vec4 color;
   float exit;
 };
 
 hitAttributeEXT CloudHitAttribute cloudHit;
+
+layout(binding = 6, set = 0) uniform CloudUniform {
+  float frequency;
+  float amplitude;
+  float density;
+  float yScale;
+  float time;
+} cloud;
 
 //	Classic Perlin 3D Noise
 //	by Stefan Gustavson (https://github.com/stegu/webgl-noise)
@@ -97,7 +97,7 @@ float cloudDensity(vec3 uvw, float freq) {
   val += 0.250 * cnoise(uvw * freq * 2.0);
   val += 0.125 * cnoise(uvw * freq * 4.0);
   val += 0.125 * cnoise(uvw * freq * 8.0);
-  return max(0.0, val - pc.density) * (1.0 / 0.6);
+  return max(0.0, val - cloud.density) * (1.0 / 0.6);
 }
 
 void main()
@@ -134,9 +134,9 @@ void main()
     vec3 pos = gl_ObjectRayOriginEXT + gl_ObjectRayDirectionEXT * (tEnter + d);
     vec3 uvw = pos * 0.5 + 0.5;
 
-    uvw.y *= pc.yScale;
+    uvw.y *= cloud.yScale;
 
-    float density = cloudDensity(uvw + vec3(pc.time, 0, 0), pc.frequency) * pc.amplitude;
+    float density = cloudDensity(uvw + vec3(cloud.time, 0, 0), cloud.frequency) * cloud.amplitude;
     totalDensity += density / float(numSamples);
   }
 

@@ -30,8 +30,7 @@ namespace vke {
                        const std::shared_ptr<AssetManager>& assetManager,
                        VkCommandPool commandPool,
                        VkDescriptorPool descriptorPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool),
-      m_previousTime(std::chrono::steady_clock::now())
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     std::vector<uint32_t> maxTextures;
     for (uint32_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
@@ -50,7 +49,7 @@ namespace vke {
 
     m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
 
-    m_cloud = std::make_unique<Cloud>(m_logicalDevice, commandPool);
+    m_cloudUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CloudUniform));
   }
 
   RayTracer::~RayTracer()
@@ -63,44 +62,23 @@ namespace vke {
                                const std::shared_ptr<LightingManager>& lightingManager,
                                const std::shared_ptr<ImageResource>& imageResource,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                               const std::shared_ptr<Cloud>& cloud,
                                const glm::vec3& viewPosition,
                                const glm::mat4& viewMatrix)
   {
-    createTLAS(renderObjects);
+    createTLAS(renderObjects, cloud);
 
     updateRTSceneInfo(renderObjects);
 
     updateRTDescriptorSetData(renderInfo->extent, renderInfo->currentFrame, viewPosition, viewMatrix);
 
+    if (cloud)
+    {
+      const auto cloudUBO = cloud->getUniformData();
+      m_cloudUniform->update(renderInfo->currentFrame, &cloudUBO);
+    }
+
     updateRTDescriptorSets(imageResource, renderInfo->extent, renderInfo->currentFrame);
-
-    ImGui::Begin("Clouds");
-
-    ImGui::DragFloat("Frequency", &m_rtPushConstant.frequency, 0.01f, 0.0f);
-
-    ImGui::DragFloat("Amplitude", &m_rtPushConstant.amplitude, 0.01f, 0.0f);
-
-    ImGui::DragFloat("Density", &m_rtPushConstant.density, 0.001f, 0.0f, 1.0f);
-
-    ImGui::DragFloat("Y Scale", &m_rtPushConstant.yScale, 0.001f, 0.0f, 2.0f);
-
-    ImGui::DragFloat("Speed", &m_speed, 0.01f);
-
-    ImGui::End();
-
-    const auto currentTime = std::chrono::steady_clock::now();
-    const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count() / 250.0f;
-    m_previousTime = currentTime;
-
-    m_rtPushConstant.time += dt * m_speed;
-
-    pipelineManager->pushRayTracingPipelineConstants(
-      renderInfo->commandBuffer,
-      VK_SHADER_STAGE_INTERSECTION_BIT_KHR,
-      0,
-      sizeof(m_rtPushConstant),
-      &m_rtPushConstant
-    );
 
     pipelineManager->bindRayTracingPipelineDescriptorSet(
       renderInfo->commandBuffer,
@@ -117,7 +95,8 @@ namespace vke {
     pipelineManager->doRayTracing(renderInfo->commandBuffer, renderInfo->extent);
   }
 
-  void RayTracer::createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
+  void RayTracer::createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                             const std::shared_ptr<Cloud>& cloud)
   {
     if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
@@ -126,7 +105,7 @@ namespace vke {
 
     destroyTLAS();
 
-    const auto primitiveCount = createTLASInstanceBuffer(renderObjects);
+    const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud);
 
     VkAccelerationStructureGeometryInstancesDataKHR instancesData {
       .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
@@ -170,12 +149,13 @@ namespace vke {
     buildTLAS(buildGeometryInfo, buildSizesInfo, primitiveCount);
   }
 
-  uint32_t RayTracer::createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
+  uint32_t RayTracer::createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                                               const std::shared_ptr<Cloud>& cloud)
   {
     std::vector<VkAccelerationStructureInstanceKHR> instances;
     instances.reserve(renderObjects.size());
 
-    populateInstanceArray(instances, renderObjects);
+    populateInstanceArray(instances, renderObjects, cloud);
 
     const VkDeviceSize instancesBufferSize = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
 
@@ -220,7 +200,8 @@ namespace vke {
   }
 
   void RayTracer::populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
-                                        const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const
+                                        const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                                        const std::shared_ptr<Cloud>& cloud) const
   {
     for (const auto& renderObject : renderObjects)
     {
@@ -246,33 +227,32 @@ namespace vke {
       instances.push_back(instance);
     }
 
-    const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
-      .accelerationStructure = m_cloud->getBLAS()
-    };
+    if (cloud)
+    {
+      const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+        .accelerationStructure = cloud->getBLAS()
+      };
 
-    const glm::mat4 modelTransform = glm::mat4(1.0f) *
-                                     glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 500.0f, 0.0f)) *
-                                     glm::scale(glm::mat4(1.0f), glm::vec3(5500.0f, 400.0f, 5500.0f));
+      const glm::mat4 modelTransform = glm::mat4(1.0f) *
+                                       glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 500.0f, 0.0f)) *
+                                       glm::scale(glm::mat4(1.0f), glm::vec3(5500.0f, 400.0f, 5500.0f));
 
-    // const glm::mat4 modelTransform = glm::mat4(1.0f) *
-    //                                  glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)) *
-    //                                  glm::scale(glm::mat4(1.0f), glm::vec3(5));
+      const glm::mat4 modelMatrix = glm::transpose(modelTransform);
+      VkTransformMatrixKHR transformMatrix;
+      memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
 
-    const glm::mat4 modelMatrix = glm::transpose(modelTransform);
-    VkTransformMatrixKHR transformMatrix;
-    memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
+      const VkAccelerationStructureInstanceKHR instance {
+        .transform = transformMatrix,
+        .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
+        .mask = 0xFF,
+        .instanceShaderBindingTableRecordOffset = 1,
+        .flags = 0,
+        .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
+      };
 
-    const VkAccelerationStructureInstanceKHR instance {
-      .transform = transformMatrix,
-      .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
-      .mask = 0xFF,
-      .instanceShaderBindingTableRecordOffset = 1,
-      .flags = 0,
-      .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
-    };
-
-    instances.push_back(instance);
+      instances.push_back(instance);
+    }
   }
 
   void RayTracer::buildTLAS(VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
@@ -491,14 +471,15 @@ namespace vke {
         storageBuffer(3, &m_vertexBufferInfo),
         storageBuffer(4, &m_indexBufferInfo),
         storageBuffer(5, &m_meshInfoInfo),
+        m_cloudUniform->getDescriptorSet(6, descriptorSet, currentFrame),
         {
           .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
-          .dstBinding = 6,
+          .dstBinding = 7,
           .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
           .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
           .pImageInfo = m_textureImageInfos.data()
-        }
+        },
       }};
 
       return descriptorWrites;

@@ -304,13 +304,6 @@ namespace vke {
           { "assets/shaders/rayTracing/cloud.rchit.spv", "assets/shaders/rayTracing/cloud.rint.spv" }
         },
       },
-      .pushConstantRanges = {
-        {
-          .stageFlags = VK_SHADER_STAGE_INTERSECTION_BIT_KHR,
-          .offset = 0,
-          .size = sizeof(RTPushConstant)
-        }
-      },
       .descriptorSetLayouts {
         assetManager->getRayTracingDescriptorSetLayout(),
         lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout()

@@ -4,7 +4,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
-#include <chrono>
 #include <memory>
 #include <vector>
 
@@ -33,14 +32,6 @@ namespace vke {
     float padding = 0.0f;
   };
 
-  struct RTPushConstant {
-    float frequency = 20.0f;
-    float amplitude = 3.0f;
-    float density = 0.15f;
-    float yScale = 0.15f;
-    float time = 0.0f;
-  };
-
   class RayTracer {
   public:
     explicit RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -55,6 +46,7 @@ namespace vke {
                       const std::shared_ptr<LightingManager>& lightingManager,
                       const std::shared_ptr<ImageResource>& imageResource,
                       const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                      const std::shared_ptr<Cloud>& cloud,
                       const glm::vec3& viewPosition,
                       const glm::mat4& viewMatrix);
 
@@ -91,20 +83,19 @@ namespace vke {
 
     std::vector<VkDescriptorImageInfo> m_textureImageInfos;
 
-    std::unique_ptr<Cloud> m_cloud;
-
-    RTPushConstant m_rtPushConstant{};
-
-    std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
+    std::shared_ptr<UniformBuffer> m_cloudUniform;
 
     float m_speed = 1.0f;
 
-    void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+    void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                    const std::shared_ptr<Cloud>& cloud);
 
-    [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+    [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                                                    const std::shared_ptr<Cloud>& cloud);
 
     void populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
-                               const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const;
+                               const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                               const std::shared_ptr<Cloud>& cloud) const;
 
     void buildTLAS(VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                    const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,

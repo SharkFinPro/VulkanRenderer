@@ -114,6 +114,7 @@ namespace vke {
       lightingManager,
       imageResource,
       m_renderObjectsToRenderFlattened,
+      m_cloudToRender,
       m_viewPosition,
       m_viewMatrix
     );
@@ -135,6 +136,8 @@ namespace vke {
     m_mousePicker->clearObjectsToMousePick();
 
     m_smokeSystemsToRender.clear();
+
+    m_cloudToRender.reset();
   }
 
   void Renderer3D::enableGrid()
@@ -212,6 +215,11 @@ namespace vke {
   VkDescriptorSetLayout Renderer3D::getCubeMapDescriptorSetLayout() const
   {
     return m_cubeMapDescriptorSet->getDescriptorSetLayout();
+  }
+
+  void Renderer3D::setCloudToRender(std::shared_ptr<Cloud> cloud)
+  {
+    m_cloudToRender = cloud;
   }
 
   void Renderer3D::createCommandPool()

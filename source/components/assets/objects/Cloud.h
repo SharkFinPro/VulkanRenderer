@@ -8,6 +8,14 @@ namespace vke {
 
   class LogicalDevice;
 
+  struct CloudUniform {
+    float frequency = 20.0f;
+    float amplitude = 3.0f;
+    float density = 0.15f;
+    float yScale = 0.15f;
+    float time = 0.0f;
+  };
+
   class Cloud {
   public:
     Cloud(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -16,6 +24,20 @@ namespace vke {
     ~Cloud();
 
     [[nodiscard]] VkAccelerationStructureKHR getBLAS() const;
+
+    [[nodiscard]] CloudUniform getUniformData() const;
+
+    [[nodiscard]] float getFrequency() const;
+    [[nodiscard]] float getAmplitude() const;
+    [[nodiscard]] float getDensity() const;
+    [[nodiscard]] float getYScale() const;
+    [[nodiscard]] float getTime() const;
+
+    void setFrequency(float frequency);
+    void setAmplitude(float amplitude);
+    void setDensity(float density);
+    void setYScale(float yScale);
+    void setTime(float time);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -31,6 +53,8 @@ namespace vke {
 
     VkBuffer m_aabbBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_aabbBufferMemory = VK_NULL_HANDLE;
+
+    CloudUniform m_uniformData;
 
     void createAABBBuffer(const VkCommandPool& commandPool);
 
