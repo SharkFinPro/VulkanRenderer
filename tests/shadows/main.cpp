@@ -63,17 +63,17 @@ void setupScene(const vke::VulkanEngine& renderer,
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
   const auto model = renderer.getAssetManager()->loadModel("assets/models/square.glb");
 
-  // const auto object1 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
-  // object1->setPosition({ 0, -5, 0 });
-  // objects.push_back(object1);
+  const auto object1 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
+  object1->setPosition({ 0, -5, 0 });
+  objects.push_back(object1);
 
   const auto object2 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object2->setPosition({ -5, -10, 0 });
   objects.push_back(object2);
 
-  // const auto object3 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
-  // object3->setPosition({ 10, 0, 15 });
-  // objects.push_back(object3);
+  const auto object3 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
+  object3->setPosition({ 10, 0, 15 });
+  objects.push_back(object3);
 
   lights.push_back(renderer.getLightingManager()->createSpotLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
