@@ -34,10 +34,10 @@ namespace vke {
   };
 
   struct RTPushConstant {
-    float frequency = 20.0f;
-    float amplitude = 25.0f;
-    float density = 0.55f;
-    float yScale = 0.3f;
+    float frequency = 25.0f;
+    float amplitude = 21.0f;
+    float density = 0.25f;
+    float yScale = 0.15f;
     float time = 0.0f;
   };
 
