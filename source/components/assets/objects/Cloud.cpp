@@ -3,6 +3,7 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../../utilities/Buffers.h"
+#include <cstring>
 
 constexpr uint32_t PRIMITIVE_COUNT = 1;
 constexpr VkDeviceSize AABB_BUFFER_SIZE = sizeof(VkAabbPositionsKHR);
