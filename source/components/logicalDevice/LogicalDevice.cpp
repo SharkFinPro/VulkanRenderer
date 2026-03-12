@@ -669,7 +669,7 @@ namespace vke {
     );
   }
 
-  void LogicalDevice::buildAccelerationStructures(const VkCommandBuffer commandBuffer,
+  void LogicalDevice::buildAccelerationStructures(VkCommandBuffer commandBuffer,
                                                   const uint32_t infoCount,
                                                   const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
                                                   const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const
