@@ -65,7 +65,7 @@ namespace vke {
       memcpy(data, imageData, imageSize);
     });
 
-    delete imageData;
+    delete[] imageData;
 
     Images::createImage(
       m_logicalDevice,
