@@ -88,7 +88,7 @@ namespace vke {
   void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
                                                    const VkCommandBuffer* commandBuffer) const
   {
-    const std::array<VkSemaphore, 1> waitSemaphores = {
+    const std::array waitSemaphores = {
       m_computeFinishedSemaphores[currentFrame]
     };
     constexpr VkPipelineStageFlags waitStages[] = {
@@ -116,7 +116,7 @@ namespace vke {
   void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame,
                                           const VkCommandBuffer* commandBuffer) const
   {
-    const std::array<VkSemaphore, 1> waitSemaphores = {
+    const std::array waitSemaphores = {
       m_imageAvailableSemaphores[currentFrame]
     };
     constexpr VkPipelineStageFlags waitStages[] = {
@@ -160,8 +160,18 @@ namespace vke {
 
   void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
   {
-    vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-    vkWaitForFences(m_device, 1, &m_offscreenInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    const std::array fences = {
+      m_inFlightFences[currentFrame],
+      m_offscreenInFlightFences[currentFrame]
+    };
+
+    vkWaitForFences(
+      m_device,
+      fences.size(),
+      fences.data(),
+      VK_TRUE,
+      UINT64_MAX
+    );
   }
   void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
   {
@@ -175,8 +185,16 @@ namespace vke {
 
   void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
   {
-    vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
-    vkResetFences(m_device, 1, &m_offscreenInFlightFences[currentFrame]);
+    const std::array fences = {
+      m_inFlightFences[currentFrame],
+      m_offscreenInFlightFences[currentFrame]
+    };
+
+    vkResetFences(
+      m_device,
+      fences.size(),
+      fences.data()
+    );
   }
 
   void LogicalDevice::resetMousePickingFences(const uint32_t currentFrame) const
