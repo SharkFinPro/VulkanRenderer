@@ -6,8 +6,6 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include <backends/imgui_impl_vulkan.h>
 
-constexpr uint32_t NUM_IMAGES = 3;
-
 namespace vke {
 
   Framebuffer::Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -38,9 +36,11 @@ namespace vke {
                                        const std::shared_ptr<RenderTarget>& renderTarget,
                                        const std::shared_ptr<SwapChain>& swapChain)
   {
-    m_framebuffers.resize(NUM_IMAGES);
+    const auto numImages = swapChain ? swapChain->getImages().size() : m_logicalDevice->getMaxFramesInFlight();
 
-    for (size_t i = 0; i < NUM_IMAGES; i++)
+    m_framebuffers.resize(numImages);
+
+    for (size_t i = 0; i < numImages; i++)
     {
       std::vector<VkImageView> attachments;
 
