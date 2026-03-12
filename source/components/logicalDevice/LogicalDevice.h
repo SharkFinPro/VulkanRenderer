@@ -202,7 +202,7 @@ namespace vke {
     std::vector<VkSemaphore> m_renderFinishedSemaphores2;
 
     std::vector<VkFence> m_inFlightFences;
-    std::vector<VkFence> m_inFlightFences2;
+    std::vector<VkFence> m_offscreenInFlightFences;
     std::vector<VkFence> m_mousePickingInFlightFences;
 
     std::vector<VkSemaphore> m_computeFinishedSemaphores;

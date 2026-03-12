@@ -27,7 +27,7 @@ namespace vke {
       vkDestroySemaphore(m_device, m_computeFinishedSemaphores[i], nullptr);
 
       vkDestroyFence(m_device, m_inFlightFences[i], nullptr);
-      vkDestroyFence(m_device, m_inFlightFences2[i], nullptr);
+      vkDestroyFence(m_device, m_offscreenInFlightFences[i], nullptr);
       vkDestroyFence(m_device, m_mousePickingInFlightFences[i], nullptr);
       vkDestroyFence(m_device, m_computeInFlightFences[i], nullptr);
     }
@@ -81,14 +81,14 @@ namespace vke {
 
     if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_mousePickingInFlightFences[currentFrame]) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to submit draw command buffer!");
+      throw std::runtime_error("Failed to submit draw command buffer!");
     }
   }
 
   void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
                                                    const VkCommandBuffer* commandBuffer) const
   {
-    const std::array<VkSemaphore, 1> waitSemaphores = {
+    const std::array waitSemaphores = {
       m_computeFinishedSemaphores[currentFrame]
     };
     constexpr VkPipelineStageFlags waitStages[] = {
@@ -107,16 +107,16 @@ namespace vke {
       .pSignalSemaphores = &m_renderFinishedSemaphores2[currentFrame]
     };
 
-    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences2[currentFrame]) != VK_SUCCESS)
+    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_offscreenInFlightFences[currentFrame]) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to submit draw command buffer!");
+      throw std::runtime_error("Failed to submit draw command buffer!");
     }
   }
 
   void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame,
                                           const VkCommandBuffer* commandBuffer) const
   {
-    const std::array<VkSemaphore, 1> waitSemaphores = {
+    const std::array waitSemaphores = {
       m_imageAvailableSemaphores[currentFrame]
     };
     constexpr VkPipelineStageFlags waitStages[] = {
@@ -137,7 +137,7 @@ namespace vke {
 
     if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to submit draw command buffer!");
+      throw std::runtime_error("Failed to submit draw command buffer!");
     }
   }
 
@@ -154,14 +154,24 @@ namespace vke {
 
     if (vkQueueSubmit(m_computeQueue, 1, &submitInfo, m_computeInFlightFences[currentFrame]) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to submit compute command buffer!");
+      throw std::runtime_error("Failed to submit compute command buffer!");
     }
   }
 
   void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
   {
-    vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-    vkWaitForFences(m_device, 1, &m_inFlightFences2[currentFrame], VK_TRUE, UINT64_MAX);
+    const std::array fences = {
+      m_inFlightFences[currentFrame],
+      m_offscreenInFlightFences[currentFrame]
+    };
+
+    vkWaitForFences(
+      m_device,
+      fences.size(),
+      fences.data(),
+      VK_TRUE,
+      UINT64_MAX
+    );
   }
   void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
   {
@@ -175,8 +185,16 @@ namespace vke {
 
   void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
   {
-    vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
-    vkResetFences(m_device, 1, &m_inFlightFences2[currentFrame]);
+    const std::array fences = {
+      m_inFlightFences[currentFrame],
+      m_offscreenInFlightFences[currentFrame]
+    };
+
+    vkResetFences(
+      m_device,
+      fences.size(),
+      fences.data()
+    );
   }
 
   void LogicalDevice::resetMousePickingFences(const uint32_t currentFrame) const
@@ -230,7 +248,7 @@ namespace vke {
 
     if (vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create command pool!");
+      throw std::runtime_error("Failed to create command pool!");
     }
 
     return commandPool;
@@ -292,7 +310,7 @@ namespace vke {
   {
     if (vkAllocateDescriptorSets(m_device, &descriptorSetAllocateInfo, descriptorSets) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to allocate descriptor sets!");
+      throw std::runtime_error("Failed to allocate descriptor sets!");
     }
   }
 
@@ -308,7 +326,7 @@ namespace vke {
 
     if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create buffer!");
+      throw std::runtime_error("Failed to create buffer!");
     }
 
     return buffer;
@@ -340,7 +358,7 @@ namespace vke {
   {
     if (vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to allocate memory!");
+      throw std::runtime_error("Failed to allocate memory!");
     }
   }
 
@@ -371,7 +389,7 @@ namespace vke {
 
     if (vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create sampler!");
+      throw std::runtime_error("Failed to create sampler!");
     }
 
     return sampler;
@@ -395,7 +413,7 @@ namespace vke {
 
     if (vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create image view!");
+      throw std::runtime_error("Failed to create image view!");
     }
 
     return imageView;
@@ -421,7 +439,7 @@ namespace vke {
 
     if (vkCreateImage(m_device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create image!");
+      throw std::runtime_error("Failed to create image!");
     }
 
     return image;
@@ -461,7 +479,7 @@ namespace vke {
 
     if (vkCreateRenderPass(m_device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create render pass!");
+      throw std::runtime_error("Failed to create render pass!");
     }
 
     return renderPass;
@@ -480,7 +498,7 @@ namespace vke {
 
     if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create shader module!");
+      throw std::runtime_error("Failed to create shader module!");
     }
 
     return shaderModule;
@@ -499,7 +517,7 @@ namespace vke {
 
     if (vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create swapchain!");
+      throw std::runtime_error("Failed to create swapchain!");
     }
 
     return swapchain;
@@ -525,7 +543,7 @@ namespace vke {
 
     if (vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &framebuffer) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create framebuffer!");
+      throw std::runtime_error("Failed to create framebuffer!");
     }
 
     return framebuffer;
@@ -544,7 +562,7 @@ namespace vke {
 
     if (vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create pipeline layout!");
+      throw std::runtime_error("Failed to create pipeline layout!");
     }
 
     return pipelineLayout;
@@ -568,7 +586,7 @@ namespace vke {
 
     if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create graphics pipeline!");
+      throw std::runtime_error("Failed to create graphics pipeline!");
     }
 
     return pipeline;
@@ -580,7 +598,7 @@ namespace vke {
 
     if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create compute pipeline!");
+      throw std::runtime_error("Failed to create compute pipeline!");
     }
 
     return pipeline;
@@ -592,7 +610,7 @@ namespace vke {
 
     if (m_vkCreateRayTracingPipelinesKHR(m_device, VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &rayTracingPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create ray tracing pipeline!");
+      throw std::runtime_error("Failed to create ray tracing pipeline!");
     }
 
     return pipeline;
@@ -651,7 +669,7 @@ namespace vke {
     );
   }
 
-  void LogicalDevice::buildAccelerationStructures(const VkCommandBuffer commandBuffer,
+  void LogicalDevice::buildAccelerationStructures(VkCommandBuffer commandBuffer,
                                                   const uint32_t infoCount,
                                                   const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
                                                   const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const
@@ -704,7 +722,7 @@ namespace vke {
   {
     if (vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, commandBuffers) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to allocate command buffers!");
+      throw std::runtime_error("Failed to allocate command buffers!");
     }
   }
 
@@ -721,7 +739,7 @@ namespace vke {
 
     if (vkCreateDescriptorPool(m_device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create descriptor pool!");
+      throw std::runtime_error("Failed to create descriptor pool!");
     }
 
     return descriptorPool;
@@ -733,7 +751,7 @@ namespace vke {
 
     if (vkCreateDescriptorSetLayout(m_device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
     {
-      throw std::runtime_error("failed to create descriptor set layout!");
+      throw std::runtime_error("Failed to create descriptor set layout!");
     }
 
     return descriptorSetLayout;
@@ -842,7 +860,7 @@ namespace vke {
     m_computeFinishedSemaphores.resize(m_maxFramesInFlight);
 
     m_inFlightFences.resize(m_maxFramesInFlight);
-    m_inFlightFences2.resize(m_maxFramesInFlight);
+    m_offscreenInFlightFences.resize(m_maxFramesInFlight);
     m_mousePickingInFlightFences.resize(m_maxFramesInFlight);
     m_computeInFlightFences.resize(m_maxFramesInFlight);
 
@@ -861,16 +879,16 @@ namespace vke {
           vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
           vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores2[i]) != VK_SUCCESS ||
           vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS ||
-          vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences2[i]) != VK_SUCCESS ||
+          vkCreateFence(m_device, &fenceInfo, nullptr, &m_offscreenInFlightFences[i]) != VK_SUCCESS ||
           vkCreateFence(m_device, &fenceInfo, nullptr, &m_mousePickingInFlightFences[i]) != VK_SUCCESS)
       {
-        throw std::runtime_error("failed to create graphics sync objects!");
+        throw std::runtime_error("Failed to create graphics sync objects!");
       }
 
       if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_computeFinishedSemaphores[i]) != VK_SUCCESS ||
           vkCreateFence(m_device, &fenceInfo, nullptr, &m_computeInFlightFences[i]) != VK_SUCCESS)
       {
-        throw std::runtime_error("failed to create compute sync objects!");
+        throw std::runtime_error("Failed to create compute sync objects!");
       }
     }
   }
