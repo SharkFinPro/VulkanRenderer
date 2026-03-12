@@ -12,8 +12,8 @@ namespace vke::PipelineConfig {
   {
     return {
       .shaders {
-        .vertexShader = "assets/shaders/2D/rect.vert.spv",
-        .fragmentShader = "assets/shaders/2D/rect.frag.spv"
+        .vertexShader = "assets/shaders/2D/Rect.vert.spv",
+        .fragmentShader = "assets/shaders/2D/Rect.frag.spv"
       },
       .states {
         .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
