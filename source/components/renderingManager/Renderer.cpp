@@ -122,7 +122,7 @@ namespace vke {
       .numSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
     };
 
-    m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+    m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, static_cast<uint32_t>(swapChain->getImages().size()));
   }
 
   void Renderer::createOffscreenRenderTarget(const VkExtent2D extent)
@@ -138,9 +138,7 @@ namespace vke {
       .sampler = m_sampler
     };
 
-    m_offscreenRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
-
-    createRayTracingImageResource(extent);
+    m_offscreenRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
   void Renderer::createMousePickingRenderTarget(const VkExtent2D extent)
@@ -154,7 +152,7 @@ namespace vke {
       .numSamples = VK_SAMPLE_COUNT_1_BIT
     };
 
-    m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+    m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
   void Renderer::createRayTracingImageResource(const VkExtent2D extent)

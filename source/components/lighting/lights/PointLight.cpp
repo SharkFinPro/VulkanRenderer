@@ -111,7 +111,7 @@ namespace vke {
       .isCubeMap = true
     };
 
-    m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+    m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
   void PointLight::createUniform()

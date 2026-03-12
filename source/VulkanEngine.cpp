@@ -29,7 +29,24 @@ namespace vke {
 
   VulkanEngine::~VulkanEngine()
   {
-    m_logicalDevice->waitIdle();
+    if (m_logicalDevice)
+    {
+      m_logicalDevice->waitIdle();
+
+      m_renderingManager.reset();
+      m_pipelineManager.reset();
+      m_surface.reset();
+      m_window.reset();
+
+      m_computingManager.reset();
+      m_lightingManager.reset();
+      m_assetManager.reset();
+      m_imGuiInstance.reset();
+
+      m_logicalDevice.reset();
+      m_physicalDevice.reset();
+      m_instance.reset();
+    }
 
     glfwTerminate();
   }
