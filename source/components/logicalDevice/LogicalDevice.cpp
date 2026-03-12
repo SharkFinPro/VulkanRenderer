@@ -27,7 +27,7 @@ namespace vke {
       vkDestroySemaphore(m_device, m_computeFinishedSemaphores[i], nullptr);
 
       vkDestroyFence(m_device, m_inFlightFences[i], nullptr);
-      vkDestroyFence(m_device, m_inFlightFences2[i], nullptr);
+      vkDestroyFence(m_device, m_offscreenInFlightFences[i], nullptr);
       vkDestroyFence(m_device, m_mousePickingInFlightFences[i], nullptr);
       vkDestroyFence(m_device, m_computeInFlightFences[i], nullptr);
     }
@@ -107,7 +107,7 @@ namespace vke {
       .pSignalSemaphores = &m_renderFinishedSemaphores2[currentFrame]
     };
 
-    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences2[currentFrame]) != VK_SUCCESS)
+    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_offscreenInFlightFences[currentFrame]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to submit draw command buffer!");
     }
@@ -161,7 +161,7 @@ namespace vke {
   void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
   {
     vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-    vkWaitForFences(m_device, 1, &m_inFlightFences2[currentFrame], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(m_device, 1, &m_offscreenInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
   }
   void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
   {
@@ -176,7 +176,7 @@ namespace vke {
   void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
   {
     vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
-    vkResetFences(m_device, 1, &m_inFlightFences2[currentFrame]);
+    vkResetFences(m_device, 1, &m_offscreenInFlightFences[currentFrame]);
   }
 
   void LogicalDevice::resetMousePickingFences(const uint32_t currentFrame) const
@@ -842,7 +842,7 @@ namespace vke {
     m_computeFinishedSemaphores.resize(m_maxFramesInFlight);
 
     m_inFlightFences.resize(m_maxFramesInFlight);
-    m_inFlightFences2.resize(m_maxFramesInFlight);
+    m_offscreenInFlightFences.resize(m_maxFramesInFlight);
     m_mousePickingInFlightFences.resize(m_maxFramesInFlight);
     m_computeInFlightFences.resize(m_maxFramesInFlight);
 
@@ -861,7 +861,7 @@ namespace vke {
           vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
           vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores2[i]) != VK_SUCCESS ||
           vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS ||
-          vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences2[i]) != VK_SUCCESS ||
+          vkCreateFence(m_device, &fenceInfo, nullptr, &m_offscreenInFlightFences[i]) != VK_SUCCESS ||
           vkCreateFence(m_device, &fenceInfo, nullptr, &m_mousePickingInFlightFences[i]) != VK_SUCCESS)
       {
         throw std::runtime_error("failed to create graphics sync objects!");
