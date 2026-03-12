@@ -296,7 +296,7 @@ namespace vke {
       .shaders {
         .rayGenerationShader = "assets/shaders/rayTracing/object.rgen.spv",
         .missShaders = {
-          "assets/shaders/rayTracing/object.rmiss.spv",
+          "assets/shaders/rayTracing/sky.rmiss.spv",
           "assets/shaders/rayTracing/shadow.rmiss.spv"
         },
         .hitGroups = {
