@@ -18,16 +18,16 @@ namespace vke {
                                  std::shared_ptr<CommandBuffer> commandBuffer,
                                  std::shared_ptr<SwapChain> swapChain) override;
 
-    void beginOffscreenRendering(uint32_t imageIndex,
+    void beginOffscreenRendering(uint32_t currentFrame,
                                  VkExtent2D extent,
                                  std::shared_ptr<CommandBuffer> commandBuffer) override;
 
-    void beginShadowRendering(uint32_t imageIndex,
+    void beginShadowRendering(uint32_t currentFrame,
                               VkExtent2D extent,
                               const std::shared_ptr<CommandBuffer>& commandBuffer,
                               const std::shared_ptr<Light>& light) override;
 
-    void beginMousePickingRendering(uint32_t imageIndex,
+    void beginMousePickingRendering(uint32_t currentFrame,
                                     VkExtent2D extent,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
@@ -47,8 +47,7 @@ namespace vke {
                                   uint32_t currentFrame) override;
 
     void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                uint32_t currentFrame,
-                                uint32_t imageIndex) override;
+                                uint32_t currentFrame) override;
 
   private:
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -58,16 +57,13 @@ namespace vke {
                                                    VkImage image);
 
     void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                          uint32_t currentFrame,
-                                          uint32_t imageIndex) const;
+                                          uint32_t currentFrame) const;
 
     void transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           uint32_t currentFrame,
-                                           uint32_t imageIndex) const;
+                                           uint32_t currentFrame) const;
 
     void copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                             uint32_t currentFrame,
-                                             uint32_t imageIndex) const;
+                                             uint32_t currentFrame) const;
   };
 
 } // namespace vke

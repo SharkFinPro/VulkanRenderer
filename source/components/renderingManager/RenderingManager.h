@@ -96,12 +96,11 @@ namespace vke {
 
     bool m_rayTracingEnabled = true;
 
-    void renderGuiScene(uint32_t imageIndex);
+    void renderGuiScene(uint32_t currentFrame);
 
     void recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                       const std::shared_ptr<LightingManager>& lightingManager,
-                                      uint32_t currentFrame,
-                                      uint32_t imageIndex) const;
+                                      uint32_t currentFrame) const;
 
     void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                       const std::shared_ptr<LightingManager>& lightingManager,
@@ -109,15 +108,13 @@ namespace vke {
                                       uint32_t imageIndex) const;
 
     void recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                         uint32_t imageIndex,
                                          uint32_t currentFrame) const;
 
     static void resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  VkExtent2D extent);
 
     void doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
-                        uint32_t currentFrame,
-                        uint32_t imageIndex) const;
+                        uint32_t currentFrame) const;
 
     void createCommandPool();
   };

@@ -1,4 +1,5 @@
 #include "SpotLight.h"
+#include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/ImageResource.h"
 #include "../../renderingManager/RenderTarget.h"
 
@@ -102,7 +103,7 @@ namespace vke {
       .numSamples = VK_SAMPLE_COUNT_1_BIT
     };
 
-    m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig);
+    m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
 } // vke

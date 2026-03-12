@@ -2,12 +2,13 @@
 #include "ImageResource.h"
 
 namespace vke {
-  RenderTarget::RenderTarget(const ImageResourceConfig& imageResourceConfig)
+  RenderTarget::RenderTarget(const ImageResourceConfig& imageResourceConfig,
+                             const uint32_t numImages)
     : m_extent(imageResourceConfig.extent)
   {
-    m_colorImageResources.reserve(NUM_IMAGES);
-    m_depthImageResources.reserve(NUM_IMAGES);
-    m_resolveImageResources.reserve(NUM_IMAGES);
+    m_colorImageResources.reserve(numImages);
+    m_depthImageResources.reserve(numImages);
+    m_resolveImageResources.reserve(numImages);
 
     auto colorImageResourceConfig = imageResourceConfig;
     colorImageResourceConfig.imageResourceType = ImageResourceType::Color;
@@ -19,7 +20,7 @@ namespace vke {
     resolveImageResourceConfig.imageResourceType = ImageResourceType::Resolve;
     resolveImageResourceConfig.numSamples = VK_SAMPLE_COUNT_1_BIT;
 
-    for (int i = 0; i < NUM_IMAGES; ++i)
+    for (int i = 0; i < numImages; ++i)
     {
       if (imageResourceConfig.colorFormat != VK_FORMAT_UNDEFINED)
       {

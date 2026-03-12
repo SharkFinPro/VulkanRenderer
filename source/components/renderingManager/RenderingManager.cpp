@@ -80,15 +80,15 @@ namespace vke {
       throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-    renderGuiScene(imageIndex);
+    renderGuiScene(currentFrame);
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    doMousePicking(pipelineManager, currentFrame, imageIndex);
+    doMousePicking(pipelineManager, currentFrame);
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
     m_offscreenCommandBuffer->resetCommandBuffer();
-    recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame, imageIndex);
+    recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
     m_logicalDevice->submitOffscreenGraphicsQueue(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
@@ -195,7 +195,7 @@ namespace vke {
     return m_rayTracingEnabled;
   }
 
-  void RenderingManager::renderGuiScene(const uint32_t imageIndex)
+  void RenderingManager::renderGuiScene(const uint32_t currentFrame)
   {
     if (!m_shouldRenderOffscreen)
     {
@@ -236,17 +236,16 @@ namespace vke {
     m_offscreenViewportPos = ImGui::GetCursorScreenPos();
     m_renderer3D->getMousePicker()->setViewportPos(m_offscreenViewportPos);
 
-    ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(imageIndex), contentRegionAvailable);
+    ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(currentFrame), contentRegionAvailable);
 
     ImGui::End();
   }
 
   void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                                       const std::shared_ptr<LightingManager>& lightingManager,
-                                                      uint32_t currentFrame,
-                                                      const uint32_t imageIndex) const
+                                                      uint32_t currentFrame) const
   {
-    m_offscreenCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame, imageIndex]()
+    m_offscreenCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame]()
     {
       m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
 
@@ -269,12 +268,12 @@ namespace vke {
       {
         m_renderer->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
         m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getRayTracingImageResource(currentFrame));
-        m_renderer->endRayTracingRendering(m_offscreenCommandBuffer, currentFrame, imageIndex);
+        m_renderer->endRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
 
         return;
       }
 
-      m_renderer->beginOffscreenRendering(imageIndex, m_offscreenViewportExtent, m_offscreenCommandBuffer);
+      m_renderer->beginOffscreenRendering(currentFrame, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
       const VkViewport viewport = {
         .x = 0.0f,
@@ -365,10 +364,9 @@ namespace vke {
   }
 
   void RenderingManager::recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                         uint32_t imageIndex,
                                                          uint32_t currentFrame) const
   {
-    m_mousePickingCommandBuffer->record([this, pipelineManager, imageIndex, currentFrame]
+    m_mousePickingCommandBuffer->record([this, pipelineManager, currentFrame]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_mousePickingCommandBuffer,
@@ -383,7 +381,7 @@ namespace vke {
         return;
       }
 
-      m_renderer->beginMousePickingRendering(imageIndex, renderInfo.extent, renderInfo.commandBuffer);
+      m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
 
       const VkViewport viewport = {
         .x = 0.0f,
@@ -430,14 +428,13 @@ namespace vke {
   }
 
   void RenderingManager::doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                        const uint32_t currentFrame,
-                                        const uint32_t imageIndex) const
+                                        const uint32_t currentFrame) const
   {
     m_logicalDevice->resetMousePickingFences(currentFrame);
 
     m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
     m_mousePickingCommandBuffer->resetCommandBuffer();
-    recordMousePickingCommandBuffer(pipelineManager, imageIndex, currentFrame);
+    recordMousePickingCommandBuffer(pipelineManager, currentFrame);
     m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
 
     m_logicalDevice->waitForMousePickingFences(currentFrame);

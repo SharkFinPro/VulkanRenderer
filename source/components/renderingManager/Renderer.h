@@ -50,16 +50,16 @@ namespace vke {
                                          std::shared_ptr<CommandBuffer> commandBuffer,
                                          std::shared_ptr<SwapChain> swapChain) = 0;
 
-    virtual void beginOffscreenRendering(uint32_t imageIndex,
+    virtual void beginOffscreenRendering(uint32_t currentFrame,
                                          VkExtent2D extent,
                                          std::shared_ptr<CommandBuffer> commandBuffer) = 0;
 
-    virtual void beginShadowRendering(uint32_t imageIndex,
+    virtual void beginShadowRendering(uint32_t currentFrame,
                                       VkExtent2D extent,
                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
                                       const std::shared_ptr<Light>& light) = 0;
 
-    virtual void beginMousePickingRendering(uint32_t imageIndex,
+    virtual void beginMousePickingRendering(uint32_t currentFrame,
                                             VkExtent2D extent,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
 
@@ -82,8 +82,7 @@ namespace vke {
                                           uint32_t currentFrame) {}
 
     virtual void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                        uint32_t currentFrame,
-                                        uint32_t imageIndex) {}
+                                        uint32_t currentFrame) {}
 
     [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource(uint32_t currentFrame) const;
 
