@@ -6,6 +6,8 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include <backends/imgui_impl_vulkan.h>
 
+constexpr uint32_t NUM_IMAGES = 3;
+
 namespace vke {
 
   Framebuffer::Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
