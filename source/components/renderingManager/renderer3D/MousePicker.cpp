@@ -85,6 +85,10 @@ namespace vke {
 
   void MousePicker::handleRenderedMousePickingImage(VkImage image)
   {
+	  if (m_mousePickingItems.empty())
+	  {
+	    return;
+	  }
     int32_t mouseX, mouseY;
     if (!validateMousePickingMousePosition(mouseX, mouseY))
     {
