@@ -8,6 +8,7 @@ FetchContent_Declare(
   glfw
   GIT_REPOSITORY https://github.com/glfw/glfw.git
   GIT_TAG 3.4
+  GIT_SHALLOW TRUE
 )
 
 # GLM
@@ -15,6 +16,7 @@ FetchContent_Declare(
   glm
   GIT_REPOSITORY https://github.com/g-truc/glm.git
   GIT_TAG 1.0.1
+  GIT_SHALLOW TRUE
 )
 
 # Assimp
@@ -31,6 +33,7 @@ FetchContent_Declare(
   assimp
   GIT_REPOSITORY https://github.com/assimp/assimp.git
   GIT_TAG v6.0.2
+  GIT_SHALLOW TRUE
 )
 
 # STB
@@ -38,6 +41,7 @@ FetchContent_Declare(
   stb
   GIT_REPOSITORY https://github.com/nothings/stb
   GIT_TAG master
+  GIT_SHALLOW TRUE
 )
 
 # imgui
@@ -45,6 +49,7 @@ FetchContent_Declare(
   imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git
   GIT_TAG docking
+  GIT_SHALLOW TRUE
 )
 
 # Freetype
@@ -52,6 +57,7 @@ FetchContent_Declare(
   freetype
   GIT_REPOSITORY https://github.com/freetype/freetype.git
   GIT_TAG VER-2-14-1
+  GIT_SHALLOW TRUE
 )
 
 FetchContent_MakeAvailable(
@@ -72,7 +78,6 @@ endif()
 add_library(imgui STATIC
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_draw.cpp
-  ${imgui_SOURCE_DIR}/imgui_demo.cpp
   ${imgui_SOURCE_DIR}/imgui_tables.cpp
   ${imgui_SOURCE_DIR}/imgui_widgets.cpp
   ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
