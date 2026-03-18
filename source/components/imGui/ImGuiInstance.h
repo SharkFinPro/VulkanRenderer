@@ -59,6 +59,8 @@ namespace vke {
 
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
+    ImGuiStyle m_baseStyle;
+
     bool m_dockNeedsUpdate = true;
 
     bool m_useDockSpace;
@@ -74,8 +76,6 @@ namespace vke {
     ImGuiID m_leftDock = 0;
     ImGuiID m_rightDock = 0;
     ImGuiID m_centerDock = 0;
-
-    float m_contentScale = 1.0f;
 
     float m_menuBarHeight = 0.0f;
 
