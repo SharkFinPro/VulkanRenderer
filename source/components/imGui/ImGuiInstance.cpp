@@ -24,6 +24,11 @@ namespace vke {
 
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
 
+    if (config.styleSetup)
+    {
+      config.styleSetup();
+    }
+
     initFromWindow();
 
     const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
@@ -273,20 +278,19 @@ namespace vke {
 
   void ImGuiInstance::initFromWindow()
   {
+    m_baseStyle = ImGui::GetStyle();
+
     float xscale, yscale;
     glfwGetWindowContentScale(m_window->getWindow(), &xscale, &yscale);
 
     ImGui::GetStyle().ScaleAllSizes(xscale);
     ImGui::GetIO().FontGlobalScale = xscale;
 
-    m_contentScale = xscale;
-
     m_contentScaleEventListener = m_window->on<ContentScaleEvent>([this](const ContentScaleEvent& e) {
-      ImGui::GetStyle().ScaleAllSizes(1.0f / m_contentScale);
+      ImGui::GetStyle() = m_baseStyle;
+
       ImGui::GetStyle().ScaleAllSizes(e.xscale);
       ImGui::GetIO().FontGlobalScale = e.xscale;
-
-      m_contentScale = e.xscale;
 
       markDockNeedsUpdate();
     });
