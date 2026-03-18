@@ -24,6 +24,11 @@ namespace vke {
 
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
 
+    if (config.styleSetup)
+    {
+      config.styleSetup();
+    }
+
     initFromWindow();
 
     const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();

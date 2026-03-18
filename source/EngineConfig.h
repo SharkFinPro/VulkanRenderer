@@ -3,6 +3,7 @@
 
 #include <glm/vec3.hpp>
 #include <cstdint>
+#include <functional>
 #include <string>
 
 namespace vke {
@@ -25,6 +26,7 @@ namespace vke {
       bool useDockspace = true;
       std::string sceneViewName = "Scene View";
       uint32_t maxTextures = 5;
+      std::function<void()> styleSetup;
     } imGui;
   };
 
