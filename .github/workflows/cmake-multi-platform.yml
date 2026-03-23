@@ -2,7 +2,7 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "release" ]
   pull_request:
     branches: [ "main" ]
 
@@ -105,6 +105,7 @@ jobs:
       run: ctest --build-config ${{ matrix.build_type }}
 
     - name: Copy Shared Libraries
+      if: github.event_name == 'push' && github.ref == 'refs/heads/release'
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
@@ -119,6 +120,7 @@ jobs:
         fi
 
     - name: Zip Artifacts
+      if: github.event_name == 'push' && github.ref == 'refs/heads/release'
       shell: pwsh
       run: |
         $buildDir = "${{ steps.strings.outputs.build-output-dir }}/bin"
@@ -134,6 +136,7 @@ jobs:
         }
 
     - name: Upload Artifacts
+      if: github.event_name == 'push' && github.ref == 'refs/heads/release'
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.os }}-${{ matrix.c_compiler }}-binaries
