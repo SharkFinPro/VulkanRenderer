@@ -2,7 +2,7 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "release" ]
   pull_request:
     branches: [ "main" ]
 
@@ -53,93 +53,96 @@ jobs:
             c_compiler: cl
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-    - name: Set reusable strings
-      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Set reusable strings
+        # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install dependencies (Ubuntu)
-      if: ${{ matrix.os == 'ubuntu-22.04' }}
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libgl1-mesa-dev ninja-build
+      - name: Install dependencies (Ubuntu)
+        if: ${{ matrix.os == 'ubuntu-22.04' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libwayland-dev libxkbcommon-dev libgl1-mesa-dev ninja-build
 
-    - name: Install Ninja (macOS)
-      if: ${{ matrix.os == 'macos-latest' }}
-      run: brew install ninja
+      - name: Install Ninja (macOS)
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: brew install ninja
 
-    - name: Install Ninja (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: choco install ninja
+      - name: Install Ninja (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: choco install ninja
 
-    - name: Set up MSVC environment (Windows)
-      if: ${{ matrix.os == 'windows-latest' }}
-      uses: ilammy/msvc-dev-cmd@v1
+      - name: Set up MSVC environment (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Prepare Vulkan SDK
-      uses: humbletim/install-vulkan-sdk@main
-      with:
-        version: 1.4.309.0
-        cache: true
+      - name: Prepare Vulkan SDK
+        uses: humbletim/install-vulkan-sdk@main
+        with:
+          version: 1.4.309.0
+          cache: true
 
-    - name: Configure CMake
-      run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -G Ninja
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -S ${{ github.workspace }}
+      - name: Configure CMake
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -G Ninja
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -S ${{ github.workspace }}
 
-    - name: Build
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }}
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }}
 
-    - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
+      - name: Test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest --build-config ${{ matrix.build_type }}
 
-    - name: Copy Shared Libraries
-      shell: bash
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          cp -L $VULKAN_SDK/lib/libvulkan* ${{ steps.strings.outputs.build-output-dir }}/bin/
+      - name: Copy Shared Libraries
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            cp -L $VULKAN_SDK/lib/libvulkan* ${{ steps.strings.outputs.build-output-dir }}/bin/
+            
+            cp -L /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
+            cp -L /lib/x86_64-linux-gnu/libgcc_s.so.1 ${{ steps.strings.outputs.build-output-dir }}/bin/
           
-          cp -L /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${{ steps.strings.outputs.build-output-dir }}/bin/
-          cp -L /lib/x86_64-linux-gnu/libgcc_s.so.1 ${{ steps.strings.outputs.build-output-dir }}/bin/
-        
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          cp $VULKAN_SDK/lib/libMoltenVK.dylib ${{ steps.strings.outputs.build-output-dir }}/bin/
-          cp $VULKAN_SDK/lib/libvulkan.* ${{ steps.strings.outputs.build-output-dir }}/bin/
-        fi
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            cp $VULKAN_SDK/lib/libMoltenVK.dylib ${{ steps.strings.outputs.build-output-dir }}/bin/
+            cp $VULKAN_SDK/lib/libvulkan.* ${{ steps.strings.outputs.build-output-dir }}/bin/
+          fi
 
-    - name: Zip Artifacts
-      shell: pwsh
-      run: |
-        $buildDir = "${{ steps.strings.outputs.build-output-dir }}/bin"
-        $zipName = "${{ matrix.os }}-${{ matrix.c_compiler }}-release.zip"
-        
-        cd $buildDir
-        if ($IsWindows) {
-            # Use 7-zip on Windows
-            7z a -tzip $zipName ./*
-        } else {
-            # Use native zip on Linux/macOS
-            zip -r $zipName ./*
-        }
+      - name: Zip Artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+        shell: pwsh
+        run: |
+          $buildDir = "${{ steps.strings.outputs.build-output-dir }}/bin"
+          $zipName = "${{ matrix.os }}-${{ matrix.c_compiler }}-release.zip"
+          
+          cd $buildDir
+          if ($IsWindows) {
+              # Use 7-zip on Windows
+              7z a -tzip $zipName ./*
+          } else {
+              # Use native zip on Linux/macOS
+              zip -r $zipName ./*
+          }
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.os }}-${{ matrix.c_compiler }}-binaries
-        path: |
-          ${{ steps.strings.outputs.build-output-dir }}/bin/*.zip
-        retention-days: 5
+      - name: Upload Artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.c_compiler }}-binaries
+          path: |
+            ${{ steps.strings.outputs.build-output-dir }}/bin/*.zip
+          retention-days: 5
 
   release:
     needs: build
@@ -148,7 +151,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get version from CMakeLists.txt
         id: get_version
