@@ -387,6 +387,11 @@ namespace vke {
                                         VkBuffer& outBuffer,
                                         VkDeviceMemory& outMemory)
     {
+      if (data.empty())
+      {
+        return;
+      }
+
       const VkDeviceSize size = data.size() * sizeof(T);
 
       VkBuffer stagingBuffer;
