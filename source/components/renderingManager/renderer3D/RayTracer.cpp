@@ -66,6 +66,11 @@ namespace vke {
                                const glm::vec3& viewPosition,
                                const glm::mat4& viewMatrix)
   {
+    if (renderObjects.empty() && !cloud)
+    {
+      return;
+    }
+
     createTLAS(renderObjects, cloud);
 
     updateRTSceneInfo(renderObjects);
