@@ -66,6 +66,11 @@ namespace vke {
                                const glm::vec3& viewPosition,
                                const glm::mat4& viewMatrix)
   {
+    if (renderObjects.empty() && !cloud)
+    {
+      return;
+    }
+
     createTLAS(renderObjects, cloud);
 
     updateRTSceneInfo(renderObjects);
@@ -376,6 +381,15 @@ namespace vke {
       mergedIndices.insert(mergedIndices.end(), indices.begin(), indices.end());
     }
 
+    if (renderObjects.empty())
+    {
+      mergedVertices.push_back(Vertex{});
+
+      mergedIndices.push_back(0);
+
+      meshInfos.push_back(MeshInfo{});
+    }
+
     uploadRTSceneInfoBuffers(mergedVertices, mergedIndices, meshInfos);
   }
 
@@ -387,6 +401,11 @@ namespace vke {
                                         VkBuffer& outBuffer,
                                         VkDeviceMemory& outMemory)
     {
+      if (data.empty())
+      {
+        return;
+      }
+
       const VkDeviceSize size = data.size() * sizeof(T);
 
       VkBuffer stagingBuffer;
@@ -469,16 +488,20 @@ namespace vke {
         storageBuffer(3, &m_vertexBufferInfo),
         storageBuffer(4, &m_indexBufferInfo),
         storageBuffer(5, &m_meshInfoInfo),
-        m_cloudUniform->getDescriptorSet(6, descriptorSet, currentFrame),
-        {
+        m_cloudUniform->getDescriptorSet(6, descriptorSet, currentFrame)
+      }};
+
+      if (!m_textureImageInfos.empty())
+      {
+        descriptorWrites.push_back({
           .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
           .dstBinding = 7,
           .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
           .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
           .pImageInfo = m_textureImageInfos.data()
-        },
-      }};
+        });
+      }
 
       return descriptorWrites;
     });
