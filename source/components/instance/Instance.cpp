@@ -50,7 +50,7 @@ namespace vke {
     }
   }
 
-  VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
+  vk::SurfaceKHR Instance::createSurface(GLFWwindow* window) const
   {
     VkSurfaceKHR surface;
     if (glfwCreateWindowSurface(*m_instance, window, nullptr, &surface) != VK_SUCCESS)
@@ -59,13 +59,6 @@ namespace vke {
     }
 
     return surface;
-  }
-
-  void Instance::destroySurface(VkSurfaceKHR& surface) const
-  {
-    vkDestroySurfaceKHR(*m_instance, surface, nullptr);
-
-    surface = VK_NULL_HANDLE;
   }
 
   std::vector<vk::raii::PhysicalDevice> Instance::getPhysicalDevices() const

@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_SURFACE_H
 #define VULKANPROJECT_SURFACE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {
@@ -14,14 +14,12 @@ namespace vke {
     Surface(std::shared_ptr<Instance> instance,
             const std::shared_ptr<Window>& window);
 
-    ~Surface();
-
-    [[nodiscard]] VkSurfaceKHR getSurface() const;
+    [[nodiscard]] vk::SurfaceKHR getSurface() const;
 
   private:
     std::shared_ptr<Instance> m_instance;
 
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+    vk::SurfaceKHR m_surface = nullptr;
   };
 } // vke
 

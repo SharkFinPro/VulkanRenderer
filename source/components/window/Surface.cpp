@@ -10,12 +10,7 @@ namespace vke {
     m_surface = m_instance->createSurface(window->getWindow());
   }
 
-  Surface::~Surface()
-  {
-    m_instance->destroySurface(m_surface);
-  }
-
-  VkSurfaceKHR Surface::getSurface() const
+  vk::SurfaceKHR Surface::getSurface() const
   {
     return m_surface;
   }
