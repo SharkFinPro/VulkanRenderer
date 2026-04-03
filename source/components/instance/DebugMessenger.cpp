@@ -10,7 +10,7 @@ namespace vke {
   {
     std::cerr << "[" << readMessageSeverity(messageSeverity) << "] validation layer: " << pCallbackData->pMessage << std::endl;
 
-    return VK_FALSE;
+    return vk::False;
   }
 
   void DebugMessenger::populateCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo)

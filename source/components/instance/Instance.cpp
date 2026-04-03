@@ -21,9 +21,9 @@ namespace vke {
 
     constexpr vk::ApplicationInfo appInfo {
       .pApplicationName = "Vulkan Engine",
-      .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+      .applicationVersion = vk::makeVersion(1, 0, 0),
       .pEngineName = "No Engine",
-      .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+      .engineVersion = vk::makeVersion(1, 0, 0),
       .apiVersion = vk::ApiVersion13
     };
 
@@ -132,12 +132,12 @@ namespace vke {
 
     if (validationLayersEnabled())
     {
-      extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+      extensions.push_back(vk::EXTDebugUtilsExtensionName);
     }
 
     if constexpr (IS_MAC)
     {
-      extensions.push_back("VK_KHR_portability_enumeration");
+      extensions.push_back(vk::KHRPortabilityEnumerationExtensionName);
     }
 
     return extensions;
