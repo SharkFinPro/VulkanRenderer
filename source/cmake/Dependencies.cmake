@@ -1,6 +1,8 @@
 # Vulkan
 find_package(Vulkan REQUIRED)
 
+add_compile_definitions(VULKAN_HPP_NO_STRUCT_CONSTRUCTORS)
+
 # Configure and fetch third-party libraries
 include(cmake/External.cmake)
 
