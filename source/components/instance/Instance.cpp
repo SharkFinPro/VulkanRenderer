@@ -5,9 +5,9 @@
 #include <stdexcept>
 
 #ifdef __APPLE__
-#define IS_MAC 1
+inline constexpr bool IS_MAC = true;
 #else
-#define IS_MAC 0
+inline constexpr bool IS_MAC = false;
 #endif
 
 namespace vke {
@@ -101,26 +101,11 @@ namespace vke {
   {
     const auto availableLayers = m_context.enumerateInstanceLayerProperties();
 
-    for (const char* layerName : validationLayers)
-    {
-      bool layerFound = false;
-
-      for (const auto& layerProperties : availableLayers)
-      {
-        if (std::string_view(layerName) == layerProperties.layerName)
-        {
-          layerFound = true;
-          break;
-        }
-      }
-
-      if (!layerFound)
-      {
-        return false;
-      }
-    }
-
-    return true;
+    return std::ranges::all_of(validationLayers, [&](const auto& layerName) {
+      return std::ranges::any_of(availableLayers, [&](const auto& layerProperties) {
+        return std::string_view(layerName) == layerProperties.layerName;
+      });
+    });
   }
 
   std::vector<const char*> Instance::getRequiredExtensions()
@@ -135,7 +120,7 @@ namespace vke {
       extensions.push_back(vk::EXTDebugUtilsExtensionName);
     }
 
-    if constexpr (IS_MAC)
+    if (IS_MAC)
     {
       extensions.push_back(vk::KHRPortabilityEnumerationExtensionName);
     }
