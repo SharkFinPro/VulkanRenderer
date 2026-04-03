@@ -16,7 +16,6 @@ namespace vke {
   void DebugMessenger::populateCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo)
   {
     createInfo = {
-      .sType = vk::StructureType::eDebugUtilsMessengerCreateInfoEXT,
       .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
                          vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
                          vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
