@@ -40,7 +40,7 @@ namespace vke {
     }
 
     ImGui_ImplVulkan_InitInfo initInfo {
-      .Instance = instance->m_instance,
+      .Instance = *instance->m_instance,
       .PhysicalDevice = m_logicalDevice->getPhysicalDevice()->m_physicalDevice,
       .Device = m_logicalDevice->m_device,
       .Queue = m_logicalDevice->getGraphicsQueue(),

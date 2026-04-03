@@ -2,7 +2,7 @@
 #define VKE_INSTANCE_H
 
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <vector>
 
@@ -16,28 +16,26 @@ namespace vke {
   public:
     Instance();
 
-    ~Instance();
-
     [[nodiscard]] VkSurfaceKHR createSurface(GLFWwindow* window) const;
 
     void destroySurface(VkSurfaceKHR& surface) const;
 
-    void createDebugUtilsMessenger();
-
-    void destroyDebugUtilsMessenger();
-
-    [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
+    [[nodiscard]] std::vector<vk::raii::PhysicalDevice> getPhysicalDevices() const;
 
     static bool validationLayersEnabled();
 
     friend class ImGuiInstance;
 
   private:
-    VkInstance m_instance = VK_NULL_HANDLE;
+    vk::raii::Context m_context;
 
-    VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
+    vk::raii::Instance m_instance = nullptr;
 
-    static bool checkValidationLayerSupport();
+    vk::raii::DebugUtilsMessengerEXT m_debugMessenger = nullptr;
+
+    void createDebugUtilsMessenger();
+
+    [[nodiscard]] bool checkValidationLayerSupport() const;
 
     static std::vector<const char*> getRequiredExtensions();
   };

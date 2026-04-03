@@ -2,7 +2,6 @@
 #include "Instance.h"
 #include "DebugMessenger.h"
 #include <GLFW/glfw3.h>
-#include <cstring>
 #include <stdexcept>
 
 #ifdef __APPLE__
@@ -20,27 +19,22 @@ namespace vke {
       throw std::runtime_error("validation layers requested, but not available!");
     }
 
-    constexpr VkApplicationInfo appInfo {
-      .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+    constexpr vk::ApplicationInfo appInfo {
       .pApplicationName = "Vulkan Engine",
       .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
       .pEngineName = "No Engine",
       .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-      .apiVersion = VK_API_VERSION_1_3
+      .apiVersion = vk::ApiVersion13
     };
 
     const auto extensions = getRequiredExtensions();
 
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    if (validationLayersEnabled())
-    {
-      DebugMessenger::populateCreateInfo(debugCreateInfo);
-    }
+    vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    DebugMessenger::populateCreateInfo(debugCreateInfo);
 
-    const VkInstanceCreateInfo createInfo {
-      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+    const vk::InstanceCreateInfo createInfo {
       .pNext = validationLayersEnabled() ? &debugCreateInfo : nullptr,
-      .flags = IS_MAC ? VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR : 0,
+      .flags = IS_MAC ? vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR : vk::InstanceCreateFlags{},
       .pApplicationInfo = &appInfo,
       .enabledLayerCount = validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
       .ppEnabledLayerNames = validationLayersEnabled() ? validationLayers.data() : nullptr,
@@ -48,10 +42,7 @@ namespace vke {
       .ppEnabledExtensionNames = extensions.data()
     };
 
-    if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to create instance!");
-    }
+    m_instance = vk::raii::Instance(m_context, createInfo);
 
     if (validationLayersEnabled())
     {
@@ -59,19 +50,10 @@ namespace vke {
     }
   }
 
-  Instance::~Instance()
-  {
-    destroyDebugUtilsMessenger();
-
-    vkDestroyInstance(m_instance, nullptr);
-
-    m_instance = VK_NULL_HANDLE;
-  }
-
   VkSurfaceKHR Instance::createSurface(GLFWwindow* window) const
   {
     VkSurfaceKHR surface;
-    if (glfwCreateWindowSurface(m_instance, window, nullptr, &surface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(*m_instance, window, nullptr, &surface) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create window surface!");
     }
@@ -81,77 +63,43 @@ namespace vke {
 
   void Instance::destroySurface(VkSurfaceKHR& surface) const
   {
-    vkDestroySurfaceKHR(m_instance, surface, nullptr);
+    vkDestroySurfaceKHR(*m_instance, surface, nullptr);
 
     surface = VK_NULL_HANDLE;
   }
 
-  void Instance::createDebugUtilsMessenger()
+  std::vector<vk::raii::PhysicalDevice> Instance::getPhysicalDevices() const
   {
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    DebugMessenger::populateCreateInfo(debugCreateInfo);
+    const auto devices = m_instance.enumeratePhysicalDevices();
 
-    VkResult result;
-
-    const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
-    if (func != nullptr)
-    {
-      result = func(m_instance, &debugCreateInfo, nullptr, &m_debugMessenger);
-    }
-    else
-    {
-      result = VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
-
-    if (result != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to set up debug messenger!");
-    }
-  }
-
-  void Instance::destroyDebugUtilsMessenger()
-  {
-    const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
-    if (func != nullptr)
-    {
-      func(m_instance, m_debugMessenger, nullptr);
-    }
-
-    m_debugMessenger = VK_NULL_HANDLE;
-  }
-
-  std::vector<VkPhysicalDevice> Instance::getPhysicalDevices() const
-  {
-    uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
-
-    if (deviceCount == 0)
+    if (devices.empty())
     {
       throw std::runtime_error("failed to find GPUs with Vulkan support!");
     }
-
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
 
     return devices;
   }
 
   bool Instance::validationLayersEnabled()
   {
-  #ifdef NDEBUG
+#ifdef NDEBUG
     return false;
-  #else
+#else
     return true;
-  #endif
+#endif
   }
 
-  bool Instance::checkValidationLayerSupport()
+  void Instance::createDebugUtilsMessenger()
   {
-    uint32_t layerCount;
-    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    DebugMessenger::populateCreateInfo(debugCreateInfo);
 
-    std::vector<VkLayerProperties> availableLayers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    m_debugMessenger = m_instance.createDebugUtilsMessengerEXT(debugCreateInfo);
+  }
+
+  bool Instance::checkValidationLayerSupport() const
+  {
+    const auto availableLayers = m_context.enumerateInstanceLayerProperties();
 
     for (const char* layerName : validationLayers)
     {
@@ -159,7 +107,7 @@ namespace vke {
 
       for (const auto& layerProperties : availableLayers)
       {
-        if (strcmp(layerName, layerProperties.layerName) == 0)
+        if (std::string_view(layerName) == layerProperties.layerName)
         {
           layerFound = true;
           break;

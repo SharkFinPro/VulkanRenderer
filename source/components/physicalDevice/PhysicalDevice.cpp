@@ -134,9 +134,9 @@ namespace vke {
   {
     for (const auto& device : instance->getPhysicalDevices())
     {
-      if (isDeviceSuitable(device))
+      if (isDeviceSuitable(*device))
       {
-        m_physicalDevice = device;
+        m_physicalDevice = *device;
         m_msaaSamples = getMaxUsableSampleCount();
         break;
       }
