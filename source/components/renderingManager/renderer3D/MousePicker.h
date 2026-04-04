@@ -25,15 +25,13 @@ namespace vke {
   public:
     MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
                 std::shared_ptr<Window> window,
-                const VkCommandPool& commandPool);
-
-    ~MousePicker();
+                vk::CommandPool commandPool);
 
     [[nodiscard]] bool canMousePick() const;
 
     void clearObjectsToMousePick();
 
-    void setViewportExtent(VkExtent2D viewportExtent);
+    void setViewportExtent(vk::Extent2D viewportExtent);
 
     void setViewportPos(ImVec2 viewportPos);
 
@@ -42,13 +40,13 @@ namespace vke {
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    void handleRenderedMousePickingImage(VkImage image);
+    void handleRenderedMousePickingImage(vk::Image image);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
     std::shared_ptr<Window> m_window;
 
-    VkExtent2D m_viewportExtent { 1, 1 };
+    vk::Extent2D m_viewportExtent { 1, 1 };
 
     ImVec2 m_viewportPos {0, 0};
 
@@ -57,25 +55,25 @@ namespace vke {
 
     bool m_canMousePick = false;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::CommandPool m_commandPool = VK_NULL_HANDLE;
 
-    VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_stagingBuffer = VK_NULL_HANDLE;
+    vk::raii::DeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
     bool validateMousePickingMousePosition(int32_t& mouseX,
                                            int32_t& mouseY);
 
-    [[nodiscard]] uint32_t getIDFromMousePickingImage(VkImage image,
+    [[nodiscard]] uint32_t getIDFromMousePickingImage(vk::Image image,
                                                       int32_t mouseX,
                                                       int32_t mouseY) const;
 
-    [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
+    [[nodiscard]] uint32_t getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory) const;
 
     static void transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
-                                          VkImage image);
+                                          vk::Image image);
 
     static void transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
-                                          VkImage image);
+                                          vk::Image image);
   };
 
 } // namespace vke

@@ -18,9 +18,9 @@ namespace vke {
 
     void waitIdle() const;
 
-    [[nodiscard]] vk::Queue& getGraphicsQueue();
-    [[nodiscard]] vk::Queue& getPresentQueue();
-    [[nodiscard]] vk::Queue& getComputeQueue();
+    [[nodiscard]] vk::Queue getGraphicsQueue();
+    [[nodiscard]] vk::Queue getPresentQueue();
+    [[nodiscard]] vk::Queue getComputeQueue();
 
     void submitMousePickingGraphicsQueue(uint32_t currentFrame,
                                          vk::CommandBuffer commandBuffer) const;
@@ -79,12 +79,12 @@ namespace vke {
 
     [[nodiscard]] vk::raii::Buffer createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const;
 
-    [[nodiscard]] static vk::MemoryRequirements getBufferMemoryRequirements(vk::Buffer buffer);
+    [[nodiscard]] static vk::MemoryRequirements getBufferMemoryRequirements(const vk::raii::Buffer& buffer);
 
     void allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
                         vk::raii::DeviceMemory& deviceMemory) const;
 
-    static void bindBufferMemory(vk::Buffer buffer,
+    static void bindBufferMemory(const vk::raii::Buffer& buffer,
                                  vk::DeviceMemory deviceMemory,
                                  vk::DeviceSize memoryOffset = 0);
 
@@ -94,9 +94,9 @@ namespace vke {
 
     [[nodiscard]] vk::raii::Image createImage(const vk::ImageCreateInfo& imageCreateInfo) const;
 
-    [[nodiscard]] static vk::MemoryRequirements getImageMemoryRequirements(vk::Image image);
+    [[nodiscard]] static vk::MemoryRequirements getImageMemoryRequirements(const vk::raii::Image& image);
 
-    static void bindImageMemory(vk::Image image,
+    static void bindImageMemory(const vk::raii::Image& image,
                                 vk::DeviceMemory deviceMemory,
                                 vk::DeviceSize memoryOffset = 0);
 
@@ -106,7 +106,7 @@ namespace vke {
 
     [[nodiscard]] vk::raii::SwapchainKHR createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo) const;
 
-    static void getSwapchainImagesKHR(vk::SwapchainKHR swapchain,
+    static void getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
                                       uint32_t* swapchainImageCount,
                                       vk::Image* swapchainImages);
 
@@ -134,7 +134,7 @@ namespace vke {
 
     [[nodiscard]] vk::DeviceAddress getAccelerationStructureDeviceAddress(const vk::AccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
 
-    static void getRayTracingShaderGroupHandles(vk::Pipeline pipeline,
+    static void getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
                                                 uint32_t groupCount,
                                                 std::vector<uint8_t>& handles);
 

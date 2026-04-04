@@ -11,18 +11,19 @@ namespace vke {
 
   MousePicker::MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
                            std::shared_ptr<Window> window,
-                           const VkCommandPool& commandPool)
+                           const vk::CommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window)), m_commandPool(commandPool)
   {
-    constexpr VkDeviceSize bufferSize = 4;
-    Buffers::createBuffer(m_logicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          m_stagingBuffer, m_stagingBufferMemory);
-  }
+    constexpr vk::DeviceSize bufferSize = 4;
 
-  MousePicker::~MousePicker()
-  {
-    Buffers::destroyBuffer(m_logicalDevice, m_stagingBuffer, m_stagingBufferMemory);
+    Buffers::createBuffer(
+      m_logicalDevice,
+      bufferSize,
+      vk::BufferUsageFlagBits::eTransferDst,
+      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+      m_stagingBuffer,
+      m_stagingBufferMemory
+    );
   }
 
   bool MousePicker::canMousePick() const
@@ -35,7 +36,7 @@ namespace vke {
     m_renderObjectsToMousePick.clear();
   }
 
-  void MousePicker::setViewportExtent(const VkExtent2D viewportExtent)
+  void MousePicker::setViewportExtent(const vk::Extent2D viewportExtent)
   {
     m_viewportExtent = viewportExtent;
   }
@@ -83,7 +84,7 @@ namespace vke {
     }
   }
 
-  void MousePicker::handleRenderedMousePickingImage(VkImage image)
+  void MousePicker::handleRenderedMousePickingImage(vk::Image image)
   {
 	  if (m_mousePickingItems.empty())
 	  {
@@ -129,7 +130,7 @@ namespace vke {
     return m_canMousePick;
   }
 
-  uint32_t MousePicker::getIDFromMousePickingImage(VkImage image,
+  uint32_t MousePicker::getIDFromMousePickingImage(vk::Image image,
                                                    const int32_t mouseX,
                                                    const int32_t mouseY) const
   {
@@ -152,7 +153,7 @@ namespace vke {
     return getObjectIDFromBuffer(m_stagingBufferMemory);
   }
 
-  uint32_t MousePicker::getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const
+  uint32_t MousePicker::getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory) const
   {
     uint32_t objectID = 0;
 
@@ -168,19 +169,18 @@ namespace vke {
   }
 
   void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
-                                              VkImage image)
+                                              vk::Image image)
   {
-    const VkImageMemoryBarrier imageMemoryBarrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-      .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-      .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    const vk::ImageMemoryBarrier imageMemoryBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .dstAccessMask = vk::AccessFlagBits::eTransferRead,
+      .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .newLayout = vk::ImageLayout::eTransferSrcOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
       .image = image,
       .subresourceRange {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
         .baseMipLevel = 0,
         .levelCount = 1,
         .baseArrayLayer = 0,
@@ -189,9 +189,9 @@ namespace vke {
     };
 
     commandBuffer.pipelineBarrier(
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      0,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      vk::PipelineStageFlagBits::eTransfer,
+      {},
       {},
       {},
       { imageMemoryBarrier }
@@ -199,19 +199,18 @@ namespace vke {
   }
 
   void MousePicker::transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
-                                              VkImage image)
+                                              vk::Image image)
   {
-    const VkImageMemoryBarrier imageMemoryBarrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-      .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-      .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    const vk::ImageMemoryBarrier imageMemoryBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eTransferRead,
+      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .oldLayout = vk::ImageLayout::eTransferSrcOptimal,
+      .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
       .image = image,
       .subresourceRange {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
         .baseMipLevel = 0,
         .levelCount = 1,
         .baseArrayLayer = 0,
@@ -220,9 +219,9 @@ namespace vke {
     };
 
     commandBuffer.pipelineBarrier(
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      0,
+      vk::PipelineStageFlagBits::eTransfer,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      {},
       {},
       {},
       { imageMemoryBarrier }

@@ -24,17 +24,17 @@ namespace vke {
     m_device.waitIdle();
   }
 
-  vk::raii::Queue& LogicalDevice::getGraphicsQueue()
+  vk::Queue LogicalDevice::getGraphicsQueue()
   {
     return m_graphicsQueue;
   }
 
-  vk::raii::Queue& LogicalDevice::getPresentQueue()
+  vk::Queue LogicalDevice::getPresentQueue()
   {
     return m_presentQueue;
   }
 
-  vk::raii::Queue& LogicalDevice::getComputeQueue()
+  vk::Queue LogicalDevice::getComputeQueue()
   {
     return m_computeQueue;
   }
@@ -253,7 +253,7 @@ namespace vke {
     return m_device.createBuffer(bufferCreateInfo);
   }
 
-  vk::MemoryRequirements LogicalDevice::getBufferMemoryRequirements(const vk::Buffer buffer)
+  vk::MemoryRequirements LogicalDevice::getBufferMemoryRequirements(const vk::raii::Buffer& buffer)
   {
     return buffer.getMemoryRequirements();
   }
@@ -264,7 +264,7 @@ namespace vke {
     deviceMemory = m_device.allocateMemory(memoryAllocateInfo);
   }
 
-  void LogicalDevice::bindBufferMemory(const vk::Buffer buffer,
+  void LogicalDevice::bindBufferMemory(const vk::raii::Buffer& buffer,
                                        const vk::DeviceMemory deviceMemory,
                                        const vk::DeviceSize memoryOffset)
   {
@@ -286,12 +286,12 @@ namespace vke {
     return m_device.createImage(imageCreateInfo);
   }
 
-  vk::MemoryRequirements LogicalDevice::getImageMemoryRequirements(const vk::Image image)
+  vk::MemoryRequirements LogicalDevice::getImageMemoryRequirements(const vk::raii::Image& image)
   {
     return image.getMemoryRequirements();
   }
 
-  void LogicalDevice::bindImageMemory(const vk::Image image,
+  void LogicalDevice::bindImageMemory(const vk::raii::Image& image,
                                       const vk::DeviceMemory deviceMemory,
                                       const vk::DeviceSize memoryOffset)
   {
@@ -313,7 +313,7 @@ namespace vke {
     return m_device.createSwapchainKHR(swapchainCreateInfo);
   }
 
-  void LogicalDevice::getSwapchainImagesKHR(const vk::SwapchainKHR swapchain,
+  void LogicalDevice::getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
                                             uint32_t* swapchainImageCount,
                                             vk::Image* swapchainImages)
   {
@@ -387,7 +387,7 @@ namespace vke {
     return m_device.getAccelerationStructureAddressKHR(*accelerationStructureDeviceAddressInfo);
   }
 
-  void LogicalDevice::getRayTracingShaderGroupHandles(const vk::Pipeline pipeline,
+  void LogicalDevice::getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
                                                       const uint32_t groupCount,
                                                       std::vector<uint8_t>& handles)
   {
