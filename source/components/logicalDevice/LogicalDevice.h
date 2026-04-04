@@ -23,16 +23,16 @@ namespace vke {
     [[nodiscard]] vk::raii::Queue& getComputeQueue();
 
     void submitMousePickingGraphicsQueue(uint32_t currentFrame,
-                                         const vk::raii::CommandBuffer* commandBuffer) const;
+                                         const vk::raii::CommandBuffer& commandBuffer) const;
 
     void submitOffscreenGraphicsQueue(uint32_t currentFrame,
-                                      const vk::raii::CommandBuffer* commandBuffer) const;
+                                      const vk::raii::CommandBuffer& commandBuffer) const;
 
     void submitGraphicsQueue(uint32_t currentFrame,
-                             const vk::raii::CommandBuffer* commandBuffer) const;
+                             const vk::raii::CommandBuffer& commandBuffer) const;
 
     void submitComputeQueue(uint32_t currentFrame,
-                            const vk::raii::CommandBuffer* commandBuffer) const;
+                            const vk::raii::CommandBuffer& commandBuffer) const;
 
     void waitForGraphicsFences(uint32_t currentFrame) const;
     void waitForComputeFences(uint32_t currentFrame) const;
@@ -43,12 +43,12 @@ namespace vke {
     void resetComputeFences(uint32_t currentFrame) const;
 
     vk::Result queuePresent(uint32_t currentFrame,
-                          const vk::raii::SwapchainKHR& swapchain,
-                          const uint32_t* imageIndex) const;
+                            const vk::raii::SwapchainKHR& swapchain,
+                            const uint32_t* imageIndex) const;
 
-    void acquireNextImage(uint32_t currentFrame,
-                          const vk::raii::SwapchainKHR& swapchain,
-                          uint32_t* imageIndex) const;
+    vk::Result acquireNextImage(uint32_t currentFrame,
+                                const vk::raii::SwapchainKHR& swapchain,
+                                uint32_t* imageIndex) const;
 
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 

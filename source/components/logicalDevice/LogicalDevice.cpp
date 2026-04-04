@@ -40,7 +40,7 @@ namespace vke {
   }
 
   void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
-                                                      const vk::raii::CommandBuffer* commandBuffer) const
+                                                      const vk::raii::CommandBuffer& commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {
       vk::PipelineStageFlagBits::eVertexInput,
@@ -52,7 +52,7 @@ namespace vke {
       .pWaitSemaphores = nullptr,
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = &**commandBuffer,
+      .pCommandBuffers = &*commandBuffer,
       .signalSemaphoreCount = 0,
       .pSignalSemaphores = nullptr
     };
@@ -61,7 +61,7 @@ namespace vke {
   }
 
   void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
-                                                   const vk::raii::CommandBuffer* commandBuffer) const
+                                                   const vk::raii::CommandBuffer& commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {
       vk::PipelineStageFlagBits::eVertexInput,
@@ -73,7 +73,7 @@ namespace vke {
       .pWaitSemaphores = &*m_computeFinishedSemaphores[currentFrame],
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = &**commandBuffer,
+      .pCommandBuffers = &*commandBuffer,
       .signalSemaphoreCount = 1,
       .pSignalSemaphores = &*m_renderFinishedSemaphores2[currentFrame]
     };
@@ -82,7 +82,7 @@ namespace vke {
   }
 
   void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame,
-                                          const vk::raii::CommandBuffer* commandBuffer) const
+                                          const vk::raii::CommandBuffer& commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {
       vk::PipelineStageFlagBits::eVertexInput,
@@ -94,7 +94,7 @@ namespace vke {
       .pWaitSemaphores = &*m_imageAvailableSemaphores[currentFrame],
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = &**commandBuffer,
+      .pCommandBuffers = &*commandBuffer,
       .signalSemaphoreCount = 1,
       .pSignalSemaphores = &*m_renderFinishedSemaphores[currentFrame]
     };
@@ -103,11 +103,11 @@ namespace vke {
   }
 
   void LogicalDevice::submitComputeQueue(const uint32_t currentFrame,
-                                         const vk::raii::CommandBuffer* commandBuffer) const
+                                         const vk::raii::CommandBuffer& commandBuffer) const
   {
     const vk::SubmitInfo submitInfo {
       .commandBufferCount = 1,
-      .pCommandBuffers = &**commandBuffer,
+      .pCommandBuffers = &*commandBuffer,
       .signalSemaphoreCount = 1,
       .pSignalSemaphores = &*m_computeFinishedSemaphores[currentFrame]
     };
@@ -159,8 +159,8 @@ namespace vke {
   }
 
   vk::Result LogicalDevice::queuePresent(const uint32_t currentFrame,
-                                       const vk::raii::SwapchainKHR& swapchain,
-                                       const uint32_t* imageIndex) const
+                                         const vk::raii::SwapchainKHR& swapchain,
+                                         const uint32_t* imageIndex) const
   {
     const std::array waitSemaphores = {
       *m_renderFinishedSemaphores[currentFrame],
@@ -179,9 +179,9 @@ namespace vke {
     return m_presentQueue.presentKHR(presentInfo);
   }
 
-  void LogicalDevice::acquireNextImage(const uint32_t currentFrame,
-                                       const vk::raii::SwapchainKHR& swapchain,
-                                       uint32_t* imageIndex) const
+  vk::Result LogicalDevice::acquireNextImage(const uint32_t currentFrame,
+                                             const vk::raii::SwapchainKHR& swapchain,
+                                             uint32_t* imageIndex) const
   {
     const vk::AcquireNextImageInfoKHR acquireInfo {
       .swapchain = swapchain,
@@ -193,6 +193,8 @@ namespace vke {
 
     auto [result, index] = m_device.acquireNextImage2KHR(acquireInfo);
     *imageIndex = index;
+
+    return result;
   }
 
   uint32_t LogicalDevice::getMaxFramesInFlight() const

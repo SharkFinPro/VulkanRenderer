@@ -66,7 +66,7 @@ namespace vke {
 
     std::shared_ptr<Renderer> m_renderer;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool = nullptr;
 
     std::shared_ptr<CommandBuffer> m_offscreenCommandBuffer;
 
@@ -82,7 +82,7 @@ namespace vke {
 
     bool m_sceneIsFocused = false;
 
-    VkExtent2D m_offscreenViewportExtent{};
+    vk::Extent2D m_offscreenViewportExtent{};
 
     ImVec2 m_offscreenViewportPos{0, 0};
 
@@ -111,7 +111,7 @@ namespace vke {
                                          uint32_t currentFrame) const;
 
     static void resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                 VkExtent2D extent);
+                                 vk::Extent2D extent);
 
     void doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
                         uint32_t currentFrame) const;

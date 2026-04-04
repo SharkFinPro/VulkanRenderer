@@ -21,7 +21,7 @@ namespace vke {
 
     [[nodiscard]] vk::Extent2D getExtent() const;
 
-    [[nodiscard]] vk::SwapchainKHR getSwapChain() const;
+    [[nodiscard]] vk::raii::SwapchainKHR& getSwapChain();
 
     [[nodiscard]] const std::vector<vk::raii::ImageView>& getImageViews() const;
 
