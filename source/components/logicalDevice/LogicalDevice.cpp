@@ -236,11 +236,9 @@ namespace vke {
     memory.unmapMemory();
   }
 
-  void LogicalDevice::allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo,
-                                             vk::raii::DescriptorSet* descriptorSets) const
+  std::vector<vk::raii::DescriptorSet> LogicalDevice::allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo) const
   {
-    auto sets = m_device.allocateDescriptorSets(descriptorSetAllocateInfo);
-    std::ranges::move(sets, descriptorSets);
+    return m_device.allocateDescriptorSets(descriptorSetAllocateInfo);
   }
 
   void LogicalDevice::updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const

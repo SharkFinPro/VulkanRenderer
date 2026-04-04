@@ -66,8 +66,7 @@ namespace vke {
       .pSetLayouts = layouts.data()
     };
 
-    m_descriptorSets.resize(m_logicalDevice->getMaxFramesInFlight());
-    m_logicalDevice->allocateDescriptorSets(allocateInfo, m_descriptorSets.data());
+    m_descriptorSets = m_logicalDevice->allocateDescriptorSets(allocateInfo);
   }
 
 } // namespace vke

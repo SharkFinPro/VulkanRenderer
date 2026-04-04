@@ -72,8 +72,7 @@ namespace vke {
 
     static void unmapMemory(const vk::raii::DeviceMemory& memory);
 
-    void allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo,
-                                vk::raii::DescriptorSet* descriptorSets) const;
+    [[nodiscard]] std::vector<vk::raii::DescriptorSet> allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo) const;
 
     void updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const;
 
