@@ -31,7 +31,7 @@ namespace vke {
     m_queue.waitIdle();
   }
 
-  void SingleUseCommandBuffer::allocateCommandBuffers(const vk::CommandPool& commandPool)
+  void SingleUseCommandBuffer::allocateCommandBuffers(const vk::CommandPool commandPool)
   {
     const vk::CommandBufferAllocateInfo allocInfo {
       .commandPool = commandPool,

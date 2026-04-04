@@ -17,7 +17,7 @@ namespace vke {
   private:
     vk::Queue m_queue;
 
-    void allocateCommandBuffers(const vk::CommandPool& commandPool) override;
+    void allocateCommandBuffers(vk::CommandPool commandPool) override;
   };
 
 } // vke
