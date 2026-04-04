@@ -11,7 +11,7 @@ namespace vke {
   SmokePipeline::SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
-                               VkDescriptorSetLayout smokeSystemDescriptorSetLayout)
+                               vk::DescriptorSetLayout smokeSystemDescriptorSetLayout)
     : ComputePipeline(logicalDevice), GraphicsPipeline(std::move(logicalDevice)),
       m_lightingDescriptorSet(lightingDescriptorSet)
   {
@@ -55,12 +55,12 @@ namespace vke {
                               const uint32_t currentFrame,
                               const std::vector<std::shared_ptr<SmokeSystem>>* systems) const
   {
-    commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipeline);
+    commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, ComputePipeline::m_pipeline);
 
     for (const auto& system : *systems)
     {
       commandBuffer->bindDescriptorSets(
-        VK_PIPELINE_BIND_POINT_COMPUTE,
+        vk::PipelineBindPoint::eCompute,
         ComputePipeline::m_pipelineLayout,
         0,
         1,
@@ -82,12 +82,12 @@ namespace vke {
       1
     );
 
-    constexpr VkDeviceSize offsets[] = {0};
+    constexpr vk::DeviceSize offsets[] = {0};
 
     for (const auto& system : *systems)
     {
       renderInfo->commandBuffer->bindDescriptorSets(
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        vk::PipelineBindPoint::eGraphics,
         GraphicsPipeline::m_pipelineLayout,
         0,
         1,

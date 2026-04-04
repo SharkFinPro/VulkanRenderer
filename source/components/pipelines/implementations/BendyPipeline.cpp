@@ -11,8 +11,8 @@ namespace vke {
 
   BendyPipeline::BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
-                               const VkCommandPool& commandPool,
-                               VkDescriptorPool descriptorPool,
+                               const vk::raii::CommandPool& commandPool,
+                               vk::DescriptorPool descriptorPool,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
     : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet),
       m_previousTime(std::chrono::steady_clock::now())
@@ -38,7 +38,7 @@ namespace vke {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex,
           .offset = 0,
           .size = sizeof(BendyPlantInfo)
         }
@@ -76,28 +76,28 @@ namespace vke {
         .bendStrength = bendStrength
       };
 
-      renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+      renderInfo->commandBuffer->pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0,
                                                sizeof(BendyPlantInfo), &bendyPlantInfo);
 
       renderInfo->commandBuffer->draw(leafLength * 2 * 4 + 2, numFins, 0, 0);
     }
   }
 
-  void BendyPipeline::createUniforms(const VkCommandPool& commandPool)
+  void BendyPipeline::createUniforms(const vk::raii::CommandPool& commandPool)
   {
     m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(VPTransformUniform));
 
     m_bendyUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(BendyUniform));
 
-    m_texture = std::make_shared<Texture2D>(m_logicalDevice, commandPool, "assets/bendy/leaf.png", VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+    m_texture = std::make_shared<Texture2D>(m_logicalDevice, commandPool, "assets/bendy/leaf.png", vk::SamplerAddressMode::eClampToEdge);
   }
 
-  void BendyPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
+  void BendyPipeline::createDescriptorSets(vk::DescriptorPool descriptorPool)
   {
     m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::bendyLayoutBindings);
-    m_BendyPipelineDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    m_BendyPipelineDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
         m_bendyUniform->getDescriptorSet(1, descriptorSet, frame),
         m_texture->getDescriptorSet(2, descriptorSet)

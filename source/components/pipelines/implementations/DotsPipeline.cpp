@@ -12,31 +12,31 @@
 
 namespace vke {
 
-  const std::vector<VkDescriptorSetLayoutBinding> layoutBindings {{
+  const std::vector<vk::DescriptorSetLayoutBinding> layoutBindings {{
     {
       .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorType = vk::DescriptorType::eUniformBuffer,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+      .stageFlags = vk::ShaderStageFlagBits::eCompute,
     },
     {
       .binding = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+      .descriptorType = vk::DescriptorType::eStorageBuffer,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eCompute
     },
     {
       .binding = 2,
-      .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+      .descriptorType = vk::DescriptorType::eStorageBuffer,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eCompute
     }
   }};
 
   DotsPipeline::DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                             const VkCommandPool& commandPool,
+                             const vk::raii::CommandPool& commandPool,
                              const std::shared_ptr<RenderPass>& renderPass,
-                             VkDescriptorPool descriptorPool)
+                             vk::DescriptorPool descriptorPool)
     : ComputePipeline(logicalDevice), GraphicsPipeline(std::move(logicalDevice)),
       m_previousTime(std::chrono::steady_clock::now())
   {
@@ -77,20 +77,12 @@ namespace vke {
     GraphicsPipeline::createPipeline(graphicsPipelineOptions);
   }
 
-  DotsPipeline::~DotsPipeline()
-  {
-    for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
-    {
-      Buffers::destroyBuffer(ComputePipeline::m_logicalDevice, m_shaderStorageBuffers[i], m_shaderStorageBuffersMemory[i]);
-    }
-  }
-
   void DotsPipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
                              const uint32_t currentFrame) const
   {
-    commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipeline);
+    commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, ComputePipeline::m_pipeline);
 
-    commandBuffer->bindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipeline::m_pipelineLayout, 0,
+    commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, ComputePipeline::m_pipelineLayout, 0,
                                       1, &m_dotsDescriptorSet->getDescriptorSet(currentFrame));
 
     commandBuffer->dispatch(PARTICLE_COUNT / 256, 1, 1);
@@ -102,8 +94,9 @@ namespace vke {
 
     updateUniformVariables(renderInfo);
 
-    constexpr VkDeviceSize offsets[] = {0};
-    renderInfo->commandBuffer->bindVertexBuffers(0, 1, &m_shaderStorageBuffers[renderInfo->currentFrame], offsets);
+    constexpr vk::DeviceSize offsets[] = {0};
+    const vk::Buffer vertexBuffers[] = {*m_shaderStorageBuffers[renderInfo->currentFrame]};
+    renderInfo->commandBuffer->bindVertexBuffers(0, 1, vertexBuffers, offsets);
 
     renderInfo->commandBuffer->draw(PARTICLE_COUNT, 1, 0, 0);
   }
@@ -113,10 +106,10 @@ namespace vke {
     m_deltaTimeUniform = std::make_unique<UniformBuffer>(ComputePipeline::m_logicalDevice, sizeof(float));
   }
 
-  void DotsPipeline::createShaderStorageBuffers(const VkCommandPool& commandPool)
+  void DotsPipeline::createShaderStorageBuffers(const vk::raii::CommandPool& commandPool)
   {
-    m_shaderStorageBuffers.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
-    m_shaderStorageBuffersMemory.resize(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
+    m_shaderStorageBuffers.reserve(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
+    m_shaderStorageBuffersMemory.reserve(ComputePipeline::m_logicalDevice->getMaxFramesInFlight());
 
     std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
     std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
@@ -135,64 +128,65 @@ namespace vke {
                                  distribution(randomEngine), 1.0f);
     }
 
-    constexpr VkDeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
+    constexpr vk::DeviceSize bufferSize = sizeof(Particle) * PARTICLE_COUNT;
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    vk::raii::Buffer stagingBuffer{nullptr};
+    vk::raii::DeviceMemory stagingBufferMemory{nullptr};
 
     Buffers::createBuffer(ComputePipeline::m_logicalDevice, bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                          vk::BufferUsageFlagBits::eTransferSrc,
+                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    ComputePipeline::m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
-      memcpy(data, particles.data(), bufferSize);
+    ComputePipeline::m_logicalDevice->doMappedMemoryOperation(*stagingBufferMemory, [particles, bufferSize](void* data) {
+      memcpy(data, particles.data(), static_cast<size_t>(bufferSize));
     });
 
     for (size_t i = 0; i < ComputePipeline::m_logicalDevice->getMaxFramesInFlight(); i++)
     {
+      vk::raii::Buffer buffer{nullptr};
+      vk::raii::DeviceMemory memory{nullptr};
+
       Buffers::createBuffer(ComputePipeline::m_logicalDevice, bufferSize,
-                            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_shaderStorageBuffers[i], m_shaderStorageBuffersMemory[i]);
+                            vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                            vk::MemoryPropertyFlagBits::eDeviceLocal, buffer, memory);
 
       Buffers::copyBuffer(ComputePipeline::m_logicalDevice, commandPool, ComputePipeline::m_logicalDevice->getComputeQueue(),
-                          stagingBuffer, m_shaderStorageBuffers[i], bufferSize);
+                          stagingBuffer, buffer, bufferSize);
 
-      const VkDescriptorBufferInfo bufferInfo {
-        .buffer = m_shaderStorageBuffers[i],
+      const vk::DescriptorBufferInfo bufferInfo {
+        .buffer = *buffer,
         .offset = 0,
         .range = bufferSize
       };
 
+      m_shaderStorageBuffers.push_back(std::move(buffer));
+      m_shaderStorageBuffersMemory.push_back(std::move(memory));
       m_shaderStorageBufferInfos.push_back(bufferInfo);
     }
-
-    Buffers::destroyBuffer(ComputePipeline::m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
-  void DotsPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
+  void DotsPipeline::createDescriptorSets(vk::DescriptorPool descriptorPool)
   {
     m_dotsDescriptorSet = std::make_shared<DescriptorSet>(GraphicsPipeline::m_logicalDevice, descriptorPool, layoutBindings);
-    m_dotsDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
+    m_dotsDescriptorSet->updateDescriptorSets([this](vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      const std::vector<VkWriteDescriptorSet> writeDescriptorSets {{
+      const std::vector<vk::WriteDescriptorSet> writeDescriptorSets {{
         m_deltaTimeUniform->getDescriptorSet(0, descriptorSet, frame),
         {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
           .dstBinding = 1,
           .dstArrayElement = 0,
           .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .descriptorType = vk::DescriptorType::eStorageBuffer,
           .pBufferInfo = &m_shaderStorageBufferInfos[(frame - 1) % ComputePipeline::m_logicalDevice->getMaxFramesInFlight()]
         },
         {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
           .dstBinding = 2,
           .dstArrayElement = 0,
           .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .descriptorType = vk::DescriptorType::eStorageBuffer,
           .pBufferInfo = &m_shaderStorageBufferInfos[frame]
         }
       }};

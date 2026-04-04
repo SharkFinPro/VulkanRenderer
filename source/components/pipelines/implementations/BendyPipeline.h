@@ -18,8 +18,8 @@ namespace vke {
   public:
     BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
-                  const VkCommandPool& commandPool,
-                  VkDescriptorPool descriptorPool,
+                  const vk::raii::CommandPool& commandPool,
+                  vk::DescriptorPool descriptorPool,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);
 
     void render(const RenderInfo* renderInfo,
@@ -40,9 +40,9 @@ namespace vke {
 
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
-    void createUniforms(const VkCommandPool& commandPool);
+    void createUniforms(const vk::raii::CommandPool& commandPool);
 
-    void createDescriptorSets(VkDescriptorPool descriptorPool);
+    void createDescriptorSets(vk::DescriptorPool descriptorPool);
 
     void updateUniformVariables(const RenderInfo* renderInfo);
 

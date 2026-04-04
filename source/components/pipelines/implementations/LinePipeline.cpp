@@ -54,7 +54,7 @@ namespace vke {
 
     bind(renderInfo->commandBuffer);
 
-    const VkDeviceSize bufferSize = sizeof(LineVertex) * vertices->size();
+    const vk::DeviceSize bufferSize = sizeof(LineVertex) * vertices->size();
 
     if (bufferSize > m_maxVertexBufferSize)
     {
@@ -68,11 +68,12 @@ namespace vke {
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), m_stagingBuffer,
                         m_vertexBuffer, bufferSize);
 
-    constexpr VkDeviceSize offsets[] = {0};
-    renderInfo->commandBuffer->bindVertexBuffers(0, 1, &m_vertexBuffer, offsets);
+    constexpr vk::DeviceSize offsets[] = {0};
+    const vk::Buffer vertexBuffers[] = {*m_vertexBuffer};
+    renderInfo->commandBuffer->bindVertexBuffers(0, 1, vertexBuffers, offsets);
 
     const MVPTransformUniform transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
-    renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+    renderInfo->commandBuffer->pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0,
                                              sizeof(MVPTransformUniform), &transformUBO);
 
     renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices->size()), 1, 0, 0);
@@ -81,11 +82,11 @@ namespace vke {
   void LinePipeline::createVertexBuffer()
   {
     Buffers::createBuffer(m_logicalDevice, m_maxVertexBufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+                          vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+                          vk::MemoryPropertyFlagBits::eDeviceLocal, m_vertexBuffer, m_vertexBufferMemory);
 
-    Buffers::createBuffer(m_logicalDevice, m_maxVertexBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+    Buffers::createBuffer(m_logicalDevice, m_maxVertexBufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           m_stagingBuffer, m_stagingBufferMemory);
   }
 
