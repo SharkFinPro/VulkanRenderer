@@ -43,8 +43,6 @@ namespace vke {
   public:
     explicit AssetManager(std::shared_ptr<LogicalDevice> logicalDevice);
 
-    ~AssetManager();
-
     [[nodiscard]] std::shared_ptr<Texture2D> loadTexture(const char* path,
                                                          bool repeat = true);
 
@@ -64,32 +62,32 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<SmokeSystem> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
                                                                  uint32_t numParticles = 5'000'000);
 
-    [[nodiscard]] VkDescriptorSetLayout getObjectDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getObjectDescriptorSetLayout() const;
 
-    [[nodiscard]] VkDescriptorSetLayout getFontDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getFontDescriptorSetLayout() const;
 
-    [[nodiscard]] VkDescriptorSetLayout getSmokeSystemDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getSmokeSystemDescriptorSetLayout() const;
 
-    [[nodiscard]] VkDescriptorSetLayout getRayTracingDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getRayTracingDescriptorSetLayout() const;
 
     [[nodiscard]] std::shared_ptr<Cloud> createCloud();
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool { nullptr };
 
-    std::vector<VkDescriptorPool> m_descriptorPools;
+    std::vector<vk::raii::DescriptorPool> m_descriptorPools;
     uint32_t m_descriptorPoolSize = 500;
     uint32_t m_currentDescriptorPoolSize = 0;
 
-    VkDescriptorSetLayout m_objectDescriptorSetLayout = VK_NULL_HANDLE;
+    vk::raii::DescriptorSetLayout m_objectDescriptorSetLayout = nullptr;
 
-    VkDescriptorSetLayout m_fontDescriptorSetLayout = VK_NULL_HANDLE;
+    vk::raii::DescriptorSetLayout m_fontDescriptorSetLayout = nullptr;
 
-    VkDescriptorSetLayout m_smokeSystemDescriptorSetLayout = VK_NULL_HANDLE;
+    vk::raii::DescriptorSetLayout m_smokeSystemDescriptorSetLayout = nullptr;
 
-    VkDescriptorSetLayout m_rayTracingDescriptorSetLayout = VK_NULL_HANDLE;
+    vk::raii::DescriptorSetLayout m_rayTracingDescriptorSetLayout = nullptr;
 
     std::unordered_map<std::string, std::string> m_fontNames;
     std::unordered_map<FontKey, std::shared_ptr<Font>, FontKeyHash> m_fonts;
@@ -111,7 +109,7 @@ namespace vke {
 
     void createDescriptorPool();
 
-    [[nodiscard]] VkDescriptorPool getDescriptorPool();
+    [[nodiscard]] vk::DescriptorPool getDescriptorPool();
   };
 
 } // namespace vke

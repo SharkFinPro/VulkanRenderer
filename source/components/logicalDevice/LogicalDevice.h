@@ -18,9 +18,9 @@ namespace vke {
 
     void waitIdle() const;
 
-    [[nodiscard]] vk::raii::Queue getGraphicsQueue() const;
-    [[nodiscard]] vk::raii::Queue getPresentQueue() const;
-    [[nodiscard]] vk::raii::Queue getComputeQueue() const;
+    [[nodiscard]] vk::raii::Queue& getGraphicsQueue();
+    [[nodiscard]] vk::raii::Queue& getPresentQueue();
+    [[nodiscard]] vk::raii::Queue& getComputeQueue();
 
     void submitMousePickingGraphicsQueue(uint32_t currentFrame,
                                          const vk::raii::CommandBuffer* commandBuffer) const;

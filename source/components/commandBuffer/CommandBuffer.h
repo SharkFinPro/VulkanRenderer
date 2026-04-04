@@ -86,13 +86,13 @@ namespace vke {
     void clearAttachments(const std::vector<vk::ClearAttachment>& clearAttachments,
                           const std::vector<vk::ClearRect>& clearRects) const;
 
-    void copyImageToBuffer(const vk::raii::Image& srcImage,
+    void copyImageToBuffer(const vk::Image& srcImage,
                            vk::ImageLayout srcImageLayout,
-                           const vk::raii::Buffer& dstBuffer,
+                           const vk::Buffer& dstBuffer,
                            const std::vector<vk::BufferImageCopy>& regions) const;
 
-    void copyBufferToImage(const vk::raii::Buffer& srcBuffer,
-                           const vk::raii::Image& dstImage,
+    void copyBufferToImage(const vk::Buffer& srcBuffer,
+                           const vk::Image& dstImage,
                            vk::ImageLayout dstImageLayout,
                            const std::vector<vk::BufferImageCopy>& regions) const;
 
@@ -133,7 +133,7 @@ namespace vke {
 
     uint32_t m_currentFrame = 0;
 
-    virtual void allocateCommandBuffers(vk::raii::CommandPool& commandPool);
+    virtual void allocateCommandBuffers(const vk::CommandPool& commandPool);
   };
 
 } // namespace vke

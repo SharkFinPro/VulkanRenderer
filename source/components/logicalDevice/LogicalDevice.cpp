@@ -24,17 +24,17 @@ namespace vke {
     m_device.waitIdle();
   }
 
-  vk::raii::Queue LogicalDevice::getGraphicsQueue() const
+  vk::raii::Queue& LogicalDevice::getGraphicsQueue()
   {
     return m_graphicsQueue;
   }
 
-  vk::raii::Queue LogicalDevice::getPresentQueue() const
+  vk::raii::Queue& LogicalDevice::getPresentQueue()
   {
     return m_presentQueue;
   }
 
-  vk::raii::Queue LogicalDevice::getComputeQueue() const
+  vk::raii::Queue& LogicalDevice::getComputeQueue()
   {
     return m_computeQueue;
   }

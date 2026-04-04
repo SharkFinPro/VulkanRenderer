@@ -155,20 +155,20 @@ namespace vke {
     m_commandBuffers[m_currentFrame].clearAttachments(clearAttachments, clearRects);
   }
 
-  void CommandBuffer::copyImageToBuffer(const vk::raii::Image& srcImage,
+  void CommandBuffer::copyImageToBuffer(const vk::Image& srcImage,
                                         const vk::ImageLayout srcImageLayout,
-                                        const vk::raii::Buffer& dstBuffer,
+                                        const vk::Buffer& dstBuffer,
                                         const std::vector<vk::BufferImageCopy>& regions) const
   {
-    m_commandBuffers[m_currentFrame].copyImageToBuffer(*srcImage, srcImageLayout, *dstBuffer, regions);
+    m_commandBuffers[m_currentFrame].copyImageToBuffer(srcImage, srcImageLayout, dstBuffer, regions);
   }
 
-  void CommandBuffer::copyBufferToImage(const vk::raii::Buffer& srcBuffer,
-                                        const vk::raii::Image& dstImage,
+  void CommandBuffer::copyBufferToImage(const vk::Buffer& srcBuffer,
+                                        const vk::Image& dstImage,
                                         const vk::ImageLayout dstImageLayout,
                                         const std::vector<vk::BufferImageCopy>& regions) const
   {
-    m_commandBuffers[m_currentFrame].copyBufferToImage(*srcBuffer, *dstImage, dstImageLayout, regions);
+    m_commandBuffers[m_currentFrame].copyBufferToImage(srcBuffer, dstImage, dstImageLayout, regions);
   }
 
   void CommandBuffer::blitImage(const vk::raii::Image& srcImage,
@@ -225,12 +225,12 @@ namespace vke {
     m_commandBuffers[m_currentFrame].copyImage(*srcImage, srcImageLayout, *dstImage, dstImageLayout, regions);
   }
 
-  void CommandBuffer::allocateCommandBuffers(vk::raii::CommandPool& commandPool)
+  void CommandBuffer::allocateCommandBuffers(const vk::CommandPool& commandPool)
   {
     const vk::CommandBufferAllocateInfo allocInfo {
-      .commandPool = *commandPool,
+      .commandPool = commandPool,
       .level = vk::CommandBufferLevel::ePrimary,
-      .commandBufferCount = static_cast<uint32_t>(m_logicalDevice->getMaxFramesInFlight())
+      .commandBufferCount = m_logicalDevice->getMaxFramesInFlight()
     };
 
     m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);

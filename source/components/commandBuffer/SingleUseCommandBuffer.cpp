@@ -3,9 +3,9 @@
 
 namespace vke {
   SingleUseCommandBuffer::SingleUseCommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                                                 vk::raii::CommandPool& commandPool,
+                                                 const vk::CommandPool& commandPool,
                                                  vk::raii::Queue& queue)
-    : CommandBuffer(std::move(logicalDevice)), m_commandPool(commandPool), m_queue(queue)
+    : CommandBuffer(std::move(logicalDevice)), m_queue(queue)
   {
     SingleUseCommandBuffer::allocateCommandBuffers(commandPool);
   }
@@ -31,10 +31,10 @@ namespace vke {
     m_queue.waitIdle();
   }
 
-  void SingleUseCommandBuffer::allocateCommandBuffers(vk::raii::CommandPool& commandPool)
+  void SingleUseCommandBuffer::allocateCommandBuffers(const vk::CommandPool& commandPool)
   {
     const vk::CommandBufferAllocateInfo allocInfo {
-      .commandPool = *commandPool,
+      .commandPool = commandPool,
       .level = vk::CommandBufferLevel::ePrimary,
       .commandBufferCount = 1
     };
