@@ -22,7 +22,8 @@ std::vector<std::shared_ptr<vke::Light>> createLights(const vke::VulkanEngine& r
 
 std::shared_ptr<vke::RenderObject> createCubeObject(const vke::VulkanEngine& renderer);
 
-void displayCloudGUI(const vke::VulkanEngine& renderer);
+void displayCloudGUI(const vke::VulkanEngine& renderer,
+                     const std::shared_ptr<vke::Cloud>& cloud);
 
 int main()
 {
@@ -40,11 +41,13 @@ int main()
 
     const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
+    const std::shared_ptr<vke::Cloud> cloud = renderer.getAssetManager()->createCloud();
+
     while (renderer.isActive())
     {
       displayGui(renderer.getImGuiInstance(), lights, { cubeObject }, renderer.getRenderingManager());
 
-      displayCloudGUI(renderer);
+      displayCloudGUI(renderer, cloud);
 
       r3d->renderObject(cubeObject, currentPipeline);
 
@@ -90,12 +93,13 @@ std::shared_ptr<vke::RenderObject> createCubeObject(const vke::VulkanEngine& ren
   return cubeObject;
 }
 
-void displayCloudGUI(const vke::VulkanEngine& renderer)
+void displayCloudGUI(const vke::VulkanEngine& renderer,
+                     const std::shared_ptr<vke::Cloud>& cloud)
 {
   renderer.getImGuiInstance()->dockBottom("Clouds");
 
-  static std::shared_ptr<vke::Cloud> cloud = renderer.getAssetManager()->createCloud();
-  renderer.getRenderingManager()->getRenderer3D()->setCloudToRender(cloud);
+  const auto r3d = renderer.getRenderingManager()->getRenderer3D();
+  r3d->setCloudToRender(cloud);
 
   ImGui::Begin("Clouds");
 
