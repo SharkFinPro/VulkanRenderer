@@ -58,7 +58,7 @@ namespace vke {
       throw std::runtime_error("failed to create window surface!");
     }
 
-    return surface;
+    return vk::raii::SurfaceKHR(m_instance, surface);
   }
 
   std::vector<vk::raii::PhysicalDevice> Instance::getPhysicalDevices() const
