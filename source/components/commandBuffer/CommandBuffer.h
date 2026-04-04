@@ -15,7 +15,7 @@ namespace vke {
     explicit CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice);
 
     CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                  VkCommandPool commandPool);
+                  vk::raii::CommandPool& commandPool);
 
     virtual ~CommandBuffer() = default;
 
@@ -25,41 +25,39 @@ namespace vke {
 
     void resetCommandBuffer() const;
 
-    [[nodiscard]] vk::CommandBuffer* getCommandBuffer();
+    [[nodiscard]] vk::raii::CommandBuffer& getCommandBuffer();
 
-    void setViewport(const VkViewport& viewport) const;
+    void setViewport(const vk::Viewport& viewport) const;
 
-    void setScissor(const VkRect2D& scissor) const;
+    void setScissor(const vk::Rect2D& scissor) const;
 
-    void beginRenderPass(const VkRenderPassBeginInfo& renderPassBeginInfo) const;
+    void beginRenderPass(const vk::RenderPassBeginInfo& renderPassBeginInfo) const;
 
     void endRenderPass() const;
 
-    void beginRendering(const VkRenderingInfo& renderingInfo) const;
+    void beginRendering(const vk::RenderingInfo& renderingInfo) const;
 
     void endRendering() const;
 
-    void bindPipeline(VkPipelineBindPoint pipelineBindPoint,
-                      VkPipeline pipeline) const;
+    void bindPipeline(vk::PipelineBindPoint pipelineBindPoint,
+                      const vk::raii::Pipeline& pipeline) const;
 
-    void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint,
-                            VkPipelineLayout pipelineLayout,
+    void bindDescriptorSets(vk::PipelineBindPoint pipelineBindPoint,
+                            const vk::raii::PipelineLayout& pipelineLayout,
                             uint32_t firstSet,
-                            uint32_t descriptorSetCount,
-                            const VkDescriptorSet* descriptorSets) const;
+                            const std::vector<vk::DescriptorSet>& descriptorSets) const;
 
     void dispatch(uint32_t groupCountX,
                   uint32_t groupCountY,
                   uint32_t groupCountZ) const;
 
     void bindVertexBuffers(uint32_t firstBinding,
-                           uint32_t bindingCount,
-                           const VkBuffer* buffers,
-                           const VkDeviceSize* offsets) const;
+                           const std::vector<vk::Buffer>& buffers,
+                           const std::vector<vk::DeviceSize>& offsets) const;
 
-    void bindIndexBuffer(VkBuffer buffer,
-                         VkDeviceSize offset,
-                         VkIndexType indexType) const;
+    void bindIndexBuffer(const vk::raii::Buffer& buffer,
+                         vk::DeviceSize offset,
+                         vk::IndexType indexType) const;
 
     void draw(uint32_t vertexCount,
               uint32_t instanceCount,
@@ -72,70 +70,70 @@ namespace vke {
                      int32_t vertexOffset,
                      uint32_t firstInstance) const;
 
-    void pushConstants(VkPipelineLayout layout,
-                       VkShaderStageFlags stageFlags,
+    void pushConstants(const vk::raii::PipelineLayout& layout,
+                       vk::ShaderStageFlags stageFlags,
                        uint32_t offset,
                        uint32_t size,
                        const void* values) const;
 
-    void pipelineBarrier(VkPipelineStageFlags srcStageMask,
-                         VkPipelineStageFlags dstStageMask,
-                         VkDependencyFlags dependencyFlags,
-                         const std::vector<VkMemoryBarrier>& memoryBarriers,
-                         const std::vector<VkBufferMemoryBarrier>& bufferMemoryBarriers,
-                         const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const;
+    void pipelineBarrier(vk::PipelineStageFlags srcStageMask,
+                         vk::PipelineStageFlags dstStageMask,
+                         vk::DependencyFlags dependencyFlags,
+                         const std::vector<vk::MemoryBarrier>& memoryBarriers,
+                         const std::vector<vk::BufferMemoryBarrier>& bufferMemoryBarriers,
+                         const std::vector<vk::ImageMemoryBarrier>& imageMemoryBarriers) const;
 
-    void clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
-                          const std::vector<VkClearRect>& clearRects) const;
+    void clearAttachments(const std::vector<vk::ClearAttachment>& clearAttachments,
+                          const std::vector<vk::ClearRect>& clearRects) const;
 
-    void copyImageToBuffer(VkImage srcImage,
-                           VkImageLayout srcImageLayout,
-                           VkBuffer dstBuffer,
-                           const std::vector<VkBufferImageCopy>& regions) const;
+    void copyImageToBuffer(const vk::raii::Image& srcImage,
+                           vk::ImageLayout srcImageLayout,
+                           const vk::raii::Buffer& dstBuffer,
+                           const std::vector<vk::BufferImageCopy>& regions) const;
 
-    void copyBufferToImage(VkBuffer srcBuffer,
-                           VkImage dstImage,
-                           VkImageLayout dstImageLayout,
-                           const std::vector<VkBufferImageCopy>& regions) const;
+    void copyBufferToImage(const vk::raii::Buffer& srcBuffer,
+                           const vk::raii::Image& dstImage,
+                           vk::ImageLayout dstImageLayout,
+                           const std::vector<vk::BufferImageCopy>& regions) const;
 
-    void blitImage(VkImage srcImage,
-                   VkImageLayout srcImageLayout,
-                   VkImage dstImage,
-                   VkImageLayout dstImageLayout,
-                   const std::vector<VkImageBlit>& regions,
-                   VkFilter filter) const;
+    void blitImage(const vk::raii::Image& srcImage,
+                   vk::ImageLayout srcImageLayout,
+                   const vk::raii::Image& dstImage,
+                   vk::ImageLayout dstImageLayout,
+                   const std::vector<vk::ImageBlit>& regions,
+                   vk::Filter filter) const;
 
-    void copyBuffer(VkBuffer srcBuffer,
-                    VkBuffer dstBuffer,
-                    const std::vector<VkBufferCopy>& regions) const;
+    void copyBuffer(const vk::raii::Buffer& srcBuffer,
+                    const vk::raii::Buffer& dstBuffer,
+                    const std::vector<vk::BufferCopy>& regions) const;
 
-    void buildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                                    const VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const;
+    void buildAccelerationStructure(const vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                                    const vk::AccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const;
 
-    void traceRays(const VkStridedDeviceAddressRegionKHR* raygenShaderBindingTable,
-                   const VkStridedDeviceAddressRegionKHR* missShaderBindingTable,
-                   const VkStridedDeviceAddressRegionKHR* hitShaderBindingTable,
-                   const VkStridedDeviceAddressRegionKHR* callableShaderBindingTable,
+    void traceRays(const vk::StridedDeviceAddressRegionKHR& raygenShaderBindingTable,
+                   const vk::StridedDeviceAddressRegionKHR& missShaderBindingTable,
+                   const vk::StridedDeviceAddressRegionKHR& hitShaderBindingTable,
+                   const vk::StridedDeviceAddressRegionKHR& callableShaderBindingTable,
                    uint32_t width,
                    uint32_t height,
                    uint32_t depth) const;
 
-    void copyImage(VkImage srcImage,
-                   VkImageLayout srcImageLayout,
-                   VkImage dstImage,
-                   VkImageLayout dstImageLayout,
-                   const std::vector<VkImageCopy>& regions) const;
+    void copyImage(const vk::raii::Image& srcImage,
+                   vk::ImageLayout srcImageLayout,
+                   const vk::raii::Image& dstImage,
+                   vk::ImageLayout dstImageLayout,
+                   const std::vector<vk::ImageCopy>& regions) const;
 
     friend class ImGuiInstance;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    std::vector<vk::CommandBuffer> m_commandBuffers;
+    std::vector<vk::raii::CommandBuffer> m_commandBuffers;
 
     uint32_t m_currentFrame = 0;
 
-    virtual void allocateCommandBuffers(VkCommandPool commandPool);
+    virtual void allocateCommandBuffers(vk::raii::CommandPool& commandPool);
   };
 
 } // namespace vke

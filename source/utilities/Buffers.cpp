@@ -6,30 +6,29 @@
 namespace vke::Buffers {
 
     void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                      const VkDeviceSize size,
-                      const VkBufferUsageFlags usage,
-                      const VkMemoryPropertyFlags properties,
-                      VkBuffer& buffer,
-                      VkDeviceMemory& bufferMemory)
+                      const vk::DeviceSize size,
+                      const vk::BufferUsageFlags usage,
+                      const vk::MemoryPropertyFlags properties,
+                      vk::raii::Buffer& buffer,
+                      vk::raii::DeviceMemory& bufferMemory)
     {
-      const VkBufferCreateInfo bufferInfo {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      const vk::BufferCreateInfo bufferInfo {
         .size = size,
         .usage = usage,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+        .sharingMode = vk::SharingMode::eExclusive
       };
 
       buffer = logicalDevice->createBuffer(bufferInfo);
 
-      const VkMemoryRequirements memoryRequirements = logicalDevice->getBufferMemoryRequirements(buffer);
+      const vk::MemoryRequirements memoryRequirements = logicalDevice->getBufferMemoryRequirements(buffer);
 
-      const VkMemoryAllocateFlagsInfo allocateFlagsInfo {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
-        .flags = (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) ? VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT : static_cast<VkMemoryAllocateFlags>(0)
+      const vk::MemoryAllocateFlagsInfo allocateFlagsInfo {
+        .flags = (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress)
+                   ? vk::MemoryAllocateFlagBits::eDeviceAddress
+                   : vk::MemoryAllocateFlags{}
       };
 
-      const VkMemoryAllocateInfo allocateInfo {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      const vk::MemoryAllocateInfo allocateInfo {
         .pNext = &allocateFlagsInfo,
         .allocationSize = memoryRequirements.size,
         .memoryTypeIndex = logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits, properties)
@@ -41,16 +40,16 @@ namespace vke::Buffers {
     }
 
     void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                    VkCommandPool commandPool,
-                    VkQueue queue,
-                    VkBuffer srcBuffer,
-                    VkBuffer dstBuffer,
-                    const VkDeviceSize size)
+                    vk::raii::CommandPool& commandPool,
+                    vk::raii::Queue& queue,
+                    vk::raii::Buffer& srcBuffer,
+                    vk::raii::Buffer& dstBuffer,
+                    const vk::DeviceSize size)
     {
       const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, queue);
 
-      commandBuffer.record([commandBuffer, srcBuffer, dstBuffer, size] {
-        const VkBufferCopy copyRegion {
+      commandBuffer.record([commandBuffer, &srcBuffer, &dstBuffer, size] {
+        const vk::BufferCopy copyRegion {
           .size = size
         };
 
@@ -60,25 +59,6 @@ namespace vke::Buffers {
           { copyRegion }
         );
       });
-    }
-
-    void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                       VkBuffer& buffer,
-                       VkDeviceMemory& bufferMemory)
-    {
-      if (bufferMemory != VK_NULL_HANDLE)
-      {
-        logicalDevice->freeMemory(bufferMemory);
-
-        bufferMemory = VK_NULL_HANDLE;
-      }
-
-      if (buffer != VK_NULL_HANDLE)
-      {
-        logicalDevice->destroyBuffer(buffer);
-
-        buffer = VK_NULL_HANDLE;
-      }
     }
 
 } // namespace vke::Buffers

@@ -55,7 +55,7 @@ namespace vke {
     [[nodiscard]] vk::raii::CommandPool createCommandPool(const vk::CommandPoolCreateInfo& commandPoolCreateInfo) const;
 
     void allocateCommandBuffers(const vk::CommandBufferAllocateInfo& commandBufferAllocateInfo,
-                                vk::CommandBuffer* commandBuffers) const;
+                                std::vector<vk::raii::CommandBuffer>& commandBuffers) const;
 
     [[nodiscard]] vk::raii::DescriptorPool createDescriptorPool(const vk::DescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
 
@@ -138,15 +138,6 @@ namespace vke {
     static void getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
                                                 uint32_t groupCount,
                                                 std::vector<uint8_t>& handles);
-
-    static void traceRays(const vk::raii::CommandBuffer& commandBuffer,
-                          const vk::StridedDeviceAddressRegionKHR& pRaygenShaderBindingTable,
-                          const vk::StridedDeviceAddressRegionKHR& pMissShaderBindingTable,
-                          const vk::StridedDeviceAddressRegionKHR& pHitShaderBindingTable,
-                          const vk::StridedDeviceAddressRegionKHR& pCallableShaderBindingTable,
-                          uint32_t width,
-                          uint32_t height,
-                          uint32_t depth);
 
     friend class ImGuiInstance;
 

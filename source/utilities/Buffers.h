@@ -10,22 +10,18 @@ namespace vke {
 
   namespace Buffers {
     void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                      VkDeviceSize size,
-                      VkBufferUsageFlags usage,
-                      VkMemoryPropertyFlags properties,
-                      VkBuffer& buffer,
-                      VkDeviceMemory& bufferMemory);
+                      vk::DeviceSize size,
+                      vk::BufferUsageFlags usage,
+                      vk::MemoryPropertyFlags properties,
+                      vk::raii::Buffer& buffer,
+                      vk::raii::DeviceMemory& bufferMemory);
 
     void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                    VkCommandPool commandPool,
-                    VkQueue queue,
-                    VkBuffer srcBuffer,
-                    VkBuffer dstBuffer,
-                    VkDeviceSize size);
-
-    void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                       VkBuffer& buffer,
-                       VkDeviceMemory& bufferMemory);
+                    vk::raii::CommandPool& commandPool,
+                    vk::raii::Queue& queue,
+                    vk::raii::Buffer& srcBuffer,
+                    vk::raii::Buffer& dstBuffer,
+                    vk::DeviceSize size);
   }
 
 } // namespace vke

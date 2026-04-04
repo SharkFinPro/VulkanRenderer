@@ -397,28 +397,8 @@ namespace vke {
     );
   }
 
-  void LogicalDevice::traceRays(const vk::raii::CommandBuffer& commandBuffer,
-                                const vk::StridedDeviceAddressRegionKHR& pRaygenShaderBindingTable,
-                                const vk::StridedDeviceAddressRegionKHR& pMissShaderBindingTable,
-                                const vk::StridedDeviceAddressRegionKHR& pHitShaderBindingTable,
-                                const vk::StridedDeviceAddressRegionKHR& pCallableShaderBindingTable,
-                                const uint32_t width,
-                                const uint32_t height,
-                                const uint32_t depth)
-  {
-    commandBuffer.traceRaysKHR(
-      pRaygenShaderBindingTable,
-      pMissShaderBindingTable,
-      pHitShaderBindingTable,
-      pCallableShaderBindingTable,
-      width,
-      height,
-      depth
-    );
-  }
-
   void LogicalDevice::allocateCommandBuffers(const vk::CommandBufferAllocateInfo& commandBufferAllocateInfo,
-                                             vk::CommandBuffer* commandBuffers) const
+                                             std::vector<vk::raii::CommandBuffer>& commandBuffers) const
   {
     auto buffers = m_device.allocateCommandBuffers(commandBufferAllocateInfo);
     std::ranges::copy(buffers, commandBuffers);

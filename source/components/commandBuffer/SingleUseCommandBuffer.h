@@ -9,17 +9,17 @@ namespace vke {
   class SingleUseCommandBuffer final : public CommandBuffer {
   public:
     SingleUseCommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                           VkCommandPool commandPool,
-                           VkQueue queue);
+                           vk::raii::CommandPool& commandPool,
+                           vk::raii::Queue& queue);
 
     void record(const std::function<void()>& renderFunction) const override;
 
   private:
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool& m_commandPool;
 
-    VkQueue m_queue = VK_NULL_HANDLE;
+    vk::raii::Queue& m_queue;
 
-    void allocateCommandBuffers(VkCommandPool commandPool) override;
+    void allocateCommandBuffers(vk::raii::CommandPool& commandPool) override;
   };
 
 } // vke

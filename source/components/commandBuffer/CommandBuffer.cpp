@@ -8,7 +8,7 @@ namespace vke {
   {}
 
   CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                               VkCommandPool commandPool)
+                               vk::raii::CommandPool& commandPool)
     : m_logicalDevice(std::move(logicalDevice))
   {
     CommandBuffer::allocateCommandBuffers(commandPool);
@@ -21,99 +21,89 @@ namespace vke {
 
   void CommandBuffer::record(const std::function<void()>& renderFunction) const
   {
-    constexpr VkCommandBufferBeginInfo beginInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-    };
+    constexpr vk::CommandBufferBeginInfo beginInfo {};
 
-    if (vkBeginCommandBuffer(m_commandBuffers[m_currentFrame], &beginInfo) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to begin recording command buffer!");
-    }
+    m_commandBuffers[m_currentFrame].begin(beginInfo);
 
     renderFunction();
 
-    if (vkEndCommandBuffer(m_commandBuffers[m_currentFrame]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("failed to record command buffer!");
-    }
+    m_commandBuffers[m_currentFrame].end();
   }
 
   void CommandBuffer::resetCommandBuffer() const
   {
-    vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
+    m_commandBuffers[m_currentFrame].reset();
   }
 
-  vk::CommandBuffer* CommandBuffer::getCommandBuffer()
+  vk::raii::CommandBuffer& CommandBuffer::getCommandBuffer()
   {
-    return &m_commandBuffers[m_currentFrame];
+    return m_commandBuffers[m_currentFrame];
   }
 
-  void CommandBuffer::setViewport(const VkViewport& viewport) const
+  void CommandBuffer::setViewport(const vk::Viewport& viewport) const
   {
-    vkCmdSetViewport(m_commandBuffers[m_currentFrame], 0, 1, &viewport);
+    m_commandBuffers[m_currentFrame].setViewport(0, { viewport });
   }
 
-  void CommandBuffer::setScissor(const VkRect2D& scissor) const
+  void CommandBuffer::setScissor(const vk::Rect2D& scissor) const
   {
-    vkCmdSetScissor(m_commandBuffers[m_currentFrame], 0, 1, &scissor);
+    m_commandBuffers[m_currentFrame].setScissor(0, { scissor });
   }
 
-  void CommandBuffer::beginRenderPass(const VkRenderPassBeginInfo& renderPassBeginInfo) const
+  void CommandBuffer::beginRenderPass(const vk::RenderPassBeginInfo& renderPassBeginInfo) const
   {
-    vkCmdBeginRenderPass(m_commandBuffers[m_currentFrame], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    m_commandBuffers[m_currentFrame].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
   }
 
   void CommandBuffer::endRenderPass() const
   {
-    vkCmdEndRenderPass(m_commandBuffers[m_currentFrame]);
+    m_commandBuffers[m_currentFrame].endRenderPass();
   }
 
-  void CommandBuffer::beginRendering(const VkRenderingInfo& renderingInfo) const
+  void CommandBuffer::beginRendering(const vk::RenderingInfo& renderingInfo) const
   {
-    vkCmdBeginRendering(m_commandBuffers[m_currentFrame], &renderingInfo);
+    m_commandBuffers[m_currentFrame].beginRendering(renderingInfo);
   }
 
   void CommandBuffer::endRendering() const
   {
-    vkCmdEndRendering(m_commandBuffers[m_currentFrame]);
+    m_commandBuffers[m_currentFrame].endRendering();
   }
 
-  void CommandBuffer::bindPipeline(const VkPipelineBindPoint pipelineBindPoint,
-                                   VkPipeline pipeline) const
+  void CommandBuffer::bindPipeline(const vk::PipelineBindPoint pipelineBindPoint,
+                                   const vk::raii::Pipeline& pipeline) const
   {
-    vkCmdBindPipeline(m_commandBuffers[m_currentFrame], pipelineBindPoint, pipeline);
+    m_commandBuffers[m_currentFrame].bindPipeline(pipelineBindPoint, *pipeline);
   }
 
-  void CommandBuffer::bindDescriptorSets(const VkPipelineBindPoint pipelineBindPoint,
-                                         VkPipelineLayout pipelineLayout,
+  void CommandBuffer::bindDescriptorSets(const vk::PipelineBindPoint pipelineBindPoint,
+                                         const vk::raii::PipelineLayout& pipelineLayout,
                                          const uint32_t firstSet,
-                                         const uint32_t descriptorSetCount,
-                                         const VkDescriptorSet* descriptorSets) const
+                                         const std::vector<vk::DescriptorSet>& descriptorSets) const
   {
-    vkCmdBindDescriptorSets(m_commandBuffers[m_currentFrame], pipelineBindPoint, pipelineLayout, firstSet,
-                            descriptorSetCount, descriptorSets, 0, nullptr);
+    m_commandBuffers[m_currentFrame].bindDescriptorSets(pipelineBindPoint, *pipelineLayout, firstSet,
+                                                        descriptorSets, {});
   }
 
   void CommandBuffer::dispatch(const uint32_t groupCountX,
                                const uint32_t groupCountY,
                                const uint32_t groupCountZ) const
   {
-    vkCmdDispatch(m_commandBuffers[m_currentFrame], groupCountX, groupCountY, groupCountZ);
+    m_commandBuffers[m_currentFrame].dispatch(groupCountX, groupCountY, groupCountZ);
   }
 
   void CommandBuffer::bindVertexBuffers(const uint32_t firstBinding,
-                                        const uint32_t bindingCount,
-                                        const VkBuffer* buffers,
-                                        const VkDeviceSize* offsets) const
+                                        const std::vector<vk::Buffer>& buffers,
+                                        const std::vector<vk::DeviceSize>& offsets) const
   {
-    vkCmdBindVertexBuffers(m_commandBuffers[m_currentFrame], firstBinding, bindingCount, buffers, offsets);
+    m_commandBuffers[m_currentFrame].bindVertexBuffers(firstBinding, buffers, offsets);
   }
 
-  void CommandBuffer::bindIndexBuffer(VkBuffer buffer,
-                                      const VkDeviceSize offset,
-                                      const VkIndexType indexType) const
+  void CommandBuffer::bindIndexBuffer(const vk::raii::Buffer& buffer,
+                                      const vk::DeviceSize offset,
+                                      const vk::IndexType indexType) const
   {
-    vkCmdBindIndexBuffer(m_commandBuffers[m_currentFrame], buffer, offset, indexType);
+    m_commandBuffers[m_currentFrame].bindIndexBuffer(*buffer, offset, indexType);
   }
 
   void CommandBuffer::draw(const uint32_t vertexCount,
@@ -121,7 +111,7 @@ namespace vke {
                            const uint32_t firstVertex,
                            const uint32_t firstInstance) const
   {
-    vkCmdDraw(m_commandBuffers[m_currentFrame], vertexCount, instanceCount, firstVertex, firstInstance);
+    m_commandBuffers[m_currentFrame].draw(vertexCount, instanceCount, firstVertex, firstInstance);
   }
 
   void CommandBuffer::drawIndexed(const uint32_t indexCount,
@@ -130,134 +120,92 @@ namespace vke {
                                   const int32_t vertexOffset,
                                   const uint32_t firstInstance) const
   {
-    vkCmdDrawIndexed(m_commandBuffers[m_currentFrame], indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    m_commandBuffers[m_currentFrame].drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
   }
 
-  void CommandBuffer::pushConstants(const VkPipelineLayout layout,
-                                    const VkShaderStageFlags stageFlags,
+  void CommandBuffer::pushConstants(const vk::raii::PipelineLayout& layout,
+                                    const vk::ShaderStageFlags stageFlags,
                                     const uint32_t offset,
                                     const uint32_t size,
                                     const void* values) const
   {
-    vkCmdPushConstants(m_commandBuffers[m_currentFrame], layout, stageFlags, offset, size, values);
+    m_commandBuffers[m_currentFrame].pushConstants(*layout, stageFlags, offset, size, values);
   }
 
-  void CommandBuffer::pipelineBarrier(const VkPipelineStageFlags srcStageMask,
-                                      const VkPipelineStageFlags dstStageMask,
-                                      const VkDependencyFlags dependencyFlags,
-                                      const std::vector<VkMemoryBarrier>& memoryBarriers,
-                                      const std::vector<VkBufferMemoryBarrier>& bufferMemoryBarriers,
-                                      const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const
+  void CommandBuffer::pipelineBarrier(const vk::PipelineStageFlags srcStageMask,
+                                      const vk::PipelineStageFlags dstStageMask,
+                                      const vk::DependencyFlags dependencyFlags,
+                                      const std::vector<vk::MemoryBarrier>& memoryBarriers,
+                                      const std::vector<vk::BufferMemoryBarrier>& bufferMemoryBarriers,
+                                      const std::vector<vk::ImageMemoryBarrier>& imageMemoryBarriers) const
   {
-    vkCmdPipelineBarrier(
-      m_commandBuffers[m_currentFrame],
+    m_commandBuffers[m_currentFrame].pipelineBarrier(
       srcStageMask,
       dstStageMask,
       dependencyFlags,
-      memoryBarriers.size(),
-      memoryBarriers.data(),
-      bufferMemoryBarriers.size(),
-      bufferMemoryBarriers.data(),
-      imageMemoryBarriers.size(),
-      imageMemoryBarriers.data()
+      memoryBarriers,
+      bufferMemoryBarriers,
+      imageMemoryBarriers
     );
   }
 
-  void CommandBuffer::clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
-                                       const std::vector<VkClearRect>& clearRects) const
+  void CommandBuffer::clearAttachments(const std::vector<vk::ClearAttachment>& clearAttachments,
+                                       const std::vector<vk::ClearRect>& clearRects) const
   {
-    vkCmdClearAttachments(
-      m_commandBuffers[m_currentFrame],
-      clearAttachments.size(),
-      clearAttachments.data(),
-      clearRects.size(),
-      clearRects.data()
-    );
+    m_commandBuffers[m_currentFrame].clearAttachments(clearAttachments, clearRects);
   }
 
-  void CommandBuffer::copyImageToBuffer(VkImage srcImage,
-                                        const VkImageLayout srcImageLayout,
-                                        VkBuffer dstBuffer,
-                                        const std::vector<VkBufferImageCopy>& regions) const
+  void CommandBuffer::copyImageToBuffer(const vk::raii::Image& srcImage,
+                                        const vk::ImageLayout srcImageLayout,
+                                        const vk::raii::Buffer& dstBuffer,
+                                        const std::vector<vk::BufferImageCopy>& regions) const
   {
-    vkCmdCopyImageToBuffer(
-      m_commandBuffers[m_currentFrame],
-      srcImage,
-      srcImageLayout,
-      dstBuffer,
-      regions.size(),
-      regions.data()
-    );
+    m_commandBuffers[m_currentFrame].copyImageToBuffer(*srcImage, srcImageLayout, *dstBuffer, regions);
   }
 
-  void CommandBuffer::copyBufferToImage(VkBuffer srcBuffer,
-                                        VkImage dstImage,
-                                        const VkImageLayout dstImageLayout,
-                                        const std::vector<VkBufferImageCopy>& regions) const
+  void CommandBuffer::copyBufferToImage(const vk::raii::Buffer& srcBuffer,
+                                        const vk::raii::Image& dstImage,
+                                        const vk::ImageLayout dstImageLayout,
+                                        const std::vector<vk::BufferImageCopy>& regions) const
   {
-    vkCmdCopyBufferToImage(
-      m_commandBuffers[m_currentFrame],
-      srcBuffer,
-      dstImage,
-      dstImageLayout,
-      regions.size(),
-      regions.data()
-    );
+    m_commandBuffers[m_currentFrame].copyBufferToImage(*srcBuffer, *dstImage, dstImageLayout, regions);
   }
 
-  void CommandBuffer::blitImage(VkImage srcImage,
-                                const VkImageLayout srcImageLayout,
-                                VkImage dstImage,
-                                const VkImageLayout dstImageLayout,
-                                const std::vector<VkImageBlit>& regions,
-                                const VkFilter filter) const
+  void CommandBuffer::blitImage(const vk::raii::Image& srcImage,
+                                const vk::ImageLayout srcImageLayout,
+                                const vk::raii::Image& dstImage,
+                                const vk::ImageLayout dstImageLayout,
+                                const std::vector<vk::ImageBlit>& regions,
+                                const vk::Filter filter) const
   {
-    vkCmdBlitImage(
-      m_commandBuffers[m_currentFrame],
-      srcImage,
-      srcImageLayout,
-      dstImage,
-      dstImageLayout,
-      regions.size(),
-      regions.data(),
-      filter
-    );
+    m_commandBuffers[m_currentFrame].blitImage(*srcImage, srcImageLayout, *dstImage, dstImageLayout, regions, filter);
   }
 
-  void CommandBuffer::copyBuffer(VkBuffer srcBuffer,
-                                 VkBuffer dstBuffer,
-                                 const std::vector<VkBufferCopy>& regions) const
+  void CommandBuffer::copyBuffer(const vk::raii::Buffer& srcBuffer,
+                                 const vk::raii::Buffer& dstBuffer,
+                                 const std::vector<vk::BufferCopy>& regions) const
   {
-    vkCmdCopyBuffer(
-      m_commandBuffers[m_currentFrame],
-      srcBuffer,
-      dstBuffer,
-      regions.size(),
-      regions.data()
-    );
+    m_commandBuffers[m_currentFrame].copyBuffer(*srcBuffer, *dstBuffer, regions);
   }
 
-  void CommandBuffer::buildAccelerationStructure(const VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                                                 const VkAccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const
+  void CommandBuffer::buildAccelerationStructure(const vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                                                 const vk::AccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const
   {
-    m_logicalDevice->buildAccelerationStructures(
-      m_commandBuffers[m_currentFrame],
-      1,
+    m_commandBuffers[m_currentFrame].buildAccelerationStructuresKHR(
       buildGeometryInfo,
       buildRangeInfo
     );
   }
 
-  void CommandBuffer::traceRays(const VkStridedDeviceAddressRegionKHR* raygenShaderBindingTable,
-                                const VkStridedDeviceAddressRegionKHR* missShaderBindingTable,
-                                const VkStridedDeviceAddressRegionKHR* hitShaderBindingTable,
-                                const VkStridedDeviceAddressRegionKHR* callableShaderBindingTable,
+  void CommandBuffer::traceRays(const vk::StridedDeviceAddressRegionKHR& raygenShaderBindingTable,
+                                const vk::StridedDeviceAddressRegionKHR& missShaderBindingTable,
+                                const vk::StridedDeviceAddressRegionKHR& hitShaderBindingTable,
+                                const vk::StridedDeviceAddressRegionKHR& callableShaderBindingTable,
                                 const uint32_t width,
                                 const uint32_t height,
                                 const uint32_t depth) const
   {
-    m_logicalDevice->traceRays(
-      m_commandBuffers[m_currentFrame],
+    m_commandBuffers[m_currentFrame].traceRaysKHR(
       raygenShaderBindingTable,
       missShaderBindingTable,
       hitShaderBindingTable,
@@ -268,35 +216,26 @@ namespace vke {
     );
   }
 
-  void CommandBuffer::copyImage(VkImage srcImage,
-                                const VkImageLayout srcImageLayout,
-                                VkImage dstImage,
-                                const VkImageLayout dstImageLayout,
-                                const std::vector<VkImageCopy>& regions) const
+  void CommandBuffer::copyImage(const vk::raii::Image& srcImage,
+                                const vk::ImageLayout srcImageLayout,
+                                const vk::raii::Image& dstImage,
+                                const vk::ImageLayout dstImageLayout,
+                                const std::vector<vk::ImageCopy>& regions) const
   {
-    vkCmdCopyImage(
-      m_commandBuffers[m_currentFrame],
-      srcImage,
-      srcImageLayout,
-      dstImage,
-      dstImageLayout,
-      regions.size(),
-      regions.data()
-    );
+    m_commandBuffers[m_currentFrame].copyImage(*srcImage, srcImageLayout, *dstImage, dstImageLayout, regions);
   }
 
-  void CommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)
+  void CommandBuffer::allocateCommandBuffers(vk::raii::CommandPool& commandPool)
   {
-    m_commandBuffers.resize(m_logicalDevice->getMaxFramesInFlight());
-
-    const VkCommandBufferAllocateInfo allocInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-      .commandPool = commandPool,
-      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size())
+    const vk::CommandBufferAllocateInfo allocInfo {
+      .commandPool = *commandPool,
+      .level = vk::CommandBufferLevel::ePrimary,
+      .commandBufferCount = static_cast<uint32_t>(m_logicalDevice->getMaxFramesInFlight())
     };
 
-    m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers.data());
+    m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
+
+    m_commandBuffers = m_logicalDevice->allocateCommandBuffers(allocInfo);
   }
 
 } // namespace vke
