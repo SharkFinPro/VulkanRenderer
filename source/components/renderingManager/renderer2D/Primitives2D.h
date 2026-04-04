@@ -27,7 +27,7 @@ namespace vke {
       float a;
     };
 
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    [[nodiscard]] PushConstant createPushConstant(const vk::Extent2D extent) const
     {
       return {
         .transform = transform,
@@ -71,7 +71,7 @@ namespace vke {
       float y3;
     };
 
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    [[nodiscard]] PushConstant createPushConstant(const vk::Extent2D extent) const
     {
       return {
         .r = color.r,
@@ -113,7 +113,7 @@ namespace vke {
       float a;
     };
 
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    [[nodiscard]] PushConstant createPushConstant(const vk::Extent2D extent) const
     {
       return {
         .transform = transform,
@@ -156,7 +156,7 @@ namespace vke {
       float a;
     };
 
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    [[nodiscard]] PushConstant createPushConstant(const vk::Extent2D extent) const
     {
       return {
         .transform = transform,
