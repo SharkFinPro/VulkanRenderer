@@ -94,8 +94,6 @@ namespace vke {
 
     void createShadowMapSampler();
 
-    void destroyShadowMapSampler();
-
     void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const std::vector<std::shared_ptr<RenderObject>>* objects,
