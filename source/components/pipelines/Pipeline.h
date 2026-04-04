@@ -13,12 +13,12 @@ namespace vke {
   public:
     explicit Pipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
-    virtual ~Pipeline();
+    virtual ~Pipeline() = default;
 
     virtual void displayGui() {}
 
     void pushConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                       VkShaderStageFlags stageFlags,
+                       vk::ShaderStageFlags stageFlags,
                        uint32_t offset,
                        uint32_t size,
                        const void* values) const;
@@ -26,9 +26,9 @@ namespace vke {
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+    vk::raii::PipelineLayout m_pipelineLayout = nullptr;
 
-    VkPipeline m_pipeline = VK_NULL_HANDLE;
+    vk::raii::Pipeline m_pipeline = nullptr;
   };
 
 } // namespace vke

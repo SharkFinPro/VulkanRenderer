@@ -16,64 +16,64 @@ namespace vke {
     glm::vec2 texCoord;
     glm::vec2 padding3;
 
-    static constexpr VkVertexInputBindingDescription getBindingDescription()
+    static constexpr vk::VertexInputBindingDescription getBindingDescription()
     {
       return {
         .binding = 0,
         .stride = sizeof(Vertex),
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+        .inputRate = vk::VertexInputRate::eVertex
       };
     }
 
-    static constexpr std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+    static constexpr std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions()
     {
       return {{
         {
           .location = 0,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .format = vk::Format::eR32G32B32Sfloat,
           .offset = offsetof(Vertex, pos)
         },
         {
           .location = 1,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .format = vk::Format::eR32G32B32Sfloat,
           .offset = offsetof(Vertex, normal)
         },
         {
           .location = 2,
           .binding = 0,
-          .format = VK_FORMAT_R32G32_SFLOAT,
+          .format = vk::Format::eR32G32Sfloat,
           .offset = offsetof(Vertex, texCoord)
         }
       }};
     }
 
-    static constexpr std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptionsPositionOnly()
+    static constexpr std::array<vk::VertexInputAttributeDescription, 1> getAttributeDescriptionsPositionOnly()
     {
       return {{
         {
           .location = 0,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .format = vk::Format::eR32G32B32Sfloat,
           .offset = offsetof(Vertex, pos)
         }
       }};
     }
 
-    static constexpr std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptionsPositionAndNormal()
+    static constexpr std::array<vk::VertexInputAttributeDescription, 2> getAttributeDescriptionsPositionAndNormal()
     {
       return {{
         {
           .location = 0,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .format = vk::Format::eR32G32B32Sfloat,
           .offset = offsetof(Vertex, pos)
         },
         {
           .location = 1,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .format = vk::Format::eR32G32B32Sfloat,
           .offset = offsetof(Vertex, normal)
         }
       }};

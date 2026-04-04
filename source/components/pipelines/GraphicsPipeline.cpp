@@ -19,26 +19,24 @@ namespace vke {
 
   void GraphicsPipeline::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+    commandBuffer->bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
   }
 
   void GraphicsPipeline::bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           VkDescriptorSet descriptorSet,
+                                           const vk::DescriptorSet descriptorSet,
                                            const uint32_t location) const
   {
     commandBuffer->bindDescriptorSets(
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      vk::PipelineBindPoint::eGraphics,
       m_pipelineLayout,
       location,
-      1,
-      &descriptorSet
+      { descriptorSet }
     );
   }
 
   void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions)
   {
-    const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+    const vk::PipelineLayoutCreateInfo pipelineLayoutInfo {
       .setLayoutCount = static_cast<uint32_t>(graphicsPipelineOptions.descriptorSetLayouts.size()),
       .pSetLayouts = graphicsPipelineOptions.descriptorSetLayouts.data(),
       .pushConstantRangeCount = static_cast<uint32_t>(graphicsPipelineOptions.pushConstantRanges.size()),
@@ -55,18 +53,16 @@ namespace vke {
     const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(m_logicalDevice);
     const auto shaderStages = graphicsPipelineOptions.shaders.getShaderStages(shaderModules);
 
-    const bool hasColorFormat = graphicsPipelineOptions.colorFormat != VK_FORMAT_UNDEFINED;
+    const bool hasColorFormat = graphicsPipelineOptions.colorFormat != vk::Format::eUndefined;
 
-    VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-      .viewMask = graphicsPipelineOptions.renderToCubeMap ? 0x3Fu : 0,
+    vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo {
+      .viewMask = graphicsPipelineOptions.renderToCubeMap ? 0x3Fu : 0u,
       .colorAttachmentCount = static_cast<uint32_t>(hasColorFormat),
       .pColorAttachmentFormats = hasColorFormat ? &graphicsPipelineOptions.colorFormat : nullptr,
-      .depthAttachmentFormat = hasColorFormat ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : VK_FORMAT_D32_SFLOAT
+      .depthAttachmentFormat = hasColorFormat ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : vk::Format::eD32Sfloat
     };
 
-    const VkGraphicsPipelineCreateInfo pipelineInfo {
-      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+    const vk::GraphicsPipelineCreateInfo pipelineInfo {
       .pNext = graphicsPipelineOptions.renderPass ? nullptr : &pipelineRenderingCreateInfo,
       .stageCount = static_cast<uint32_t>(shaderStages.size()),
       .pStages = shaderStages.data(),
@@ -79,10 +75,10 @@ namespace vke {
       .pDepthStencilState = &graphicsPipelineOptions.states.depthStencilState,
       .pColorBlendState = &graphicsPipelineOptions.states.colorBlendState,
       .pDynamicState = &graphicsPipelineOptions.states.dynamicState,
-      .layout = m_pipelineLayout,
-      .renderPass = graphicsPipelineOptions.renderPass ? graphicsPipelineOptions.renderPass->getRenderPass() : VK_NULL_HANDLE,
+      .layout = *m_pipelineLayout,
+      .renderPass = graphicsPipelineOptions.renderPass ? graphicsPipelineOptions.renderPass->getRenderPass() : nullptr,
       .subpass = 0,
-      .basePipelineHandle = VK_NULL_HANDLE,
+      .basePipelineHandle = nullptr,
       .basePipelineIndex = -1
     };
 

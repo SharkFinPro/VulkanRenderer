@@ -18,15 +18,13 @@ namespace vke {
       {
         assert(!computeShader.empty());
 
-        auto shaderModule = ShaderModule(logicalDevice, computeShader.c_str(), VK_SHADER_STAGE_COMPUTE_BIT);
-
-        return std::move(shaderModule);
+        return ShaderModule(logicalDevice, computeShader.c_str(), vk::ShaderStageFlagBits::eCompute);
       }
     } shaders;
 
-    std::vector<VkPushConstantRange> pushConstantRanges;
+    std::vector<vk::PushConstantRange> pushConstantRanges;
 
-    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
   };
 
   class ComputePipeline : public Pipeline {

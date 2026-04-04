@@ -10,22 +10,22 @@ namespace vke {
   struct LineVertex {
     glm::vec3 pos;
 
-    static constexpr VkVertexInputBindingDescription getBindingDescription()
+    static constexpr vk::VertexInputBindingDescription getBindingDescription()
     {
       return {
         .binding = 0,
         .stride = sizeof(LineVertex),
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+        .inputRate = vk::VertexInputRate::eVertex
       };
     }
 
-    static constexpr std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions()
+    static constexpr std::array<vk::VertexInputAttributeDescription, 1> getAttributeDescriptions()
     {
       return {{
         {
           .location = 0,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .format = vk::Format::eR32G32B32Sfloat,
           .offset = offsetof(LineVertex, pos)
         }
       }};

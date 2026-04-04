@@ -35,29 +35,29 @@ namespace vke {
 
         std::vector<ShaderModule> shaderModules;
 
-        shaderModules.emplace_back(logicalDevice, rayGenerationShader.c_str(), VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+        shaderModules.emplace_back(logicalDevice, rayGenerationShader.c_str(), vk::ShaderStageFlagBits::eRaygenKHR);
 
         for (const auto& missShader : missShaders)
         {
-          shaderModules.emplace_back(logicalDevice, missShader.c_str(), VK_SHADER_STAGE_MISS_BIT_KHR);
+          shaderModules.emplace_back(logicalDevice, missShader.c_str(), vk::ShaderStageFlagBits::eMissKHR);
         }
 
         for (const auto& hitGroup : hitGroups)
         {
-          shaderModules.emplace_back(logicalDevice, hitGroup.closestHitShader.c_str(), VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+          shaderModules.emplace_back(logicalDevice, hitGroup.closestHitShader.c_str(), vk::ShaderStageFlagBits::eClosestHitKHR);
 
           if (!hitGroup.intersectionShader.empty())
           {
-            shaderModules.emplace_back(logicalDevice, hitGroup.intersectionShader.c_str(), VK_SHADER_STAGE_INTERSECTION_BIT_KHR);
+            shaderModules.emplace_back(logicalDevice, hitGroup.intersectionShader.c_str(), vk::ShaderStageFlagBits::eIntersectionKHR);
           }
         }
 
         return shaderModules;
       }
 
-      static std::vector<VkPipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
+      static std::vector<vk::PipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
       {
-        std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
+        std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
 
         for (const auto& shaderModule : shaderModules)
         {
@@ -68,9 +68,9 @@ namespace vke {
       }
     } shaders;
 
-    std::vector<VkPushConstantRange> pushConstantRanges;
+    std::vector<vk::PushConstantRange> pushConstantRanges;
 
-    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
   };
 
   class RayTracingPipeline : public Pipeline {
@@ -78,28 +78,28 @@ namespace vke {
     RayTracingPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                        const RayTracingPipelineConfig& config);
 
-    ~RayTracingPipeline() override;
+    ~RayTracingPipeline() override = default;
 
-    [[nodiscard]] VkStridedDeviceAddressRegionKHR getRayGenerationRegion() const { return m_rayGenerationRegion; }
-    [[nodiscard]] VkStridedDeviceAddressRegionKHR getMissRegion() const { return m_missRegion; }
-    [[nodiscard]] VkStridedDeviceAddressRegionKHR getHitRegion() const { return m_hitRegion; }
-    [[nodiscard]] VkStridedDeviceAddressRegionKHR getCallableRegion() const { return m_callableRegion; }
+    [[nodiscard]] vk::StridedDeviceAddressRegionKHR getRayGenerationRegion() const { return m_rayGenerationRegion; }
+    [[nodiscard]] vk::StridedDeviceAddressRegionKHR getMissRegion() const { return m_missRegion; }
+    [[nodiscard]] vk::StridedDeviceAddressRegionKHR getHitRegion() const { return m_hitRegion; }
+    [[nodiscard]] vk::StridedDeviceAddressRegionKHR getCallableRegion() const { return m_callableRegion; }
 
     void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                      VkExtent2D extent) const;
+                      vk::Extent2D extent) const;
 
     void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                           VkDescriptorSet descriptorSet,
+                           vk::DescriptorSet descriptorSet,
                            uint32_t location) const;
 
   protected:
-    VkBuffer m_shaderBindingTableBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_shaderBindingTableMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_shaderBindingTableBuffer = nullptr;
+    vk::raii::DeviceMemory m_shaderBindingTableMemory = nullptr;
 
-    VkStridedDeviceAddressRegionKHR m_rayGenerationRegion{};
-    VkStridedDeviceAddressRegionKHR m_missRegion{};
-    VkStridedDeviceAddressRegionKHR m_hitRegion{};
-    VkStridedDeviceAddressRegionKHR m_callableRegion{};
+    vk::StridedDeviceAddressRegionKHR m_rayGenerationRegion{};
+    vk::StridedDeviceAddressRegionKHR m_missRegion{};
+    vk::StridedDeviceAddressRegionKHR m_hitRegion{};
+    vk::StridedDeviceAddressRegionKHR m_callableRegion{};
 
     void createPipelineLayout(const RayTracingPipelineConfig& config);
 
@@ -107,6 +107,7 @@ namespace vke {
 
     void createShaderBindingTable(const RayTracingPipelineConfig& config);
   };
+
 } // vke
 
 #endif //VULKANPROJECT_RAYTRACINGPIPELINE_H
