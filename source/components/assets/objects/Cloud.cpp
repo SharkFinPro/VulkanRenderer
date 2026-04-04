@@ -178,19 +178,17 @@ namespace vke {
                                  vk::AccelerationStructureGeometryKHR& geometry,
                                  vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const
   {
-    aabbsData = {
-      .data = {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_aabbBuffer)
-      },
+    aabbsData = vk::AccelerationStructureGeometryAabbsDataKHR{
+      .data = vk::DeviceOrHostAddressConstKHR{ m_logicalDevice->getBufferDeviceAddress(m_aabbBuffer) },
       .stride = sizeof(vk::AabbPositionsKHR)
     };
 
-    geometry = {
+    geometry = vk::AccelerationStructureGeometryKHR{
       .geometryType = vk::GeometryTypeKHR::eAabbs,
       .geometry = aabbsData
     };
 
-    buildGeometryInfo = {
+    buildGeometryInfo = vk::AccelerationStructureBuildGeometryInfoKHR{
       .type = vk::AccelerationStructureTypeKHR::eBottomLevel,
       .flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace,
       .geometryCount = 1,
