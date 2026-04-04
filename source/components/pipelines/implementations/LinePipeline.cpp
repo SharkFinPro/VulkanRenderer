@@ -72,8 +72,13 @@ namespace vke {
     renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffer }, offsets);
 
     const MVPTransformUniform transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
-    // renderInfo->commandBuffer->pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0,
-    //                                          sizeof(MVPTransformUniform), &transformUBO);
+
+    renderInfo->commandBuffer->pushConstants<MVPTransformUniform>(
+      m_pipelineLayout,
+      vk::ShaderStageFlagBits::eVertex,
+      0,
+      transformUBO
+    );
 
     renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices->size()), 1, 0, 0);
   }

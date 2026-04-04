@@ -144,8 +144,8 @@ namespace vke {
 
   template<typename T>
   void CommandBuffer::pushConstants(const vk::PipelineLayout& layout,
-                                    vk::ShaderStageFlags stageFlags,
-                                    uint32_t offset,
+                                    const vk::ShaderStageFlags stageFlags,
+                                    const uint32_t offset,
                                     const T& data) const
   {
     m_commandBuffers[m_currentFrame].pushConstants<T>(layout, stageFlags, offset, data);

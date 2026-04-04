@@ -76,8 +76,12 @@ namespace vke {
         .bendStrength = bendStrength
       };
 
-      // renderInfo->commandBuffer->pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0,
-      //                                          sizeof(BendyPlantInfo), &bendyPlantInfo);
+      renderInfo->commandBuffer->pushConstants<BendyPlantInfo>(
+        m_pipelineLayout,
+        vk::ShaderStageFlagBits::eVertex,
+        0,
+        bendyPlantInfo
+      );
 
       renderInfo->commandBuffer->draw(leafLength * 2 * 4 + 2, numFins, 0, 0);
     }
