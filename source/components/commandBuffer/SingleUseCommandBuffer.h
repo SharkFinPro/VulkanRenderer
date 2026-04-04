@@ -12,6 +12,12 @@ namespace vke {
                            const vk::CommandPool& commandPool,
                            vk::Queue queue);
 
+    SingleUseCommandBuffer(const SingleUseCommandBuffer&) = delete;
+    SingleUseCommandBuffer& operator=(const SingleUseCommandBuffer&) = delete;
+
+    SingleUseCommandBuffer(SingleUseCommandBuffer&&) noexcept = default;
+    SingleUseCommandBuffer& operator=(SingleUseCommandBuffer&&) noexcept = default;
+
     void record(const std::function<void()>& renderFunction) const override;
 
   private:
