@@ -123,15 +123,6 @@ namespace vke {
     m_commandBuffers[m_currentFrame].drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
   }
 
-  void CommandBuffer::pushConstants(const vk::raii::PipelineLayout& layout,
-                                    const vk::ShaderStageFlags stageFlags,
-                                    const uint32_t offset,
-                                    const uint32_t size,
-                                    const void* values) const
-  {
-    m_commandBuffers[m_currentFrame].pushConstants(*layout, stageFlags, offset, size, values);
-  }
-
   void CommandBuffer::pipelineBarrier(const vk::PipelineStageFlags srcStageMask,
                                       const vk::PipelineStageFlags dstStageMask,
                                       const vk::DependencyFlags dependencyFlags,

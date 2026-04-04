@@ -70,11 +70,11 @@ namespace vke {
                      int32_t vertexOffset,
                      uint32_t firstInstance) const;
 
-    void pushConstants(const vk::raii::PipelineLayout& layout,
+    template<typename T>
+    void pushConstants(const vk::PipelineLayout& layout,
                        vk::ShaderStageFlags stageFlags,
                        uint32_t offset,
-                       uint32_t size,
-                       const void* values) const;
+                       const T& data) const;
 
     void pipelineBarrier(vk::PipelineStageFlags srcStageMask,
                          vk::PipelineStageFlags dstStageMask,
@@ -136,6 +136,14 @@ namespace vke {
     virtual void allocateCommandBuffers(const vk::CommandPool& commandPool);
   };
 
+  template<typename T>
+  void CommandBuffer::pushConstants(const vk::PipelineLayout& layout,
+                                    vk::ShaderStageFlags stageFlags,
+                                    uint32_t offset,
+                                    const T& data) const
+  {
+    m_commandBuffers[m_currentFrame].pushConstants(layout, stageFlags, offset, data);
+  }
 } // namespace vke
 
 #endif //VKE_COMMANDBUFFER_H
