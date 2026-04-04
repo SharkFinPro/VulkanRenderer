@@ -3,6 +3,8 @@ find_package(Vulkan REQUIRED)
 
 add_compile_definitions(VULKAN_HPP_NO_STRUCT_CONSTRUCTORS)
 
+add_compile_definitions(VULKAN_HPP_DISPATCH_LOADER_DYNAMIC)
+
 # Configure and fetch third-party libraries
 include(cmake/External.cmake)
 

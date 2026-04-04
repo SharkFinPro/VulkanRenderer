@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+
 #ifdef __APPLE__
 inline constexpr bool IS_MAC = true;
 #else
