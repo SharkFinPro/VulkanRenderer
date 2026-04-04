@@ -234,7 +234,7 @@ namespace vke {
     m_offscreenViewportPos = ImGui::GetCursorScreenPos();
     m_renderer3D->getMousePicker()->setViewportPos(m_offscreenViewportPos);
 
-    ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(currentFrame), contentRegionAvailable);
+    ImGui::Image(static_cast<ImTextureRef>(m_renderer->getOffscreenImageDescriptorSet(currentFrame)), contentRegionAvailable);
 
     ImGui::End();
   }
