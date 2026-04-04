@@ -118,9 +118,9 @@ namespace vke {
                    uint32_t height,
                    uint32_t depth) const;
 
-    void copyImage(const vk::raii::Image& srcImage,
+    void copyImage(const vk::Image& srcImage,
                    vk::ImageLayout srcImageLayout,
-                   const vk::raii::Image& dstImage,
+                   const vk::Image& dstImage,
                    vk::ImageLayout dstImageLayout,
                    const std::vector<vk::ImageCopy>& regions) const;
 

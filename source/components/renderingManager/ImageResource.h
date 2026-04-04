@@ -19,13 +19,13 @@ namespace vke {
   struct ImageResourceConfig {
     ImageResourceType imageResourceType = ImageResourceType::Undefined;
     std::shared_ptr<LogicalDevice> logicalDevice;
-    VkExtent2D extent;
-    VkCommandPool commandPool;
-    VkFormat colorFormat = VK_FORMAT_UNDEFINED;
-    VkFormat depthFormat = VK_FORMAT_UNDEFINED;
-    VkFormat resolveFormat = VK_FORMAT_UNDEFINED;
-    VkSampleCountFlagBits numSamples;
-    VkSampler sampler = VK_NULL_HANDLE;
+    vk::Extent2D extent;
+    vk::CommandPool commandPool;
+    vk::Format colorFormat = vk::Format::eUndefined;
+    vk::Format depthFormat = vk::Format::eUndefined;
+    vk::Format resolveFormat = vk::Format::eUndefined;
+    vk::SampleCountFlagBits numSamples;
+    vk::Sampler sampler = nullptr;
     bool isCubeMap = false;
   };
 
@@ -35,24 +35,24 @@ namespace vke {
 
     ~ImageResource();
 
-    [[nodiscard]] VkImage getImage() const;
+    [[nodiscard]] vk::Image getImage() const;
 
-    [[nodiscard]] VkImageView getImageView() const;
+    [[nodiscard]] vk::ImageView getImageView() const;
 
-    [[nodiscard]] VkDescriptorSet getDescriptorSet() const;
+    [[nodiscard]] vk::DescriptorSet getDescriptorSet() const;
 
-    [[nodiscard]] const VkDescriptorImageInfo& getDescriptorImageInfo() const;
+    [[nodiscard]] const vk::DescriptorImageInfo& getDescriptorImageInfo() const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkImage m_image = VK_NULL_HANDLE;
-    VkImageView m_imageView = VK_NULL_HANDLE;
-    VkDeviceMemory m_imageMemory = VK_NULL_HANDLE;
+    vk::raii::Image m_image = nullptr;
+    vk::raii::ImageView m_imageView = nullptr;
+    vk::raii::DeviceMemory m_imageMemory = nullptr;
 
-    VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
+    vk::DescriptorSet m_descriptorSet = nullptr;
 
-    VkDescriptorImageInfo m_descriptorImageInfo{};
+    vk::DescriptorImageInfo m_descriptorImageInfo{};
 
     void createImage(const ImageResourceConfig& config);
 
@@ -60,7 +60,7 @@ namespace vke {
 
     void transitionImageLayout(const ImageResourceConfig& config) const;
 
-    static VkFormat getFormat(const ImageResourceConfig& config);
+    static vk::Format getFormat(const ImageResourceConfig& config);
   };
 } // vke
 

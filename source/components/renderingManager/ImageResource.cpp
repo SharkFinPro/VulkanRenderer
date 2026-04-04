@@ -17,7 +17,7 @@ namespace vke {
       {
         m_descriptorSet = ImGui_ImplVulkan_AddTexture(
           config.sampler,
-          m_imageView,
+          *m_imageView,
           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         );
       }
@@ -25,7 +25,7 @@ namespace vke {
       if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
         m_descriptorImageInfo = {
-          .imageView = m_imageView,
+          .imageView = *m_imageView,
           .imageLayout = VK_IMAGE_LAYOUT_GENERAL
         };
       }
@@ -33,83 +33,79 @@ namespace vke {
 
     ImageResource::~ImageResource()
     {
-      if (m_descriptorSet != VK_NULL_HANDLE)
+      if (m_descriptorSet)
       {
         ImGui_ImplVulkan_RemoveTexture(m_descriptorSet);
       }
-
-      m_logicalDevice->destroyImageView(m_imageView);
-      m_logicalDevice->freeMemory(m_imageMemory);
-      m_logicalDevice->destroyImage(m_image);
     }
 
-    VkImage ImageResource::getImage() const
+    vk::Image ImageResource::getImage() const
     {
       return m_image;
     }
 
-    VkImageView ImageResource::getImageView() const
+    vk::ImageView ImageResource::getImageView() const
     {
       return m_imageView;
     }
 
-    VkDescriptorSet ImageResource::getDescriptorSet() const
+    vk::DescriptorSet ImageResource::getDescriptorSet() const
     {
       return m_descriptorSet;
     }
 
-    const VkDescriptorImageInfo& ImageResource::getDescriptorImageInfo() const
+    const vk::DescriptorImageInfo& ImageResource::getDescriptorImageInfo() const
     {
       return m_descriptorImageInfo;
     }
 
     void ImageResource::createImage(const ImageResourceConfig& config)
     {
-      VkImageUsageFlags imageUsageFlags = 0;
+      vk::ImageUsageFlags imageUsageFlags{};
 
       if (config.imageResourceType == ImageResourceType::Color)
       {
-        imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        imageUsageFlags = vk::ImageUsageFlagBits::eColorAttachment;
 
-        if (config.numSamples > VK_SAMPLE_COUNT_1_BIT)
+        if (config.numSamples > vk::SampleCountFlagBits::e1)
         {
-          imageUsageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+          imageUsageFlags |= vk::ImageUsageFlagBits::eTransientAttachment;
         }
 
-        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UINT)
+        if (getFormat(config) == vk::Format::eR8G8B8A8Uint)
         {
-          imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+          imageUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
         }
       }
       else if (config.imageResourceType == ImageResourceType::Depth)
       {
-        imageUsageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        imageUsageFlags = vk::ImageUsageFlagBits::eDepthStencilAttachment;
 
-        if (getFormat(config) == VK_FORMAT_D32_SFLOAT)
+        if (getFormat(config) == vk::Format::eD32Sfloat)
         {
-          imageUsageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+          imageUsageFlags |= vk::ImageUsageFlagBits::eSampled;
         }
       }
       else if (config.imageResourceType == ImageResourceType::Resolve)
       {
-        imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageUsageFlags = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled;
 
-        imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT; // TODO: Don't apply this to everything
+        imageUsageFlags |= vk::ImageUsageFlagBits::eTransferDst; // TODO: Don't apply this to everything
 
-        if (getFormat(config) == VK_FORMAT_R8G8B8A8_UNORM)
+        if (getFormat(config) == vk::Format::eR8G8B8A8Unorm)
         {
-          imageUsageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+          imageUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
         }
       }
       else if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
-        imageUsageFlags |= VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        imageUsageFlags |= vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc;
       }
 
-      Images::createImage(
+      auto [image, imageMemory] = Images::createImage(
         m_logicalDevice,
         {
-          .flags = static_cast<VkImageCreateFlags>(config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0),
+          .flags = static_cast<vk::ImageCreateFlags>(config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0),
           .extent = {
             .width = config.extent.width,
             .height = config.extent.height,
@@ -118,30 +114,31 @@ namespace vke {
           .mipLevels = 1,
           .numSamples = config.numSamples,
           .format = getFormat(config),
-          .tiling = VK_IMAGE_TILING_OPTIMAL,
+          .tiling = vk::ImageTiling::eOptimal,
           .usage = imageUsageFlags,
-          .imageType = VK_IMAGE_TYPE_2D,
+          .imageType = vk::ImageType::e2D,
           .layerCount = static_cast<uint32_t>(config.isCubeMap ? 6 : 1),
-          .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-        },
-        m_image,
-        m_imageMemory
+          .properties = vk::MemoryPropertyFlagBits::eDeviceLocal
+        }
       );
+
+      m_image = std::move(image);
+      m_imageMemory = std::move(imageMemory);
     }
 
     void ImageResource::createImageView(const ImageResourceConfig& config)
     {
-      VkImageAspectFlags imageAspectFlags = 0;
+      vk::ImageAspectFlags imageAspectFlags{};
 
       if (config.imageResourceType == ImageResourceType::Color ||
           config.imageResourceType == ImageResourceType::Resolve ||
           config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
-        imageAspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageAspectFlags = vk::ImageAspectFlagBits::eColor;
       }
       else if (config.imageResourceType == ImageResourceType::Depth)
       {
-        imageAspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+        imageAspectFlags = vk::ImageAspectFlagBits::eDepth;
       }
 
       m_imageView = Images::createImageView(
@@ -150,30 +147,30 @@ namespace vke {
         getFormat(config),
         imageAspectFlags,
         1,
-        config.isCubeMap ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D,
+        config.isCubeMap ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
         config.isCubeMap ? 6 : 1
       );
     }
 
     void ImageResource::transitionImageLayout(const ImageResourceConfig& config) const
     {
-      VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      vk::ImageLayout imageLayout = vk::ImageLayout::eUndefined;
 
       if (config.imageResourceType == ImageResourceType::Color)
       {
-        imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
       }
       else if (config.imageResourceType == ImageResourceType::Depth)
       {
-        imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
       }
       else if (config.imageResourceType == ImageResourceType::Resolve)
       {
-        imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
       }
       else if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
-        imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        imageLayout = vk::ImageLayout::eGeneral;
       }
 
       Images::transitionImageLayout(
@@ -181,14 +178,14 @@ namespace vke {
         config.commandPool,
         m_image,
         getFormat(config),
-        VK_IMAGE_LAYOUT_UNDEFINED,
+        vk::ImageLayout::eUndefined,
         imageLayout,
         1,
         config.isCubeMap ? 6 : 1
       );
     }
 
-    VkFormat ImageResource::getFormat(const ImageResourceConfig& config)
+    vk::Format ImageResource::getFormat(const ImageResourceConfig& config)
     {
       if (config.imageResourceType == ImageResourceType::Color)
       {
@@ -210,6 +207,6 @@ namespace vke {
         return config.resolveFormat;
       }
 
-      return VK_FORMAT_UNDEFINED;
+      return vk::Format::eUndefined;
     }
 } // vke

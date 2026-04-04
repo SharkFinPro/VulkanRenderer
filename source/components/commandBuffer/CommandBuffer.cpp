@@ -216,13 +216,13 @@ namespace vke {
     );
   }
 
-  void CommandBuffer::copyImage(const vk::raii::Image& srcImage,
+  void CommandBuffer::copyImage(const vk::Image& srcImage,
                                 const vk::ImageLayout srcImageLayout,
-                                const vk::raii::Image& dstImage,
+                                const vk::Image& dstImage,
                                 const vk::ImageLayout dstImageLayout,
                                 const std::vector<vk::ImageCopy>& regions) const
   {
-    m_commandBuffers[m_currentFrame].copyImage(*srcImage, srcImageLayout, *dstImage, dstImageLayout, regions);
+    m_commandBuffers[m_currentFrame].copyImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions);
   }
 
   void CommandBuffer::allocateCommandBuffers(const vk::CommandPool& commandPool)

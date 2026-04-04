@@ -9,8 +9,8 @@ namespace vke {
 
   Renderer::Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
                      const std::shared_ptr<SwapChain>& swapChain,
-                     VkCommandPool commandPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
+                     vk::raii::CommandPool commandPool)
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(std::move(commandPool))
   {
     createSampler();
 
@@ -19,12 +19,7 @@ namespace vke {
     createMousePickingRenderTarget(swapChain->getExtent());
   }
 
-  Renderer::~Renderer()
-  {
-    m_logicalDevice->destroySampler(m_sampler);
-  }
-
-  VkDescriptorSet Renderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
+  vk::DescriptorSet Renderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex)
   {
     if (!m_offscreenRenderTarget)
     {
@@ -46,7 +41,7 @@ namespace vke {
     createSwapchainRenderTarget(swapChain);
   }
 
-  void Renderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
+  void Renderer::resetOffscreenImageResources(const vk::Extent2D offscreenViewportExtent)
   {
     m_offscreenRenderTarget.reset();
 
@@ -55,14 +50,14 @@ namespace vke {
     resetRayTracingImageResources(offscreenViewportExtent);
   }
 
-  void Renderer::resetMousePickingImageResources(const VkExtent2D mousePickingExtent)
+  void Renderer::resetMousePickingImageResources(const vk::Extent2D mousePickingExtent)
   {
     m_mousePickingRenderTarget.reset();
 
     createMousePickingRenderTarget(mousePickingExtent);
   }
 
-  void Renderer::resetRayTracingImageResources(VkExtent2D extent)
+  void Renderer::resetRayTracingImageResources(vk::Extent2D extent)
   {
     if (!supportsRayTracing())
     {
@@ -87,25 +82,22 @@ namespace vke {
 
   void Renderer::createSampler()
   {
-    constexpr VkSamplerCreateInfo samplerInfo {
-      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .magFilter = VK_FILTER_LINEAR,
-      .minFilter = VK_FILTER_LINEAR,
-      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-      .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-      .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+    constexpr vk::SamplerCreateInfo samplerInfo {
+      .magFilter = vk::Filter::eLinear,
+      .minFilter = vk::Filter::eLinear,
+      .mipmapMode = vk::SamplerMipmapMode::eLinear,
+      .addressModeU = vk::SamplerAddressMode::eClampToEdge,
+      .addressModeV = vk::SamplerAddressMode::eClampToEdge,
+      .addressModeW = vk::SamplerAddressMode::eClampToEdge,
       .mipLodBias = 0.0f,
-      .anisotropyEnable = VK_FALSE,
+      .anisotropyEnable = vk::False,
       .maxAnisotropy = 1.0f,
-      .compareEnable = VK_FALSE,
-      .compareOp = VK_COMPARE_OP_ALWAYS,
+      .compareEnable = vk::False,
+      .compareOp = vk::CompareOp::eAlways,
       .minLod = 0.0f,
       .maxLod = 0.0f,
-      .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-      .unnormalizedCoordinates = VK_FALSE
+      .borderColor = vk::BorderColor::eIntOpaqueBlack,
+      .unnormalizedCoordinates = vk::False
     };
 
     m_sampler = m_logicalDevice->createSampler(samplerInfo);
@@ -125,15 +117,15 @@ namespace vke {
     m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, static_cast<uint32_t>(swapChain->getImages().size()));
   }
 
-  void Renderer::createOffscreenRenderTarget(const VkExtent2D extent)
+  void Renderer::createOffscreenRenderTarget(const vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
-      .colorFormat = VK_FORMAT_R8G8B8A8_UNORM,
+      .colorFormat = vk::Format::eR8G8B8A8Unorm,
       .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .resolveFormat = VK_FORMAT_R8G8B8A8_UNORM,
+      .resolveFormat = vk::Format::eR8G8B8A8Unorm,
       .numSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
       .sampler = m_sampler
     };
@@ -141,21 +133,21 @@ namespace vke {
     m_offscreenRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
-  void Renderer::createMousePickingRenderTarget(const VkExtent2D extent)
+  void Renderer::createMousePickingRenderTarget(const vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
-      .colorFormat = VK_FORMAT_R8G8B8A8_UINT,
+      .colorFormat = vk::Format::eR8G8B8A8Uint,
       .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .numSamples = VK_SAMPLE_COUNT_1_BIT
+      .numSamples = vk::SampleCountFlagBits::e1
     };
 
     m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
-  void Renderer::createRayTracingImageResource(const VkExtent2D extent)
+  void Renderer::createRayTracingImageResource(const vk::Extent2D extent)
   {
     if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
@@ -167,8 +159,8 @@ namespace vke {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
-      .resolveFormat = VK_FORMAT_R8G8B8A8_UNORM,
-      .numSamples = VK_SAMPLE_COUNT_1_BIT
+      .resolveFormat = vk::Format::eR8G8B8A8Unorm,
+      .numSamples = vk::SampleCountFlagBits::e1
     };
 
     for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
