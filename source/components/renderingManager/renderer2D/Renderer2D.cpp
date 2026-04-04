@@ -286,7 +286,7 @@ namespace vke {
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
       PipelineType::rect,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
       sizeof(rectPC),
       &rectPC
@@ -315,7 +315,7 @@ namespace vke {
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
       PipelineType::triangle,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
       sizeof(trianglePC),
       &trianglePC
@@ -344,7 +344,7 @@ namespace vke {
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
       PipelineType::ellipse,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
       sizeof(ellipsePC),
       &ellipsePC
@@ -388,7 +388,7 @@ namespace vke {
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
       PipelineType::font,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
       sizeof(glyphPC),
       &glyphPC

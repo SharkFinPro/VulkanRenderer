@@ -64,7 +64,7 @@ namespace vke {
       pipelineManager->pushGraphicsPipelineConstants(
         renderInfo->commandBuffer,
         PipelineType::mousePicking,
-        VK_SHADER_STAGE_FRAGMENT_BIT,
+        vk::ShaderStageFlagBits::eFragment,
         0,
         sizeof(id),
         &id

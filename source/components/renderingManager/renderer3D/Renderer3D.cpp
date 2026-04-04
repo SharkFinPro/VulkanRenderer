@@ -306,7 +306,7 @@ namespace vke {
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
       PipelineType::grid,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
       sizeof(gridPC),
       &gridPC
@@ -427,7 +427,7 @@ namespace vke {
       .binding = 0,
       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
     std::vector<VkDescriptorSetLayoutBinding> noiseLayoutBindings {
@@ -448,7 +448,7 @@ namespace vke {
       .binding = 1,
       .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
     std::vector<VkDescriptorSetLayoutBinding> cubeMapLayoutBindings {

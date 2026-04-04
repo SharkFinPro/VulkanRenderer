@@ -150,14 +150,14 @@ namespace vke {
     std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
 
     std::unordered_map<PipelineType, PushConstantEntry> m_pushConstants = {
-      { PipelineType::magnifyWhirlMosaic,  { MagnifyWhirlMosaicPushConstant{},  VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::ellipticalDots,      { EllipticalDotsPushConstant{},      VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::crosses,             { CrossesPushConstant{},             VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::curtain,             { CurtainPushConstant{},             VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::bumpyCurtain,        { BumpyCurtainPushConstant{},        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::snake,               { SnakePushConstant{},               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::noisyEllipticalDots, { NoisyEllipticalDotsPushConstant{}, VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::cubeMap,             { CubeMapPushConstant{},             VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::magnifyWhirlMosaic,  { MagnifyWhirlMosaicPushConstant{},  vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::ellipticalDots,      { EllipticalDotsPushConstant{},      vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::crosses,             { CrossesPushConstant{},             vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::curtain,             { CurtainPushConstant{},             vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::bumpyCurtain,        { BumpyCurtainPushConstant{},        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::snake,               { SnakePushConstant{},               vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::noisyEllipticalDots, { NoisyEllipticalDotsPushConstant{}, vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::cubeMap,             { CubeMapPushConstant{},             vk::ShaderStageFlagBits::eFragment } },
     };
 
     std::unique_ptr<RayTracer> m_rayTracer;
