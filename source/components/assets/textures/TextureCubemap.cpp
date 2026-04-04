@@ -117,7 +117,7 @@ namespace vke {
 
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([this, commandBuffer, &stagingBuffer, bufferCopyRegions] {
+    commandBuffer.record([this, &commandBuffer, &stagingBuffer, bufferCopyRegions] {
       commandBuffer.copyBufferToImage(
         stagingBuffer,
         m_textureImage,
