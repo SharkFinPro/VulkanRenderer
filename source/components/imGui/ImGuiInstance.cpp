@@ -40,16 +40,16 @@ namespace vke {
     }
 
     ImGui_ImplVulkan_InitInfo initInfo {
-      .Instance = *instance->m_instance,
-      .PhysicalDevice = m_logicalDevice->getPhysicalDevice()->m_physicalDevice,
-      .Device = m_logicalDevice->m_device,
-      .Queue = m_logicalDevice->getGraphicsQueue(),
-      .DescriptorPool = descriptorPool,
+      .Instance = static_cast<VkInstance>(*instance->m_instance),
+      .PhysicalDevice = static_cast<VkPhysicalDevice>(*m_logicalDevice->getPhysicalDevice()->m_physicalDevice),
+      .Device = static_cast<VkDevice>(*m_logicalDevice->m_device),
+      .Queue = static_cast<VkQueue>(*m_logicalDevice->getGraphicsQueue()),
+      .DescriptorPool = static_cast<VkDescriptorPool>(*m_descriptorPool),
       .MinImageCount = imageCount,
       .ImageCount = imageCount,
       .PipelineInfoMain {
-        .RenderPass = renderPass ? renderPass->getRenderPass() : nullptr,
-        .MSAASamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
+        .RenderPass = renderPass ? static_cast<VkRenderPass>(renderPass->getRenderPass()) : VK_NULL_HANDLE,
+        .MSAASamples = static_cast<VkSampleCountFlagBits>(m_logicalDevice->getPhysicalDevice()->getMsaaSamples())
       }
     };
 
@@ -57,13 +57,13 @@ namespace vke {
     {
       initInfo.UseDynamicRendering = true;
 
-      constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
+      static constexpr VkFormat colorFormat = static_cast<VkFormat>(vk::Format::eR8G8B8A8Unorm);
 
       initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
         .colorAttachmentCount = 1,
         .pColorAttachmentFormats = &colorFormat,
-        .depthAttachmentFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat()
+        .depthAttachmentFormat = static_cast<VkFormat>(m_logicalDevice->getPhysicalDevice()->findDepthFormat())
       };
     }
 
@@ -82,8 +82,6 @@ namespace vke {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-
-    m_logicalDevice->destroyDescriptorPool(descriptorPool);
 
     m_window->removeListener(m_contentScaleEventListener);
   }
@@ -238,7 +236,7 @@ namespace vke {
   {
     ImGui_ImplVulkan_RenderDrawData(
       ImGui::GetDrawData(),
-      commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame],
+      static_cast<VkCommandBuffer>(*commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame]),
       nullptr
     );
   }
@@ -255,20 +253,18 @@ namespace vke {
 
   void ImGuiInstance::createDescriptorPool(const uint32_t maxImGuiTextures)
   {
-    const std::array<VkDescriptorPoolSize, 1> poolSizes {
-    {
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures}
+    const std::array<vk::DescriptorPoolSize, 1> poolSizes {{
+      {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures}
     }};
 
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+    const vk::DescriptorPoolCreateInfo poolCreateInfo {
+      .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
       .maxSets = m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
     };
 
-    descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
   }
 
   void ImGuiInstance::markDockNeedsUpdate()

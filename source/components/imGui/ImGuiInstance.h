@@ -57,7 +57,7 @@ namespace vke {
 
     std::shared_ptr<Window> m_window;
 
-    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool m_descriptorPool = nullptr;
 
     ImGuiStyle m_baseStyle;
 
