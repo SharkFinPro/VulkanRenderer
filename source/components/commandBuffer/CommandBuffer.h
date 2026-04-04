@@ -17,6 +17,12 @@ namespace vke {
     CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                   vk::CommandPool commandPool);
 
+    CommandBuffer(const CommandBuffer&) = delete;
+    CommandBuffer& operator=(const CommandBuffer&) = delete;
+
+    CommandBuffer(CommandBuffer&&) noexcept = default;
+    CommandBuffer& operator=(CommandBuffer&&) noexcept = default;
+
     virtual ~CommandBuffer() = default;
 
     void setCurrentFrame(uint32_t currentFrame);
@@ -25,7 +31,7 @@ namespace vke {
 
     void resetCommandBuffer() const;
 
-    [[nodiscard]] vk::CommandBuffer getCommandBuffer();
+    [[nodiscard]] vk::CommandBuffer getCommandBuffer() const;
 
     void setViewport(const vk::Viewport& viewport) const;
 

@@ -33,6 +33,12 @@ namespace vke {
   public:
     explicit ImageResource(ImageResourceConfig config);
 
+    ImageResource(const ImageResource&) = delete;
+    ImageResource& operator=(const ImageResource&) = delete;
+
+    ImageResource(ImageResource&&) noexcept = default;
+    ImageResource& operator=(ImageResource&&) noexcept = default;
+
     ~ImageResource();
 
     [[nodiscard]] vk::Image getImage() const;
