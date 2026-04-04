@@ -29,21 +29,21 @@ namespace vke {
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager);
 
-    ~PipelineManager();
+    ~PipelineManager() = default;
 
     void bindGraphicsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                               PipelineType pipelineType) const;
 
     void pushGraphicsPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                        PipelineType pipelineType,
-                                       VkShaderStageFlags stageFlags,
+                                       vk::ShaderStageFlags stageFlags,
                                        uint32_t offset,
                                        uint32_t size,
                                        const void* values) const;
 
     void bindGraphicsPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                            PipelineType pipelineType,
-                                           VkDescriptorSet descriptorSet,
+                                           vk::DescriptorSet descriptorSet,
                                            uint32_t location) const;
 
     void renderDotsPipeline(const RenderInfo* renderInfo) const;
@@ -65,14 +65,14 @@ namespace vke {
                             const std::vector<LineVertex>* lineVertices) const;
 
     void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                      VkExtent2D extent) const;
+                      vk::Extent2D extent) const;
 
     void bindRayTracingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                             VkDescriptorSet descriptorSet,
+                                             vk::DescriptorSet descriptorSet,
                                              uint32_t location) const;
 
     void pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                         VkShaderStageFlags stageFlags,
+                                         vk::ShaderStageFlags stageFlags,
                                          uint32_t offset,
                                          uint32_t size,
                                          const void* values) const;
@@ -80,9 +80,9 @@ namespace vke {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool = nullptr;
 
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool m_descriptorPool = nullptr;
 
     std::unique_ptr<DotsPipeline> m_dotsPipeline;
 

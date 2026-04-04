@@ -27,7 +27,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(Rect::PushConstant)
         }
@@ -37,7 +37,7 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createTrianglePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              const std::shared_ptr<RenderPass>& renderPass)
+                                                               const std::shared_ptr<RenderPass>& renderPass)
   {
     return {
       .shaders {
@@ -56,7 +56,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(Triangle::PushConstant)
         }
@@ -85,7 +85,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(Ellipse::PushConstant)
         }
@@ -96,7 +96,7 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createFontPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                            const std::shared_ptr<RenderPass>& renderPass,
-                                                           VkDescriptorSetLayout fontDescriptorSetLayout)
+                                                           vk::DescriptorSetLayout fontDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -115,7 +115,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(Glyph::PushConstant)
         }

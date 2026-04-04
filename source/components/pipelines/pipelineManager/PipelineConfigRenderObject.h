@@ -9,7 +9,7 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createTexturedPlanePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                     const std::shared_ptr<RenderPass>& renderPass,
-                                                                    VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                    vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -34,8 +34,8 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createObjectHighlightPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                    const std::shared_ptr<RenderPass>& renderPass,
-                                                                    VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                      const std::shared_ptr<RenderPass>& renderPass,
+                                                                      vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -61,7 +61,7 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createMagnifyWhirlMosaicPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                          const std::shared_ptr<RenderPass>& renderPass,
-                                                                         VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                         vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -80,7 +80,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(MagnifyWhirlMosaicPushConstant)
         }
@@ -93,7 +93,7 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createMousePickingPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
-                                                                   VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                   vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -112,7 +112,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(uint32_t)
         }
@@ -121,12 +121,12 @@ namespace vke::PipelineConfig {
         objectDescriptorSetLayout
       },
       .renderPass = renderPass,
-      .colorFormat = VK_FORMAT_R8G8B8A8_UINT
+      .colorFormat = vk::Format::eR8G8B8A8Uint
     };
   }
 
   inline GraphicsPipelineOptions createShadowMapPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
-                                                                VkDescriptorSetLayout objectDescriptorSetLayout)
+                                                                vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -144,7 +144,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex,
           .offset = 0,
           .size = sizeof(glm::mat4)
         }
@@ -153,13 +153,13 @@ namespace vke::PipelineConfig {
         objectDescriptorSetLayout
       },
       .renderPass = renderPass,
-      .colorFormat = VK_FORMAT_UNDEFINED
+      .colorFormat = vk::Format::eUndefined
     };
   }
 
   inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
-                                                                          VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                                          VkDescriptorSetLayout pointLightDescriptorSetLayout)
+                                                                          vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                                          vk::DescriptorSetLayout pointLightDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -178,7 +178,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(glm::vec3)
         }
@@ -188,15 +188,15 @@ namespace vke::PipelineConfig {
         pointLightDescriptorSetLayout
       },
       .renderPass = renderPass,
-      .colorFormat = VK_FORMAT_UNDEFINED,
+      .colorFormat = vk::Format::eUndefined,
       .renderToCubeMap = true
     };
   }
 
   inline GraphicsPipelineOptions createEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                      const std::shared_ptr<RenderPass>& renderPass,
-                                                                     VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                                     VkDescriptorSetLayout lightingDescriptorSetLayout)
+                                                                     vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                                     vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -215,7 +215,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(EllipticalDotsPushConstant)
         }
@@ -229,9 +229,9 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createCrossesPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                     const std::shared_ptr<RenderPass>& renderPass,
-                                                                     VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                                     VkDescriptorSetLayout lightingDescriptorSetLayout)
+                                                              const std::shared_ptr<RenderPass>& renderPass,
+                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -251,7 +251,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(CrossesPushConstant)
         }
@@ -266,8 +266,8 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                               const std::shared_ptr<RenderPass>& renderPass,
-                                                              VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                              VkDescriptorSetLayout lightingDescriptorSetLayout)
+                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -286,7 +286,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(CurtainPushConstant)
         }
@@ -301,8 +301,8 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createObjectsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                               const std::shared_ptr<RenderPass>& renderPass,
-                                                              VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                              VkDescriptorSetLayout lightingDescriptorSetLayout)
+                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -329,8 +329,8 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createSnakePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                             const std::shared_ptr<RenderPass>& renderPass,
-                                                            VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                            VkDescriptorSetLayout lightingDescriptorSetLayout)
+                                                            vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                            vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -350,7 +350,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(SnakePushConstant)
         }
@@ -365,9 +365,9 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createNoisyEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                           const std::shared_ptr<RenderPass>& renderPass,
-                                                                          VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                                          VkDescriptorSetLayout lightingDescriptorSetLayout,
-                                                                          VkDescriptorSetLayout noiseDescriptorSetLayout)
+                                                                          vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                                          vk::DescriptorSetLayout lightingDescriptorSetLayout,
+                                                                          vk::DescriptorSetLayout noiseDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -386,7 +386,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(NoisyEllipticalDotsPushConstant)
         }
@@ -402,9 +402,9 @@ namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createBumpyCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                    const std::shared_ptr<RenderPass>& renderPass,
-                                                                   VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                                   VkDescriptorSetLayout lightingDescriptorSetLayout,
-                                                                   VkDescriptorSetLayout noiseDescriptorSetLayout)
+                                                                   vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                                   vk::DescriptorSetLayout lightingDescriptorSetLayout,
+                                                                   vk::DescriptorSetLayout noiseDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -423,7 +423,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(BumpyCurtainPushConstant)
         }
@@ -438,9 +438,9 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createCubeMapPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                   const std::shared_ptr<RenderPass>& renderPass,
-                                                                   VkDescriptorSetLayout objectDescriptorSetLayout,
-                                                                   VkDescriptorSetLayout cubeMapDescriptorSetLayout)
+                                                              const std::shared_ptr<RenderPass>& renderPass,
+                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout cubeMapDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -459,7 +459,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(CubeMapPushConstant)
         }
@@ -472,6 +472,6 @@ namespace vke::PipelineConfig {
     };
   }
 
-}
+} // vke::PipelineConfig
 
 #endif //VULKANPROJECT_PIPELINECONFIGRENDEROBJECT_H

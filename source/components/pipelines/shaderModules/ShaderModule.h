@@ -13,25 +13,23 @@ namespace vke {
   public:
     ShaderModule(std::shared_ptr<LogicalDevice> logicalDevice,
                  const char* filename,
-                 VkShaderStageFlagBits stage);
+                 vk::ShaderStageFlagBits stage);
 
-    ~ShaderModule();
+    ~ShaderModule() = default;
 
     ShaderModule(ShaderModule&& other) noexcept
-      : m_logicalDevice(other.m_logicalDevice),
+      : m_logicalDevice(std::move(other.m_logicalDevice)),
         m_stage(other.m_stage),
-        m_module(other.m_module)
-    {
-      other.m_module = VK_NULL_HANDLE;
-    }
+        m_module(std::move(other.m_module))
+    {}
 
-    [[nodiscard]] VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
+    [[nodiscard]] vk::PipelineShaderStageCreateInfo getShaderStageCreateInfo() const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkShaderStageFlagBits m_stage{};
-    VkShaderModule m_module = VK_NULL_HANDLE;
+    vk::ShaderStageFlagBits m_stage{};
+    vk::raii::ShaderModule m_module = nullptr;
 
     static std::vector<char> readFile(const char* filename);
 

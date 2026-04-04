@@ -6,55 +6,43 @@
 namespace vke {
 
   UniformBuffer::UniformBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                               const VkDeviceSize bufferSize)
+                               const vk::DeviceSize bufferSize)
     : m_logicalDevice(std::move(logicalDevice)), m_bufferSize(bufferSize)
   {
     const auto maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
 
-    m_uniformBuffers.resize(maxFramesInFlight);
-    m_uniformBuffersMemory.resize(maxFramesInFlight);
+    m_uniformBuffers.reserve(maxFramesInFlight);
+    m_uniformBuffersMemory.reserve(maxFramesInFlight);
     m_uniformBuffersMapped.resize(maxFramesInFlight);
 
     for (size_t i = 0; i < maxFramesInFlight; i++)
     {
       Buffers::createBuffer(m_logicalDevice, m_bufferSize,
-                            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                            m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+                            vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer,
+                            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                            m_uniformBuffers.emplace_back(nullptr),
+                            m_uniformBuffersMemory.emplace_back(nullptr));
 
-      m_logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, m_bufferSize, 0, &m_uniformBuffersMapped[i]);
+      m_uniformBuffersMapped[i] = m_logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, m_bufferSize);
 
-      const VkDescriptorBufferInfo bufferInfo {
-        .buffer = m_uniformBuffers[i],
+      m_bufferInfos.push_back({
+        .buffer = *m_uniformBuffers[i],
         .offset = 0,
         .range = m_bufferSize
-      };
-
-      m_bufferInfos.push_back(bufferInfo);
+      });
     }
   }
 
-  UniformBuffer::~UniformBuffer()
+  vk::WriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding,
+                                                         const vk::DescriptorSet dstSet,
+                                                         const size_t frame) const
   {
-    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-    {
-      m_logicalDevice->unmapMemory(m_uniformBuffersMemory[i]);
-
-      Buffers::destroyBuffer(m_logicalDevice, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
-    }
-  }
-
-  VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding,
-                                                       const VkDescriptorSet& dstSet,
-                                                       const size_t frame) const
-  {
-    const VkWriteDescriptorSet uniformDescriptorSet {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    const vk::WriteDescriptorSet uniformDescriptorSet {
       .dstSet = dstSet,
       .dstBinding = binding,
       .dstArrayElement = 0,
       .descriptorCount = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorType = vk::DescriptorType::eUniformBuffer,
       .pBufferInfo = &m_bufferInfos[frame]
     };
 

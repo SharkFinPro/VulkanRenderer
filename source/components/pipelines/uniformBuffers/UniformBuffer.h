@@ -12,12 +12,13 @@ namespace vke {
   class UniformBuffer {
   public:
     UniformBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                  VkDeviceSize bufferSize);
-    ~UniformBuffer();
+                  vk::DeviceSize bufferSize);
 
-    [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding,
-                                                        const VkDescriptorSet& dstSet,
-                                                        size_t frame) const;
+    ~UniformBuffer() = default;
+
+    [[nodiscard]] vk::WriteDescriptorSet getDescriptorSet(uint32_t binding,
+                                                          vk::DescriptorSet dstSet,
+                                                          size_t frame) const;
 
     void update(uint32_t frame,
                 const void* data) const;
@@ -25,13 +26,13 @@ namespace vke {
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    std::vector<VkBuffer> m_uniformBuffers;
-    std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+    std::vector<vk::raii::Buffer> m_uniformBuffers;
+    std::vector<vk::raii::DeviceMemory> m_uniformBuffersMemory;
     std::vector<void*> m_uniformBuffersMapped;
 
-    std::vector<VkDescriptorBufferInfo> m_bufferInfos;
+    std::vector<vk::DescriptorBufferInfo> m_bufferInfos;
 
-    VkDeviceSize m_bufferSize;
+    vk::DeviceSize m_bufferSize;
   };
 
 } // namespace vke
