@@ -235,7 +235,7 @@ namespace vke {
 
     m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
 
-    m_commandBuffers = m_logicalDevice->allocateCommandBuffers(allocInfo);
+    m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
   }
 
 } // namespace vke

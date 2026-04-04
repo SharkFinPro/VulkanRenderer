@@ -39,6 +39,6 @@ namespace vke {
       .commandBufferCount = 1
     };
 
-    m_commandBuffers = m_logicalDevice->allocateCommandBuffers(allocInfo);
+    m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
   }
 } // vke

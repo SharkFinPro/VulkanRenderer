@@ -400,8 +400,7 @@ namespace vke {
   void LogicalDevice::allocateCommandBuffers(const vk::CommandBufferAllocateInfo& commandBufferAllocateInfo,
                                              std::vector<vk::raii::CommandBuffer>& commandBuffers) const
   {
-    auto buffers = m_device.allocateCommandBuffers(commandBufferAllocateInfo);
-    std::ranges::copy(buffers, commandBuffers);
+    commandBuffers = m_device.allocateCommandBuffers(commandBufferAllocateInfo);
   }
 
   vk::raii::DescriptorPool LogicalDevice::createDescriptorPool(const vk::DescriptorPoolCreateInfo& descriptorPoolCreateInfo) const
