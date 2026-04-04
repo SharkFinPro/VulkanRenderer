@@ -136,7 +136,7 @@ namespace vke {
   {
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([this, commandBuffer, image, mouseX, mouseY] {
+    commandBuffer.record([this, &commandBuffer, image, mouseX, mouseY] {
       transitionImageForReading(commandBuffer, image);
 
       Images::copyImageToBuffer(

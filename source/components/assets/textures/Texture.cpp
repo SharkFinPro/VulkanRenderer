@@ -72,7 +72,7 @@ namespace vke {
 
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([commandBuffer, image, texWidth, texHeight, mipLevels] {
+    commandBuffer.record([&commandBuffer, image, texWidth, texHeight, mipLevels] {
       vk::ImageMemoryBarrier barrier {
         .sType = vk::StructureType::eImageMemoryBarrier,
         .srcAccessMask = {},

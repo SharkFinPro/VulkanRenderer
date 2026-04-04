@@ -191,7 +191,7 @@ namespace vke::Images {
   {
     const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([commandBuffer, image, format, oldLayout, newLayout, mipLevels, layerCount] {
+    commandBuffer.record([&commandBuffer, image, format, oldLayout, newLayout, mipLevels, layerCount] {
       const auto [aspectMask,
                   srcAccessMask,
                   dstAccessMask,
@@ -236,7 +236,7 @@ namespace vke::Images {
   {
     const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([commandBuffer, buffer, image, width, height, depth] {
+    commandBuffer.record([&commandBuffer, buffer, image, width, height, depth] {
       const vk::BufferImageCopy region {
         .bufferOffset = 0,
         .bufferRowLength = 0,

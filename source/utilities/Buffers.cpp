@@ -48,7 +48,7 @@ namespace vke::Buffers {
     {
       const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, queue);
 
-      commandBuffer.record([commandBuffer, &srcBuffer, &dstBuffer, size] {
+      commandBuffer.record([&commandBuffer, &srcBuffer, &dstBuffer, size] {
         const vk::BufferCopy copyRegion {
           .size = size
         };

@@ -285,7 +285,7 @@ namespace vke {
 
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+    commandBuffer.record([&commandBuffer, buildGeometryInfo, buildRangeInfo] {
       commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
     });
 
