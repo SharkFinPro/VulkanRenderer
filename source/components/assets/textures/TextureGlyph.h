@@ -8,13 +8,13 @@ namespace vke {
   class TextureGlyph final : public Texture {
   public:
     TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
-                 const vk::raii::CommandPool& commandPool,
+                 vk::CommandPool commandPool,
                  const unsigned char* pixelData,
                  uint32_t width,
                  uint32_t height);
 
   private:
-    void createTextureImage(const vk::raii::CommandPool& commandPool,
+    void createTextureImage(vk::CommandPool commandPool,
                             const unsigned char* pixelData,
                             uint32_t width,
                             uint32_t height);
@@ -25,16 +25,16 @@ namespace vke {
                                     vk::raii::Buffer& stagingBuffer,
                                     vk::raii::DeviceMemory& stagingBufferMemory) const;
 
-    void createAndPrepareImage(const vk::raii::CommandPool& commandPool,
+    void createAndPrepareImage(vk::CommandPool commandPool,
                                uint32_t width,
                                uint32_t height);
 
-    void copyBufferToImage(const vk::raii::CommandPool& commandPool,
+    void copyBufferToImage(vk::CommandPool commandPool,
                            uint32_t width,
                            uint32_t height,
                            vk::raii::Buffer& stagingBuffer) const;
 
-    void transitionImageToShaderReadable(const vk::raii::CommandPool& commandPool) const;
+    void transitionImageToShaderReadable(vk::CommandPool commandPool) const;
 
     void createImageView() override;
   };

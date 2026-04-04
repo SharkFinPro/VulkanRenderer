@@ -7,7 +7,7 @@
 namespace vke {
 
   TextureGlyph::TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
-                             const vk::raii::CommandPool& commandPool,
+                             const vk::CommandPool commandPool,
                              const unsigned char* pixelData,
                              const uint32_t width,
                              const uint32_t height)
@@ -18,7 +18,7 @@ namespace vke {
     createImageView();
   }
 
-  void TextureGlyph::createTextureImage(const vk::raii::CommandPool& commandPool,
+  void TextureGlyph::createTextureImage(const vk::CommandPool commandPool,
                                         const unsigned char* pixelData,
                                         const uint32_t width,
                                         const uint32_t height)
@@ -57,7 +57,7 @@ namespace vke {
     });
   }
 
-  void TextureGlyph::createAndPrepareImage(const vk::raii::CommandPool& commandPool,
+  void TextureGlyph::createAndPrepareImage(const vk::CommandPool commandPool,
                                            const uint32_t width,
                                            const uint32_t height)
   {
@@ -96,7 +96,7 @@ namespace vke {
     );
   }
 
-  void TextureGlyph::copyBufferToImage(const vk::raii::CommandPool& commandPool,
+  void TextureGlyph::copyBufferToImage(const vk::CommandPool commandPool,
                                        const uint32_t width,
                                        const uint32_t height,
                                        vk::raii::Buffer& stagingBuffer) const
@@ -127,7 +127,7 @@ namespace vke {
     });
   }
 
-  void TextureGlyph::transitionImageToShaderReadable(const vk::raii::CommandPool& commandPool) const
+  void TextureGlyph::transitionImageToShaderReadable(const vk::CommandPool commandPool) const
   {
     Images::transitionImageLayout(
       m_logicalDevice,
