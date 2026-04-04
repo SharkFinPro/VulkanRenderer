@@ -2,7 +2,6 @@
 #include "common/GraphicsPipelineStates.h"
 #include "vertexInputs/Particle.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../uniformBuffers/UniformBuffer.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"

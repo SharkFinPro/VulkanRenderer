@@ -3,6 +3,7 @@
 
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
+#include "../uniformBuffers/UniformBuffer.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <chrono>
 #include <memory>
