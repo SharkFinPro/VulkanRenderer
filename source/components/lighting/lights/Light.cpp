@@ -62,12 +62,12 @@ namespace vke {
     m_specular = specular;
   }
 
-  VkImage Light::getShadowMap() const
+  vk::Image Light::getShadowMap() const
   {
     return m_shadowMapRenderTarget->getDepthImageResource(0).getImage();
   }
 
-  VkImageView Light::getShadowMapView() const
+  vk::ImageView Light::getShadowMapView() const
   {
     return m_shadowMapRenderTarget->getDepthImageResource(0).getImageView();
   }

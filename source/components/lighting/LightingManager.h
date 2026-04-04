@@ -22,8 +22,6 @@ namespace vke {
     LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                     std::shared_ptr<Renderer> renderer);
 
-    ~LightingManager();
-
     [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
                                                           glm::vec3 color,
                                                           float ambient,
@@ -49,7 +47,7 @@ namespace vke {
                           const std::vector<std::shared_ptr<RenderObject>>* objects,
                           uint32_t currentFrame) const;
 
-    [[nodiscard]] VkDescriptorSetLayout getPointLightDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getPointLightDescriptorSetLayout() const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -67,15 +65,15 @@ namespace vke {
     std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
     std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool = VK_NULL_HANDLE;
 
-    std::vector<VkDescriptorPool> m_descriptorPools;
+    std::vector<vk::raii::DescriptorPool> m_descriptorPools;
     uint32_t m_descriptorPoolSize = 30;
     uint32_t m_currentDescriptorPoolSize = 0;
 
-    VkSampler m_shadowMapSampler = VK_NULL_HANDLE;
+    vk::raii::Sampler m_shadowMapSampler = VK_NULL_HANDLE;
 
-    VkDescriptorSetLayout m_pointLightDescriptorSetLayout = VK_NULL_HANDLE;
+    vk::raii::DescriptorSetLayout m_pointLightDescriptorSetLayout = VK_NULL_HANDLE;
 
     std::shared_ptr<Renderer> m_renderer;
 
@@ -114,7 +112,7 @@ namespace vke {
 
     void createDescriptorPool();
 
-    [[nodiscard]] VkDescriptorPool getDescriptorPool();
+    [[nodiscard]] vk::DescriptorPool getDescriptorPool();
 
     void updateLightMetadataUniform() const;
   };

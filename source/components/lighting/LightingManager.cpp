@@ -32,20 +32,6 @@ namespace vke {
     createShadowMapSampler();
   }
 
-  LightingManager::~LightingManager()
-  {
-    destroyShadowMapSampler();
-
-    m_logicalDevice->destroyDescriptorSetLayout(m_pointLightDescriptorSetLayout);
-
-    for (auto& descriptorPool : m_descriptorPools)
-    {
-      m_logicalDevice->destroyDescriptorPool(descriptorPool);
-    }
-
-    m_logicalDevice->destroyCommandPool(m_commandPool);
-  }
-
   std::shared_ptr<Light> LightingManager::createPointLight(const glm::vec3 position,
                                                            const glm::vec3 color,
                                                            const float ambient,
@@ -136,7 +122,7 @@ namespace vke {
     renderSpotLightShadowMaps(commandBuffer, pipelineManager, objects, currentFrame);
   }
 
-  VkDescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
+  vk::DescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
   {
     return m_pointLightDescriptorSetLayout;
   }
@@ -155,17 +141,17 @@ namespace vke {
   void LightingManager::createDescriptorSet()
   {
     m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, getDescriptorPool(), LayoutBindings::lightingLayoutBindings);
-    m_lightingDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
+    m_lightingDescriptorSet->updateDescriptorSets([this](vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_lightMetadataUniform->getDescriptorSet(0, descriptorSet, frame),
         m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame),
         m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame),
         m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
       }};
 
-      descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-      descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      descriptorWrites[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+      descriptorWrites[2].descriptorType = vk::DescriptorType::eStorageBuffer;
 
       return descriptorWrites;
     });
@@ -205,13 +191,13 @@ namespace vke {
 
       m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
-      m_lightingDescriptorSet->updateDescriptorSets([this, currentFrame](VkDescriptorSet descriptorSet, const size_t frame)
+      m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
       {
-        std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        std::vector<vk::WriteDescriptorSet> descriptorWrites{{
           m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame)
         }};
 
-        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        descriptorWrites[0].descriptorType = vk::DescriptorType::eStorageBuffer;
 
         return descriptorWrites;
       });
@@ -238,7 +224,7 @@ namespace vke {
 
   void LightingManager::updatePointLightShadowMaps(const uint32_t currentFrame) const
   {
-    std::vector<VkDescriptorImageInfo> imageInfos;
+    std::vector<vk::DescriptorImageInfo> imageInfos;
 
     for (auto& light : m_pointLightsToRender)
     {
@@ -250,7 +236,7 @@ namespace vke {
       imageInfos.push_back({
         m_shadowMapSampler,
         light->getShadowMapView(),
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+        vk::ImageLayout::eDepthStencilReadOnlyOptimal
       });
 
       if (imageInfos.size() >= MAX_SHADOW_MAPS)
@@ -264,17 +250,16 @@ namespace vke {
       return;
     }
 
-    const VkWriteDescriptorSet samplerWrite {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    const vk::WriteDescriptorSet samplerWrite {
       .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
       .dstBinding = 5,
       .dstArrayElement = 0,
       .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .pImageInfo = imageInfos.data(),
     };
 
-    m_logicalDevice->updateDescriptorSets(1, &samplerWrite);
+    m_logicalDevice->updateDescriptorSets({ samplerWrite });
   }
 
   void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
@@ -296,13 +281,13 @@ namespace vke {
 
       m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
 
-      m_lightingDescriptorSet->updateDescriptorSets([this, currentFrame](VkDescriptorSet descriptorSet, const size_t frame)
+      m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
       {
-        std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        std::vector<vk::WriteDescriptorSet> descriptorWrites{{
           m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame)
         }};
 
-        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        descriptorWrites[0].descriptorType = vk::DescriptorType::eStorageBuffer;
 
         return descriptorWrites;
       });
@@ -329,7 +314,7 @@ namespace vke {
 
   void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) const
   {
-    std::vector<VkDescriptorImageInfo> imageInfos;
+    std::vector<vk::DescriptorImageInfo> imageInfos;
 
     for (auto& light : m_spotLightsToRender)
     {
@@ -341,7 +326,7 @@ namespace vke {
       imageInfos.push_back({
         m_shadowMapSampler,
         light->getShadowMapView(),
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+        vk::ImageLayout::eDepthStencilReadOnlyOptimal
       });
 
       if (imageInfos.size() >= MAX_SHADOW_MAPS)
@@ -355,45 +340,38 @@ namespace vke {
       return;
     }
 
-    const VkWriteDescriptorSet samplerWrite {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    const vk::WriteDescriptorSet samplerWrite {
       .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
       .dstBinding = 4,
       .dstArrayElement = 0,
       .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .pImageInfo = imageInfos.data(),
     };
 
-    m_logicalDevice->updateDescriptorSets(1, &samplerWrite);
+    m_logicalDevice->updateDescriptorSets({ samplerWrite });
   }
 
   void LightingManager::createShadowMapSampler()
   {
-    constexpr VkSamplerCreateInfo samplerInfo {
-      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .magFilter = VK_FILTER_LINEAR,
-      .minFilter = VK_FILTER_LINEAR,
-      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
-      .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-      .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-      .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+    constexpr vk::SamplerCreateInfo samplerInfo {
+      .magFilter = vk::Filter::eLinear,
+      .minFilter = vk::Filter::eLinear,
+      .mipmapMode = vk::SamplerMipmapMode::eNearest,
+      .addressModeU = vk::SamplerAddressMode::eClampToBorder,
+      .addressModeV = vk::SamplerAddressMode::eClampToBorder,
+      .addressModeW = vk::SamplerAddressMode::eClampToBorder,
       .mipLodBias = 0.0f,
-      .anisotropyEnable = VK_FALSE,
-      .compareEnable = VK_TRUE,
-      .compareOp = VK_COMPARE_OP_LESS_OR_EQUAL,
+      .anisotropyEnable = vk::False,
+      .compareEnable = vk::False,
+      .compareOp = vk::CompareOp::eLessOrEqual,
       .minLod = 0.0f,
       .maxLod = 0.0f,
-      .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
-      .unnormalizedCoordinates = VK_FALSE
+      .borderColor = vk::BorderColor::eFloatOpaqueWhite,
+      .unnormalizedCoordinates = vk::False,
     };
 
     m_shadowMapSampler = m_logicalDevice->createSampler(samplerInfo);
-  }
-
-  void LightingManager::destroyShadowMapSampler()
-  {
-    m_logicalDevice->destroySampler(m_shadowMapSampler);
   }
 
   void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -409,14 +387,14 @@ namespace vke {
         continue;
       }
 
-      const VkExtent2D shadowExtent {
+      const vk::Extent2D shadowExtent {
         .width = light->getShadowMapSize(),
         .height = light->getShadowMapSize()
       };
 
       m_renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
 
-      VkViewport viewport {
+      vk::Viewport viewport {
         .x = 0.0f,
         .y = 0.0f,
         .width = static_cast<float>(shadowExtent.width),
@@ -426,7 +404,7 @@ namespace vke {
       };
       commandBuffer->setViewport(viewport);
 
-      VkRect2D scissor = {{0, 0}, shadowExtent};
+      vk::Rect2D scissor = {{0, 0}, shadowExtent};
       commandBuffer->setScissor(scissor);
 
       RenderInfo shadowRenderInfo = {
@@ -442,7 +420,7 @@ namespace vke {
       pipelineManager->pushGraphicsPipelineConstants(
         shadowRenderInfo.commandBuffer,
         PipelineType::pointLightShadowMap,
-        VK_SHADER_STAGE_FRAGMENT_BIT,
+        vk::ShaderStageFlagBits::eFragment,
         0,
         sizeof(shadowRenderInfo.viewPosition),
         &shadowRenderInfo.viewPosition
@@ -488,14 +466,14 @@ namespace vke {
         continue;
       }
 
-      const VkExtent2D shadowExtent {
+      const vk::Extent2D shadowExtent {
         .width = light->getShadowMapSize(),
         .height = light->getShadowMapSize()
       };
 
       m_renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
 
-      VkViewport viewport {
+      vk::Viewport viewport {
         .x = 0.0f,
         .y = 0.0f,
         .width = static_cast<float>(shadowExtent.width),
@@ -505,7 +483,7 @@ namespace vke {
       };
       commandBuffer->setViewport(viewport);
 
-      VkRect2D scissor = {{0, 0}, shadowExtent};
+      vk::Rect2D scissor = {{0, 0}, shadowExtent};
       commandBuffer->setScissor(scissor);
 
       RenderInfo shadowRenderInfo = {
@@ -521,7 +499,7 @@ namespace vke {
       pipelineManager->pushGraphicsPipelineConstants(
         shadowRenderInfo.commandBuffer,
         PipelineType::shadow,
-        VK_SHADER_STAGE_VERTEX_BIT,
+        vk::ShaderStageFlagBits::eVertex,
         0,
         sizeof(shadowRenderInfo.viewMatrix),
         &shadowRenderInfo.viewMatrix
@@ -549,8 +527,7 @@ namespace vke {
   {
     const auto layoutBindings = LayoutBindings::pointLightShadowMapBindings;
 
-    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
       .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
       .pBindings = layoutBindings.data()
     };
@@ -560,8 +537,7 @@ namespace vke {
 
   void LightingManager::createCommandPool()
   {
-    const VkCommandPoolCreateInfo poolInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    const vk::CommandPoolCreateInfo poolInfo {
       .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
     };
 
@@ -570,14 +546,13 @@ namespace vke {
 
   void LightingManager::createDescriptorPool()
   {
-    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * MAX_SHADOW_MAPS * 2},
-      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 20}
+    const std::array<vk::DescriptorPoolSize, 3> poolSizes {{
+      {vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
+      {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * MAX_SHADOW_MAPS * 2},
+      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 20}
     }};
 
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    const vk::DescriptorPoolCreateInfo poolCreateInfo {
       .maxSets = m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
@@ -586,7 +561,7 @@ namespace vke {
     m_descriptorPools.push_back(m_logicalDevice->createDescriptorPool(poolCreateInfo));
   }
 
-  VkDescriptorPool LightingManager::getDescriptorPool()
+  vk::DescriptorPool LightingManager::getDescriptorPool()
   {
     m_currentDescriptorPoolSize++;
 

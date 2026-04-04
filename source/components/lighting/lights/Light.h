@@ -72,9 +72,9 @@ namespace vke {
     void setDiffuse(float diffuse);
     void setSpecular(float specular);
 
-    [[nodiscard]] VkImage getShadowMap() const;
+    [[nodiscard]] vk::Image getShadowMap() const;
 
-    [[nodiscard]] VkImageView getShadowMapView() const;
+    [[nodiscard]] vk::ImageView getShadowMapView() const;
 
     [[nodiscard]] uint32_t getShadowMapSize() const;
 
@@ -104,7 +104,7 @@ namespace vke {
     float m_diffuse;
     float m_specular;
 
-    virtual void createShadowMap(const VkCommandPool& commandPool) = 0;
+    virtual void createShadowMap(vk::CommandPool commandPool) = 0;
 
     void registerShadowMapRenderTarget(const std::shared_ptr<Renderer>& renderer);
   };

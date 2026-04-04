@@ -9,7 +9,7 @@ namespace vke {
   public:
     SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
               const CommonLightData& commonLightData,
-              const VkCommandPool& commandPool,
+              vk::CommandPool commandPool,
               const std::shared_ptr<Renderer>& renderer);
 
     [[nodiscard]] glm::vec3 getDirection() const;
@@ -28,7 +28,7 @@ namespace vke {
     glm::vec3 m_direction = glm::vec3(0, -1, 0);
     float m_coneAngle = 15;
 
-    void createShadowMap(const VkCommandPool& commandPool) override;
+    void createShadowMap(vk::CommandPool commandPool) override;
   };
 
 } // vke

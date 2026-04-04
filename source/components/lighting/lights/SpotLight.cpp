@@ -12,7 +12,7 @@ namespace vke {
 
   SpotLight::SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
                        const CommonLightData& commonLightData,
-                       const VkCommandPool& commandPool,
+                       const vk::CommandPool commandPool,
                        const std::shared_ptr<Renderer>& renderer)
     : Light(std::move(logicalDevice), commonLightData)
   {
@@ -85,7 +85,7 @@ namespace vke {
     return proj * view;
   }
 
-  void SpotLight::createShadowMap(const VkCommandPool& commandPool)
+  void SpotLight::createShadowMap(const vk::CommandPool commandPool)
   {
     if (!m_castsShadows)
     {
@@ -99,8 +99,8 @@ namespace vke {
         .height = m_shadowMapSize
       },
       .commandPool = commandPool,
-      .depthFormat = VK_FORMAT_D32_SFLOAT,
-      .numSamples = VK_SAMPLE_COUNT_1_BIT
+      .depthFormat = vk::Format::eD32Sfloat,
+      .numSamples = vk::SampleCountFlagBits::e1
     };
 
     m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
