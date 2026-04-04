@@ -4,7 +4,7 @@
 namespace vke {
   SingleUseCommandBuffer::SingleUseCommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                                                  const vk::CommandPool& commandPool,
-                                                 vk::Queue& queue)
+                                                 const vk::Queue queue)
     : CommandBuffer(std::move(logicalDevice)), m_queue(queue)
   {
     SingleUseCommandBuffer::allocateCommandBuffers(commandPool);

@@ -53,7 +53,7 @@ namespace vke {
 
   struct PushConstantEntry {
     PushConstantVariant data;
-    VkShaderStageFlags stages;
+    vk::ShaderStageFlags stages;
   };
 
   class Renderer3D {
@@ -72,7 +72,7 @@ namespace vke {
     void renderMousePicking(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    void handleRenderedMousePickingImage(VkImage image) const;
+    void handleRenderedMousePickingImage(vk::Image image) const;
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -110,9 +110,9 @@ namespace vke {
 
     [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;;
 
-    [[nodiscard]] VkDescriptorSetLayout getNoiseDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getNoiseDescriptorSetLayout() const;
 
-    [[nodiscard]] VkDescriptorSetLayout getCubeMapDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getCubeMapDescriptorSetLayout() const;
 
     void setCloudToRender(std::shared_ptr<Cloud> cloud);
 
@@ -121,9 +121,9 @@ namespace vke {
 
     std::shared_ptr<AssetManager> m_assetManager;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool = nullptr;
 
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool m_descriptorPool = nullptr;
 
     std::shared_ptr<MousePicker> m_mousePicker;
 

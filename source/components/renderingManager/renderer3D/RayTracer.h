@@ -36,10 +36,8 @@ namespace vke {
   public:
     explicit RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,
                        const std::shared_ptr<AssetManager>& assetManager,
-                       VkCommandPool commandPool,
-                       VkDescriptorPool descriptorPool);
-
-    ~RayTracer();
+                       vk::CommandPool commandPool,
+                       vk::DescriptorPool descriptorPool);
 
     void doRayTracing(const RenderInfo* renderInfo,
                       const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -53,35 +51,35 @@ namespace vke {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::CommandPool m_commandPool;
 
-    VkBuffer m_tlasInstanceBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_tlasInstanceBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_tlasInstanceBuffer = nullptr;
+    vk::raii::DeviceMemory m_tlasInstanceBufferMemory = nullptr;
 
-    VkBuffer m_tlasBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_tlasBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_tlasBuffer = nullptr;
+    vk::raii::DeviceMemory m_tlasBufferMemory = nullptr;
 
-    VkAccelerationStructureKHR m_tlas = VK_NULL_HANDLE;
-    VkWriteDescriptorSetAccelerationStructureKHR m_tlasInfo{};
+    vk::raii::AccelerationStructureKHR m_tlas = nullptr;
+    vk::WriteDescriptorSetAccelerationStructureKHR m_tlasInfo{};
 
     std::shared_ptr<UniformBuffer> m_cameraUniformRT;
 
     std::shared_ptr<DescriptorSet> m_rayTracingDescriptorSet;
 
-    VkBuffer m_mergedVertexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_mergedVertexBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_mergedVertexBuffer = nullptr;
+    vk::raii::DeviceMemory m_mergedVertexBufferMemory = nullptr;
 
-    VkBuffer m_mergedIndexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_mergedIndexBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_mergedIndexBuffer = nullptr;
+    vk::raii::DeviceMemory m_mergedIndexBufferMemory = nullptr;
 
-    VkBuffer m_meshInfoBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_meshInfoBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_meshInfoBuffer = nullptr;
+    vk::raii::DeviceMemory m_meshInfoBufferMemory = nullptr;
 
-    VkDescriptorBufferInfo m_vertexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
-    VkDescriptorBufferInfo m_indexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
-    VkDescriptorBufferInfo m_meshInfoInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
+    vk::DescriptorBufferInfo m_vertexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
+    vk::DescriptorBufferInfo m_indexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
+    vk::DescriptorBufferInfo m_meshInfoInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
 
-    std::vector<VkDescriptorImageInfo> m_textureImageInfos;
+    std::vector<vk::DescriptorImageInfo> m_textureImageInfos;
 
     std::shared_ptr<UniformBuffer> m_cloudUniform;
 
@@ -93,15 +91,13 @@ namespace vke {
     [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                                     const std::shared_ptr<Cloud>& cloud);
 
-    void populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
+    void populateInstanceArray(std::vector<vk::AccelerationStructureInstanceKHR>& instances,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                const std::shared_ptr<Cloud>& cloud) const;
 
-    void buildTLAS(VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                   const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+    void buildTLAS(vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                   const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
                    uint32_t primitiveCount);
-
-    void destroyTLAS();
 
     void updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 
@@ -110,10 +106,10 @@ namespace vke {
                                   const std::vector<MeshInfo>& meshInfos);
 
     void updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
-                                VkExtent2D extent,
+                                vk::Extent2D extent,
                                 uint32_t currentFrame);
 
-    void updateRTDescriptorSetData(VkExtent2D extent,
+    void updateRTDescriptorSetData(vk::Extent2D extent,
                                    uint32_t currentFrame,
                                    const glm::vec3& viewPosition,
                                    const glm::mat4& viewMatrix);

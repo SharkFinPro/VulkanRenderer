@@ -122,19 +122,19 @@ namespace vke {
       *m_offscreenInFlightFences[currentFrame]
     };
 
-    const auto result = m_device.waitForFences(fences, VK_TRUE, UINT64_MAX);
+    const auto result = m_device.waitForFences(fences, vk::True, UINT64_MAX);
     assert(result == vk::Result::eSuccess);
   }
 
   void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
   {
-    const auto result = m_device.waitForFences(*m_computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    const auto result = m_device.waitForFences(*m_computeInFlightFences[currentFrame], vk::True, UINT64_MAX);
     assert(result == vk::Result::eSuccess);
   }
 
   void LogicalDevice::waitForMousePickingFences(const uint32_t currentFrame) const
   {
-    const auto result = m_device.waitForFences(*m_mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    const auto result = m_device.waitForFences(*m_mousePickingInFlightFences[currentFrame], vk::True, UINT64_MAX);
     assert(result == vk::Result::eSuccess);
   }
 
@@ -437,39 +437,39 @@ namespace vke {
     }
 
     vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures {
-      .rayTracingPipeline = VK_TRUE
+      .rayTracingPipeline = vk::True
     };
 
     vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
       .pNext = &rayTracingPipelineFeatures,
-      .accelerationStructure = VK_TRUE
+      .accelerationStructure = vk::True
     };
 
     vk::PhysicalDeviceVulkan13Features vulkan13Features {
       .pNext = getPhysicalDevice()->supportsRayTracing() ? &accelerationStructureFeatures : nullptr,
-      .dynamicRendering = VK_TRUE
+      .dynamicRendering = vk::True
     };
 
     vk::PhysicalDeviceVulkan12Features vulkan12Features {
       .pNext = &vulkan13Features,
-      .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
-      .descriptorBindingPartiallyBound = VK_TRUE,
-      .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE,
-      .runtimeDescriptorArray = VK_TRUE,
-      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE
+      .shaderSampledImageArrayNonUniformIndexing = vk::True,
+      .descriptorBindingPartiallyBound = vk::True,
+      .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False,
+      .runtimeDescriptorArray = vk::True,
+      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False
     };
 
     vk::PhysicalDeviceVulkan11Features vulkan11Features {
       .pNext = &vulkan12Features,
-      .multiview = VK_TRUE
+      .multiview = vk::True
     };
 
     vk::PhysicalDeviceFeatures2 deviceFeatures2 {
       .pNext = &vulkan11Features,
       .features {
-        .geometryShader = VK_TRUE,
-        .fillModeNonSolid = VK_TRUE,
-        .samplerAnisotropy = VK_TRUE
+        .geometryShader = vk::True,
+        .fillModeNonSolid = vk::True,
+        .samplerAnisotropy = vk::True
       }
     };
 

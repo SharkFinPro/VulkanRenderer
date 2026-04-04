@@ -10,12 +10,12 @@ namespace vke {
   public:
     SingleUseCommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                            const vk::CommandPool& commandPool,
-                           vk::Queue& queue);
+                           vk::Queue queue);
 
     void record(const std::function<void()>& renderFunction) const override;
 
   private:
-    vk::Queue& m_queue;
+    vk::Queue m_queue;
 
     void allocateCommandBuffers(const vk::CommandPool& commandPool) override;
   };

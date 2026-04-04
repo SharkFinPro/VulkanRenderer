@@ -219,14 +219,14 @@ namespace vke {
       .addressModeV = addressMode,
       .addressModeW = addressMode,
       .mipLodBias = 0.0f,
-      .anisotropyEnable = VK_TRUE,
+      .anisotropyEnable = vk::True,
       .maxAnisotropy = deviceProperties.limits.maxSamplerAnisotropy,
-      .compareEnable = VK_FALSE,
+      .compareEnable = vk::False,
       .compareOp = vk::CompareOp::eAlways,
       .minLod = 0.0f,
       .maxLod = VK_LOD_CLAMP_NONE,
       .borderColor = vk::BorderColor::eIntOpaqueBlack,
-      .unnormalizedCoordinates = VK_FALSE
+      .unnormalizedCoordinates = vk::False
     };
 
     m_textureSampler = m_logicalDevice->createSampler(samplerCreateInfo);
