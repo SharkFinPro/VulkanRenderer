@@ -8,160 +8,160 @@ constexpr uint32_t MAX_SHADOW_MAPS = 16;
 
 namespace vke::LayoutBindings {
 
-  constexpr VkDescriptorSetLayoutBinding lightMetadataLayout {
+  constexpr vk::DescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
   };
 
-  constexpr VkDescriptorSetLayoutBinding pointLightsLayout {
+  constexpr vk::DescriptorSetLayoutBinding pointLightsLayout {
     .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorType = vk::DescriptorType::eStorageBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
   };
 
-  constexpr VkDescriptorSetLayoutBinding spotLightsLayout {
+  constexpr vk::DescriptorSetLayoutBinding spotLightsLayout {
     .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .descriptorType = vk::DescriptorType::eStorageBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
   };
 
-  constexpr VkDescriptorSetLayoutBinding spotLightsSamplerLayout {
+  constexpr vk::DescriptorSetLayoutBinding spotLightsSamplerLayout {
     .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
     .descriptorCount = MAX_SHADOW_MAPS,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding pointLightsSamplerLayout {
+  constexpr vk::DescriptorSetLayoutBinding pointLightsSamplerLayout {
     .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
     .descriptorCount = MAX_SHADOW_MAPS,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding cameraLayout {
+  constexpr vk::DescriptorSetLayoutBinding cameraLayout {
     .binding = 3,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
   };
 
-  constexpr VkDescriptorSetLayoutBinding ellipticalDotsLayout {
+  constexpr vk::DescriptorSetLayoutBinding ellipticalDotsLayout {
     .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding noiseOptionsLayout {
+  constexpr vk::DescriptorSetLayoutBinding noiseOptionsLayout {
     .binding = 6,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+  constexpr vk::DescriptorSetLayoutBinding noiseSamplerLayout {
     .binding = 7,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding curtainLayout {
+  constexpr vk::DescriptorSetLayoutBinding curtainLayout {
     .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding crossesLayout {
+  constexpr vk::DescriptorSetLayoutBinding crossesLayout {
     .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding chromaDepthLayout {
+  constexpr vk::DescriptorSetLayoutBinding chromaDepthLayout {
     .binding = 6,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding cubeMapLayout {
+  constexpr vk::DescriptorSetLayoutBinding cubeMapLayout {
     .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding reflectUnitLayout {
+  constexpr vk::DescriptorSetLayoutBinding reflectUnitLayout {
     .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding refractUnitLayout {
+  constexpr vk::DescriptorSetLayoutBinding refractUnitLayout {
     .binding = 5,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding transformLayout {
+  constexpr vk::DescriptorSetLayoutBinding transformLayout {
     .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding MVPTransformLayout {
+  constexpr vk::DescriptorSetLayoutBinding MVPTransformLayout {
     .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eVertex
   };
 
-  constexpr VkDescriptorSetLayoutBinding bendyLayout {
+  constexpr vk::DescriptorSetLayoutBinding bendyLayout {
     .binding = 1,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eVertex
   };
 
-  constexpr VkDescriptorSetLayoutBinding textureLayout {
+  constexpr vk::DescriptorSetLayoutBinding textureLayout {
     .binding = 2,
-    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> bendyLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> bendyLayoutBindings {
     MVPTransformLayout,
     bendyLayout,
     textureLayout
   };
 
-  constexpr VkDescriptorSetLayoutBinding magnifyWhirlMosaicLayout {
+  constexpr vk::DescriptorSetLayoutBinding magnifyWhirlMosaicLayout {
     .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
-  constexpr VkDescriptorSetLayoutBinding snakeLayout {
+  constexpr vk::DescriptorSetLayoutBinding snakeLayout {
     .binding = 4,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> lightingLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> lightingLayoutBindings {
     lightMetadataLayout,
     pointLightsLayout,
     spotLightsLayout,
@@ -170,18 +170,18 @@ namespace vke::LayoutBindings {
     pointLightsSamplerLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> bumpyCurtainLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> bumpyCurtainLayoutBindings {
     curtainLayout,
     noiseOptionsLayout,
     noiseSamplerLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> crossesLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> crossesLayoutBindings {
     crossesLayout,
     chromaDepthLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> cubeMapLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> cubeMapLayoutBindings {
     cameraLayout,
     cubeMapLayout,
     noiseOptionsLayout,
@@ -190,54 +190,54 @@ namespace vke::LayoutBindings {
     refractUnitLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> curtainLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> curtainLayoutBindings {
     curtainLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> ellipticalDotsLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> ellipticalDotsLayoutBindings {
     ellipticalDotsLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> lineLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> lineLayoutBindings {
     transformLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> magnifyWhirlMosaicLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> magnifyWhirlMosaicLayoutBindings {
     cameraLayout,
     magnifyWhirlMosaicLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> noisyEllipticalDotsLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> noisyEllipticalDotsLayoutBindings {
     ellipticalDotsLayout,
     noiseOptionsLayout,
     noiseSamplerLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> snakeLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> snakeLayoutBindings {
     snakeLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> texturedPlaneBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> texturedPlaneBindings {
     cameraLayout
   };
 
-  constexpr VkDescriptorSetLayoutBinding gridLayout {
+  constexpr vk::DescriptorSetLayoutBinding gridLayout {
     .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
     .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> gridLayoutBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> gridLayoutBindings {
     gridLayout
   };
 
-  inline std::vector<VkDescriptorSetLayoutBinding> pointLightShadowMapBindings {
+  inline std::vector<vk::DescriptorSetLayoutBinding> pointLightShadowMapBindings {
     {
       .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorType = vk::DescriptorType::eUniformBuffer,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eVertex
     }
   };
 
