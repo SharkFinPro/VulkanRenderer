@@ -495,17 +495,17 @@ namespace vke {
 
   void LogicalDevice::createSyncObjects()
   {
-    m_imageAvailableSemaphores.resize(m_maxFramesInFlight);
+    m_imageAvailableSemaphores.reserve(m_maxFramesInFlight);
 
-    m_renderFinishedSemaphores.resize(m_maxFramesInFlight);
-    m_renderFinishedSemaphores2.resize(m_maxFramesInFlight);
+    m_renderFinishedSemaphores.reserve(m_maxFramesInFlight);
+    m_renderFinishedSemaphores2.reserve(m_maxFramesInFlight);
 
-    m_computeFinishedSemaphores.resize(m_maxFramesInFlight);
+    m_computeFinishedSemaphores.reserve(m_maxFramesInFlight);
 
-    m_inFlightFences.resize(m_maxFramesInFlight);
-    m_offscreenInFlightFences.resize(m_maxFramesInFlight);
-    m_mousePickingInFlightFences.resize(m_maxFramesInFlight);
-    m_computeInFlightFences.resize(m_maxFramesInFlight);
+    m_inFlightFences.reserve(m_maxFramesInFlight);
+    m_offscreenInFlightFences.reserve(m_maxFramesInFlight);
+    m_mousePickingInFlightFences.reserve(m_maxFramesInFlight);
+    m_computeInFlightFences.reserve(m_maxFramesInFlight);
 
     constexpr vk::FenceCreateInfo fenceInfo {
       .flags = vk::FenceCreateFlagBits::eSignaled
@@ -515,15 +515,15 @@ namespace vke {
     {
       constexpr vk::SemaphoreCreateInfo semaphoreInfo {};
 
-      m_imageAvailableSemaphores[i] = m_device.createSemaphore(semaphoreInfo);
-      m_renderFinishedSemaphores[i] = m_device.createSemaphore(semaphoreInfo);
-      m_renderFinishedSemaphores2[i] = m_device.createSemaphore(semaphoreInfo);
-      m_inFlightFences[i] = m_device.createFence(fenceInfo);
-      m_offscreenInFlightFences[i] = m_device.createFence(fenceInfo);
-      m_mousePickingInFlightFences[i] = m_device.createFence(fenceInfo);
+      m_imageAvailableSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_renderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_renderFinishedSemaphores2.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_inFlightFences.emplace_back(m_device.createFence(fenceInfo));
+      m_offscreenInFlightFences.emplace_back(m_device.createFence(fenceInfo));
+      m_mousePickingInFlightFences.emplace_back(m_device.createFence(fenceInfo));
 
-      m_computeFinishedSemaphores[i] = m_device.createSemaphore(semaphoreInfo);
-      m_computeInFlightFences[i] = m_device.createFence(fenceInfo);
+      m_computeFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_computeInFlightFences.emplace_back(m_device.createFence(fenceInfo));
     }
   }
 } // namespace vke
