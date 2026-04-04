@@ -188,7 +188,7 @@ namespace vke {
       .timeout = UINT64_MAX,
       .semaphore = *m_imageAvailableSemaphores[currentFrame],
       .fence = VK_NULL_HANDLE,
-      .deviceMask = 0
+      .deviceMask = 1
     };
 
     auto [result, index] = m_device.acquireNextImage2KHR(acquireInfo);
