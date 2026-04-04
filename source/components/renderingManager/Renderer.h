@@ -19,7 +19,7 @@ namespace vke {
   public:
     explicit Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
                       const std::shared_ptr<SwapChain>& swapChain,
-                      vk::raii::CommandPool commandPool);
+                      vk::CommandPool commandPool);
 
     virtual ~Renderer() = default;
 
@@ -89,7 +89,7 @@ namespace vke {
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    vk::raii::CommandPool m_commandPool = nullptr;
+    vk::CommandPool m_commandPool = nullptr;
 
     std::shared_ptr<RenderTarget> m_offscreenRenderTarget;
 

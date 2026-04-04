@@ -11,8 +11,8 @@ namespace vke {
 
   DynamicRenderer::DynamicRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
                                    const std::shared_ptr<SwapChain>& swapChain,
-                                   vk::raii::CommandPool commandPool)
-    : Renderer(std::move(logicalDevice), swapChain, std::move(commandPool))
+                                   const vk::CommandPool commandPool)
+    : Renderer(std::move(logicalDevice), swapChain, commandPool)
   {}
 
   void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
