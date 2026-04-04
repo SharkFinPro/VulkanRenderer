@@ -363,7 +363,7 @@ namespace vke {
       .addressModeW = vk::SamplerAddressMode::eClampToBorder,
       .mipLodBias = 0.0f,
       .anisotropyEnable = vk::False,
-      .compareEnable = vk::False,
+      .compareEnable = vk::True,
       .compareOp = vk::CompareOp::eLessOrEqual,
       .minLod = 0.0f,
       .maxLod = 0.0f,
