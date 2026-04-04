@@ -34,7 +34,7 @@ namespace vke {
     vk::raii::DescriptorSetLayout m_descriptorSetLayoutRAII = nullptr;
     vk::DescriptorSetLayout m_descriptorSetLayout = nullptr;
 
-    std::vector<vk::raii::DescriptorSet> m_descriptorSets;
+    std::vector<vk::DescriptorSet> m_descriptorSets;
 
     void createDescriptorSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings);
 
