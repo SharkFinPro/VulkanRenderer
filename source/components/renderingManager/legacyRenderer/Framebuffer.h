@@ -1,7 +1,7 @@
 #ifndef VKE_FRAMEBUFFER_H
 #define VKE_FRAMEBUFFER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <vector>
 

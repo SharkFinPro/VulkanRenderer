@@ -2,7 +2,7 @@
 #define VKE_ASSETMANAGER_H
 
 #include <glm/vec3.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <string>
 #include <unordered_map>

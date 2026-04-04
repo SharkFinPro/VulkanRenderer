@@ -1,7 +1,7 @@
 #ifndef VKE_DESCRIPTORSET_H
 #define VKE_DESCRIPTORSET_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <functional>
 #include <memory>
 #include <vector>

@@ -2,7 +2,7 @@
 #define VKE_SMOKEPARTICLE_H
 
 #include <glm/vec4.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <array>
 
 namespace vke {

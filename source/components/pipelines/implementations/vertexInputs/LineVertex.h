@@ -1,7 +1,7 @@
 #ifndef VKE_LINEVERTEX_H
 #define VKE_LINEVERTEX_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <glm/vec3.hpp>
 #include <array>
 

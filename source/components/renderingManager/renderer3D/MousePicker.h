@@ -2,7 +2,7 @@
 #define VKE_MOUSEPICKER_H
 
 #include <imgui.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <unordered_map>
 #include <vector>

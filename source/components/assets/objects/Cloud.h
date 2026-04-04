@@ -2,7 +2,7 @@
 #define VULKANPROJECT_CLOUD_H
 
 #include <glm/vec3.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {

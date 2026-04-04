@@ -4,7 +4,7 @@
 #include <assimp/mesh.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <vector>
 

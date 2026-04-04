@@ -42,8 +42,6 @@ namespace vke {
     }
 
     vkQueueWaitIdle(m_queue);
-
-    m_logicalDevice->freeCommandBuffers(m_commandPool, 1, m_commandBuffers.data());
   }
 
   void SingleUseCommandBuffer::allocateCommandBuffers(VkCommandPool commandPool)

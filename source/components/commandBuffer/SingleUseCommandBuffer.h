@@ -2,7 +2,7 @@
 #define VULKANPROJECT_SINGLEUSECOMMANDBUFFER_H
 
 #include "CommandBuffer.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 
 namespace vke {
 

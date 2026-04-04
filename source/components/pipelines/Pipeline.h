@@ -1,7 +1,7 @@
 #ifndef VKE_PIPELINE_H
 #define VKE_PIPELINE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {

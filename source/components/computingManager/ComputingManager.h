@@ -1,7 +1,7 @@
 #ifndef VKE_COMPUTINGMANAGER_H
 #define VKE_COMPUTINGMANAGER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {

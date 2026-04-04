@@ -3,7 +3,7 @@
 
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <chrono>
 #include <memory>
 #include <vector>

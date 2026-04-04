@@ -1,7 +1,7 @@
 #ifndef VKE_COMMANDBUFFER_H
 #define VKE_COMMANDBUFFER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -25,7 +25,7 @@ namespace vke {
 
     void resetCommandBuffer() const;
 
-    [[nodiscard]] VkCommandBuffer* getCommandBuffer();
+    [[nodiscard]] vk::CommandBuffer* getCommandBuffer();
 
     void setViewport(const VkViewport& viewport) const;
 
@@ -131,7 +131,7 @@ namespace vke {
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    std::vector<VkCommandBuffer> m_commandBuffers;
+    std::vector<vk::CommandBuffer> m_commandBuffers;
 
     uint32_t m_currentFrame = 0;
 

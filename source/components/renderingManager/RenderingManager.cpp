@@ -16,7 +16,7 @@
 #include "../window/Window.h"
 #include "renderer3D/MousePicker.h"
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <stdexcept>
 
 namespace vke {

@@ -2,7 +2,7 @@
 #define VULKANPROJECT_SMOKESYSTEM_H
 
 #include "../../pipelines/implementations/common/Uniforms.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <chrono>
 #include <memory>
 #include <vector>

@@ -2,7 +2,7 @@
 #define VULKANPROJECT_FONT_H
 
 #include <freetype/freetype.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <string>
 #include <unordered_map>

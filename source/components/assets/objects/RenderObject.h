@@ -3,7 +3,7 @@
 
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include <glm/gtc/quaternion.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {

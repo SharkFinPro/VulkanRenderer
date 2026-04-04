@@ -3,7 +3,7 @@
 
 #include "../../utilities/EventSystem.h"
 #include <imgui.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <string>
 

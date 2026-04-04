@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_RENDERTARGET_H
 #define VULKANPROJECT_RENDERTARGET_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <vector>
 
 namespace vke {

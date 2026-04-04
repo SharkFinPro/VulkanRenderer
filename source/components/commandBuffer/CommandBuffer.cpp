@@ -43,7 +43,7 @@ namespace vke {
     vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
   }
 
-  VkCommandBuffer* CommandBuffer::getCommandBuffer()
+  vk::CommandBuffer* CommandBuffer::getCommandBuffer()
   {
     return &m_commandBuffers[m_currentFrame];
   }
@@ -243,8 +243,8 @@ namespace vke {
     m_logicalDevice->buildAccelerationStructures(
       m_commandBuffers[m_currentFrame],
       1,
-      &buildGeometryInfo,
-      &buildRangeInfo
+      buildGeometryInfo,
+      buildRangeInfo
     );
   }
 

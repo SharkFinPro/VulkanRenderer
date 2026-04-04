@@ -2,7 +2,7 @@
 #define VULKANPROJECT_PRIMITIVES2D_H
 
 #include <glm/mat4x4.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 
 namespace vke {
 

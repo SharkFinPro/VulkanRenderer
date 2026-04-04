@@ -1,7 +1,7 @@
 #ifndef VKE_UNIFORMBUFFER_H
 #define VKE_UNIFORMBUFFER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <vector>
 

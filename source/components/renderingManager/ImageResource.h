@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_IMAGERESOURCE_H
 #define VULKANPROJECT_IMAGERESOURCE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {

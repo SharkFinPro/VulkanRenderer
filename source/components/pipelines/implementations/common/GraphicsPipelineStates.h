@@ -7,7 +7,7 @@
 #include "../vertexInputs/SmokeParticle.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../physicalDevice/PhysicalDevice.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <memory>
 

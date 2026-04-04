@@ -3,7 +3,7 @@
 
 #include "Pipeline.h"
 #include "shaderModules/ShaderModule.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <cassert>
 #include <memory>
 #include <string>

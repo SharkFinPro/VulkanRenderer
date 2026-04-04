@@ -2,7 +2,7 @@
 #define VKE_LAYOUTBINDINGS_H
 
 #include <vector>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 
 constexpr uint32_t MAX_SHADOW_MAPS = 16;
 

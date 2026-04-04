@@ -2,7 +2,7 @@
 #define VKE_CUBEMAPTEXTURE_H
 
 #include "Texture.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <memory>
 #include <string>
