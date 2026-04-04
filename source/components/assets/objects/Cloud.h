@@ -50,8 +50,8 @@ namespace vke {
     vk::raii::AccelerationStructureKHR m_blas = nullptr;
 
     vk::AabbPositionsKHR m_aabbPositions {
-      .minX = -1.0f, .minY = -1.0f, .minZ = -1.0f,
-      .maxX =  1.0f, .maxY = 1.0f, .maxZ =  1.0f
+      -1.0f, -1.0f, -1.0f,
+      1.0f, 1.0f, 1.0f
     };
 
     vk::raii::Buffer m_aabbBuffer = nullptr;
