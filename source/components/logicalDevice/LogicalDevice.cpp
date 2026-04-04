@@ -40,7 +40,7 @@ namespace vke {
   }
 
   void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
-                                                      const vk::raii::CommandBuffer& commandBuffer) const
+                                                      const vk::CommandBuffer commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {
       vk::PipelineStageFlagBits::eVertexInput,
@@ -52,7 +52,7 @@ namespace vke {
       .pWaitSemaphores = nullptr,
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = &*commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 0,
       .pSignalSemaphores = nullptr
     };
@@ -61,7 +61,7 @@ namespace vke {
   }
 
   void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
-                                                   const vk::raii::CommandBuffer& commandBuffer) const
+                                                   const vk::CommandBuffer commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {
       vk::PipelineStageFlagBits::eVertexInput,
@@ -73,7 +73,7 @@ namespace vke {
       .pWaitSemaphores = &*m_computeFinishedSemaphores[currentFrame],
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = &*commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
       .pSignalSemaphores = &*m_renderFinishedSemaphores2[currentFrame]
     };
@@ -82,7 +82,7 @@ namespace vke {
   }
 
   void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame,
-                                          const vk::raii::CommandBuffer& commandBuffer) const
+                                          const vk::CommandBuffer commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {
       vk::PipelineStageFlagBits::eVertexInput,
@@ -94,7 +94,7 @@ namespace vke {
       .pWaitSemaphores = &*m_imageAvailableSemaphores[currentFrame],
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = &*commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
       .pSignalSemaphores = &*m_renderFinishedSemaphores[currentFrame]
     };
@@ -103,11 +103,11 @@ namespace vke {
   }
 
   void LogicalDevice::submitComputeQueue(const uint32_t currentFrame,
-                                         const vk::raii::CommandBuffer& commandBuffer) const
+                                         const vk::CommandBuffer commandBuffer) const
   {
     const vk::SubmitInfo submitInfo {
       .commandBufferCount = 1,
-      .pCommandBuffers = &*commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
       .pSignalSemaphores = &*m_computeFinishedSemaphores[currentFrame]
     };
@@ -159,7 +159,7 @@ namespace vke {
   }
 
   vk::Result LogicalDevice::queuePresent(const uint32_t currentFrame,
-                                         const vk::raii::SwapchainKHR& swapchain,
+                                         const vk::SwapchainKHR swapchain,
                                          const uint32_t* imageIndex) const
   {
     const std::array waitSemaphores = {
@@ -171,7 +171,7 @@ namespace vke {
       .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
       .pWaitSemaphores = waitSemaphores.data(),
       .swapchainCount = 1,
-      .pSwapchains = &*swapchain,
+      .pSwapchains = &swapchain,
       .pImageIndices = imageIndex,
       .pResults = nullptr
     };
@@ -180,7 +180,7 @@ namespace vke {
   }
 
   vk::Result LogicalDevice::acquireNextImage(const uint32_t currentFrame,
-                                             const vk::raii::SwapchainKHR& swapchain,
+                                             const vk::SwapchainKHR swapchain,
                                              uint32_t* imageIndex) const
   {
     const vk::AcquireNextImageInfoKHR acquireInfo {
@@ -253,7 +253,7 @@ namespace vke {
     return m_device.createBuffer(bufferCreateInfo);
   }
 
-  vk::MemoryRequirements LogicalDevice::getBufferMemoryRequirements(const vk::raii::Buffer& buffer)
+  vk::MemoryRequirements LogicalDevice::getBufferMemoryRequirements(const vk::Buffer buffer)
   {
     return buffer.getMemoryRequirements();
   }
@@ -264,11 +264,11 @@ namespace vke {
     deviceMemory = m_device.allocateMemory(memoryAllocateInfo);
   }
 
-  void LogicalDevice::bindBufferMemory(const vk::raii::Buffer& buffer,
-                                       const vk::raii::DeviceMemory& deviceMemory,
+  void LogicalDevice::bindBufferMemory(const vk::Buffer buffer,
+                                       const vk::DeviceMemory deviceMemory,
                                        const vk::DeviceSize memoryOffset)
   {
-    buffer.bindMemory(*deviceMemory, memoryOffset);
+    buffer.bindMemory(deviceMemory, memoryOffset);
   }
 
   vk::raii::Sampler LogicalDevice::createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const
@@ -286,16 +286,16 @@ namespace vke {
     return m_device.createImage(imageCreateInfo);
   }
 
-  vk::MemoryRequirements LogicalDevice::getImageMemoryRequirements(const vk::raii::Image& image)
+  vk::MemoryRequirements LogicalDevice::getImageMemoryRequirements(const vk::Image image)
   {
     return image.getMemoryRequirements();
   }
 
-  void LogicalDevice::bindImageMemory(const vk::raii::Image& image,
-                                      const vk::raii::DeviceMemory& deviceMemory,
+  void LogicalDevice::bindImageMemory(const vk::Image image,
+                                      const vk::DeviceMemory deviceMemory,
                                       const vk::DeviceSize memoryOffset)
   {
-    image.bindMemory(*deviceMemory, memoryOffset);
+    image.bindMemory(deviceMemory, memoryOffset);
   }
 
   vk::raii::RenderPass LogicalDevice::createRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) const
@@ -313,7 +313,7 @@ namespace vke {
     return m_device.createSwapchainKHR(swapchainCreateInfo);
   }
 
-  void LogicalDevice::getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
+  void LogicalDevice::getSwapchainImagesKHR(const vk::SwapchainKHR swapchain,
                                             uint32_t* swapchainImageCount,
                                             vk::Image* swapchainImages)
   {
@@ -347,7 +347,7 @@ namespace vke {
     return m_device.createRayTracingPipelineKHR(VK_NULL_HANDLE, VK_NULL_HANDLE, rayTracingPipelineCreateInfo, nullptr);
   }
 
-  vk::DeviceAddress LogicalDevice::getBufferDeviceAddress(const vk::raii::Buffer& buffer) const
+  vk::DeviceAddress LogicalDevice::getBufferDeviceAddress(const vk::Buffer buffer) const
   {
     const vk::BufferDeviceAddressInfo bufferDeviceAddressInfo {
       .buffer = buffer
@@ -356,24 +356,23 @@ namespace vke {
     return m_device.getBufferAddress(bufferDeviceAddressInfo);
   }
 
-  void LogicalDevice::createAccelerationStructure(const vk::AccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
-                                                  vk::raii::AccelerationStructureKHR* accelerationStructure) const
+  vk::raii::AccelerationStructureKHR LogicalDevice::createAccelerationStructure(const vk::AccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo) const
   {
-    *accelerationStructure = m_device.createAccelerationStructureKHR(accelerationStructureCreateInfo, nullptr);
+    return m_device.createAccelerationStructureKHR(accelerationStructureCreateInfo, nullptr);
   }
 
   void LogicalDevice::getAccelerationStructureBuildSizes(const vk::AccelerationStructureBuildGeometryInfoKHR& accelerationStructureBuildGeometryInfo,
                                                          const uint32_t maxPrimitiveCounts,
-                                                         vk::AccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const
+                                                         vk::AccelerationStructureBuildSizesInfoKHR& accelerationStructureBuildSizesInfo) const
   {
-    *accelerationStructureBuildSizesInfo = m_device.getAccelerationStructureBuildSizesKHR(
+    accelerationStructureBuildSizesInfo = m_device.getAccelerationStructureBuildSizesKHR(
       vk::AccelerationStructureBuildTypeKHR::eDevice,
       accelerationStructureBuildGeometryInfo,
       maxPrimitiveCounts
     );
   }
 
-  void LogicalDevice::buildAccelerationStructures(const vk::raii::CommandBuffer& commandBuffer,
+  void LogicalDevice::buildAccelerationStructures(const vk::CommandBuffer commandBuffer,
                                                   const vk::AccelerationStructureBuildGeometryInfoKHR& pInfos,
                                                   const vk::AccelerationStructureBuildRangeInfoKHR* ppBuildRangeInfos)
   {
@@ -388,7 +387,7 @@ namespace vke {
     return m_device.getAccelerationStructureAddressKHR(*accelerationStructureDeviceAddressInfo);
   }
 
-  void LogicalDevice::getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
+  void LogicalDevice::getRayTracingShaderGroupHandles(const vk::Pipeline pipeline,
                                                       const uint32_t groupCount,
                                                       std::vector<uint8_t>& handles)
   {

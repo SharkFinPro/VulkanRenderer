@@ -15,7 +15,7 @@ namespace vke {
     explicit CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice);
 
     CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                  vk::raii::CommandPool& commandPool);
+                  vk::CommandPool& commandPool);
 
     virtual ~CommandBuffer() = default;
 
@@ -25,7 +25,7 @@ namespace vke {
 
     void resetCommandBuffer() const;
 
-    [[nodiscard]] vk::raii::CommandBuffer& getCommandBuffer();
+    [[nodiscard]] vk::CommandBuffer getCommandBuffer();
 
     void setViewport(const vk::Viewport& viewport) const;
 
@@ -40,10 +40,10 @@ namespace vke {
     void endRendering() const;
 
     void bindPipeline(vk::PipelineBindPoint pipelineBindPoint,
-                      const vk::raii::Pipeline& pipeline) const;
+                      const vk::Pipeline& pipeline) const;
 
     void bindDescriptorSets(vk::PipelineBindPoint pipelineBindPoint,
-                            const vk::raii::PipelineLayout& pipelineLayout,
+                            const vk::PipelineLayout& pipelineLayout,
                             uint32_t firstSet,
                             const std::vector<vk::DescriptorSet>& descriptorSets) const;
 
@@ -55,7 +55,7 @@ namespace vke {
                            const std::vector<vk::Buffer>& buffers,
                            const std::vector<vk::DeviceSize>& offsets) const;
 
-    void bindIndexBuffer(const vk::raii::Buffer& buffer,
+    void bindIndexBuffer(const vk::Buffer& buffer,
                          vk::DeviceSize offset,
                          vk::IndexType indexType) const;
 
@@ -103,8 +103,8 @@ namespace vke {
                    const std::vector<vk::ImageBlit>& regions,
                    vk::Filter filter) const;
 
-    void copyBuffer(const vk::raii::Buffer& srcBuffer,
-                    const vk::raii::Buffer& dstBuffer,
+    void copyBuffer(const vk::Buffer& srcBuffer,
+                    const vk::Buffer& dstBuffer,
                     const std::vector<vk::BufferCopy>& regions) const;
 
     void buildAccelerationStructure(const vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,

@@ -13,13 +13,13 @@ namespace vke {
   class DescriptorSet final {
   public:
     explicit DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
-                           const vk::raii::DescriptorPool& descriptorPool,
+                           vk::DescriptorPool descriptorPool,
                            const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings,
                            const void* allocationPNext = nullptr);
 
     explicit DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
-                           const vk::raii::DescriptorPool& descriptorPool,
-                           vk::raii::DescriptorSetLayout descriptorSetLayout,
+                           vk::DescriptorPool descriptorPool,
+                           vk::DescriptorSetLayout descriptorSetLayout,
                            const void* allocationPNext = nullptr);
 
     void updateDescriptorSets(const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const;
@@ -31,14 +31,14 @@ namespace vke {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    vk::raii::DescriptorSetLayout m_descriptorSetLayout = nullptr;
-    bool m_ownsLayout = false;
+    vk::raii::DescriptorSetLayout m_descriptorSetLayoutRAII = nullptr;
+    vk::DescriptorSetLayout m_descriptorSetLayout = nullptr;
 
     std::vector<vk::raii::DescriptorSet> m_descriptorSets;
 
     void createDescriptorSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings);
 
-    void allocateDescriptorSets(const vk::raii::DescriptorPool& descriptorPool,
+    void allocateDescriptorSets(vk::DescriptorPool descriptorPool,
                                 const void* allocationPNext);
   };
 

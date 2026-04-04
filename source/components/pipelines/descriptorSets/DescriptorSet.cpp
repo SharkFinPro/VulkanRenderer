@@ -5,7 +5,7 @@
 namespace vke {
 
   DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
-                               const vk::raii::DescriptorPool& descriptorPool,
+                               const vk::DescriptorPool descriptorPool,
                                const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings,
                                const void* allocationPNext)
     : m_logicalDevice(std::move(logicalDevice))
@@ -16,8 +16,8 @@ namespace vke {
   }
 
   DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
-                               const vk::raii::DescriptorPool& descriptorPool,
-                               vk::raii::DescriptorSetLayout descriptorSetLayout,
+                               const vk::DescriptorPool descriptorPool,
+                               vk::DescriptorSetLayout descriptorSetLayout,
                                const void* allocationPNext)
     : m_logicalDevice(std::move(logicalDevice)), m_descriptorSetLayout(std::move(descriptorSetLayout))
   {
@@ -36,7 +36,7 @@ namespace vke {
 
   vk::DescriptorSetLayout DescriptorSet::getDescriptorSetLayout() const
   {
-    return *m_descriptorSetLayout;
+    return m_descriptorSetLayout;
   }
 
   vk::DescriptorSet DescriptorSet::getDescriptorSet(const size_t frame) const
@@ -51,18 +51,17 @@ namespace vke {
       .pBindings = layoutBindings.data()
     };
 
-    m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
-
-    m_ownsLayout = true;
+    m_descriptorSetLayoutRAII = m_logicalDevice->createDescriptorSetLayout(globalLayoutCreateInfo);
+    m_descriptorSetLayout = *m_descriptorSetLayoutRAII;
   }
 
-  void DescriptorSet::allocateDescriptorSets(const vk::raii::DescriptorPool& descriptorPool,
+  void DescriptorSet::allocateDescriptorSets(const vk::DescriptorPool descriptorPool,
                                              const void* allocationPNext)
   {
-    const std::vector<vk::DescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), *m_descriptorSetLayout);
+    const std::vector<vk::DescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
     const vk::DescriptorSetAllocateInfo allocateInfo {
       .pNext = allocationPNext,
-      .descriptorPool = *descriptorPool,
+      .descriptorPool = descriptorPool,
       .descriptorSetCount = m_logicalDevice->getMaxFramesInFlight(),
       .pSetLayouts = layouts.data()
     };

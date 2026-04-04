@@ -17,20 +17,18 @@ namespace vke {
   class Model {
   public:
     Model(std::shared_ptr<LogicalDevice> logicalDevice,
-          const VkCommandPool& commandPool,
+          const vk::CommandPool& commandPool,
           const char* path,
           glm::vec3 rotation);
 
     Model(std::shared_ptr<LogicalDevice> logicalDevice,
-          const VkCommandPool& commandPool,
+          const vk::CommandPool& commandPool,
           const char* path,
           glm::quat orientation);
 
-    ~Model();
-
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    [[nodiscard]] VkAccelerationStructureKHR getBLAS() const;
+    [[nodiscard]] vk::AccelerationStructureKHR getBLAS() const;
 
     [[nodiscard]] const std::vector<Vertex>& getVertices() const;
 
@@ -42,15 +40,15 @@ namespace vke {
     std::vector<Vertex> m_vertices;
     std::vector<uint32_t> m_indices;
 
-    VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_vertexBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_vertexBuffer = nullptr;
+    vk::raii::DeviceMemory m_vertexBufferMemory = nullptr;
 
-    VkBuffer m_indexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_indexBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_indexBuffer = nullptr;
+    vk::raii::DeviceMemory m_indexBufferMemory = nullptr;
 
-    VkBuffer m_blasBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_blasBufferMemory = VK_NULL_HANDLE;
-    VkAccelerationStructureKHR m_blas = VK_NULL_HANDLE;
+    vk::raii::Buffer m_blasBuffer = nullptr;
+    vk::raii::DeviceMemory m_blasBufferMemory = nullptr;
+    vk::raii::AccelerationStructureKHR m_blas = nullptr;
 
     void loadModel(const char* path,
                    glm::quat orientation);
@@ -60,21 +58,21 @@ namespace vke {
 
     void loadIndices(const aiMesh* mesh);
 
-    void createVertexBuffer(const VkCommandPool& commandPool);
+    void createVertexBuffer(const vk::CommandPool& commandPool);
 
-    void createIndexBuffer(const VkCommandPool& commandPool);
+    void createIndexBuffer(const vk::CommandPool& commandPool);
 
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    void createBLAS(const VkCommandPool& commandPool);
+    void createBLAS(const vk::CommandPool& commandPool);
 
-    void createCoreBLASData(VkAccelerationStructureGeometryTrianglesDataKHR& trianglesData,
-                            VkAccelerationStructureGeometryKHR& geometry,
-                            VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const;
+    void createCoreBLASData(vk::AccelerationStructureGeometryTrianglesDataKHR& trianglesData,
+                            vk::AccelerationStructureGeometryKHR& geometry,
+                            vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const;
 
-    void populateBLAS(const VkCommandPool& commandPool,
-                      VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                      const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+    void populateBLAS(const vk::CommandPool& commandPool,
+                      vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                      const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
                       uint32_t primitiveCount) const;
   };
 

@@ -18,21 +18,21 @@ namespace vke {
 
     void waitIdle() const;
 
-    [[nodiscard]] vk::raii::Queue& getGraphicsQueue();
-    [[nodiscard]] vk::raii::Queue& getPresentQueue();
-    [[nodiscard]] vk::raii::Queue& getComputeQueue();
+    [[nodiscard]] vk::Queue& getGraphicsQueue();
+    [[nodiscard]] vk::Queue& getPresentQueue();
+    [[nodiscard]] vk::Queue& getComputeQueue();
 
     void submitMousePickingGraphicsQueue(uint32_t currentFrame,
-                                         const vk::raii::CommandBuffer& commandBuffer) const;
+                                         vk::CommandBuffer commandBuffer) const;
 
     void submitOffscreenGraphicsQueue(uint32_t currentFrame,
-                                      const vk::raii::CommandBuffer& commandBuffer) const;
+                                      vk::CommandBuffer commandBuffer) const;
 
     void submitGraphicsQueue(uint32_t currentFrame,
-                             const vk::raii::CommandBuffer& commandBuffer) const;
+                             vk::CommandBuffer commandBuffer) const;
 
     void submitComputeQueue(uint32_t currentFrame,
-                            const vk::raii::CommandBuffer& commandBuffer) const;
+                            vk::CommandBuffer commandBuffer) const;
 
     void waitForGraphicsFences(uint32_t currentFrame) const;
     void waitForComputeFences(uint32_t currentFrame) const;
@@ -43,11 +43,11 @@ namespace vke {
     void resetComputeFences(uint32_t currentFrame) const;
 
     vk::Result queuePresent(uint32_t currentFrame,
-                            const vk::raii::SwapchainKHR& swapchain,
+                            vk::SwapchainKHR swapchain,
                             const uint32_t* imageIndex) const;
 
     vk::Result acquireNextImage(uint32_t currentFrame,
-                                const vk::raii::SwapchainKHR& swapchain,
+                                vk::SwapchainKHR swapchain,
                                 uint32_t* imageIndex) const;
 
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
@@ -79,13 +79,13 @@ namespace vke {
 
     [[nodiscard]] vk::raii::Buffer createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const;
 
-    [[nodiscard]] static vk::MemoryRequirements getBufferMemoryRequirements(const vk::raii::Buffer& buffer);
+    [[nodiscard]] static vk::MemoryRequirements getBufferMemoryRequirements(vk::Buffer buffer);
 
     void allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
                         vk::raii::DeviceMemory& deviceMemory) const;
 
-    static void bindBufferMemory(const vk::raii::Buffer& buffer,
-                                 const vk::raii::DeviceMemory& deviceMemory,
+    static void bindBufferMemory(vk::Buffer buffer,
+                                 vk::DeviceMemory deviceMemory,
                                  vk::DeviceSize memoryOffset = 0);
 
     [[nodiscard]] vk::raii::Sampler createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const;
@@ -94,10 +94,10 @@ namespace vke {
 
     [[nodiscard]] vk::raii::Image createImage(const vk::ImageCreateInfo& imageCreateInfo) const;
 
-    [[nodiscard]] static vk::MemoryRequirements getImageMemoryRequirements(const vk::raii::Image& image);
+    [[nodiscard]] static vk::MemoryRequirements getImageMemoryRequirements(vk::Image image);
 
-    static void bindImageMemory(const vk::raii::Image& image,
-                                const vk::raii::DeviceMemory& deviceMemory,
+    static void bindImageMemory(vk::Image image,
+                                vk::DeviceMemory deviceMemory,
                                 vk::DeviceSize memoryOffset = 0);
 
     [[nodiscard]] vk::raii::RenderPass createRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) const;
@@ -106,7 +106,7 @@ namespace vke {
 
     [[nodiscard]] vk::raii::SwapchainKHR createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo) const;
 
-    static void getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
+    static void getSwapchainImagesKHR(vk::SwapchainKHR swapchain,
                                       uint32_t* swapchainImageCount,
                                       vk::Image* swapchainImages);
 
@@ -120,22 +120,21 @@ namespace vke {
 
     [[nodiscard]] vk::raii::Pipeline createPipeline(const vk::RayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const;
 
-    [[nodiscard]] vk::DeviceAddress getBufferDeviceAddress(const vk::raii::Buffer& buffer) const;
+    [[nodiscard]] vk::DeviceAddress getBufferDeviceAddress(vk::Buffer buffer) const;
 
-    void createAccelerationStructure(const vk::AccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
-                                     vk::raii::AccelerationStructureKHR* accelerationStructure) const;
+    [[nodiscard]] vk::raii::AccelerationStructureKHR createAccelerationStructure(const vk::AccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo) const;
 
     void getAccelerationStructureBuildSizes(const vk::AccelerationStructureBuildGeometryInfoKHR& accelerationStructureBuildGeometryInfo,
                                             uint32_t maxPrimitiveCounts,
-                                            vk::AccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const;
+                                            vk::AccelerationStructureBuildSizesInfoKHR& accelerationStructureBuildSizesInfo) const;
 
-    static void buildAccelerationStructures(const vk::raii::CommandBuffer& commandBuffer,
+    static void buildAccelerationStructures(vk::CommandBuffer commandBuffer,
                                             const vk::AccelerationStructureBuildGeometryInfoKHR& pInfos,
                                             const vk::AccelerationStructureBuildRangeInfoKHR* ppBuildRangeInfos);
 
     [[nodiscard]] vk::DeviceAddress getAccelerationStructureDeviceAddress(const vk::AccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
 
-    static void getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
+    static void getRayTracingShaderGroupHandles(vk::Pipeline pipeline,
                                                 uint32_t groupCount,
                                                 std::vector<uint8_t>& handles);
 

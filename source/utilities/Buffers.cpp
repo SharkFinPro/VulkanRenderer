@@ -40,10 +40,10 @@ namespace vke::Buffers {
     }
 
     void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                    vk::raii::CommandPool& commandPool,
-                    vk::raii::Queue& queue,
-                    vk::raii::Buffer& srcBuffer,
-                    vk::raii::Buffer& dstBuffer,
+                    const vk::CommandPool& commandPool,
+                    vk::Queue queue,
+                    vk::Buffer srcBuffer,
+                    vk::Buffer dstBuffer,
                     const vk::DeviceSize size)
     {
       const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, queue);

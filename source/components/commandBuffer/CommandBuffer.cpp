@@ -8,7 +8,7 @@ namespace vke {
   {}
 
   CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                               vk::raii::CommandPool& commandPool)
+                               vk::CommandPool& commandPool)
     : m_logicalDevice(std::move(logicalDevice))
   {
     CommandBuffer::allocateCommandBuffers(commandPool);
@@ -35,7 +35,7 @@ namespace vke {
     m_commandBuffers[m_currentFrame].reset();
   }
 
-  vk::raii::CommandBuffer& CommandBuffer::getCommandBuffer()
+  vk::CommandBuffer CommandBuffer::getCommandBuffer()
   {
     return m_commandBuffers[m_currentFrame];
   }
@@ -71,18 +71,23 @@ namespace vke {
   }
 
   void CommandBuffer::bindPipeline(const vk::PipelineBindPoint pipelineBindPoint,
-                                   const vk::raii::Pipeline& pipeline) const
+                                   const vk::Pipeline& pipeline) const
   {
-    m_commandBuffers[m_currentFrame].bindPipeline(pipelineBindPoint, *pipeline);
+    m_commandBuffers[m_currentFrame].bindPipeline(pipelineBindPoint, pipeline);
   }
 
   void CommandBuffer::bindDescriptorSets(const vk::PipelineBindPoint pipelineBindPoint,
-                                         const vk::raii::PipelineLayout& pipelineLayout,
+                                         const vk::PipelineLayout& pipelineLayout,
                                          const uint32_t firstSet,
                                          const std::vector<vk::DescriptorSet>& descriptorSets) const
   {
-    m_commandBuffers[m_currentFrame].bindDescriptorSets(pipelineBindPoint, *pipelineLayout, firstSet,
-                                                        descriptorSets, {});
+    m_commandBuffers[m_currentFrame].bindDescriptorSets(
+      pipelineBindPoint,
+      pipelineLayout,
+      firstSet,
+      descriptorSets,
+      {}
+    );
   }
 
   void CommandBuffer::dispatch(const uint32_t groupCountX,
@@ -99,11 +104,11 @@ namespace vke {
     m_commandBuffers[m_currentFrame].bindVertexBuffers(firstBinding, buffers, offsets);
   }
 
-  void CommandBuffer::bindIndexBuffer(const vk::raii::Buffer& buffer,
+  void CommandBuffer::bindIndexBuffer(const vk::Buffer& buffer,
                                       const vk::DeviceSize offset,
                                       const vk::IndexType indexType) const
   {
-    m_commandBuffers[m_currentFrame].bindIndexBuffer(*buffer, offset, indexType);
+    m_commandBuffers[m_currentFrame].bindIndexBuffer(buffer, offset, indexType);
   }
 
   void CommandBuffer::draw(const uint32_t vertexCount,
@@ -172,11 +177,11 @@ namespace vke {
     m_commandBuffers[m_currentFrame].blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions, filter);
   }
 
-  void CommandBuffer::copyBuffer(const vk::raii::Buffer& srcBuffer,
-                                 const vk::raii::Buffer& dstBuffer,
+  void CommandBuffer::copyBuffer(const vk::Buffer& srcBuffer,
+                                 const vk::Buffer& dstBuffer,
                                  const std::vector<vk::BufferCopy>& regions) const
   {
-    m_commandBuffers[m_currentFrame].copyBuffer(*srcBuffer, *dstBuffer, regions);
+    m_commandBuffers[m_currentFrame].copyBuffer(srcBuffer, dstBuffer, regions);
   }
 
   void CommandBuffer::buildAccelerationStructure(const vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
