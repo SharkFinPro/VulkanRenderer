@@ -18,21 +18,21 @@ namespace vke {
 
     auto resolveImageResourceConfig = imageResourceConfig;
     resolveImageResourceConfig.imageResourceType = ImageResourceType::Resolve;
-    resolveImageResourceConfig.numSamples = VK_SAMPLE_COUNT_1_BIT;
+    resolveImageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
 
     for (int i = 0; i < numImages; ++i)
     {
-      if (imageResourceConfig.colorFormat != VK_FORMAT_UNDEFINED)
+      if (imageResourceConfig.colorFormat != vk::Format::eUndefined)
       {
         m_colorImageResources.emplace_back(colorImageResourceConfig);
       }
 
-      if (imageResourceConfig.depthFormat != VK_FORMAT_UNDEFINED)
+      if (imageResourceConfig.depthFormat != vk::Format::eUndefined)
       {
         m_depthImageResources.emplace_back(depthImageResourceConfig);
       }
 
-      if (imageResourceConfig.resolveFormat != VK_FORMAT_UNDEFINED)
+      if (imageResourceConfig.resolveFormat != vk::Format::eUndefined)
       {
         m_resolveImageResources.emplace_back(resolveImageResourceConfig);
       }
@@ -69,7 +69,7 @@ namespace vke {
     return m_resolveImageResources.size();
   }
 
-  VkExtent2D RenderTarget::getExtent() const
+  vk::Extent2D RenderTarget::getExtent() const
   {
     return m_extent;
   }
