@@ -29,8 +29,6 @@ namespace vke {
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager);
 
-    ~PipelineManager() = default;
-
     void bindGraphicsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                               PipelineType pipelineType) const;
 
