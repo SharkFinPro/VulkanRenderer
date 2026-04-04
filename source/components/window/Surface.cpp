@@ -3,12 +3,10 @@
 #include "../instance/Instance.h"
 
 namespace vke {
-  Surface::Surface(std::shared_ptr<Instance> instance,
+  Surface::Surface(const std::shared_ptr<Instance>& instance,
                    const std::shared_ptr<Window>& window)
-    : m_instance(std::move(instance))
-  {
-    m_surface = m_instance->createSurface(window->getWindow());
-  }
+  : m_surface(instance->createSurface(window->getWindow()))
+  {}
 
   vk::SurfaceKHR Surface::getSurface() const
   {

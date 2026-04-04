@@ -11,15 +11,13 @@ namespace vke {
 
   class Surface {
   public:
-    Surface(std::shared_ptr<Instance> instance,
+    Surface(const std::shared_ptr<Instance>& instance,
             const std::shared_ptr<Window>& window);
 
     [[nodiscard]] vk::SurfaceKHR getSurface() const;
 
   private:
-    std::shared_ptr<Instance> m_instance;
-
-    vk::SurfaceKHR m_surface = nullptr;
+    vk::raii::SurfaceKHR m_surface = nullptr;
   };
 } // vke
 

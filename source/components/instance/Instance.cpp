@@ -52,7 +52,7 @@ namespace vke {
     }
   }
 
-  vk::SurfaceKHR Instance::createSurface(GLFWwindow* window) const
+  vk::raii::SurfaceKHR Instance::createSurface(GLFWwindow* window) const
   {
     VkSurfaceKHR surface;
     if (glfwCreateWindowSurface(*m_instance, window, nullptr, &surface) != VK_SUCCESS)

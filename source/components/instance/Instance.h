@@ -16,7 +16,7 @@ namespace vke {
   public:
     Instance();
 
-    [[nodiscard]] vk::SurfaceKHR createSurface(GLFWwindow* window) const;
+    [[nodiscard]] vk::raii::SurfaceKHR createSurface(GLFWwindow* window) const;
 
     [[nodiscard]] std::vector<vk::raii::PhysicalDevice> getPhysicalDevices() const;
 
