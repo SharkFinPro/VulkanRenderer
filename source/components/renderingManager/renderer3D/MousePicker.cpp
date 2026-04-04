@@ -62,13 +62,12 @@ namespace vke {
 
     for (const auto& [object, id] : m_renderObjectsToMousePick)
     {
-      pipelineManager->pushGraphicsPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
         renderInfo->commandBuffer,
         PipelineType::mousePicking,
         vk::ShaderStageFlagBits::eFragment,
         0,
-        sizeof(id),
-        &id
+        id
       );
 
       pipelineManager->bindGraphicsPipelineDescriptorSet(

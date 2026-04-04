@@ -296,13 +296,12 @@ namespace vke {
       .viewPosition = renderInfo->viewPosition
     };
 
-    pipelineManager->pushGraphicsPipelineConstants(
+    pipelineManager->pushGraphicsPipelineConstants<GridPushConstant>(
       renderInfo->commandBuffer,
       PipelineType::grid,
       vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
-      sizeof(gridPC),
-      &gridPC
+      gridPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
@@ -345,14 +344,13 @@ namespace vke {
       return;
     }
 
-    std::visit([&](const auto& pc) {
-      pipelineManager->pushGraphicsPipelineConstants(
+    std::visit([&]<typename T>(const T& pc) {
+      pipelineManager->pushGraphicsPipelineConstants<T>(
         commandBuffer,
         pipelineType,
         it->second.stages,
         0,
-        sizeof(pc),
-        &pc
+        pc
       );
     }, it->second.data);
   }

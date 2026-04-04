@@ -417,13 +417,12 @@ namespace vke {
 
       pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, PipelineType::pointLightShadowMap);
 
-      pipelineManager->pushGraphicsPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants<glm::vec3>(
         shadowRenderInfo.commandBuffer,
         PipelineType::pointLightShadowMap,
         vk::ShaderStageFlagBits::eFragment,
         0,
-        sizeof(shadowRenderInfo.viewPosition),
-        &shadowRenderInfo.viewPosition
+        shadowRenderInfo.viewPosition
       );
 
       pointLight->updateUniform(shadowRenderInfo.currentFrame);
@@ -496,13 +495,12 @@ namespace vke {
 
       pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, PipelineType::shadow);
 
-      pipelineManager->pushGraphicsPipelineConstants(
+      pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(
         shadowRenderInfo.commandBuffer,
         PipelineType::shadow,
         vk::ShaderStageFlagBits::eVertex,
         0,
-        sizeof(shadowRenderInfo.viewMatrix),
-        &shadowRenderInfo.viewMatrix
+        shadowRenderInfo.viewMatrix
       );
 
       for (const auto& object : *objects)

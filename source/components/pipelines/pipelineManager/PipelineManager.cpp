@@ -34,18 +34,6 @@ namespace vke {
     graphicsPipeline.bind(commandBuffer);
   }
 
-  void PipelineManager::pushGraphicsPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                      const PipelineType pipelineType,
-                                                      const vk::ShaderStageFlags stageFlags,
-                                                      const uint32_t offset,
-                                                      const uint32_t size,
-                                                      const void* values) const
-  {
-    const auto& graphicsPipeline = getGraphicsPipeline(pipelineType);
-
-    graphicsPipeline.pushConstants(commandBuffer, stageFlags, offset, size, values);
-  }
-
   void PipelineManager::bindGraphicsPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                           const PipelineType pipelineType,
                                                           const vk::DescriptorSet descriptorSet,
@@ -103,15 +91,6 @@ namespace vke {
                                                             const uint32_t location) const
   {
     m_rayTracingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
-  }
-
-  void PipelineManager::pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                        const vk::ShaderStageFlags stageFlags,
-                                                        const uint32_t offset,
-                                                        const uint32_t size,
-                                                        const void* values) const
-  {
-    m_rayTracingPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
   void PipelineManager::createGraphicsPipeline(const PipelineType pipelineType,

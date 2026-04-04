@@ -283,13 +283,12 @@ namespace vke {
   {
     const auto rectPC = rect.createPushConstant(renderInfo->extent);
 
-    pipelineManager->pushGraphicsPipelineConstants(
+    pipelineManager->pushGraphicsPipelineConstants<Rect::PushConstant>(
       renderInfo->commandBuffer,
       PipelineType::rect,
       vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
-      sizeof(rectPC),
-      &rectPC
+      rectPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
@@ -312,13 +311,12 @@ namespace vke {
   {
     const auto trianglePC = triangle.createPushConstant(renderInfo->extent);
 
-    pipelineManager->pushGraphicsPipelineConstants(
+    pipelineManager->pushGraphicsPipelineConstants<Triangle::PushConstant>(
       renderInfo->commandBuffer,
       PipelineType::triangle,
       vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
-      sizeof(trianglePC),
-      &trianglePC
+      trianglePC
     );
 
     renderInfo->commandBuffer->draw(3, 1, 0, 0);
@@ -341,13 +339,12 @@ namespace vke {
   {
     const auto ellipsePC = ellipse.createPushConstant(renderInfo->extent);
 
-    pipelineManager->pushGraphicsPipelineConstants(
+    pipelineManager->pushGraphicsPipelineConstants<Ellipse::PushConstant>(
       renderInfo->commandBuffer,
       PipelineType::ellipse,
       vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
-      sizeof(ellipsePC),
-      &ellipsePC
+      ellipsePC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
@@ -385,13 +382,12 @@ namespace vke {
   {
     const auto glyphPC = glyph.createPushConstant(renderInfo->extent);
 
-    pipelineManager->pushGraphicsPipelineConstants(
+    pipelineManager->pushGraphicsPipelineConstants<Glyph::PushConstant>(
       renderInfo->commandBuffer,
       PipelineType::font,
       vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
-      sizeof(glyphPC),
-      &glyphPC
+      glyphPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
