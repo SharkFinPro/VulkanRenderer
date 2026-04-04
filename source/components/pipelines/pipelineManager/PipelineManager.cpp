@@ -3,14 +3,12 @@
 #include "PipelineConfig2D.h"
 #include "PipelineConfigRenderObject.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../RayTracingPipeline.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../renderingManager/Renderer.h"
 #include "../../renderingManager/RenderingManager.h"
-#include "../../renderingManager/renderer3D/RayTracer.h"
 #include <ranges>
 
 namespace vke {

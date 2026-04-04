@@ -1,6 +1,7 @@
 #ifndef VKE_PIPELINEMANAGER_H
 #define VKE_PIPELINEMANAGER_H
 
+#include "../RayTracingPipeline.h"
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/DotsPipeline.h"
 #include "../implementations/LinePipeline.h"
@@ -18,7 +19,6 @@ namespace vke {
   class DotsPipeline;
   class PointLight;
   class Pipeline;
-  class RayTracingPipeline;
   class RenderingManager;
   class RenderObject;
 
