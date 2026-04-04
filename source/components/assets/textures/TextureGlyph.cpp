@@ -7,24 +7,24 @@
 namespace vke {
 
   TextureGlyph::TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
-                             const VkCommandPool& commandPool,
+                             const vk::raii::CommandPool& commandPool,
                              const unsigned char* pixelData,
                              const uint32_t width,
                              const uint32_t height)
-    : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+    : Texture(std::move(logicalDevice), vk::SamplerAddressMode::eClampToEdge)
   {
     createTextureImage(commandPool, pixelData, width, height);
 
     createImageView();
   }
 
-  void TextureGlyph::createTextureImage(const VkCommandPool& commandPool,
+  void TextureGlyph::createTextureImage(const vk::raii::CommandPool& commandPool,
                                         const unsigned char* pixelData,
                                         const uint32_t width,
                                         const uint32_t height)
   {
-    VkBuffer stagingBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer stagingBuffer = nullptr;
+    vk::raii::DeviceMemory stagingBufferMemory = nullptr;
 
     createAndFillStagingBuffer(pixelData, width, height, stagingBuffer, stagingBufferMemory);
 
@@ -33,23 +33,21 @@ namespace vke {
     copyBufferToImage(commandPool, width, height, stagingBuffer);
 
     transitionImageToShaderReadable(commandPool);
-
-    cleanupStagingBuffer(stagingBuffer, stagingBufferMemory);
   }
 
   void TextureGlyph::createAndFillStagingBuffer(const unsigned char* pixelData,
                                                 const uint32_t width,
                                                 const uint32_t height,
-                                                VkBuffer& stagingBuffer,
-                                                VkDeviceMemory& stagingBufferMemory) const
+                                                vk::raii::Buffer& stagingBuffer,
+                                                vk::raii::DeviceMemory& stagingBufferMemory) const
   {
     const auto imageSize = width * height;
 
     Buffers::createBuffer(
       m_logicalDevice,
       imageSize,
-      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      vk::BufferUsageFlagBits::eTransferSrc,
+      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
       stagingBuffer,
       stagingBufferMemory
     );
@@ -59,93 +57,88 @@ namespace vke {
     });
   }
 
-  void TextureGlyph::createAndPrepareImage(const VkCommandPool& commandPool,
+  void TextureGlyph::createAndPrepareImage(const vk::raii::CommandPool& commandPool,
                                            const uint32_t width,
                                            const uint32_t height)
   {
-    Images::createImage(
+    auto [ image, imageMemory ] = Images::createImage(
       m_logicalDevice,
       {
-        .flags = 0,
-        .extent = {
-          .width = width,
-          .height = height,
-          .depth = 1,
+        {},
+        vk::Extent3D{
+          width,
+          height,
+          1,
         },
-        .mipLevels = m_mipLevels,
-        .numSamples = VK_SAMPLE_COUNT_1_BIT,
-        .format = VK_FORMAT_R8_UNORM,
-        .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .layerCount = 1,
-        .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-      },
-      m_textureImage,
-      m_textureImageMemory
+        m_mipLevels,
+        vk::SampleCountFlagBits::e1,
+        vk::Format::eR8Unorm,
+        vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        vk::ImageType::e2D,
+        1,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+      }
     );
+
+    m_textureImage = std::move(image);
+    m_textureImageMemory = std::move(imageMemory);
 
     Images::transitionImageLayout(
       m_logicalDevice,
       commandPool,
       m_textureImage,
-      VK_FORMAT_R8_UNORM,
-      VK_IMAGE_LAYOUT_UNDEFINED,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      vk::Format::eR8Unorm,
+      vk::ImageLayout::eUndefined,
+      vk::ImageLayout::eTransferDstOptimal,
       m_mipLevels,
       1
     );
   }
 
-  void TextureGlyph::copyBufferToImage(const VkCommandPool& commandPool,
+  void TextureGlyph::copyBufferToImage(const vk::raii::CommandPool& commandPool,
                                        const uint32_t width,
                                        const uint32_t height,
-                                       const VkBuffer& stagingBuffer) const
+                                       vk::raii::Buffer& stagingBuffer) const
   {
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([this, commandBuffer, width, height, stagingBuffer] {
-      const VkBufferImageCopy region {
-        .bufferOffset = 0,
-        .bufferRowLength = 0,
-        .bufferImageHeight = 0,
-        .imageSubresource = {
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-          .mipLevel = 0,
-          .baseArrayLayer = 0,
-          .layerCount = 1,
+    commandBuffer.record([this, commandBuffer, width, height, &stagingBuffer] {
+      const vk::BufferImageCopy region{
+        0,
+        0,
+        0,
+        vk::ImageSubresourceLayers{
+          vk::ImageAspectFlagBits::eColor,
+          0,
+          0,
+          1,
         },
-        .imageOffset = {0, 0, 0},
-        .imageExtent = {width, height, 1}
+        vk::Offset3D{0, 0, 0},
+        vk::Extent3D{width, height, 1}
       };
 
       commandBuffer.copyBufferToImage(
         stagingBuffer,
         m_textureImage,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        vk::ImageLayout::eTransferDstOptimal,
         { region }
       );
     });
   }
 
-  void TextureGlyph::transitionImageToShaderReadable(const VkCommandPool& commandPool) const
+  void TextureGlyph::transitionImageToShaderReadable(const vk::raii::CommandPool& commandPool) const
   {
     Images::transitionImageLayout(
       m_logicalDevice,
       commandPool,
       m_textureImage,
-      VK_FORMAT_R8_UNORM,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      vk::Format::eR8Unorm,
+      vk::ImageLayout::eTransferDstOptimal,
+      vk::ImageLayout::eShaderReadOnlyOptimal,
       m_mipLevels,
       1
     );
-  }
-
-  void TextureGlyph::cleanupStagingBuffer(VkBuffer& stagingBuffer,
-                                          VkDeviceMemory& stagingBufferMemory) const
-  {
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
   void TextureGlyph::createImageView()
@@ -153,14 +146,14 @@ namespace vke {
     m_textureImageView = Images::createImageView(
       m_logicalDevice,
       m_textureImage,
-      VK_FORMAT_R8_UNORM,
-      VK_IMAGE_ASPECT_COLOR_BIT,
+      vk::Format::eR8Unorm,
+      vk::ImageAspectFlagBits::eColor,
       m_mipLevels,
-      VK_IMAGE_VIEW_TYPE_2D,
+      vk::ImageViewType::e2D,
       1
     );
 
-    m_imageInfo.imageView = m_textureImageView;
+    m_imageInfo.imageView = *m_textureImageView;
   }
 
 } // vke

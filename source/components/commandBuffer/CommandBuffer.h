@@ -96,9 +96,9 @@ namespace vke {
                            vk::ImageLayout dstImageLayout,
                            const std::vector<vk::BufferImageCopy>& regions) const;
 
-    void blitImage(const vk::raii::Image& srcImage,
+    void blitImage(const vk::Image& srcImage,
                    vk::ImageLayout srcImageLayout,
-                   const vk::raii::Image& dstImage,
+                   const vk::Image& dstImage,
                    vk::ImageLayout dstImageLayout,
                    const std::vector<vk::ImageBlit>& regions,
                    vk::Filter filter) const;

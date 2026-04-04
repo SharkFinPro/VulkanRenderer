@@ -10,16 +10,16 @@
 namespace vke {
 
   TextureCubemap::TextureCubemap(std::shared_ptr<LogicalDevice> logicalDevice,
-                                 const VkCommandPool& commandPool,
+                                 const vk::raii::CommandPool& commandPool,
                                  const std::array<std::string, 6>& paths)
-    : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+    : Texture(std::move(logicalDevice), vk::SamplerAddressMode::eClampToEdge)
   {
     createTextureImage(commandPool, paths);
 
     createImageView();
   }
 
-  void TextureCubemap::createTextureImage(const VkCommandPool& commandPool,
+  void TextureCubemap::createTextureImage(const vk::raii::CommandPool& commandPool,
                                           const std::array<std::string, 6>& paths)
   {
     int texWidth, texHeight;
@@ -34,95 +34,94 @@ namespace vke {
       }
     }
 
-    const VkDeviceSize imageSize = texWidth * texHeight * 4;
-    const VkDeviceSize totalSize = imageSize * paths.size();
+    const vk::DeviceSize imageSize = texWidth * texHeight * 4;
+    const vk::DeviceSize totalSize = imageSize * paths.size();
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    Buffers::createBuffer(m_logicalDevice, totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+    vk::raii::Buffer stagingBuffer = nullptr;
+    vk::raii::DeviceMemory stagingBufferMemory = nullptr;
+    Buffers::createBuffer(m_logicalDevice, totalSize, vk::BufferUsageFlagBits::eTransferSrc,
+                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
     m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
       for (size_t i = 0; i < pixels.size(); ++i)
       {
-        const VkDeviceSize offset = i * imageSize;
-        memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
+        const vk::DeviceSize offset = i * imageSize;
+        memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], static_cast<size_t>(imageSize));
         stbi_image_free(pixels[i]);
       }
     });
 
     createImage(stagingBuffer, commandPool, imageSize, texWidth, texHeight);
-
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
-  void TextureCubemap::createImage(VkBuffer stagingBuffer,
-                                   VkCommandPool commandPool,
-                                   const VkDeviceSize imageSize,
+  void TextureCubemap::createImage(const vk::raii::Buffer& stagingBuffer,
+                                   const vk::raii::CommandPool& commandPool,
+                                   const vk::DeviceSize imageSize,
                                    const uint32_t texWidth,
                                    const uint32_t texHeight)
   {
-    Images::createImage(
+    auto [image, imageMemory] = Images::createImage(
       m_logicalDevice,
       {
-        .flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-        .extent = {
-          .width = texWidth,
-          .height = texHeight,
-          .depth = 1
+        vk::ImageCreateFlagBits::eCubeCompatible,
+        vk::Extent3D{
+          texWidth,
+          texHeight,
+          1
         },
-        .mipLevels = 1,
-        .numSamples = VK_SAMPLE_COUNT_1_BIT,
-        .format = VK_FORMAT_R8G8B8A8_UNORM,
-        .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .layerCount = 6,
-        .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-      },
-      m_textureImage,
-      m_textureImageMemory
+        1,
+        vk::SampleCountFlagBits::e1,
+        vk::Format::eR8G8B8A8Unorm,
+        vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        vk::ImageType::e2D,
+        6,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+      }
     );
 
-    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                  VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    m_textureImage = std::move(image);
+    m_textureImageMemory = std::move(imageMemory);
+
+    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
+                                  vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
                                   1, 6);
 
     copyBufferToImage(commandPool, stagingBuffer, imageSize, texWidth, texHeight);
 
-    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 6);
+    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
+                                  vk::ImageLayout::eTransferDstOptimal,
+                                  vk::ImageLayout::eShaderReadOnlyOptimal, 1, 6);
   }
 
-  void TextureCubemap::copyBufferToImage(const VkCommandPool& commandPool,
-                                         VkBuffer stagingBuffer,
-                                         const VkDeviceSize imageSize,
+  void TextureCubemap::copyBufferToImage(const vk::raii::CommandPool& commandPool,
+                                         vk::raii::Buffer stagingBuffer,
+                                         const vk::DeviceSize imageSize,
                                          const uint32_t textureWidth,
                                          const uint32_t textureHeight) const
   {
-    std::vector<VkBufferImageCopy> bufferCopyRegions(6);
+    std::vector<vk::BufferImageCopy> bufferCopyRegions(6);
     for (uint32_t i = 0; i < 6; ++i)
     {
       bufferCopyRegions[i].bufferOffset = i * imageSize;
       bufferCopyRegions[i].bufferRowLength = 0;
       bufferCopyRegions[i].bufferImageHeight = 0;
-      bufferCopyRegions[i].imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+      bufferCopyRegions[i].imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
       bufferCopyRegions[i].imageSubresource.mipLevel = 0;
       bufferCopyRegions[i].imageSubresource.baseArrayLayer = i;
       bufferCopyRegions[i].imageSubresource.layerCount = 1;
-      bufferCopyRegions[i].imageOffset = { 0, 0, 0 };
-      bufferCopyRegions[i].imageExtent = { textureWidth, textureHeight, 1 };
+      bufferCopyRegions[i].imageOffset = vk::Offset3D{ 0, 0, 0 };
+      bufferCopyRegions[i].imageExtent = vk::Extent3D{ textureWidth, textureHeight, 1 };
     }
 
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([this, commandBuffer, stagingBuffer, bufferCopyRegions] {
+    commandBuffer.record([this, commandBuffer, &stagingBuffer, bufferCopyRegions] {
       commandBuffer.copyBufferToImage(
         stagingBuffer,
         m_textureImage,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        vk::ImageLayout::eTransferDstOptimal,
         bufferCopyRegions
       );
     });
@@ -133,14 +132,14 @@ namespace vke {
     m_textureImageView = Images::createImageView(
       m_logicalDevice,
       m_textureImage,
-      VK_FORMAT_R8G8B8A8_UNORM,
-      VK_IMAGE_ASPECT_COLOR_BIT,
+      vk::Format::eR8G8B8A8Unorm,
+      vk::ImageAspectFlagBits::eColor,
       1,
-      VK_IMAGE_VIEW_TYPE_CUBE,
+      vk::ImageViewType::eCube,
       6
     );
 
-    m_imageInfo.imageView = m_textureImageView;
+    m_imageInfo.imageView = *m_textureImageView;
   }
 
 } // namespace vke

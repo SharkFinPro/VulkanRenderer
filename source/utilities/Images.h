@@ -7,7 +7,6 @@
 namespace vke {
 
   class LogicalDevice;
-  class PhysicalDevice;
   class SingleUseCommandBuffer;
 
   namespace Images {

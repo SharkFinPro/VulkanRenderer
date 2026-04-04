@@ -14,22 +14,22 @@ namespace vke {
   class TextureCubemap final : public Texture {
   public:
     TextureCubemap(std::shared_ptr<LogicalDevice> logicalDevice,
-                   const VkCommandPool& commandPool,
+                   const vk::raii::CommandPool& commandPool,
                    const std::array<std::string, 6>& paths);
 
   private:
-    void createTextureImage(const VkCommandPool& commandPool,
+    void createTextureImage(const vk::raii::CommandPool& commandPool,
                             const std::array<std::string, 6>& paths);
 
-    void createImage(VkBuffer stagingBuffer,
-                     VkCommandPool commandPool,
-                     VkDeviceSize imageSize,
+    void createImage(const vk::raii::Buffer& stagingBuffer,
+                     const vk::raii::CommandPool& commandPool,
+                     vk::DeviceSize imageSize,
                      uint32_t texWidth,
                      uint32_t texHeight);
 
-    void copyBufferToImage(const VkCommandPool& commandPool,
-                           VkBuffer stagingBuffer,
-                           VkDeviceSize imageSize,
+    void copyBufferToImage(const vk::raii::CommandPool& commandPool,
+                           vk::raii::Buffer stagingBuffer,
+                           vk::DeviceSize imageSize,
                            uint32_t textureWidth,
                            uint32_t textureHeight) const;
 

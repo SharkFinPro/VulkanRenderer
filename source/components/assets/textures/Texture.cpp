@@ -9,70 +9,63 @@
 namespace vke {
 
   Texture::Texture(std::shared_ptr<LogicalDevice> logicalDevice,
-                   const VkSamplerAddressMode samplerAddressMode)
+                   const vk::SamplerAddressMode samplerAddressMode)
     : m_logicalDevice(std::move(logicalDevice))
   {
     createTextureSampler(samplerAddressMode);
 
-    m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    m_imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
   }
 
   Texture::~Texture()
   {
-    if (m_imGuiTexture != VK_NULL_HANDLE)
+    if (m_imGuiTexture)
     {
       ImGui_ImplVulkan_RemoveTexture(m_imGuiTexture);
     }
-
-    m_logicalDevice->destroySampler(m_textureSampler);
-    m_logicalDevice->destroyImageView(m_textureImageView);
-
-    m_logicalDevice->destroyImage(m_textureImage);
-
-    m_logicalDevice->freeMemory(m_textureImageMemory);
   }
 
-  VkWriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding,
-                                                 const VkDescriptorSet& dstSet) const
+  vk::WriteDescriptorSet Texture::getDescriptorSet(const uint32_t binding,
+                                                   const vk::DescriptorSet& dstSet) const
   {
-    const VkWriteDescriptorSet descriptorSet {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    return vk::WriteDescriptorSet{
       .dstSet = dstSet,
       .dstBinding = binding,
       .dstArrayElement = 0,
       .descriptorCount = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-      .pImageInfo = &m_imageInfo
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+      .pImageInfo = &m_imageInfo,
+      .pBufferInfo = nullptr,
+      .pTexelBufferView = nullptr
     };
-
-    return descriptorSet;
   }
 
   ImTextureID Texture::getImGuiTexture()
   {
-    if (m_imGuiTexture == VK_NULL_HANDLE)
+    if (!m_imGuiTexture)
     {
-      m_imGuiTexture = ImGui_ImplVulkan_AddTexture(m_textureSampler, m_textureImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      m_imGuiTexture = ImGui_ImplVulkan_AddTexture(*m_textureSampler, *m_textureImageView,
+                                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
-    return reinterpret_cast<ImTextureID>(m_imGuiTexture);
+    return reinterpret_cast<ImTextureID>(static_cast<VkDescriptorSet>(m_imGuiTexture));
   }
 
-  VkDescriptorImageInfo Texture::getImageInfo() const
+  vk::DescriptorImageInfo Texture::getImageInfo() const
   {
     return m_imageInfo;
   }
 
-  void Texture::generateMipmaps(const VkCommandPool& commandPool,
-                                VkImage image,
-                                const VkFormat imageFormat,
+  void Texture::generateMipmaps(const vk::raii::CommandPool& commandPool,
+                                const vk::Image image,
+                                const vk::Format imageFormat,
                                 const int32_t texWidth,
                                 const int32_t texHeight,
                                 const uint32_t mipLevels) const
   {
     const auto formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(imageFormat);
 
-    if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
+    if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear))
     {
       throw std::runtime_error("texture image format does not support linear blitting!");
     }
@@ -80,16 +73,19 @@ namespace vke {
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([commandBuffer, image, texWidth, texHeight, mipLevels] {
-      VkImageMemoryBarrier barrier {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      vk::ImageMemoryBarrier barrier {
+        .sType = vk::StructureType::eImageMemoryBarrier,
+        .srcAccessMask = {},
+        .dstAccessMask = {},
+        .oldLayout = vk::ImageLayout::eUndefined,
+        .newLayout = vk::ImageLayout::eUndefined,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .image = image,
         .subresourceRange = {
-          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-          .levelCount = 1,
-          .baseArrayLayer = 0,
-          .layerCount = 1
+          vk::ImageAspectFlagBits::eColor,
+          0, 1,
+          0, 1
         }
       };
 
@@ -120,58 +116,53 @@ namespace vke {
   }
 
   void Texture::blitImage(const SingleUseCommandBuffer& commandBuffer,
-                          VkImage image,
+                          const vk::Image image,
                           const uint32_t mipLevel,
                           const int32_t mipWidth,
                           const int32_t mipHeight)
   {
-    const VkImageBlit blit {
-      .srcSubresource = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .mipLevel = mipLevel,
-        .baseArrayLayer = 0,
-        .layerCount = 1
+    const vk::ImageBlit blit{
+      vk::ImageSubresourceLayers{
+        vk::ImageAspectFlagBits::eColor,
+        mipLevel,
+        0,
+        1
       },
-      .srcOffsets = {
-        { 0, 0, 0 },
-        { mipWidth, mipHeight, 1 }
+      std::array<vk::Offset3D, 2>{vk::Offset3D{0, 0, 0}, vk::Offset3D{mipWidth, mipHeight, 1}},
+      vk::ImageSubresourceLayers{
+        vk::ImageAspectFlagBits::eColor,
+        mipLevel + 1,
+        0,
+        1
       },
-      .dstSubresource = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .mipLevel = mipLevel + 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-      },
-      .dstOffsets = {
-        { 0, 0, 0 },
-        { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 }
-      }
+      std::array<vk::Offset3D, 2>{vk::Offset3D{0, 0, 0},
+                                  vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1}}
     };
 
     commandBuffer.blitImage(
       image,
-      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      vk::ImageLayout::eTransferSrcOptimal,
       image,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      vk::ImageLayout::eTransferDstOptimal,
       { blit },
-      VK_FILTER_LINEAR
+      vk::Filter::eLinear
     );
   }
 
   void Texture::transitionMipLevelToTransferSrc(const SingleUseCommandBuffer& commandBuffer,
-                                                VkImageMemoryBarrier& barrier,
+                                                vk::ImageMemoryBarrier& barrier,
                                                 const uint32_t mipLevel)
   {
     barrier.subresourceRange.baseMipLevel = mipLevel;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
     commandBuffer.pipelineBarrier(
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      0,
+      vk::PipelineStageFlagBits::eTransfer,
+      vk::PipelineStageFlagBits::eTransfer,
+      {},
       {},
       {},
       { barrier }
@@ -179,17 +170,17 @@ namespace vke {
   }
 
   void Texture::transitionMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
-                                               VkImageMemoryBarrier& barrier)
+                                               vk::ImageMemoryBarrier& barrier)
   {
-    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
     commandBuffer.pipelineBarrier(
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-      0,
+      vk::PipelineStageFlagBits::eTransfer,
+      vk::PipelineStageFlagBits::eFragmentShader,
+      {},
       {},
       {},
       { barrier }
@@ -197,34 +188,33 @@ namespace vke {
   }
 
   void Texture::transitionFinalMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
-                                                    VkImageMemoryBarrier& barrier,
+                                                    vk::ImageMemoryBarrier& barrier,
                                                     const uint32_t mipLevel)
   {
     barrier.subresourceRange.baseMipLevel = mipLevel;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
     commandBuffer.pipelineBarrier(
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-      0,
+      vk::PipelineStageFlagBits::eTransfer,
+      vk::PipelineStageFlagBits::eFragmentShader,
+      {},
       {},
       {},
       { barrier }
     );
   }
 
-  void Texture::createTextureSampler(const VkSamplerAddressMode addressMode)
+  void Texture::createTextureSampler(const vk::SamplerAddressMode addressMode)
   {
-    const VkPhysicalDeviceProperties deviceProperties = m_logicalDevice->getPhysicalDevice()->getDeviceProperties();
+    const vk::PhysicalDeviceProperties deviceProperties = m_logicalDevice->getPhysicalDevice()->getDeviceProperties();
 
-    const VkSamplerCreateInfo samplerCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .magFilter = VK_FILTER_LINEAR,
-      .minFilter = VK_FILTER_LINEAR,
-      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+    vk::SamplerCreateInfo samplerCreateInfo{
+      .magFilter = vk::Filter::eLinear,
+      .minFilter = vk::Filter::eLinear,
+      .mipmapMode = vk::SamplerMipmapMode::eLinear,
       .addressModeU = addressMode,
       .addressModeV = addressMode,
       .addressModeW = addressMode,
@@ -232,16 +222,16 @@ namespace vke {
       .anisotropyEnable = VK_TRUE,
       .maxAnisotropy = deviceProperties.limits.maxSamplerAnisotropy,
       .compareEnable = VK_FALSE,
-      .compareOp = VK_COMPARE_OP_ALWAYS,
+      .compareOp = vk::CompareOp::eAlways,
       .minLod = 0.0f,
       .maxLod = VK_LOD_CLAMP_NONE,
-      .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+      .borderColor = vk::BorderColor::eIntOpaqueBlack,
       .unnormalizedCoordinates = VK_FALSE
     };
 
     m_textureSampler = m_logicalDevice->createSampler(samplerCreateInfo);
 
-    m_imageInfo.sampler = m_textureSampler;
+    m_imageInfo.sampler = *m_textureSampler;
   }
 
 } // namespace vke

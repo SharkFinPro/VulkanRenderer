@@ -8,12 +8,12 @@ namespace vke {
   class Texture3D final : public Texture {
   public:
     Texture3D(std::shared_ptr<LogicalDevice> logicalDevice,
-              const VkCommandPool& commandPool,
+              const vk::raii::CommandPool& commandPool,
               const char* path,
-              VkSamplerAddressMode samplerAddressMode);
+              vk::SamplerAddressMode samplerAddressMode);
 
   private:
-    void createTextureImage(const VkCommandPool& commandPool,
+    void createTextureImage(const vk::raii::CommandPool& commandPool,
                             const char* path);
 
     void createImageView() override;

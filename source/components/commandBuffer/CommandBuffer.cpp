@@ -171,14 +171,14 @@ namespace vke {
     m_commandBuffers[m_currentFrame].copyBufferToImage(srcBuffer, dstImage, dstImageLayout, regions);
   }
 
-  void CommandBuffer::blitImage(const vk::raii::Image& srcImage,
+  void CommandBuffer::blitImage(const vk::Image& srcImage,
                                 const vk::ImageLayout srcImageLayout,
-                                const vk::raii::Image& dstImage,
+                                const vk::Image& dstImage,
                                 const vk::ImageLayout dstImageLayout,
                                 const std::vector<vk::ImageBlit>& regions,
                                 const vk::Filter filter) const
   {
-    m_commandBuffers[m_currentFrame].blitImage(*srcImage, srcImageLayout, *dstImage, dstImageLayout, regions, filter);
+    m_commandBuffers[m_currentFrame].blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions, filter);
   }
 
   void CommandBuffer::copyBuffer(const vk::raii::Buffer& srcBuffer,
