@@ -148,7 +148,7 @@ namespace vke {
                                     uint32_t offset,
                                     const T& data) const
   {
-    m_commandBuffers[m_currentFrame].pushConstants(layout, stageFlags, offset, data);
+    m_commandBuffers[m_currentFrame].pushConstants<T>(layout, stageFlags, offset, data);
   }
 } // namespace vke
 
