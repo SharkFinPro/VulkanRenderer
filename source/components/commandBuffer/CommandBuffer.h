@@ -15,7 +15,7 @@ namespace vke {
     explicit CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice);
 
     CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                  vk::CommandPool& commandPool);
+                  vk::CommandPool commandPool);
 
     virtual ~CommandBuffer() = default;
 
@@ -133,7 +133,7 @@ namespace vke {
 
     uint32_t m_currentFrame = 0;
 
-    virtual void allocateCommandBuffers(const vk::CommandPool& commandPool);
+    virtual void allocateCommandBuffers(vk::CommandPool commandPool);
   };
 
   template<typename T>

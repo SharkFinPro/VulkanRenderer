@@ -8,7 +8,7 @@ namespace vke {
   {}
 
   CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                               vk::CommandPool& commandPool)
+                               const vk::CommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice))
   {
     CommandBuffer::allocateCommandBuffers(commandPool);
@@ -221,7 +221,7 @@ namespace vke {
     m_commandBuffers[m_currentFrame].copyImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions);
   }
 
-  void CommandBuffer::allocateCommandBuffers(const vk::CommandPool& commandPool)
+  void CommandBuffer::allocateCommandBuffers(const vk::CommandPool commandPool)
   {
     const vk::CommandBufferAllocateInfo allocInfo {
       .commandPool = commandPool,
