@@ -16,6 +16,8 @@ namespace vke {
 
   Instance::Instance()
   {
+    VULKAN_HPP_DEFAULT_DISPATCHER.init();
+
     if (validationLayersEnabled() && !checkValidationLayerSupport())
     {
       throw std::runtime_error("validation layers requested, but not available!");
@@ -45,6 +47,8 @@ namespace vke {
     };
 
     m_instance = vk::raii::Instance(m_context, createInfo);
+
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(*m_instance);
 
     if (validationLayersEnabled())
     {

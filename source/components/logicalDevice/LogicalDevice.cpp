@@ -487,6 +487,7 @@ namespace vke {
     };
 
     m_device = m_physicalDevice->createLogicalDevice(createInfo);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(*m_device);
 
     m_computeQueue = m_device.getQueue(queueFamilyIndices.computeFamily.value(), 0);
     m_graphicsQueue = m_device.getQueue(queueFamilyIndices.graphicsFamily.value(), 0);
