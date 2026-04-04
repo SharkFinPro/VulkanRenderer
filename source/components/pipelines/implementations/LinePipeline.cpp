@@ -30,7 +30,7 @@ namespace vke {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex,
           .offset = 0,
           .size = sizeof(MVPTransformUniform)
         }
@@ -43,15 +43,8 @@ namespace vke {
     createVertexBuffer();
   }
 
-  LinePipeline::~LinePipeline()
-  {
-    Buffers::destroyBuffer(m_logicalDevice, m_stagingBuffer, m_stagingBufferMemory);
-
-    Buffers::destroyBuffer(m_logicalDevice, m_vertexBuffer, m_vertexBufferMemory);
-  }
-
   void LinePipeline::render(const RenderInfo* renderInfo,
-                            const VkCommandPool& commandPool,
+                            const vk::raii::CommandPool& commandPool,
                             const std::vector<LineVertex>* vertices) const
   {
     if (vertices->empty())
