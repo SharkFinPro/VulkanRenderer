@@ -74,9 +74,9 @@ namespace vke {
     Font(std::shared_ptr<LogicalDevice> logicalDevice,
          const std::string& fileName,
          uint32_t fontSize,
-         const vk::raii::CommandPool& commandPool,
-         const vk::raii::DescriptorPool& descriptorPool,
-         vk::raii::DescriptorSetLayout descriptorSetLayout);
+         vk::CommandPool commandPool,
+         vk::DescriptorPool descriptorPool,
+         vk::DescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] GlyphInfo* getGlyphInfo(uint32_t codepoint);
 
@@ -97,7 +97,7 @@ namespace vke {
 
     static std::vector<uint8_t> loadFontFromFile(const std::string& fileName);
 
-    void createGlyphAtlas(const vk::raii::CommandPool& commandPool,
+    void createGlyphAtlas(vk::CommandPool commandPool,
                           const std::vector<uint8_t>& fontBuffer,
                           uint32_t fontSize);
 
@@ -120,8 +120,8 @@ namespace vke {
                              uint32_t atlasWidth,
                              uint32_t atlasHeight);
 
-    void createDescriptorSet(const vk::raii::DescriptorPool& descriptorPool,
-                             vk::raii::DescriptorSetLayout descriptorSetLayout);
+    void createDescriptorSet(vk::DescriptorPool descriptorPool,
+                             vk::DescriptorSetLayout descriptorSetLayout);
   };
 
 } // vke

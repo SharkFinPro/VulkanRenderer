@@ -12,9 +12,9 @@ namespace vke {
   Font::Font(std::shared_ptr<LogicalDevice> logicalDevice,
              const std::string& fileName,
              const uint32_t fontSize,
-             const vk::raii::CommandPool& commandPool,
-             const vk::raii::DescriptorPool& descriptorPool,
-             vk::raii::DescriptorSetLayout descriptorSetLayout)
+             const vk::CommandPool commandPool,
+             const vk::DescriptorPool descriptorPool,
+             vk::DescriptorSetLayout descriptorSetLayout)
     : m_logicalDevice(std::move(logicalDevice))
   {
     const auto fontBuffer = loadFontFromFile(fileName);
@@ -63,7 +63,7 @@ namespace vke {
     return buffer;
   }
 
-  void Font::createGlyphAtlas(const vk::raii::CommandPool& commandPool,
+  void Font::createGlyphAtlas(const vk::CommandPool commandPool,
                               const std::vector<uint8_t>& fontBuffer,
                               const uint32_t fontSize)
   {
@@ -207,8 +207,8 @@ namespace vke {
     }
   }
 
-  void Font::createDescriptorSet(const vk::raii::DescriptorPool& descriptorPool,
-                                 vk::raii::DescriptorSetLayout descriptorSetLayout)
+  void Font::createDescriptorSet(const vk::DescriptorPool descriptorPool,
+                                 vk::DescriptorSetLayout descriptorSetLayout)
   {
     m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, std::move(descriptorSetLayout));
     m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
