@@ -118,16 +118,12 @@ namespace vke {
 
     vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
       .arrayOfPointers = vk::False,
-      .data = {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
-      }
+      .data = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
     };
 
     vk::AccelerationStructureGeometryKHR geometry {
       .geometryType = vk::GeometryTypeKHR::eInstances,
-      .geometry = {
-        .instances = instancesData
-      }
+      .geometry = instancesData
     };
 
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {

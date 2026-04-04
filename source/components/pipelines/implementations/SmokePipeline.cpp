@@ -63,8 +63,7 @@ namespace vke {
         vk::PipelineBindPoint::eCompute,
         ComputePipeline::m_pipelineLayout,
         0,
-        1,
-        &system->getSmokeSystemDescriptorSet()->getDescriptorSet(currentFrame)
+        { system->getSmokeSystemDescriptorSet()->getDescriptorSet(currentFrame) }
       );
 
       commandBuffer->dispatch(system->getNumParticles() / 256, 1, 1);
@@ -82,7 +81,7 @@ namespace vke {
       1
     );
 
-    constexpr vk::DeviceSize offsets[] = {0};
+    const std::vector<vk::DeviceSize> offsets = {0};
 
     for (const auto& system : *systems)
     {
@@ -90,14 +89,12 @@ namespace vke {
         vk::PipelineBindPoint::eGraphics,
         GraphicsPipeline::m_pipelineLayout,
         0,
-        1,
-        &system->getSmokeSystemDescriptorSet()->getDescriptorSet(renderInfo->currentFrame)
+        { system->getSmokeSystemDescriptorSet()->getDescriptorSet(renderInfo->currentFrame) }
       );
 
       renderInfo->commandBuffer->bindVertexBuffers(
         0,
-        1,
-        &system->getSmokeSystemShaderStorageBuffer(renderInfo->currentFrame),
+        { system->getSmokeSystemShaderStorageBuffer(renderInfo->currentFrame) },
         offsets
       );
 

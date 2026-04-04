@@ -14,7 +14,7 @@ namespace vke {
                                const uint32_t size,
                                const void* values) const
   {
-    commandBuffer->pushConstants(m_pipelineLayout, stageFlags, offset, size, values);
+    // commandBuffer->pushConstants(m_pipelineLayout, stageFlags, offset, size, values);
   }
 
 } // namespace vke

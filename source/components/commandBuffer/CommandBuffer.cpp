@@ -35,9 +35,9 @@ namespace vke {
     m_commandBuffers[m_currentFrame].reset();
   }
 
-  vk::CommandBuffer CommandBuffer::getCommandBuffer()
+  vk::CommandBuffer CommandBuffer::getCommandBuffer() const
   {
-    return m_commandBuffers[m_currentFrame];
+    return *m_commandBuffers[m_currentFrame];
   }
 
   void CommandBuffer::setViewport(const vk::Viewport& viewport) const
@@ -228,8 +228,6 @@ namespace vke {
       .level = vk::CommandBufferLevel::ePrimary,
       .commandBufferCount = m_logicalDevice->getMaxFramesInFlight()
     };
-
-    m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
 
     m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
   }

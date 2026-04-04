@@ -187,9 +187,7 @@ namespace vke {
 
     geometry = {
       .geometryType = vk::GeometryTypeKHR::eAabbs,
-      .geometry = {
-        .aabbs = aabbsData
-      }
+      .geometry = aabbsData
     };
 
     buildGeometryInfo = {

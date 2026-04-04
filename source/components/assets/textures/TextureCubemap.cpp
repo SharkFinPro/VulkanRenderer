@@ -96,7 +96,7 @@ namespace vke {
   }
 
   void TextureCubemap::copyBufferToImage(const vk::raii::CommandPool& commandPool,
-                                         vk::raii::Buffer stagingBuffer,
+                                         const vk::raii::Buffer& stagingBuffer,
                                          const vk::DeviceSize imageSize,
                                          const uint32_t textureWidth,
                                          const uint32_t textureHeight) const

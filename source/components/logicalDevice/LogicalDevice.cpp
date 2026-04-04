@@ -243,9 +243,9 @@ namespace vke {
     std::ranges::move(sets, descriptorSets);
   }
 
-  void LogicalDevice::updateDescriptorSets(const vk::WriteDescriptorSet& descriptorWrites) const
+  void LogicalDevice::updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const
   {
-    m_device.updateDescriptorSets(descriptorWrites, nullptr);
+    m_device.updateDescriptorSets(writeDescriptorSets, nullptr);
   }
 
   vk::raii::Buffer LogicalDevice::createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const

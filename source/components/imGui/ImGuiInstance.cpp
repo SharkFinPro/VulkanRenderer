@@ -43,7 +43,7 @@ namespace vke {
       .Instance = static_cast<VkInstance>(*instance->m_instance),
       .PhysicalDevice = static_cast<VkPhysicalDevice>(*m_logicalDevice->getPhysicalDevice()->m_physicalDevice),
       .Device = static_cast<VkDevice>(*m_logicalDevice->m_device),
-      .Queue = static_cast<VkQueue>(*m_logicalDevice->getGraphicsQueue()),
+      .Queue = static_cast<VkQueue>(m_logicalDevice->getGraphicsQueue()),
       .DescriptorPool = static_cast<VkDescriptorPool>(*m_descriptorPool),
       .MinImageCount = imageCount,
       .ImageCount = imageCount,

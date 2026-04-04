@@ -82,8 +82,12 @@ namespace vke {
   {
     commandBuffer->bindPipeline(vk::PipelineBindPoint::eCompute, ComputePipeline::m_pipeline);
 
-    commandBuffer->bindDescriptorSets(vk::PipelineBindPoint::eCompute, ComputePipeline::m_pipelineLayout, 0,
-                                      1, &m_dotsDescriptorSet->getDescriptorSet(currentFrame));
+    commandBuffer->bindDescriptorSets(
+      vk::PipelineBindPoint::eCompute,
+      ComputePipeline::m_pipelineLayout,
+      0,
+      { m_dotsDescriptorSet->getDescriptorSet(currentFrame) }
+    );
 
     commandBuffer->dispatch(PARTICLE_COUNT / 256, 1, 1);
   }
@@ -94,9 +98,11 @@ namespace vke {
 
     updateUniformVariables(renderInfo);
 
-    constexpr vk::DeviceSize offsets[] = {0};
-    const vk::Buffer vertexBuffers[] = {*m_shaderStorageBuffers[renderInfo->currentFrame]};
-    renderInfo->commandBuffer->bindVertexBuffers(0, 1, vertexBuffers, offsets);
+    renderInfo->commandBuffer->bindVertexBuffers(
+      0,
+      { m_shaderStorageBuffers[renderInfo->currentFrame] },
+      {0}
+    );
 
     renderInfo->commandBuffer->draw(PARTICLE_COUNT, 1, 0, 0);
   }
@@ -138,7 +144,7 @@ namespace vke {
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    ComputePipeline::m_logicalDevice->doMappedMemoryOperation(*stagingBufferMemory, [particles, bufferSize](void* data) {
+    ComputePipeline::m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
       memcpy(data, particles.data(), static_cast<size_t>(bufferSize));
     });
 

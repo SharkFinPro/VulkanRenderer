@@ -23,7 +23,7 @@ namespace vke {
     return m_framebuffers[imageIndex];
   }
 
-  void Framebuffer::createFrameBuffers(const vk::raii::RenderPass& renderPass,
+  void Framebuffer::createFrameBuffers(const vk::RenderPass renderPass,
                                        const vk::Extent2D extent,
                                        const std::shared_ptr<RenderTarget>& renderTarget,
                                        const std::shared_ptr<SwapChain>& swapChain)
@@ -57,7 +57,7 @@ namespace vke {
       }
 
       const vk::FramebufferCreateInfo framebufferInfo {
-        .renderPass = *renderPass,
+        .renderPass = renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = extent.width,

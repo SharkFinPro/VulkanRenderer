@@ -27,7 +27,7 @@ namespace vke {
 
     std::vector<vk::raii::Framebuffer> m_framebuffers;
 
-    void createFrameBuffers(const vk::raii::RenderPass& renderPass,
+    void createFrameBuffers(vk::RenderPass renderPass,
                             vk::Extent2D extent,
                             const std::shared_ptr<RenderTarget>& renderTarget,
                             const std::shared_ptr<SwapChain>& swapChain);

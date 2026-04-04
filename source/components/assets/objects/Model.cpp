@@ -226,22 +226,16 @@ namespace vke {
   {
     trianglesData = {
       .vertexFormat = vk::Format::eR32G32B32Sfloat,
-      .vertexData {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(*m_vertexBuffer)
-      },
+      .vertexData = m_logicalDevice->getBufferDeviceAddress(*m_vertexBuffer),
       .vertexStride = sizeof(Vertex),
       .maxVertex = static_cast<uint32_t>(m_vertices.size() - 1),
       .indexType = vk::IndexType::eUint32,
-      .indexData {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(*m_indexBuffer)
-      }
+      .indexData = m_logicalDevice->getBufferDeviceAddress(*m_indexBuffer)
     };
 
     geometry = {
       .geometryType = vk::GeometryTypeKHR::eTriangles,
-      .geometry = {
-        .triangles = trianglesData
-      },
+      .geometry = trianglesData,
       .flags = vk::GeometryFlagBitsKHR::eOpaque
     };
 

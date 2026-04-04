@@ -28,7 +28,7 @@ namespace vke {
                      uint32_t texHeight);
 
     void copyBufferToImage(const vk::raii::CommandPool& commandPool,
-                           vk::raii::Buffer stagingBuffer,
+                           const vk::raii::Buffer& stagingBuffer,
                            vk::DeviceSize imageSize,
                            uint32_t textureWidth,
                            uint32_t textureHeight) const;

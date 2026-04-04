@@ -68,13 +68,12 @@ namespace vke {
     Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), m_stagingBuffer,
                         m_vertexBuffer, bufferSize);
 
-    constexpr vk::DeviceSize offsets[] = {0};
-    const vk::Buffer vertexBuffers[] = {*m_vertexBuffer};
-    renderInfo->commandBuffer->bindVertexBuffers(0, 1, vertexBuffers, offsets);
+    const std::vector<vk::DeviceSize> offsets = {0};
+    renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffer }, offsets);
 
     const MVPTransformUniform transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
-    renderInfo->commandBuffer->pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0,
-                                             sizeof(MVPTransformUniform), &transformUBO);
+    // renderInfo->commandBuffer->pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0,
+    //                                          sizeof(MVPTransformUniform), &transformUBO);
 
     renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices->size()), 1, 0, 0);
   }

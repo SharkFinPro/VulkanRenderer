@@ -44,7 +44,7 @@ namespace vke {
     RenderPass(std::shared_ptr<LogicalDevice> logicalDevice,
                const RenderPassConfig& renderPassConfig);
 
-    [[nodiscard]] const vk::raii::RenderPass& getRenderPass() const;
+    [[nodiscard]] vk::RenderPass getRenderPass();
 
     void begin(const vk::raii::Framebuffer& framebuffer,
                const vk::Extent2D& extent,

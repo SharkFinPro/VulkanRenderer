@@ -15,7 +15,7 @@ namespace vke {
     createRenderPass(renderPassConfig);
   }
 
-  const vk::raii::RenderPass& RenderPass::getRenderPass() const
+  vk::RenderPass RenderPass::getRenderPass()
   {
     return m_renderPass;
   }

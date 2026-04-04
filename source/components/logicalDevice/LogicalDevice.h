@@ -75,7 +75,7 @@ namespace vke {
     void allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo,
                                 vk::raii::DescriptorSet* descriptorSets) const;
 
-    void updateDescriptorSets(const vk::WriteDescriptorSet& descriptorWrites) const;
+    void updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const;
 
     [[nodiscard]] vk::raii::Buffer createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const;
 
