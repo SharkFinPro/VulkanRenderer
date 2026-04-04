@@ -3,7 +3,6 @@
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
-#include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include "../../../utilities/Buffers.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>

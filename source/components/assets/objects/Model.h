@@ -1,6 +1,7 @@
 #ifndef VKE_MODEL_H
 #define VKE_MODEL_H
 
+#include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include <assimp/mesh.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/vec3.hpp>
@@ -12,7 +13,6 @@ namespace vke {
 
   class CommandBuffer;
   class LogicalDevice;
-  struct Vertex;
 
   class Model {
   public:
