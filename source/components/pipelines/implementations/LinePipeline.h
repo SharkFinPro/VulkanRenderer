@@ -21,12 +21,12 @@ namespace vke {
                 const std::vector<LineVertex>* vertices) const;
 
   private:
-    vk::raii::Buffer m_vertexBuffer = VK_NULL_HANDLE;
-    vk::raii::DeviceMemory m_vertexBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_vertexBuffer = nullptr;
+    vk::raii::DeviceMemory m_vertexBufferMemory = nullptr;
     size_t m_maxVertexBufferSize = sizeof(LineVertex) * 20'000;
 
-    vk::raii::Buffer m_stagingBuffer = VK_NULL_HANDLE;
-    vk::raii::DeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_stagingBuffer = nullptr;
+    vk::raii::DeviceMemory m_stagingBufferMemory = nullptr;
 
     void createVertexBuffer();
   };
