@@ -8,12 +8,12 @@ namespace vke {
   class Texture2D final : public Texture {
   public:
     explicit Texture2D(std::shared_ptr<LogicalDevice> logicalDevice,
-                       const vk::raii::CommandPool& commandPool,
+                       vk::CommandPool commandPool,
                        const char* path,
                        vk::SamplerAddressMode samplerAddressMode);
 
   private:
-    void createTextureImage(const vk::raii::CommandPool& commandPool,
+    void createTextureImage(vk::CommandPool commandPool,
                             const char* path);
 
     void createImageView() override;

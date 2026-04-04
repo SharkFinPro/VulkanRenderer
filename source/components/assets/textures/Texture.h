@@ -38,7 +38,7 @@ namespace vke {
 
     vk::DescriptorSet m_imGuiTexture{};
 
-    void generateMipmaps(const vk::raii::CommandPool& commandPool,
+    void generateMipmaps(vk::CommandPool commandPool,
                          vk::Image image,
                          vk::Format imageFormat,
                          int32_t texWidth,

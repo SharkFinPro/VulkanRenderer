@@ -56,7 +56,7 @@ namespace vke {
     return m_imageInfo;
   }
 
-  void Texture::generateMipmaps(const vk::raii::CommandPool& commandPool,
+  void Texture::generateMipmaps(const vk::CommandPool commandPool,
                                 const vk::Image image,
                                 const vk::Format imageFormat,
                                 const int32_t texWidth,
