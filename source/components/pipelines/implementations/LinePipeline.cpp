@@ -9,9 +9,8 @@
 
 namespace vke {
 
-  LinePipeline::LinePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+  LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const std::shared_ptr<RenderPass>& renderPass)
-    : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -23,7 +22,7 @@ namespace vke {
         .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
         .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateLineList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(m_logicalDevice),
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
         .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
         .vertexInputState = GraphicsPipelineStates::vertexInputStateLineVertex,
         .viewportState = GraphicsPipelineStates::viewportState
@@ -38,12 +37,13 @@ namespace vke {
       .renderPass = renderPass
     };
 
-    createPipeline(graphicsPipelineOptions);
+    createPipeline(logicalDevice, graphicsPipelineOptions);
 
-    createVertexBuffer();
+    createVertexBuffer(logicalDevice);
   }
 
-  void LinePipeline::render(const RenderInfo* renderInfo,
+  void LinePipeline::render(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                            const RenderInfo* renderInfo,
                             const vk::raii::CommandPool& commandPool,
                             const std::vector<LineVertex>* vertices) const
   {
@@ -65,7 +65,7 @@ namespace vke {
       memcpy(data, vertices->data(), bufferSize);
     });
 
-    Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), m_stagingBuffer,
+    Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), m_stagingBuffer,
                         m_vertexBuffer, bufferSize);
 
     const std::vector<vk::DeviceSize> offsets = {0};
@@ -83,13 +83,13 @@ namespace vke {
     renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices->size()), 1, 0, 0);
   }
 
-  void LinePipeline::createVertexBuffer()
+  void LinePipeline::createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
-    Buffers::createBuffer(m_logicalDevice, m_maxVertexBufferSize,
+    Buffers::createBuffer(logicalDevice, m_maxVertexBufferSize,
                           vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
                           vk::MemoryPropertyFlagBits::eDeviceLocal, m_vertexBuffer, m_vertexBufferMemory);
 
-    Buffers::createBuffer(m_logicalDevice, m_maxVertexBufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+    Buffers::createBuffer(logicalDevice, m_maxVertexBufferSize, vk::BufferUsageFlagBits::eTransferSrc,
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           m_stagingBuffer, m_stagingBufferMemory);
   }

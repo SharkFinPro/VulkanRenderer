@@ -125,7 +125,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   components/pipelines/ComputePipeline.h
   components/pipelines/GraphicsPipeline.cpp
   components/pipelines/GraphicsPipeline.h
-  components/pipelines/Pipeline.cpp
   components/pipelines/Pipeline.h
   components/pipelines/RayTracingPipeline.cpp
   components/pipelines/RayTracingPipeline.h

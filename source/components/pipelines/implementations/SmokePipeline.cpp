@@ -7,12 +7,11 @@
 
 namespace vke {
 
-  SmokePipeline::SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+  SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
                                vk::DescriptorSetLayout smokeSystemDescriptorSetLayout)
-    : ComputePipeline(logicalDevice), GraphicsPipeline(std::move(logicalDevice)),
-      m_lightingDescriptorSet(lightingDescriptorSet)
+  : m_lightingDescriptorSet(lightingDescriptorSet)
   {
     const ComputePipelineOptions computePipelineOptions {
       .shaders {
@@ -23,7 +22,7 @@ namespace vke {
       },
     };
 
-    ComputePipeline::createPipeline(computePipelineOptions);
+    ComputePipeline::createPipeline(logicalDevice, computePipelineOptions);
 
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -35,7 +34,7 @@ namespace vke {
         .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
         .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStatePointList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(GraphicsPipeline::m_logicalDevice),
+        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
         .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
         .vertexInputState = GraphicsPipelineStates::vertexInputStateSmokeParticle,
         .viewportState = GraphicsPipelineStates::viewportState
@@ -47,7 +46,7 @@ namespace vke {
       .renderPass = renderPass
     };
 
-    GraphicsPipeline::createPipeline(graphicsPipelineOptions);
+    GraphicsPipeline::createPipeline(logicalDevice, graphicsPipelineOptions);
   }
 
   void SmokePipeline::compute(const std::shared_ptr<CommandBuffer>& commandBuffer,

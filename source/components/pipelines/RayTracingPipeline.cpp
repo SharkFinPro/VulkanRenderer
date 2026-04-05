@@ -6,13 +6,12 @@
 #include <cstring>
 
 namespace vke {
-  RayTracingPipeline::RayTracingPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+  RayTracingPipeline::RayTracingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                          const RayTracingPipelineConfig& config)
-    : Pipeline(std::move(logicalDevice))
   {
-    createPipeline(config);
+    createPipeline(logicalDevice, config);
 
-    createShaderBindingTable(config);
+    createShaderBindingTable(logicalDevice, config);
   }
 
   void RayTracingPipeline::doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -43,7 +42,8 @@ namespace vke {
     );
   }
 
-  void RayTracingPipeline::createPipelineLayout(const RayTracingPipelineConfig& config)
+  void RayTracingPipeline::createPipelineLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                const RayTracingPipelineConfig& config)
   {
     const vk::PipelineLayoutCreateInfo pipelineLayoutInfo {
       .setLayoutCount = static_cast<uint32_t>(config.descriptorSetLayouts.size()),
@@ -52,14 +52,15 @@ namespace vke {
       .pPushConstantRanges = config.pushConstantRanges.empty() ? nullptr : config.pushConstantRanges.data()
     };
 
-    m_pipelineLayout = m_logicalDevice->createPipelineLayout(pipelineLayoutInfo);
+    m_pipelineLayout = logicalDevice->createPipelineLayout(pipelineLayoutInfo);
   }
 
-  void RayTracingPipeline::createPipeline(const RayTracingPipelineConfig& config)
+  void RayTracingPipeline::createPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                          const RayTracingPipelineConfig& config)
   {
-    createPipelineLayout(config);
+    createPipelineLayout(logicalDevice, config);
 
-    const auto shaderModules = config.shaders.getShaderModules(m_logicalDevice);
+    const auto shaderModules = config.shaders.getShaderModules(logicalDevice);
     const auto shaderStages = config.shaders.getShaderStages(shaderModules);
 
     std::vector<vk::RayTracingShaderGroupCreateInfoKHR> groups;
@@ -109,12 +110,13 @@ namespace vke {
       .basePipelineIndex = -1
     };
 
-    m_pipeline = m_logicalDevice->createPipeline(rayTracingPipelineCreateInfo);
+    m_pipeline = logicalDevice->createPipeline(rayTracingPipelineCreateInfo);
   }
 
-  void RayTracingPipeline::createShaderBindingTable(const RayTracingPipelineConfig& config)
+  void RayTracingPipeline::createShaderBindingTable(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                    const RayTracingPipelineConfig& config)
   {
-    const auto rayTracingPipelineProperties = m_logicalDevice->getPhysicalDevice()->getRayTracingPipelineProperties();
+    const auto rayTracingPipelineProperties = logicalDevice->getPhysicalDevice()->getRayTracingPipelineProperties();
 
     const uint32_t shaderGroupHandleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
     const uint32_t shaderGroupBaseAlignment = rayTracingPipelineProperties.shaderGroupBaseAlignment;
@@ -129,7 +131,7 @@ namespace vke {
     std::vector<uint8_t> handles = m_pipeline.getRayTracingShaderGroupHandlesKHR<uint8_t>(0, groupCount, handlesSize);
 
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       shaderBindingTableSize,
       vk::BufferUsageFlagBits::eShaderBindingTableKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -145,7 +147,7 @@ namespace vke {
       }
     });
 
-    const auto shaderBindingTableAddress = m_logicalDevice->getBufferDeviceAddress(m_shaderBindingTableBuffer);
+    const auto shaderBindingTableAddress = logicalDevice->getBufferDeviceAddress(m_shaderBindingTableBuffer);
 
     m_rayGenerationRegion = vk::StridedDeviceAddressRegionKHR{
       .deviceAddress = shaderBindingTableAddress,

@@ -77,7 +77,7 @@ namespace vke {
   void PipelineManager::renderLinePipeline(const RenderInfo* renderInfo,
                                            const std::vector<LineVertex>* lineVertices) const
   {
-    m_linePipeline->render(renderInfo, m_commandPool, lineVertices);
+    m_linePipeline->render(m_logicalDevice, renderInfo, m_commandPool, lineVertices);
   }
 
   void PipelineManager::doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,

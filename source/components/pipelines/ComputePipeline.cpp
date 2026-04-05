@@ -3,11 +3,8 @@
 
 namespace vke {
 
-  ComputePipeline::ComputePipeline(std::shared_ptr<LogicalDevice> logicalDevice)
-    : Pipeline(std::move(logicalDevice))
-  {}
-
-  void ComputePipeline::createPipelineLayout(const ComputePipelineOptions& computePipelineOptions)
+  void ComputePipeline::createPipelineLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                             const ComputePipelineOptions& computePipelineOptions)
   {
     const vk::PipelineLayoutCreateInfo pipelineLayoutInfo {
       .setLayoutCount = static_cast<uint32_t>(computePipelineOptions.descriptorSetLayouts.size()),
@@ -16,21 +13,22 @@ namespace vke {
       .pPushConstantRanges = computePipelineOptions.pushConstantRanges.empty() ? nullptr : computePipelineOptions.pushConstantRanges.data()
     };
 
-    m_pipelineLayout = m_logicalDevice->createPipelineLayout(pipelineLayoutInfo);
+    m_pipelineLayout = logicalDevice->createPipelineLayout(pipelineLayoutInfo);
   }
 
-  void ComputePipeline::createPipeline(const ComputePipelineOptions& computePipelineOptions)
+  void ComputePipeline::createPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                       const ComputePipelineOptions& computePipelineOptions)
   {
-    createPipelineLayout(computePipelineOptions);
+    createPipelineLayout(logicalDevice, computePipelineOptions);
 
-    const auto shaderModule = computePipelineOptions.shaders.getShaderModule(m_logicalDevice);
+    const auto shaderModule = computePipelineOptions.shaders.getShaderModule(logicalDevice);
 
     const vk::ComputePipelineCreateInfo computePipelineCreateInfo {
       .stage = shaderModule.getShaderStageCreateInfo(),
       .layout = *m_pipelineLayout
     };
 
-    m_pipeline = m_logicalDevice->createPipeline(computePipelineCreateInfo);
+    m_pipeline = logicalDevice->createPipeline(computePipelineCreateInfo);
   }
 
 } // namespace vke

@@ -18,7 +18,7 @@ namespace vke {
 
   class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
-    DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+    DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  const vk::raii::CommandPool& commandPool,
                  const std::shared_ptr<RenderPass>& renderPass,
                  vk::DescriptorPool descriptorPool);
@@ -40,10 +40,13 @@ namespace vke {
     float m_dotSpeed = 1000.0f;
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
-    void createUniforms();
-    void createShaderStorageBuffers(const vk::raii::CommandPool& commandPool);
+    void createUniforms(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
-    void createDescriptorSets(vk::DescriptorPool descriptorPool);
+    void createShaderStorageBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                    const vk::raii::CommandPool& commandPool);
+
+    void createDescriptorSets(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              vk::DescriptorPool descriptorPool);
 
     void updateUniformVariables(const RenderInfo* renderInfo);
   };
