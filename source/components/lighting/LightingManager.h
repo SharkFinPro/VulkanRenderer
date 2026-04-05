@@ -65,15 +65,15 @@ namespace vke {
     std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
     std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
 
-    vk::raii::CommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool = nullptr;
 
     std::vector<vk::raii::DescriptorPool> m_descriptorPools;
     uint32_t m_descriptorPoolSize = 30;
     uint32_t m_currentDescriptorPoolSize = 0;
 
-    vk::raii::Sampler m_shadowMapSampler = VK_NULL_HANDLE;
+    vk::raii::Sampler m_shadowMapSampler = nullptr;
 
-    vk::raii::DescriptorSetLayout m_pointLightDescriptorSetLayout = VK_NULL_HANDLE;
+    vk::raii::DescriptorSetLayout m_pointLightDescriptorSetLayout = nullptr;
 
     std::shared_ptr<Renderer> m_renderer;
 

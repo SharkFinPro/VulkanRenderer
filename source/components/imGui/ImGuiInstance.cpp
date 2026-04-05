@@ -48,7 +48,7 @@ namespace vke {
       .MinImageCount = imageCount,
       .ImageCount = imageCount,
       .PipelineInfoMain {
-        .RenderPass = renderPass ? static_cast<VkRenderPass>(renderPass->getRenderPass()) : VK_NULL_HANDLE,
+        .RenderPass = renderPass ? static_cast<VkRenderPass>(renderPass->getRenderPass()) : nullptr,
         .MSAASamples = static_cast<VkSampleCountFlagBits>(m_logicalDevice->getPhysicalDevice()->getMsaaSamples())
       }
     };

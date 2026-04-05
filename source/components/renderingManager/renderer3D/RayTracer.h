@@ -75,9 +75,9 @@ namespace vke {
     vk::raii::Buffer m_meshInfoBuffer = nullptr;
     vk::raii::DeviceMemory m_meshInfoBufferMemory = nullptr;
 
-    vk::DescriptorBufferInfo m_vertexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
-    vk::DescriptorBufferInfo m_indexBufferInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
-    vk::DescriptorBufferInfo m_meshInfoInfo = { VK_NULL_HANDLE, 0, VK_WHOLE_SIZE };
+    vk::DescriptorBufferInfo m_vertexBufferInfo = { nullptr, 0, vk::WholeSize };
+    vk::DescriptorBufferInfo m_indexBufferInfo = { nullptr, 0, vk::WholeSize };
+    vk::DescriptorBufferInfo m_meshInfoInfo = { nullptr, 0, vk::WholeSize };
 
     std::vector<vk::DescriptorImageInfo> m_textureImageInfos;
 

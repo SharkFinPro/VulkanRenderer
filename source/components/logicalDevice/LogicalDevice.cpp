@@ -187,7 +187,7 @@ namespace vke {
       .swapchain = swapchain,
       .timeout = UINT64_MAX,
       .semaphore = *m_imageAvailableSemaphores[currentFrame],
-      .fence = VK_NULL_HANDLE,
+      .fence = nullptr,
       .deviceMask = 1
     };
 
@@ -210,7 +210,7 @@ namespace vke {
   void LogicalDevice::doMappedMemoryOperation(const vk::raii::DeviceMemory& deviceMemory,
                                               const std::function<void(void* data)>& operationFunction)
   {
-    void* data = deviceMemory.mapMemory(0, VK_WHOLE_SIZE);
+    void* data = deviceMemory.mapMemory(0, vk::WholeSize);
 
     operationFunction(data);
 
@@ -228,7 +228,7 @@ namespace vke {
 
   void LogicalDevice::unmapMemory(const vk::raii::DeviceMemory& memory)
   {
-    if (*memory == VK_NULL_HANDLE)
+    if (*memory == nullptr)
     {
       return;
     }
@@ -332,17 +332,17 @@ namespace vke {
 
   vk::raii::Pipeline LogicalDevice::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const
   {
-    return m_device.createGraphicsPipeline(VK_NULL_HANDLE, graphicsPipelineCreateInfo, nullptr);
+    return m_device.createGraphicsPipeline(nullptr, graphicsPipelineCreateInfo, nullptr);
   }
 
   vk::raii::Pipeline LogicalDevice::createPipeline(const vk::ComputePipelineCreateInfo& computePipelineCreateInfo) const
   {
-    return m_device.createComputePipeline(VK_NULL_HANDLE, computePipelineCreateInfo, nullptr);
+    return m_device.createComputePipeline(nullptr, computePipelineCreateInfo, nullptr);
   }
 
   vk::raii::Pipeline LogicalDevice::createPipeline(const vk::RayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const
   {
-    return m_device.createRayTracingPipelineKHR(VK_NULL_HANDLE, VK_NULL_HANDLE, rayTracingPipelineCreateInfo, nullptr);
+    return m_device.createRayTracingPipelineKHR(nullptr, nullptr, rayTracingPipelineCreateInfo, nullptr);
   }
 
   vk::DeviceAddress LogicalDevice::getBufferDeviceAddress(const vk::Buffer buffer) const

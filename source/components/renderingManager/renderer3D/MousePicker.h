@@ -55,10 +55,10 @@ namespace vke {
 
     bool m_canMousePick = false;
 
-    vk::CommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::CommandPool m_commandPool = nullptr;
 
-    vk::raii::Buffer m_stagingBuffer = VK_NULL_HANDLE;
-    vk::raii::DeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_stagingBuffer = nullptr;
+    vk::raii::DeviceMemory m_stagingBufferMemory = nullptr;
 
     bool validateMousePickingMousePosition(int32_t& mouseX,
                                            int32_t& mouseY);

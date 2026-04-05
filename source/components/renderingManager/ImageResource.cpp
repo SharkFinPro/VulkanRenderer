@@ -24,9 +24,9 @@ namespace vke {
 
       if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
-        m_descriptorImageInfo = {
+        m_descriptorImageInfo = vk::DescriptorImageInfo{
           .imageView = *m_imageView,
-          .imageLayout = VK_IMAGE_LAYOUT_GENERAL
+          .imageLayout = vk::ImageLayout::eGeneral
         };
       }
     }
@@ -105,7 +105,7 @@ namespace vke {
       auto [image, imageMemory] = Images::createImage(
         m_logicalDevice,
         {
-          .flags = static_cast<vk::ImageCreateFlags>(config.isCubeMap ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0),
+          .flags = config.isCubeMap ? vk::ImageCreateFlagBits::eCubeCompatible : vk::ImageCreateFlags{},
           .extent = {
             .width = config.extent.width,
             .height = config.extent.height,

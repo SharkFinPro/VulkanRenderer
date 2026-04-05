@@ -57,7 +57,7 @@ namespace vke {
     const auto subpass = attachmentSetup.createSubpass();
 
     constexpr vk::SubpassDependency dependency {
-      .srcSubpass = VK_SUBPASS_EXTERNAL,
+      .srcSubpass = vk::SubpassExternal,
       .dstSubpass = 0,
       .srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eLateFragmentTests,
       .dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,

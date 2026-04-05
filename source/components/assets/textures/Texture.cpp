@@ -44,8 +44,11 @@ namespace vke {
   {
     if (!m_imGuiTexture)
     {
-      m_imGuiTexture = ImGui_ImplVulkan_AddTexture(*m_textureSampler, *m_textureImageView,
-                                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      m_imGuiTexture = ImGui_ImplVulkan_AddTexture(
+        *m_textureSampler,
+        *m_textureImageView,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+      );
     }
 
     return reinterpret_cast<ImTextureID>(static_cast<VkDescriptorSet>(m_imGuiTexture));
@@ -79,8 +82,8 @@ namespace vke {
         .dstAccessMask = {},
         .oldLayout = vk::ImageLayout::eUndefined,
         .newLayout = vk::ImageLayout::eUndefined,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
         .image = image,
         .subresourceRange = {
           vk::ImageAspectFlagBits::eColor,
@@ -224,7 +227,7 @@ namespace vke {
       .compareEnable = vk::False,
       .compareOp = vk::CompareOp::eAlways,
       .minLod = 0.0f,
-      .maxLod = VK_LOD_CLAMP_NONE,
+      .maxLod = vk::LodClampNone,
       .borderColor = vk::BorderColor::eIntOpaqueBlack,
       .unnormalizedCoordinates = vk::False
     };

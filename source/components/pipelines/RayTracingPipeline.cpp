@@ -67,9 +67,9 @@ namespace vke {
     groups.push_back({
       .type = vk::RayTracingShaderGroupTypeKHR::eGeneral,
       .generalShader = 0,
-      .closestHitShader = VK_SHADER_UNUSED_KHR,
-      .anyHitShader = VK_SHADER_UNUSED_KHR,
-      .intersectionShader = VK_SHADER_UNUSED_KHR
+      .closestHitShader = vk::ShaderUnusedKHR,
+      .anyHitShader = vk::ShaderUnusedKHR,
+      .intersectionShader = vk::ShaderUnusedKHR
     });
 
     for (const auto& _ : config.shaders.missShaders)
@@ -77,9 +77,9 @@ namespace vke {
       groups.push_back({
         .type = vk::RayTracingShaderGroupTypeKHR::eGeneral,
         .generalShader = static_cast<uint32_t>(groups.size()),
-        .closestHitShader = VK_SHADER_UNUSED_KHR,
-        .anyHitShader = VK_SHADER_UNUSED_KHR,
-        .intersectionShader = VK_SHADER_UNUSED_KHR
+        .closestHitShader = vk::ShaderUnusedKHR,
+        .anyHitShader = vk::ShaderUnusedKHR,
+        .intersectionShader = vk::ShaderUnusedKHR
       });
     }
 
@@ -91,10 +91,10 @@ namespace vke {
 
       groups.push_back({
         .type = isProcedural ? vk::RayTracingShaderGroupTypeKHR::eProceduralHitGroup : vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup,
-        .generalShader = VK_SHADER_UNUSED_KHR,
+        .generalShader = vk::ShaderUnusedKHR,
         .closestHitShader = stageIndex++,
-        .anyHitShader = VK_SHADER_UNUSED_KHR,
-        .intersectionShader = isProcedural ? stageIndex++ : VK_SHADER_UNUSED_KHR
+        .anyHitShader = vk::ShaderUnusedKHR,
+        .intersectionShader = isProcedural ? stageIndex++ : vk::ShaderUnusedKHR
       });
     }
 

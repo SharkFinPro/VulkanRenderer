@@ -23,7 +23,7 @@ namespace vke {
   {
     if (!m_offscreenRenderTarget)
     {
-      return VK_NULL_HANDLE;
+      return nullptr;
     }
 
     return m_offscreenRenderTarget->getResolveImageResource(imageIndex).getDescriptorSet();
