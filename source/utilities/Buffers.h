@@ -2,6 +2,7 @@
 #define VKE_BUFFERS_H
 
 #include <vulkan/vulkan_raii.hpp>
+#include <functional>
 #include <memory>
 
 namespace vke {
@@ -22,6 +23,9 @@ namespace vke {
                     vk::Buffer srcBuffer,
                     vk::Buffer dstBuffer,
                     vk::DeviceSize size);
+
+    void doMappedMemoryOperation(const vk::raii::DeviceMemory& deviceMemory,
+                                 const std::function<void(void* data)>& operationFunction);
   }
 
 } // namespace vke

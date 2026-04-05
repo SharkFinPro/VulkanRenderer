@@ -156,7 +156,7 @@ namespace vke {
   {
     uint32_t objectID = 0;
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
       const uint8_t* pixel = static_cast<uint8_t*>(data);
 
       objectID = static_cast<uint32_t>(pixel[0]) << 16 |

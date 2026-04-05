@@ -52,7 +52,7 @@ namespace vke {
       stagingBufferMemory
     );
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixelData, imageSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [pixelData, imageSize](void* data) {
       memcpy(data, pixelData, imageSize);
     });
   }

@@ -2,7 +2,6 @@
 #define VKE_LOGICALDEVICE_H
 
 #include <vulkan/vulkan_raii.hpp>
-#include <functional>
 #include <memory>
 #include <vector>
 
@@ -61,31 +60,14 @@ namespace vke {
 
     [[nodiscard]] vk::raii::DescriptorSetLayout createDescriptorSetLayout(const vk::DescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
 
-    static void doMappedMemoryOperation(const vk::raii::DeviceMemory& deviceMemory,
-                                        const std::function<void(void* data)>& operationFunction);
-
-    static void mapMemory(const vk::raii::DeviceMemory& memory,
-                          vk::DeviceSize offset,
-                          vk::DeviceSize size,
-                          vk::MemoryMapFlags flags,
-                          void** data);
-
-    static void unmapMemory(const vk::raii::DeviceMemory& memory);
-
     [[nodiscard]] std::vector<vk::raii::DescriptorSet> allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo) const;
 
     void updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const;
 
     [[nodiscard]] vk::raii::Buffer createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const;
 
-    [[nodiscard]] static vk::MemoryRequirements getBufferMemoryRequirements(const vk::raii::Buffer& buffer);
-
     void allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
                         vk::raii::DeviceMemory& deviceMemory) const;
-
-    static void bindBufferMemory(const vk::raii::Buffer& buffer,
-                                 vk::DeviceMemory deviceMemory,
-                                 vk::DeviceSize memoryOffset = 0);
 
     [[nodiscard]] vk::raii::Sampler createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const;
 
@@ -93,21 +75,11 @@ namespace vke {
 
     [[nodiscard]] vk::raii::Image createImage(const vk::ImageCreateInfo& imageCreateInfo) const;
 
-    [[nodiscard]] static vk::MemoryRequirements getImageMemoryRequirements(const vk::raii::Image& image);
-
-    static void bindImageMemory(const vk::raii::Image& image,
-                                vk::DeviceMemory deviceMemory,
-                                vk::DeviceSize memoryOffset = 0);
-
     [[nodiscard]] vk::raii::RenderPass createRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) const;
 
     [[nodiscard]] vk::raii::ShaderModule createShaderModule(const vk::ShaderModuleCreateInfo& shaderModuleCreateInfo) const;
 
     [[nodiscard]] vk::raii::SwapchainKHR createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo) const;
-
-    static void getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
-                                      uint32_t* swapchainImageCount,
-                                      vk::Image* swapchainImages);
 
     [[nodiscard]] vk::raii::Framebuffer createFramebuffer(const vk::FramebufferCreateInfo& framebufferCreateInfo) const;
 
@@ -127,15 +99,7 @@ namespace vke {
                                             uint32_t maxPrimitiveCounts,
                                             vk::AccelerationStructureBuildSizesInfoKHR& accelerationStructureBuildSizesInfo) const;
 
-    static void buildAccelerationStructures(vk::CommandBuffer commandBuffer,
-                                            const vk::AccelerationStructureBuildGeometryInfoKHR& pInfos,
-                                            const vk::AccelerationStructureBuildRangeInfoKHR* ppBuildRangeInfos);
-
     [[nodiscard]] vk::DeviceAddress getAccelerationStructureDeviceAddress(const vk::AccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
-
-    static void getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
-                                                uint32_t groupCount,
-                                                std::vector<uint8_t>& handles);
 
     friend class ImGuiInstance;
 

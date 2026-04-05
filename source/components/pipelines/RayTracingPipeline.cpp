@@ -128,9 +128,8 @@ namespace vke {
 
     const uint32_t shaderBindingTableSize = groupCount * shaderGroupBaseAlignment;
 
-    std::vector<uint8_t> handles(groupCount * shaderGroupHandleSize);
-
-    m_logicalDevice->getRayTracingShaderGroupHandles(m_pipeline, groupCount, handles);
+    const auto handlesSize = groupCount * shaderGroupHandleSize;
+    std::vector<uint8_t> handles = m_pipeline.getRayTracingShaderGroupHandlesKHR<uint8_t>(0, groupCount, handlesSize);
 
     Buffers::createBuffer(
       m_logicalDevice,
@@ -141,7 +140,7 @@ namespace vke {
       m_shaderBindingTableMemory
     );
 
-    m_logicalDevice->doMappedMemoryOperation(m_shaderBindingTableMemory, [groupCount, handles, shaderGroupBaseAlignment, shaderGroupHandleSize](void* data) {
+    Buffers::doMappedMemoryOperation(m_shaderBindingTableMemory, [groupCount, handles, shaderGroupBaseAlignment, shaderGroupHandleSize](void* data) {
       auto* dst = static_cast<uint8_t*>(data);
       for (uint32_t i = 0; i < groupCount; ++i)
       {

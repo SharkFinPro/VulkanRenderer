@@ -171,7 +171,7 @@ namespace vke {
       stagingBufferMemory
     );
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [instances, instancesBufferSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [instances, instancesBufferSize](void* data) {
       memcpy(data, instances.data(), instancesBufferSize);
     });
 
@@ -394,7 +394,7 @@ namespace vke {
         stagingMemory
       );
 
-      m_logicalDevice->doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
+      Buffers::doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
         memcpy(ptr, data.data(), size);
       });
 

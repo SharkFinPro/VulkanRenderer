@@ -43,7 +43,7 @@ namespace vke {
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
       for (size_t i = 0; i < pixels.size(); ++i)
       {
         const vk::DeviceSize offset = i * imageSize;

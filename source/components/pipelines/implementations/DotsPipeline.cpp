@@ -143,7 +143,7 @@ namespace vke {
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    ComputePipeline::m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
       memcpy(data, particles.data(), static_cast<size_t>(bufferSize));
     });
 

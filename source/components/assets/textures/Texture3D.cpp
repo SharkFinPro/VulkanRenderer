@@ -61,7 +61,7 @@ namespace vke {
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [imageData, imageSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [imageData, imageSize](void* data) {
       memcpy(data, imageData, static_cast<size_t>(imageSize));
     });
 
