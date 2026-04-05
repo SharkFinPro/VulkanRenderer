@@ -243,7 +243,7 @@ namespace vke {
                                                       const std::shared_ptr<LightingManager>& lightingManager,
                                                       uint32_t currentFrame) const
   {
-    m_offscreenCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame]()
+    m_offscreenCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame]
     {
       m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
 
