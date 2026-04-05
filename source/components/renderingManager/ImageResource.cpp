@@ -4,8 +4,7 @@
 #include <backends/imgui_impl_vulkan.h>
 
 namespace vke {
-  ImageResource::ImageResource(ImageResourceConfig config)
-      : m_logicalDevice(std::move(config.logicalDevice))
+  ImageResource::ImageResource(const ImageResourceConfig& config)
     {
       createImage(config);
 
@@ -103,7 +102,7 @@ namespace vke {
       }
 
       auto [image, imageMemory] = Images::createImage(
-        m_logicalDevice,
+        config.logicalDevice,
         {
           .flags = config.isCubeMap ? vk::ImageCreateFlagBits::eCubeCompatible : vk::ImageCreateFlags{},
           .extent = {
@@ -142,7 +141,7 @@ namespace vke {
       }
 
       m_imageView = Images::createImageView(
-        m_logicalDevice,
+        config.logicalDevice,
         m_image,
         getFormat(config),
         imageAspectFlags,
@@ -174,7 +173,7 @@ namespace vke {
       }
 
       Images::transitionImageLayout(
-        m_logicalDevice,
+        config.logicalDevice,
         config.commandPool,
         m_image,
         getFormat(config),

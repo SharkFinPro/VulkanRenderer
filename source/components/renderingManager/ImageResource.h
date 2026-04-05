@@ -18,7 +18,7 @@ namespace vke {
 
   struct ImageResourceConfig {
     ImageResourceType imageResourceType = ImageResourceType::Undefined;
-    std::shared_ptr<LogicalDevice> logicalDevice;
+    const std::shared_ptr<LogicalDevice>& logicalDevice;
     vk::Extent2D extent;
     vk::CommandPool commandPool;
     vk::Format colorFormat = vk::Format::eUndefined;
@@ -31,7 +31,7 @@ namespace vke {
 
   class ImageResource final {
   public:
-    explicit ImageResource(ImageResourceConfig config);
+    explicit ImageResource(const ImageResourceConfig& config);
 
     ImageResource(const ImageResource&) = delete;
     ImageResource& operator=(const ImageResource&) = delete;
@@ -50,8 +50,6 @@ namespace vke {
     [[nodiscard]] const vk::DescriptorImageInfo& getDescriptorImageInfo() const;
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     vk::raii::Image m_image = nullptr;
     vk::raii::ImageView m_imageView = nullptr;
     vk::raii::DeviceMemory m_imageMemory = nullptr;
