@@ -115,7 +115,7 @@ namespace vke {
     std::vector<vk::raii::Semaphore> m_imageAvailableSemaphores;
 
     std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores;
-    std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores2;
+    std::vector<vk::raii::Semaphore> m_offscreenRenderFinishedSemaphores;
 
     std::vector<vk::raii::Fence> m_inFlightFences;
     std::vector<vk::raii::Fence> m_offscreenInFlightFences;

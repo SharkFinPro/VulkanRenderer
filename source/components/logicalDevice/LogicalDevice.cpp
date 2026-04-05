@@ -75,7 +75,7 @@ namespace vke {
       .commandBufferCount = 1,
       .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &*m_renderFinishedSemaphores2[currentFrame]
+      .pSignalSemaphores = &*m_offscreenRenderFinishedSemaphores[currentFrame]
     };
 
     m_graphicsQueue.submit(submitInfo, m_offscreenInFlightFences[currentFrame]);
@@ -164,7 +164,7 @@ namespace vke {
   {
     const std::array waitSemaphores = {
       *m_renderFinishedSemaphores[currentFrame],
-      *m_renderFinishedSemaphores2[currentFrame]
+      *m_offscreenRenderFinishedSemaphores[currentFrame]
     };
 
     const vk::PresentInfoKHR presentInfo {
@@ -416,7 +416,7 @@ namespace vke {
     m_imageAvailableSemaphores.reserve(m_maxFramesInFlight);
 
     m_renderFinishedSemaphores.reserve(m_maxFramesInFlight);
-    m_renderFinishedSemaphores2.reserve(m_maxFramesInFlight);
+    m_offscreenRenderFinishedSemaphores.reserve(m_maxFramesInFlight);
 
     m_computeFinishedSemaphores.reserve(m_maxFramesInFlight);
 
@@ -435,7 +435,7 @@ namespace vke {
 
       m_imageAvailableSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_renderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
-      m_renderFinishedSemaphores2.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_offscreenRenderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_inFlightFences.emplace_back(m_device.createFence(fenceInfo));
       m_offscreenInFlightFences.emplace_back(m_device.createFence(fenceInfo));
       m_mousePickingInFlightFences.emplace_back(m_device.createFence(fenceInfo));
