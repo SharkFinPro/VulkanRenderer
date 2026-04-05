@@ -107,11 +107,6 @@ namespace vke {
     }
   }
 
-  std::shared_ptr<SwapChain> RenderingManager::getSwapChain() const
-  {
-    return m_swapChain;
-  }
-
   std::shared_ptr<Renderer> RenderingManager::getRenderer() const
   {
     return m_renderer;
