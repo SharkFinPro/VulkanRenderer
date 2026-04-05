@@ -25,9 +25,9 @@ namespace vke {
 
     constexpr vk::ApplicationInfo appInfo {
       .pApplicationName = "Vulkan Engine",
-      .applicationVersion = vk::makeVersion(1, 0, 0),
+      .applicationVersion = vk::makeApiVersion(1, 0, 0, 0),
       .pEngineName = "No Engine",
-      .engineVersion = vk::makeVersion(1, 0, 0),
+      .engineVersion = vk::makeApiVersion(1, 0, 0, 0),
       .apiVersion = vk::ApiVersion13
     };
 
