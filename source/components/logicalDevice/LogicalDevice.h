@@ -17,9 +17,9 @@ namespace vke {
 
     void waitIdle() const;
 
-    [[nodiscard]] vk::Queue getGraphicsQueue();
-    [[nodiscard]] vk::Queue getPresentQueue();
-    [[nodiscard]] vk::Queue getComputeQueue();
+    [[nodiscard]] vk::Queue getGraphicsQueue() const;
+    [[nodiscard]] vk::Queue getPresentQueue() const;
+    [[nodiscard]] vk::Queue getComputeQueue() const;
 
     void submitMousePickingGraphicsQueue(uint32_t currentFrame,
                                          vk::CommandBuffer commandBuffer) const;

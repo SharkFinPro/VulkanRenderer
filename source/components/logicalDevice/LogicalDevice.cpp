@@ -24,19 +24,19 @@ namespace vke {
     m_device.waitIdle();
   }
 
-  vk::Queue LogicalDevice::getGraphicsQueue()
+  vk::Queue LogicalDevice::getGraphicsQueue() const
   {
-    return m_graphicsQueue;
+    return *m_graphicsQueue;
   }
 
-  vk::Queue LogicalDevice::getPresentQueue()
+  vk::Queue LogicalDevice::getPresentQueue() const
   {
-    return m_presentQueue;
+    return *m_presentQueue;
   }
 
-  vk::Queue LogicalDevice::getComputeQueue()
+  vk::Queue LogicalDevice::getComputeQueue() const
   {
-    return m_computeQueue;
+    return *m_computeQueue;
   }
 
   void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
