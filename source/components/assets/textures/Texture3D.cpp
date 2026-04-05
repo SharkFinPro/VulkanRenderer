@@ -34,18 +34,19 @@ namespace vke {
     return texture;
   }
 
-  Texture3D::Texture3D(std::shared_ptr<LogicalDevice> logicalDevice,
+  Texture3D::Texture3D(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const vk::raii::CommandPool& commandPool,
                        const char* path,
                        const vk::SamplerAddressMode samplerAddressMode)
-    : Texture(std::move(logicalDevice), samplerAddressMode)
+    : Texture(logicalDevice, samplerAddressMode)
   {
-    createTextureImage(commandPool, path);
+    createTextureImage(logicalDevice, commandPool, path);
 
-    createImageView();
+    createImageView(logicalDevice);
   }
 
-  void Texture3D::createTextureImage(const vk::raii::CommandPool& commandPool,
+  void Texture3D::createTextureImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                     const vk::raii::CommandPool& commandPool,
                                      const char* path)
   {
     m_mipLevels = 1;
@@ -57,7 +58,7 @@ namespace vke {
 
     vk::raii::Buffer stagingBuffer = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory = nullptr;
-    Buffers::createBuffer(m_logicalDevice, imageSize, vk::BufferUsageFlagBits::eTransferSrc,
+    Buffers::createBuffer(logicalDevice, imageSize, vk::BufferUsageFlagBits::eTransferSrc,
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
@@ -68,7 +69,7 @@ namespace vke {
     delete[] imageData;
 
     auto [image, imageMemory] = Images::createImage(
-      m_logicalDevice,
+      logicalDevice,
       {
         {},
         vk::Extent3D{
@@ -90,19 +91,19 @@ namespace vke {
     m_textureImage = std::move(image);
     m_textureImageMemory = std::move(imageMemory);
 
-    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
+    Images::transitionImageLayout(logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
       vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, m_mipLevels, 1);
 
-    Images::copyBufferToImage(m_logicalDevice, commandPool, stagingBuffer, m_textureImage, width, height, depth);
+    Images::copyBufferToImage(logicalDevice, commandPool, stagingBuffer, m_textureImage, width, height, depth);
 
-    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
+    Images::transitionImageLayout(logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
       vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, m_mipLevels, 1);
   }
 
-  void Texture3D::createImageView()
+  void Texture3D::createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     m_textureImageView = Images::createImageView(
-      m_logicalDevice,
+      logicalDevice,
       m_textureImage,
       vk::Format::eR8G8B8A8Unorm,
       vk::ImageAspectFlagBits::eColor,

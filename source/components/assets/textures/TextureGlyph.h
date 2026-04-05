@@ -7,36 +7,41 @@ namespace vke {
 
   class TextureGlyph final : public Texture {
   public:
-    TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
+    TextureGlyph(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  vk::CommandPool commandPool,
                  const unsigned char* pixelData,
                  uint32_t width,
                  uint32_t height);
 
   private:
-    void createTextureImage(vk::CommandPool commandPool,
+    void createTextureImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                            vk::CommandPool commandPool,
                             const unsigned char* pixelData,
                             uint32_t width,
                             uint32_t height);
 
-    void createAndFillStagingBuffer(const unsigned char* pixelData,
-                                    uint32_t width,
-                                    uint32_t height,
-                                    vk::raii::Buffer& stagingBuffer,
-                                    vk::raii::DeviceMemory& stagingBufferMemory) const;
+    static void createAndFillStagingBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                           const unsigned char* pixelData,
+                                           uint32_t width,
+                                           uint32_t height,
+                                           vk::raii::Buffer& stagingBuffer,
+                                           vk::raii::DeviceMemory& stagingBufferMemory);
 
-    void createAndPrepareImage(vk::CommandPool commandPool,
+    void createAndPrepareImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                               vk::CommandPool commandPool,
                                uint32_t width,
                                uint32_t height);
 
-    void copyBufferToImage(vk::CommandPool commandPool,
+    void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           vk::CommandPool commandPool,
                            uint32_t width,
                            uint32_t height,
                            vk::raii::Buffer& stagingBuffer) const;
 
-    void transitionImageToShaderReadable(vk::CommandPool commandPool) const;
+    void transitionImageToShaderReadable(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                         vk::CommandPool commandPool) const;
 
-    void createImageView() override;
+    void createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice) override;
   };
 
 } // vke
