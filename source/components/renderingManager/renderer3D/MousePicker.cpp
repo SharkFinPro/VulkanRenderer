@@ -152,7 +152,7 @@ namespace vke {
     return getObjectIDFromBuffer(m_stagingBufferMemory);
   }
 
-  uint32_t MousePicker::getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory) const
+  uint32_t MousePicker::getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory)
   {
     uint32_t objectID = 0;
 

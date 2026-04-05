@@ -83,7 +83,7 @@ namespace vke {
       });
     }
 
-    uint32_t stageIndex = static_cast<uint32_t>(groups.size());
+    auto stageIndex = static_cast<uint32_t>(groups.size());
 
     for (const auto& hitGroup : config.shaders.hitGroups)
     {

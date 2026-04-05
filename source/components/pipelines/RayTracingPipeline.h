@@ -10,7 +10,6 @@
 
 namespace vke {
 
-  class DescriptorSet;
   struct RenderInfo;
 
   struct RayTracingPipelineConfig {

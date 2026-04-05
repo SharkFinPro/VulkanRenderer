@@ -23,7 +23,13 @@ namespace vke {
     }
     else
     {
-      m_window = glfwCreateWindow(config.width, config.height, config.title.c_str(), nullptr, nullptr);
+      m_window = glfwCreateWindow(
+        static_cast<int>(config.width),
+        static_cast<int>(config.height),
+        config.title.c_str(),
+        nullptr,
+        nullptr
+      );
     }
 
     if (m_window == nullptr)
