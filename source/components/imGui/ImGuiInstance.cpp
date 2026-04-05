@@ -57,7 +57,7 @@ namespace vke {
     {
       initInfo.UseDynamicRendering = true;
 
-      static constexpr VkFormat colorFormat = static_cast<VkFormat>(vk::Format::eR8G8B8A8Unorm);
+      static constexpr auto colorFormat = static_cast<VkFormat>(vk::Format::eR8G8B8A8Unorm);
 
       initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
