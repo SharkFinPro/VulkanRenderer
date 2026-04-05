@@ -151,25 +151,25 @@ namespace vke {
 
     const auto shaderBindingTableAddress = m_logicalDevice->getBufferDeviceAddress(m_shaderBindingTableBuffer);
 
-    m_rayGenerationRegion = {
+    m_rayGenerationRegion = vk::StridedDeviceAddressRegionKHR{
       .deviceAddress = shaderBindingTableAddress,
       .stride = shaderGroupBaseAlignment,
       .size = shaderGroupBaseAlignment
     };
 
-    m_missRegion = {
+    m_missRegion = vk::StridedDeviceAddressRegionKHR{
       .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment,
       .stride = shaderGroupBaseAlignment,
       .size = shaderGroupBaseAlignment * missCount
     };
 
-    m_hitRegion = {
+    m_hitRegion = vk::StridedDeviceAddressRegionKHR{
       .deviceAddress = shaderBindingTableAddress + shaderGroupBaseAlignment * (1 + missCount),
       .stride = shaderGroupBaseAlignment,
       .size = shaderGroupBaseAlignment * hitGroupCount
     };
 
-    m_callableRegion = {};
+    m_callableRegion = vk::StridedDeviceAddressRegionKHR{};
   }
 
 } // namespace vke
