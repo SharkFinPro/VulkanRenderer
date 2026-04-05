@@ -8,14 +8,13 @@
 
 namespace vke {
 
-  Framebuffer::Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+  Framebuffer::Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const std::shared_ptr<RenderTarget>& renderTarget,
                            const std::shared_ptr<RenderPass>& renderPass,
                            const vk::Extent2D extent,
                            const std::shared_ptr<SwapChain>& swapChain)
-    : m_logicalDevice(std::move(logicalDevice))
   {
-    createFrameBuffers(renderPass->getRenderPass(), extent, renderTarget, swapChain);
+    createFrameBuffers(logicalDevice, renderPass->getRenderPass(), extent, renderTarget, swapChain);
   }
 
   const vk::raii::Framebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex) const
@@ -23,12 +22,13 @@ namespace vke {
     return m_framebuffers[imageIndex];
   }
 
-  void Framebuffer::createFrameBuffers(const vk::RenderPass renderPass,
+  void Framebuffer::createFrameBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                       const vk::RenderPass renderPass,
                                        const vk::Extent2D extent,
                                        const std::shared_ptr<RenderTarget>& renderTarget,
                                        const std::shared_ptr<SwapChain>& swapChain)
   {
-    const auto numImages = swapChain ? swapChain->getImages().size() : m_logicalDevice->getMaxFramesInFlight();
+    const auto numImages = swapChain ? swapChain->getImages().size() : logicalDevice->getMaxFramesInFlight();
 
     m_framebuffers.clear();
     m_framebuffers.reserve(numImages);
@@ -65,7 +65,7 @@ namespace vke {
         .layers = 1
       };
 
-      m_framebuffers.push_back(m_logicalDevice->createFramebuffer(framebufferInfo));
+      m_framebuffers.push_back(logicalDevice->createFramebuffer(framebufferInfo));
     }
   }
 
