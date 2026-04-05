@@ -66,7 +66,15 @@ namespace vke::Buffers {
   {
     void* data = deviceMemory.mapMemory(0, vk::WholeSize);
 
-    operationFunction(data);
+    try
+    {
+      operationFunction(data);
+    }
+    catch (...)
+    {
+      deviceMemory.unmapMemory();
+      throw;
+    }
 
     deviceMemory.unmapMemory();
   }
