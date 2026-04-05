@@ -16,12 +16,12 @@ namespace vke {
 
   class Model {
   public:
-    Model(std::shared_ptr<LogicalDevice> logicalDevice,
+    Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
           const vk::CommandPool& commandPool,
           const char* path,
           glm::vec3 rotation);
 
-    Model(std::shared_ptr<LogicalDevice> logicalDevice,
+    Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
           const vk::CommandPool& commandPool,
           const char* path,
           glm::quat orientation);
@@ -35,8 +35,6 @@ namespace vke {
     [[nodiscard]] const std::vector<uint32_t>& getIndices() const;
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     std::vector<Vertex> m_vertices;
     std::vector<uint32_t> m_indices;
 
@@ -58,19 +56,24 @@ namespace vke {
 
     void loadIndices(const aiMesh* mesh);
 
-    void createVertexBuffer(const vk::CommandPool& commandPool);
+    void createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                            const vk::CommandPool& commandPool);
 
-    void createIndexBuffer(const vk::CommandPool& commandPool);
+    void createIndexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const vk::CommandPool& commandPool);
 
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    void createBLAS(const vk::CommandPool& commandPool);
+    void createBLAS(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                    const vk::CommandPool& commandPool);
 
-    void createCoreBLASData(vk::AccelerationStructureGeometryTrianglesDataKHR& trianglesData,
+    void createCoreBLASData(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                            vk::AccelerationStructureGeometryTrianglesDataKHR& trianglesData,
                             vk::AccelerationStructureGeometryKHR& geometry,
                             vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const;
 
-    void populateBLAS(const vk::CommandPool& commandPool,
+    void populateBLAS(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                      const vk::CommandPool& commandPool,
                       vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                       const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
                       uint32_t primitiveCount) const;

@@ -11,30 +11,28 @@
 
 namespace vke {
 
-  Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
+  Model::Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const vk::CommandPool& commandPool,
                const char* path,
                const glm::vec3 rotation)
-    : m_logicalDevice(std::move(logicalDevice))
   {
     loadModel(path, glm::quat(glm::radians(rotation)));
 
-    createVertexBuffer(commandPool);
-    createIndexBuffer(commandPool);
-    createBLAS(commandPool);
+    createVertexBuffer(logicalDevice, commandPool);
+    createIndexBuffer(logicalDevice, commandPool);
+    createBLAS(logicalDevice, commandPool);
   }
 
-  Model::Model(std::shared_ptr<LogicalDevice> logicalDevice,
+  Model::Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const vk::CommandPool& commandPool,
                const char* path,
                const glm::quat orientation)
-    : m_logicalDevice(std::move(logicalDevice))
   {
     loadModel(path, glm::normalize(orientation));
 
-    createVertexBuffer(commandPool);
-    createIndexBuffer(commandPool);
-    createBLAS(commandPool);
+    createVertexBuffer(logicalDevice, commandPool);
+    createIndexBuffer(logicalDevice, commandPool);
+    createBLAS(logicalDevice, commandPool);
   }
 
   void Model::loadModel(const char* path,
@@ -99,14 +97,15 @@ namespace vke {
     }
   }
 
-  void Model::createVertexBuffer(const vk::CommandPool& commandPool)
+  void Model::createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                 const vk::CommandPool& commandPool)
   {
     const vk::DeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 
     vk::raii::Buffer stagingBuffer = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory = nullptr;
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       bufferSize,
       vk::BufferUsageFlagBits::eTransferSrc,
       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -119,26 +118,27 @@ namespace vke {
     });
 
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       bufferSize,
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer |
-      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR : vk::BufferUsageFlags{}),
+      (logicalDevice->getPhysicalDevice()->supportsRayTracing() ? vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR : vk::BufferUsageFlags{}),
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_vertexBuffer,
       m_vertexBufferMemory
     );
 
     Buffers::copyBuffer(
-      m_logicalDevice,
+      logicalDevice,
       commandPool,
-      m_logicalDevice->getGraphicsQueue(),
+      logicalDevice->getGraphicsQueue(),
       stagingBuffer,
       m_vertexBuffer,
       bufferSize
     );
   }
 
-  void Model::createIndexBuffer(const vk::CommandPool& commandPool)
+  void Model::createIndexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                const vk::CommandPool& commandPool)
   {
     const vk::DeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 
@@ -146,7 +146,7 @@ namespace vke {
     vk::raii::DeviceMemory stagingBufferMemory = nullptr;
 
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       bufferSize,
       vk::BufferUsageFlagBits::eTransferSrc,
       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -159,16 +159,16 @@ namespace vke {
     });
 
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       bufferSize,
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer |
-      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing() ? vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR : vk::BufferUsageFlags{}),
+      (logicalDevice->getPhysicalDevice()->supportsRayTracing() ? vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR : vk::BufferUsageFlags{}),
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_indexBuffer,
       m_indexBufferMemory
     );
 
-    Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), *stagingBuffer,
+    Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), *stagingBuffer,
                         *m_indexBuffer, bufferSize);
   }
 
@@ -180,9 +180,10 @@ namespace vke {
     commandBuffer->bindIndexBuffer(*m_indexBuffer, 0, vk::IndexType::eUint32);
   }
 
-  void Model::createBLAS(const vk::CommandPool& commandPool)
+  void Model::createBLAS(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                         const vk::CommandPool& commandPool)
   {
-    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    if (!logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
       return;
     }
@@ -191,16 +192,16 @@ namespace vke {
     vk::AccelerationStructureGeometryKHR geometry{};
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo{};
 
-    createCoreBLASData(trianglesData, geometry, buildGeometryInfo);
+    createCoreBLASData(logicalDevice, trianglesData, geometry, buildGeometryInfo);
 
     const auto primitiveCount = static_cast<uint32_t>(m_indices.size() / 3);
 
     vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo{};
 
-    m_logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
+    logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
 
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       buildSizesInfo.accelerationStructureSize,
       vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -214,22 +215,23 @@ namespace vke {
       .type = vk::AccelerationStructureTypeKHR::eBottomLevel
     };
 
-    m_blas = m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo);
+    m_blas = logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo);
 
-    populateBLAS(commandPool, buildGeometryInfo, buildSizesInfo, primitiveCount);
+    populateBLAS(logicalDevice, commandPool, buildGeometryInfo, buildSizesInfo, primitiveCount);
   }
 
-  void Model::createCoreBLASData(vk::AccelerationStructureGeometryTrianglesDataKHR& trianglesData,
+  void Model::createCoreBLASData(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                 vk::AccelerationStructureGeometryTrianglesDataKHR& trianglesData,
                                  vk::AccelerationStructureGeometryKHR& geometry,
                                  vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const
   {
     trianglesData = {
       .vertexFormat = vk::Format::eR32G32B32Sfloat,
-      .vertexData = m_logicalDevice->getBufferDeviceAddress(*m_vertexBuffer),
+      .vertexData = logicalDevice->getBufferDeviceAddress(*m_vertexBuffer),
       .vertexStride = sizeof(Vertex),
       .maxVertex = static_cast<uint32_t>(m_vertices.size() - 1),
       .indexType = vk::IndexType::eUint32,
-      .indexData = m_logicalDevice->getBufferDeviceAddress(*m_indexBuffer)
+      .indexData = logicalDevice->getBufferDeviceAddress(*m_indexBuffer)
     };
 
     geometry = {
@@ -246,7 +248,8 @@ namespace vke {
     };
   }
 
-  void Model::populateBLAS(const vk::CommandPool& commandPool,
+  void Model::populateBLAS(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const vk::CommandPool& commandPool,
                            vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                            const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
                            const uint32_t primitiveCount) const
@@ -255,7 +258,7 @@ namespace vke {
     vk::raii::DeviceMemory scratchBufferMemory = nullptr;
 
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       buildSizesInfo.buildScratchSize,
       vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -264,7 +267,7 @@ namespace vke {
     );
 
     buildGeometryInfo.dstAccelerationStructure = *m_blas;
-    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(*scratchBuffer);
+    buildGeometryInfo.scratchData.deviceAddress = logicalDevice->getBufferDeviceAddress(*scratchBuffer);
 
     const vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo {
       .primitiveCount = primitiveCount,
@@ -273,7 +276,7 @@ namespace vke {
       .transformOffset = 0
     };
 
-    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
+    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([&commandBuffer, buildGeometryInfo, buildRangeInfo] {
       commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
