@@ -51,7 +51,10 @@ namespace vke {
 
   private:
     static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
-    static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue(1.0f, 0.0f);
+    static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
+      .depth = 1.0f,
+      .stencil = 0
+    };
 
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   vk::Image image);
