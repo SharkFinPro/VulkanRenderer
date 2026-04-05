@@ -37,6 +37,8 @@ namespace vke {
         );
 
         projectionMatrix[1][1] *= -1;
+
+        shouldCreateProjectionMatrix = false;
       }
 
       return projectionMatrix;
