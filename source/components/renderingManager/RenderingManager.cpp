@@ -294,9 +294,9 @@ namespace vke {
       resetDepthBuffer(m_offscreenCommandBuffer, m_offscreenViewportExtent);
 
       RenderInfo renderInfo2D = renderInfo;
-      renderInfo2D.extent = {
-        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
-        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
+      renderInfo2D.extent = vk::Extent2D{
+        .width = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
+        .height = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
       };
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
@@ -345,9 +345,9 @@ namespace vke {
         resetDepthBuffer(m_swapchainCommandBuffer, m_swapChain->getExtent());
 
         RenderInfo renderInfo2D = renderInfo;
-        renderInfo2D.extent = {
-          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
-          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
+        renderInfo2D.extent = vk::Extent2D{
+          .width = static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
+          .height = static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
         };
 
         m_renderer2D->render(&renderInfo2D, pipelineManager);
