@@ -23,7 +23,7 @@ namespace vke {
                             m_uniformBuffers.emplace_back(nullptr),
                             m_uniformBuffersMemory.emplace_back(nullptr));
 
-      m_logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, m_bufferSize,  vk::MemoryMapFlags{}, &m_uniformBuffersMapped[i]);
+      m_uniformBuffersMapped[i] = m_uniformBuffersMemory[i].mapMemory(0, m_bufferSize, vk::MemoryMapFlags{});
 
       m_bufferInfos.push_back({
         .buffer = *m_uniformBuffers[i],

@@ -77,7 +77,7 @@ namespace vke {
       m_cloudUniform->update(renderInfo->currentFrame, &cloudUBO);
     }
 
-    updateRTDescriptorSets(imageResource, renderInfo->extent, renderInfo->currentFrame);
+    updateRTDescriptorSets(imageResource, renderInfo->currentFrame);
 
     pipelineManager->bindRayTracingPipelineDescriptorSet(
       renderInfo->commandBuffer,
@@ -116,7 +116,7 @@ namespace vke {
 
     const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud);
 
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
+    const vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
       .arrayOfPointers = vk::False,
       .data = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
     };
@@ -171,7 +171,7 @@ namespace vke {
       stagingBufferMemory
     );
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [instances, instancesBufferSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [instances, instancesBufferSize](void* data) {
       memcpy(data, instances.data(), instancesBufferSize);
     });
 
@@ -394,7 +394,7 @@ namespace vke {
         stagingMemory
       );
 
-      m_logicalDevice->doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
+      Buffers::doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
         memcpy(ptr, data.data(), size);
       });
 
@@ -423,10 +423,9 @@ namespace vke {
   }
 
   void RayTracer::updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
-                                         const vk::Extent2D extent,
                                          const uint32_t currentFrame)
   {
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       auto storageBuffer = [&](const uint32_t binding, const vk::DescriptorBufferInfo* info) {
         return vk::WriteDescriptorSet {

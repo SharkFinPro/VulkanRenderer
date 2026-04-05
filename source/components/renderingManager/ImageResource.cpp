@@ -154,7 +154,7 @@ namespace vke {
 
     void ImageResource::transitionImageLayout(const ImageResourceConfig& config) const
     {
-      vk::ImageLayout imageLayout = vk::ImageLayout::eUndefined;
+      auto imageLayout = vk::ImageLayout::eUndefined;
 
       if (config.imageResourceType == ImageResourceType::Color)
       {

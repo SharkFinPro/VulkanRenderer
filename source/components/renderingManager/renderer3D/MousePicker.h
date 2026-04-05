@@ -9,14 +9,11 @@
 
 namespace vke {
 
-  class CommandBuffer;
-  class Framebuffer;
   class LogicalDevice;
   class PipelineManager;
   enum class PipelineType;
   struct RenderInfo;
   class RenderObject;
-  class RenderPass;
   class RenderTarget;
   class SingleUseCommandBuffer;
   class Window;
@@ -67,7 +64,7 @@ namespace vke {
                                                       int32_t mouseX,
                                                       int32_t mouseY) const;
 
-    [[nodiscard]] uint32_t getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory) const;
+    [[nodiscard]] static uint32_t getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory);
 
     static void transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
                                           vk::Image image);

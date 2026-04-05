@@ -1,6 +1,5 @@
 #include "CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
-#include <stdexcept>
 
 namespace vke {
   CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice)

@@ -108,7 +108,7 @@ namespace vke {
 
     void renderSmokeSystem(const std::shared_ptr<SmokeSystem>& smokeSystem);
 
-    [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;;
+    [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;
 
     [[nodiscard]] vk::DescriptorSetLayout getNoiseDescriptorSetLayout() const;
 

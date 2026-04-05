@@ -30,7 +30,7 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<DescriptorSet> getSmokeSystemDescriptorSet() const;
 
-    [[nodiscard]] const vk::Buffer& getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const;
+    [[nodiscard]] vk::Buffer getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const;
 
     [[nodiscard]] glm::vec3 getPosition() const;
 

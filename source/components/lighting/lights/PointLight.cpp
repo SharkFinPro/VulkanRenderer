@@ -17,8 +17,8 @@ namespace vke {
   PointLight::PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
                          const CommonLightData& commonLightData,
                          const vk::CommandPool& commandPool,
-                         vk::DescriptorPool descriptorPool,
-                         vk::DescriptorSetLayout descriptorSetLayout,
+                         const vk::DescriptorPool descriptorPool,
+                         const vk::DescriptorSetLayout descriptorSetLayout,
                          const std::shared_ptr<Renderer>& renderer)
     : Light(std::move(logicalDevice), commonLightData)
   {

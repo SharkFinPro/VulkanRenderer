@@ -117,7 +117,7 @@ namespace vke {
       stagingBufferMemory
     );
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [this](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [this](void* data) {
       memcpy(data, &m_aabbPositions, AABB_BUFFER_SIZE);
     });
 

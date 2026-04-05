@@ -100,15 +100,15 @@ namespace vke {
 
     void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
 
-    bool isDeviceSuitable(const vk::raii::PhysicalDevice& device) const;
+    [[nodiscard]] bool isDeviceSuitable(const vk::raii::PhysicalDevice& device) const;
 
-    QueueFamilyIndices findQueueFamilies(const vk::raii::PhysicalDevice& device) const;
+    [[nodiscard]] QueueFamilyIndices findQueueFamilies(const vk::raii::PhysicalDevice& device) const;
 
     static bool checkDeviceExtensionSupport(const vk::raii::PhysicalDevice& device);
 
     static bool checkDeviceRayTracingExtensionSupport(const vk::raii::PhysicalDevice& device);
 
-    SwapChainSupportDetails querySwapChainSupport(const vk::raii::PhysicalDevice& device) const;
+    [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::raii::PhysicalDevice& device) const;
 
     [[nodiscard]] vk::SampleCountFlagBits getMaxUsableSampleCount() const;
   };

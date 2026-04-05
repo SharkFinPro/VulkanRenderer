@@ -24,19 +24,19 @@ namespace vke {
     m_device.waitIdle();
   }
 
-  vk::Queue LogicalDevice::getGraphicsQueue()
+  vk::Queue LogicalDevice::getGraphicsQueue() const
   {
-    return m_graphicsQueue;
+    return *m_graphicsQueue;
   }
 
-  vk::Queue LogicalDevice::getPresentQueue()
+  vk::Queue LogicalDevice::getPresentQueue() const
   {
-    return m_presentQueue;
+    return *m_presentQueue;
   }
 
-  vk::Queue LogicalDevice::getComputeQueue()
+  vk::Queue LogicalDevice::getComputeQueue() const
   {
-    return m_computeQueue;
+    return *m_computeQueue;
   }
 
   void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
@@ -75,7 +75,7 @@ namespace vke {
       .commandBufferCount = 1,
       .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &*m_renderFinishedSemaphores2[currentFrame]
+      .pSignalSemaphores = &*m_offscreenRenderFinishedSemaphores[currentFrame]
     };
 
     m_graphicsQueue.submit(submitInfo, m_offscreenInFlightFences[currentFrame]);
@@ -164,7 +164,7 @@ namespace vke {
   {
     const std::array waitSemaphores = {
       *m_renderFinishedSemaphores[currentFrame],
-      *m_renderFinishedSemaphores2[currentFrame]
+      *m_offscreenRenderFinishedSemaphores[currentFrame]
     };
 
     const vk::PresentInfoKHR presentInfo {
@@ -207,35 +207,6 @@ namespace vke {
     return m_device.createCommandPool(commandPoolCreateInfo);
   }
 
-  void LogicalDevice::doMappedMemoryOperation(const vk::raii::DeviceMemory& deviceMemory,
-                                              const std::function<void(void* data)>& operationFunction)
-  {
-    void* data = deviceMemory.mapMemory(0, vk::WholeSize);
-
-    operationFunction(data);
-
-    deviceMemory.unmapMemory();
-  }
-
-  void LogicalDevice::mapMemory(const vk::raii::DeviceMemory& memory,
-                                const vk::DeviceSize offset,
-                                const vk::DeviceSize size,
-                                const vk::MemoryMapFlags flags,
-                                void** data)
-  {
-    *data = memory.mapMemory(offset, size, flags);
-  }
-
-  void LogicalDevice::unmapMemory(const vk::raii::DeviceMemory& memory)
-  {
-    if (*memory == nullptr)
-    {
-      return;
-    }
-
-    memory.unmapMemory();
-  }
-
   std::vector<vk::raii::DescriptorSet> LogicalDevice::allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo) const
   {
     return m_device.allocateDescriptorSets(descriptorSetAllocateInfo);
@@ -251,22 +222,10 @@ namespace vke {
     return m_device.createBuffer(bufferCreateInfo);
   }
 
-  vk::MemoryRequirements LogicalDevice::getBufferMemoryRequirements(const vk::raii::Buffer& buffer)
-  {
-    return buffer.getMemoryRequirements();
-  }
-
   void LogicalDevice::allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
                                      vk::raii::DeviceMemory& deviceMemory) const
   {
     deviceMemory = m_device.allocateMemory(memoryAllocateInfo);
-  }
-
-  void LogicalDevice::bindBufferMemory(const vk::raii::Buffer& buffer,
-                                       const vk::DeviceMemory deviceMemory,
-                                       const vk::DeviceSize memoryOffset)
-  {
-    buffer.bindMemory(deviceMemory, memoryOffset);
   }
 
   vk::raii::Sampler LogicalDevice::createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const
@@ -284,18 +243,6 @@ namespace vke {
     return m_device.createImage(imageCreateInfo);
   }
 
-  vk::MemoryRequirements LogicalDevice::getImageMemoryRequirements(const vk::raii::Image& image)
-  {
-    return image.getMemoryRequirements();
-  }
-
-  void LogicalDevice::bindImageMemory(const vk::raii::Image& image,
-                                      const vk::DeviceMemory deviceMemory,
-                                      const vk::DeviceSize memoryOffset)
-  {
-    image.bindMemory(deviceMemory, memoryOffset);
-  }
-
   vk::raii::RenderPass LogicalDevice::createRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) const
   {
     return m_device.createRenderPass(renderPassCreateInfo);
@@ -309,15 +256,6 @@ namespace vke {
   vk::raii::SwapchainKHR LogicalDevice::createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo) const
   {
     return m_device.createSwapchainKHR(swapchainCreateInfo);
-  }
-
-  void LogicalDevice::getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
-                                            uint32_t* swapchainImageCount,
-                                            vk::Image* swapchainImages)
-  {
-    auto images = swapchain.getImages();
-    *swapchainImageCount = static_cast<uint32_t>(images.size());
-    std::ranges::copy(images, swapchainImages);
   }
 
   vk::raii::Framebuffer LogicalDevice::createFramebuffer(const vk::FramebufferCreateInfo& framebufferCreateInfo) const
@@ -370,30 +308,9 @@ namespace vke {
     );
   }
 
-  void LogicalDevice::buildAccelerationStructures(const vk::CommandBuffer commandBuffer,
-                                                  const vk::AccelerationStructureBuildGeometryInfoKHR& pInfos,
-                                                  const vk::AccelerationStructureBuildRangeInfoKHR* ppBuildRangeInfos)
-  {
-    commandBuffer.buildAccelerationStructuresKHR(
-      pInfos,
-      ppBuildRangeInfos
-    );
-  }
-
   vk::DeviceAddress LogicalDevice::getAccelerationStructureDeviceAddress(const vk::AccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const
   {
     return m_device.getAccelerationStructureAddressKHR(*accelerationStructureDeviceAddressInfo);
-  }
-
-  void LogicalDevice::getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
-                                                      const uint32_t groupCount,
-                                                      std::vector<uint8_t>& handles)
-  {
-    handles = pipeline.getRayTracingShaderGroupHandlesKHR<uint8_t>(
-      0,
-      groupCount,
-      handles.size()
-    );
   }
 
   void LogicalDevice::allocateCommandBuffers(const vk::CommandBufferAllocateInfo& commandBufferAllocateInfo,
@@ -499,7 +416,7 @@ namespace vke {
     m_imageAvailableSemaphores.reserve(m_maxFramesInFlight);
 
     m_renderFinishedSemaphores.reserve(m_maxFramesInFlight);
-    m_renderFinishedSemaphores2.reserve(m_maxFramesInFlight);
+    m_offscreenRenderFinishedSemaphores.reserve(m_maxFramesInFlight);
 
     m_computeFinishedSemaphores.reserve(m_maxFramesInFlight);
 
@@ -518,7 +435,7 @@ namespace vke {
 
       m_imageAvailableSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_renderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
-      m_renderFinishedSemaphores2.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_offscreenRenderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_inFlightFences.emplace_back(m_device.createFence(fenceInfo));
       m_offscreenInFlightFences.emplace_back(m_device.createFence(fenceInfo));
       m_mousePickingInFlightFences.emplace_back(m_device.createFence(fenceInfo));

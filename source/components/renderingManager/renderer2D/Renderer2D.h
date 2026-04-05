@@ -96,7 +96,7 @@ namespace vke {
     std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>> m_glyphsToRender;
 
     std::shared_ptr<Font> m_currentFont;
-    std::string m_currentFontName = "";
+    std::string m_currentFontName;
     uint32_t m_currentFontSize = 12;
 
     float m_currentZ = 0.0f;

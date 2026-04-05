@@ -14,14 +14,14 @@ namespace vke {
              const uint32_t fontSize,
              const vk::CommandPool commandPool,
              const vk::DescriptorPool descriptorPool,
-             vk::DescriptorSetLayout descriptorSetLayout)
+             const vk::DescriptorSetLayout descriptorSetLayout)
     : m_logicalDevice(std::move(logicalDevice))
   {
     const auto fontBuffer = loadFontFromFile(fileName);
 
     createGlyphAtlas(commandPool, fontBuffer, fontSize);
 
-    createDescriptorSet(descriptorPool, std::move(descriptorSetLayout));
+    createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
   GlyphInfo* Font::getGlyphInfo(const uint32_t codepoint)
@@ -106,7 +106,7 @@ namespace vke {
     FT_Done_FreeType(ft);
   }
 
-  std::vector<FT_ULong> Font::getCharset(FT_Face face)
+  std::vector<FT_ULong> Font::getCharset(const FT_Face face)
   {
     std::vector<FT_ULong> charset;
 
@@ -121,7 +121,7 @@ namespace vke {
     return charset;
   }
 
-  std::vector<uint8_t> Font::createAtlasBuffer(FT_Face face,
+  std::vector<uint8_t> Font::createAtlasBuffer(const FT_Face face,
                                                const std::vector<FT_ULong>& charset,
                                                uint32_t& maxGlyphWidth,
                                                uint32_t& maxGlyphHeight,
@@ -132,7 +132,7 @@ namespace vke {
     maxGlyphWidth = 0;
     maxGlyphHeight = 0;
 
-    for (FT_ULong charcode : charset)
+    for (const FT_ULong charcode : charset)
     {
       if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
       {
@@ -151,7 +151,7 @@ namespace vke {
     return atlasBuffer;
   }
 
-  void Font::populateAtlasBuffer(FT_Face face,
+  void Font::populateAtlasBuffer(const FT_Face face,
                                  const std::vector<FT_ULong>& charset,
                                  std::vector<uint8_t>& atlasBuffer,
                                  const uint32_t maxGlyphWidth,
@@ -210,7 +210,7 @@ namespace vke {
   void Font::createDescriptorSet(const vk::DescriptorPool descriptorPool,
                                  vk::DescriptorSetLayout descriptorSetLayout)
   {
-    m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, std::move(descriptorSetLayout));
+    m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
     m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector<vk::WriteDescriptorSet> descriptorWrites{{

@@ -35,7 +35,7 @@ namespace vke {
   DotsPipeline::DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                              const vk::raii::CommandPool& commandPool,
                              const std::shared_ptr<RenderPass>& renderPass,
-                             vk::DescriptorPool descriptorPool)
+                             const vk::DescriptorPool descriptorPool)
     : ComputePipeline(logicalDevice), GraphicsPipeline(std::move(logicalDevice)),
       m_previousTime(std::chrono::steady_clock::now())
   {
@@ -143,7 +143,7 @@ namespace vke {
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    ComputePipeline::m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
       memcpy(data, particles.data(), static_cast<size_t>(bufferSize));
     });
 
@@ -174,7 +174,7 @@ namespace vke {
   void DotsPipeline::createDescriptorSets(vk::DescriptorPool descriptorPool)
   {
     m_dotsDescriptorSet = std::make_shared<DescriptorSet>(GraphicsPipeline::m_logicalDevice, descriptorPool, layoutBindings);
-    m_dotsDescriptorSet->updateDescriptorSets([this](vk::DescriptorSet descriptorSet, const size_t frame)
+    m_dotsDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       const std::vector<vk::WriteDescriptorSet> writeDescriptorSets {{
         m_deltaTimeUniform->getDescriptorSet(0, descriptorSet, frame),

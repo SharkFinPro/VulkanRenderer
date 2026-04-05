@@ -83,7 +83,7 @@ namespace vke {
       });
     }
 
-    uint32_t stageIndex = static_cast<uint32_t>(groups.size());
+    auto stageIndex = static_cast<uint32_t>(groups.size());
 
     for (const auto& hitGroup : config.shaders.hitGroups)
     {
@@ -117,10 +117,7 @@ namespace vke {
     const auto rayTracingPipelineProperties = m_logicalDevice->getPhysicalDevice()->getRayTracingPipelineProperties();
 
     const uint32_t shaderGroupHandleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
-    const uint32_t shaderGroupHandleAlignment = rayTracingPipelineProperties.shaderGroupHandleAlignment;
     const uint32_t shaderGroupBaseAlignment = rayTracingPipelineProperties.shaderGroupBaseAlignment;
-
-    const uint32_t alignedHandleSize = (shaderGroupHandleSize + shaderGroupHandleAlignment - 1) & ~(shaderGroupHandleAlignment - 1);
 
     const auto missCount = static_cast<uint32_t>(config.shaders.missShaders.size());
     const auto hitGroupCount = static_cast<uint32_t>(config.shaders.hitGroups.size());
@@ -128,9 +125,8 @@ namespace vke {
 
     const uint32_t shaderBindingTableSize = groupCount * shaderGroupBaseAlignment;
 
-    std::vector<uint8_t> handles(groupCount * shaderGroupHandleSize);
-
-    m_logicalDevice->getRayTracingShaderGroupHandles(m_pipeline, groupCount, handles);
+    const auto handlesSize = groupCount * shaderGroupHandleSize;
+    std::vector<uint8_t> handles = m_pipeline.getRayTracingShaderGroupHandlesKHR<uint8_t>(0, groupCount, handlesSize);
 
     Buffers::createBuffer(
       m_logicalDevice,
@@ -141,7 +137,7 @@ namespace vke {
       m_shaderBindingTableMemory
     );
 
-    m_logicalDevice->doMappedMemoryOperation(m_shaderBindingTableMemory, [groupCount, handles, shaderGroupBaseAlignment, shaderGroupHandleSize](void* data) {
+    Buffers::doMappedMemoryOperation(m_shaderBindingTableMemory, [groupCount, handles, shaderGroupBaseAlignment, shaderGroupHandleSize](void* data) {
       auto* dst = static_cast<uint8_t*>(data);
       for (uint32_t i = 0; i < groupCount; ++i)
       {

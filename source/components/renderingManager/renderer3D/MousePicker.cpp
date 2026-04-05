@@ -83,7 +83,7 @@ namespace vke {
     }
   }
 
-  void MousePicker::handleRenderedMousePickingImage(vk::Image image)
+  void MousePicker::handleRenderedMousePickingImage(const vk::Image image)
   {
 	  if (m_mousePickingItems.empty())
 	  {
@@ -152,11 +152,11 @@ namespace vke {
     return getObjectIDFromBuffer(m_stagingBufferMemory);
   }
 
-  uint32_t MousePicker::getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory) const
+  uint32_t MousePicker::getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory)
   {
     uint32_t objectID = 0;
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
       const uint8_t* pixel = static_cast<uint8_t*>(data);
 
       objectID = static_cast<uint32_t>(pixel[0]) << 16 |
@@ -168,7 +168,7 @@ namespace vke {
   }
 
   void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
-                                              vk::Image image)
+                                              const vk::Image image)
   {
     const vk::ImageMemoryBarrier imageMemoryBarrier {
       .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
@@ -198,7 +198,7 @@ namespace vke {
   }
 
   void MousePicker::transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
-                                              vk::Image image)
+                                              const vk::Image image)
   {
     const vk::ImageMemoryBarrier imageMemoryBarrier {
       .srcAccessMask = vk::AccessFlagBits::eTransferRead,

@@ -141,7 +141,7 @@ namespace vke {
   void LightingManager::createDescriptorSet()
   {
     m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, getDescriptorPool(), LayoutBindings::lightingLayoutBindings);
-    m_lightingDescriptorSet->updateDescriptorSets([this](vk::DescriptorSet descriptorSet, const size_t frame)
+    m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_lightMetadataUniform->getDescriptorSet(0, descriptorSet, frame),

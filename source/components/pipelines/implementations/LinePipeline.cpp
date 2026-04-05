@@ -61,7 +61,7 @@ namespace vke {
       throw std::runtime_error("Vertex data exceeds maximum buffer size");
     }
 
-    m_logicalDevice->doMappedMemoryOperation(m_stagingBufferMemory, [vertices, bufferSize](void* data) {
+    Buffers::doMappedMemoryOperation(m_stagingBufferMemory, [vertices, bufferSize](void* data) {
       memcpy(data, vertices->data(), bufferSize);
     });
 

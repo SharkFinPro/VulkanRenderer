@@ -1,7 +1,6 @@
 #include "TextureCubemap.h"
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
 #include <stb_image.h>
@@ -43,7 +42,7 @@ namespace vke {
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
       for (size_t i = 0; i < pixels.size(); ++i)
       {
         const vk::DeviceSize offset = i * imageSize;

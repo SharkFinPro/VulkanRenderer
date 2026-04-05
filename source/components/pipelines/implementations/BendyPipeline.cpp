@@ -12,7 +12,7 @@ namespace vke {
   BendyPipeline::BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const vk::raii::CommandPool& commandPool,
-                               vk::DescriptorPool descriptorPool,
+                               const vk::DescriptorPool descriptorPool,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
     : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet),
       m_previousTime(std::chrono::steady_clock::now())

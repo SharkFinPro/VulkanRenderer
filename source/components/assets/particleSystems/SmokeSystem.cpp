@@ -64,7 +64,7 @@ namespace vke {
     return m_smokeSystemDescriptorSet;
   }
 
-  const vk::Buffer& SmokeSystem::getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const
+  vk::Buffer SmokeSystem::getSmokeSystemShaderStorageBuffer(const uint32_t currentFrame) const
   {
     return *m_shaderStorageBuffers[currentFrame];
   }
@@ -167,7 +167,7 @@ namespace vke {
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
-    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [particles, bufferSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [particles, bufferSize](void* data) {
       memcpy(data, particles.data(), bufferSize);
     });
 

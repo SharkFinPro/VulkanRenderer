@@ -4,7 +4,6 @@
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include <imgui.h>
 
 namespace vke {
 
