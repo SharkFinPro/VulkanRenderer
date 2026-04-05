@@ -151,9 +151,9 @@ namespace vke {
     return m_swapChainExtent;
   }
 
-  vk::raii::SwapchainKHR& SwapChain::getSwapChain()
+  vk::SwapchainKHR SwapChain::getSwapChain() const
   {
-    return m_swapchain;
+    return *m_swapchain;
   }
 
   const std::vector<vk::raii::ImageView>& SwapChain::getImageViews() const
