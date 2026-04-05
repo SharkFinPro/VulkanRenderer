@@ -22,64 +22,41 @@ namespace vke {
     createDescriptorSetLayouts();
   }
 
-  AssetManager::~AssetManager()
-  {
-    m_logicalDevice->destroyDescriptorSetLayout(m_rayTracingDescriptorSetLayout);
-
-    m_logicalDevice->destroyDescriptorSetLayout(m_objectDescriptorSetLayout);
-
-    m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
-
-    m_logicalDevice->destroyDescriptorSetLayout(m_smokeSystemDescriptorSetLayout);
-
-    for (auto& descriptorPool : m_descriptorPools)
-    {
-      m_logicalDevice->destroyDescriptorPool(descriptorPool);
-    }
-
-    m_logicalDevice->destroyCommandPool(m_commandPool);
-  }
-
   std::shared_ptr<Texture2D> AssetManager::loadTexture(const char* path,
                                                        const bool repeat)
   {
-    auto texture = std::make_shared<Texture2D>(
+    return std::make_shared<Texture2D>(
       m_logicalDevice,
-      m_commandPool,
+      *m_commandPool,
       path,
-      repeat ? VK_SAMPLER_ADDRESS_MODE_REPEAT : VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+      repeat ? vk::SamplerAddressMode::eRepeat : vk::SamplerAddressMode::eClampToEdge
     );
-
-    return texture;
   }
 
   std::shared_ptr<Model> AssetManager::loadModel(const char* path,
                                                  glm::vec3 rotation)
   {
-    auto model = std::make_shared<Model>(
+    return std::make_shared<Model>(
       m_logicalDevice,
-      m_commandPool,
+      *m_commandPool,
       path,
       rotation
     );
-
-    return model;
   }
 
-  std::shared_ptr<RenderObject> AssetManager::loadRenderObject(const std::shared_ptr<Texture2D>& texture,
-                                                               const std::shared_ptr<Texture2D>& specularMap,
-                                                               const std::shared_ptr<Model>& model)
+  std::shared_ptr<RenderObject> AssetManager::loadRenderObject(
+    const std::shared_ptr<Texture2D>& texture,
+    const std::shared_ptr<Texture2D>& specularMap,
+    const std::shared_ptr<Model>& model)
   {
-    auto renderObject = std::make_shared<RenderObject>(
+    return std::make_shared<RenderObject>(
       m_logicalDevice,
       getDescriptorPool(),
-      m_objectDescriptorSetLayout,
+      *m_objectDescriptorSetLayout,
       texture,
       specularMap,
       model
     );
-
-    return renderObject;
   }
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)
@@ -104,41 +81,42 @@ namespace vke {
     return font->second;
   }
 
-  std::shared_ptr<SmokeSystem> AssetManager::createSmokeSystem(glm::vec3 position, uint32_t numParticles)
+  std::shared_ptr<SmokeSystem> AssetManager::createSmokeSystem(glm::vec3 position,
+                                                               uint32_t numParticles)
   {
     return std::make_shared<SmokeSystem>(
       m_logicalDevice,
-      m_commandPool,
+      *m_commandPool,
       getDescriptorPool(),
-      m_smokeSystemDescriptorSetLayout,
+      *m_smokeSystemDescriptorSetLayout,
       position,
       numParticles
     );
   }
 
-  VkDescriptorSetLayout AssetManager::getObjectDescriptorSetLayout() const
-  {
-    return m_objectDescriptorSetLayout;
-  }
-
-  VkDescriptorSetLayout AssetManager::getFontDescriptorSetLayout() const
-  {
-    return m_fontDescriptorSetLayout;
-  }
-
-  VkDescriptorSetLayout AssetManager::getSmokeSystemDescriptorSetLayout() const
-  {
-    return m_smokeSystemDescriptorSetLayout;
-  }
-
-  VkDescriptorSetLayout AssetManager::getRayTracingDescriptorSetLayout() const
-  {
-    return m_rayTracingDescriptorSetLayout;
-  }
-
   std::shared_ptr<Cloud> AssetManager::createCloud()
   {
-    return std::make_shared<Cloud>(m_logicalDevice, m_commandPool);
+    return std::make_shared<Cloud>(m_logicalDevice, *m_commandPool);
+  }
+
+  vk::DescriptorSetLayout AssetManager::getObjectDescriptorSetLayout() const
+  {
+    return *m_objectDescriptorSetLayout;
+  }
+
+  vk::DescriptorSetLayout AssetManager::getFontDescriptorSetLayout() const
+  {
+    return *m_fontDescriptorSetLayout;
+  }
+
+  vk::DescriptorSetLayout AssetManager::getSmokeSystemDescriptorSetLayout() const
+  {
+    return *m_smokeSystemDescriptorSetLayout;
+  }
+
+  vk::DescriptorSetLayout AssetManager::getRayTracingDescriptorSetLayout() const
+  {
+    return *m_rayTracingDescriptorSetLayout;
   }
 
   void AssetManager::createDescriptorSetLayouts()
@@ -154,25 +132,27 @@ namespace vke {
 
   void AssetManager::createObjectDescriptorSetLayout()
   {
-    constexpr VkDescriptorSetLayoutBinding transformLayout {
+    constexpr vk::DescriptorSetLayoutBinding transformLayout {
       .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorType = vk::DescriptorType::eUniformBuffer,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eVertex |
+                    vk::ShaderStageFlagBits::eGeometry |
+                    vk::ShaderStageFlagBits::eFragment
     };
 
-    constexpr VkDescriptorSetLayoutBinding textureLayout {
+    constexpr vk::DescriptorSetLayoutBinding textureLayout {
       .binding = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
-    constexpr VkDescriptorSetLayoutBinding specularLayout {
+    constexpr vk::DescriptorSetLayoutBinding specularLayout {
       .binding = 4,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
     constexpr std::array objectBindings {
@@ -181,8 +161,7 @@ namespace vke {
       specularLayout
     };
 
-    const VkDescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    const vk::DescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
       .bindingCount = static_cast<uint32_t>(objectBindings.size()),
       .pBindings = objectBindings.data()
     };
@@ -192,21 +171,18 @@ namespace vke {
 
   void AssetManager::createFontDescriptorSetLayout()
   {
-    constexpr VkDescriptorSetLayoutBinding glyphDescriptorSetLayoutBinding {
+    constexpr vk::DescriptorSetLayoutBinding glyphBinding {
       .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
-    constexpr std::array descriptorSetLayoutBindings {
-      glyphDescriptorSetLayoutBinding
-    };
+    constexpr std::array bindings { glyphBinding };
 
-    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
-      .pBindings = descriptorSetLayoutBindings.data()
+    const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+      .bindingCount = static_cast<uint32_t>(bindings.size()),
+      .pBindings = bindings.data()
     };
 
     m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
@@ -214,43 +190,43 @@ namespace vke {
 
   void AssetManager::createSmokeSystemDescriptorSetLayout()
   {
-    const std::vector<VkDescriptorSetLayoutBinding> smokeSystemDescriptorSetLayoutBinding {{
-      { // DT
+    constexpr std::array smokeBindings {
+      vk::DescriptorSetLayoutBinding { // DT
         .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .stageFlags = vk::ShaderStageFlagBits::eCompute
       },
-      { // Last Frame SB
+      vk::DescriptorSetLayoutBinding { // Last frame SB
         .binding = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorType = vk::DescriptorType::eStorageBuffer,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+        .stageFlags = vk::ShaderStageFlagBits::eCompute
       },
-      { // Current Frame SB
+      vk::DescriptorSetLayoutBinding { // Current frame SB
         .binding = 2,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorType = vk::DescriptorType::eStorageBuffer,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+        .stageFlags = vk::ShaderStageFlagBits::eCompute
       },
-      { // Transform
+      vk::DescriptorSetLayoutBinding { // Transform
         .binding = 3,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+        .stageFlags = vk::ShaderStageFlagBits::eVertex |
+                      vk::ShaderStageFlagBits::eFragment
       },
-      { // Smoke
+      vk::DescriptorSetLayoutBinding { // Smoke
         .binding = 4,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT
+        .stageFlags = vk::ShaderStageFlagBits::eCompute
       }
-    }};
+    };
 
-    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = static_cast<uint32_t>(smokeSystemDescriptorSetLayoutBinding.size()),
-      .pBindings = smokeSystemDescriptorSetLayoutBinding.data()
+    const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+      .bindingCount = static_cast<uint32_t>(smokeBindings.size()),
+      .pBindings = smokeBindings.data()
     };
 
     m_smokeSystemDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
@@ -262,87 +238,87 @@ namespace vke {
     {
       return;
     }
-    
-    const std::vector<VkDescriptorSetLayoutBinding> rayTracingDescriptorSetLayoutBinding {{
-      {
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-      },
-      {
-        .binding = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR
-      },
-      {
-        .binding = 2,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR
-      },
-      {
-        .binding = 3,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-      },
-      {
-        .binding = 4,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-      },
-      {
-        .binding = 5,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-      },
-      {
-        .binding = 6,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_INTERSECTION_BIT_KHR
-      },
-      {
-        .binding = 7,
-        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .descriptorCount = 256,
-        .stageFlags = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR
-      }
-    }};
 
-    std::vector<VkDescriptorBindingFlags> bindingFlags {
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+    const std::array rayTracingBindings {
+      vk::DescriptorSetLayoutBinding {
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eAccelerationStructureKHR,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eRaygenKHR |
+                      vk::ShaderStageFlagBits::eClosestHitKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 1,
+        .descriptorType = vk::DescriptorType::eStorageImage,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eRaygenKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 2,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eRaygenKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 3,
+        .descriptorType = vk::DescriptorType::eStorageBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 4,
+        .descriptorType = vk::DescriptorType::eStorageBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 5,
+        .descriptorType = vk::DescriptorType::eStorageBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 6,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eIntersectionKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 7,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorCount = 256,
+        .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
+      }
     };
 
-    VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo {
-      .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
-      .bindingCount  = static_cast<uint32_t>(bindingFlags.size()),
+    // Binding 7 uses variable descriptor count and partial binding.
+    const std::array<vk::DescriptorBindingFlags, 8> bindingFlags {
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlagBits::eVariableDescriptorCount | vk::DescriptorBindingFlagBits::ePartiallyBound
+    };
+
+    const vk::DescriptorSetLayoutBindingFlagsCreateInfo flagsInfo {
+      .bindingCount = static_cast<uint32_t>(bindingFlags.size()),
       .pBindingFlags = bindingFlags.data()
     };
 
-    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+    const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
       .pNext = &flagsInfo,
-      .bindingCount = static_cast<uint32_t>(rayTracingDescriptorSetLayoutBinding.size()),
-      .pBindings = rayTracingDescriptorSetLayoutBinding.data()
+      .bindingCount = static_cast<uint32_t>(rayTracingBindings.size()),
+      .pBindings = rayTracingBindings.data()
     };
 
     m_rayTracingDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
   void AssetManager::loadFont(const std::string& fontName,
-                              uint32_t fontSize)
+                              const uint32_t fontSize)
   {
     const auto fontPath = m_fontNames.find(fontName);
 
@@ -352,15 +328,20 @@ namespace vke {
     }
 
     auto font = std::make_shared<Font>(
-      m_logicalDevice, fontPath->second, fontSize, m_commandPool, getDescriptorPool(), m_fontDescriptorSetLayout);
+      m_logicalDevice,
+      fontPath->second,
+      fontSize,
+      *m_commandPool,
+      getDescriptorPool(),
+      *m_fontDescriptorSetLayout
+    );
 
     m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
   }
 
   void AssetManager::createCommandPool()
   {
-    const VkCommandPoolCreateInfo poolInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    const vk::CommandPoolCreateInfo poolInfo {
       .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
     };
 
@@ -369,14 +350,13 @@ namespace vke {
 
   void AssetManager::createDescriptorPool()
   {
-    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
-      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize}
+    const std::array<vk::DescriptorPoolSize, 3> poolSizes {{
+      { vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize },
+      { vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize },
+      { vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize }
     }};
 
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    const vk::DescriptorPoolCreateInfo poolCreateInfo {
       .maxSets = m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
@@ -385,7 +365,7 @@ namespace vke {
     m_descriptorPools.push_back(m_logicalDevice->createDescriptorPool(poolCreateInfo));
   }
 
-  VkDescriptorPool AssetManager::getDescriptorPool()
+  vk::DescriptorPool AssetManager::getDescriptorPool()
   {
     m_currentDescriptorPoolSize++;
 
@@ -395,6 +375,7 @@ namespace vke {
       createDescriptorPool();
     }
 
-    return m_descriptorPools.back();
+    return *m_descriptorPools.back();
   }
+
 } // namespace vke

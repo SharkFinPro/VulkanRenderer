@@ -16,11 +16,6 @@ namespace vke {
     m_computeCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
   }
 
-  ComputingManager::~ComputingManager()
-  {
-    m_logicalDevice->destroyCommandPool(m_commandPool);
-  }
-
   void ComputingManager::doComputing(const std::shared_ptr<PipelineManager>& pipelineManager,
                                      const uint32_t currentFrame,
                                      const std::shared_ptr<Renderer2D>& renderer2D,
@@ -54,9 +49,8 @@ namespace vke {
 
   void ComputingManager::createCommandPool()
   {
-    const VkCommandPoolCreateInfo poolInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+    const vk::CommandPoolCreateInfo poolInfo {
+      .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer ,
       .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().computeFamily.value()
     };
 

@@ -1,7 +1,7 @@
 #ifndef VKE_RENDERER_H
 #define VKE_RENDERER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <vector>
 
@@ -19,9 +19,9 @@ namespace vke {
   public:
     explicit Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
                       const std::shared_ptr<SwapChain>& swapChain,
-                      VkCommandPool commandPool);
+                      vk::CommandPool commandPool);
 
-    virtual ~Renderer();
+    virtual ~Renderer() = default;
 
     [[nodiscard]] virtual std::shared_ptr<RenderPass> getSwapchainRenderPass() const { return nullptr; };
 
@@ -33,34 +33,34 @@ namespace vke {
 
     [[nodiscard]] virtual std::shared_ptr<RenderPass> getMousePickingRenderPass() const { return nullptr; };
 
-    [[nodiscard]] virtual VkDescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
+    [[nodiscard]] virtual vk::DescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
     virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
-    virtual void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent);
+    virtual void resetOffscreenImageResources(vk::Extent2D offscreenViewportExtent);
 
-    virtual void resetMousePickingImageResources(VkExtent2D mousePickingExtent);
+    virtual void resetMousePickingImageResources(vk::Extent2D mousePickingExtent);
 
-    virtual void resetRayTracingImageResources(VkExtent2D extent);
+    virtual void resetRayTracingImageResources(vk::Extent2D extent);
 
     virtual void beginSwapchainRendering(uint32_t imageIndex,
-                                         VkExtent2D extent,
+                                         vk::Extent2D extent,
                                          std::shared_ptr<CommandBuffer> commandBuffer,
                                          std::shared_ptr<SwapChain> swapChain) = 0;
 
     virtual void beginOffscreenRendering(uint32_t currentFrame,
-                                         VkExtent2D extent,
+                                         vk::Extent2D extent,
                                          std::shared_ptr<CommandBuffer> commandBuffer) = 0;
 
     virtual void beginShadowRendering(uint32_t currentFrame,
-                                      VkExtent2D extent,
+                                      vk::Extent2D extent,
                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
                                       const std::shared_ptr<Light>& light) = 0;
 
     virtual void beginMousePickingRendering(uint32_t currentFrame,
-                                            VkExtent2D extent,
+                                            vk::Extent2D extent,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
 
     virtual void endSwapchainRendering(uint32_t imageIndex,
@@ -89,7 +89,7 @@ namespace vke {
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::CommandPool m_commandPool = nullptr;
 
     std::shared_ptr<RenderTarget> m_offscreenRenderTarget;
 
@@ -99,7 +99,7 @@ namespace vke {
 
     std::vector<std::shared_ptr<ImageResource>> m_rayTracingImageResources;
 
-    VkSampler m_sampler = VK_NULL_HANDLE;
+    vk::raii::Sampler m_sampler = nullptr;
 
     uint32_t m_currentShadowMapRenderTargetID = 0;
 
@@ -107,11 +107,11 @@ namespace vke {
 
     void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
-    void createOffscreenRenderTarget(VkExtent2D extent);
+    void createOffscreenRenderTarget(vk::Extent2D extent);
 
-    void createMousePickingRenderTarget(VkExtent2D extent);
+    void createMousePickingRenderTarget(vk::Extent2D extent);
 
-    void createRayTracingImageResource(VkExtent2D extent);
+    void createRayTracingImageResource(vk::Extent2D extent);
   };
 
 } // namespace vke

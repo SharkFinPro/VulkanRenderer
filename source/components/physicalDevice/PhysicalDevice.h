@@ -1,7 +1,7 @@
 #ifndef VKE_PHYSICALDEVICE_H
 #define VKE_PHYSICALDEVICE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <memory>
 #include <optional>
@@ -14,22 +14,22 @@ namespace vke {
 
   #ifdef __APPLE__
   constexpr std::array<const char*, 3> deviceExtensions {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
+    vk::KHRSwapchainExtensionName,
+    vk::KHRDynamicRenderingExtensionName,
     "VK_KHR_portability_subset"
   };
   #else
-  constexpr std::array<const char*, 2> deviceExtensions {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
+  constexpr std::array deviceExtensions {
+    vk::KHRSwapchainExtensionName,
+    vk::KHRDynamicRenderingExtensionName
   };
   #endif
 
-  constexpr std::array<const char*, 4> rayTracingDeviceExtensions {
-    VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-    VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-    VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-    VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME
+  constexpr std::array rayTracingDeviceExtensions {
+    vk::KHRRayTracingPipelineExtensionName,
+    vk::KHRAccelerationStructureExtensionName,
+    vk::KHRBufferDeviceAddressExtensionName,
+    vk::KHRDeferredHostOperationsExtensionName
   };
 
   struct QueueFamilyIndices {
@@ -46,9 +46,9 @@ namespace vke {
   };
 
   struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities {};
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
+    vk::SurfaceCapabilitiesKHR capabilities;
+    std::vector<vk::SurfaceFormatKHR> formats;
+    std::vector<vk::PresentModeKHR> presentModes;
   };
 
   class PhysicalDevice {
@@ -60,37 +60,37 @@ namespace vke {
 
     [[nodiscard]] SwapChainSupportDetails getSwapChainSupport() const;
 
-    [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
+    [[nodiscard]] vk::SampleCountFlagBits getMsaaSamples() const;
 
     [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter,
-                                          const VkMemoryPropertyFlags& properties) const;
+                                          const vk::MemoryPropertyFlags& properties) const;
 
     void updateSwapChainSupportDetails();
 
-    [[nodiscard]] VkFormatProperties getFormatProperties(VkFormat format) const;
+    [[nodiscard]] vk::FormatProperties getFormatProperties(vk::Format format) const;
 
-    [[nodiscard]] VkPhysicalDeviceProperties getDeviceProperties() const;
+    [[nodiscard]] vk::PhysicalDeviceProperties getDeviceProperties() const;
 
-    [[nodiscard]] VkDevice createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const;
+    [[nodiscard]] vk::raii::Device createLogicalDevice(const vk::DeviceCreateInfo& deviceCreateInfo) const;
 
-    [[nodiscard]] VkFormat findDepthFormat() const;
+    [[nodiscard]] vk::Format findDepthFormat() const;
 
-    [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                               VkImageTiling tiling,
-                                               VkFormatFeatureFlags features) const;
+    [[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates,
+                                                 vk::ImageTiling tiling,
+                                                 vk::FormatFeatureFlags features) const;
 
     [[nodiscard]] bool supportsRayTracing() const;
 
-    [[nodiscard]] VkPhysicalDeviceRayTracingPipelinePropertiesKHR getRayTracingPipelineProperties() const;
+    [[nodiscard]] vk::PhysicalDeviceRayTracingPipelinePropertiesKHR getRayTracingPipelineProperties() const;
 
     friend class ImGuiInstance;
 
   private:
-    VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+    vk::raii::PhysicalDevice m_physicalDevice = nullptr;
 
     std::shared_ptr<Surface> m_surface;
 
-    VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+    vk::SampleCountFlagBits m_msaaSamples = vk::SampleCountFlagBits::e1;
 
     QueueFamilyIndices m_queueFamilyIndices;
 
@@ -100,17 +100,17 @@ namespace vke {
 
     void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
 
-    bool isDeviceSuitable(VkPhysicalDevice device) const;
+    bool isDeviceSuitable(const vk::raii::PhysicalDevice& device) const;
 
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
+    QueueFamilyIndices findQueueFamilies(const vk::raii::PhysicalDevice& device) const;
 
-    static bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+    static bool checkDeviceExtensionSupport(const vk::raii::PhysicalDevice& device);
 
-    static bool checkDeviceRayTracingExtensionSupport(VkPhysicalDevice device);
+    static bool checkDeviceRayTracingExtensionSupport(const vk::raii::PhysicalDevice& device);
 
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) const;
+    SwapChainSupportDetails querySwapChainSupport(const vk::raii::PhysicalDevice& device) const;
 
-    [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;
+    [[nodiscard]] vk::SampleCountFlagBits getMaxUsableSampleCount() const;
   };
 
 } // namespace vke

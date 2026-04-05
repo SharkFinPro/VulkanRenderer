@@ -4,7 +4,7 @@
 #include "../../EngineConfig.h"
 #include "../../utilities/EventSystem.h"
 #include <imgui.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {
@@ -57,7 +57,7 @@ namespace vke {
 
     std::shared_ptr<Window> m_window;
 
-    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool m_descriptorPool = nullptr;
 
     ImGuiStyle m_baseStyle;
 

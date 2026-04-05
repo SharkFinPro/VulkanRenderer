@@ -2,7 +2,7 @@
 #define VKE_SMOKEPARTICLE_H
 
 #include <glm/vec4.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <array>
 
 namespace vke {
@@ -11,28 +11,28 @@ namespace vke {
     glm::vec4 positionTtl;
     glm::vec4 velocityColor;
 
-    static constexpr VkVertexInputBindingDescription getBindingDescription()
+    static constexpr vk::VertexInputBindingDescription getBindingDescription()
     {
       return {
         .binding = 0,
         .stride = sizeof(SmokeParticle),
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+        .inputRate = vk::VertexInputRate::eVertex
       };
     }
 
-    static constexpr std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions()
+    static constexpr std::array<vk::VertexInputAttributeDescription, 2> getAttributeDescriptions()
     {
       return {{
         {
           .location = 0,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+          .format = vk::Format::eR32G32B32A32Sfloat,
           .offset = offsetof(SmokeParticle, positionTtl)
         },
         {
           .location = 1,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+          .format = vk::Format::eR32G32B32A32Sfloat,
           .offset = offsetof(SmokeParticle, velocityColor)
         }
       }};

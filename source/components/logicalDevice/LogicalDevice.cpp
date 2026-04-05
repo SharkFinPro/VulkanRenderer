@@ -3,7 +3,6 @@
 #include "../physicalDevice/PhysicalDevice.h"
 #include <array>
 #include <set>
-#include <stdexcept>
 
 namespace vke {
 
@@ -15,26 +14,6 @@ namespace vke {
     createSyncObjects();
   }
 
-  LogicalDevice::~LogicalDevice()
-  {
-    for (size_t i = 0; i < m_maxFramesInFlight; i++)
-    {
-      vkDestroySemaphore(m_device, m_renderFinishedSemaphores[i], nullptr);
-      vkDestroySemaphore(m_device, m_renderFinishedSemaphores2[i], nullptr);
-
-      vkDestroySemaphore(m_device, m_imageAvailableSemaphores[i], nullptr);
-
-      vkDestroySemaphore(m_device, m_computeFinishedSemaphores[i], nullptr);
-
-      vkDestroyFence(m_device, m_inFlightFences[i], nullptr);
-      vkDestroyFence(m_device, m_offscreenInFlightFences[i], nullptr);
-      vkDestroyFence(m_device, m_mousePickingInFlightFences[i], nullptr);
-      vkDestroyFence(m_device, m_computeInFlightFences[i], nullptr);
-    }
-
-    vkDestroyDevice(m_device, nullptr);
-  }
-
   std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
   {
     return m_physicalDevice;
@@ -42,182 +21,153 @@ namespace vke {
 
   void LogicalDevice::waitIdle() const
   {
-    vkDeviceWaitIdle(m_device);
+    m_device.waitIdle();
   }
 
-  VkQueue LogicalDevice::getGraphicsQueue() const
+  vk::Queue LogicalDevice::getGraphicsQueue()
   {
     return m_graphicsQueue;
   }
 
-  VkQueue LogicalDevice::getPresentQueue() const
+  vk::Queue LogicalDevice::getPresentQueue()
   {
     return m_presentQueue;
   }
 
-  VkQueue LogicalDevice::getComputeQueue() const
+  vk::Queue LogicalDevice::getComputeQueue()
   {
     return m_computeQueue;
   }
 
   void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
-                                                      const VkCommandBuffer* commandBuffer) const
+                                                      const vk::CommandBuffer commandBuffer) const
   {
-    constexpr VkPipelineStageFlags waitStages[] = {
-      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    constexpr vk::PipelineStageFlags waitStages[] = {
+      vk::PipelineStageFlagBits::eVertexInput,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput
     };
 
-    const VkSubmitInfo submitInfo {
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    const vk::SubmitInfo submitInfo {
       .waitSemaphoreCount = 0,
       .pWaitSemaphores = nullptr,
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 0,
       .pSignalSemaphores = nullptr
     };
 
-    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_mousePickingInFlightFences[currentFrame]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to submit draw command buffer!");
-    }
+    m_graphicsQueue.submit(submitInfo, m_mousePickingInFlightFences[currentFrame]);
   }
 
   void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
-                                                   const VkCommandBuffer* commandBuffer) const
+                                                   const vk::CommandBuffer commandBuffer) const
   {
-    const std::array waitSemaphores = {
-      m_computeFinishedSemaphores[currentFrame]
-    };
-    constexpr VkPipelineStageFlags waitStages[] = {
-      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    constexpr vk::PipelineStageFlags waitStages[] = {
+      vk::PipelineStageFlagBits::eVertexInput,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput
     };
 
-    const VkSubmitInfo submitInfo {
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
-      .pWaitSemaphores = waitSemaphores.data(),
+    const vk::SubmitInfo submitInfo {
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = &*m_computeFinishedSemaphores[currentFrame],
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &m_renderFinishedSemaphores2[currentFrame]
+      .pSignalSemaphores = &*m_renderFinishedSemaphores2[currentFrame]
     };
 
-    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_offscreenInFlightFences[currentFrame]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to submit draw command buffer!");
-    }
+    m_graphicsQueue.submit(submitInfo, m_offscreenInFlightFences[currentFrame]);
   }
 
   void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame,
-                                          const VkCommandBuffer* commandBuffer) const
+                                          const vk::CommandBuffer commandBuffer) const
   {
-    const std::array waitSemaphores = {
-      m_imageAvailableSemaphores[currentFrame]
-    };
-    constexpr VkPipelineStageFlags waitStages[] = {
-      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    constexpr vk::PipelineStageFlags waitStages[] = {
+      vk::PipelineStageFlagBits::eVertexInput,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput
     };
 
-    const VkSubmitInfo submitInfo {
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
-      .pWaitSemaphores = waitSemaphores.data(),
+    const vk::SubmitInfo submitInfo {
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = &*m_imageAvailableSemaphores[currentFrame],
       .pWaitDstStageMask = waitStages,
       .commandBufferCount = 1,
-      .pCommandBuffers = commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &m_renderFinishedSemaphores[currentFrame]
+      .pSignalSemaphores = &*m_renderFinishedSemaphores[currentFrame]
     };
 
-    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to submit draw command buffer!");
-    }
+    m_graphicsQueue.submit(submitInfo, m_inFlightFences[currentFrame]);
   }
 
   void LogicalDevice::submitComputeQueue(const uint32_t currentFrame,
-                                         const VkCommandBuffer* commandBuffer) const
+                                         const vk::CommandBuffer commandBuffer) const
   {
-    const VkSubmitInfo submitInfo {
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    const vk::SubmitInfo submitInfo {
       .commandBufferCount = 1,
-      .pCommandBuffers = commandBuffer,
+      .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &m_computeFinishedSemaphores[currentFrame]
+      .pSignalSemaphores = &*m_computeFinishedSemaphores[currentFrame]
     };
 
-    if (vkQueueSubmit(m_computeQueue, 1, &submitInfo, m_computeInFlightFences[currentFrame]) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to submit compute command buffer!");
-    }
+    m_computeQueue.submit(submitInfo, m_computeInFlightFences[currentFrame]);
   }
 
   void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
   {
     const std::array fences = {
-      m_inFlightFences[currentFrame],
-      m_offscreenInFlightFences[currentFrame]
+      *m_inFlightFences[currentFrame],
+      *m_offscreenInFlightFences[currentFrame]
     };
 
-    vkWaitForFences(
-      m_device,
-      fences.size(),
-      fences.data(),
-      VK_TRUE,
-      UINT64_MAX
-    );
+    const auto result = m_device.waitForFences(fences, vk::True, UINT64_MAX);
+    assert(result == vk::Result::eSuccess);
   }
+
   void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
   {
-    vkWaitForFences(m_device, 1, &m_computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    const auto result = m_device.waitForFences(*m_computeInFlightFences[currentFrame], vk::True, UINT64_MAX);
+    assert(result == vk::Result::eSuccess);
   }
 
   void LogicalDevice::waitForMousePickingFences(const uint32_t currentFrame) const
   {
-    vkWaitForFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    const auto result = m_device.waitForFences(*m_mousePickingInFlightFences[currentFrame], vk::True, UINT64_MAX);
+    assert(result == vk::Result::eSuccess);
   }
 
   void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
   {
     const std::array fences = {
-      m_inFlightFences[currentFrame],
-      m_offscreenInFlightFences[currentFrame]
+      *m_inFlightFences[currentFrame],
+      *m_offscreenInFlightFences[currentFrame]
     };
 
-    vkResetFences(
-      m_device,
-      fences.size(),
-      fences.data()
-    );
+    m_device.resetFences(fences);
   }
 
   void LogicalDevice::resetMousePickingFences(const uint32_t currentFrame) const
   {
-    vkResetFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame]);
+    m_device.resetFences(*m_mousePickingInFlightFences[currentFrame]);
   }
 
   void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
   {
-    vkResetFences(m_device, 1, &m_computeInFlightFences[currentFrame]);
+    m_device.resetFences(*m_computeInFlightFences[currentFrame]);
   }
 
-  VkResult LogicalDevice::queuePresent(const uint32_t currentFrame,
-                                       const VkSwapchainKHR& swapchain,
-                                       const uint32_t* imageIndex) const
+  vk::Result LogicalDevice::queuePresent(const uint32_t currentFrame,
+                                         const vk::SwapchainKHR swapchain,
+                                         const uint32_t* imageIndex) const
   {
-    const std::array<VkSemaphore, 2> waitSemaphores = {
-      m_renderFinishedSemaphores[currentFrame],
-      m_renderFinishedSemaphores2[currentFrame]
+    const std::array waitSemaphores = {
+      *m_renderFinishedSemaphores[currentFrame],
+      *m_renderFinishedSemaphores2[currentFrame]
     };
 
-    const VkPresentInfoKHR presentInfo {
-      .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+    const vk::PresentInfoKHR presentInfo {
       .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
       .pWaitSemaphores = waitSemaphores.data(),
       .swapchainCount = 1,
@@ -226,15 +176,25 @@ namespace vke {
       .pResults = nullptr
     };
 
-    return vkQueuePresentKHR(m_presentQueue, &presentInfo);
+    return m_presentQueue.presentKHR(presentInfo);
   }
 
-  VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame,
-                                           const VkSwapchainKHR& swapchain,
-                                           uint32_t* imageIndex) const
+  vk::Result LogicalDevice::acquireNextImage(const uint32_t currentFrame,
+                                             const vk::SwapchainKHR swapchain,
+                                             uint32_t* imageIndex) const
   {
-    return vkAcquireNextImageKHR(m_device, swapchain, UINT64_MAX,
-                                 m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndex);
+    const vk::AcquireNextImageInfoKHR acquireInfo {
+      .swapchain = swapchain,
+      .timeout = UINT64_MAX,
+      .semaphore = *m_imageAvailableSemaphores[currentFrame],
+      .fence = nullptr,
+      .deviceMask = 1
+    };
+
+    auto [result, index] = m_device.acquireNextImage2KHR(acquireInfo);
+    *imageIndex = index;
+
+    return result;
   }
 
   uint32_t LogicalDevice::getMaxFramesInFlight() const
@@ -242,526 +202,221 @@ namespace vke {
     return m_maxFramesInFlight;
   }
 
-  VkCommandPool LogicalDevice::createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const
+  vk::raii::CommandPool LogicalDevice::createCommandPool(const vk::CommandPoolCreateInfo& commandPoolCreateInfo) const
   {
-    VkCommandPool commandPool = VK_NULL_HANDLE;
-
-    if (vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create command pool!");
-    }
-
-    return commandPool;
+    return m_device.createCommandPool(commandPoolCreateInfo);
   }
 
-  void LogicalDevice::destroyCommandPool(VkCommandPool& commandPool) const
+  void LogicalDevice::doMappedMemoryOperation(const vk::raii::DeviceMemory& deviceMemory,
+                                              const std::function<void(void* data)>& operationFunction)
   {
-    vkDestroyCommandPool(m_device, commandPool, nullptr);
-
-    commandPool = VK_NULL_HANDLE;
-  }
-
-  void LogicalDevice::destroyDescriptorPool(VkDescriptorPool& descriptorPool) const
-  {
-    vkDestroyDescriptorPool(m_device, descriptorPool, nullptr);
-
-    descriptorPool = VK_NULL_HANDLE;
-  }
-
-  void LogicalDevice::destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const
-  {
-    vkDestroyDescriptorSetLayout(m_device, descriptorSetLayout, nullptr);
-
-    descriptorSetLayout = VK_NULL_HANDLE;
-  }
-
-  void LogicalDevice::doMappedMemoryOperation(VkDeviceMemory deviceMemory,
-                                              const std::function<void(void* data)>& operationFunction) const
-  {
-    void* data;
-    mapMemory(deviceMemory, 0, VK_WHOLE_SIZE, 0, &data);
+    void* data = deviceMemory.mapMemory(0, vk::WholeSize);
 
     operationFunction(data);
 
-    unmapMemory(deviceMemory);
+    deviceMemory.unmapMemory();
   }
 
-  void LogicalDevice::mapMemory(const VkDeviceMemory& memory,
-                                const VkDeviceSize offset,
-                                const VkDeviceSize size,
-                                const VkMemoryMapFlags flags,
-                                void** data) const
+  void LogicalDevice::mapMemory(const vk::raii::DeviceMemory& memory,
+                                const vk::DeviceSize offset,
+                                const vk::DeviceSize size,
+                                const vk::MemoryMapFlags flags,
+                                void** data)
   {
-    vkMapMemory(m_device, memory, offset, size, flags, data);
+    *data = memory.mapMemory(offset, size, flags);
   }
 
-  void LogicalDevice::unmapMemory(const VkDeviceMemory& memory) const
+  void LogicalDevice::unmapMemory(const vk::raii::DeviceMemory& memory)
   {
-    if (memory == VK_NULL_HANDLE)
+    if (*memory == nullptr)
     {
       return;
     }
 
-    vkUnmapMemory(m_device, memory);
+    memory.unmapMemory();
   }
 
-  void LogicalDevice::allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
-                                             VkDescriptorSet* descriptorSets) const
+  std::vector<vk::raii::DescriptorSet> LogicalDevice::allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo) const
   {
-    if (vkAllocateDescriptorSets(m_device, &descriptorSetAllocateInfo, descriptorSets) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to allocate descriptor sets!");
-    }
+    return m_device.allocateDescriptorSets(descriptorSetAllocateInfo);
   }
 
-  void LogicalDevice::updateDescriptorSets(const uint32_t descriptorWriteCount,
-                                           const VkWriteDescriptorSet* descriptorWrites) const
+  void LogicalDevice::updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const
   {
-    vkUpdateDescriptorSets(m_device, descriptorWriteCount, descriptorWrites, 0, nullptr);
+    m_device.updateDescriptorSets(writeDescriptorSets, nullptr);
   }
 
-  VkBuffer LogicalDevice::createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const
+  vk::raii::Buffer LogicalDevice::createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const
   {
-    VkBuffer buffer = VK_NULL_HANDLE;
-
-    if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create buffer!");
-    }
-
-    return buffer;
+    return m_device.createBuffer(bufferCreateInfo);
   }
 
-  void LogicalDevice::destroyBuffer(VkBuffer&buffer) const
+  vk::MemoryRequirements LogicalDevice::getBufferMemoryRequirements(const vk::raii::Buffer& buffer)
   {
-    if (buffer == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    vkDestroyBuffer(m_device, buffer, nullptr);
-
-    buffer = VK_NULL_HANDLE;
+    return buffer.getMemoryRequirements();
   }
 
-  VkMemoryRequirements LogicalDevice::getBufferMemoryRequirements(const VkBuffer& buffer) const
+  void LogicalDevice::allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
+                                     vk::raii::DeviceMemory& deviceMemory) const
   {
-    VkMemoryRequirements memoryRequirements{};
-
-    vkGetBufferMemoryRequirements(m_device, buffer, &memoryRequirements);
-
-    return memoryRequirements;
+    deviceMemory = m_device.allocateMemory(memoryAllocateInfo);
   }
 
-  void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo,
-                                     VkDeviceMemory& deviceMemory) const
+  void LogicalDevice::bindBufferMemory(const vk::raii::Buffer& buffer,
+                                       const vk::DeviceMemory deviceMemory,
+                                       const vk::DeviceSize memoryOffset)
   {
-    if (vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to allocate memory!");
-    }
+    buffer.bindMemory(deviceMemory, memoryOffset);
   }
 
-  void LogicalDevice::freeMemory(VkDeviceMemory& memory) const
+  vk::raii::Sampler LogicalDevice::createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const
   {
-    if (memory == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    waitIdle();
-
-    vkFreeMemory(m_device, memory, nullptr);
-
-    memory = VK_NULL_HANDLE;
+    return m_device.createSampler(samplerCreateInfo);
   }
 
-  void LogicalDevice::bindBufferMemory(const VkBuffer& buffer,
-                                       const VkDeviceMemory& deviceMemory,
-                                       const VkDeviceSize memoryOffset) const
+  vk::raii::ImageView LogicalDevice::createImageView(const vk::ImageViewCreateInfo& imageViewCreateInfo) const
   {
-    vkBindBufferMemory(m_device, buffer, deviceMemory, memoryOffset);
+    return m_device.createImageView(imageViewCreateInfo);
   }
 
-  VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const
+  vk::raii::Image LogicalDevice::createImage(const vk::ImageCreateInfo& imageCreateInfo) const
   {
-    VkSampler sampler = VK_NULL_HANDLE;
-
-    if (vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create sampler!");
-    }
-
-    return sampler;
+    return m_device.createImage(imageCreateInfo);
   }
 
-  void LogicalDevice::destroySampler(VkSampler& sampler) const
+  vk::MemoryRequirements LogicalDevice::getImageMemoryRequirements(const vk::raii::Image& image)
   {
-    if (sampler == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    vkDestroySampler(m_device, sampler, nullptr);
-
-    sampler = VK_NULL_HANDLE;
+    return image.getMemoryRequirements();
   }
 
-  VkImageView LogicalDevice::createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const
+  void LogicalDevice::bindImageMemory(const vk::raii::Image& image,
+                                      const vk::DeviceMemory deviceMemory,
+                                      const vk::DeviceSize memoryOffset)
   {
-    VkImageView imageView = VK_NULL_HANDLE;
-
-    if (vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create image view!");
-    }
-
-    return imageView;
+    image.bindMemory(deviceMemory, memoryOffset);
   }
 
-  void LogicalDevice::destroyImageView(VkImageView& imageView) const
+  vk::raii::RenderPass LogicalDevice::createRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) const
   {
-    if (imageView == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    waitIdle();
-
-    vkDestroyImageView(m_device, imageView, nullptr);
-
-    imageView = VK_NULL_HANDLE;
+    return m_device.createRenderPass(renderPassCreateInfo);
   }
 
-  VkImage LogicalDevice::createImage(const VkImageCreateInfo& imageCreateInfo) const
+  vk::raii::ShaderModule LogicalDevice::createShaderModule(const vk::ShaderModuleCreateInfo& shaderModuleCreateInfo) const
   {
-    VkImage image = VK_NULL_HANDLE;
-
-    if (vkCreateImage(m_device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create image!");
-    }
-
-    return image;
+    return m_device.createShaderModule(shaderModuleCreateInfo);
   }
 
-  void LogicalDevice::destroyImage(VkImage& image) const
+  vk::raii::SwapchainKHR LogicalDevice::createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo) const
   {
-    if (image == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    vkDestroyImage(m_device, image, nullptr);
-
-    image = VK_NULL_HANDLE;
+    return m_device.createSwapchainKHR(swapchainCreateInfo);
   }
 
-  VkMemoryRequirements LogicalDevice::getImageMemoryRequirements(const VkImage& image) const
-  {
-    VkMemoryRequirements memoryRequirements{};
-
-    vkGetImageMemoryRequirements(m_device, image, &memoryRequirements);
-
-    return memoryRequirements;
-  }
-
-  void LogicalDevice::bindImageMemory(const VkImage& image,
-                                      const VkDeviceMemory& deviceMemory,
-                                      const VkDeviceSize memoryOffset) const
-  {
-    vkBindImageMemory(m_device, image, deviceMemory, memoryOffset);
-  }
-
-  VkRenderPass LogicalDevice::createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const
-  {
-    VkRenderPass renderPass = VK_NULL_HANDLE;
-
-    if (vkCreateRenderPass(m_device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create render pass!");
-    }
-
-    return renderPass;
-  }
-
-  void LogicalDevice::destroyRenderPass(VkRenderPass& renderPass) const
-  {
-    vkDestroyRenderPass(m_device, renderPass, nullptr);
-
-    renderPass = VK_NULL_HANDLE;
-  }
-
-  VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const
-  {
-    VkShaderModule shaderModule = VK_NULL_HANDLE;
-
-    if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create shader module!");
-    }
-
-    return shaderModule;
-  }
-
-  void LogicalDevice::destroyShaderModule(VkShaderModule& shaderModule) const
-  {
-    vkDestroyShaderModule(m_device, shaderModule, nullptr);
-
-    shaderModule = VK_NULL_HANDLE;
-  }
-
-  VkSwapchainKHR LogicalDevice::createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const
-  {
-    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
-
-    if (vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create swapchain!");
-    }
-
-    return swapchain;
-  }
-
-  void LogicalDevice::getSwapchainImagesKHR(const VkSwapchainKHR& swapchain,
+  void LogicalDevice::getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
                                             uint32_t* swapchainImageCount,
-                                            VkImage* swapchainImages) const
+                                            vk::Image* swapchainImages)
   {
-    vkGetSwapchainImagesKHR(m_device, swapchain, swapchainImageCount, swapchainImages);
+    auto images = swapchain.getImages();
+    *swapchainImageCount = static_cast<uint32_t>(images.size());
+    std::ranges::copy(images, swapchainImages);
   }
 
-  void LogicalDevice::destroySwapchainKHR(VkSwapchainKHR& swapchain) const
+  vk::raii::Framebuffer LogicalDevice::createFramebuffer(const vk::FramebufferCreateInfo& framebufferCreateInfo) const
   {
-    vkDestroySwapchainKHR(m_device, swapchain, nullptr);
-
-    swapchain = VK_NULL_HANDLE;
+    return m_device.createFramebuffer(framebufferCreateInfo);
   }
 
-  VkFramebuffer LogicalDevice::createFramebuffer(const VkFramebufferCreateInfo& framebufferCreateInfo) const
+  vk::raii::PipelineLayout LogicalDevice::createPipelineLayout(const vk::PipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const
   {
-    VkFramebuffer framebuffer = VK_NULL_HANDLE;
-
-    if (vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &framebuffer) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create framebuffer!");
-    }
-
-    return framebuffer;
+    return m_device.createPipelineLayout(pipelineLayoutCreateInfo);
   }
 
-  void LogicalDevice::destroyFramebuffer(VkFramebuffer& framebuffer) const
+  vk::raii::Pipeline LogicalDevice::createPipeline(const vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const
   {
-    vkDestroyFramebuffer(m_device, framebuffer, nullptr);
-
-    framebuffer = VK_NULL_HANDLE;
+    return m_device.createGraphicsPipeline(nullptr, graphicsPipelineCreateInfo, nullptr);
   }
 
-  VkPipelineLayout LogicalDevice::createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const
+  vk::raii::Pipeline LogicalDevice::createPipeline(const vk::ComputePipelineCreateInfo& computePipelineCreateInfo) const
   {
-    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-
-    if (vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create pipeline layout!");
-    }
-
-    return pipelineLayout;
+    return m_device.createComputePipeline(nullptr, computePipelineCreateInfo, nullptr);
   }
 
-  void LogicalDevice::destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const
+  vk::raii::Pipeline LogicalDevice::createPipeline(const vk::RayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const
   {
-    if (pipelineLayout == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    vkDestroyPipelineLayout(m_device, pipelineLayout, nullptr);
-
-    pipelineLayout = VK_NULL_HANDLE;
+    return m_device.createRayTracingPipelineKHR(nullptr, nullptr, rayTracingPipelineCreateInfo, nullptr);
   }
 
-  VkPipeline LogicalDevice::createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const
+  vk::DeviceAddress LogicalDevice::getBufferDeviceAddress(const vk::Buffer buffer) const
   {
-    VkPipeline pipeline = VK_NULL_HANDLE;
-
-    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create graphics pipeline!");
-    }
-
-    return pipeline;
-  }
-
-  VkPipeline LogicalDevice::createPipeline(const VkComputePipelineCreateInfo& computePipelineCreateInfo) const
-  {
-    VkPipeline pipeline = VK_NULL_HANDLE;
-
-    if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create compute pipeline!");
-    }
-
-    return pipeline;
-  }
-
-  VkPipeline LogicalDevice::createPipeline(const VkRayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const
-  {
-    VkPipeline pipeline = VK_NULL_HANDLE;
-
-    if (m_vkCreateRayTracingPipelinesKHR(m_device, VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &rayTracingPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create ray tracing pipeline!");
-    }
-
-    return pipeline;
-  }
-
-  void LogicalDevice::destroyPipeline(VkPipeline&pipeline) const
-  {
-    if (pipeline == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    vkDestroyPipeline(m_device, pipeline, nullptr);
-
-    pipeline = VK_NULL_HANDLE;
-  }
-
-  VkDeviceAddress LogicalDevice::getBufferDeviceAddress(const VkBuffer& buffer) const
-  {
-    const VkBufferDeviceAddressInfo bufferDeviceAddressInfo {
-      .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+    const vk::BufferDeviceAddressInfo bufferDeviceAddressInfo {
       .buffer = buffer
     };
 
-    return vkGetBufferDeviceAddress(m_device, &bufferDeviceAddressInfo);
+    return m_device.getBufferAddress(bufferDeviceAddressInfo);
   }
 
-  void LogicalDevice::createAccelerationStructure(const VkAccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
-                                                  VkAccelerationStructureKHR* accelerationStructure) const
+  vk::raii::AccelerationStructureKHR LogicalDevice::createAccelerationStructure(const vk::AccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo) const
   {
-    m_vkCreateAccelerationStructureKHR(m_device, &accelerationStructureCreateInfo, nullptr, accelerationStructure);
+    return m_device.createAccelerationStructureKHR(accelerationStructureCreateInfo, nullptr);
   }
 
-  void LogicalDevice::destroyAccelerationStructureKHR(VkAccelerationStructureKHR& accelerationStructure) const
+  void LogicalDevice::getAccelerationStructureBuildSizes(const vk::AccelerationStructureBuildGeometryInfoKHR& accelerationStructureBuildGeometryInfo,
+                                                         const uint32_t maxPrimitiveCounts,
+                                                         vk::AccelerationStructureBuildSizesInfoKHR& accelerationStructureBuildSizesInfo) const
   {
-    if (accelerationStructure == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    m_vkDestroyAccelerationStructureKHR(m_device, accelerationStructure, nullptr);
-
-    accelerationStructure = VK_NULL_HANDLE;
-  }
-
-  void LogicalDevice::getAccelerationStructureBuildSizes(const VkAccelerationStructureBuildGeometryInfoKHR* accelerationStructureBuildGeometryInfo,
-                                                         const uint32_t* maxPrimitiveCounts,
-                                                         VkAccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const
-  {
-    m_vkGetAccelerationStructureBuildSizesKHR(
-      m_device,
-      VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+    accelerationStructureBuildSizesInfo = m_device.getAccelerationStructureBuildSizesKHR(
+      vk::AccelerationStructureBuildTypeKHR::eDevice,
       accelerationStructureBuildGeometryInfo,
-      maxPrimitiveCounts,
-      accelerationStructureBuildSizesInfo
+      maxPrimitiveCounts
     );
   }
 
-  void LogicalDevice::buildAccelerationStructures(VkCommandBuffer commandBuffer,
-                                                  const uint32_t infoCount,
-                                                  const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
-                                                  const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const
+  void LogicalDevice::buildAccelerationStructures(const vk::CommandBuffer commandBuffer,
+                                                  const vk::AccelerationStructureBuildGeometryInfoKHR& pInfos,
+                                                  const vk::AccelerationStructureBuildRangeInfoKHR* ppBuildRangeInfos)
   {
-    m_vkCmdBuildAccelerationStructuresKHR(commandBuffer, infoCount, pInfos, ppBuildRangeInfos);
+    commandBuffer.buildAccelerationStructuresKHR(
+      pInfos,
+      ppBuildRangeInfos
+    );
   }
 
-  VkDeviceAddress LogicalDevice::getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const
+  vk::DeviceAddress LogicalDevice::getAccelerationStructureDeviceAddress(const vk::AccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const
   {
-    return m_vkGetAccelerationStructureDeviceAddressKHR(m_device, accelerationStructureDeviceAddressInfo);
+    return m_device.getAccelerationStructureAddressKHR(*accelerationStructureDeviceAddressInfo);
   }
 
-  void LogicalDevice::getRayTracingShaderGroupHandles(VkPipeline pipeline,
+  void LogicalDevice::getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
                                                       const uint32_t groupCount,
-                                                      std::vector<uint8_t>& handles) const
+                                                      std::vector<uint8_t>& handles)
   {
-    m_vkGetRayTracingShaderGroupHandlesKHR(
-      m_device,
-      pipeline,
+    handles = pipeline.getRayTracingShaderGroupHandlesKHR<uint8_t>(
       0,
       groupCount,
-      handles.size(),
-      handles.data()
+      handles.size()
     );
   }
 
-  void LogicalDevice::traceRays(VkCommandBuffer commandBuffer,
-                                const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-                                const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
-                                const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-                                const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
-                                const uint32_t width,
-                                const uint32_t height,
-                                const uint32_t depth) const
+  void LogicalDevice::allocateCommandBuffers(const vk::CommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                             std::vector<vk::raii::CommandBuffer>& commandBuffers) const
   {
-    m_vkCmdTraceRaysKHR(
-      commandBuffer,
-      pRaygenShaderBindingTable,
-      pMissShaderBindingTable,
-      pHitShaderBindingTable,
-      pCallableShaderBindingTable,
-      width,
-      height,
-      depth
-    );
+    commandBuffers = m_device.allocateCommandBuffers(commandBufferAllocateInfo);
   }
 
-  void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
-                                             VkCommandBuffer* commandBuffers) const
+  vk::raii::DescriptorPool LogicalDevice::createDescriptorPool(const vk::DescriptorPoolCreateInfo& descriptorPoolCreateInfo) const
   {
-    if (vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, commandBuffers) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to allocate command buffers!");
-    }
+    return m_device.createDescriptorPool(descriptorPoolCreateInfo);
   }
 
-  void LogicalDevice::freeCommandBuffers(VkCommandPool commandPool,
-                                         const uint32_t commandBufferCount,
-                                         const VkCommandBuffer* commandBuffers) const
+  vk::raii::DescriptorSetLayout LogicalDevice::createDescriptorSetLayout(const vk::DescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const
   {
-    vkFreeCommandBuffers(m_device, commandPool, commandBufferCount, commandBuffers);
-  }
-
-  VkDescriptorPool LogicalDevice::createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const
-  {
-    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-
-    if (vkCreateDescriptorPool(m_device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create descriptor pool!");
-    }
-
-    return descriptorPool;
-  }
-
-  VkDescriptorSetLayout LogicalDevice::createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const
-  {
-    VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-
-    if (vkCreateDescriptorSetLayout(m_device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
-    {
-      throw std::runtime_error("Failed to create descriptor set layout!");
-    }
-
-    return descriptorSetLayout;
+    return m_device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
   void LogicalDevice::createDevice()
   {
     auto queueFamilyIndices = m_physicalDevice->getQueueFamilies();
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set uniqueQueueFamilies = {
       queueFamilyIndices.graphicsFamily.value(),
       queueFamilyIndices.presentFamily.value()
@@ -770,8 +425,7 @@ namespace vke {
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies)
     {
-      const VkDeviceQueueCreateInfo queueCreateInfo {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      const vk::DeviceQueueCreateInfo queueCreateInfo {
         .queueFamilyIndex = queueFamily,
         .queueCount = 1,
         .pQueuePriorities = &queuePriority
@@ -780,46 +434,40 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
-      .rayTracingPipeline = VK_TRUE
+    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures {
+      .rayTracingPipeline = vk::True
     };
 
-    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+    vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
       .pNext = &rayTracingPipelineFeatures,
-      .accelerationStructure = VK_TRUE
+      .accelerationStructure = vk::True
     };
 
-    VkPhysicalDeviceVulkan13Features vulkan13Features {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+    vk::PhysicalDeviceVulkan13Features vulkan13Features {
       .pNext = getPhysicalDevice()->supportsRayTracing() ? &accelerationStructureFeatures : nullptr,
-      .dynamicRendering = VK_TRUE
+      .dynamicRendering = vk::True
     };
 
-    VkPhysicalDeviceVulkan12Features vulkan12Features {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+    vk::PhysicalDeviceVulkan12Features vulkan12Features {
       .pNext = &vulkan13Features,
-      .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
-      .descriptorBindingPartiallyBound = VK_TRUE,
-      .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE,
-      .runtimeDescriptorArray = VK_TRUE,
-      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? VK_TRUE : VK_FALSE
+      .shaderSampledImageArrayNonUniformIndexing = vk::True,
+      .descriptorBindingPartiallyBound = vk::True,
+      .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False,
+      .runtimeDescriptorArray = vk::True,
+      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False
     };
 
-    VkPhysicalDeviceVulkan11Features vulkan11Features {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+    vk::PhysicalDeviceVulkan11Features vulkan11Features {
       .pNext = &vulkan12Features,
-      .multiview = VK_TRUE
+      .multiview = vk::True
     };
 
-    VkPhysicalDeviceFeatures2 deviceFeatures2 {
-      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+    vk::PhysicalDeviceFeatures2 deviceFeatures2 {
       .pNext = &vulkan11Features,
       .features {
-        .geometryShader = VK_TRUE,
-        .fillModeNonSolid = VK_TRUE,
-        .samplerAnisotropy = VK_TRUE
+        .geometryShader = vk::True,
+        .fillModeNonSolid = vk::True,
+        .samplerAnisotropy = vk::True
       }
     };
 
@@ -830,110 +478,53 @@ namespace vke {
       extensions.insert(extensions.end(), rayTracingDeviceExtensions.begin(), rayTracingDeviceExtensions.end());
     }
 
-    const VkDeviceCreateInfo createInfo {
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    const vk::DeviceCreateInfo createInfo {
       .pNext = &deviceFeatures2,
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
       .pQueueCreateInfos = queueCreateInfos.data(),
-      .enabledLayerCount = Instance::validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
-      .ppEnabledLayerNames = Instance::validationLayersEnabled() ? validationLayers.data() : nullptr,
       .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
       .ppEnabledExtensionNames = extensions.data()
     };
 
     m_device = m_physicalDevice->createLogicalDevice(createInfo);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(*m_device);
 
-    vkGetDeviceQueue(m_device, queueFamilyIndices.computeFamily.value(), 0, &m_computeQueue);
-    vkGetDeviceQueue(m_device, queueFamilyIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
-    vkGetDeviceQueue(m_device, queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
-
-    loadRayTracingFunctions();
+    m_computeQueue = m_device.getQueue(queueFamilyIndices.computeFamily.value(), 0);
+    m_graphicsQueue = m_device.getQueue(queueFamilyIndices.graphicsFamily.value(), 0);
+    m_presentQueue = m_device.getQueue(queueFamilyIndices.presentFamily.value(), 0);
   }
 
   void LogicalDevice::createSyncObjects()
   {
-    m_imageAvailableSemaphores.resize(m_maxFramesInFlight);
+    m_imageAvailableSemaphores.reserve(m_maxFramesInFlight);
 
-    m_renderFinishedSemaphores.resize(m_maxFramesInFlight);
-    m_renderFinishedSemaphores2.resize(m_maxFramesInFlight);
+    m_renderFinishedSemaphores.reserve(m_maxFramesInFlight);
+    m_renderFinishedSemaphores2.reserve(m_maxFramesInFlight);
 
-    m_computeFinishedSemaphores.resize(m_maxFramesInFlight);
+    m_computeFinishedSemaphores.reserve(m_maxFramesInFlight);
 
-    m_inFlightFences.resize(m_maxFramesInFlight);
-    m_offscreenInFlightFences.resize(m_maxFramesInFlight);
-    m_mousePickingInFlightFences.resize(m_maxFramesInFlight);
-    m_computeInFlightFences.resize(m_maxFramesInFlight);
+    m_inFlightFences.reserve(m_maxFramesInFlight);
+    m_offscreenInFlightFences.reserve(m_maxFramesInFlight);
+    m_mousePickingInFlightFences.reserve(m_maxFramesInFlight);
+    m_computeInFlightFences.reserve(m_maxFramesInFlight);
 
-    constexpr VkSemaphoreCreateInfo semaphoreInfo {
-      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-    };
-
-    constexpr VkFenceCreateInfo fenceInfo {
-      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-      .flags = VK_FENCE_CREATE_SIGNALED_BIT
+    constexpr vk::FenceCreateInfo fenceInfo {
+      .flags = vk::FenceCreateFlagBits::eSignaled
     };
 
     for (size_t i = 0; i < m_maxFramesInFlight; i++)
     {
-      if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-          vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
-          vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores2[i]) != VK_SUCCESS ||
-          vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS ||
-          vkCreateFence(m_device, &fenceInfo, nullptr, &m_offscreenInFlightFences[i]) != VK_SUCCESS ||
-          vkCreateFence(m_device, &fenceInfo, nullptr, &m_mousePickingInFlightFences[i]) != VK_SUCCESS)
-      {
-        throw std::runtime_error("Failed to create graphics sync objects!");
-      }
+      constexpr vk::SemaphoreCreateInfo semaphoreInfo {};
 
-      if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_computeFinishedSemaphores[i]) != VK_SUCCESS ||
-          vkCreateFence(m_device, &fenceInfo, nullptr, &m_computeInFlightFences[i]) != VK_SUCCESS)
-      {
-        throw std::runtime_error("Failed to create compute sync objects!");
-      }
-    }
-  }
+      m_imageAvailableSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_renderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_renderFinishedSemaphores2.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_inFlightFences.emplace_back(m_device.createFence(fenceInfo));
+      m_offscreenInFlightFences.emplace_back(m_device.createFence(fenceInfo));
+      m_mousePickingInFlightFences.emplace_back(m_device.createFence(fenceInfo));
 
-  void LogicalDevice::loadRayTracingFunctions()
-  {
-    if (!getPhysicalDevice()->supportsRayTracing())
-    {
-      return;
-    }
-
-    m_vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(
-      vkGetDeviceProcAddr(m_device, "vkCreateAccelerationStructureKHR"));
-
-    m_vkDestroyAccelerationStructureKHR = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(
-      vkGetDeviceProcAddr(m_device, "vkDestroyAccelerationStructureKHR"));
-
-    m_vkGetAccelerationStructureBuildSizesKHR = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(
-      vkGetDeviceProcAddr(m_device, "vkGetAccelerationStructureBuildSizesKHR"));
-
-    m_vkCmdBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(
-      vkGetDeviceProcAddr(m_device, "vkCmdBuildAccelerationStructuresKHR"));
-
-    m_vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(
-      vkGetDeviceProcAddr(m_device, "vkGetAccelerationStructureDeviceAddressKHR"));
-
-    m_vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(
-      vkGetDeviceProcAddr(m_device, "vkCreateRayTracingPipelinesKHR"));
-
-    m_vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(
-      vkGetDeviceProcAddr(m_device, "vkGetRayTracingShaderGroupHandlesKHR"));
-
-    m_vkCmdTraceRaysKHR = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(
-      vkGetDeviceProcAddr(m_device, "vkCmdTraceRaysKHR"));
-
-    if (!m_vkCreateAccelerationStructureKHR ||
-        !m_vkDestroyAccelerationStructureKHR ||
-        !m_vkGetAccelerationStructureBuildSizesKHR ||
-        !m_vkCmdBuildAccelerationStructuresKHR ||
-        !m_vkGetAccelerationStructureDeviceAddressKHR ||
-        !m_vkCreateRayTracingPipelinesKHR ||
-        !m_vkGetRayTracingShaderGroupHandlesKHR ||
-        !m_vkCmdTraceRaysKHR)
-    {
-      throw std::runtime_error("Failed to load acceleration structure functions");
+      m_computeFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
+      m_computeInFlightFences.emplace_back(m_device.createFence(fenceInfo));
     }
   }
 } // namespace vke

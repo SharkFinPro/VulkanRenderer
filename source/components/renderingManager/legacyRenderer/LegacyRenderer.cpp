@@ -12,7 +12,7 @@ namespace vke {
 
   LegacyRenderer::LegacyRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
                                  const std::shared_ptr<SwapChain>& swapChain,
-                                 VkCommandPool commandPool)
+                                 const vk::CommandPool commandPool)
     : Renderer(std::move(logicalDevice), swapChain, commandPool)
   {
     createRenderPasses(swapChain);
@@ -73,7 +73,7 @@ namespace vke {
     );
   }
 
-  void LegacyRenderer::resetOffscreenImageResources(const VkExtent2D offscreenViewportExtent)
+  void LegacyRenderer::resetOffscreenImageResources(const vk::Extent2D offscreenViewportExtent)
   {
     m_offscreenFramebuffer.reset();
 
@@ -87,7 +87,7 @@ namespace vke {
     );
   }
 
-  void LegacyRenderer::resetMousePickingImageResources(const VkExtent2D mousePickingExtent)
+  void LegacyRenderer::resetMousePickingImageResources(const vk::Extent2D mousePickingExtent)
   {
     m_mousePickingFramebuffer.reset();
 
@@ -102,7 +102,7 @@ namespace vke {
   }
 
   void LegacyRenderer::beginSwapchainRendering(const uint32_t imageIndex,
-                                               const VkExtent2D extent,
+                                               const vk::Extent2D extent,
                                                const std::shared_ptr<CommandBuffer> commandBuffer,
                                                [[maybe_unused]] std::shared_ptr<SwapChain> swapChain)
   {
@@ -110,14 +110,14 @@ namespace vke {
   }
 
   void LegacyRenderer::beginOffscreenRendering(const uint32_t imageIndex,
-                                               const VkExtent2D extent,
+                                               const vk::Extent2D extent,
                                                const std::shared_ptr<CommandBuffer> commandBuffer)
   {
     m_offscreenRenderPass->begin(m_offscreenFramebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
   }
 
   void LegacyRenderer::beginShadowRendering(const uint32_t imageIndex,
-                                            const VkExtent2D extent,
+                                            const vk::Extent2D extent,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer,
                                             const std::shared_ptr<Light>& light)
   {
@@ -140,7 +140,7 @@ namespace vke {
   }
 
   void LegacyRenderer::beginMousePickingRendering(const uint32_t imageIndex,
-                                                  const VkExtent2D extent,
+                                                  const vk::Extent2D extent,
                                                   const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     m_mousePickingRenderPass->begin(
@@ -199,7 +199,7 @@ namespace vke {
     RenderPassConfig swapchainRenderPassConfig {
       .imageFormat = swapChain->getImageFormat(),
       .msaaSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-      .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+      .finalLayout = vk::ImageLayout::ePresentSrcKHR,
       .hasColorAttachment = true,
       .hasDepthAttachment = true,
       .hasResolveAttachment = true
@@ -207,9 +207,9 @@ namespace vke {
     m_swapchainRenderPass = std::make_shared<RenderPass>(m_logicalDevice, swapchainRenderPassConfig);
 
     RenderPassConfig offscreenRenderPassConfig {
-      .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
+      .imageFormat = vk::Format::eR8G8B8A8Unorm,
       .msaaSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      .finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
       .hasColorAttachment = true,
       .hasDepthAttachment = true,
       .hasResolveAttachment = true
@@ -217,9 +217,9 @@ namespace vke {
     m_offscreenRenderPass = std::make_shared<RenderPass>(m_logicalDevice, offscreenRenderPassConfig);
 
     RenderPassConfig shadowRenderPassConfig {
-      .depthFormat = VK_FORMAT_D32_SFLOAT,
-      .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
-      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+      .depthFormat = vk::Format::eD32Sfloat,
+      .msaaSamples = vk::SampleCountFlagBits::e1,
+      .finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .hasColorAttachment = false,
       .hasDepthAttachment = true,
       .hasResolveAttachment = false
@@ -231,9 +231,9 @@ namespace vke {
     m_shadowCubeRenderPass = std::make_shared<RenderPass>(m_logicalDevice, shadowCubeRenderPassConfig);
 
     RenderPassConfig mousePickingRenderPassConfig {
-      .imageFormat = VK_FORMAT_R8G8B8A8_UINT,
-      .msaaSamples = VK_SAMPLE_COUNT_1_BIT,
-      .finalLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .imageFormat = vk::Format::eR8G8B8A8Uint,
+      .msaaSamples = vk::SampleCountFlagBits::e1,
+      .finalLayout = vk::ImageLayout::eUndefined,
       .hasColorAttachment = true,
       .hasDepthAttachment = true,
       .hasResolveAttachment = false

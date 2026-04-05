@@ -2,24 +2,28 @@
 #define VULKANPROJECT_SINGLEUSECOMMANDBUFFER_H
 
 #include "CommandBuffer.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 
 namespace vke {
 
   class SingleUseCommandBuffer final : public CommandBuffer {
   public:
     SingleUseCommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
-                           VkCommandPool commandPool,
-                           VkQueue queue);
+                           const vk::CommandPool& commandPool,
+                           vk::Queue queue);
+
+    SingleUseCommandBuffer(const SingleUseCommandBuffer&) = delete;
+    SingleUseCommandBuffer& operator=(const SingleUseCommandBuffer&) = delete;
+
+    SingleUseCommandBuffer(SingleUseCommandBuffer&&) noexcept = default;
+    SingleUseCommandBuffer& operator=(SingleUseCommandBuffer&&) noexcept = default;
 
     void record(const std::function<void()>& renderFunction) const override;
 
   private:
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::Queue m_queue;
 
-    VkQueue m_queue = VK_NULL_HANDLE;
-
-    void allocateCommandBuffers(VkCommandPool commandPool) override;
+    void allocateCommandBuffers(vk::CommandPool commandPool) override;
   };
 
 } // vke

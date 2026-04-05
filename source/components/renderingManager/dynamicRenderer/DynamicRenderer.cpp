@@ -11,44 +11,37 @@ namespace vke {
 
   DynamicRenderer::DynamicRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
                                    const std::shared_ptr<SwapChain>& swapChain,
-                                   VkCommandPool commandPool)
+                                   const vk::CommandPool commandPool)
     : Renderer(std::move(logicalDevice), swapChain, commandPool)
   {}
 
   void DynamicRenderer::beginSwapchainRendering(const uint32_t imageIndex,
-                                                const VkExtent2D extent,
+                                                const vk::Extent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer,
                                                 const std::shared_ptr<SwapChain> swapChain)
   {
     transitionSwapchainImagePreRender(commandBuffer, swapChain->getImages()[imageIndex]);
 
-    VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_swapchainRenderTarget->getColorImageResource(imageIndex).getImageView(),
-      .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+      .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .resolveMode = vk::ResolveModeFlagBits::eAverage,
       .resolveImageView = swapChain->getImageViews()[imageIndex],
-      .resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-      .clearValue = {
-        .color = {0.0f, 0.0f, 0.0f, 1.0f}
-      }
+      .resolveImageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .clearValue = s_clearColor
     };
 
-    VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
       .imageView = m_swapchainRenderTarget->getDepthImageResource(imageIndex).getImageView(),
-      .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      .clearValue = {
-        .depthStencil = {1.0f, 0}
-      }
+      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eDontCare,
+      .clearValue = s_clearDepth
     };
 
-    const VkRenderingInfo renderingInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+    const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
         .extent = extent,
@@ -63,36 +56,29 @@ namespace vke {
   }
 
   void DynamicRenderer::beginOffscreenRendering(const uint32_t currentFrame,
-                                                const VkExtent2D extent,
+                                                const vk::Extent2D extent,
                                                 const std::shared_ptr<CommandBuffer> commandBuffer)
   {
-    VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_offscreenRenderTarget->getColorImageResource(currentFrame).getImageView(),
-      .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT,
+      .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .resolveMode = vk::ResolveModeFlagBits::eAverage,
       .resolveImageView = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImageView(),
-      .resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-      .clearValue = {
-        .color = {0.0f, 0.0f, 0.0f, 1.0f}
-      }
+      .resolveImageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .clearValue = s_clearColor
     };
 
-    VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
       .imageView = m_offscreenRenderTarget->getDepthImageResource(currentFrame).getImageView(),
-      .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      .clearValue = {
-        .depthStencil = {1.0f, 0}
-      }
+      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eDontCare,
+      .clearValue = s_clearDepth
     };
 
-    const VkRenderingInfo renderingInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+    const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
         .extent = extent,
@@ -107,23 +93,19 @@ namespace vke {
   }
 
   void DynamicRenderer::beginShadowRendering(uint32_t currentFrame,
-                                             const VkExtent2D extent,
+                                             const vk::Extent2D extent,
                                              const std::shared_ptr<CommandBuffer>& commandBuffer,
                                              const std::shared_ptr<Light>& light)
   {
-    VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
       .imageView = light->getShadowMapView(),
-      .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-      .clearValue = {
-        .depthStencil = {1.0f, 0}
-      }
+      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .clearValue = s_clearDepth
     };
 
-    const VkRenderingInfo renderingInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+    const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
         .extent = extent,
@@ -139,34 +121,27 @@ namespace vke {
   }
 
   void DynamicRenderer::beginMousePickingRendering(const uint32_t currentFrame,
-                                                   const VkExtent2D extent,
+                                                   const vk::Extent2D extent,
                                                    const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
-    VkRenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_mousePickingRenderTarget->getColorImageResource(currentFrame).getImageView(),
-      .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .resolveMode = VK_RESOLVE_MODE_NONE,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-      .clearValue = {
-        .color = {0.0f, 0.0f, 0.0f, 1.0f}
-      }
+      .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .resolveMode = vk::ResolveModeFlagBits::eNone,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .clearValue = s_clearColor
     };
 
-    VkRenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
       .imageView = m_mousePickingRenderTarget->getDepthImageResource(currentFrame).getImageView(),
-      .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      .clearValue = {
-        .depthStencil = {1.0f, 0}
-      }
+      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eDontCare,
+      .clearValue = s_clearDepth
     };
 
-    const VkRenderingInfo renderingInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+    const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
         .extent = extent,
@@ -212,17 +187,16 @@ namespace vke {
   void DynamicRenderer::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                  const uint32_t currentFrame)
   {
-    const VkImageMemoryBarrier imageMemoryBarrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = VK_ACCESS_NONE,
-      .dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
-      .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-      .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    const vk::ImageMemoryBarrier imageMemoryBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eNone,
+      .dstAccessMask = vk::AccessFlagBits::eShaderWrite,
+      .oldLayout = vk::ImageLayout::eUndefined,
+      .newLayout = vk::ImageLayout::eGeneral,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
       .image = getRayTracingImageResource(currentFrame)->getImage(),
       .subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
         .baseMipLevel = 0,
         .levelCount = 1,
         .baseArrayLayer = 0,
@@ -231,9 +205,9 @@ namespace vke {
     };
 
     commandBuffer->pipelineBarrier(
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-      VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-      0,
+      vk::PipelineStageFlagBits::eTopOfPipe,
+      vk::PipelineStageFlagBits::eRayTracingShaderKHR,
+      {},
       {},
       {},
       { imageMemoryBarrier }
@@ -251,17 +225,16 @@ namespace vke {
   }
 
   void DynamicRenderer::transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                          const VkImage image)
+                                                          const vk::Image image)
   {
-    const VkImageMemoryBarrier imageMemoryBarrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = VK_ACCESS_NONE,
-      .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-      .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-      .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    const vk::ImageMemoryBarrier imageMemoryBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eNone,
+      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .oldLayout = vk::ImageLayout::eUndefined,
+      .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .image = image,
       .subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
         .baseMipLevel = 0,
         .levelCount = 1,
         .baseArrayLayer = 0,
@@ -270,9 +243,9 @@ namespace vke {
     };
 
     commandBuffer->pipelineBarrier(
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      0,
+      vk::PipelineStageFlagBits::eTopOfPipe,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      {},
       {},
       {},
       { imageMemoryBarrier }
@@ -280,17 +253,16 @@ namespace vke {
   }
 
   void DynamicRenderer::transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                           const VkImage image)
+                                                           const vk::Image image)
   {
-    const VkImageMemoryBarrier imageMemoryBarrier {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-      .dstAccessMask = VK_ACCESS_NONE,
-      .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    const vk::ImageMemoryBarrier imageMemoryBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .dstAccessMask = vk::AccessFlagBits::eNone,
+      .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .newLayout = vk::ImageLayout::ePresentSrcKHR,
       .image = image,
       .subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
         .baseMipLevel = 0,
         .levelCount = 1,
         .baseArrayLayer = 0,
@@ -299,9 +271,9 @@ namespace vke {
     };
 
     commandBuffer->pipelineBarrier(
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-      0,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      vk::PipelineStageFlagBits::eBottomOfPipe,
+      {},
       {},
       {},
       { imageMemoryBarrier }
@@ -316,47 +288,45 @@ namespace vke {
 
     // Transition RT image: GENERAL -> TRANSFER_SRC_OPTIMAL
     // Transition offscreen resolve image: UNDEFINED -> TRANSFER_DST_OPTIMAL
-    const std::vector<VkImageMemoryBarrier> preTransferBarriers {
-        {
-          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-          .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
-          .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-          .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .image = rtImage,
-          .subresourceRange = {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-          }
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-          .srcAccessMask = VK_ACCESS_NONE,
-          .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-          .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .image = offscreenImage,
-          .subresourceRange = {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-          }
+    const std::vector preTransferBarriers {
+      vk::ImageMemoryBarrier{
+        .srcAccessMask = vk::AccessFlagBits::eShaderWrite,
+        .dstAccessMask = vk::AccessFlagBits::eTransferRead,
+        .oldLayout = vk::ImageLayout::eGeneral,
+        .newLayout = vk::ImageLayout::eTransferSrcOptimal,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .image = rtImage,
+        .subresourceRange = {
+          .aspectMask = vk::ImageAspectFlagBits::eColor,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
         }
+      },
+      vk::ImageMemoryBarrier{
+        .srcAccessMask = vk::AccessFlagBits::eNone,
+        .dstAccessMask = vk::AccessFlagBits::eTransferWrite,
+        .oldLayout = vk::ImageLayout::eUndefined,
+        .newLayout = vk::ImageLayout::eTransferDstOptimal,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .image = offscreenImage,
+        .subresourceRange = {
+          .aspectMask = vk::ImageAspectFlagBits::eColor,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+        }
+      }
     };
 
     commandBuffer->pipelineBarrier(
-      VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      0,
+      vk::PipelineStageFlagBits::eRayTracingShaderKHR,
+      vk::PipelineStageFlagBits::eTransfer,
+      {},
       {},
       {},
       preTransferBarriers
@@ -371,35 +341,33 @@ namespace vke {
 
     // Transition offscreen resolve: TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL
     // Transition RT image back: TRANSFER_SRC_OPTIMAL -> GENERAL
-    const std::vector<VkImageMemoryBarrier> postTransferBarriers {
-        {
-          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-          .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-          .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-          .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-          .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .image = offscreenImage,
-          .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
-        },
-        {
-          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-          .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-          .dstAccessMask = VK_ACCESS_NONE,
-          .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-          .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-          .image = rtImage,
-          .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
-        }
+    const std::vector postTransferBarriers {
+      vk::ImageMemoryBarrier{
+        .srcAccessMask = vk::AccessFlagBits::eTransferWrite,
+        .dstAccessMask = vk::AccessFlagBits::eShaderRead,
+        .oldLayout = vk::ImageLayout::eTransferDstOptimal,
+        .newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .image = offscreenImage,
+        .subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }
+      },
+      vk::ImageMemoryBarrier{
+        .srcAccessMask = vk::AccessFlagBits::eTransferRead,
+        .dstAccessMask = vk::AccessFlagBits::eNone,
+        .oldLayout = vk::ImageLayout::eTransferSrcOptimal,
+        .newLayout = vk::ImageLayout::eGeneral,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .image = rtImage,
+        .subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }
+      }
     };
 
     commandBuffer->pipelineBarrier(
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-      0,
+      vk::PipelineStageFlagBits::eTransfer,
+      vk::PipelineStageFlagBits::eFragmentShader,
+      {},
       {},
       {},
       postTransferBarriers
@@ -414,17 +382,19 @@ namespace vke {
 
     const auto extent = m_offscreenRenderTarget->getExtent();
 
-    const VkImageCopy imageCopy {
-      .srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 },
+    const vk::ImageCopy imageCopy {
+      .srcSubresource = { vk::ImageAspectFlagBits::eColor, 0, 0, 1 },
       .srcOffset = { 0, 0, 0 },
-      .dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 },
+      .dstSubresource = { vk::ImageAspectFlagBits::eColor, 0, 0, 1 },
       .dstOffset = { 0, 0, 0 },
       .extent = { extent.width, extent.height, 1 }
     };
 
     commandBuffer->copyImage(
-      rtImage,      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-      offscreenImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      rtImage,
+      vk::ImageLayout::eTransferSrcOptimal,
+      offscreenImage,
+      vk::ImageLayout::eTransferDstOptimal,
       { imageCopy }
     );
   }

@@ -1,12 +1,13 @@
 #ifndef VKE_PIPELINEMANAGER_H
 #define VKE_PIPELINEMANAGER_H
 
+#include "../RayTracingPipeline.h"
 #include "../implementations/BendyPipeline.h"
 #include "../implementations/DotsPipeline.h"
 #include "../implementations/LinePipeline.h"
 #include "../implementations/SmokePipeline.h"
 #include "../implementations/common/PipelineTypes.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -18,7 +19,6 @@ namespace vke {
   class DotsPipeline;
   class PointLight;
   class Pipeline;
-  class RayTracingPipeline;
   class RenderingManager;
   class RenderObject;
 
@@ -29,21 +29,19 @@ namespace vke {
                     const std::shared_ptr<LightingManager>& lightingManager,
                     const std::shared_ptr<AssetManager>& assetManager);
 
-    ~PipelineManager();
-
     void bindGraphicsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                               PipelineType pipelineType) const;
 
+    template<typename T>
     void pushGraphicsPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                        PipelineType pipelineType,
-                                       VkShaderStageFlags stageFlags,
+                                       vk::ShaderStageFlags stageFlags,
                                        uint32_t offset,
-                                       uint32_t size,
-                                       const void* values) const;
+                                       const T& data) const;
 
     void bindGraphicsPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                            PipelineType pipelineType,
-                                           VkDescriptorSet descriptorSet,
+                                           vk::DescriptorSet descriptorSet,
                                            uint32_t location) const;
 
     void renderDotsPipeline(const RenderInfo* renderInfo) const;
@@ -65,24 +63,24 @@ namespace vke {
                             const std::vector<LineVertex>* lineVertices) const;
 
     void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                      VkExtent2D extent) const;
+                      vk::Extent2D extent) const;
 
     void bindRayTracingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                             VkDescriptorSet descriptorSet,
+                                             vk::DescriptorSet descriptorSet,
                                              uint32_t location) const;
 
+    template<typename T>
     void pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                         VkShaderStageFlags stageFlags,
+                                         vk::ShaderStageFlags stageFlags,
                                          uint32_t offset,
-                                         uint32_t size,
-                                         const void* values) const;
+                                         const T& data) const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool = nullptr;
 
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool m_descriptorPool = nullptr;
 
     std::unique_ptr<DotsPipeline> m_dotsPipeline;
 
@@ -124,6 +122,26 @@ namespace vke {
                                   const std::shared_ptr<LightingManager>& lightingManager);
   };
 
+  template<typename T>
+  void PipelineManager::pushGraphicsPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                      const PipelineType pipelineType,
+                                                      const vk::ShaderStageFlags stageFlags,
+                                                      const uint32_t offset,
+                                                      const T& data) const
+  {
+    const auto& graphicsPipeline = getGraphicsPipeline(pipelineType);
+
+    graphicsPipeline.pushConstants<T>(commandBuffer, stageFlags, offset, data);
+  }
+
+  template<typename T>
+  void PipelineManager::pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                        vk::ShaderStageFlags stageFlags,
+                                                        uint32_t offset,
+                                                        const T& data) const
+  {
+    m_rayTracingPipeline->pushConstants<T>(commandBuffer, stageFlags, offset, data);
+  }
 } // namespace vke
 
 #endif //VKE_PIPELINEMANAGER_H

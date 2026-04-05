@@ -3,7 +3,8 @@
 
 #include "../ComputePipeline.h"
 #include "../GraphicsPipeline.h"
-#include <vulkan/vulkan.h>
+#include "../uniformBuffers/UniformBuffer.h"
+#include <vulkan/vulkan_raii.hpp>
 #include <chrono>
 #include <memory>
 #include <vector>
@@ -18,11 +19,9 @@ namespace vke {
   class DotsPipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
     DotsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                 const VkCommandPool& commandPool,
+                 const vk::raii::CommandPool& commandPool,
                  const std::shared_ptr<RenderPass>& renderPass,
-                 VkDescriptorPool descriptorPool);
-
-    ~DotsPipeline() override;
+                 vk::DescriptorPool descriptorPool);
 
     void compute(const std::shared_ptr<CommandBuffer>& commandBuffer,
                  uint32_t currentFrame) const;
@@ -30,9 +29,9 @@ namespace vke {
     void render(const RenderInfo* renderInfo);
 
   private:
-    std::vector<VkBuffer> m_shaderStorageBuffers;
-    std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
-    std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
+    std::vector<vk::raii::Buffer> m_shaderStorageBuffers;
+    std::vector<vk::raii::DeviceMemory> m_shaderStorageBuffersMemory;
+    std::vector<vk::DescriptorBufferInfo> m_shaderStorageBufferInfos;
 
     std::shared_ptr<DescriptorSet> m_dotsDescriptorSet;
 
@@ -42,9 +41,9 @@ namespace vke {
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
     void createUniforms();
-    void createShaderStorageBuffers(const VkCommandPool& commandPool);
+    void createShaderStorageBuffers(const vk::raii::CommandPool& commandPool);
 
-    void createDescriptorSets(VkDescriptorPool descriptorPool);
+    void createDescriptorSets(vk::DescriptorPool descriptorPool);
 
     void updateUniformVariables(const RenderInfo* renderInfo);
   };

@@ -15,39 +15,33 @@ namespace vke {
     createRenderPass(renderPassConfig);
   }
 
-  RenderPass::~RenderPass()
-  {
-    m_logicalDevice->destroyRenderPass(m_renderPass);
-  }
-
-  VkRenderPass& RenderPass::getRenderPass()
+  vk::RenderPass RenderPass::getRenderPass()
   {
     return m_renderPass;
   }
 
-  void RenderPass::begin(const VkFramebuffer& framebuffer,
-                         const VkExtent2D& extent,
+  void RenderPass::begin(const vk::raii::Framebuffer& framebuffer,
+                         const vk::Extent2D& extent,
                          const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    std::vector<VkClearValue> clearValues;
+    std::vector<vk::ClearValue> clearValues;
 
     if (m_shouldClearColorAttachment)
     {
-      clearValues.push_back({.color = {0.0f, 0.0f, 0.0f, 1.0f}});
+      clearValues.emplace_back(std::array{0.0f, 0.0f, 0.0f, 1.0f});
     }
 
     if (m_shouldClearDepthAttachment)
     {
-      clearValues.push_back({.depthStencil = {1.0f, 0}});
+      clearValues.emplace_back(vk::ClearDepthStencilValue{1.0f, 0});
     }
 
-    const VkRenderPassBeginInfo renderPassInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      .renderPass = m_renderPass,
-      .framebuffer = framebuffer,
+    const vk::RenderPassBeginInfo renderPassInfo {
+      .renderPass = *m_renderPass,
+      .framebuffer = *framebuffer,
       .renderArea = {
         .offset = {0, 0},
-        .extent = extent,
+        .extent = extent
       },
       .clearValueCount = static_cast<uint32_t>(clearValues.size()),
       .pClearValues = clearValues.data()
@@ -62,28 +56,26 @@ namespace vke {
 
     const auto subpass = attachmentSetup.createSubpass();
 
-    constexpr VkSubpassDependency dependency {
-      .srcSubpass = VK_SUBPASS_EXTERNAL,
+    constexpr vk::SubpassDependency dependency {
+      .srcSubpass = vk::SubpassExternal,
       .dstSubpass = 0,
-      .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-      .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-      .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-      .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT
+      .srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eLateFragmentTests,
+      .dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests,
+      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite
     };
 
     constexpr uint32_t viewMask = 0x3F;
     constexpr uint32_t correlationMask = 0x3F;
 
-    const VkRenderPassMultiviewCreateInfo renderPassMultiviewCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
+    const vk::RenderPassMultiviewCreateInfo renderPassMultiviewCreateInfo {
       .subpassCount = 1,
       .pViewMasks = &viewMask,
       .correlationMaskCount = 1,
       .pCorrelationMasks = &correlationMask
     };
 
-    const VkRenderPassCreateInfo renderPassInfo {
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+    const vk::RenderPassCreateInfo renderPassInfo {
       .pNext = renderPassConfig.useMultiview ? &renderPassMultiviewCreateInfo : nullptr,
       .attachmentCount = static_cast<uint32_t>(attachmentSetup.attachments.size()),
       .pAttachments = attachmentSetup.attachments.data(),
@@ -108,7 +100,7 @@ namespace vke {
 
       attachmentSetup.colorAttachmentReferences.push_back({
         .attachment = currentIndex,
-        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        .layout = vk::ImageLayout::eColorAttachmentOptimal
       });
 
       currentIndex++;
@@ -120,7 +112,7 @@ namespace vke {
 
       attachmentSetup.depthAttachmentReferences.push_back({
         .attachment = currentIndex,
-        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        .layout = vk::ImageLayout::eDepthStencilAttachmentOptimal
       });
 
       currentIndex++;
@@ -132,62 +124,56 @@ namespace vke {
 
       attachmentSetup.resolveAttachmentReferences.push_back({
         .attachment = currentIndex,
-        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        .layout = vk::ImageLayout::eColorAttachmentOptimal
       });
     }
 
     return attachmentSetup;
   }
 
-  VkAttachmentDescription RenderPass::getColorAttachmentDescription(const RenderPassConfig& renderPassConfig)
+  vk::AttachmentDescription RenderPass::getColorAttachmentDescription(const RenderPassConfig& renderPassConfig)
   {
-    const VkAttachmentDescription colorAttachmentDescription {
+    return {
       .format = renderPassConfig.imageFormat,
       .samples = renderPassConfig.msaaSamples,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-      .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+      .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+      .initialLayout = vk::ImageLayout::eUndefined,
+      .finalLayout = vk::ImageLayout::eColorAttachmentOptimal
     };
-
-    return colorAttachmentDescription;
   }
 
-  VkAttachmentDescription RenderPass::getDepthAttachmentDescription(const RenderPassConfig& renderPassConfig) const
+  vk::AttachmentDescription RenderPass::getDepthAttachmentDescription(const RenderPassConfig& renderPassConfig) const
   {
-    const VkAttachmentDescription depthAttachmentDescription {
-      .format = renderPassConfig.depthFormat != VK_FORMAT_UNDEFINED
+    return {
+      .format = renderPassConfig.depthFormat != vk::Format::eUndefined
                 ? renderPassConfig.depthFormat
                 : m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
       .samples = renderPassConfig.msaaSamples,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-      .storeOp = renderPassConfig.finalLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-                 ? VK_ATTACHMENT_STORE_OP_STORE
-                 : VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-      .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = renderPassConfig.finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal
+                 ? vk::AttachmentStoreOp::eStore
+                 : vk::AttachmentStoreOp::eDontCare,
+      .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+      .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+      .initialLayout = vk::ImageLayout::eUndefined,
+      .finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal
     };
-
-    return depthAttachmentDescription;
   }
 
-  VkAttachmentDescription RenderPass::getResolveAttachmentDescription(const RenderPassConfig& renderPassConfig)
+  vk::AttachmentDescription RenderPass::getResolveAttachmentDescription(const RenderPassConfig& renderPassConfig)
   {
-    const VkAttachmentDescription resolveAttachmentDescription {
+    return {
       .format = renderPassConfig.imageFormat,
-      .samples = VK_SAMPLE_COUNT_1_BIT,
-      .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .samples = vk::SampleCountFlagBits::e1,
+      .loadOp = vk::AttachmentLoadOp::eDontCare,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+      .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+      .initialLayout = vk::ImageLayout::eUndefined,
       .finalLayout = renderPassConfig.finalLayout
     };
-
-    return resolveAttachmentDescription;
   }
 } // namespace vke

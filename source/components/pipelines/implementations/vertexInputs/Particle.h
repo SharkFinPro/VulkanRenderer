@@ -3,7 +3,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <array>
 
 namespace vke {
@@ -13,28 +13,28 @@ namespace vke {
     glm::vec2 velocity;
     glm::vec4 color;
 
-    static constexpr VkVertexInputBindingDescription getBindingDescription()
+    static constexpr vk::VertexInputBindingDescription getBindingDescription()
     {
       return {
         .binding = 0,
         .stride = sizeof(Particle),
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+        .inputRate = vk::VertexInputRate::eVertex
       };
     }
 
-    static constexpr std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions()
+    static constexpr std::array<vk::VertexInputAttributeDescription, 2> getAttributeDescriptions()
     {
       return {{
         {
           .location = 0,
           .binding = 0,
-          .format = VK_FORMAT_R32G32_SFLOAT,
+          .format = vk::Format::eR32G32Sfloat,
           .offset = offsetof(Particle, position)
         },
         {
           .location = 1,
           .binding = 0,
-          .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+          .format = vk::Format::eR32G32B32A32Sfloat,
           .offset = offsetof(Particle, color)
         }
       }};

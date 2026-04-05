@@ -6,12 +6,12 @@
 #include <cstring>
 
 constexpr uint32_t PRIMITIVE_COUNT = 1;
-constexpr VkDeviceSize AABB_BUFFER_SIZE = sizeof(VkAabbPositionsKHR);
+constexpr vk::DeviceSize AABB_BUFFER_SIZE = sizeof(vk::AabbPositionsKHR);
 
 namespace vke {
 
   Cloud::Cloud(std::shared_ptr<LogicalDevice> logicalDevice,
-               const VkCommandPool& commandPool)
+               const vk::CommandPool& commandPool)
     : m_logicalDevice(std::move(logicalDevice))
   {
     createAABBBuffer(commandPool);
@@ -21,15 +21,12 @@ namespace vke {
 
   Cloud::~Cloud()
   {
-    m_logicalDevice->destroyAccelerationStructureKHR(m_blas);
-
-    Buffers::destroyBuffer(m_logicalDevice, m_blasBuffer, m_blasBufferMemory);
-    Buffers::destroyBuffer(m_logicalDevice, m_aabbBuffer, m_aabbBufferMemory);
+    m_logicalDevice->waitIdle();
   }
 
-  VkAccelerationStructureKHR Cloud::getBLAS() const
+  vk::AccelerationStructureKHR Cloud::getBLAS() const
   {
-    return m_blas;
+    return *m_blas;
   }
 
   CloudUniform Cloud::getUniformData() const
@@ -107,15 +104,15 @@ namespace vke {
     m_scale = scale;
   }
 
-  void Cloud::createAABBBuffer(const VkCommandPool& commandPool)
+  void Cloud::createAABBBuffer(const vk::CommandPool& commandPool)
   {
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    vk::raii::Buffer stagingBuffer = nullptr;
+    vk::raii::DeviceMemory stagingBufferMemory = nullptr;
     Buffers::createBuffer(
       m_logicalDevice,
       AABB_BUFFER_SIZE,
-      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      vk::BufferUsageFlagBits::eTransferSrc,
+      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
       stagingBuffer,
       stagingBufferMemory
     );
@@ -127,10 +124,10 @@ namespace vke {
     Buffers::createBuffer(
       m_logicalDevice,
       AABB_BUFFER_SIZE,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-      VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      vk::BufferUsageFlagBits::eTransferDst |
+      vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+      vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_aabbBuffer,
       m_aabbBufferMemory
     );
@@ -143,99 +140,87 @@ namespace vke {
       m_aabbBuffer,
       AABB_BUFFER_SIZE
     );
-
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
-  void Cloud::createBLAS(const VkCommandPool& commandPool)
+  void Cloud::createBLAS(const vk::CommandPool& commandPool)
   {
     if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
       return;
     }
 
-    VkAccelerationStructureGeometryAabbsDataKHR aabbsData{};
-    VkAccelerationStructureGeometryKHR geometry{};
-    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo{};
+    vk::AccelerationStructureGeometryAabbsDataKHR aabbsData{};
+    vk::AccelerationStructureGeometryKHR geometry{};
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo{};
 
     createCoreBLASData(aabbsData, geometry, buildGeometryInfo);
 
-    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
-    };
+    vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo{};
 
-    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &PRIMITIVE_COUNT, &buildSizesInfo);
+    m_logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, PRIMITIVE_COUNT, buildSizesInfo);
 
     Buffers::createBuffer(
       m_logicalDevice,
       buildSizesInfo.accelerationStructureSize,
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_blasBuffer,
       m_blasBufferMemory
     );
 
-    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
-      .buffer = m_blasBuffer,
+    const vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+      .buffer = *m_blasBuffer,
       .size = buildSizesInfo.accelerationStructureSize,
-      .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
+      .type = vk::AccelerationStructureTypeKHR::eBottomLevel
     };
 
-    m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_blas);
+    m_blas = m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo);
 
     populateBLAS(commandPool, buildGeometryInfo, buildSizesInfo);
   }
 
-  void Cloud::createCoreBLASData(VkAccelerationStructureGeometryAabbsDataKHR& aabbsData,
-                                 VkAccelerationStructureGeometryKHR& geometry,
-                                 VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const
+  void Cloud::createCoreBLASData(vk::AccelerationStructureGeometryAabbsDataKHR& aabbsData,
+                                 vk::AccelerationStructureGeometryKHR& geometry,
+                                 vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo) const
   {
-    aabbsData = {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_AABBS_DATA_KHR,
-      .data = {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_aabbBuffer)
-      },
-      .stride = sizeof(VkAabbPositionsKHR)
+    aabbsData = vk::AccelerationStructureGeometryAabbsDataKHR{
+      .data = vk::DeviceOrHostAddressConstKHR{ m_logicalDevice->getBufferDeviceAddress(m_aabbBuffer) },
+      .stride = sizeof(vk::AabbPositionsKHR)
     };
 
-    geometry = {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
-      .geometryType = VK_GEOMETRY_TYPE_AABBS_KHR,
-      .geometry = {
-        .aabbs = aabbsData
-      }
+    geometry = vk::AccelerationStructureGeometryKHR{
+      .geometryType = vk::GeometryTypeKHR::eAabbs,
+      .geometry = aabbsData
     };
 
-    buildGeometryInfo = {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
-      .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+    buildGeometryInfo = vk::AccelerationStructureBuildGeometryInfoKHR{
+      .type = vk::AccelerationStructureTypeKHR::eBottomLevel,
+      .flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace,
       .geometryCount = 1,
       .pGeometries = &geometry
     };
   }
 
-  void Cloud::populateBLAS(const VkCommandPool& commandPool,
-                           VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                           const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo) const
+  void Cloud::populateBLAS(const vk::CommandPool& commandPool,
+                           vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                           const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo) const
   {
-    VkBuffer scratchBuffer;
-    VkDeviceMemory scratchBufferMemory;
+    vk::raii::Buffer scratchBuffer = nullptr;
+    vk::raii::DeviceMemory scratchBufferMemory = nullptr;
 
     Buffers::createBuffer(
       m_logicalDevice,
       buildSizesInfo.buildScratchSize,
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
       scratchBuffer,
       scratchBufferMemory
     );
 
-    buildGeometryInfo.dstAccelerationStructure = m_blas;
-    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
+    buildGeometryInfo.dstAccelerationStructure = *m_blas;
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(*scratchBuffer);
 
-    constexpr VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+    constexpr vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo {
       .primitiveCount = PRIMITIVE_COUNT,
       .primitiveOffset = 0,
       .firstVertex = 0,
@@ -244,10 +229,8 @@ namespace vke {
 
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+    commandBuffer.record([&commandBuffer, buildGeometryInfo, buildRangeInfo] {
       commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
     });
-
-    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
   }
 } // vke

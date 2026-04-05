@@ -2,7 +2,7 @@
 #define VULKANPROJECT_SMOKESYSTEM_H
 
 #include "../../pipelines/implementations/common/Uniforms.h"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <chrono>
 #include <memory>
 #include <vector>
@@ -18,13 +18,11 @@ namespace vke {
   class SmokeSystem {
   public:
     SmokeSystem(std::shared_ptr<LogicalDevice> logicalDevice,
-                VkCommandPool commandPool,
-                VkDescriptorPool descriptorPool,
-                VkDescriptorSetLayout smokeSystemDescriptorSetLayout,
+                vk::CommandPool commandPool,
+                vk::DescriptorPool descriptorPool,
+                vk::DescriptorSetLayout smokeSystemDescriptorSetLayout,
                 glm::vec3 position,
                 uint32_t numParticles);
-
-    ~SmokeSystem();
 
     void update(const RenderInfo* renderInfo);
 
@@ -32,7 +30,7 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<DescriptorSet> getSmokeSystemDescriptorSet() const;
 
-    [[nodiscard]] const VkBuffer& getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const;
+    [[nodiscard]] const vk::Buffer& getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const;
 
     [[nodiscard]] glm::vec3 getPosition() const;
 
@@ -57,9 +55,9 @@ namespace vke {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    std::vector<VkBuffer> m_shaderStorageBuffers;
-    std::vector<VkDeviceMemory> m_shaderStorageBuffersMemory;
-    std::vector<VkDescriptorBufferInfo> m_shaderStorageBufferInfos;
+    std::vector<vk::raii::Buffer> m_shaderStorageBuffers;
+    std::vector<vk::raii::DeviceMemory> m_shaderStorageBuffersMemory;
+    std::vector<vk::DescriptorBufferInfo> m_shaderStorageBufferInfos;
 
     std::shared_ptr<DescriptorSet> m_smokeSystemDescriptorSet;
 
@@ -82,13 +80,13 @@ namespace vke {
 
     void createUniforms();
 
-    void createShaderStorageBuffers(const VkCommandPool& commandPool);
+    void createShaderStorageBuffers(const vk::CommandPool& commandPool);
 
-    void uploadShaderStorageBuffers(const VkCommandPool& commandPool,
+    void uploadShaderStorageBuffers(const vk::CommandPool& commandPool,
                                     const std::vector<SmokeParticle>& particles);
 
-    void createDescriptorSet(VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout smokeSystemDescriptorSetLayout);
+    void createDescriptorSet(vk::DescriptorPool descriptorPool,
+                             vk::DescriptorSetLayout smokeSystemDescriptorSetLayout);
   };
 } // vke
 

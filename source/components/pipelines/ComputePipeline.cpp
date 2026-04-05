@@ -9,8 +9,7 @@ namespace vke {
 
   void ComputePipeline::createPipelineLayout(const ComputePipelineOptions& computePipelineOptions)
   {
-    const VkPipelineLayoutCreateInfo pipelineLayoutInfo {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+    const vk::PipelineLayoutCreateInfo pipelineLayoutInfo {
       .setLayoutCount = static_cast<uint32_t>(computePipelineOptions.descriptorSetLayouts.size()),
       .pSetLayouts = computePipelineOptions.descriptorSetLayouts.data(),
       .pushConstantRangeCount = static_cast<uint32_t>(computePipelineOptions.pushConstantRanges.size()),
@@ -26,10 +25,9 @@ namespace vke {
 
     const auto shaderModule = computePipelineOptions.shaders.getShaderModule(m_logicalDevice);
 
-    const VkComputePipelineCreateInfo computePipelineCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+    const vk::ComputePipelineCreateInfo computePipelineCreateInfo {
       .stage = shaderModule.getShaderStageCreateInfo(),
-      .layout = m_pipelineLayout
+      .layout = *m_pipelineLayout
     };
 
     m_pipeline = m_logicalDevice->createPipeline(computePipelineCreateInfo);

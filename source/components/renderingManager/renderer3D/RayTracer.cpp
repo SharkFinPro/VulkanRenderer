@@ -28,8 +28,8 @@ namespace vke {
 
   RayTracer::RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,
                        const std::shared_ptr<AssetManager>& assetManager,
-                       VkCommandPool commandPool,
-                       VkDescriptorPool descriptorPool)
+                       const vk::CommandPool commandPool,
+                       const vk::DescriptorPool descriptorPool)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     std::vector<uint32_t> maxTextures;
@@ -38,8 +38,7 @@ namespace vke {
       maxTextures.push_back(256);
     }
 
-    VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+    vk::DescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo {
       .descriptorSetCount = static_cast<uint32_t>(maxTextures.size()),
       .pDescriptorCounts = maxTextures.data()
     };
@@ -50,11 +49,6 @@ namespace vke {
     m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
 
     m_cloudUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CloudUniform));
-  }
-
-  RayTracer::~RayTracer()
-  {
-    destroyTLAS();
   }
 
   void RayTracer::doRayTracing(const RenderInfo* renderInfo,
@@ -108,45 +102,46 @@ namespace vke {
       return;
     }
 
-    destroyTLAS();
+    m_tlas = nullptr;
+    m_tlasBuffer = nullptr;
+    m_tlasBufferMemory = nullptr;
+    m_tlasInstanceBuffer = nullptr;
+    m_tlasInstanceBufferMemory = nullptr;
+    m_mergedVertexBuffer = nullptr;
+    m_mergedVertexBufferMemory = nullptr;
+    m_mergedIndexBuffer = nullptr;
+    m_mergedIndexBufferMemory = nullptr;
+    m_meshInfoBuffer = nullptr;
+    m_meshInfoBufferMemory = nullptr;
 
     const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud);
 
-    VkAccelerationStructureGeometryInstancesDataKHR instancesData {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
-      .arrayOfPointers = VK_FALSE,
-      .data = {
-        .deviceAddress = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
-      }
+    vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
+      .arrayOfPointers = vk::False,
+      .data = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
     };
 
-    VkAccelerationStructureGeometryKHR geometry {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
-      .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
-      .geometry = {
-        .instances = instancesData
-      }
+    vk::AccelerationStructureGeometryKHR geometry {
+      .geometryType = vk::GeometryTypeKHR::eInstances,
+      .geometry = instancesData
     };
 
-    VkAccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
-      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
-      .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+      .type = vk::AccelerationStructureTypeKHR::eTopLevel,
+      .flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace,
       .geometryCount = 1,
       .pGeometries = &geometry
     };
 
-    VkAccelerationStructureBuildSizesInfoKHR buildSizesInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
-    };
+    vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo{};
 
-    m_logicalDevice->getAccelerationStructureBuildSizes(&buildGeometryInfo, &primitiveCount, &buildSizesInfo);
+    m_logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
 
     Buffers::createBuffer(
       m_logicalDevice,
       buildSizesInfo.accelerationStructureSize,
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_tlasBuffer,
       m_tlasBufferMemory
     );
@@ -157,21 +152,21 @@ namespace vke {
   uint32_t RayTracer::createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                                const std::shared_ptr<Cloud>& cloud)
   {
-    std::vector<VkAccelerationStructureInstanceKHR> instances;
+    std::vector<vk::AccelerationStructureInstanceKHR> instances;
     instances.reserve(renderObjects.size());
 
     populateInstanceArray(instances, renderObjects, cloud);
 
-    const VkDeviceSize instancesBufferSize = instances.size() * sizeof(VkAccelerationStructureInstanceKHR);
+    const vk::DeviceSize instancesBufferSize = instances.size() * sizeof(vk::AccelerationStructureInstanceKHR);
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    vk::raii::Buffer stagingBuffer = nullptr;
+    vk::raii::DeviceMemory stagingBufferMemory = nullptr;
 
     Buffers::createBuffer(
       m_logicalDevice,
       instancesBufferSize,
-      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      vk::BufferUsageFlagBits::eTransferSrc,
+      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
       stagingBuffer,
       stagingBufferMemory
     );
@@ -183,9 +178,9 @@ namespace vke {
     Buffers::createBuffer(
       m_logicalDevice,
       instancesBufferSize,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-      VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eShaderDeviceAddress |
+      vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_tlasInstanceBuffer,
       m_tlasInstanceBufferMemory
     );
@@ -194,17 +189,15 @@ namespace vke {
       m_logicalDevice,
       m_commandPool,
       m_logicalDevice->getGraphicsQueue(),
-      stagingBuffer,
-      m_tlasInstanceBuffer,
+      *stagingBuffer,
+      *m_tlasInstanceBuffer,
       instancesBufferSize
     );
-
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
     return static_cast<uint32_t>(instances.size());
   }
 
-  void RayTracer::populateInstanceArray(std::vector<VkAccelerationStructureInstanceKHR>& instances,
+  void RayTracer::populateInstanceArray(std::vector<vk::AccelerationStructureInstanceKHR>& instances,
                                         const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                         const std::shared_ptr<Cloud>& cloud) const
   {
@@ -212,15 +205,14 @@ namespace vke {
     {
       const glm::mat4 modelMatrix = glm::transpose(renderObject->getModelMatrix());
 
-      VkTransformMatrixKHR transformMatrix;
-      memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
+      vk::TransformMatrixKHR transformMatrix;
+      memcpy(&transformMatrix, &modelMatrix, sizeof(vk::TransformMatrixKHR));
 
-      const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+      const vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
         .accelerationStructure = renderObject->getModel()->getBLAS()
       };
 
-      const VkAccelerationStructureInstanceKHR instance {
+      const vk::AccelerationStructureInstanceKHR instance {
         .transform = transformMatrix,
         .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
         .mask = 0xFF,
@@ -234,18 +226,17 @@ namespace vke {
 
     if (cloud)
     {
-      const VkAccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
+      const vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
         .accelerationStructure = cloud->getBLAS()
       };
 
       const glm::mat4 modelTransform = glm::scale(glm::translate(glm::mat4(1.0f), cloud->getTranslation()), cloud->getScale());
 
       const glm::mat4 modelMatrix = glm::transpose(modelTransform);
-      VkTransformMatrixKHR transformMatrix;
-      memcpy(&transformMatrix, &modelMatrix, sizeof(VkTransformMatrixKHR));
+      vk::TransformMatrixKHR transformMatrix;
+      memcpy(&transformMatrix, &modelMatrix, sizeof(vk::TransformMatrixKHR));
 
-      const VkAccelerationStructureInstanceKHR instance {
+      const vk::AccelerationStructureInstanceKHR instance {
         .transform = transformMatrix,
         .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
         .mask = 0xFF,
@@ -258,35 +249,34 @@ namespace vke {
     }
   }
 
-  void RayTracer::buildTLAS(VkAccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                            const VkAccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
+  void RayTracer::buildTLAS(vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
+                            const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
                             const uint32_t primitiveCount)
   {
-    const VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
-      .buffer = m_tlasBuffer,
+    const vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+      .buffer = *m_tlasBuffer,
       .size = buildSizesInfo.accelerationStructureSize,
-      .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
+      .type = vk::AccelerationStructureTypeKHR::eTopLevel
     };
 
-    m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo, &m_tlas);
+    m_tlas = m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo);
 
-    VkBuffer scratchBuffer;
-    VkDeviceMemory scratchBufferMemory;
+    vk::raii::Buffer scratchBuffer = nullptr;
+    vk::raii::DeviceMemory scratchBufferMemory = nullptr;
 
     Buffers::createBuffer(
       m_logicalDevice,
       buildSizesInfo.buildScratchSize,
-      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
       scratchBuffer,
       scratchBufferMemory
     );
 
-    buildGeometryInfo.dstAccelerationStructure = m_tlas;
-    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(scratchBuffer);
+    buildGeometryInfo.dstAccelerationStructure = *m_tlas;
+    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(*scratchBuffer);
 
-    const VkAccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+    const vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo {
       .primitiveCount = primitiveCount,
       .primitiveOffset = 0,
       .firstVertex = 0,
@@ -295,30 +285,14 @@ namespace vke {
 
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
 
-    commandBuffer.record([commandBuffer, buildGeometryInfo, buildRangeInfo] {
+    commandBuffer.record([&commandBuffer, buildGeometryInfo, buildRangeInfo] {
       commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
     });
 
-    Buffers::destroyBuffer(m_logicalDevice, scratchBuffer, scratchBufferMemory);
-
     m_tlasInfo = {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
       .accelerationStructureCount = 1,
-      .pAccelerationStructures = &m_tlas
+      .pAccelerationStructures = &*m_tlas
     };
-  }
-
-  void RayTracer::destroyTLAS()
-  {
-    m_logicalDevice->destroyAccelerationStructureKHR(m_tlas);
-
-    Buffers::destroyBuffer(m_logicalDevice, m_tlasBuffer, m_tlasBufferMemory);
-    Buffers::destroyBuffer(m_logicalDevice, m_tlasInstanceBuffer, m_tlasInstanceBufferMemory);
-
-    Buffers::destroyBuffer(m_logicalDevice, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
-    Buffers::destroyBuffer(m_logicalDevice, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
-
-    Buffers::destroyBuffer(m_logicalDevice, m_meshInfoBuffer, m_meshInfoBufferMemory);
   }
 
   void RayTracer::updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
@@ -398,24 +372,24 @@ namespace vke {
                                            const std::vector<MeshInfo>& meshInfos)
   {
     auto uploadBuffer = [&]<typename T>(const std::vector<T>& data,
-                                        VkBuffer& outBuffer,
-                                        VkDeviceMemory& outMemory)
+                                        vk::raii::Buffer& outBuffer,
+                                        vk::raii::DeviceMemory& outMemory)
     {
       if (data.empty())
       {
         return;
       }
 
-      const VkDeviceSize size = data.size() * sizeof(T);
+      const vk::DeviceSize size = data.size() * sizeof(T);
 
-      VkBuffer stagingBuffer;
-      VkDeviceMemory stagingMemory;
+      vk::raii::Buffer stagingBuffer = nullptr;
+      vk::raii::DeviceMemory stagingMemory = nullptr;
 
       Buffers::createBuffer(
         m_logicalDevice,
         size,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        vk::BufferUsageFlagBits::eTransferSrc,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
         stagingBuffer,
         stagingMemory
       );
@@ -427,8 +401,8 @@ namespace vke {
       Buffers::createBuffer(
         m_logicalDevice,
         size,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eStorageBuffer,
+        vk::MemoryPropertyFlagBits::eDeviceLocal,
         outBuffer,
         outMemory
       );
@@ -437,12 +411,10 @@ namespace vke {
         m_logicalDevice,
         m_commandPool,
         m_logicalDevice->getGraphicsQueue(),
-        stagingBuffer,
-        outBuffer,
+        *stagingBuffer,
+        *outBuffer,
         size
       );
-
-      Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingMemory);
     };
 
     uploadBuffer(mergedVertices, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
@@ -451,37 +423,34 @@ namespace vke {
   }
 
   void RayTracer::updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
-                                         const VkExtent2D extent,
+                                         const vk::Extent2D extent,
                                          const uint32_t currentFrame)
   {
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
-      auto storageBuffer = [&](const uint32_t binding, const VkDescriptorBufferInfo* info) {
-        return VkWriteDescriptorSet {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      auto storageBuffer = [&](const uint32_t binding, const vk::DescriptorBufferInfo* info) {
+        return vk::WriteDescriptorSet {
           .dstSet = descriptorSet,
           .dstBinding = binding,
           .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          .descriptorType = vk::DescriptorType::eStorageBuffer,
           .pBufferInfo = info
         };
       };
 
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .pNext = &m_tlasInfo,
           .dstSet = descriptorSet,
           .dstBinding = 0,
           .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+          .descriptorType = vk::DescriptorType::eAccelerationStructureKHR
         },
         {
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
           .dstBinding = 1,
           .descriptorCount = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+          .descriptorType = vk::DescriptorType::eStorageImage,
           .pImageInfo = &imageResource->getDescriptorImageInfo()
         },
         m_cameraUniformRT->getDescriptorSet(2, descriptorSet, currentFrame),
@@ -494,11 +463,10 @@ namespace vke {
       if (!m_textureImageInfos.empty())
       {
         descriptorWrites.push_back({
-          .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
           .dstSet = descriptorSet,
           .dstBinding = 7,
           .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
-          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+          .descriptorType = vk::DescriptorType::eCombinedImageSampler,
           .pImageInfo = m_textureImageInfos.data()
         });
       }
@@ -507,7 +475,7 @@ namespace vke {
     });
   }
 
-  void RayTracer::updateRTDescriptorSetData(const VkExtent2D extent,
+  void RayTracer::updateRTDescriptorSetData(const vk::Extent2D extent,
                                             const uint32_t currentFrame,
                                             const glm::vec3& viewPosition,
                                             const glm::mat4& viewMatrix)
@@ -529,9 +497,9 @@ namespace vke {
 
     m_cameraUniformRT->update(currentFrame, &cameraUBORT);
 
-    m_vertexBufferInfo.buffer = m_mergedVertexBuffer;
-    m_indexBufferInfo.buffer = m_mergedIndexBuffer;
-    m_meshInfoInfo.buffer = m_meshInfoBuffer;
+    m_vertexBufferInfo.buffer = *m_mergedVertexBuffer;
+    m_indexBufferInfo.buffer = *m_mergedIndexBuffer;
+    m_meshInfoInfo.buffer = *m_meshInfoBuffer;
   }
 
 } // vke

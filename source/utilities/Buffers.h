@@ -1,7 +1,7 @@
 #ifndef VKE_BUFFERS_H
 #define VKE_BUFFERS_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {
@@ -10,22 +10,18 @@ namespace vke {
 
   namespace Buffers {
     void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                      VkDeviceSize size,
-                      VkBufferUsageFlags usage,
-                      VkMemoryPropertyFlags properties,
-                      VkBuffer& buffer,
-                      VkDeviceMemory& bufferMemory);
+                      vk::DeviceSize size,
+                      vk::BufferUsageFlags usage,
+                      vk::MemoryPropertyFlags properties,
+                      vk::raii::Buffer& buffer,
+                      vk::raii::DeviceMemory& bufferMemory);
 
     void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                    VkCommandPool commandPool,
-                    VkQueue queue,
-                    VkBuffer srcBuffer,
-                    VkBuffer dstBuffer,
-                    VkDeviceSize size);
-
-    void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                       VkBuffer& buffer,
-                       VkDeviceMemory& bufferMemory);
+                    const vk::CommandPool& commandPool,
+                    vk::Queue queue,
+                    vk::Buffer srcBuffer,
+                    vk::Buffer dstBuffer,
+                    vk::DeviceSize size);
   }
 
 } // namespace vke

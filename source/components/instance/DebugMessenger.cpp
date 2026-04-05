@@ -3,41 +3,40 @@
 
 namespace vke {
 
-  VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger::debugCallback(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                               [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                               const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                               [[maybe_unused]] void* pUserData)
+  VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugMessenger::debugCallback(const vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                                 [[maybe_unused]] vk::DebugUtilsMessageTypeFlagsEXT messageType,
+                                                                 const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                                 [[maybe_unused]] void* pUserData)
   {
     std::cerr << "[" << readMessageSeverity(messageSeverity) << "] validation layer: " << pCallbackData->pMessage << std::endl;
 
-    return VK_FALSE;
+    return vk::False;
   }
 
-  void DebugMessenger::populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+  void DebugMessenger::populateCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo)
   {
     createInfo = {
-      .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-      .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-      .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+      .messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+                         vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                         vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+      .messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                     vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                     vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
       .pfnUserCallback = debugCallback
     };
   }
 
-  const char* DebugMessenger::readMessageSeverity(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
+  const char* DebugMessenger::readMessageSeverity(const vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity)
   {
     switch (messageSeverity)
     {
-      case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+      case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
         return "verbose";
-      case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+      case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
         return "info";
-      case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+      case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
         return "warning";
-      case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+      case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
         return "error";
       default:
         return "unknown";

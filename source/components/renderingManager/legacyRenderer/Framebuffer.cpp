@@ -11,38 +11,31 @@ namespace vke {
   Framebuffer::Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                            const std::shared_ptr<RenderTarget>& renderTarget,
                            const std::shared_ptr<RenderPass>& renderPass,
-                           const VkExtent2D extent,
+                           const vk::Extent2D extent,
                            const std::shared_ptr<SwapChain>& swapChain)
     : m_logicalDevice(std::move(logicalDevice))
   {
     createFrameBuffers(renderPass->getRenderPass(), extent, renderTarget, swapChain);
   }
 
-  Framebuffer::~Framebuffer()
-  {
-    for (auto& framebuffer : m_framebuffers)
-    {
-      m_logicalDevice->destroyFramebuffer(framebuffer);
-    }
-  }
-
-  VkFramebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex)
+  const vk::raii::Framebuffer& Framebuffer::getFramebuffer(const uint32_t imageIndex) const
   {
     return m_framebuffers[imageIndex];
   }
 
-  void Framebuffer::createFrameBuffers(const VkRenderPass& renderPass,
-                                       const VkExtent2D extent,
+  void Framebuffer::createFrameBuffers(const vk::RenderPass renderPass,
+                                       const vk::Extent2D extent,
                                        const std::shared_ptr<RenderTarget>& renderTarget,
                                        const std::shared_ptr<SwapChain>& swapChain)
   {
     const auto numImages = swapChain ? swapChain->getImages().size() : m_logicalDevice->getMaxFramesInFlight();
 
-    m_framebuffers.resize(numImages);
+    m_framebuffers.clear();
+    m_framebuffers.reserve(numImages);
 
     for (size_t i = 0; i < numImages; i++)
     {
-      std::vector<VkImageView> attachments;
+      std::vector<vk::ImageView> attachments;
 
       if (renderTarget->hasColorImageResource())
       {
@@ -63,8 +56,7 @@ namespace vke {
         attachments.push_back(renderTarget->getResolveImageResource(i).getImageView());
       }
 
-      const VkFramebufferCreateInfo framebufferInfo {
-        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+      const vk::FramebufferCreateInfo framebufferInfo {
         .renderPass = renderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
@@ -73,7 +65,7 @@ namespace vke {
         .layers = 1
       };
 
-      m_framebuffers[i] = m_logicalDevice->createFramebuffer(framebufferInfo);
+      m_framebuffers.push_back(m_logicalDevice->createFramebuffer(framebufferInfo));
     }
   }
 

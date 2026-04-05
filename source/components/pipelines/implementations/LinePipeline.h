@@ -16,19 +16,17 @@ namespace vke {
     LinePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                  const std::shared_ptr<RenderPass>& renderPass);
 
-    ~LinePipeline() override;
-
     void render(const RenderInfo* renderInfo,
-                const VkCommandPool& commandPool,
+                const vk::raii::CommandPool& commandPool,
                 const std::vector<LineVertex>* vertices) const;
 
   private:
-    VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_vertexBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_vertexBuffer = nullptr;
+    vk::raii::DeviceMemory m_vertexBufferMemory = nullptr;
     size_t m_maxVertexBufferSize = sizeof(LineVertex) * 20'000;
 
-    VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
+    vk::raii::Buffer m_stagingBuffer = nullptr;
+    vk::raii::DeviceMemory m_stagingBufferMemory = nullptr;
 
     void createVertexBuffer();
   };

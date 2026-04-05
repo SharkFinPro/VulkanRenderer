@@ -6,23 +6,17 @@ namespace vke {
 
   ShaderModule::ShaderModule(std::shared_ptr<LogicalDevice> logicalDevice,
                              const char* filename,
-                             const VkShaderStageFlagBits stage)
+                             const vk::ShaderStageFlagBits stage)
     : m_logicalDevice(std::move(logicalDevice)), m_stage(stage)
   {
     createShaderModule(filename);
   }
 
-  ShaderModule::~ShaderModule()
+  vk::PipelineShaderStageCreateInfo ShaderModule::getShaderStageCreateInfo() const
   {
-    m_logicalDevice->destroyShaderModule(m_module);
-  }
-
-  VkPipelineShaderStageCreateInfo ShaderModule::getShaderStageCreateInfo() const
-  {
-    const VkPipelineShaderStageCreateInfo shaderStageCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+    const vk::PipelineShaderStageCreateInfo shaderStageCreateInfo {
       .stage = m_stage,
-      .module = m_module,
+      .module = *m_module,
       .pName = "main"
     };
 
@@ -53,8 +47,7 @@ namespace vke {
   {
     const auto code = readFile(file);
 
-    const VkShaderModuleCreateInfo shaderModuleCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+    const vk::ShaderModuleCreateInfo shaderModuleCreateInfo {
       .codeSize = code.size(),
       .pCode = reinterpret_cast<const uint32_t*>(code.data())
     };

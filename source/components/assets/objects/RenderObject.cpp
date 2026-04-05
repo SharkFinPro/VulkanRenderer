@@ -11,8 +11,8 @@
 namespace vke {
 
   RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout descriptorSetLayout,
+                             vk::DescriptorPool descriptorPool,
+                             vk::DescriptorSetLayout descriptorSetLayout,
                              std::shared_ptr<Texture> texture,
                              std::shared_ptr<Texture> specularMap,
                              std::shared_ptr<Model> model)
@@ -25,15 +25,14 @@ namespace vke {
   }
 
   void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                          const VkPipelineLayout& pipelineLayout,
+                          const vk::PipelineLayout& pipelineLayout,
                           const uint32_t currentFrame) const
   {
     commandBuffer->bindDescriptorSets(
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      vk::PipelineBindPoint::eGraphics,
       pipelineLayout,
       0,
-      1,
-      &m_descriptorSet->getDescriptorSet(currentFrame)
+      { m_descriptorSet->getDescriptorSet(currentFrame) }
     );
 
     m_model->draw(commandBuffer);
@@ -102,7 +101,7 @@ namespace vke {
     return m_orientation;
   }
 
-  VkDescriptorSet RenderObject::getDescriptorSet(const uint32_t currentFrame) const
+  vk::DescriptorSet RenderObject::getDescriptorSet(const uint32_t currentFrame) const
   {
     return m_descriptorSet->getDescriptorSet(currentFrame);
   }
@@ -162,13 +161,13 @@ namespace vke {
   }
 
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                         VkDescriptorPool descriptorPool,
-                                         VkDescriptorSetLayout descriptorSetLayout)
+                                         vk::DescriptorPool descriptorPool,
+                                         vk::DescriptorSetLayout descriptorSetLayout)
   {
     m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, descriptorSetLayout);
-    m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, const size_t frame)
+    m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
         m_texture->getDescriptorSet(1, descriptorSet),
         m_specularMap->getDescriptorSet(4, descriptorSet)

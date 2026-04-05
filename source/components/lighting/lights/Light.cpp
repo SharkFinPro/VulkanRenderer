@@ -12,6 +12,11 @@ namespace vke {
       m_ambient(commonLightData.ambient), m_diffuse(commonLightData.diffuse), m_specular(commonLightData.specular)
   {}
 
+  Light::~Light()
+  {
+    m_logicalDevice->waitIdle();
+  }
+
   glm::vec3 Light::getPosition() const
   {
     return m_position;
@@ -62,12 +67,12 @@ namespace vke {
     m_specular = specular;
   }
 
-  VkImage Light::getShadowMap() const
+  vk::Image Light::getShadowMap() const
   {
     return m_shadowMapRenderTarget->getDepthImageResource(0).getImage();
   }
 
-  VkImageView Light::getShadowMapView() const
+  vk::ImageView Light::getShadowMapView() const
   {
     return m_shadowMapRenderTarget->getDepthImageResource(0).getImageView();
   }

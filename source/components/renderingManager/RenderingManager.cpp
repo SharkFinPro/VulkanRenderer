@@ -16,7 +16,7 @@
 #include "../window/Window.h"
 #include "renderer3D/MousePicker.h"
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <stdexcept>
 
 namespace vke {
@@ -54,8 +54,6 @@ namespace vke {
 
   RenderingManager::~RenderingManager()
   {
-    m_logicalDevice->destroyCommandPool(m_commandPool);
-
     m_window->removeListener(m_framebufferResizeEventListener);
   }
 
@@ -68,14 +66,14 @@ namespace vke {
     uint32_t imageIndex;
     auto result = m_logicalDevice->acquireNextImage(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    if (result == vk::Result::eErrorOutOfDateKHR)
     {
       m_framebufferResized = false;
       recreateSwapChain();
       return;
     }
 
-    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     {
       throw std::runtime_error("failed to acquire swap chain image!");
     }
@@ -98,12 +96,12 @@ namespace vke {
 
     result = m_logicalDevice->queuePresent(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebufferResized)
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized)
     {
       m_framebufferResized = false;
       recreateSwapChain();
     }
-    else if (result != VK_SUCCESS)
+    else if (result != vk::Result::eSuccess)
     {
       throw std::runtime_error("failed to present swap chain image!");
     }
@@ -208,7 +206,7 @@ namespace vke {
 
     const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
-    const VkExtent2D currentOffscreenViewportExtent {
+    const vk::Extent2D currentOffscreenViewportExtent {
       .width = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.x)),
       .height = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.y))
     };
@@ -236,7 +234,7 @@ namespace vke {
     m_offscreenViewportPos = ImGui::GetCursorScreenPos();
     m_renderer3D->getMousePicker()->setViewportPos(m_offscreenViewportPos);
 
-    ImGui::Image(m_renderer->getOffscreenImageDescriptorSet(currentFrame), contentRegionAvailable);
+    ImGui::Image(static_cast<ImTextureRef>(m_renderer->getOffscreenImageDescriptorSet(currentFrame)), contentRegionAvailable);
 
     ImGui::End();
   }
@@ -275,7 +273,7 @@ namespace vke {
 
       m_renderer->beginOffscreenRendering(currentFrame, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
-      const VkViewport viewport = {
+      const vk::Viewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
         .width = static_cast<float>(renderInfo.extent.width),
@@ -285,7 +283,7 @@ namespace vke {
       };
       renderInfo.commandBuffer->setViewport(viewport);
 
-      const VkRect2D scissor = {
+      const vk::Rect2D scissor = {
         .offset = {0, 0},
         .extent = renderInfo.extent
       };
@@ -296,9 +294,9 @@ namespace vke {
       resetDepthBuffer(m_offscreenCommandBuffer, m_offscreenViewportExtent);
 
       RenderInfo renderInfo2D = renderInfo;
-      renderInfo2D.extent = {
-        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
-        static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
+      renderInfo2D.extent = vk::Extent2D{
+        .width = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
+        .height = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
       };
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
@@ -324,7 +322,7 @@ namespace vke {
 
       m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
 
-      const VkViewport viewport = {
+      const vk::Viewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
         .width = static_cast<float>(renderInfo.extent.width),
@@ -334,7 +332,7 @@ namespace vke {
       };
       renderInfo.commandBuffer->setViewport(viewport);
 
-      const VkRect2D scissor = {
+      const vk::Rect2D scissor = {
         .offset = {0, 0},
         .extent = renderInfo.extent
       };
@@ -347,9 +345,9 @@ namespace vke {
         resetDepthBuffer(m_swapchainCommandBuffer, m_swapChain->getExtent());
 
         RenderInfo renderInfo2D = renderInfo;
-        renderInfo2D.extent = {
-          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
-          static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
+        renderInfo2D.extent = vk::Extent2D{
+          .width = static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
+          .height = static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
         };
 
         m_renderer2D->render(&renderInfo2D, pipelineManager);
@@ -383,7 +381,7 @@ namespace vke {
 
       m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
 
-      const VkViewport viewport = {
+      const vk::Viewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
         .width = static_cast<float>(renderInfo.extent.width),
@@ -393,7 +391,7 @@ namespace vke {
       };
       renderInfo.commandBuffer->setViewport(viewport);
 
-      const VkRect2D scissor = {
+      const vk::Rect2D scissor = {
         .offset = {0, 0},
         .extent = renderInfo.extent
       };
@@ -406,16 +404,14 @@ namespace vke {
   }
 
   void RenderingManager::resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                          const VkExtent2D extent)
+                                          const vk::Extent2D extent)
   {
-    constexpr VkClearAttachment clearAttachment{
-      .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-      .clearValue = {
-        .depthStencil = { 1.0f, 0 }
-      }
+    constexpr vk::ClearAttachment clearAttachment{
+      .aspectMask = vk::ImageAspectFlagBits::eDepth,
+      .clearValue = vk::ClearValue{ {1.0f, 0} }
     };
 
-    const VkClearRect clearRect{
+    const vk::ClearRect clearRect{
       .rect = {
         .offset = { 0, 0 },
         .extent = extent
@@ -443,9 +439,8 @@ namespace vke {
 
   void RenderingManager::createCommandPool()
   {
-    const VkCommandPoolCreateInfo poolInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+    const vk::CommandPoolCreateInfo poolInfo {
+      .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
       .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
     };
 

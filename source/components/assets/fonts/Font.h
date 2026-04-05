@@ -2,7 +2,7 @@
 #define VULKANPROJECT_FONT_H
 
 #include <freetype/freetype.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -74,15 +74,15 @@ namespace vke {
     Font(std::shared_ptr<LogicalDevice> logicalDevice,
          const std::string& fileName,
          uint32_t fontSize,
-         VkCommandPool commandPool,
-         VkDescriptorPool descriptorPool,
-         VkDescriptorSetLayout descriptorSetLayout);
+         vk::CommandPool commandPool,
+         vk::DescriptorPool descriptorPool,
+         vk::DescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] GlyphInfo* getGlyphInfo(uint32_t codepoint);
 
     [[nodiscard]] float getMaxGlyphHeight() const;
 
-    [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
+    [[nodiscard]] vk::DescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -97,7 +97,7 @@ namespace vke {
 
     static std::vector<uint8_t> loadFontFromFile(const std::string& fileName);
 
-    void createGlyphAtlas(VkCommandPool commandPool,
+    void createGlyphAtlas(vk::CommandPool commandPool,
                           const std::vector<uint8_t>& fontBuffer,
                           uint32_t fontSize);
 
@@ -120,8 +120,8 @@ namespace vke {
                              uint32_t atlasWidth,
                              uint32_t atlasHeight);
 
-    void createDescriptorSet(VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout descriptorSetLayout);
+    void createDescriptorSet(vk::DescriptorPool descriptorPool,
+                             vk::DescriptorSetLayout descriptorSetLayout);
   };
 
 } // vke

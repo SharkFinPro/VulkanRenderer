@@ -15,9 +15,9 @@ namespace vke {
   public:
     PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
                const CommonLightData& commonLightData,
-               const VkCommandPool& commandPool,
-               VkDescriptorPool descriptorPool,
-               VkDescriptorSetLayout descriptorSetLayout,
+               const vk::CommandPool& commandPool,
+               vk::DescriptorPool descriptorPool,
+               vk::DescriptorSetLayout descriptorSetLayout,
                const std::shared_ptr<Renderer>& renderer);
 
     [[nodiscard]] LightType getLightType() const override;
@@ -28,19 +28,19 @@ namespace vke {
 
     void updateUniform(uint32_t currentFrame) const;
 
-    [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
+    [[nodiscard]] vk::DescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 
     std::shared_ptr<UniformBuffer> m_viewProjectionUniform;
 
-    void createShadowMap(const VkCommandPool& commandPool) override;
+    void createShadowMap(vk::CommandPool commandPool) override;
 
     void createUniform();
 
-    void createDescriptorSet(VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout descriptorSetLayout);
+    void createDescriptorSet(vk::DescriptorPool descriptorPool,
+                             vk::DescriptorSetLayout descriptorSetLayout);
   };
 
 } // vke

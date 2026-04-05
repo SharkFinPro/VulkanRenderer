@@ -1,14 +1,13 @@
 #ifndef VULKANPROJECT_RENDERTARGET_H
 #define VULKANPROJECT_RENDERTARGET_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <vector>
 
 namespace vke {
 
   class ImageResource;
   struct ImageResourceConfig;
-  class LogicalDevice;
 
   class RenderTarget {
   public:
@@ -27,14 +26,14 @@ namespace vke {
 
     [[nodiscard]] uint32_t hasResolveImageResource() const;
 
-    [[nodiscard]] VkExtent2D getExtent() const;
+    [[nodiscard]] vk::Extent2D getExtent() const;
 
   private:
     std::vector<ImageResource> m_colorImageResources;
     std::vector<ImageResource> m_depthImageResources;
     std::vector<ImageResource> m_resolveImageResources;
 
-    VkExtent2D m_extent;
+    vk::Extent2D m_extent;
   };
 } // vke
 

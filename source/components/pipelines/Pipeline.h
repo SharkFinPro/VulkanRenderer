@@ -1,7 +1,8 @@
 #ifndef VKE_PIPELINE_H
 #define VKE_PIPELINE_H
 
-#include <vulkan/vulkan.h>
+#include "../commandBuffer/CommandBuffer.h"
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {
@@ -13,24 +14,32 @@ namespace vke {
   public:
     explicit Pipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
-    virtual ~Pipeline();
+    virtual ~Pipeline() = default;
 
     virtual void displayGui() {}
 
+    template<typename T>
     void pushConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                       VkShaderStageFlags stageFlags,
+                       vk::ShaderStageFlags stageFlags,
                        uint32_t offset,
-                       uint32_t size,
-                       const void* values) const;
+                       const T& data) const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+    vk::raii::PipelineLayout m_pipelineLayout = nullptr;
 
-    VkPipeline m_pipeline = VK_NULL_HANDLE;
+    vk::raii::Pipeline m_pipeline = nullptr;
   };
 
+  template<typename T>
+  void Pipeline::pushConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                               const vk::ShaderStageFlags stageFlags,
+                               const uint32_t offset,
+                               const T& data) const
+  {
+    commandBuffer->pushConstants<T>(m_pipelineLayout, stageFlags, offset, data);
+  }
 } // namespace vke
 
 #endif //VKE_PIPELINE_H

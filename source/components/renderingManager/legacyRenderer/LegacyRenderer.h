@@ -15,7 +15,7 @@ namespace vke {
   public:
     LegacyRenderer(std::shared_ptr<LogicalDevice> logicalDevice,
                    const std::shared_ptr<SwapChain>& swapChain,
-                   VkCommandPool commandPool);
+                   vk::CommandPool commandPool);
 
     [[nodiscard]] std::shared_ptr<RenderPass> getSwapchainRenderPass() const override;
 
@@ -29,26 +29,26 @@ namespace vke {
 
     void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain) override;
 
-    void resetOffscreenImageResources(VkExtent2D offscreenViewportExtent) override;
+    void resetOffscreenImageResources(vk::Extent2D offscreenViewportExtent) override;
 
-    void resetMousePickingImageResources(VkExtent2D mousePickingExtent) override;
+    void resetMousePickingImageResources(vk::Extent2D mousePickingExtent) override;
 
     void beginSwapchainRendering(uint32_t imageIndex,
-                                 VkExtent2D extent,
+                                 vk::Extent2D extent,
                                  std::shared_ptr<CommandBuffer> commandBuffer,
                                  std::shared_ptr<SwapChain> swapChain) override;
 
     void beginOffscreenRendering(uint32_t imageIndex,
-                                 VkExtent2D extent,
+                                 vk::Extent2D extent,
                                  std::shared_ptr<CommandBuffer> commandBuffer) override;
 
     void beginShadowRendering(uint32_t imageIndex,
-                              VkExtent2D extent,
+                              vk::Extent2D extent,
                               const std::shared_ptr<CommandBuffer>& commandBuffer,
                               const std::shared_ptr<Light>& light) override;
 
     void beginMousePickingRendering(uint32_t imageIndex,
-                                    VkExtent2D extent,
+                                    vk::Extent2D extent,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) override;
 
     void endSwapchainRendering(uint32_t imageIndex,

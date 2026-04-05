@@ -3,7 +3,7 @@
 
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include <glm/gtc/quaternion.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {
@@ -17,14 +17,14 @@ namespace vke {
   class RenderObject {
   public:
     RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 VkDescriptorPool descriptorPool,
-                 VkDescriptorSetLayout descriptorSetLayout,
+                 vk::DescriptorPool descriptorPool,
+                 vk::DescriptorSetLayout descriptorSetLayout,
                  std::shared_ptr<Texture> texture,
                  std::shared_ptr<Texture> specularMap,
                  std::shared_ptr<Model> model);
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
-              const VkPipelineLayout& pipelineLayout,
+              const vk::PipelineLayout& pipelineLayout,
               uint32_t currentFrame) const;
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
@@ -44,7 +44,7 @@ namespace vke {
     [[nodiscard]] glm::vec3 getOrientationEuler() const;
     [[nodiscard]] glm::quat getOrientationQuat() const;
 
-    [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
+    [[nodiscard]] vk::DescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
     [[nodiscard]] std::shared_ptr<Model> getModel() const;
 
@@ -84,8 +84,8 @@ namespace vke {
     float m_indexOfRefraction = 1.0f;
 
     void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout descriptorSetLayout);
+                             vk::DescriptorPool descriptorPool,
+                             vk::DescriptorSetLayout descriptorSetLayout);
   };
 
 } // namespace vke

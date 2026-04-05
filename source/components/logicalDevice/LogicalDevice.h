@@ -1,7 +1,7 @@
 #ifndef VKE_LOGICALDEVICE_H
 #define VKE_LOGICALDEVICE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -13,27 +13,26 @@ namespace vke {
   class LogicalDevice {
   public:
     explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
-    ~LogicalDevice();
 
     [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
 
     void waitIdle() const;
 
-    [[nodiscard]] VkQueue getGraphicsQueue() const;
-    [[nodiscard]] VkQueue getPresentQueue() const;
-    [[nodiscard]] VkQueue getComputeQueue() const;
+    [[nodiscard]] vk::Queue getGraphicsQueue();
+    [[nodiscard]] vk::Queue getPresentQueue();
+    [[nodiscard]] vk::Queue getComputeQueue();
 
     void submitMousePickingGraphicsQueue(uint32_t currentFrame,
-                                         const VkCommandBuffer* commandBuffer) const;
+                                         vk::CommandBuffer commandBuffer) const;
 
     void submitOffscreenGraphicsQueue(uint32_t currentFrame,
-                                      const VkCommandBuffer* commandBuffer) const;
+                                      vk::CommandBuffer commandBuffer) const;
 
     void submitGraphicsQueue(uint32_t currentFrame,
-                             const VkCommandBuffer* commandBuffer) const;
+                             vk::CommandBuffer commandBuffer) const;
 
     void submitComputeQueue(uint32_t currentFrame,
-                            const VkCommandBuffer* commandBuffer) const;
+                            vk::CommandBuffer commandBuffer) const;
 
     void waitForGraphicsFences(uint32_t currentFrame) const;
     void waitForComputeFences(uint32_t currentFrame) const;
@@ -43,187 +42,129 @@ namespace vke {
     void resetMousePickingFences(uint32_t currentFrame) const;
     void resetComputeFences(uint32_t currentFrame) const;
 
-    VkResult queuePresent(uint32_t currentFrame,
-                          const VkSwapchainKHR& swapchain,
-                          const uint32_t* imageIndex) const;
+    vk::Result queuePresent(uint32_t currentFrame,
+                            vk::SwapchainKHR swapchain,
+                            const uint32_t* imageIndex) const;
 
-    VkResult acquireNextImage(uint32_t currentFrame,
-                              const VkSwapchainKHR& swapchain,
-                              uint32_t* imageIndex) const;
+    vk::Result acquireNextImage(uint32_t currentFrame,
+                                vk::SwapchainKHR swapchain,
+                                uint32_t* imageIndex) const;
 
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
-    [[nodiscard]] VkCommandPool createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const;
+    [[nodiscard]] vk::raii::CommandPool createCommandPool(const vk::CommandPoolCreateInfo& commandPoolCreateInfo) const;
 
-    void destroyCommandPool(VkCommandPool& commandPool) const;
+    void allocateCommandBuffers(const vk::CommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                std::vector<vk::raii::CommandBuffer>& commandBuffers) const;
 
-    void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
-                                VkCommandBuffer* commandBuffers) const;
+    [[nodiscard]] vk::raii::DescriptorPool createDescriptorPool(const vk::DescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
 
-    void freeCommandBuffers(VkCommandPool commandPool,
-                            uint32_t commandBufferCount,
-                            const VkCommandBuffer* commandBuffers) const;
+    [[nodiscard]] vk::raii::DescriptorSetLayout createDescriptorSetLayout(const vk::DescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
 
-    [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
+    static void doMappedMemoryOperation(const vk::raii::DeviceMemory& deviceMemory,
+                                        const std::function<void(void* data)>& operationFunction);
 
-    void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
+    static void mapMemory(const vk::raii::DeviceMemory& memory,
+                          vk::DeviceSize offset,
+                          vk::DeviceSize size,
+                          vk::MemoryMapFlags flags,
+                          void** data);
 
-    [[nodiscard]] VkDescriptorSetLayout createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
+    static void unmapMemory(const vk::raii::DeviceMemory& memory);
 
-    void destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const;
+    [[nodiscard]] std::vector<vk::raii::DescriptorSet> allocateDescriptorSets(const vk::DescriptorSetAllocateInfo& descriptorSetAllocateInfo) const;
 
-    void doMappedMemoryOperation(VkDeviceMemory deviceMemory,
-                                 const std::function<void(void* data)>& operationFunction) const;
+    void updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const;
 
-    void mapMemory(const VkDeviceMemory& memory,
-                   VkDeviceSize offset,
-                   VkDeviceSize size,
-                   VkMemoryMapFlags flags,
-                   void** data) const;
+    [[nodiscard]] vk::raii::Buffer createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const;
 
-    void unmapMemory(const VkDeviceMemory& memory) const;
+    [[nodiscard]] static vk::MemoryRequirements getBufferMemoryRequirements(const vk::raii::Buffer& buffer);
 
-    void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
-                                VkDescriptorSet* descriptorSets) const;
+    void allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
+                        vk::raii::DeviceMemory& deviceMemory) const;
 
-    void updateDescriptorSets(uint32_t descriptorWriteCount,
-                              const VkWriteDescriptorSet* descriptorWrites) const;
+    static void bindBufferMemory(const vk::raii::Buffer& buffer,
+                                 vk::DeviceMemory deviceMemory,
+                                 vk::DeviceSize memoryOffset = 0);
 
-    [[nodiscard]] VkBuffer createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const;
+    [[nodiscard]] vk::raii::Sampler createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const;
 
-    void destroyBuffer(VkBuffer& buffer) const;
+    [[nodiscard]] vk::raii::ImageView createImageView(const vk::ImageViewCreateInfo& imageViewCreateInfo) const;
 
-    [[nodiscard]] VkMemoryRequirements getBufferMemoryRequirements(const VkBuffer& buffer) const;
+    [[nodiscard]] vk::raii::Image createImage(const vk::ImageCreateInfo& imageCreateInfo) const;
 
-    void allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo,
-                        VkDeviceMemory& deviceMemory) const;
+    [[nodiscard]] static vk::MemoryRequirements getImageMemoryRequirements(const vk::raii::Image& image);
 
-    void freeMemory(VkDeviceMemory& memory) const;
+    static void bindImageMemory(const vk::raii::Image& image,
+                                vk::DeviceMemory deviceMemory,
+                                vk::DeviceSize memoryOffset = 0);
 
-    void bindBufferMemory(const VkBuffer& buffer,
-                          const VkDeviceMemory& deviceMemory,
-                          VkDeviceSize memoryOffset = 0) const;
+    [[nodiscard]] vk::raii::RenderPass createRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) const;
 
-    [[nodiscard]] VkSampler createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const;
+    [[nodiscard]] vk::raii::ShaderModule createShaderModule(const vk::ShaderModuleCreateInfo& shaderModuleCreateInfo) const;
 
-    void destroySampler(VkSampler& sampler) const;
+    [[nodiscard]] vk::raii::SwapchainKHR createSwapchain(const vk::SwapchainCreateInfoKHR& swapchainCreateInfo) const;
 
-    [[nodiscard]] VkImageView createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const;
+    static void getSwapchainImagesKHR(const vk::raii::SwapchainKHR& swapchain,
+                                      uint32_t* swapchainImageCount,
+                                      vk::Image* swapchainImages);
 
-    void destroyImageView(VkImageView& imageView) const;
+    [[nodiscard]] vk::raii::Framebuffer createFramebuffer(const vk::FramebufferCreateInfo& framebufferCreateInfo) const;
 
-    [[nodiscard]] VkImage createImage(const VkImageCreateInfo& imageCreateInfo) const;
+    [[nodiscard]] vk::raii::PipelineLayout createPipelineLayout(const vk::PipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const;
 
-    void destroyImage(VkImage& image) const;
+    [[nodiscard]] vk::raii::Pipeline createPipeline(const vk::GraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const;
 
-    [[nodiscard]] VkMemoryRequirements getImageMemoryRequirements(const VkImage& image) const;
+    [[nodiscard]] vk::raii::Pipeline createPipeline(const vk::ComputePipelineCreateInfo& computePipelineCreateInfo) const;
 
-    void bindImageMemory(const VkImage& image,
-                         const VkDeviceMemory& deviceMemory,
-                         VkDeviceSize memoryOffset = 0) const;
+    [[nodiscard]] vk::raii::Pipeline createPipeline(const vk::RayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const;
 
-    [[nodiscard]] VkRenderPass createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const;
+    [[nodiscard]] vk::DeviceAddress getBufferDeviceAddress(vk::Buffer buffer) const;
 
-    void destroyRenderPass(VkRenderPass& renderPass) const;
+    [[nodiscard]] vk::raii::AccelerationStructureKHR createAccelerationStructure(const vk::AccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo) const;
 
-    [[nodiscard]] VkShaderModule createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const;
+    void getAccelerationStructureBuildSizes(const vk::AccelerationStructureBuildGeometryInfoKHR& accelerationStructureBuildGeometryInfo,
+                                            uint32_t maxPrimitiveCounts,
+                                            vk::AccelerationStructureBuildSizesInfoKHR& accelerationStructureBuildSizesInfo) const;
 
-    void destroyShaderModule(VkShaderModule& shaderModule) const;
+    static void buildAccelerationStructures(vk::CommandBuffer commandBuffer,
+                                            const vk::AccelerationStructureBuildGeometryInfoKHR& pInfos,
+                                            const vk::AccelerationStructureBuildRangeInfoKHR* ppBuildRangeInfos);
 
-    [[nodiscard]] VkSwapchainKHR createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const;
+    [[nodiscard]] vk::DeviceAddress getAccelerationStructureDeviceAddress(const vk::AccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
 
-    void getSwapchainImagesKHR(const VkSwapchainKHR& swapchain,
-                               uint32_t* swapchainImageCount,
-                               VkImage* swapchainImages) const;
-
-    void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
-
-    [[nodiscard]] VkFramebuffer createFramebuffer(const VkFramebufferCreateInfo& framebufferCreateInfo) const;
-
-    void destroyFramebuffer(VkFramebuffer& framebuffer) const;
-
-    [[nodiscard]] VkPipelineLayout createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const;
-
-    void destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const;
-
-    [[nodiscard]] VkPipeline createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const;
-
-    [[nodiscard]] VkPipeline createPipeline(const VkComputePipelineCreateInfo& computePipelineCreateInfo) const;
-
-    [[nodiscard]] VkPipeline createPipeline(const VkRayTracingPipelineCreateInfoKHR& rayTracingPipelineCreateInfo) const;
-
-    void destroyPipeline(VkPipeline& pipeline) const;
-
-    [[nodiscard]] VkDeviceAddress getBufferDeviceAddress(const VkBuffer& buffer) const;
-
-    void createAccelerationStructure(const VkAccelerationStructureCreateInfoKHR& accelerationStructureCreateInfo,
-                                     VkAccelerationStructureKHR* accelerationStructure) const;
-
-    void destroyAccelerationStructureKHR(VkAccelerationStructureKHR& accelerationStructure) const;
-
-    void getAccelerationStructureBuildSizes(const VkAccelerationStructureBuildGeometryInfoKHR* accelerationStructureBuildGeometryInfo,
-                                            const uint32_t* maxPrimitiveCounts,
-                                            VkAccelerationStructureBuildSizesInfoKHR* accelerationStructureBuildSizesInfo) const;
-
-    void buildAccelerationStructures(VkCommandBuffer commandBuffer,
-                                     uint32_t infoCount,
-                                     const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
-                                     const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos) const;
-
-    [[nodiscard]] VkDeviceAddress getAccelerationStructureDeviceAddress(const VkAccelerationStructureDeviceAddressInfoKHR* accelerationStructureDeviceAddressInfo) const;
-
-    void getRayTracingShaderGroupHandles(VkPipeline pipeline,
-                                         uint32_t groupCount,
-                                         std::vector<uint8_t>& handles) const;
-
-    void traceRays(VkCommandBuffer commandBuffer,
-                   const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-                   const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
-                   const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-                   const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
-                   uint32_t width,
-                   uint32_t height,
-                   uint32_t depth) const;
+    static void getRayTracingShaderGroupHandles(const vk::raii::Pipeline& pipeline,
+                                                uint32_t groupCount,
+                                                std::vector<uint8_t>& handles);
 
     friend class ImGuiInstance;
 
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
-    VkDevice m_device = VK_NULL_HANDLE;
+    vk::raii::Device m_device = nullptr;
 
-    VkQueue m_graphicsQueue = VK_NULL_HANDLE;
-    VkQueue m_presentQueue = VK_NULL_HANDLE;
-    VkQueue m_computeQueue = VK_NULL_HANDLE;
+    vk::raii::Queue m_graphicsQueue = nullptr;
+    vk::raii::Queue m_presentQueue = nullptr;
+    vk::raii::Queue m_computeQueue = nullptr;
 
-    std::vector<VkSemaphore> m_imageAvailableSemaphores;
+    std::vector<vk::raii::Semaphore> m_imageAvailableSemaphores;
 
-    std::vector<VkSemaphore> m_renderFinishedSemaphores;
-    std::vector<VkSemaphore> m_renderFinishedSemaphores2;
+    std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores;
+    std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores2;
 
-    std::vector<VkFence> m_inFlightFences;
-    std::vector<VkFence> m_offscreenInFlightFences;
-    std::vector<VkFence> m_mousePickingInFlightFences;
+    std::vector<vk::raii::Fence> m_inFlightFences;
+    std::vector<vk::raii::Fence> m_offscreenInFlightFences;
+    std::vector<vk::raii::Fence> m_mousePickingInFlightFences;
 
-    std::vector<VkSemaphore> m_computeFinishedSemaphores;
-    std::vector<VkFence> m_computeInFlightFences;
+    std::vector<vk::raii::Semaphore> m_computeFinishedSemaphores;
+    std::vector<vk::raii::Fence> m_computeInFlightFences;
 
     uint8_t m_maxFramesInFlight = 2;
-
-    PFN_vkCreateAccelerationStructureKHR m_vkCreateAccelerationStructureKHR = nullptr;
-    PFN_vkDestroyAccelerationStructureKHR m_vkDestroyAccelerationStructureKHR = nullptr;
-    PFN_vkGetAccelerationStructureBuildSizesKHR m_vkGetAccelerationStructureBuildSizesKHR = nullptr;
-    PFN_vkCmdBuildAccelerationStructuresKHR m_vkCmdBuildAccelerationStructuresKHR = nullptr;
-    PFN_vkGetAccelerationStructureDeviceAddressKHR m_vkGetAccelerationStructureDeviceAddressKHR = nullptr;
-    PFN_vkCreateRayTracingPipelinesKHR m_vkCreateRayTracingPipelinesKHR = nullptr;
-    PFN_vkGetRayTracingShaderGroupHandlesKHR m_vkGetRayTracingShaderGroupHandlesKHR = nullptr;
-    PFN_vkCmdTraceRaysKHR m_vkCmdTraceRaysKHR = nullptr;
 
     void createDevice();
 
     void createSyncObjects();
-
-    void loadRayTracingFunctions();
   };
 
 } // namespace vke

@@ -16,9 +16,9 @@ namespace vke {
 
   PointLight::PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
                          const CommonLightData& commonLightData,
-                         const VkCommandPool& commandPool,
-                         VkDescriptorPool descriptorPool,
-                         VkDescriptorSetLayout descriptorSetLayout,
+                         const vk::CommandPool& commandPool,
+                         vk::DescriptorPool descriptorPool,
+                         vk::DescriptorSetLayout descriptorSetLayout,
                          const std::shared_ptr<Renderer>& renderer)
     : Light(std::move(logicalDevice), commonLightData)
   {
@@ -87,12 +87,12 @@ namespace vke {
     m_viewProjectionUniform->update(currentFrame, &matrices);
   }
 
-  VkDescriptorSet PointLight::getDescriptorSet(const uint32_t currentFrame) const
+  vk::DescriptorSet PointLight::getDescriptorSet(const uint32_t currentFrame) const
   {
     return m_descriptorSet->getDescriptorSet(currentFrame);
   }
 
-  void PointLight::createShadowMap(const VkCommandPool& commandPool)
+  void PointLight::createShadowMap(const vk::CommandPool commandPool)
   {
     if (!m_castsShadows)
     {
@@ -106,8 +106,8 @@ namespace vke {
         .height = m_shadowMapSize
       },
       .commandPool = commandPool,
-      .depthFormat = VK_FORMAT_D32_SFLOAT,
-      .numSamples = VK_SAMPLE_COUNT_1_BIT,
+      .depthFormat = vk::Format::eD32Sfloat,
+      .numSamples = vk::SampleCountFlagBits::e1,
       .isCubeMap = true
     };
 
@@ -119,13 +119,13 @@ namespace vke {
     m_viewProjectionUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(glm::mat4) * 6);
   }
 
-  void PointLight::createDescriptorSet(VkDescriptorPool descriptorPool,
-                                       VkDescriptorSetLayout descriptorSetLayout)
+  void PointLight::createDescriptorSet(vk::DescriptorPool descriptorPool,
+                                       vk::DescriptorSetLayout descriptorSetLayout)
   {
     m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
-    m_descriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_viewProjectionUniform->getDescriptorSet(0, descriptorSet, frame)
       }};
 

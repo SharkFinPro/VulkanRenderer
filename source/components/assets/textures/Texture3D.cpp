@@ -35,9 +35,9 @@ namespace vke {
   }
 
   Texture3D::Texture3D(std::shared_ptr<LogicalDevice> logicalDevice,
-                       const VkCommandPool& commandPool,
+                       const vk::raii::CommandPool& commandPool,
                        const char* path,
-                       const VkSamplerAddressMode samplerAddressMode)
+                       const vk::SamplerAddressMode samplerAddressMode)
     : Texture(std::move(logicalDevice), samplerAddressMode)
   {
     createTextureImage(commandPool, path);
@@ -45,7 +45,7 @@ namespace vke {
     createImageView();
   }
 
-  void Texture3D::createTextureImage(const VkCommandPool& commandPool,
+  void Texture3D::createTextureImage(const vk::raii::CommandPool& commandPool,
                                      const char* path)
   {
     m_mipLevels = 1;
@@ -53,51 +53,50 @@ namespace vke {
     int width, height, depth;
     const auto imageData = ReadTexture3D(path, &width, &height, &depth);
 
-    const VkDeviceSize imageSize = width * height * depth * 4;
+    const vk::DeviceSize imageSize = width * height * depth * 4;
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    Buffers::createBuffer(m_logicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+    vk::raii::Buffer stagingBuffer = nullptr;
+    vk::raii::DeviceMemory stagingBufferMemory = nullptr;
+    Buffers::createBuffer(m_logicalDevice, imageSize, vk::BufferUsageFlagBits::eTransferSrc,
+                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
     m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [imageData, imageSize](void* data) {
-      memcpy(data, imageData, imageSize);
+      memcpy(data, imageData, static_cast<size_t>(imageSize));
     });
 
     delete[] imageData;
 
-    Images::createImage(
+    auto [image, imageMemory] = Images::createImage(
       m_logicalDevice,
       {
-        .flags = 0,
-        .extent = {
-          .width = static_cast<uint32_t>(width),
-          .height = static_cast<uint32_t>(height),
-          .depth = static_cast<uint32_t>(depth),
+        {},
+        vk::Extent3D{
+          static_cast<uint32_t>(width),
+          static_cast<uint32_t>(height),
+          static_cast<uint32_t>(depth),
         },
-        .mipLevels = m_mipLevels,
-        .numSamples = VK_SAMPLE_COUNT_1_BIT,
-        .format = VK_FORMAT_R8G8B8A8_UNORM,
-        .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        .imageType = VK_IMAGE_TYPE_3D,
-        .layerCount = 1,
-        .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-      },
-      m_textureImage,
-      m_textureImageMemory
+        m_mipLevels,
+        vk::SampleCountFlagBits::e1,
+        vk::Format::eR8G8B8A8Unorm,
+        vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        vk::ImageType::e3D,
+        1,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
+      }
     );
 
-    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
+    m_textureImage = std::move(image);
+    m_textureImageMemory = std::move(imageMemory);
+
+    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
+      vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, m_mipLevels, 1);
 
     Images::copyBufferToImage(m_logicalDevice, commandPool, stagingBuffer, m_textureImage, width, height, depth);
 
-    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_mipLevels, 1);
-
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
+      vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, m_mipLevels, 1);
   }
 
   void Texture3D::createImageView()
@@ -105,14 +104,14 @@ namespace vke {
     m_textureImageView = Images::createImageView(
       m_logicalDevice,
       m_textureImage,
-      VK_FORMAT_R8G8B8A8_UNORM,
-      VK_IMAGE_ASPECT_COLOR_BIT,
+      vk::Format::eR8G8B8A8Unorm,
+      vk::ImageAspectFlagBits::eColor,
       m_mipLevels,
-      VK_IMAGE_VIEW_TYPE_3D,
+      vk::ImageViewType::e3D,
       1
     );
 
-    m_imageInfo.imageView = m_textureImageView;
+    m_imageInfo.imageView = *m_textureImageView;
   }
 
 } // namespace vke

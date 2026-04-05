@@ -5,7 +5,7 @@
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <unordered_map>
 #include <variant>
@@ -53,7 +53,7 @@ namespace vke {
 
   struct PushConstantEntry {
     PushConstantVariant data;
-    VkShaderStageFlags stages;
+    vk::ShaderStageFlags stages;
   };
 
   class Renderer3D {
@@ -72,7 +72,7 @@ namespace vke {
     void renderMousePicking(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    void handleRenderedMousePickingImage(VkImage image) const;
+    void handleRenderedMousePickingImage(vk::Image image) const;
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -110,9 +110,9 @@ namespace vke {
 
     [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;;
 
-    [[nodiscard]] VkDescriptorSetLayout getNoiseDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getNoiseDescriptorSetLayout() const;
 
-    [[nodiscard]] VkDescriptorSetLayout getCubeMapDescriptorSetLayout() const;
+    [[nodiscard]] vk::DescriptorSetLayout getCubeMapDescriptorSetLayout() const;
 
     void setCloudToRender(std::shared_ptr<Cloud> cloud);
 
@@ -121,9 +121,9 @@ namespace vke {
 
     std::shared_ptr<AssetManager> m_assetManager;
 
-    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+    vk::raii::CommandPool m_commandPool = nullptr;
 
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    vk::raii::DescriptorPool m_descriptorPool = nullptr;
 
     std::shared_ptr<MousePicker> m_mousePicker;
 
@@ -150,14 +150,14 @@ namespace vke {
     std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
 
     std::unordered_map<PipelineType, PushConstantEntry> m_pushConstants = {
-      { PipelineType::magnifyWhirlMosaic,  { MagnifyWhirlMosaicPushConstant{},  VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::ellipticalDots,      { EllipticalDotsPushConstant{},      VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::crosses,             { CrossesPushConstant{},             VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::curtain,             { CurtainPushConstant{},             VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::bumpyCurtain,        { BumpyCurtainPushConstant{},        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::snake,               { SnakePushConstant{},               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::noisyEllipticalDots, { NoisyEllipticalDotsPushConstant{}, VK_SHADER_STAGE_FRAGMENT_BIT } },
-      { PipelineType::cubeMap,             { CubeMapPushConstant{},             VK_SHADER_STAGE_FRAGMENT_BIT } },
+      { PipelineType::magnifyWhirlMosaic,  { MagnifyWhirlMosaicPushConstant{},  vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::ellipticalDots,      { EllipticalDotsPushConstant{},      vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::crosses,             { CrossesPushConstant{},             vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::curtain,             { CurtainPushConstant{},             vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::bumpyCurtain,        { BumpyCurtainPushConstant{},        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::snake,               { SnakePushConstant{},               vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eGeometry | vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::noisyEllipticalDots, { NoisyEllipticalDotsPushConstant{}, vk::ShaderStageFlagBits::eFragment } },
+      { PipelineType::cubeMap,             { CubeMapPushConstant{},             vk::ShaderStageFlagBits::eFragment } },
     };
 
     std::unique_ptr<RayTracer> m_rayTracer;

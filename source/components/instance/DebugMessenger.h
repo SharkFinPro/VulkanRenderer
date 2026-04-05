@@ -1,20 +1,20 @@
 #ifndef VKE_DEBUGMESSENGER_H
 #define VKE_DEBUGMESSENGER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 
 namespace vke {
 
   class DebugMessenger {
   public:
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                        VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                        void* pUserData);
+    static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                          vk::DebugUtilsMessageTypeFlagsEXT messageType,
+                                                          const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                          void* pUserData);
 
-    static void populateCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+    static void populateCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
 
-    static const char* readMessageSeverity(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity);
+    static const char* readMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity);
   };
 
 } // namespace vke

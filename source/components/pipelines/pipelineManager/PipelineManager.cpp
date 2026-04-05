@@ -3,14 +3,12 @@
 #include "PipelineConfig2D.h"
 #include "PipelineConfigRenderObject.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../RayTracingPipeline.h"
 #include "../../assets/AssetManager.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../renderingManager/Renderer.h"
 #include "../../renderingManager/RenderingManager.h"
-#include "../../renderingManager/renderer3D/RayTracer.h"
 #include <ranges>
 
 namespace vke {
@@ -28,13 +26,6 @@ namespace vke {
     createPipelines(assetManager, renderingManager, lightingManager);
   }
 
-  PipelineManager::~PipelineManager()
-  {
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
-
-    m_logicalDevice->destroyCommandPool(m_commandPool);
-  }
-
   void PipelineManager::bindGraphicsPipeline(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                              const PipelineType pipelineType) const
   {
@@ -43,21 +34,9 @@ namespace vke {
     graphicsPipeline.bind(commandBuffer);
   }
 
-  void PipelineManager::pushGraphicsPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                      const PipelineType pipelineType,
-                                                      const VkShaderStageFlags stageFlags,
-                                                      const uint32_t offset,
-                                                      const uint32_t size,
-                                                      const void* values) const
-  {
-    const auto& graphicsPipeline = getGraphicsPipeline(pipelineType);
-
-    graphicsPipeline.pushConstants(commandBuffer, stageFlags, offset, size, values);
-  }
-
   void PipelineManager::bindGraphicsPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                           const PipelineType pipelineType,
-                                                          VkDescriptorSet descriptorSet,
+                                                          const vk::DescriptorSet descriptorSet,
                                                           const uint32_t location) const
   {
     const auto& graphicsPipeline = getGraphicsPipeline(pipelineType);
@@ -102,25 +81,16 @@ namespace vke {
   }
 
   void PipelineManager::doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                     const VkExtent2D extent) const
+                                     const vk::Extent2D extent) const
   {
     m_rayTracingPipeline->doRayTracing(commandBuffer, extent);
   }
 
   void PipelineManager::bindRayTracingPipelineDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                            VkDescriptorSet descriptorSet,
+                                                            const vk::DescriptorSet descriptorSet,
                                                             const uint32_t location) const
   {
     m_rayTracingPipeline->bindDescriptorSet(commandBuffer, descriptorSet, location);
-  }
-
-  void PipelineManager::pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                        const VkShaderStageFlags stageFlags,
-                                                        const uint32_t offset,
-                                                        const uint32_t size,
-                                                        const void* values) const
-  {
-    m_rayTracingPipeline->pushConstants(commandBuffer, stageFlags, offset, size, values);
   }
 
   void PipelineManager::createGraphicsPipeline(const PipelineType pipelineType,
@@ -247,8 +217,7 @@ namespace vke {
 
   void PipelineManager::createCommandPool()
   {
-    const VkCommandPoolCreateInfo poolInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    const vk::CommandPoolCreateInfo poolInfo {
       .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
     };
 
@@ -257,14 +226,13 @@ namespace vke {
 
   void PipelineManager::createDescriptorPool()
   {
-    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 2},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 2}
+    const std::array<vk::DescriptorPoolSize, 3> poolSizes {{
+      { vk::DescriptorType::eUniformBuffer,        m_logicalDevice->getMaxFramesInFlight() * 30 },
+      { vk::DescriptorType::eStorageBuffer,        m_logicalDevice->getMaxFramesInFlight() * 2  },
+      { vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 2  }
     }};
 
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    const vk::DescriptorPoolCreateInfo poolCreateInfo {
       .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
@@ -312,4 +280,5 @@ namespace vke {
 
     m_rayTracingPipeline = std::make_unique<RayTracingPipeline>(m_logicalDevice, rtConfig);
   }
+
 } // namespace vke

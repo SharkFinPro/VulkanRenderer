@@ -36,12 +36,7 @@ namespace vke {
     }
   }
 
-  Renderer3D::~Renderer3D()
-  {
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
-
-    m_logicalDevice->destroyCommandPool(m_commandPool);
-  }
+  Renderer3D::~Renderer3D() = default;
 
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -67,7 +62,7 @@ namespace vke {
     m_mousePicker->render(&renderInfoMousePicking, pipelineManager);
   }
 
-  void Renderer3D::handleRenderedMousePickingImage(VkImage image) const
+  void Renderer3D::handleRenderedMousePickingImage(const vk::Image image) const
   {
     m_mousePicker->handleRenderedMousePickingImage(image);
   }
@@ -207,25 +202,24 @@ namespace vke {
     return m_smokeSystemsToRender;
   }
 
-  VkDescriptorSetLayout Renderer3D::getNoiseDescriptorSetLayout() const
+  vk::DescriptorSetLayout Renderer3D::getNoiseDescriptorSetLayout() const
   {
     return m_noiseDescriptorSet->getDescriptorSetLayout();
   }
 
-  VkDescriptorSetLayout Renderer3D::getCubeMapDescriptorSetLayout() const
+  vk::DescriptorSetLayout Renderer3D::getCubeMapDescriptorSetLayout() const
   {
     return m_cubeMapDescriptorSet->getDescriptorSetLayout();
   }
 
   void Renderer3D::setCloudToRender(std::shared_ptr<Cloud> cloud)
   {
-    m_cloudToRender = cloud;
+    m_cloudToRender = std::move(cloud);
   }
 
   void Renderer3D::createCommandPool()
   {
-    const VkCommandPoolCreateInfo poolInfo {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    const vk::CommandPoolCreateInfo poolInfo {
       .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
     };
 
@@ -234,20 +228,19 @@ namespace vke {
 
   void Renderer3D::createDescriptorPool()
   {
-    std::vector<VkDescriptorPoolSize> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 256},
-      {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, m_logicalDevice->getMaxFramesInFlight() * 4},
-      {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 10},
+    std::vector<vk::DescriptorPoolSize> poolSizes {{
+      {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 256},
+      {vk::DescriptorType::eStorageImage, m_logicalDevice->getMaxFramesInFlight() * 4},
+      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 10},
     }};
 
     if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
-      poolSizes.push_back({VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, m_logicalDevice->getMaxFramesInFlight() * 4});
-      poolSizes.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 4});
+      poolSizes.push_back({vk::DescriptorType::eAccelerationStructureKHR, m_logicalDevice->getMaxFramesInFlight() * 4});
+      poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 4});
     }
 
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+    const vk::DescriptorPoolCreateInfo poolCreateInfo {
       .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
@@ -303,13 +296,12 @@ namespace vke {
       .viewPosition = renderInfo->viewPosition
     };
 
-    pipelineManager->pushGraphicsPipelineConstants(
+    pipelineManager->pushGraphicsPipelineConstants<GridPushConstant>(
       renderInfo->commandBuffer,
       PipelineType::grid,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       0,
-      sizeof(gridPC),
-      &gridPC
+      gridPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
@@ -352,14 +344,13 @@ namespace vke {
       return;
     }
 
-    std::visit([&](const auto& pc) {
-      pipelineManager->pushGraphicsPipelineConstants(
+    std::visit([&]<typename T>(const T& pc) {
+      pipelineManager->pushGraphicsPipelineConstants<T>(
         commandBuffer,
         pipelineType,
         it->second.stages,
         0,
-        sizeof(pc),
-        &pc
+        pc
       );
     }, it->second.data);
   }
@@ -411,7 +402,7 @@ namespace vke {
   void Renderer3D::createDescriptorSets()
   {
     m_noiseTexture = std::make_shared<Texture3D>(m_logicalDevice, m_commandPool, "assets/noise/noise3d.064.tex",
-                                                 VK_SAMPLER_ADDRESS_MODE_REPEAT);
+                                                 vk::SamplerAddressMode::eRepeat);
 
     std::array<std::string, 6> paths {
       "assets/cubeMap/nvposx.bmp",
@@ -423,43 +414,43 @@ namespace vke {
     };
     m_cubeMapTexture = std::make_shared<TextureCubemap>(m_logicalDevice, m_commandPool, paths);
 
-    constexpr VkDescriptorSetLayoutBinding noiseSamplerLayout {
+    constexpr vk::DescriptorSetLayoutBinding noiseSamplerLayout {
       .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
-    std::vector<VkDescriptorSetLayoutBinding> noiseLayoutBindings {
+    std::vector<vk::DescriptorSetLayoutBinding> noiseLayoutBindings {
       noiseSamplerLayout
     };
 
     m_noiseDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, noiseLayoutBindings);
-    m_noiseDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_noiseDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_noiseTexture->getDescriptorSet(0, descriptorSet)
       }};
 
       return descriptorWrites;
     });
 
-    constexpr VkDescriptorSetLayoutBinding cubeMapSamplerLayout {
+    constexpr vk::DescriptorSetLayoutBinding cubeMapSamplerLayout {
       .binding = 1,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
-    std::vector<VkDescriptorSetLayoutBinding> cubeMapLayoutBindings {
+    std::vector<vk::DescriptorSetLayoutBinding> cubeMapLayoutBindings {
       noiseSamplerLayout,
       cubeMapSamplerLayout
     };
 
     m_cubeMapDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, cubeMapLayoutBindings);
-    m_cubeMapDescriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_cubeMapDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_noiseTexture->getDescriptorSet(0, descriptorSet),
         m_cubeMapTexture->getDescriptorSet(1, descriptorSet)
       }};

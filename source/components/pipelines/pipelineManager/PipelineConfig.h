@@ -49,7 +49,7 @@ namespace vke::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
           .size = sizeof(GridPushConstant)
         }

@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -21,7 +21,7 @@ namespace vke {
     uint32_t currentFrame;
     glm::vec3 viewPosition;
     const glm::mat4& viewMatrix;
-    VkExtent2D extent;
+    vk::Extent2D extent;
 
     mutable glm::mat4 projectionMatrix;
     mutable bool shouldCreateProjectionMatrix = true;
@@ -55,66 +55,67 @@ namespace vke {
       [[nodiscard]] std::vector<ShaderModule> getShaderModules(const std::shared_ptr<LogicalDevice>& logicalDevice) const
       {
         std::vector<ShaderModule> shaderModules;
+
         if (!vertexShader.empty())
         {
-          shaderModules.emplace_back(logicalDevice, vertexShader.c_str(), VK_SHADER_STAGE_VERTEX_BIT);
+          shaderModules.emplace_back(logicalDevice, vertexShader.c_str(), vk::ShaderStageFlagBits::eVertex);
         }
 
         if (!fragmentShader.empty())
         {
-          shaderModules.emplace_back(logicalDevice, fragmentShader.c_str(), VK_SHADER_STAGE_FRAGMENT_BIT);
+          shaderModules.emplace_back(logicalDevice, fragmentShader.c_str(), vk::ShaderStageFlagBits::eFragment);
         }
 
         if (!geometryShader.empty())
         {
-          shaderModules.emplace_back(logicalDevice, geometryShader.c_str(), VK_SHADER_STAGE_GEOMETRY_BIT);
+          shaderModules.emplace_back(logicalDevice, geometryShader.c_str(), vk::ShaderStageFlagBits::eGeometry);
         }
 
         if (!tesselationControlShader.empty())
         {
-          shaderModules.emplace_back(logicalDevice, tesselationControlShader.c_str(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
+          shaderModules.emplace_back(logicalDevice, tesselationControlShader.c_str(), vk::ShaderStageFlagBits::eTessellationControl);
         }
 
         if (!tesselationEvaluationShader.empty())
         {
-          shaderModules.emplace_back(logicalDevice, tesselationEvaluationShader.c_str(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
+          shaderModules.emplace_back(logicalDevice, tesselationEvaluationShader.c_str(), vk::ShaderStageFlagBits::eTessellationEvaluation);
         }
 
-        return std::move(shaderModules);
+        return shaderModules;
       }
 
-      static std::vector<VkPipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
+      static std::vector<vk::PipelineShaderStageCreateInfo> getShaderStages(const std::vector<ShaderModule>& shaderModules)
       {
-        std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
+        std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
 
         for (const auto& shaderModule : shaderModules)
         {
           pipelineShaderStageCreateInfos.push_back(shaderModule.getShaderStageCreateInfo());
         }
 
-        return std::move(pipelineShaderStageCreateInfos);
+        return pipelineShaderStageCreateInfos;
       }
     } shaders;
 
     struct {
-      VkPipelineColorBlendStateCreateInfo colorBlendState{};
-      VkPipelineDepthStencilStateCreateInfo depthStencilState{};
-      VkPipelineDynamicStateCreateInfo dynamicState{};
-      VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
-      VkPipelineMultisampleStateCreateInfo multisampleState{};
-      VkPipelineRasterizationStateCreateInfo rasterizationState{};
-      VkPipelineTessellationStateCreateInfo tessellationState{};
-      VkPipelineVertexInputStateCreateInfo vertexInputState{};
-      VkPipelineViewportStateCreateInfo viewportState{};
+      vk::PipelineColorBlendStateCreateInfo colorBlendState{};
+      vk::PipelineDepthStencilStateCreateInfo depthStencilState{};
+      vk::PipelineDynamicStateCreateInfo dynamicState{};
+      vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState{};
+      vk::PipelineMultisampleStateCreateInfo multisampleState{};
+      vk::PipelineRasterizationStateCreateInfo rasterizationState{};
+      vk::PipelineTessellationStateCreateInfo tessellationState{};
+      vk::PipelineVertexInputStateCreateInfo vertexInputState{};
+      vk::PipelineViewportStateCreateInfo viewportState{};
     } states;
 
-    std::vector<VkPushConstantRange> pushConstantRanges;
+    std::vector<vk::PushConstantRange> pushConstantRanges;
 
-    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+    std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
 
     const std::shared_ptr<RenderPass>& renderPass;
 
-    VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    vk::Format colorFormat = vk::Format::eR8G8B8A8Unorm;
 
     bool renderToCubeMap = false;
   };
@@ -129,7 +130,7 @@ namespace vke {
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                           VkDescriptorSet descriptorSet,
+                           vk::DescriptorSet descriptorSet,
                            uint32_t location) const;
 
   protected:
