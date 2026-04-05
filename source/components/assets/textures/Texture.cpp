@@ -214,7 +214,7 @@ namespace vke {
   {
     const vk::PhysicalDeviceProperties deviceProperties = m_logicalDevice->getPhysicalDevice()->getDeviceProperties();
 
-    vk::SamplerCreateInfo samplerCreateInfo{
+    const vk::SamplerCreateInfo samplerCreateInfo{
       .magFilter = vk::Filter::eLinear,
       .minFilter = vk::Filter::eLinear,
       .mipmapMode = vk::SamplerMipmapMode::eLinear,

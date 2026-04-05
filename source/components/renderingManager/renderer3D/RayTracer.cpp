@@ -116,7 +116,7 @@ namespace vke {
 
     const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud);
 
-    vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
+    const vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
       .arrayOfPointers = vk::False,
       .data = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
     };

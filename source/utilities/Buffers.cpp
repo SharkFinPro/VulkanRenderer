@@ -41,7 +41,7 @@ namespace vke::Buffers {
 
   void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const vk::CommandPool& commandPool,
-                  vk::Queue queue,
+                  const vk::Queue queue,
                   vk::Buffer srcBuffer,
                   vk::Buffer dstBuffer,
                   const vk::DeviceSize size)

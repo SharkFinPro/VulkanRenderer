@@ -64,7 +64,7 @@ namespace vke {
     return m_smokeSystemDescriptorSet;
   }
 
-  const vk::Buffer& SmokeSystem::getSmokeSystemShaderStorageBuffer(uint32_t currentFrame) const
+  const vk::Buffer& SmokeSystem::getSmokeSystemShaderStorageBuffer(const uint32_t currentFrame) const
   {
     return *m_shaderStorageBuffers[currentFrame];
   }

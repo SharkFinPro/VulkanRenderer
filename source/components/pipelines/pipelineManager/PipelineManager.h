@@ -136,8 +136,8 @@ namespace vke {
 
   template<typename T>
   void PipelineManager::pushRayTracingPipelineConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                        vk::ShaderStageFlags stageFlags,
-                                                        uint32_t offset,
+                                                        const vk::ShaderStageFlags stageFlags,
+                                                        const uint32_t offset,
                                                         const T& data) const
   {
     m_rayTracingPipeline->pushConstants<T>(commandBuffer, stageFlags, offset, data);

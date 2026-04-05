@@ -57,7 +57,7 @@ namespace vke {
     createMousePickingRenderTarget(mousePickingExtent);
   }
 
-  void Renderer::resetRayTracingImageResources(vk::Extent2D extent)
+  void Renderer::resetRayTracingImageResources(const vk::Extent2D extent)
   {
     if (!supportsRayTracing())
     {

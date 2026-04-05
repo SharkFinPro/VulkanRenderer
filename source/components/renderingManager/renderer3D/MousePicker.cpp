@@ -83,7 +83,7 @@ namespace vke {
     }
   }
 
-  void MousePicker::handleRenderedMousePickingImage(vk::Image image)
+  void MousePicker::handleRenderedMousePickingImage(const vk::Image image)
   {
 	  if (m_mousePickingItems.empty())
 	  {
@@ -168,7 +168,7 @@ namespace vke {
   }
 
   void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
-                                              vk::Image image)
+                                              const vk::Image image)
   {
     const vk::ImageMemoryBarrier imageMemoryBarrier {
       .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
@@ -198,7 +198,7 @@ namespace vke {
   }
 
   void MousePicker::transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
-                                              vk::Image image)
+                                              const vk::Image image)
   {
     const vk::ImageMemoryBarrier imageMemoryBarrier {
       .srcAccessMask = vk::AccessFlagBits::eTransferRead,

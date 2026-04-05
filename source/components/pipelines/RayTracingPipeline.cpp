@@ -117,10 +117,7 @@ namespace vke {
     const auto rayTracingPipelineProperties = m_logicalDevice->getPhysicalDevice()->getRayTracingPipelineProperties();
 
     const uint32_t shaderGroupHandleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
-    const uint32_t shaderGroupHandleAlignment = rayTracingPipelineProperties.shaderGroupHandleAlignment;
     const uint32_t shaderGroupBaseAlignment = rayTracingPipelineProperties.shaderGroupBaseAlignment;
-
-    const uint32_t alignedHandleSize = (shaderGroupHandleSize + shaderGroupHandleAlignment - 1) & ~(shaderGroupHandleAlignment - 1);
 
     const auto missCount = static_cast<uint32_t>(config.shaders.missShaders.size());
     const auto hitGroupCount = static_cast<uint32_t>(config.shaders.hitGroups.size());
