@@ -8,15 +8,15 @@
 
 namespace vke {
 
-  class DescriptorSet;
   class RenderPass;
 
   class LinePipeline final : public GraphicsPipeline {
   public:
-    LinePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+    LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  const std::shared_ptr<RenderPass>& renderPass);
 
-    void render(const RenderInfo* renderInfo,
+    void render(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                const RenderInfo* renderInfo,
                 const vk::raii::CommandPool& commandPool,
                 const std::vector<LineVertex>* vertices) const;
 
@@ -28,7 +28,7 @@ namespace vke {
     vk::raii::Buffer m_stagingBuffer = nullptr;
     vk::raii::DeviceMemory m_stagingBufferMemory = nullptr;
 
-    void createVertexBuffer();
+    void createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice);
   };
 
 } // namespace vke

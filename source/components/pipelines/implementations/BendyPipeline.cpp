@@ -9,17 +9,16 @@
 
 namespace vke {
 
-  BendyPipeline::BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+  BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const vk::raii::CommandPool& commandPool,
                                const vk::DescriptorPool descriptorPool,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
-    : GraphicsPipeline(std::move(logicalDevice)), m_lightingDescriptorSet(lightingDescriptorSet),
-      m_previousTime(std::chrono::steady_clock::now())
+    : m_lightingDescriptorSet(lightingDescriptorSet), m_previousTime(std::chrono::steady_clock::now())
   {
-    createUniforms(commandPool);
+    createUniforms(logicalDevice, commandPool);
 
-    createDescriptorSets(descriptorPool);
+    createDescriptorSets(logicalDevice, descriptorPool);
 
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -31,7 +30,7 @@ namespace vke {
         .depthStencilState = GraphicsPipelineStates::depthStencilState,
         .dynamicState = GraphicsPipelineStates::dynamicState,
         .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
-        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(m_logicalDevice),
+        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(logicalDevice),
         .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
         .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
         .viewportState = GraphicsPipelineStates::viewportState
@@ -50,7 +49,7 @@ namespace vke {
       .renderPass = renderPass
     };
 
-    createPipeline(graphicsPipelineOptions);
+    createPipeline(logicalDevice, graphicsPipelineOptions);
   }
 
   void BendyPipeline::render(const RenderInfo* renderInfo,
@@ -87,18 +86,20 @@ namespace vke {
     }
   }
 
-  void BendyPipeline::createUniforms(const vk::raii::CommandPool& commandPool)
+  void BendyPipeline::createUniforms(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                     const vk::raii::CommandPool& commandPool)
   {
-    m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(VPTransformUniform));
+    m_transformUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(VPTransformUniform));
 
-    m_bendyUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(BendyUniform));
+    m_bendyUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(BendyUniform));
 
-    m_texture = std::make_shared<Texture2D>(m_logicalDevice, commandPool, "assets/bendy/leaf.png", vk::SamplerAddressMode::eClampToEdge);
+    m_texture = std::make_shared<Texture2D>(logicalDevice, commandPool, "assets/bendy/leaf.png", vk::SamplerAddressMode::eClampToEdge);
   }
 
-  void BendyPipeline::createDescriptorSets(vk::DescriptorPool descriptorPool)
+  void BendyPipeline::createDescriptorSets(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                           vk::DescriptorPool descriptorPool)
   {
-    m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, LayoutBindings::bendyLayoutBindings);
+    m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, LayoutBindings::bendyLayoutBindings);
     m_BendyPipelineDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       std::vector<vk::WriteDescriptorSet> descriptorWrites{{

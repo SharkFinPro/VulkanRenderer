@@ -74,7 +74,7 @@ namespace vke {
 
   class RayTracingPipeline : public Pipeline {
   public:
-    RayTracingPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+    RayTracingPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const RayTracingPipelineConfig& config);
 
     ~RayTracingPipeline() override = default;
@@ -100,11 +100,14 @@ namespace vke {
     vk::StridedDeviceAddressRegionKHR m_hitRegion{};
     vk::StridedDeviceAddressRegionKHR m_callableRegion{};
 
-    void createPipelineLayout(const RayTracingPipelineConfig& config);
+    void createPipelineLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              const RayTracingPipelineConfig& config);
 
-    void createPipeline(const RayTracingPipelineConfig& config);
+    void createPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                        const RayTracingPipelineConfig& config);
 
-    void createShaderBindingTable(const RayTracingPipelineConfig& config);
+    void createShaderBindingTable(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                  const RayTracingPipelineConfig& config);
   };
 
 } // vke

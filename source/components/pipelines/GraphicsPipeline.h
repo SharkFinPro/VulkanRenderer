@@ -6,7 +6,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
-#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -38,6 +37,8 @@ namespace vke {
         );
 
         projectionMatrix[1][1] *= -1;
+
+        shouldCreateProjectionMatrix = false;
       }
 
       return projectionMatrix;
@@ -122,9 +123,9 @@ namespace vke {
 
   class GraphicsPipeline : public Pipeline {
   public:
-    explicit GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice);
+    GraphicsPipeline() = default;
 
-    GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+    GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
@@ -134,9 +135,11 @@ namespace vke {
                            uint32_t location) const;
 
   protected:
-    void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
+    void createPipelineLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              const GraphicsPipelineOptions& graphicsPipelineOptions);
 
-    void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
+    void createPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                        const GraphicsPipelineOptions& graphicsPipelineOptions);
   };
 
 } // namespace vke

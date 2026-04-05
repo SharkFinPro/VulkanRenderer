@@ -3,7 +3,6 @@
 
 #include "Pipeline.h"
 #include "shaderModules/ShaderModule.h"
-#include <vulkan/vulkan_raii.hpp>
 #include <cassert>
 #include <memory>
 #include <string>
@@ -28,13 +27,12 @@ namespace vke {
   };
 
   class ComputePipeline : public Pipeline {
-  public:
-    explicit ComputePipeline(std::shared_ptr<LogicalDevice> logicalDevice);
-
   protected:
-    void createPipelineLayout(const ComputePipelineOptions& computePipelineOptions);
+    void createPipelineLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              const ComputePipelineOptions& computePipelineOptions);
 
-    void createPipeline(const ComputePipelineOptions& computePipelineOptions);
+    void createPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                        const ComputePipelineOptions& computePipelineOptions);
   };
 
 } // namespace vke

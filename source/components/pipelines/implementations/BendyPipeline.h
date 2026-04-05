@@ -16,7 +16,7 @@ namespace vke {
 
   class BendyPipeline final : public GraphicsPipeline {
   public:
-    BendyPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+    BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
                   const vk::raii::CommandPool& commandPool,
                   vk::DescriptorPool descriptorPool,
@@ -40,9 +40,11 @@ namespace vke {
 
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
-    void createUniforms(const vk::raii::CommandPool& commandPool);
+    void createUniforms(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                        const vk::raii::CommandPool& commandPool);
 
-    void createDescriptorSets(vk::DescriptorPool descriptorPool);
+    void createDescriptorSets(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              vk::DescriptorPool descriptorPool);
 
     void updateUniformVariables(const RenderInfo* renderInfo);
 

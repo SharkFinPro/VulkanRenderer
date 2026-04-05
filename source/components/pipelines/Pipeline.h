@@ -7,13 +7,8 @@
 
 namespace vke {
 
-  class CommandBuffer;
-  class LogicalDevice;
-
   class Pipeline {
   public:
-    explicit Pipeline(std::shared_ptr<LogicalDevice> logicalDevice);
-
     virtual ~Pipeline() = default;
 
     virtual void displayGui() {}
@@ -25,8 +20,6 @@ namespace vke {
                        const T& data) const;
 
   protected:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     vk::raii::PipelineLayout m_pipelineLayout = nullptr;
 
     vk::raii::Pipeline m_pipeline = nullptr;

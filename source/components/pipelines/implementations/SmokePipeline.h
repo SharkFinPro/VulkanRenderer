@@ -10,13 +10,11 @@
 namespace vke {
 
   class DescriptorSet;
-  class UniformBuffer;
-  struct SmokeParticle;
   class SmokeSystem;
 
   class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
-    SmokePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+    SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
                   vk::DescriptorSetLayout smokeSystemDescriptorSetLayout);

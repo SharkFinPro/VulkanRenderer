@@ -6,15 +6,10 @@
 
 namespace vke {
 
-  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice)
-    : Pipeline(std::move(logicalDevice))
-  {}
-
-  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+  GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const GraphicsPipelineOptions& graphicsPipelineOptions)
-    : Pipeline(std::move(logicalDevice))
   {
-    createPipeline(graphicsPipelineOptions);
+    createPipeline(logicalDevice, graphicsPipelineOptions);
   }
 
   void GraphicsPipeline::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
@@ -34,7 +29,8 @@ namespace vke {
     );
   }
 
-  void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions)
+  void GraphicsPipeline::createPipelineLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                              const GraphicsPipelineOptions& graphicsPipelineOptions)
   {
     const vk::PipelineLayoutCreateInfo pipelineLayoutInfo {
       .setLayoutCount = static_cast<uint32_t>(graphicsPipelineOptions.descriptorSetLayouts.size()),
@@ -43,14 +39,15 @@ namespace vke {
       .pPushConstantRanges = graphicsPipelineOptions.pushConstantRanges.empty() ? nullptr : graphicsPipelineOptions.pushConstantRanges.data()
     };
 
-    m_pipelineLayout = m_logicalDevice->createPipelineLayout(pipelineLayoutInfo);
+    m_pipelineLayout = logicalDevice->createPipelineLayout(pipelineLayoutInfo);
   }
 
-  void GraphicsPipeline::createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions)
+  void GraphicsPipeline::createPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                        const GraphicsPipelineOptions& graphicsPipelineOptions)
   {
-    createPipelineLayout(graphicsPipelineOptions);
+    createPipelineLayout(logicalDevice, graphicsPipelineOptions);
 
-    const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(m_logicalDevice);
+    const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(logicalDevice);
     const auto shaderStages = graphicsPipelineOptions.shaders.getShaderStages(shaderModules);
 
     const bool hasColorFormat = graphicsPipelineOptions.colorFormat != vk::Format::eUndefined;
@@ -59,7 +56,7 @@ namespace vke {
       .viewMask = graphicsPipelineOptions.renderToCubeMap ? 0x3Fu : 0u,
       .colorAttachmentCount = static_cast<uint32_t>(hasColorFormat),
       .pColorAttachmentFormats = hasColorFormat ? &graphicsPipelineOptions.colorFormat : nullptr,
-      .depthAttachmentFormat = hasColorFormat ? m_logicalDevice->getPhysicalDevice()->findDepthFormat() : vk::Format::eD32Sfloat
+      .depthAttachmentFormat = hasColorFormat ? logicalDevice->getPhysicalDevice()->findDepthFormat() : vk::Format::eD32Sfloat
     };
 
     const vk::GraphicsPipelineCreateInfo pipelineInfo {
@@ -82,7 +79,7 @@ namespace vke {
       .basePipelineIndex = -1
     };
 
-    m_pipeline = m_logicalDevice->createPipeline(pipelineInfo);
+    m_pipeline = logicalDevice->createPipeline(pipelineInfo);
   }
 
 } // namespace vke

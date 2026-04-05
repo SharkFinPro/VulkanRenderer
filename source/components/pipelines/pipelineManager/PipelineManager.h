@@ -16,11 +16,7 @@ namespace vke {
 
   class AssetManager;
   class LightingManager;
-  class DotsPipeline;
-  class PointLight;
-  class Pipeline;
   class RenderingManager;
-  class RenderObject;
 
   class PipelineManager {
   public:
