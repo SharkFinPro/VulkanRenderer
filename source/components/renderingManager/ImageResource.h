@@ -18,7 +18,7 @@ namespace vke {
 
   struct ImageResourceConfig {
     ImageResourceType imageResourceType = ImageResourceType::Undefined;
-    const std::shared_ptr<LogicalDevice>& logicalDevice;
+    std::shared_ptr<LogicalDevice> logicalDevice;
     vk::Extent2D extent;
     vk::CommandPool commandPool;
     vk::Format colorFormat = vk::Format::eUndefined;
