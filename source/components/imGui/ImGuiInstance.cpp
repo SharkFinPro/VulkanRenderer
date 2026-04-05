@@ -13,12 +13,12 @@ namespace vke {
 
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                                const std::shared_ptr<Instance>& instance,
-                               std::shared_ptr<LogicalDevice> logicalDevice,
+                               const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const std::shared_ptr<RenderPass>& renderPass,
                                const EngineConfig::ImGui& config)
-    : m_logicalDevice(std::move(logicalDevice)), m_window(window), m_useDockSpace(config.useDockspace)
+    : m_window(window), m_useDockSpace(config.useDockspace)
   {
-    createDescriptorPool(config.maxTextures);
+    createDescriptorPool(logicalDevice, config.maxTextures);
 
     ImGui::CreateContext();
 
@@ -31,7 +31,7 @@ namespace vke {
 
     initFromWindow();
 
-    const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
+    const SwapChainSupportDetails swapChainSupport = logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
@@ -41,15 +41,15 @@ namespace vke {
 
     ImGui_ImplVulkan_InitInfo initInfo {
       .Instance = static_cast<VkInstance>(*instance->m_instance),
-      .PhysicalDevice = static_cast<VkPhysicalDevice>(*m_logicalDevice->getPhysicalDevice()->m_physicalDevice),
-      .Device = static_cast<VkDevice>(*m_logicalDevice->m_device),
-      .Queue = static_cast<VkQueue>(m_logicalDevice->getGraphicsQueue()),
+      .PhysicalDevice = static_cast<VkPhysicalDevice>(*logicalDevice->getPhysicalDevice()->m_physicalDevice),
+      .Device = static_cast<VkDevice>(*logicalDevice->m_device),
+      .Queue = static_cast<VkQueue>(logicalDevice->getGraphicsQueue()),
       .DescriptorPool = static_cast<VkDescriptorPool>(*m_descriptorPool),
       .MinImageCount = imageCount,
       .ImageCount = imageCount,
       .PipelineInfoMain {
         .RenderPass = renderPass ? static_cast<VkRenderPass>(renderPass->getRenderPass()) : nullptr,
-        .MSAASamples = static_cast<VkSampleCountFlagBits>(m_logicalDevice->getPhysicalDevice()->getMsaaSamples())
+        .MSAASamples = static_cast<VkSampleCountFlagBits>(logicalDevice->getPhysicalDevice()->getMsaaSamples())
       }
     };
 
@@ -63,7 +63,7 @@ namespace vke {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
         .colorAttachmentCount = 1,
         .pColorAttachmentFormats = &colorFormat,
-        .depthAttachmentFormat = static_cast<VkFormat>(m_logicalDevice->getPhysicalDevice()->findDepthFormat())
+        .depthAttachmentFormat = static_cast<VkFormat>(logicalDevice->getPhysicalDevice()->findDepthFormat())
       };
     }
 
@@ -251,20 +251,21 @@ namespace vke {
     m_menuBarHeight = height;
   }
 
-  void ImGuiInstance::createDescriptorPool(const uint32_t maxImGuiTextures)
+  void ImGuiInstance::createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                           const uint32_t maxImGuiTextures)
   {
     const std::array<vk::DescriptorPoolSize, 1> poolSizes {{
-      {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures}
+      {vk::DescriptorType::eCombinedImageSampler, logicalDevice->getMaxFramesInFlight() * maxImGuiTextures}
     }};
 
     const vk::DescriptorPoolCreateInfo poolCreateInfo {
       .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * maxImGuiTextures,
+      .maxSets = logicalDevice->getMaxFramesInFlight() * maxImGuiTextures,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
     };
 
-    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+    m_descriptorPool = logicalDevice->createDescriptorPool(poolCreateInfo);
   }
 
   void ImGuiInstance::markDockNeedsUpdate()

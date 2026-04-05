@@ -71,7 +71,7 @@ namespace vke {
 
   class Font {
   public:
-    Font(std::shared_ptr<LogicalDevice> logicalDevice,
+    Font(const std::shared_ptr<LogicalDevice>& logicalDevice,
          const std::string& fileName,
          uint32_t fontSize,
          vk::CommandPool commandPool,
@@ -85,8 +85,6 @@ namespace vke {
     [[nodiscard]] vk::DescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     std::shared_ptr<TextureGlyph> m_glyphTexture;
 
     std::unordered_map<uint32_t, GlyphInfo> m_glyphMap;
@@ -97,7 +95,8 @@ namespace vke {
 
     static std::vector<uint8_t> loadFontFromFile(const std::string& fileName);
 
-    void createGlyphAtlas(vk::CommandPool commandPool,
+    void createGlyphAtlas(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                          vk::CommandPool commandPool,
                           const std::vector<uint8_t>& fontBuffer,
                           uint32_t fontSize);
 
@@ -120,7 +119,8 @@ namespace vke {
                              uint32_t atlasWidth,
                              uint32_t atlasHeight);
 
-    void createDescriptorSet(vk::DescriptorPool descriptorPool,
+    void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             vk::DescriptorPool descriptorPool,
                              vk::DescriptorSetLayout descriptorSetLayout);
   };
 

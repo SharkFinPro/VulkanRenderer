@@ -12,9 +12,9 @@ namespace vke {
 
   class CommandBuffer {
   public:
-    explicit CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice);
+    CommandBuffer() = default;
 
-    CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+    CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                   vk::CommandPool commandPool);
 
     CommandBuffer(const CommandBuffer&) = delete;
@@ -133,13 +133,12 @@ namespace vke {
     friend class ImGuiInstance;
 
   protected:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     std::vector<vk::raii::CommandBuffer> m_commandBuffers;
 
     uint32_t m_currentFrame = 0;
 
-    virtual void allocateCommandBuffers(vk::CommandPool commandPool);
+    virtual void allocateCommandBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                        vk::CommandPool commandPool);
   };
 
   template<typename T>

@@ -9,13 +9,13 @@
 
 namespace vke {
 
-  SwapChain::SwapChain(std::shared_ptr<LogicalDevice> logicalDevice,
+  SwapChain::SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<Window>& window,
                        const std::shared_ptr<Surface>& surface)
-    : m_logicalDevice(std::move(logicalDevice))
   {
-    createSwapChain(window, surface);
-    createImageViews();
+    createSwapChain(logicalDevice, window, surface);
+
+    createImageViews(logicalDevice);
   }
 
   vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
@@ -78,17 +78,18 @@ namespace vke {
     return imageCountExceeded ? capabilities.maxImageCount : imageCount;
   }
 
-  void SwapChain::createSwapChain(const std::shared_ptr<Window>& window,
+  void SwapChain::createSwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                  const std::shared_ptr<Window>& window,
                                   const std::shared_ptr<Surface>& surface)
   {
-    const SwapChainSupportDetails swapChainSupport = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
+    const SwapChainSupportDetails swapChainSupport = logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
     const vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     const vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
     const vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities, window);
     const uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
-    const auto indices = m_logicalDevice->getPhysicalDevice()->getQueueFamilies();
+    const auto indices = logicalDevice->getPhysicalDevice()->getQueueFamilies();
     const uint32_t queueFamilyIndices[] = {
       indices.graphicsFamily.value(),
       indices.presentFamily.value()
@@ -114,14 +115,14 @@ namespace vke {
       .oldSwapchain = nullptr
     };
 
-    m_swapchain = m_logicalDevice->createSwapchain(createInfo);
+    m_swapchain = logicalDevice->createSwapchain(createInfo);
 
     m_swapChainImages = m_swapchain.getImages();
     m_swapChainImageFormat = surfaceFormat.format;
     m_swapChainExtent = extent;
   }
 
-  void SwapChain::createImageViews()
+  void SwapChain::createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     m_swapChainImageViews.reserve(m_swapChainImages.size());
 
@@ -129,7 +130,7 @@ namespace vke {
     {
       m_swapChainImageViews.push_back(
         Images::createImageView(
-          m_logicalDevice,
+          logicalDevice,
           image,
           m_swapChainImageFormat,
           vk::ImageAspectFlagBits::eColor,

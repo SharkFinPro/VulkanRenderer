@@ -8,7 +8,7 @@ namespace vke {
 
   class SingleUseCommandBuffer final : public CommandBuffer {
   public:
-    SingleUseCommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+    SingleUseCommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const vk::CommandPool& commandPool,
                            vk::Queue queue);
 
@@ -23,7 +23,8 @@ namespace vke {
   private:
     vk::Queue m_queue;
 
-    void allocateCommandBuffers(vk::CommandPool commandPool) override;
+    void allocateCommandBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                vk::CommandPool commandPool) override;
   };
 
 } // vke

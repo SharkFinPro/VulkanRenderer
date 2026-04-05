@@ -12,7 +12,7 @@ namespace vke {
 
   class Texture {
   public:
-    Texture(std::shared_ptr<LogicalDevice> logicalDevice,
+    Texture(const std::shared_ptr<LogicalDevice>& logicalDevice,
             vk::SamplerAddressMode samplerAddressMode);
 
     virtual ~Texture();
@@ -25,8 +25,6 @@ namespace vke {
     [[nodiscard]] vk::DescriptorImageInfo getImageInfo() const;
 
   protected:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     vk::raii::Image m_textureImage = nullptr;
     vk::raii::DeviceMemory m_textureImageMemory = nullptr;
     vk::raii::ImageView m_textureImageView = nullptr;
@@ -38,12 +36,13 @@ namespace vke {
 
     vk::DescriptorSet m_imGuiTexture{};
 
-    void generateMipmaps(vk::CommandPool commandPool,
-                         vk::Image image,
-                         vk::Format imageFormat,
-                         int32_t texWidth,
-                         int32_t texHeight,
-                         uint32_t mipLevels) const;
+    static void generateMipmaps(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                vk::CommandPool commandPool,
+                                vk::Image image,
+                                vk::Format imageFormat,
+                                int32_t texWidth,
+                                int32_t texHeight,
+                                uint32_t mipLevels);
 
     static void blitImage(const SingleUseCommandBuffer& commandBuffer,
                           vk::Image image,
@@ -62,9 +61,10 @@ namespace vke {
                                                     vk::ImageMemoryBarrier& barrier,
                                                     uint32_t mipLevel);
 
-    void createTextureSampler(vk::SamplerAddressMode addressMode);
+    void createTextureSampler(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              vk::SamplerAddressMode addressMode);
 
-    virtual void createImageView() = 0;
+    virtual void createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice) = 0;
   };
 
 } // namespace vke

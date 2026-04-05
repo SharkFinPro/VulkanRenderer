@@ -8,11 +8,10 @@
 
 namespace vke {
 
-  Texture::Texture(std::shared_ptr<LogicalDevice> logicalDevice,
+  Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice,
                    const vk::SamplerAddressMode samplerAddressMode)
-    : m_logicalDevice(std::move(logicalDevice))
   {
-    createTextureSampler(samplerAddressMode);
+    createTextureSampler(logicalDevice, samplerAddressMode);
 
     m_imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
   }
@@ -59,21 +58,22 @@ namespace vke {
     return m_imageInfo;
   }
 
-  void Texture::generateMipmaps(const vk::CommandPool commandPool,
+  void Texture::generateMipmaps(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                const vk::CommandPool commandPool,
                                 const vk::Image image,
                                 const vk::Format imageFormat,
                                 const int32_t texWidth,
                                 const int32_t texHeight,
-                                const uint32_t mipLevels) const
+                                const uint32_t mipLevels)
   {
-    const auto formatProperties = m_logicalDevice->getPhysicalDevice()->getFormatProperties(imageFormat);
+    const auto formatProperties = logicalDevice->getPhysicalDevice()->getFormatProperties(imageFormat);
 
     if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear))
     {
       throw std::runtime_error("texture image format does not support linear blitting!");
     }
 
-    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
+    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([&commandBuffer, image, texWidth, texHeight, mipLevels] {
       vk::ImageMemoryBarrier barrier {
@@ -210,9 +210,10 @@ namespace vke {
     );
   }
 
-  void Texture::createTextureSampler(const vk::SamplerAddressMode addressMode)
+  void Texture::createTextureSampler(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                     const vk::SamplerAddressMode addressMode)
   {
-    const vk::PhysicalDeviceProperties deviceProperties = m_logicalDevice->getPhysicalDevice()->getDeviceProperties();
+    const vk::PhysicalDeviceProperties deviceProperties = logicalDevice->getPhysicalDevice()->getDeviceProperties();
 
     const vk::SamplerCreateInfo samplerCreateInfo{
       .magFilter = vk::Filter::eLinear,
@@ -232,7 +233,7 @@ namespace vke {
       .unnormalizedCoordinates = vk::False
     };
 
-    m_textureSampler = m_logicalDevice->createSampler(samplerCreateInfo);
+    m_textureSampler = logicalDevice->createSampler(samplerCreateInfo);
 
     m_imageInfo.sampler = *m_textureSampler;
   }

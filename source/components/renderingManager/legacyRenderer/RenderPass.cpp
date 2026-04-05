@@ -5,13 +5,12 @@
 
 namespace vke {
 
-  RenderPass::RenderPass(std::shared_ptr<LogicalDevice> logicalDevice,
+  RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const RenderPassConfig& renderPassConfig)
-    : m_logicalDevice(std::move(logicalDevice)),
-      m_shouldClearColorAttachment(renderPassConfig.hasColorAttachment),
+    : m_shouldClearColorAttachment(renderPassConfig.hasColorAttachment),
       m_shouldClearDepthAttachment(renderPassConfig.hasDepthAttachment)
   {
-    createRenderPass(renderPassConfig);
+    createRenderPass(logicalDevice, renderPassConfig);
   }
 
   vk::RenderPass RenderPass::getRenderPass()
@@ -49,9 +48,10 @@ namespace vke {
     commandBuffer->beginRenderPass(renderPassInfo);
   }
 
-  void RenderPass::createRenderPass(const RenderPassConfig& renderPassConfig)
+  void RenderPass::createRenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                    const RenderPassConfig& renderPassConfig)
   {
-    const auto attachmentSetup = setupAttachments(renderPassConfig);
+    const auto attachmentSetup = setupAttachments(logicalDevice, renderPassConfig);
 
     const auto subpass = attachmentSetup.createSubpass();
 
@@ -84,10 +84,11 @@ namespace vke {
       .pDependencies = &dependency
     };
 
-    m_renderPass = m_logicalDevice->createRenderPass(renderPassInfo);
+    m_renderPass = logicalDevice->createRenderPass(renderPassInfo);
   }
 
-  AttachmentSetup RenderPass::setupAttachments(const RenderPassConfig& renderPassConfig) const
+  AttachmentSetup RenderPass::setupAttachments(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                               const RenderPassConfig& renderPassConfig)
   {
     AttachmentSetup attachmentSetup;
 
@@ -107,7 +108,7 @@ namespace vke {
 
     if (renderPassConfig.hasDepthAttachment)
     {
-      attachmentSetup.attachments.push_back(getDepthAttachmentDescription(renderPassConfig));
+      attachmentSetup.attachments.push_back(getDepthAttachmentDescription(logicalDevice, renderPassConfig));
 
       attachmentSetup.depthAttachmentReferences.push_back({
         .attachment = currentIndex,
@@ -144,12 +145,13 @@ namespace vke {
     };
   }
 
-  vk::AttachmentDescription RenderPass::getDepthAttachmentDescription(const RenderPassConfig& renderPassConfig) const
+  vk::AttachmentDescription RenderPass::getDepthAttachmentDescription(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                      const RenderPassConfig& renderPassConfig)
   {
     return {
       .format = renderPassConfig.depthFormat != vk::Format::eUndefined
                 ? renderPassConfig.depthFormat
-                : m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
+                : logicalDevice->getPhysicalDevice()->findDepthFormat(),
       .samples = renderPassConfig.msaaSamples,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = renderPassConfig.finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal

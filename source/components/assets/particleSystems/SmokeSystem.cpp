@@ -10,22 +10,22 @@
 #include <random>
 
 namespace vke {
-  SmokeSystem::SmokeSystem(std::shared_ptr<LogicalDevice> logicalDevice,
-                           vk::CommandPool commandPool,
-                           vk::DescriptorPool descriptorPool,
-                           vk::DescriptorSetLayout smokeSystemDescriptorSetLayout,
+  SmokeSystem::SmokeSystem(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const vk::CommandPool commandPool,
+                           const vk::DescriptorPool descriptorPool,
+                           const vk::DescriptorSetLayout smokeSystemDescriptorSetLayout,
                            const glm::vec3 position,
                            const uint32_t numParticles)
-    : m_logicalDevice(std::move(logicalDevice)), m_previousTime(std::chrono::steady_clock::now()),
+    : m_previousTime(std::chrono::steady_clock::now()),
       m_numParticles(numParticles)
   {
     m_smokeUBO.systemPosition = position;
 
-    createUniforms();
+    createUniforms(logicalDevice);
 
-    createShaderStorageBuffers(commandPool);
+    createShaderStorageBuffers(logicalDevice, commandPool);
 
-    createDescriptorSet(descriptorPool, smokeSystemDescriptorSetLayout);
+    createDescriptorSet(logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
   }
 
   void SmokeSystem::update(const RenderInfo* renderInfo)
@@ -119,16 +119,17 @@ namespace vke {
     m_smokeUBO.windStrength = windStrength;
   }
 
-  void SmokeSystem::createUniforms()
+  void SmokeSystem::createUniforms(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
-    m_deltaTimeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(float));
+    m_deltaTimeUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(float));
 
-    m_transformUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(ViewProjTransformUniform));
+    m_transformUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(ViewProjTransformUniform));
 
-    m_smokeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SmokeUniform));
+    m_smokeUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(SmokeUniform));
   }
 
-  void SmokeSystem::createShaderStorageBuffers(const vk::CommandPool& commandPool)
+  void SmokeSystem::createShaderStorageBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                               const vk::CommandPool& commandPool)
   {
     std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
     std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
@@ -148,21 +149,22 @@ namespace vke {
       currentTTL -= currentTTL > -4.0f ? ttlSpan * 4.0f : ttlSpan;
     }
 
-    uploadShaderStorageBuffers(commandPool, particles);
+    uploadShaderStorageBuffers(logicalDevice, commandPool, particles);
   }
 
-  void SmokeSystem::uploadShaderStorageBuffers(const vk::CommandPool& commandPool,
+  void SmokeSystem::uploadShaderStorageBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                               const vk::CommandPool& commandPool,
                                                const std::vector<SmokeParticle>& particles)
   {
-    m_shaderStorageBuffers.reserve(m_logicalDevice->getMaxFramesInFlight());
-    m_shaderStorageBuffersMemory.reserve(m_logicalDevice->getMaxFramesInFlight());
+    m_shaderStorageBuffers.reserve(logicalDevice->getMaxFramesInFlight());
+    m_shaderStorageBuffersMemory.reserve(logicalDevice->getMaxFramesInFlight());
 
     const vk::DeviceSize bufferSize = sizeof(SmokeParticle) * m_numParticles;
 
     vk::raii::Buffer stagingBuffer = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory = nullptr;
 
-    Buffers::createBuffer(m_logicalDevice, bufferSize,
+    Buffers::createBuffer(logicalDevice, bufferSize,
                           vk::BufferUsageFlagBits::eTransferSrc,
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
@@ -171,16 +173,16 @@ namespace vke {
       memcpy(data, particles.data(), bufferSize);
     });
 
-    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+    for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)
     {
       m_shaderStorageBuffers.emplace_back(nullptr);
       m_shaderStorageBuffersMemory.emplace_back(nullptr);
 
-      Buffers::createBuffer(m_logicalDevice, bufferSize,
+      Buffers::createBuffer(logicalDevice, bufferSize,
                             vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
                             vk::MemoryPropertyFlagBits::eDeviceLocal, m_shaderStorageBuffers[i], m_shaderStorageBuffersMemory[i]);
 
-      Buffers::copyBuffer(m_logicalDevice, commandPool, m_logicalDevice->getComputeQueue(),
+      Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getComputeQueue(),
                           *stagingBuffer, *m_shaderStorageBuffers[i], bufferSize);
 
       const vk::DescriptorBufferInfo bufferInfo {
@@ -193,16 +195,20 @@ namespace vke {
     }
   }
 
-  void SmokeSystem::createDescriptorSet(vk::DescriptorPool descriptorPool,
+  void SmokeSystem::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                        vk::DescriptorPool descriptorPool,
                                         vk::DescriptorSetLayout smokeSystemDescriptorSetLayout)
   {
-    m_smokeSystemDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
-    m_smokeSystemDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
+    m_smokeSystemDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
+    m_smokeSystemDescriptorSet->updateDescriptorSets([this, logicalDevice](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       constexpr float deltaTimeUBO = 0;
 
       m_deltaTimeUniform->update(frame, &deltaTimeUBO);
       m_smokeUniform->update(frame, &m_smokeUBO);
+
+      const uint32_t maxFrames = logicalDevice->getMaxFramesInFlight();
+      const uint32_t previousFrame = frame == 0 ? maxFrames - 1 : static_cast<uint32_t>(frame - 1);
 
       const std::vector<vk::WriteDescriptorSet> writeDescriptorSets {{
         m_deltaTimeUniform->getDescriptorSet(0, descriptorSet, frame),
@@ -212,7 +218,7 @@ namespace vke {
           .dstArrayElement = 0,
           .descriptorCount = 1,
           .descriptorType = vk::DescriptorType::eStorageBuffer,
-          .pBufferInfo = &m_shaderStorageBufferInfos[(frame - 1) % m_logicalDevice->getMaxFramesInFlight()]
+          .pBufferInfo = &m_shaderStorageBufferInfos[previousFrame]
         },
         {
           .dstSet = descriptorSet,

@@ -11,18 +11,19 @@
 
 namespace vke {
 
-  Texture2D::Texture2D(std::shared_ptr<LogicalDevice> logicalDevice,
+  Texture2D::Texture2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const vk::CommandPool commandPool,
                        const char* path,
                        const vk::SamplerAddressMode samplerAddressMode)
-    : Texture(std::move(logicalDevice), samplerAddressMode)
+    : Texture(logicalDevice, samplerAddressMode)
   {
-    createTextureImage(commandPool, path);
+    createTextureImage(logicalDevice, commandPool, path);
 
-    createImageView();
+    createImageView(logicalDevice);
   }
 
-  void Texture2D::createTextureImage(const vk::CommandPool commandPool,
+  void Texture2D::createTextureImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                     const vk::CommandPool commandPool,
                                      const char* path)
   {
     int texWidth, texHeight, texChannels;
@@ -39,7 +40,7 @@ namespace vke {
 
     vk::raii::Buffer stagingBuffer = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory = nullptr;
-    Buffers::createBuffer(m_logicalDevice, imageSize, vk::BufferUsageFlagBits::eTransferSrc,
+    Buffers::createBuffer(logicalDevice, imageSize, vk::BufferUsageFlagBits::eTransferSrc,
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           stagingBuffer, stagingBufferMemory);
 
@@ -50,7 +51,7 @@ namespace vke {
     stbi_image_free(pixels);
 
     auto [image, imageMemory] = Images::createImage(
-      m_logicalDevice,
+      logicalDevice,
       {
         {},
         vk::Extent3D{
@@ -72,19 +73,19 @@ namespace vke {
     m_textureImage = std::move(image);
     m_textureImageMemory = std::move(imageMemory);
 
-    Images::transitionImageLayout(m_logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
+    Images::transitionImageLayout(logicalDevice, commandPool, m_textureImage, vk::Format::eR8G8B8A8Unorm,
                                   vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, m_mipLevels, 1);
-    Images::copyBufferToImage(m_logicalDevice, commandPool, stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth),
+    Images::copyBufferToImage(logicalDevice, commandPool, stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth),
                               static_cast<uint32_t>(texHeight), 1);
     // Transitioned to vk::ImageLayout::eShaderReadOnlyOptimal while generating mipmaps
 
-    generateMipmaps(commandPool, *m_textureImage, vk::Format::eR8G8B8A8Unorm, texWidth, texHeight, m_mipLevels);
+    generateMipmaps(logicalDevice, commandPool, *m_textureImage, vk::Format::eR8G8B8A8Unorm, texWidth, texHeight, m_mipLevels);
   }
 
-  void Texture2D::createImageView()
+  void Texture2D::createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     m_textureImageView = Images::createImageView(
-      m_logicalDevice,
+      logicalDevice,
       m_textureImage,
       vk::Format::eR8G8B8A8Unorm,
       vk::ImageAspectFlagBits::eColor,

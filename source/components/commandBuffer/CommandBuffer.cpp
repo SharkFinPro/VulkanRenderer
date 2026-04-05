@@ -2,15 +2,10 @@
 #include "../logicalDevice/LogicalDevice.h"
 
 namespace vke {
-  CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice)
-    : m_logicalDevice(std::move(logicalDevice))
-  {}
-
-  CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+  CommandBuffer::CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                const vk::CommandPool commandPool)
-    : m_logicalDevice(std::move(logicalDevice))
   {
-    CommandBuffer::allocateCommandBuffers(commandPool);
+    CommandBuffer::allocateCommandBuffers(logicalDevice, commandPool);
   }
 
   void CommandBuffer::setCurrentFrame(const uint32_t currentFrame)
@@ -220,15 +215,16 @@ namespace vke {
     m_commandBuffers[m_currentFrame].copyImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions);
   }
 
-  void CommandBuffer::allocateCommandBuffers(const vk::CommandPool commandPool)
+  void CommandBuffer::allocateCommandBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                             const vk::CommandPool commandPool)
   {
     const vk::CommandBufferAllocateInfo allocInfo {
       .commandPool = commandPool,
       .level = vk::CommandBufferLevel::ePrimary,
-      .commandBufferCount = m_logicalDevice->getMaxFramesInFlight()
+      .commandBufferCount = logicalDevice->getMaxFramesInFlight()
     };
 
-    m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
+    logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
   }
 
 } // namespace vke

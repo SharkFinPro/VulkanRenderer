@@ -13,7 +13,7 @@ namespace vke {
 
   class SwapChain {
   public:
-    SwapChain(std::shared_ptr<LogicalDevice> logicalDevice,
+    SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
               const std::shared_ptr<Window>& window,
               const std::shared_ptr<Surface>& surface);
 
@@ -28,8 +28,6 @@ namespace vke {
     [[nodiscard]] const std::vector<vk::Image>& getImages() const;
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     vk::raii::SwapchainKHR m_swapchain = nullptr;
     std::vector<vk::Image> m_swapChainImages;
     vk::Format m_swapChainImageFormat = vk::Format::eUndefined;
@@ -45,10 +43,11 @@ namespace vke {
 
     static uint32_t chooseSwapImageCount(const vk::SurfaceCapabilitiesKHR& capabilities);
 
-    void createSwapChain(const std::shared_ptr<Window>& window,
+    void createSwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                         const std::shared_ptr<Window>& window,
                          const std::shared_ptr<Surface>& surface);
 
-    void createImageViews();
+    void createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice);
   };
 
 } // namespace vke

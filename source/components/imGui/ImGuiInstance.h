@@ -13,7 +13,6 @@ namespace vke {
   struct ContentScaleEvent;
   class Window;
   class Instance;
-  class PhysicalDevice;
   class LogicalDevice;
   class RenderPass;
 
@@ -21,7 +20,7 @@ namespace vke {
   public:
     ImGuiInstance(const std::shared_ptr<Window>& window,
                   const std::shared_ptr<Instance>& instance,
-                  std::shared_ptr<LogicalDevice> logicalDevice,
+                  const std::shared_ptr<LogicalDevice>& logicalDevice,
                   const std::shared_ptr<RenderPass>& renderPass,
                   const EngineConfig::ImGui& config);
     ~ImGuiInstance();
@@ -53,8 +52,6 @@ namespace vke {
     void setMenuBarHeight(float height);
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     std::shared_ptr<Window> m_window;
 
     vk::raii::DescriptorPool m_descriptorPool = nullptr;
@@ -81,7 +78,8 @@ namespace vke {
 
     EventListener<ContentScaleEvent> m_contentScaleEventListener;
 
-    void createDescriptorPool(uint32_t maxImGuiTextures);
+    void createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                              uint32_t maxImGuiTextures);
 
     void markDockNeedsUpdate();
 

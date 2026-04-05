@@ -6,19 +6,20 @@
 
 namespace vke {
 
-  TextureGlyph::TextureGlyph(std::shared_ptr<LogicalDevice> logicalDevice,
+  TextureGlyph::TextureGlyph(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const vk::CommandPool commandPool,
                              const unsigned char* pixelData,
                              const uint32_t width,
                              const uint32_t height)
-    : Texture(std::move(logicalDevice), vk::SamplerAddressMode::eClampToEdge)
+    : Texture(logicalDevice, vk::SamplerAddressMode::eClampToEdge)
   {
-    createTextureImage(commandPool, pixelData, width, height);
+    createTextureImage(logicalDevice, commandPool, pixelData, width, height);
 
-    createImageView();
+    createImageView(logicalDevice);
   }
 
-  void TextureGlyph::createTextureImage(const vk::CommandPool commandPool,
+  void TextureGlyph::createTextureImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                        const vk::CommandPool commandPool,
                                         const unsigned char* pixelData,
                                         const uint32_t width,
                                         const uint32_t height)
@@ -26,25 +27,26 @@ namespace vke {
     vk::raii::Buffer stagingBuffer = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory = nullptr;
 
-    createAndFillStagingBuffer(pixelData, width, height, stagingBuffer, stagingBufferMemory);
+    createAndFillStagingBuffer(logicalDevice, pixelData, width, height, stagingBuffer, stagingBufferMemory);
 
-    createAndPrepareImage(commandPool, width, height);
+    createAndPrepareImage(logicalDevice, commandPool, width, height);
 
-    copyBufferToImage(commandPool, width, height, stagingBuffer);
+    copyBufferToImage(logicalDevice, commandPool, width, height, stagingBuffer);
 
-    transitionImageToShaderReadable(commandPool);
+    transitionImageToShaderReadable(logicalDevice, commandPool);
   }
 
-  void TextureGlyph::createAndFillStagingBuffer(const unsigned char* pixelData,
+  void TextureGlyph::createAndFillStagingBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                const unsigned char* pixelData,
                                                 const uint32_t width,
                                                 const uint32_t height,
                                                 vk::raii::Buffer& stagingBuffer,
-                                                vk::raii::DeviceMemory& stagingBufferMemory) const
+                                                vk::raii::DeviceMemory& stagingBufferMemory)
   {
     const auto imageSize = width * height;
 
     Buffers::createBuffer(
-      m_logicalDevice,
+      logicalDevice,
       imageSize,
       vk::BufferUsageFlagBits::eTransferSrc,
       vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -57,12 +59,13 @@ namespace vke {
     });
   }
 
-  void TextureGlyph::createAndPrepareImage(const vk::CommandPool commandPool,
+  void TextureGlyph::createAndPrepareImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                           const vk::CommandPool commandPool,
                                            const uint32_t width,
                                            const uint32_t height)
   {
     auto [ image, imageMemory ] = Images::createImage(
-      m_logicalDevice,
+      logicalDevice,
       {
         {},
         vk::Extent3D{
@@ -85,7 +88,7 @@ namespace vke {
     m_textureImageMemory = std::move(imageMemory);
 
     Images::transitionImageLayout(
-      m_logicalDevice,
+      logicalDevice,
       commandPool,
       m_textureImage,
       vk::Format::eR8Unorm,
@@ -96,12 +99,13 @@ namespace vke {
     );
   }
 
-  void TextureGlyph::copyBufferToImage(const vk::CommandPool commandPool,
+  void TextureGlyph::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                       const vk::CommandPool commandPool,
                                        const uint32_t width,
                                        const uint32_t height,
                                        vk::raii::Buffer& stagingBuffer) const
   {
-    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue());
+    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([this, &commandBuffer, width, height, &stagingBuffer] {
       const vk::BufferImageCopy region{
@@ -127,10 +131,11 @@ namespace vke {
     });
   }
 
-  void TextureGlyph::transitionImageToShaderReadable(const vk::CommandPool commandPool) const
+  void TextureGlyph::transitionImageToShaderReadable(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                     const vk::CommandPool commandPool) const
   {
     Images::transitionImageLayout(
-      m_logicalDevice,
+      logicalDevice,
       commandPool,
       m_textureImage,
       vk::Format::eR8Unorm,
@@ -141,10 +146,10 @@ namespace vke {
     );
   }
 
-  void TextureGlyph::createImageView()
+  void TextureGlyph::createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     m_textureImageView = Images::createImageView(
-      m_logicalDevice,
+      logicalDevice,
       m_textureImage,
       vk::Format::eR8Unorm,
       vk::ImageAspectFlagBits::eColor,

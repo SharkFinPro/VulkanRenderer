@@ -17,7 +17,7 @@ namespace vke {
 
   class SmokeSystem {
   public:
-    SmokeSystem(std::shared_ptr<LogicalDevice> logicalDevice,
+    SmokeSystem(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 vk::CommandPool commandPool,
                 vk::DescriptorPool descriptorPool,
                 vk::DescriptorSetLayout smokeSystemDescriptorSetLayout,
@@ -53,8 +53,6 @@ namespace vke {
     void setWindStrength(float windStrength);
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     std::vector<vk::raii::Buffer> m_shaderStorageBuffers;
     std::vector<vk::raii::DeviceMemory> m_shaderStorageBuffersMemory;
     std::vector<vk::DescriptorBufferInfo> m_shaderStorageBufferInfos;
@@ -78,14 +76,17 @@ namespace vke {
       .windStrength = 0.4f
     };
 
-    void createUniforms();
+    void createUniforms(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
-    void createShaderStorageBuffers(const vk::CommandPool& commandPool);
+    void createShaderStorageBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                    const vk::CommandPool& commandPool);
 
-    void uploadShaderStorageBuffers(const vk::CommandPool& commandPool,
+    void uploadShaderStorageBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                    const vk::CommandPool& commandPool,
                                     const std::vector<SmokeParticle>& particles);
 
-    void createDescriptorSet(vk::DescriptorPool descriptorPool,
+    void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             vk::DescriptorPool descriptorPool,
                              vk::DescriptorSetLayout smokeSystemDescriptorSetLayout);
   };
 } // vke

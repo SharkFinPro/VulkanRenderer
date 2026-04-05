@@ -14,7 +14,7 @@ namespace vke {
 
   class Framebuffer final {
   public:
-    explicit Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+    explicit Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<RenderTarget>& renderTarget,
                          const std::shared_ptr<RenderPass>& renderPass,
                          vk::Extent2D extent,
@@ -23,11 +23,10 @@ namespace vke {
     [[nodiscard]] const vk::raii::Framebuffer& getFramebuffer(uint32_t imageIndex) const;
 
   protected:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     std::vector<vk::raii::Framebuffer> m_framebuffers;
 
-    void createFrameBuffers(vk::RenderPass renderPass,
+    void createFrameBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                            vk::RenderPass renderPass,
                             vk::Extent2D extent,
                             const std::shared_ptr<RenderTarget>& renderTarget,
                             const std::shared_ptr<SwapChain>& swapChain);

@@ -2,12 +2,12 @@
 #include "../logicalDevice/LogicalDevice.h"
 
 namespace vke {
-  SingleUseCommandBuffer::SingleUseCommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+  SingleUseCommandBuffer::SingleUseCommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                  const vk::CommandPool& commandPool,
                                                  const vk::Queue queue)
-    : CommandBuffer(std::move(logicalDevice)), m_queue(queue)
+    : m_queue(queue)
   {
-    SingleUseCommandBuffer::allocateCommandBuffers(commandPool);
+    SingleUseCommandBuffer::allocateCommandBuffers(logicalDevice, commandPool);
   }
 
   void SingleUseCommandBuffer::record(const std::function<void()>& renderFunction) const
@@ -31,7 +31,8 @@ namespace vke {
     m_queue.waitIdle();
   }
 
-  void SingleUseCommandBuffer::allocateCommandBuffers(const vk::CommandPool commandPool)
+  void SingleUseCommandBuffer::allocateCommandBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                      const vk::CommandPool commandPool)
   {
     const vk::CommandBufferAllocateInfo allocInfo {
       .commandPool = commandPool,
@@ -39,6 +40,6 @@ namespace vke {
       .commandBufferCount = 1
     };
 
-    m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
+    logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers);
   }
 } // vke

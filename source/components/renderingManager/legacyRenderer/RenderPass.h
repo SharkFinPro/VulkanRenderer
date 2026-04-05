@@ -41,7 +41,7 @@ namespace vke {
 
   class RenderPass {
   public:
-    RenderPass(std::shared_ptr<LogicalDevice> logicalDevice,
+    RenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const RenderPassConfig& renderPassConfig);
 
     [[nodiscard]] vk::RenderPass getRenderPass();
@@ -51,20 +51,21 @@ namespace vke {
                const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
   private:
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
-
     vk::raii::RenderPass m_renderPass = nullptr;
 
     bool m_shouldClearColorAttachment;
     bool m_shouldClearDepthAttachment;
 
-    void createRenderPass(const RenderPassConfig& renderPassConfig);
+    void createRenderPass(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                          const RenderPassConfig& renderPassConfig);
 
-    [[nodiscard]] AttachmentSetup setupAttachments(const RenderPassConfig& renderPassConfig) const;
+    [[nodiscard]] static AttachmentSetup setupAttachments(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                          const RenderPassConfig& renderPassConfig);
 
     [[nodiscard]] static vk::AttachmentDescription getColorAttachmentDescription(const RenderPassConfig& renderPassConfig);
 
-    [[nodiscard]] vk::AttachmentDescription getDepthAttachmentDescription(const RenderPassConfig& renderPassConfig) const;
+    [[nodiscard]] static vk::AttachmentDescription getDepthAttachmentDescription(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                                 const RenderPassConfig& renderPassConfig);
 
     [[nodiscard]] static vk::AttachmentDescription getResolveAttachmentDescription(const RenderPassConfig& renderPassConfig);
   };
