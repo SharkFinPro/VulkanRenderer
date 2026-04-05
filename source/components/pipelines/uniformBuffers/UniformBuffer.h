@@ -14,7 +14,7 @@ namespace vke {
     UniformBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                   vk::DeviceSize bufferSize);
 
-    ~UniformBuffer() = default;
+    ~UniformBuffer();
 
     [[nodiscard]] vk::WriteDescriptorSet getDescriptorSet(uint32_t binding,
                                                           vk::DescriptorSet dstSet,

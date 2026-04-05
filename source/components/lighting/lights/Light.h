@@ -58,7 +58,7 @@ namespace vke {
     Light(std::shared_ptr<LogicalDevice> logicalDevice,
           const CommonLightData& commonLightData);
 
-    virtual ~Light() = default;
+    virtual ~Light();
 
     [[nodiscard]] glm::vec3 getPosition() const;
     [[nodiscard]] glm::vec3 getColor() const;

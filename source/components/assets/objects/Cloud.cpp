@@ -19,6 +19,11 @@ namespace vke {
     createBLAS(commandPool);
   }
 
+  Cloud::~Cloud()
+  {
+    m_logicalDevice->waitIdle();
+  }
+
   vk::AccelerationStructureKHR Cloud::getBLAS() const
   {
     return *m_blas;

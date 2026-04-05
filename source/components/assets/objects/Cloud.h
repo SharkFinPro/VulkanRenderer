@@ -22,6 +22,8 @@ namespace vke {
     Cloud(std::shared_ptr<LogicalDevice> logicalDevice,
           const vk::CommandPool& commandPool);
 
+    ~Cloud();
+
     [[nodiscard]] vk::AccelerationStructureKHR getBLAS() const;
 
     [[nodiscard]] CloudUniform getUniformData() const;

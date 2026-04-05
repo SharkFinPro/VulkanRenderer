@@ -33,6 +33,11 @@ namespace vke {
     }
   }
 
+  UniformBuffer::~UniformBuffer()
+  {
+    m_logicalDevice->waitIdle();
+  }
+
   vk::WriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding,
                                                          const vk::DescriptorSet dstSet,
                                                          const size_t frame) const
