@@ -77,7 +77,7 @@ namespace vke {
       m_cloudUniform->update(renderInfo->currentFrame, &cloudUBO);
     }
 
-    updateRTDescriptorSets(imageResource, renderInfo->extent, renderInfo->currentFrame);
+    updateRTDescriptorSets(imageResource, renderInfo->currentFrame);
 
     pipelineManager->bindRayTracingPipelineDescriptorSet(
       renderInfo->commandBuffer,
@@ -423,10 +423,9 @@ namespace vke {
   }
 
   void RayTracer::updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
-                                         const vk::Extent2D extent,
                                          const uint32_t currentFrame)
   {
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       auto storageBuffer = [&](const uint32_t binding, const vk::DescriptorBufferInfo* info) {
         return vk::WriteDescriptorSet {

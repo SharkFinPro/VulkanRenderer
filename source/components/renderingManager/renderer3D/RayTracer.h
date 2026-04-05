@@ -106,7 +106,6 @@ namespace vke {
                                   const std::vector<MeshInfo>& meshInfos);
 
     void updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
-                                vk::Extent2D extent,
                                 uint32_t currentFrame);
 
     void updateRTDescriptorSetData(vk::Extent2D extent,

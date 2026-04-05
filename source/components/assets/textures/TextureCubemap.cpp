@@ -1,7 +1,6 @@
 #include "TextureCubemap.h"
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
 #include <stb_image.h>

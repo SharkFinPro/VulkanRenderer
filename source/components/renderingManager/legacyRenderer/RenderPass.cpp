@@ -2,7 +2,6 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
-#include <stdexcept>
 
 namespace vke {
 
