@@ -178,6 +178,9 @@ namespace vke {
     m_dotsDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, layoutBindings);
     m_dotsDescriptorSet->updateDescriptorSets([this, logicalDevice](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
+      const uint32_t maxFrames = logicalDevice->getMaxFramesInFlight();
+      const uint32_t previousFrame = frame == 0 ? maxFrames - 1 : static_cast<uint32_t>(frame - 1);
+
       const std::vector<vk::WriteDescriptorSet> writeDescriptorSets {{
         m_deltaTimeUniform->getDescriptorSet(0, descriptorSet, frame),
         {
@@ -186,7 +189,7 @@ namespace vke {
           .dstArrayElement = 0,
           .descriptorCount = 1,
           .descriptorType = vk::DescriptorType::eStorageBuffer,
-          .pBufferInfo = &m_shaderStorageBufferInfos[(frame - 1) % logicalDevice->getMaxFramesInFlight()]
+          .pBufferInfo = &m_shaderStorageBufferInfos[previousFrame]
         },
         {
           .dstSet = descriptorSet,
