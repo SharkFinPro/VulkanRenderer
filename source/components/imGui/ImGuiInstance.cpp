@@ -284,8 +284,6 @@ namespace vke {
 
       ImGui::GetStyle().ScaleAllSizes(e.xscale);
       ImGui::GetIO().FontGlobalScale = e.xscale;
-
-      markDockNeedsUpdate();
     });
   }
 } // namespace vke
