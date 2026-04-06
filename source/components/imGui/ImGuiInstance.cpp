@@ -101,10 +101,6 @@ namespace vke {
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y - m_menuBarHeight));
     ImGui::SetNextWindowBgAlpha(1.0f);
 
-    const ImGuiID id = ImGui::GetID("WindowDockSpace");
-    ImGui::DockBuilderRemoveNode(id); // Clear previous layout if any
-    ImGui::DockBuilderAddNode(id);    // Create new dock node
-
     if (ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
     {
       const ImGuiID dockspaceID = ImGui::GetID("WindowDockSpace");
