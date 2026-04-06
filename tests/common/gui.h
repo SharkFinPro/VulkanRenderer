@@ -153,26 +153,39 @@ inline void displayObjectGuis(const std::vector<std::shared_ptr<vke::RenderObjec
 
 inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
 {
-  gui->dockCenter("Scene View");
+  static bool dockPercentsSetup = false;
+  static bool dockLocationsSetup = false;
 
-  gui->dockBottom("Scene Options");
+  if (!dockLocationsSetup && dockPercentsSetup)
+  {
+    gui->dockCenter("Scene View");
 
-  gui->dockBottom("Bendy Plants");
-  gui->dockBottom("Bumpy Curtain");
-  gui->dockBottom("Chroma Depth");
-  gui->dockBottom("Crosses");
-  gui->dockBottom("Curtain");
-  gui->dockBottom("Elliptical Dots");
-  gui->dockBottom("Lights");
-  gui->dockBottom("Magnify Whirl Mosaic");
-  gui->dockBottom("Noisy Elliptical Dots");
-  gui->dockBottom("Objects");
-  gui->dockBottom("Rendering");
-  gui->dockBottom("Snake");
+    gui->dockBottom("Scene Options");
 
-  gui->dockBottom("Clouds");
+    gui->dockBottom("Bendy Plants");
+    gui->dockBottom("Bumpy Curtain");
+    gui->dockBottom("Chroma Depth");
+    gui->dockBottom("Crosses");
+    gui->dockBottom("Curtain");
+    gui->dockBottom("Elliptical Dots");
+    gui->dockBottom("Lights");
+    gui->dockBottom("Magnify Whirl Mosaic");
+    gui->dockBottom("Noisy Elliptical Dots");
+    gui->dockBottom("Objects");
+    gui->dockBottom("Rendering");
+    gui->dockBottom("Snake");
 
-  gui->setBottomDockPercent(0.3);
+    gui->dockBottom("Clouds");
+
+    dockLocationsSetup = true;
+  }
+
+  if (!dockPercentsSetup)
+  {
+    gui->setBottomDockPercent(0.3);
+
+    dockPercentsSetup = true;
+  }
 }
 
 inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& renderingManager)
