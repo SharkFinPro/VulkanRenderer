@@ -16,7 +16,8 @@ struct MousePickingObject {
 };
 
 void setupScene(const vke::VulkanEngine& renderer,
-                std::vector<MousePickingObject>& objects,
+                std::vector<MousePickingObject>& mousePickingObjects,
+                std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights);
 
 void renderScene(vke::VulkanEngine& renderer,
@@ -44,21 +45,24 @@ int main()
 
     ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
-    std::vector<MousePickingObject> objects;
+    std::vector<MousePickingObject> mousePickingObjects;
+    std::vector<std::shared_ptr<vke::RenderObject>> objects;
     std::vector<std::shared_ptr<vke::Light>> lights;
-    setupScene(renderer, objects, lights);
+    setupScene(renderer, mousePickingObjects, objects, lights);
 
     while (renderer.isActive())
     {
+      displayGui(renderer.getImGuiInstance(), lights, objects, renderer.getRenderingManager());
+
       if (renderer.getRenderingManager()->getRenderer3D()->getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
       {
-        for (auto& [_, hovering, selected] : objects)
+        for (auto& [_, hovering, selected] : mousePickingObjects)
         {
           selected = hovering;
         }
       }
 
-      renderScene(renderer, gui, objects, lights);
+      renderScene(renderer, gui, mousePickingObjects, lights);
     }
   }
   catch (const std::exception& e)
@@ -71,7 +75,8 @@ int main()
 }
 
 void setupScene(const vke::VulkanEngine& renderer,
-                std::vector<MousePickingObject>& objects,
+                std::vector<MousePickingObject>& mousePickingObjects,
+                std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
@@ -80,16 +85,18 @@ void setupScene(const vke::VulkanEngine& renderer,
 
   const auto object1 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object1->setPosition({ 0, -5, 0 });
-  objects.push_back({ object1 });
+  mousePickingObjects.push_back({ object1 });
+  objects.push_back(object1);
 
   const auto object2 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object2->setPosition({ -5, -10, 0 });
-  objects.push_back({ object2 });
+  mousePickingObjects.push_back({ object2 });
+  objects.push_back(object2);
 
   const auto object3 = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   object3->setPosition({ 10, 0, 15 });
-  objects.push_back({ object3 });
-
+  mousePickingObjects.push_back({ object3 });
+  objects.push_back(object3);
 
   lights.push_back(renderer.getLightingManager()->createPointLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
@@ -108,14 +115,6 @@ void renderScene(vke::VulkanEngine& renderer,
                  const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
   const auto r3d = renderer.getRenderingManager()->getRenderer3D();
-
-  gui->dockCenter("Scene View");
-  gui->dockBottom("Selected Object");
-  gui->dockBottom("Lights");
-  gui->dockBottom("Elliptical Dots");
-  gui->dockBottom("Noisy Elliptical Dots");
-
-  gui->setBottomDockPercent(0.3);
 
   // Render GUI
   ImGui::Begin("Selected Object");
