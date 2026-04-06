@@ -96,8 +96,6 @@ std::shared_ptr<vke::RenderObject> createCubeObject(const vke::VulkanEngine& ren
 void displayCloudGUI(const vke::VulkanEngine& renderer,
                      const std::shared_ptr<vke::Cloud>& cloud)
 {
-  renderer.getImGuiInstance()->dockBottom("Clouds");
-
   const auto r3d = renderer.getRenderingManager()->getRenderer3D();
   r3d->setCloudToRender(cloud);
 

@@ -101,23 +101,19 @@ namespace vke {
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y - m_menuBarHeight));
     ImGui::SetNextWindowBgAlpha(1.0f);
 
-    const ImGuiID id = ImGui::GetID("WindowDockSpace");
-    ImGui::DockBuilderRemoveNode(id); // Clear previous layout if any
-    ImGui::DockBuilderAddNode(id);    // Create new dock node
-
     if (ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
     {
-      const ImGuiID dockspaceID = ImGui::GetID("WindowDockSpace");
-      ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+      const ImGuiID dockSpaceID = ImGui::GetID("WindowDockSpace");
+      ImGui::DockSpace(dockSpaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
       if (m_dockNeedsUpdate)
       {
         // Rebuild the dock layout with current percentages
-        ImGui::DockBuilderRemoveNode(dockspaceID);
-        ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
-        ImGui::DockBuilderSetNodeSize(dockspaceID, ImGui::GetWindowSize());
+        ImGui::DockBuilderRemoveNode(dockSpaceID);
+        ImGui::DockBuilderAddNode(dockSpaceID, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockSpaceID, ImGui::GetWindowSize());
 
-        m_mainDock = dockspaceID;
+        m_mainDock = dockSpaceID;
 
         // Split nodes using current percentages
         ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Left, m_leftDockPercent, &m_leftDock, &m_mainDock);
@@ -127,7 +123,7 @@ namespace vke {
 
         m_centerDock = m_mainDock;
 
-        ImGui::DockBuilderFinish(dockspaceID);
+        ImGui::DockBuilderFinish(dockSpaceID);
         m_dockNeedsUpdate = false;
       }
     }
@@ -288,8 +284,6 @@ namespace vke {
 
       ImGui::GetStyle().ScaleAllSizes(e.xscale);
       ImGui::GetIO().FontGlobalScale = e.xscale;
-
-      markDockNeedsUpdate();
     });
   }
 } // namespace vke

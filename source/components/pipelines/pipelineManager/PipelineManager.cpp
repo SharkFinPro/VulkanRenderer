@@ -197,9 +197,6 @@ namespace vke {
   {
     const auto renderPass = renderingManager->getRenderer()->getSwapchainRenderPass();
 
-    createGraphicsPipeline(PipelineType::gui,
-      PipelineConfig::createUIPipelineOptions(m_logicalDevice, renderPass));
-
     m_dotsPipeline = std::make_unique<DotsPipeline>(m_logicalDevice, m_commandPool, renderPass, m_descriptorPool);
 
     m_linePipeline = std::make_unique<LinePipeline>(m_logicalDevice, renderPass);
