@@ -18,7 +18,6 @@ namespace vke {
 
     ellipse,
     font,
-    gui,
     grid,
     mousePicking,
     pointLightShadowMap,
