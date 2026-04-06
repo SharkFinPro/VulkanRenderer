@@ -21,7 +21,6 @@ void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<std::shared_ptr<vke::Light>>& lights);
 
 void renderScene(vke::VulkanEngine& renderer,
-                 const std::shared_ptr<vke::ImGuiInstance>& gui,
                  std::vector<MousePickingObject>& objects,
                  const std::vector<std::shared_ptr<vke::Light>>& lights);
 
@@ -62,7 +61,7 @@ int main()
         }
       }
 
-      renderScene(renderer, gui, mousePickingObjects, lights);
+      renderScene(renderer, mousePickingObjects, lights);
     }
   }
   catch (const std::exception& e)
@@ -110,7 +109,6 @@ void setupScene(const vke::VulkanEngine& renderer,
 }
 
 void renderScene(vke::VulkanEngine& renderer,
-                 const std::shared_ptr<vke::ImGuiInstance>& gui,
                  std::vector<MousePickingObject>& objects,
                  const std::vector<std::shared_ptr<vke::Light>>& lights)
 {
