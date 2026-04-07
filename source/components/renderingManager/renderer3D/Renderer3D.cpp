@@ -1,6 +1,5 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
-#include "RayTracer.h"
 #include "../ImageResource.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/objects/Model.h"
@@ -35,8 +34,6 @@ namespace vke {
       m_rayTracer = std::make_unique<RayTracer>(m_logicalDevice, m_assetManager, m_commandPool, m_descriptorPool);
     }
   }
-
-  Renderer3D::~Renderer3D() = default;
 
   void Renderer3D::updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
                                          const uint32_t currentFrame) const
