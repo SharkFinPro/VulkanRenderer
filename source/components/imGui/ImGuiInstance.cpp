@@ -22,6 +22,12 @@ namespace vke {
 
     ImGui::CreateContext();
 
+    if (m_useDockSpace)
+    {
+      ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+      ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    }
+
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
 
     if (config.styleSetup)
@@ -68,11 +74,6 @@ namespace vke {
     }
 
     ImGui_ImplVulkan_Init(&initInfo);
-
-    if (m_useDockSpace)
-    {
-      ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    }
 
     createNewFrame();
   }
@@ -193,15 +194,6 @@ namespace vke {
     markDockNeedsUpdate();
   }
 
-  void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
-  {
-    ImGui_ImplVulkan_RenderDrawData(
-      ImGui::GetDrawData(),
-      static_cast<VkCommandBuffer>(*commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame]),
-      nullptr
-    );
-  }
-
   ImGuiContext* ImGuiInstance::getImGuiContext()
   {
     return ImGui::GetCurrentContext();
@@ -210,6 +202,13 @@ namespace vke {
   void ImGuiInstance::setMenuBarHeight(const float height)
   {
     m_menuBarHeight = height;
+  }
+
+  void ImGuiInstance::render(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    renderPlatformWindows();
+
+    renderDrawData(commandBuffer);
   }
 
   void ImGuiInstance::createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -284,6 +283,33 @@ namespace vke {
     }
 
     ImGui::DockSpaceOverViewport(dockSpaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+  }
+
+  void ImGuiInstance::renderPlatformWindows()
+  {
+    ImGuiPlatformIO& pio = ImGui::GetPlatformIO();
+
+    for (int i = 1; i < pio.Viewports.Size; i++) // skip [0] = main viewport
+    {
+      ImGuiViewport* vp = pio.Viewports[i];
+      if (pio.Renderer_RenderWindow)
+      {
+        pio.Renderer_RenderWindow(vp, nullptr);
+      }
+      if (pio.Renderer_SwapBuffers)
+      {
+        pio.Renderer_SwapBuffers(vp, nullptr);
+      }
+    }
+  }
+
+  void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    ImGui_ImplVulkan_RenderDrawData(
+      ImGui::GetDrawData(),
+      static_cast<VkCommandBuffer>(*commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame]),
+      nullptr
+    );
   }
 
 } // namespace vke

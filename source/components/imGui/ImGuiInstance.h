@@ -45,11 +45,11 @@ namespace vke {
 
     void setRightDockPercent(float percent);
 
-    static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
-
     static ImGuiContext* getImGuiContext();
 
     void setMenuBarHeight(float height);
+
+    static void render(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
   private:
     std::shared_ptr<Window> m_window;
@@ -86,6 +86,10 @@ namespace vke {
     void initFromWindow();
 
     void displayDockSpace();
+
+    static void renderPlatformWindows();
+
+    static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
   };
 
 } // namespace vke
