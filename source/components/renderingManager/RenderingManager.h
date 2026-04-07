@@ -49,6 +49,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Renderer3D> getRenderer3D() const;
 
+    [[nodiscard]] bool supportsRayTracing() const;
+
     void enableRayTracing();
 
     void disableRayTracing();

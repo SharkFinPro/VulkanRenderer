@@ -20,59 +20,60 @@ namespace vke {
                       const std::shared_ptr<SwapChain>& swapChain,
                       vk::CommandPool commandPool);
 
-    virtual ~Renderer() = default;
-
-    [[nodiscard]] virtual vk::DescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
+    [[nodiscard]] vk::DescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) const;
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
-    virtual void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
+    void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
-    virtual void resetOffscreenImageResources(vk::Extent2D offscreenViewportExtent);
+    void resetOffscreenImageResources(vk::Extent2D offscreenViewportExtent);
 
-    virtual void resetMousePickingImageResources(vk::Extent2D mousePickingExtent);
+    void resetMousePickingImageResources(vk::Extent2D mousePickingExtent);
 
-    virtual void resetRayTracingImageResources(vk::Extent2D extent);
+    void resetRayTracingImageResources(vk::Extent2D extent);
 
-    virtual void beginSwapchainRendering(uint32_t imageIndex,
+    void beginSwapchainRendering(uint32_t imageIndex,
+                                 vk::Extent2D extent,
+                                 const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                 const std::shared_ptr<SwapChain>& swapChain) const;
+
+    void beginOffscreenRendering(uint32_t currentFrame,
                                          vk::Extent2D extent,
-                                         std::shared_ptr<CommandBuffer> commandBuffer,
-                                         std::shared_ptr<SwapChain> swapChain) = 0;
+                                         const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    virtual void beginOffscreenRendering(uint32_t currentFrame,
-                                         vk::Extent2D extent,
-                                         std::shared_ptr<CommandBuffer> commandBuffer) = 0;
+    static void beginShadowRendering(vk::Extent2D extent,
+                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                     const std::shared_ptr<Light>& light);
 
-    virtual void beginShadowRendering(uint32_t currentFrame,
-                                      vk::Extent2D extent,
+    void beginMousePickingRendering(uint32_t currentFrame,
+                                    vk::Extent2D extent,
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    static void endSwapchainRendering(uint32_t imageIndex,
                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                      const std::shared_ptr<Light>& light) = 0;
+                                      const std::shared_ptr<SwapChain>& swapChain);
 
-    virtual void beginMousePickingRendering(uint32_t currentFrame,
-                                            vk::Extent2D extent,
-                                            const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
+    static void endOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
-    virtual void endSwapchainRendering(uint32_t imageIndex,
-                                       std::shared_ptr<CommandBuffer> commandBuffer,
-                                       std::shared_ptr<SwapChain> swapChain) = 0;
+    static void endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
-    virtual void endOffscreenRendering(std::shared_ptr<CommandBuffer> commandBuffer) = 0;
+    static void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
-    virtual void endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
+    void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                  uint32_t currentFrame) const;
 
-    virtual void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
-
-    [[nodiscard]] virtual bool supportsRayTracing() const { return false; }
-
-    virtual void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                          uint32_t currentFrame) {}
-
-    virtual void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                        uint32_t currentFrame) {}
+    void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                uint32_t currentFrame) const;
 
     [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource(uint32_t currentFrame) const;
 
   protected:
+    static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
+      .depth = 1.0f,
+      .stencil = 0
+    };
+
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     vk::CommandPool m_commandPool = nullptr;
@@ -96,6 +97,21 @@ namespace vke {
     void createMousePickingRenderTarget(vk::Extent2D extent);
 
     void createRayTracingImageResource(vk::Extent2D extent);
+    
+    static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  vk::Image image);
+
+    static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                   vk::Image image);
+
+    void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                          uint32_t currentFrame) const;
+
+    void transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           uint32_t currentFrame) const;
+
+    void copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             uint32_t currentFrame) const;
   };
 
 } // namespace vke

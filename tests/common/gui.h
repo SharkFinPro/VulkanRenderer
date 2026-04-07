@@ -212,7 +212,7 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
     }
   }
 
-  if (renderingManager->getRenderer()->supportsRayTracing())
+  if (renderingManager->supportsRayTracing())
   {
     bool rayTracingEnabled = renderingManager->isRayTracingEnabled();
 

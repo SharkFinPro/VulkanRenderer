@@ -77,10 +77,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/physicalDevice/PhysicalDevice.h
 
   # Rendering Manager
-    # Dynamic Renderer
-    components/renderingManager/dynamicRenderer/DynamicRenderer.cpp
-    components/renderingManager/dynamicRenderer/DynamicRenderer.h
-
     # Renderer2D
     components/renderingManager/renderer2D/Renderer2D.cpp
     components/renderingManager/renderer2D/Renderer2D.h
