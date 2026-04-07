@@ -3,7 +3,6 @@
 #include "Renderer.h"
 #include "RenderTarget.h"
 #include "dynamicRenderer/DynamicRenderer.h"
-#include "legacyRenderer/LegacyRenderer.h"
 #include "renderer2D/Renderer2D.h"
 #include "renderer3D/Renderer3D.h"
 #include "../commandBuffer/CommandBuffer.h"

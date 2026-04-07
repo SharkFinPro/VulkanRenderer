@@ -34,7 +34,6 @@ namespace vke {
 
   DotsPipeline::DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const vk::raii::CommandPool& commandPool,
-                             const std::shared_ptr<RenderPass>& renderPass,
                              const vk::DescriptorPool descriptorPool)
     : m_previousTime(std::chrono::steady_clock::now())
   {
@@ -69,8 +68,7 @@ namespace vke {
         .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
         .vertexInputState = GraphicsPipelineStates::vertexInputStateParticle,
         .viewportState = GraphicsPipelineStates::viewportState
-      },
-      .renderPass = renderPass
+      }
     };
 
     GraphicsPipeline::createPipeline(logicalDevice, graphicsPipelineOptions);

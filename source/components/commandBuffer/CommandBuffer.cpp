@@ -44,16 +44,6 @@ namespace vke {
     m_commandBuffers[m_currentFrame].setScissor(0, { scissor });
   }
 
-  void CommandBuffer::beginRenderPass(const vk::RenderPassBeginInfo& renderPassBeginInfo) const
-  {
-    m_commandBuffers[m_currentFrame].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
-  }
-
-  void CommandBuffer::endRenderPass() const
-  {
-    m_commandBuffers[m_currentFrame].endRenderPass();
-  }
-
   void CommandBuffer::beginRendering(const vk::RenderingInfo& renderingInfo) const
   {
     m_commandBuffers[m_currentFrame].beginRendering(renderingInfo);

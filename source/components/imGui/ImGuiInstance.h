@@ -14,15 +14,14 @@ namespace vke {
   class Window;
   class Instance;
   class LogicalDevice;
-  class RenderPass;
 
   class ImGuiInstance {
   public:
     ImGuiInstance(const std::shared_ptr<Window>& window,
                   const std::shared_ptr<Instance>& instance,
                   const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass,
                   const EngineConfig::ImGui& config);
+
     ~ImGuiInstance();
 
     void createNewFrame();

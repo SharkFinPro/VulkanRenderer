@@ -13,7 +13,6 @@
 namespace vke {
 
   class CommandBuffer;
-  class RenderPass;
 
   struct RenderInfo {
     std::shared_ptr<CommandBuffer> commandBuffer;
@@ -113,8 +112,6 @@ namespace vke {
     std::vector<vk::PushConstantRange> pushConstantRanges;
 
     std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
-
-    const std::shared_ptr<RenderPass>& renderPass;
 
     vk::Format colorFormat = vk::Format::eR8G8B8A8Unorm;
 

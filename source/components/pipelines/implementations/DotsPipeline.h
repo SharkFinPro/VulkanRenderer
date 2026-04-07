@@ -20,7 +20,6 @@ namespace vke {
   public:
     DotsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  const vk::raii::CommandPool& commandPool,
-                 const std::shared_ptr<RenderPass>& renderPass,
                  vk::DescriptorPool descriptorPool);
 
     void compute(const std::shared_ptr<CommandBuffer>& commandBuffer,

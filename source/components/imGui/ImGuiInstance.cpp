@@ -3,7 +3,6 @@
 #include "../instance/Instance.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../renderingManager/legacyRenderer/RenderPass.h"
 #include "../window/Window.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -16,7 +15,6 @@ namespace vke {
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                                const std::shared_ptr<Instance>& instance,
                                const std::shared_ptr<LogicalDevice>& logicalDevice,
-                               const std::shared_ptr<RenderPass>& renderPass,
                                const EngineConfig::ImGui& config)
     : m_window(window), m_useDockSpace(config.useDockspace)
   {
@@ -60,24 +58,21 @@ namespace vke {
       .MinImageCount = imageCount,
       .ImageCount = imageCount,
       .PipelineInfoMain {
-        .RenderPass = renderPass ? static_cast<VkRenderPass>(renderPass->getRenderPass()) : nullptr,
+        .RenderPass = nullptr,
         .MSAASamples = static_cast<VkSampleCountFlagBits>(logicalDevice->getPhysicalDevice()->getMsaaSamples())
       }
     };
 
-    if (renderPass == nullptr)
-    {
-      initInfo.UseDynamicRendering = true;
+    initInfo.UseDynamicRendering = true;
 
-      static constexpr auto colorFormat = static_cast<VkFormat>(vk::Format::eR8G8B8A8Unorm);
+    static constexpr auto colorFormat = static_cast<VkFormat>(vk::Format::eR8G8B8A8Unorm);
 
-      initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-        .colorAttachmentCount = 1,
-        .pColorAttachmentFormats = &colorFormat,
-        .depthAttachmentFormat = static_cast<VkFormat>(logicalDevice->getPhysicalDevice()->findDepthFormat())
-      };
-    }
+    initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+      .colorAttachmentCount = 1,
+      .pColorAttachmentFormats = &colorFormat,
+      .depthAttachmentFormat = static_cast<VkFormat>(logicalDevice->getPhysicalDevice()->findDepthFormat())
+    };
 
     ImGui_ImplVulkan_Init(&initInfo);
 

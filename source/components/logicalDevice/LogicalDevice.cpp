@@ -217,11 +217,6 @@ namespace vke {
     return m_device.createImage(imageCreateInfo);
   }
 
-  vk::raii::RenderPass LogicalDevice::createRenderPass(const vk::RenderPassCreateInfo& renderPassCreateInfo) const
-  {
-    return m_device.createRenderPass(renderPassCreateInfo);
-  }
-
   vk::raii::ShaderModule LogicalDevice::createShaderModule(const vk::ShaderModuleCreateInfo& shaderModuleCreateInfo) const
   {
     return m_device.createShaderModule(shaderModuleCreateInfo);

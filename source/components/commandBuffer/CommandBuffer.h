@@ -37,10 +37,6 @@ namespace vke {
 
     void setScissor(const vk::Rect2D& scissor) const;
 
-    void beginRenderPass(const vk::RenderPassBeginInfo& renderPassBeginInfo) const;
-
-    void endRenderPass() const;
-
     void beginRendering(const vk::RenderingInfo& renderingInfo) const;
 
     void endRendering() const;

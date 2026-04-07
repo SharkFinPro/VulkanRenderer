@@ -11,7 +11,6 @@ namespace vke {
   class ImageResource;
   class Light;
   class LogicalDevice;
-  class RenderPass;
   class RenderTarget;
   class SwapChain;
 
@@ -22,16 +21,6 @@ namespace vke {
                       vk::CommandPool commandPool);
 
     virtual ~Renderer() = default;
-
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getSwapchainRenderPass() const { return nullptr; }
-
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getOffscreenRenderPass() const { return nullptr; }
-
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowRenderPass() const { return nullptr; }
-
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getShadowCubeRenderPass() const { return nullptr; }
-
-    [[nodiscard]] virtual std::shared_ptr<RenderPass> getMousePickingRenderPass() const { return nullptr; }
 
     [[nodiscard]] virtual vk::DescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex);
 

@@ -10,7 +10,6 @@
 namespace vke {
 
   BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                               const std::shared_ptr<RenderPass>& renderPass,
                                const vk::raii::CommandPool& commandPool,
                                const vk::DescriptorPool descriptorPool,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet)
@@ -45,8 +44,7 @@ namespace vke {
       .descriptorSetLayouts {
         m_BendyPipelineDescriptorSet->getDescriptorSetLayout(),
         m_lightingDescriptorSet->getDescriptorSetLayout(),
-      },
-      .renderPass = renderPass
+      }
     };
 
     createPipeline(logicalDevice, graphicsPipelineOptions);

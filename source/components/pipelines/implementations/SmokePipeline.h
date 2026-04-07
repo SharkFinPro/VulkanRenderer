@@ -15,7 +15,6 @@ namespace vke {
   class SmokePipeline final : public ComputePipeline, public GraphicsPipeline {
   public:
     SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
                   vk::DescriptorSetLayout smokeSystemDescriptorSetLayout);
 
