@@ -85,9 +85,6 @@ namespace vke {
 
     recordSwapchainCommandBuffer(pipelineManager, lightingManager, currentFrame, imageIndex);
 
-    m_logicalDevice->waitForGraphicsFences(currentFrame);
-    m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
-
     result = m_logicalDevice->queuePresent(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized)
@@ -391,6 +388,9 @@ namespace vke {
     });
 
     m_logicalDevice->submitGraphicsQueue(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
+
+    m_logicalDevice->waitForOffscreenFences(currentFrame);
+    m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
   }
 
   void RenderingManager::resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,

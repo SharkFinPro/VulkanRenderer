@@ -30,6 +30,8 @@ namespace vke {
     void submitComputeQueue(uint32_t currentFrame,
                             vk::CommandBuffer commandBuffer) const;
 
+    void waitForOffscreenFences(uint32_t currentFrame) const;
+
     void waitForGraphicsFences(uint32_t currentFrame) const;
     void waitForComputeFences(uint32_t currentFrame) const;
 
