@@ -83,10 +83,7 @@ namespace vke {
 
     recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
 
-    m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
-    m_swapchainCommandBuffer->resetCommandBuffer();
     recordSwapchainCommandBuffer(pipelineManager, lightingManager, currentFrame, imageIndex);
-    m_logicalDevice->submitGraphicsQueue(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
 
     m_logicalDevice->waitForGraphicsFences(currentFrame);
     m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
@@ -340,6 +337,10 @@ namespace vke {
                                                       uint32_t currentFrame,
                                                       const uint32_t imageIndex) const
   {
+    m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
+
+    m_swapchainCommandBuffer->resetCommandBuffer();
+
     m_swapchainCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame, imageIndex]
     {
       const RenderInfo renderInfo {
@@ -388,6 +389,8 @@ namespace vke {
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
     });
+
+    m_logicalDevice->submitGraphicsQueue(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
   }
 
   void RenderingManager::resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
