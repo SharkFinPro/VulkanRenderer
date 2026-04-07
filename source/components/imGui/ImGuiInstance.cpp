@@ -9,6 +9,8 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
 
+constexpr bool ALLOW_VIEWPORTS = false;
+
 namespace vke {
 
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
@@ -21,6 +23,16 @@ namespace vke {
     createDescriptorPool(logicalDevice, config.maxTextures);
 
     ImGui::CreateContext();
+
+    if (m_useDockSpace)
+    {
+      ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+      if (ALLOW_VIEWPORTS)
+      {
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+      }
+    }
 
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
 
@@ -69,11 +81,6 @@ namespace vke {
 
     ImGui_ImplVulkan_Init(&initInfo);
 
-    if (m_useDockSpace)
-    {
-      ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    }
-
     createNewFrame();
   }
 
@@ -92,42 +99,7 @@ namespace vke {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (!m_useDockSpace)
-    {
-      return;
-    }
-
-    ImGui::SetNextWindowPos(ImVec2(0.0f, m_menuBarHeight));
-    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y - m_menuBarHeight));
-    ImGui::SetNextWindowBgAlpha(1.0f);
-
-    if (ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
-    {
-      const ImGuiID dockSpaceID = ImGui::GetID("WindowDockSpace");
-      ImGui::DockSpace(dockSpaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
-
-      if (m_dockNeedsUpdate)
-      {
-        // Rebuild the dock layout with current percentages
-        ImGui::DockBuilderRemoveNode(dockSpaceID);
-        ImGui::DockBuilderAddNode(dockSpaceID, ImGuiDockNodeFlags_DockSpace);
-        ImGui::DockBuilderSetNodeSize(dockSpaceID, ImGui::GetWindowSize());
-
-        m_mainDock = dockSpaceID;
-
-        // Split nodes using current percentages
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Left, m_leftDockPercent, &m_leftDock, &m_mainDock);
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Right, m_rightDockPercent, &m_rightDock, &m_mainDock);
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Up, m_topDockPercent, &m_topDock, &m_mainDock);
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Down, m_bottomDockPercent, &m_bottomDock, &m_mainDock);
-
-        m_centerDock = m_mainDock;
-
-        ImGui::DockBuilderFinish(dockSpaceID);
-        m_dockNeedsUpdate = false;
-      }
-    }
-    ImGui::End();
+    displayDockSpace();
   }
 
   void ImGuiInstance::dockTop(const char* widget) const
@@ -228,15 +200,6 @@ namespace vke {
     markDockNeedsUpdate();
   }
 
-  void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
-  {
-    ImGui_ImplVulkan_RenderDrawData(
-      ImGui::GetDrawData(),
-      static_cast<VkCommandBuffer>(*commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame]),
-      nullptr
-    );
-  }
-
   ImGuiContext* ImGuiInstance::getImGuiContext()
   {
     return ImGui::GetCurrentContext();
@@ -245,6 +208,13 @@ namespace vke {
   void ImGuiInstance::setMenuBarHeight(const float height)
   {
     m_menuBarHeight = height;
+  }
+
+  void ImGuiInstance::render(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    renderPlatformWindows();
+
+    renderDrawData(commandBuffer);
   }
 
   void ImGuiInstance::createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -286,4 +256,73 @@ namespace vke {
       ImGui::GetIO().FontGlobalScale = e.xscale;
     });
   }
+
+  void ImGuiInstance::displayDockSpace()
+  {
+    if (!m_useDockSpace)
+    {
+      return;
+    }
+
+    const ImGuiID dockSpaceID = ImGui::GetID("WindowDockSpace");
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    if (ImGui::DockBuilderGetNode(dockSpaceID) == nullptr || m_dockNeedsUpdate)
+    {
+      // Rebuild the dock layout with current percentages
+      ImGui::DockBuilderRemoveNode(dockSpaceID);
+      ImGui::DockBuilderAddNode(dockSpaceID, ImGuiDockNodeFlags_DockSpace);
+      ImGui::DockBuilderSetNodeSize(dockSpaceID, viewport->Size);
+
+      m_mainDock = dockSpaceID;
+
+      // Split nodes using current percentages
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Left, m_leftDockPercent, &m_leftDock, &m_mainDock);
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Right, m_rightDockPercent, &m_rightDock, &m_mainDock);
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Up, m_topDockPercent, &m_topDock, &m_mainDock);
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Down, m_bottomDockPercent, &m_bottomDock, &m_mainDock);
+
+      m_centerDock = m_mainDock;
+
+      ImGui::DockBuilderFinish(dockSpaceID);
+      m_dockNeedsUpdate = false;
+    }
+
+    ImGui::DockSpaceOverViewport(dockSpaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+  }
+
+  void ImGuiInstance::renderPlatformWindows()
+  {
+    if (!ALLOW_VIEWPORTS)
+    {
+      return;
+    }
+
+    ImGui::UpdatePlatformWindows();
+
+    ImGuiPlatformIO& pio = ImGui::GetPlatformIO();
+
+    for (int i = 1; i < pio.Viewports.Size; i++) // skip [0] = main viewport
+    {
+      ImGuiViewport* vp = pio.Viewports[i];
+      if (pio.Renderer_RenderWindow)
+      {
+        pio.Renderer_RenderWindow(vp, nullptr);
+      }
+      if (pio.Renderer_SwapBuffers)
+      {
+        pio.Renderer_SwapBuffers(vp, nullptr);
+      }
+    }
+  }
+
+  void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    ImGui_ImplVulkan_RenderDrawData(
+      ImGui::GetDrawData(),
+      static_cast<VkCommandBuffer>(*commandBuffer->m_commandBuffers[commandBuffer->m_currentFrame]),
+      nullptr
+    );
+  }
+
 } // namespace vke
