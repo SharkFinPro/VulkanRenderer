@@ -94,7 +94,7 @@ namespace vke {
     m_computeQueue.submit(submitInfo, m_computeInFlightFences[currentFrame]);
   }
 
-  void LogicalDevice::waitForOffscreenFences(const uint32_t currentFrame) const
+  void LogicalDevice::waitForOffscreenFence(const uint32_t currentFrame) const
   {
     const auto result = m_device.waitForFences(*m_offscreenInFlightFences[currentFrame], vk::True, UINT64_MAX);
     assert(result == vk::Result::eSuccess);

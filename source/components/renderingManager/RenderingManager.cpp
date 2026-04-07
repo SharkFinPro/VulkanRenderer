@@ -389,7 +389,7 @@ namespace vke {
 
     m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
 
-    m_logicalDevice->waitForOffscreenFences(currentFrame);
+    m_logicalDevice->waitForOffscreenFence(currentFrame);
     m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
   }
 
