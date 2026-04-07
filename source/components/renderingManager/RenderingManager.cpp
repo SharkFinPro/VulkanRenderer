@@ -232,22 +232,6 @@ namespace vke {
     auto recordMousePicking = [&](const RenderInfo& renderInfo) {
       m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
 
-      const vk::Viewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(renderInfo.extent.width),
-        .height = static_cast<float>(renderInfo.extent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-      };
-      renderInfo.commandBuffer->setViewport(viewport);
-
-      const vk::Rect2D scissor = {
-        .offset = {0, 0},
-        .extent = renderInfo.extent
-      };
-      renderInfo.commandBuffer->setScissor(scissor);
-
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
       m_renderer->endMousePickingRendering(renderInfo.commandBuffer);
@@ -268,22 +252,6 @@ namespace vke {
       m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
 
       m_renderer->beginOffscreenRendering(currentFrame, m_offscreenViewportExtent, m_offscreenCommandBuffer);
-
-      const vk::Viewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(renderInfo.extent.width),
-        .height = static_cast<float>(renderInfo.extent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-      };
-      renderInfo.commandBuffer->setViewport(viewport);
-
-      const vk::Rect2D scissor = {
-        .offset = {0, 0},
-        .extent = renderInfo.extent
-      };
-      renderInfo.commandBuffer->setScissor(scissor);
 
       m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
 
@@ -320,6 +288,22 @@ namespace vke {
       {
         return;
       }
+
+      const vk::Viewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(renderInfo.extent.width),
+        .height = static_cast<float>(renderInfo.extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+      };
+      renderInfo.commandBuffer->setViewport(viewport);
+
+      const vk::Rect2D scissor = {
+        .offset = {0, 0},
+        .extent = renderInfo.extent
+      };
+      renderInfo.commandBuffer->setScissor(scissor);
 
       recordMousePicking(renderInfo);
 
