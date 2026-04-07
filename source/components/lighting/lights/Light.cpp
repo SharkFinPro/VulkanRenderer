@@ -91,5 +91,4 @@ namespace vke {
     return m_shadowMapRenderTarget;
   }
 
-    m_rendererShadowMapID = renderer->registerShadowMapRenderTarget(
 } // namespace vke
