@@ -279,7 +279,7 @@ namespace vke {
         .currentFrame = currentFrame,
         .viewPosition = {},
         .viewMatrix = {},
-        .extent = m_offscreenViewportExtent,
+        .extent = m_offscreenViewportExtent
       };
 
       if (renderInfo.extent.width == 0 ||
