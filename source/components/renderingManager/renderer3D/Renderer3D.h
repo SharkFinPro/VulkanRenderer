@@ -64,6 +64,9 @@ namespace vke {
 
     ~Renderer3D();
 
+    void updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
+                               uint32_t currentFrame) const;
+
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,

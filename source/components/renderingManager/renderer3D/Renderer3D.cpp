@@ -38,13 +38,17 @@ namespace vke {
 
   Renderer3D::~Renderer3D() = default;
 
+  void Renderer3D::updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
+                                         const uint32_t currentFrame) const
+  {
+    lightingManager->update(currentFrame, m_viewPosition);
+  }
+
   void Renderer3D::renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const uint32_t currentFrame) const
   {
-    lightingManager->update(currentFrame, m_viewPosition);
-
     lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened, currentFrame);
   }
 

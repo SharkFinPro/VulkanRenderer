@@ -39,27 +39,6 @@ namespace vke {
     return *m_computeQueue;
   }
 
-  void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
-                                                      const vk::CommandBuffer commandBuffer) const
-  {
-    constexpr vk::PipelineStageFlags waitStages[] = {
-      vk::PipelineStageFlagBits::eVertexInput,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput
-    };
-
-    const vk::SubmitInfo submitInfo {
-      .waitSemaphoreCount = 0,
-      .pWaitSemaphores = nullptr,
-      .pWaitDstStageMask = waitStages,
-      .commandBufferCount = 1,
-      .pCommandBuffers = &commandBuffer,
-      .signalSemaphoreCount = 0,
-      .pSignalSemaphores = nullptr
-    };
-
-    m_graphicsQueue.submit(submitInfo, m_mousePickingInFlightFences[currentFrame]);
-  }
-
   void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
                                                    const vk::CommandBuffer commandBuffer) const
   {
@@ -132,12 +111,6 @@ namespace vke {
     assert(result == vk::Result::eSuccess);
   }
 
-  void LogicalDevice::waitForMousePickingFences(const uint32_t currentFrame) const
-  {
-    const auto result = m_device.waitForFences(*m_mousePickingInFlightFences[currentFrame], vk::True, UINT64_MAX);
-    assert(result == vk::Result::eSuccess);
-  }
-
   void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
   {
     const std::array fences = {
@@ -146,11 +119,6 @@ namespace vke {
     };
 
     m_device.resetFences(fences);
-  }
-
-  void LogicalDevice::resetMousePickingFences(const uint32_t currentFrame) const
-  {
-    m_device.resetFences(*m_mousePickingInFlightFences[currentFrame]);
   }
 
   void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
@@ -422,7 +390,6 @@ namespace vke {
 
     m_inFlightFences.reserve(m_maxFramesInFlight);
     m_offscreenInFlightFences.reserve(m_maxFramesInFlight);
-    m_mousePickingInFlightFences.reserve(m_maxFramesInFlight);
     m_computeInFlightFences.reserve(m_maxFramesInFlight);
 
     constexpr vk::FenceCreateInfo fenceInfo {
@@ -438,7 +405,6 @@ namespace vke {
       m_offscreenRenderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_inFlightFences.emplace_back(m_device.createFence(fenceInfo));
       m_offscreenInFlightFences.emplace_back(m_device.createFence(fenceInfo));
-      m_mousePickingInFlightFences.emplace_back(m_device.createFence(fenceInfo));
 
       m_computeFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_computeInFlightFences.emplace_back(m_device.createFence(fenceInfo));

@@ -70,8 +70,6 @@ namespace vke {
 
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
 
-    std::shared_ptr<CommandBuffer> m_mousePickingCommandBuffer;
-
     std::shared_ptr<SwapChain> m_swapChain;
 
     bool m_shouldRenderOffscreen;
@@ -105,14 +103,8 @@ namespace vke {
                                       uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 
-    void recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                         uint32_t currentFrame) const;
-
     static void resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  vk::Extent2D extent);
-
-    void doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
-                        uint32_t currentFrame) const;
 
     void createCommandPool();
   };
