@@ -332,8 +332,6 @@ namespace vke {
         .extent = m_swapChain->getExtent()
       };
 
-      m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
-
       const vk::Viewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
@@ -349,6 +347,8 @@ namespace vke {
         .extent = renderInfo.extent
       };
       renderInfo.commandBuffer->setScissor(scissor);
+
+      m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
 
       if (!m_shouldRenderOffscreen)
       {
