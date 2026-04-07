@@ -262,7 +262,7 @@ namespace vke {
       m_renderer->endMousePickingRendering(renderInfo.commandBuffer);
     };
 
-    auto recordOffscreenRendering = [&](const RenderInfo &renderInfo) {
+    auto recordOffscreenRendering = [&](const RenderInfo& renderInfo) {
       m_renderer3D->updateLightingManager(lightingManager, currentFrame);
 
       if (m_renderer->supportsRayTracing() && m_rayTracingEnabled)
