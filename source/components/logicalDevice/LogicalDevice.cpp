@@ -60,8 +60,8 @@ namespace vke {
     m_graphicsQueue.submit(submitInfo, m_offscreenInFlightFences[currentFrame]);
   }
 
-  void LogicalDevice::submitGraphicsQueue(const uint32_t currentFrame,
-                                          const vk::CommandBuffer commandBuffer) const
+  void LogicalDevice::submitSwapchainCommandBuffer(const uint32_t currentFrame,
+                                                   const vk::CommandBuffer commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {
       vk::PipelineStageFlagBits::eVertexInput,
@@ -81,8 +81,8 @@ namespace vke {
     m_graphicsQueue.submit(submitInfo, m_inFlightFences[currentFrame]);
   }
 
-  void LogicalDevice::submitComputeQueue(const uint32_t currentFrame,
-                                         const vk::CommandBuffer commandBuffer) const
+  void LogicalDevice::submitComputeCommandBuffer(const uint32_t currentFrame,
+                                                 const vk::CommandBuffer commandBuffer) const
   {
     const vk::SubmitInfo submitInfo {
       .commandBufferCount = 1,

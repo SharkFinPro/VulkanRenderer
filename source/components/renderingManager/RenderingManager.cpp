@@ -387,7 +387,7 @@ namespace vke {
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
     });
 
-    m_logicalDevice->submitGraphicsQueue(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
+    m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
 
     m_logicalDevice->waitForOffscreenFences(currentFrame);
     m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());

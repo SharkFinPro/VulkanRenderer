@@ -24,11 +24,11 @@ namespace vke {
     void submitOffscreenCommandBuffer(uint32_t currentFrame,
                                       vk::CommandBuffer commandBuffer) const;
 
-    void submitGraphicsQueue(uint32_t currentFrame,
-                             vk::CommandBuffer commandBuffer) const;
+    void submitSwapchainCommandBuffer(uint32_t currentFrame,
+                                      vk::CommandBuffer commandBuffer) const;
 
-    void submitComputeQueue(uint32_t currentFrame,
-                            vk::CommandBuffer commandBuffer) const;
+    void submitComputeCommandBuffer(uint32_t currentFrame,
+                                    vk::CommandBuffer commandBuffer) const;
 
     void waitForOffscreenFences(uint32_t currentFrame) const;
 

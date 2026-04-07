@@ -29,7 +29,7 @@ namespace vke {
     m_computeCommandBuffer->resetCommandBuffer();
     recordComputeCommandBuffer(pipelineManager, currentFrame, renderer2D, renderer3D);
 
-    m_logicalDevice->submitComputeQueue(currentFrame, m_computeCommandBuffer->getCommandBuffer());
+    m_logicalDevice->submitComputeCommandBuffer(currentFrame, m_computeCommandBuffer->getCommandBuffer());
   }
 
   void ComputingManager::recordComputeCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
