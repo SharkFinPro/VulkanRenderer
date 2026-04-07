@@ -81,10 +81,7 @@ namespace vke {
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
 
-    m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
-    m_offscreenCommandBuffer->resetCommandBuffer();
     recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
-    m_logicalDevice->submitOffscreenGraphicsQueue(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
@@ -309,6 +306,10 @@ namespace vke {
       m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
     };
 
+    m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
+
+    m_offscreenCommandBuffer->resetCommandBuffer();
+
     m_offscreenCommandBuffer->record([this, currentFrame, recordMousePicking, recordOffscreenRendering]
     {
       const RenderInfo renderInfo {
@@ -330,6 +331,8 @@ namespace vke {
 
       recordOffscreenRendering(renderInfo);
     });
+
+    m_logicalDevice->submitOffscreenGraphicsQueue(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
