@@ -357,6 +357,8 @@ namespace vke {
       .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
       .oldLayout = vk::ImageLayout::eUndefined,
       .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
       .image = image,
       .subresourceRange = {
         .aspectMask = vk::ImageAspectFlagBits::eColor,
@@ -385,6 +387,8 @@ namespace vke {
       .dstAccessMask = vk::AccessFlagBits::eNone,
       .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .newLayout = vk::ImageLayout::ePresentSrcKHR,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
       .image = image,
       .subresourceRange = {
         .aspectMask = vk::ImageAspectFlagBits::eColor,
