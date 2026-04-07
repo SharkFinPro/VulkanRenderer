@@ -77,6 +77,8 @@ namespace vke {
       throw std::runtime_error("failed to acquire swap chain image!");
     }
 
+    m_renderer3D->updateLightingManager(lightingManager, currentFrame);
+
     renderGuiScene(currentFrame);
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
@@ -238,8 +240,6 @@ namespace vke {
     };
 
     auto recordOffscreenRendering = [&](const RenderInfo& renderInfo) {
-      m_renderer3D->updateLightingManager(lightingManager, currentFrame);
-
       if (m_renderer->supportsRayTracing() && m_rayTracingEnabled)
       {
         m_renderer->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
