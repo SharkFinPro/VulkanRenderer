@@ -30,7 +30,8 @@ namespace vke {
       m_window(std::move(window)),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(std::move(sceneViewName)),
-      m_renderer2D(std::make_shared<Renderer2D>(assetManager))
+      m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
+      m_rayTracingEnabled(m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
   {
     createCommandPool();
 

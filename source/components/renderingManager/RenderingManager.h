@@ -92,7 +92,7 @@ namespace vke {
 
     EventListener<FramebufferResizeEvent> m_framebufferResizeEventListener;
 
-    bool m_rayTracingEnabled = true;
+    bool m_rayTracingEnabled;
 
     void renderGuiScene(uint32_t currentFrame);
 
