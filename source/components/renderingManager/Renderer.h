@@ -62,9 +62,6 @@ namespace vke {
 
     virtual void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer) = 0;
 
-    [[nodiscard]] virtual uint32_t registerShadowMapRenderTarget(std::shared_ptr<RenderTarget> renderTarget,
-                                                                 bool isCubeMap);
-
     [[nodiscard]] virtual bool supportsRayTracing() const { return false; }
 
     virtual void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -89,8 +86,6 @@ namespace vke {
     std::vector<std::shared_ptr<ImageResource>> m_rayTracingImageResources;
 
     vk::raii::Sampler m_sampler = nullptr;
-
-    uint32_t m_currentShadowMapRenderTargetID = 0;
 
     void createSampler();
 

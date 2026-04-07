@@ -69,12 +69,6 @@ namespace vke {
     createRayTracingImageResource(extent);
   }
 
-  uint32_t Renderer::registerShadowMapRenderTarget([[maybe_unused]] std::shared_ptr<RenderTarget> renderTarget,
-                                                   [[maybe_unused]] bool isCubeMap)
-  {
-    return ++m_currentShadowMapRenderTargetID;
-  }
-
   std::shared_ptr<ImageResource> Renderer::getRayTracingImageResource(const uint32_t currentFrame) const
   {
     return m_rayTracingImageResources.at(currentFrame);

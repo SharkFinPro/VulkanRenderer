@@ -51,8 +51,7 @@ namespace vke {
       commonLightData,
       m_commandPool,
       getDescriptorPool(),
-      m_pointLightDescriptorSetLayout,
-      m_renderer
+      m_pointLightDescriptorSetLayout
     );
 
     return light;
@@ -75,8 +74,7 @@ namespace vke {
     auto light = std::make_shared<SpotLight>(
       m_logicalDevice,
       commonLightData,
-      m_commandPool,
-      m_renderer
+      m_commandPool
     );
 
     return light;

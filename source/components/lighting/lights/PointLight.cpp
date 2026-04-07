@@ -18,13 +18,10 @@ namespace vke {
                          const CommonLightData& commonLightData,
                          const vk::CommandPool& commandPool,
                          const vk::DescriptorPool descriptorPool,
-                         const vk::DescriptorSetLayout descriptorSetLayout,
-                         const std::shared_ptr<Renderer>& renderer)
+                         const vk::DescriptorSetLayout descriptorSetLayout)
     : Light(std::move(logicalDevice), commonLightData)
   {
     PointLight::createShadowMap(commandPool);
-
-    registerShadowMapRenderTarget(renderer);
 
     createUniform();
 
