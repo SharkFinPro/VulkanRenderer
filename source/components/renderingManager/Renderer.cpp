@@ -474,7 +474,13 @@ namespace vke {
         .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
         .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
         .image = offscreenImage,
-        .subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }
+        .subresourceRange = {
+          .aspectMask = vk::ImageAspectFlagBits::eColor,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+        }
       },
       vk::ImageMemoryBarrier{
         .srcAccessMask = vk::AccessFlagBits::eTransferRead,
@@ -484,7 +490,13 @@ namespace vke {
         .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
         .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
         .image = rtImage,
-        .subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 }
+        .subresourceRange = {
+          .aspectMask = vk::ImageAspectFlagBits::eColor,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+        }
       }
     };
 
