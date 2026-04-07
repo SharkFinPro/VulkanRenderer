@@ -84,6 +84,8 @@ namespace vke {
     void markDockNeedsUpdate();
 
     void initFromWindow();
+
+    void displayDockSpace();
   };
 
 } // namespace vke
