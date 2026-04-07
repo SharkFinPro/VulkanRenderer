@@ -231,6 +231,15 @@ namespace vke {
                                                       const std::shared_ptr<LightingManager>& lightingManager,
                                                       const uint32_t currentFrame) const
   {
+    auto renderShadowMaps = [&] {
+      if (m_renderer->supportsRayTracing() && m_rayTracingEnabled)
+      {
+        return;
+      }
+
+      m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
+    };
+
     auto recordMousePicking = [&](const RenderInfo& renderInfo) {
       m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
 
@@ -248,8 +257,6 @@ namespace vke {
 
         return;
       }
-
-      m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
 
       m_renderer->beginOffscreenRendering(currentFrame, m_offscreenViewportExtent, m_offscreenCommandBuffer);
 
@@ -272,7 +279,7 @@ namespace vke {
 
     m_offscreenCommandBuffer->resetCommandBuffer();
 
-    m_offscreenCommandBuffer->record([this, currentFrame, recordMousePicking, recordOffscreenRendering]
+    m_offscreenCommandBuffer->record([this, currentFrame, renderShadowMaps, recordMousePicking, recordOffscreenRendering]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
@@ -288,6 +295,8 @@ namespace vke {
       {
         return;
       }
+
+      renderShadowMaps();
 
       const vk::Viewport viewport = {
         .x = 0.0f,
