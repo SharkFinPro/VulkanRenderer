@@ -365,7 +365,6 @@ namespace vke {
         m_renderer2D->render(&renderInfo2D, pipelineManager);
       }
 
-      ImGui::Render();
       ImGuiInstance::render(renderInfo.commandBuffer);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
