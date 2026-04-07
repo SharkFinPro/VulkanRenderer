@@ -97,37 +97,31 @@ namespace vke {
       return;
     }
 
-    ImGui::SetNextWindowPos(ImVec2(0.0f, m_menuBarHeight));
-    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y - m_menuBarHeight));
-    ImGui::SetNextWindowBgAlpha(1.0f);
+    const ImGuiID dockSpaceID = ImGui::GetID("WindowDockSpace");
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-    if (ImGui::Begin("WindowDockSpace", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+    if (ImGui::DockBuilderGetNode(dockSpaceID) == nullptr || m_dockNeedsUpdate)
     {
-      const ImGuiID dockSpaceID = ImGui::GetID("WindowDockSpace");
-      ImGui::DockSpace(dockSpaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+      // Rebuild the dock layout with current percentages
+      ImGui::DockBuilderRemoveNode(dockSpaceID);
+      ImGui::DockBuilderAddNode(dockSpaceID, ImGuiDockNodeFlags_DockSpace);
+      ImGui::DockBuilderSetNodeSize(dockSpaceID, viewport->Size);
 
-      if (m_dockNeedsUpdate)
-      {
-        // Rebuild the dock layout with current percentages
-        ImGui::DockBuilderRemoveNode(dockSpaceID);
-        ImGui::DockBuilderAddNode(dockSpaceID, ImGuiDockNodeFlags_DockSpace);
-        ImGui::DockBuilderSetNodeSize(dockSpaceID, ImGui::GetWindowSize());
+      m_mainDock = dockSpaceID;
 
-        m_mainDock = dockSpaceID;
+      // Split nodes using current percentages
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Left, m_leftDockPercent, &m_leftDock, &m_mainDock);
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Right, m_rightDockPercent, &m_rightDock, &m_mainDock);
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Up, m_topDockPercent, &m_topDock, &m_mainDock);
+      ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Down, m_bottomDockPercent, &m_bottomDock, &m_mainDock);
 
-        // Split nodes using current percentages
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Left, m_leftDockPercent, &m_leftDock, &m_mainDock);
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Right, m_rightDockPercent, &m_rightDock, &m_mainDock);
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Up, m_topDockPercent, &m_topDock, &m_mainDock);
-        ImGui::DockBuilderSplitNode(m_mainDock, ImGuiDir_Down, m_bottomDockPercent, &m_bottomDock, &m_mainDock);
+      m_centerDock = m_mainDock;
 
-        m_centerDock = m_mainDock;
-
-        ImGui::DockBuilderFinish(dockSpaceID);
-        m_dockNeedsUpdate = false;
-      }
+      ImGui::DockBuilderFinish(dockSpaceID);
+      m_dockNeedsUpdate = false;
     }
-    ImGui::End();
+
+    ImGui::DockSpaceOverViewport(dockSpaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
   }
 
   void ImGuiInstance::dockTop(const char* widget) const
