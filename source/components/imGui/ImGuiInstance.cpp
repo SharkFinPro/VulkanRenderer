@@ -298,6 +298,8 @@ namespace vke {
       return;
     }
 
+    ImGui::UpdatePlatformWindows();
+
     ImGuiPlatformIO& pio = ImGui::GetPlatformIO();
 
     for (int i = 1; i < pio.Viewports.Size; i++) // skip [0] = main viewport

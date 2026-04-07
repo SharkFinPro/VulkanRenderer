@@ -349,7 +349,6 @@ namespace vke {
       }
 
       ImGui::Render();
-      ImGui::UpdatePlatformWindows();
       ImGuiInstance::render(renderInfo.commandBuffer);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
