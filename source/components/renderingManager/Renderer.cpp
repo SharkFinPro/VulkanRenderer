@@ -148,13 +148,14 @@ namespace vke {
       .clearValue = s_clearDepth
     };
 
+    constexpr uint32_t kCubemapFacesMask = 0x3Fu;
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
         .extent = extent,
       },
       .layerCount = 1,
-      .viewMask = light->getLightType() == LightType::pointLight ? 0x3Fu : 0,
+      .viewMask = light->getLightType() == LightType::pointLight ? kCubemapFacesMask : 0,
       .colorAttachmentCount = 0,
       .pColorAttachments = nullptr,
       .pDepthAttachment = &depthRenderingAttachmentInfo,

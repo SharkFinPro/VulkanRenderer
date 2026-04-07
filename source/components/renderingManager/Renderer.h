@@ -38,8 +38,8 @@ namespace vke {
                                  const std::shared_ptr<SwapChain>& swapChain) const;
 
     void beginOffscreenRendering(uint32_t currentFrame,
-                                         vk::Extent2D extent,
-                                         const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+                                 vk::Extent2D extent,
+                                 const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     static void beginShadowRendering(vk::Extent2D extent,
                                      const std::shared_ptr<CommandBuffer>& commandBuffer,
