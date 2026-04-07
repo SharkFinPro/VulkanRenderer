@@ -326,7 +326,7 @@ namespace vke {
       recordOffscreenRendering(renderInfo);
     });
 
-    m_logicalDevice->submitOffscreenGraphicsQueue(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
+    m_logicalDevice->submitOffscreenCommandBuffer(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,

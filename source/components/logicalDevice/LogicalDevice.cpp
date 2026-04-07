@@ -39,7 +39,7 @@ namespace vke {
     return *m_computeQueue;
   }
 
-  void LogicalDevice::submitOffscreenGraphicsQueue(const uint32_t currentFrame,
+  void LogicalDevice::submitOffscreenCommandBuffer(const uint32_t currentFrame,
                                                    const vk::CommandBuffer commandBuffer) const
   {
     constexpr vk::PipelineStageFlags waitStages[] = {

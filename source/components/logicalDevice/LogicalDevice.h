@@ -21,7 +21,7 @@ namespace vke {
     [[nodiscard]] vk::Queue getPresentQueue() const;
     [[nodiscard]] vk::Queue getComputeQueue() const;
 
-    void submitOffscreenGraphicsQueue(uint32_t currentFrame,
+    void submitOffscreenCommandBuffer(uint32_t currentFrame,
                                       vk::CommandBuffer commandBuffer) const;
 
     void submitGraphicsQueue(uint32_t currentFrame,
