@@ -9,6 +9,8 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
 
+constexpr bool ALLOW_VIEWPORTS = false;
+
 namespace vke {
 
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
@@ -25,7 +27,11 @@ namespace vke {
     if (m_useDockSpace)
     {
       ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-      ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+      if (ALLOW_VIEWPORTS)
+      {
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+      }
     }
 
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
@@ -287,6 +293,11 @@ namespace vke {
 
   void ImGuiInstance::renderPlatformWindows()
   {
+    if (!ALLOW_VIEWPORTS)
+    {
+      return;
+    }
+
     ImGuiPlatformIO& pio = ImGui::GetPlatformIO();
 
     for (int i = 1; i < pio.Viewports.Size; i++) // skip [0] = main viewport
