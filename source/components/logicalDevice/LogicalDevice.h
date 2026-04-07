@@ -21,24 +21,21 @@ namespace vke {
     [[nodiscard]] vk::Queue getPresentQueue() const;
     [[nodiscard]] vk::Queue getComputeQueue() const;
 
-    void submitMousePickingGraphicsQueue(uint32_t currentFrame,
-                                         vk::CommandBuffer commandBuffer) const;
-
-    void submitOffscreenGraphicsQueue(uint32_t currentFrame,
+    void submitOffscreenCommandBuffer(uint32_t currentFrame,
                                       vk::CommandBuffer commandBuffer) const;
 
-    void submitGraphicsQueue(uint32_t currentFrame,
-                             vk::CommandBuffer commandBuffer) const;
+    void submitSwapchainCommandBuffer(uint32_t currentFrame,
+                                      vk::CommandBuffer commandBuffer) const;
 
-    void submitComputeQueue(uint32_t currentFrame,
-                            vk::CommandBuffer commandBuffer) const;
+    void submitComputeCommandBuffer(uint32_t currentFrame,
+                                    vk::CommandBuffer commandBuffer) const;
+
+    void waitForOffscreenFence(uint32_t currentFrame) const;
 
     void waitForGraphicsFences(uint32_t currentFrame) const;
     void waitForComputeFences(uint32_t currentFrame) const;
-    void waitForMousePickingFences(uint32_t currentFrame) const;
 
     void resetGraphicsFences(uint32_t currentFrame) const;
-    void resetMousePickingFences(uint32_t currentFrame) const;
     void resetComputeFences(uint32_t currentFrame) const;
 
     vk::Result queuePresent(uint32_t currentFrame,
@@ -119,7 +116,6 @@ namespace vke {
 
     std::vector<vk::raii::Fence> m_inFlightFences;
     std::vector<vk::raii::Fence> m_offscreenInFlightFences;
-    std::vector<vk::raii::Fence> m_mousePickingInFlightFences;
 
     std::vector<vk::raii::Semaphore> m_computeFinishedSemaphores;
     std::vector<vk::raii::Fence> m_computeInFlightFences;

@@ -212,6 +212,8 @@ namespace vke {
 
   void ImGuiInstance::render(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
+    ImGui::Render();
+
     renderPlatformWindows();
 
     renderDrawData(commandBuffer);

@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_RENDERER3D_H
 #define VULKANPROJECT_RENDERER3D_H
 
+#include "RayTracer.h"
 #include "Renderer3DPushConstants.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 #include <glm/mat4x4.hpp>
@@ -23,7 +24,6 @@ namespace vke {
   class LogicalDevice;
   class MousePicker;
   class PipelineManager;
-  class RayTracer;
   struct RenderInfo;
   class RenderObject;
   class SmokeSystem;
@@ -62,7 +62,8 @@ namespace vke {
                std::shared_ptr<AssetManager> assetManager,
                std::shared_ptr<Window> window);
 
-    ~Renderer3D();
+    void updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
+                               uint32_t currentFrame) const;
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
