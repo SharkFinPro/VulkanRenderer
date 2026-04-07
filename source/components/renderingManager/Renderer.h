@@ -53,12 +53,6 @@ namespace vke {
                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
                                       const std::shared_ptr<SwapChain>& swapChain);
 
-    static void endOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
-
-    static void endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
-
-    static void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
-
     void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                   uint32_t currentFrame) const;
 

@@ -207,21 +207,6 @@ namespace vke {
     transitionSwapchainImagePostRender(commandBuffer, swapChain->getImages()[imageIndex]);
   }
 
-  void Renderer::endOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
-  {
-    commandBuffer->endRendering();
-  }
-
-  void Renderer::endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
-  {
-    commandBuffer->endRendering();
-  }
-
-  void Renderer::endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
-  {
-    commandBuffer->endRendering();
-  }
-
   void Renderer::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                           const uint32_t currentFrame) const
   {

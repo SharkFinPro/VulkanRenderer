@@ -252,7 +252,7 @@ namespace vke {
 
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
-      m_renderer->endMousePickingRendering(renderInfo.commandBuffer);
+      renderInfo.commandBuffer->endRendering();
     };
 
     auto recordOffscreenRendering = [&](const RenderInfo& renderInfo) {
@@ -279,7 +279,7 @@ namespace vke {
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
-      m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
+      renderInfo2D.commandBuffer->endRendering();
     };
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);

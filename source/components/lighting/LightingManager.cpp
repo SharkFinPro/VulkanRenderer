@@ -446,7 +446,7 @@ namespace vke {
         object->draw(shadowRenderInfo.commandBuffer);
       }
 
-      m_renderer->endShadowRendering(commandBuffer);
+      commandBuffer->endRendering();
     }
   }
 
@@ -515,7 +515,7 @@ namespace vke {
         object->draw(shadowRenderInfo.commandBuffer);
       }
 
-      m_renderer->endShadowRendering(commandBuffer);
+      commandBuffer->endRendering();
     }
   }
 
