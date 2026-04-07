@@ -311,6 +311,12 @@ namespace vke {
     });
 
     m_logicalDevice->submitOffscreenCommandBuffer(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
+
+    if (m_shouldRenderOffscreen)
+    {
+      m_logicalDevice->waitForOffscreenFence(currentFrame);
+      m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
+    }
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -371,9 +377,6 @@ namespace vke {
     });
 
     m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
-
-    m_logicalDevice->waitForOffscreenFence(currentFrame);
-    m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
   }
 
   void RenderingManager::resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
