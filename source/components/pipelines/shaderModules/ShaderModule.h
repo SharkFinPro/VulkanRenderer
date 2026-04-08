@@ -15,8 +15,6 @@ namespace vke {
                  const char* filename,
                  vk::ShaderStageFlagBits stage);
 
-    ~ShaderModule() = default;
-
     ShaderModule(ShaderModule&& other) noexcept
       : m_stage(other.m_stage),
         m_module(std::move(other.m_module))
