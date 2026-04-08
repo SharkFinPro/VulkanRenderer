@@ -1,13 +1,11 @@
 #ifndef VULKANPROJECT_RENDERTARGET_H
 #define VULKANPROJECT_RENDERTARGET_H
 
+#include "ImageResource.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <vector>
 
 namespace vke {
-
-  class ImageResource;
-  struct ImageResourceConfig;
 
   class RenderTarget {
   public:
