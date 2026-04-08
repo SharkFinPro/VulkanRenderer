@@ -20,6 +20,8 @@ namespace vke {
 
     [[nodiscard]] ImageResource& getResolveImageResource(uint32_t imageIndex);
 
+    [[nodiscard]] ImageResource& getRayTracingImageResource(uint32_t imageIndex);
+
     [[nodiscard]] vk::Extent2D getExtent() const;
 
   private:
@@ -27,7 +29,15 @@ namespace vke {
     std::vector<ImageResource> m_depthImageResources;
     std::vector<ImageResource> m_resolveImageResources;
 
+    std::vector<ImageResource> m_rayTracingImageResources;
+
     vk::Extent2D m_extent;
+
+    void createRayTracingImageResources(const ImageResourceConfig& imageResourceConfig,
+                                        uint32_t numImages);
+
+    void createRasterizationImageResources(const ImageResourceConfig& imageResourceConfig,
+                                          uint32_t numImages);
   };
 } // vke
 

@@ -42,7 +42,7 @@ namespace vke {
     void doRayTracing(const RenderInfo* renderInfo,
                       const std::shared_ptr<PipelineManager>& pipelineManager,
                       const std::shared_ptr<LightingManager>& lightingManager,
-                      const std::shared_ptr<ImageResource>& imageResource,
+                      const ImageResource& imageResource,
                       const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                       const std::shared_ptr<Cloud>& cloud,
                       const glm::vec3& viewPosition,
@@ -105,7 +105,7 @@ namespace vke {
                                   const std::vector<uint32_t>& mergedIndices,
                                   const std::vector<MeshInfo>& meshInfos);
 
-    void updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
+    void updateRTDescriptorSets(const ImageResource& imageResource,
                                 uint32_t currentFrame);
 
     void updateRTDescriptorSetData(vk::Extent2D extent,

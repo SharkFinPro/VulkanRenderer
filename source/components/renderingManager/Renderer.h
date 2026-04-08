@@ -24,6 +24,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
+    [[nodiscard]] std::shared_ptr<RenderTarget> getRayTracingRenderTarget() const;
+
     void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
 
     void resetOffscreenImageResources(vk::Extent2D offscreenViewportExtent);
@@ -56,8 +58,6 @@ namespace vke {
     void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                 uint32_t currentFrame) const;
 
-    [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource(uint32_t currentFrame) const;
-
   protected:
     static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
     static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
@@ -75,7 +75,7 @@ namespace vke {
 
     std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
 
-    std::vector<std::shared_ptr<ImageResource>> m_rayTracingImageResources;
+    std::shared_ptr<RenderTarget> m_rayTracingRenderTarget;
 
     vk::raii::Sampler m_sampler = nullptr;
 

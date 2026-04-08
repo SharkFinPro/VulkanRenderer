@@ -6,6 +6,60 @@ namespace vke {
                              const uint32_t numImages)
     : m_extent(imageResourceConfig.extent)
   {
+    createRayTracingImageResources(imageResourceConfig, numImages);
+
+    createRasterizationImageResources(imageResourceConfig, numImages);
+  }
+
+  ImageResource& RenderTarget::getColorImageResource(const uint32_t imageIndex)
+  {
+    return m_colorImageResources.at(imageIndex);
+  }
+
+  ImageResource& RenderTarget::getDepthImageResource(const uint32_t imageIndex)
+  {
+    return m_depthImageResources.at(imageIndex);
+  }
+
+  ImageResource& RenderTarget::getResolveImageResource(const uint32_t imageIndex)
+  {
+    return m_resolveImageResources.at(imageIndex);
+  }
+
+  ImageResource& RenderTarget::getRayTracingImageResource(const uint32_t imageIndex)
+  {
+    return m_rayTracingImageResources.at(imageIndex);
+  }
+
+  vk::Extent2D RenderTarget::getExtent() const
+  {
+    return m_extent;
+  }
+
+  void RenderTarget::createRayTracingImageResources(const ImageResourceConfig& imageResourceConfig,
+                                                    const uint32_t numImages)
+  {
+    if (imageResourceConfig.imageResourceType != ImageResourceType::RayTracingOutput)
+    {
+      return;
+    }
+
+    m_rayTracingImageResources.reserve(numImages);
+
+    for (int i = 0; i < numImages; ++i)
+    {
+      m_rayTracingImageResources.emplace_back(imageResourceConfig);
+    }
+  }
+
+  void RenderTarget::createRasterizationImageResources(const ImageResourceConfig& imageResourceConfig,
+                                                       const uint32_t numImages)
+  {
+    if (imageResourceConfig.imageResourceType == ImageResourceType::RayTracingOutput)
+    {
+      return;
+    }
+
     m_colorImageResources.reserve(numImages);
     m_depthImageResources.reserve(numImages);
     m_resolveImageResources.reserve(numImages);
@@ -37,25 +91,5 @@ namespace vke {
         m_resolveImageResources.emplace_back(resolveImageResourceConfig);
       }
     }
-  }
-
-  ImageResource& RenderTarget::getColorImageResource(const uint32_t imageIndex)
-  {
-    return m_colorImageResources[imageIndex];
-  }
-
-  ImageResource& RenderTarget::getDepthImageResource(const uint32_t imageIndex)
-  {
-    return m_depthImageResources[imageIndex];
-  }
-
-  ImageResource& RenderTarget::getResolveImageResource(const uint32_t imageIndex)
-  {
-    return m_resolveImageResources[imageIndex];
-  }
-
-  vk::Extent2D RenderTarget::getExtent() const
-  {
-    return m_extent;
   }
 } // vke
