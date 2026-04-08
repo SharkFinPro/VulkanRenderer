@@ -24,6 +24,7 @@ namespace vke {
     vk::Format colorFormat = vk::Format::eUndefined;
     vk::Format depthFormat = vk::Format::eUndefined;
     vk::Format resolveFormat = vk::Format::eUndefined;
+    vk::Format rayTracingFormat = vk::Format::eUndefined;
     vk::SampleCountFlagBits numSamples;
     vk::Sampler sampler = nullptr;
     bool isCubeMap = false;

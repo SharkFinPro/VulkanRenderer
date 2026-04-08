@@ -44,7 +44,7 @@ namespace vke {
                                                     const uint32_t numImages)
   {
     imageResourceConfig.imageResourceType = ImageResourceType::RayTracingOutput;
-    imageResourceConfig.colorFormat = vk::Format::eR8G8B8A8Uint;
+    imageResourceConfig.rayTracingFormat = vk::Format::eR8G8B8A8Unorm;
     imageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
 
     m_rayTracingImageResources.reserve(numImages);
