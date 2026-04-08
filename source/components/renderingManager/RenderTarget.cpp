@@ -49,7 +49,7 @@ namespace vke {
 
     m_rayTracingImageResources.reserve(numImages);
 
-    for (int i = 0; i < numImages; ++i)
+    for (uint32_t i = 0; i < numImages; ++i)
     {
       m_rayTracingImageResources.emplace_back(imageResourceConfig);
     }
@@ -72,7 +72,7 @@ namespace vke {
     resolveImageResourceConfig.imageResourceType = ImageResourceType::Resolve;
     resolveImageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
 
-    for (int i = 0; i < numImages; ++i)
+    for (uint32_t i = 0; i < numImages; ++i)
     {
       if (imageResourceConfig.colorFormat != vk::Format::eUndefined)
       {
