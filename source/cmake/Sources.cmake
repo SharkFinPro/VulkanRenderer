@@ -120,7 +120,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   # Descriptor Sets
   components/pipelines/descriptorSets/DescriptorSet.cpp
   components/pipelines/descriptorSets/DescriptorSet.h
-  components/pipelines/descriptorSets/LayoutBindings.h
 
   # Pipeline Management
   components/pipelines/pipelineManager/PipelineManager.cpp
