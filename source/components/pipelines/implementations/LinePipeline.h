@@ -8,12 +8,9 @@
 
 namespace vke {
 
-  class RenderPass;
-
   class LinePipeline final : public GraphicsPipeline {
   public:
-    LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 const std::shared_ptr<RenderPass>& renderPass);
+    explicit LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
     void render(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 const RenderInfo* renderInfo,

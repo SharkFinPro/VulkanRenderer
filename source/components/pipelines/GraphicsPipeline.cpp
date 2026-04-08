@@ -2,7 +2,6 @@
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../renderingManager/legacyRenderer/RenderPass.h"
 
 namespace vke {
 
@@ -60,7 +59,7 @@ namespace vke {
     };
 
     const vk::GraphicsPipelineCreateInfo pipelineInfo {
-      .pNext = graphicsPipelineOptions.renderPass ? nullptr : &pipelineRenderingCreateInfo,
+      .pNext = &pipelineRenderingCreateInfo,
       .stageCount = static_cast<uint32_t>(shaderStages.size()),
       .pStages = shaderStages.data(),
       .pVertexInputState = &graphicsPipelineOptions.states.vertexInputState,
@@ -73,7 +72,7 @@ namespace vke {
       .pColorBlendState = &graphicsPipelineOptions.states.colorBlendState,
       .pDynamicState = &graphicsPipelineOptions.states.dynamicState,
       .layout = *m_pipelineLayout,
-      .renderPass = graphicsPipelineOptions.renderPass ? graphicsPipelineOptions.renderPass->getRenderPass() : nullptr,
+      .renderPass = nullptr,
       .subpass = 0,
       .basePipelineHandle = nullptr,
       .basePipelineIndex = -1

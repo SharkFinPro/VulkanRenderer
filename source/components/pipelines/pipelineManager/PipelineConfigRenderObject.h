@@ -8,7 +8,6 @@
 namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createTexturedPlanePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                    const std::shared_ptr<RenderPass>& renderPass,
                                                                     vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
@@ -28,13 +27,11 @@ namespace vke::PipelineConfig {
       },
       .descriptorSetLayouts {
         objectDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createObjectHighlightPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                      const std::shared_ptr<RenderPass>& renderPass,
                                                                       vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
@@ -54,13 +51,11 @@ namespace vke::PipelineConfig {
       },
       .descriptorSetLayouts {
         objectDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createMagnifyWhirlMosaicPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                         const std::shared_ptr<RenderPass>& renderPass,
                                                                          vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
@@ -87,13 +82,11 @@ namespace vke::PipelineConfig {
       },
       .descriptorSetLayouts {
         objectDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
-  inline GraphicsPipelineOptions createMousePickingPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
-                                                                   vk::DescriptorSetLayout objectDescriptorSetLayout)
+  inline GraphicsPipelineOptions createMousePickingPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -120,13 +113,11 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout
       },
-      .renderPass = renderPass,
       .colorFormat = vk::Format::eR8G8B8A8Uint
     };
   }
 
-  inline GraphicsPipelineOptions createShadowMapPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
-                                                                vk::DescriptorSetLayout objectDescriptorSetLayout)
+  inline GraphicsPipelineOptions createShadowMapPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -152,13 +143,11 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout
       },
-      .renderPass = renderPass,
       .colorFormat = vk::Format::eUndefined
     };
   }
 
-  inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
-                                                                          vk::DescriptorSetLayout objectDescriptorSetLayout,
+  inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                                           vk::DescriptorSetLayout pointLightDescriptorSetLayout)
   {
     return {
@@ -187,14 +176,12 @@ namespace vke::PipelineConfig {
         objectDescriptorSetLayout,
         pointLightDescriptorSetLayout
       },
-      .renderPass = renderPass,
       .colorFormat = vk::Format::eUndefined,
       .renderToCubeMap = true
     };
   }
 
   inline GraphicsPipelineOptions createEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                     const std::shared_ptr<RenderPass>& renderPass,
                                                                      vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                                      vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
@@ -223,13 +210,11 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout,
         lightingDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createCrossesPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              const std::shared_ptr<RenderPass>& renderPass,
                                                               vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                               vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
@@ -259,13 +244,11 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout,
         lightingDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              const std::shared_ptr<RenderPass>& renderPass,
                                                               vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                               vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
@@ -294,13 +277,11 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout,
         lightingDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createObjectsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              const std::shared_ptr<RenderPass>& renderPass,
                                                               vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                               vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
@@ -322,13 +303,11 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout,
         lightingDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createSnakePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                            const std::shared_ptr<RenderPass>& renderPass,
                                                             vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                             vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
@@ -358,13 +337,11 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout,
         lightingDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createNoisyEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                          const std::shared_ptr<RenderPass>& renderPass,
                                                                           vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                                           vk::DescriptorSetLayout lightingDescriptorSetLayout,
                                                                           vk::DescriptorSetLayout noiseDescriptorSetLayout)
@@ -395,13 +372,11 @@ namespace vke::PipelineConfig {
         objectDescriptorSetLayout,
         lightingDescriptorSetLayout,
         noiseDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createBumpyCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                   const std::shared_ptr<RenderPass>& renderPass,
                                                                    vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                                    vk::DescriptorSetLayout lightingDescriptorSetLayout,
                                                                    vk::DescriptorSetLayout noiseDescriptorSetLayout)
@@ -432,13 +407,11 @@ namespace vke::PipelineConfig {
         objectDescriptorSetLayout,
         lightingDescriptorSetLayout,
         noiseDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createCubeMapPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              const std::shared_ptr<RenderPass>& renderPass,
                                                               vk::DescriptorSetLayout objectDescriptorSetLayout,
                                                               vk::DescriptorSetLayout cubeMapDescriptorSetLayout)
   {
@@ -467,8 +440,7 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout,
         cubeMapDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 

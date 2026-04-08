@@ -9,8 +9,7 @@ namespace vke {
   public:
     SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
               const CommonLightData& commonLightData,
-              vk::CommandPool commandPool,
-              const std::shared_ptr<Renderer>& renderer);
+              vk::CommandPool commandPool);
 
     [[nodiscard]] glm::vec3 getDirection() const;
     [[nodiscard]] float getConeAngle() const;

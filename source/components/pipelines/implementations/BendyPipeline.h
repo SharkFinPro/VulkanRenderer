@@ -9,7 +9,6 @@ namespace vke {
 
   class UniformBuffer;
   class DescriptorSet;
-  class RenderPass;
   class Texture2D;
 
   struct BendyPlant;
@@ -17,7 +16,6 @@ namespace vke {
   class BendyPipeline final : public GraphicsPipeline {
   public:
     BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                  const std::shared_ptr<RenderPass>& renderPass,
                   const vk::raii::CommandPool& commandPool,
                   vk::DescriptorPool descriptorPool,
                   const std::shared_ptr<DescriptorSet>& lightingDescriptorSet);

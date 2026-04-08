@@ -51,8 +51,7 @@ namespace vke {
       commonLightData,
       m_commandPool,
       getDescriptorPool(),
-      m_pointLightDescriptorSetLayout,
-      m_renderer
+      m_pointLightDescriptorSetLayout
     );
 
     return light;
@@ -75,8 +74,7 @@ namespace vke {
     auto light = std::make_shared<SpotLight>(
       m_logicalDevice,
       commonLightData,
-      m_commandPool,
-      m_renderer
+      m_commandPool
     );
 
     return light;
@@ -392,7 +390,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      m_renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+      m_renderer->beginShadowRendering(shadowExtent, commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,
@@ -448,7 +446,7 @@ namespace vke {
         object->draw(shadowRenderInfo.commandBuffer);
       }
 
-      m_renderer->endShadowRendering(commandBuffer);
+      commandBuffer->endRendering();
     }
   }
 
@@ -470,7 +468,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      m_renderer->beginShadowRendering(0, shadowExtent, commandBuffer, light);
+      m_renderer->beginShadowRendering(shadowExtent, commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,
@@ -517,7 +515,7 @@ namespace vke {
         object->draw(shadowRenderInfo.commandBuffer);
       }
 
-      m_renderer->endShadowRendering(commandBuffer);
+      commandBuffer->endRendering();
     }
   }
 

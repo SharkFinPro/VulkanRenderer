@@ -2,8 +2,6 @@
 #include "ImageResource.h"
 #include "Renderer.h"
 #include "RenderTarget.h"
-#include "dynamicRenderer/DynamicRenderer.h"
-#include "legacyRenderer/LegacyRenderer.h"
 #include "renderer2D/Renderer2D.h"
 #include "renderer3D/Renderer3D.h"
 #include "../commandBuffer/CommandBuffer.h"
@@ -32,7 +30,8 @@ namespace vke {
       m_window(std::move(window)),
       m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(std::move(sceneViewName)),
-      m_renderer2D(std::make_shared<Renderer2D>(assetManager))
+      m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
+      m_rayTracingEnabled(m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
   {
     createCommandPool();
 
@@ -43,8 +42,7 @@ namespace vke {
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
 
-    // m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
-    m_renderer = std::make_shared<DynamicRenderer>(m_logicalDevice, m_swapChain, m_commandPool);
+    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_swapChain, m_commandPool);
 
     m_framebufferResizeEventListener = m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
       m_framebufferResized = true;
@@ -166,8 +164,18 @@ namespace vke {
     return m_renderer3D;
   }
 
+  bool RenderingManager::supportsRayTracing() const
+  {
+    return m_logicalDevice->getPhysicalDevice()->supportsRayTracing();
+  }
+
   void RenderingManager::enableRayTracing()
   {
+    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      return;
+    }
+
     m_rayTracingEnabled = true;
   }
 
@@ -232,7 +240,7 @@ namespace vke {
                                                       const uint32_t currentFrame) const
   {
     auto renderShadowMaps = [&] {
-      if (m_renderer->supportsRayTracing() && m_rayTracingEnabled)
+      if (m_rayTracingEnabled)
       {
         return;
       }
@@ -245,11 +253,11 @@ namespace vke {
 
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
-      m_renderer->endMousePickingRendering(renderInfo.commandBuffer);
+      renderInfo.commandBuffer->endRendering();
     };
 
     auto recordOffscreenRendering = [&](const RenderInfo& renderInfo) {
-      if (m_renderer->supportsRayTracing() && m_rayTracingEnabled)
+      if (m_rayTracingEnabled)
       {
         m_renderer->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
         m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getRayTracingImageResource(currentFrame));
@@ -272,7 +280,7 @@ namespace vke {
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
-      m_renderer->endOffscreenRendering(m_offscreenCommandBuffer);
+      renderInfo2D.commandBuffer->endRendering();
     };
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);

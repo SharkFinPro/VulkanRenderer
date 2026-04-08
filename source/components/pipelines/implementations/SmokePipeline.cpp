@@ -8,7 +8,6 @@
 namespace vke {
 
   SmokePipeline::SmokePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                               const std::shared_ptr<RenderPass>& renderPass,
                                const std::shared_ptr<DescriptorSet>& lightingDescriptorSet,
                                vk::DescriptorSetLayout smokeSystemDescriptorSetLayout)
   : m_lightingDescriptorSet(lightingDescriptorSet)
@@ -42,8 +41,7 @@ namespace vke {
       .descriptorSetLayouts {
         smokeSystemDescriptorSetLayout,
         m_lightingDescriptorSet->getDescriptorSetLayout()
-      },
-      .renderPass = renderPass
+      }
     };
 
     GraphicsPipeline::createPipeline(logicalDevice, graphicsPipelineOptions);

@@ -6,9 +6,7 @@
 
 namespace vke {
 
-  class CommandBuffer;
   class DescriptorSet;
-  struct RenderInfo;
   class UniformBuffer;
 
   class PointLight final : public Light {
@@ -17,8 +15,7 @@ namespace vke {
                const CommonLightData& commonLightData,
                const vk::CommandPool& commandPool,
                vk::DescriptorPool descriptorPool,
-               vk::DescriptorSetLayout descriptorSetLayout,
-               const std::shared_ptr<Renderer>& renderer);
+               vk::DescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] LightType getLightType() const override;
 

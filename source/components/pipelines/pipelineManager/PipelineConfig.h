@@ -7,8 +7,7 @@
 
 namespace vke::PipelineConfig {
 
-  inline GraphicsPipelineOptions createGridPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                           const std::shared_ptr<RenderPass>& renderPass)
+  inline GraphicsPipelineOptions createGridPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {
       .shaders {
@@ -31,8 +30,7 @@ namespace vke::PipelineConfig {
           .offset = 0,
           .size = sizeof(GridPushConstant)
         }
-      },
-      .renderPass = renderPass
+      }
     };
   }
 

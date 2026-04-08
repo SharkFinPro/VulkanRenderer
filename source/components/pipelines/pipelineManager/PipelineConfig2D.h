@@ -7,8 +7,7 @@
 
 namespace vke::PipelineConfig {
 
-  inline GraphicsPipelineOptions createRectPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                           const std::shared_ptr<RenderPass>& renderPass)
+  inline GraphicsPipelineOptions createRectPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {
       .shaders {
@@ -31,13 +30,11 @@ namespace vke::PipelineConfig {
           .offset = 0,
           .size = sizeof(Rect::PushConstant)
         }
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
-  inline GraphicsPipelineOptions createTrianglePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                               const std::shared_ptr<RenderPass>& renderPass)
+  inline GraphicsPipelineOptions createTrianglePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {
       .shaders {
@@ -60,13 +57,11 @@ namespace vke::PipelineConfig {
           .offset = 0,
           .size = sizeof(Triangle::PushConstant)
         }
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
-  inline GraphicsPipelineOptions createEllipsePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              const std::shared_ptr<RenderPass>& renderPass)
+  inline GraphicsPipelineOptions createEllipsePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {
       .shaders {
@@ -89,13 +84,11 @@ namespace vke::PipelineConfig {
           .offset = 0,
           .size = sizeof(Ellipse::PushConstant)
         }
-      },
-      .renderPass = renderPass
+      }
     };
   }
 
   inline GraphicsPipelineOptions createFontPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                           const std::shared_ptr<RenderPass>& renderPass,
                                                            vk::DescriptorSetLayout fontDescriptorSetLayout)
   {
     return {
@@ -122,8 +115,7 @@ namespace vke::PipelineConfig {
       },
       .descriptorSetLayouts {
         fontDescriptorSetLayout
-      },
-      .renderPass = renderPass
+      }
     };
   }
 

@@ -9,8 +9,7 @@
 
 namespace vke {
 
-  LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<RenderPass>& renderPass)
+  LinePipeline::LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
@@ -33,8 +32,7 @@ namespace vke {
           .offset = 0,
           .size = sizeof(MVPTransformUniform)
         }
-      },
-      .renderPass = renderPass
+      }
     };
 
     createPipeline(logicalDevice, graphicsPipelineOptions);

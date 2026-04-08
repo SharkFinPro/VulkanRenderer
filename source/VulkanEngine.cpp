@@ -8,7 +8,6 @@
 #include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
 #include "components/pipelines/pipelineManager/PipelineManager.h"
-#include "components/renderingManager/Renderer.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/renderingManager/renderer3D/Renderer3D.h"
 #include "components/window/Surface.h"
@@ -143,7 +142,6 @@ namespace vke {
       m_window,
       m_instance,
       m_logicalDevice,
-      m_renderingManager->getRenderer()->getSwapchainRenderPass(),
       engineConfig.imGui
     );
 

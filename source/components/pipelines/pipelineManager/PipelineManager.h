@@ -97,15 +97,13 @@ namespace vke {
                          const std::shared_ptr<RenderingManager>& renderingManager,
                          const std::shared_ptr<LightingManager>& lightingManager);
 
-    void create2DPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                           const std::shared_ptr<RenderingManager>& renderingManager);
+    void create2DPipelines(const std::shared_ptr<AssetManager>& assetManager);
 
     void createRenderObjectPipelines(const std::shared_ptr<AssetManager>& assetManager,
                                      const std::shared_ptr<RenderingManager>& renderingManager,
                                      const std::shared_ptr<LightingManager>& lightingManager);
 
     void createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
-                             const std::shared_ptr<RenderingManager>& renderingManager,
                              const std::shared_ptr<LightingManager>& lightingManager);
 
     void createCommandPool();

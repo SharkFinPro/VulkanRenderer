@@ -49,6 +49,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Renderer3D> getRenderer3D() const;
 
+    [[nodiscard]] bool supportsRayTracing() const;
+
     void enableRayTracing();
 
     void disableRayTracing();
@@ -90,7 +92,7 @@ namespace vke {
 
     EventListener<FramebufferResizeEvent> m_framebufferResizeEventListener;
 
-    bool m_rayTracingEnabled = true;
+    bool m_rayTracingEnabled;
 
     void renderGuiScene(uint32_t currentFrame);
 

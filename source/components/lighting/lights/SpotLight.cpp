@@ -12,13 +12,10 @@ namespace vke {
 
   SpotLight::SpotLight(std::shared_ptr<LogicalDevice> logicalDevice,
                        const CommonLightData& commonLightData,
-                       const vk::CommandPool commandPool,
-                       const std::shared_ptr<Renderer>& renderer)
+                       const vk::CommandPool commandPool)
     : Light(std::move(logicalDevice), commonLightData)
   {
     SpotLight::createShadowMap(commandPool);
-
-    registerShadowMapRenderTarget(renderer);
   }
 
   glm::vec3 SpotLight::getDirection() const
