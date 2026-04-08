@@ -60,14 +60,14 @@ namespace vke {
         .fragmentShader = "assets/shaders/dots.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateDots,
-        .depthStencilState = GraphicsPipelineStates::depthStencilStateNone,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStatePointList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateParticle,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateDots,
+        .depthStencilState = gps::depthStencilStateNone,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStatePointList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateParticle,
+        .viewportState = gps::viewportState
       }
     };
 

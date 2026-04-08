@@ -11,8 +11,6 @@ namespace vke {
   public:
     virtual ~Pipeline() = default;
 
-    virtual void displayGui() {}
-
     template<typename T>
     void pushConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
                        vk::ShaderStageFlags stageFlags,
@@ -33,6 +31,7 @@ namespace vke {
   {
     commandBuffer->pushConstants<T>(m_pipelineLayout, stageFlags, offset, data);
   }
+
 } // namespace vke
 
 #endif //VKE_PIPELINE_H

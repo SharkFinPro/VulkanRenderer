@@ -1,7 +1,7 @@
 #ifndef VULKANPROJECT_SMOKESYSTEM_H
 #define VULKANPROJECT_SMOKESYSTEM_H
 
-#include "../../pipelines/implementations/common/Uniforms.h"
+#include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <chrono>
 #include <memory>
@@ -69,6 +69,13 @@ namespace vke {
     uint32_t m_numParticles = 0;
 
     bool m_ran = false;
+
+    struct SmokeUniform {
+      glm::vec3 systemPosition;
+      float spreadFactor;
+      float maxSpreadDistance;
+      float windStrength;
+    };
 
     SmokeUniform m_smokeUBO {
       .spreadFactor = 0.3f,

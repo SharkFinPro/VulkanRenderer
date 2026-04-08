@@ -7,11 +7,86 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
-#include "../pipelines/descriptorSets/LayoutBindings.h"
-#include "../pipelines/implementations/common/Uniforms.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/Renderer.h"
+
+namespace {
+
+  constexpr uint32_t MAX_SHADOW_MAPS = 16;
+
+  constexpr vk::DescriptorSetLayoutBinding lightMetadataLayout {
+    .binding = 0,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding pointLightsLayout {
+    .binding = 1,
+    .descriptorType = vk::DescriptorType::eStorageBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding spotLightsLayout {
+    .binding = 2,
+    .descriptorType = vk::DescriptorType::eStorageBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding cameraLayout {
+    .binding = 3,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding spotLightsSamplerLayout {
+    .binding = 4,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+    .descriptorCount = MAX_SHADOW_MAPS,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding pointLightsSamplerLayout {
+    .binding = 5,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+    .descriptorCount = MAX_SHADOW_MAPS,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
+  };
+
+  inline std::vector lightingLayoutBindings {
+    lightMetadataLayout,
+    pointLightsLayout,
+    spotLightsLayout,
+    cameraLayout,
+    spotLightsSamplerLayout,
+    pointLightsSamplerLayout
+  };
+
+  inline std::vector pointLightShadowMapBindings {
+    vk::DescriptorSetLayoutBinding{
+      .binding = 0,
+      .descriptorType = vk::DescriptorType::eUniformBuffer,
+      .descriptorCount = 1,
+      .stageFlags = vk::ShaderStageFlagBits::eVertex
+    }
+  };
+
+}
+
+namespace {
+
+  struct LightMetadataUniform {
+    int numPointLights;
+    int numSpotLights;
+  };
+
+  using CameraUniform = glm::vec3;
+
+}
 
 namespace vke {
 
@@ -138,7 +213,7 @@ namespace vke {
 
   void LightingManager::createDescriptorSet()
   {
-    m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, getDescriptorPool(), LayoutBindings::lightingLayoutBindings);
+    m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, getDescriptorPool(), lightingLayoutBindings);
     m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       std::vector<vk::WriteDescriptorSet> descriptorWrites{{
@@ -158,9 +233,8 @@ namespace vke {
   void LightingManager::updateUniforms(const uint32_t currentFrame,
                                        const glm::vec3 viewPosition)
   {
-    const CameraUniform cameraUBO {
-      .position = viewPosition
-    };
+    const CameraUniform cameraUBO = viewPosition;
+
     m_cameraUniform->update(currentFrame, &cameraUBO);
 
     updateLightMetadataUniform();
@@ -521,11 +595,9 @@ namespace vke {
 
   void LightingManager::createPointLightDescriptorSetLayout()
   {
-    const auto layoutBindings = LayoutBindings::pointLightShadowMapBindings;
-
     const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-      .bindingCount = static_cast<uint32_t>(layoutBindings.size()),
-      .pBindings = layoutBindings.data()
+      .bindingCount = static_cast<uint32_t>(pointLightShadowMapBindings.size()),
+      .pBindings = pointLightShadowMapBindings.data()
     };
 
     m_pointLightDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);

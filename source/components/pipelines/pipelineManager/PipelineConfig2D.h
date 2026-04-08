@@ -15,14 +15,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/2D/Rect.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
-        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleStateAlpha(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -42,14 +42,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/2D/Triangle.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleStateAlpha(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -69,14 +69,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/2D/Ellipse.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
-        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleStateAlpha(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -97,14 +97,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/2D/Font.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateTransparent,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
-        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleStateAlpha(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {

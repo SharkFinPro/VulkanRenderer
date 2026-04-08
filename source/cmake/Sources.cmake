@@ -120,7 +120,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   # Descriptor Sets
   components/pipelines/descriptorSets/DescriptorSet.cpp
   components/pipelines/descriptorSets/DescriptorSet.h
-  components/pipelines/descriptorSets/LayoutBindings.h
 
   # Pipeline Management
   components/pipelines/pipelineManager/PipelineManager.cpp
@@ -150,7 +149,6 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   # Configuration and State Headers
   components/pipelines/implementations/common/GraphicsPipelineStates.h
   components/pipelines/implementations/common/PipelineTypes.h
-  components/pipelines/implementations/common/Uniforms.h
 
   # Vertex Input States
   components/pipelines/implementations/vertexInputs/LineVertex.h

@@ -1,11 +1,54 @@
 #include "BendyPipeline.h"
 #include "common/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../descriptorSets/LayoutBindings.h"
 #include "../uniformBuffers/UniformBuffer.h"
 #include "../../assets/textures/Texture2D.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../renderingManager/renderer3D/Renderer3D.h"
+
+namespace {
+
+  constexpr vk::DescriptorSetLayoutBinding MVPTransformLayout {
+    .binding = 0,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eVertex
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding bendyLayout {
+    .binding = 1,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eVertex
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding textureLayout {
+    .binding = 2,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
+  };
+
+  inline std::vector bendyLayoutBindings {
+    MVPTransformLayout,
+    bendyLayout,
+    textureLayout
+  };
+
+}
+
+namespace {
+
+  using VPTransformUniform = glm::mat4;
+
+  struct BendyPlantInfo {
+    glm::mat4 model;
+    int leafLength;
+    float pitch;
+    float bendStrength;
+  };
+
+}
 
 namespace vke {
 
@@ -25,14 +68,14 @@ namespace vke {
         .fragmentShader = "assets/shaders/Bendy.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateBendy,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
-        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateBendy,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleStateAlpha(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -89,7 +132,7 @@ namespace vke {
   {
     m_transformUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(VPTransformUniform));
 
-    m_bendyUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(BendyUniform));
+    m_timeUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(float));
 
     m_texture = std::make_shared<Texture2D>(logicalDevice, commandPool, "assets/bendy/leaf.png", vk::SamplerAddressMode::eClampToEdge);
   }
@@ -97,12 +140,12 @@ namespace vke {
   void BendyPipeline::createDescriptorSets(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            vk::DescriptorPool descriptorPool)
   {
-    m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, LayoutBindings::bendyLayoutBindings);
+    m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, bendyLayoutBindings);
     m_BendyPipelineDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
-        m_bendyUniform->getDescriptorSet(1, descriptorSet, frame),
+        m_timeUniform->getDescriptorSet(1, descriptorSet, frame),
         m_texture->getDescriptorSet(2, descriptorSet)
       }};
 
@@ -120,9 +163,9 @@ namespace vke {
     const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count();
     m_previousTime = currentTime;
 
-    m_bendyUBO.time += dt;
+    m_time += dt;
 
-    m_bendyUniform->update(renderInfo->currentFrame, &m_bendyUBO);
+    m_timeUniform->update(renderInfo->currentFrame, &m_time);
   }
 
   void BendyPipeline::bindDescriptorSets(const RenderInfo* renderInfo) const

@@ -1,7 +1,6 @@
 #ifndef VKE_BENDYPIPELINE_H
 #define VKE_BENDYPIPELINE_H
 
-#include "common/Uniforms.h"
 #include "../GraphicsPipeline.h"
 #include <chrono>
 
@@ -24,12 +23,10 @@ namespace vke {
                 const std::vector<BendyPlant>* plants);
 
   private:
-    BendyUniform m_bendyUBO {
-      .time = 0
-    };
+    float m_time = 0;
 
     std::shared_ptr<UniformBuffer> m_transformUniform;
-    std::shared_ptr<UniformBuffer> m_bendyUniform;
+    std::shared_ptr<UniformBuffer> m_timeUniform;
 
     std::shared_ptr<DescriptorSet> m_BendyPipelineDescriptorSet;
     std::shared_ptr<DescriptorSet> m_lightingDescriptorSet;
