@@ -54,7 +54,7 @@ namespace vke {
   void RayTracer::doRayTracing(const RenderInfo* renderInfo,
                                const std::shared_ptr<PipelineManager>& pipelineManager,
                                const std::shared_ptr<LightingManager>& lightingManager,
-                               const std::shared_ptr<ImageResource>& imageResource,
+                               const ImageResource& imageResource,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                const std::shared_ptr<Cloud>& cloud,
                                const glm::vec3& viewPosition,
@@ -422,10 +422,10 @@ namespace vke {
     uploadBuffer(meshInfos, m_meshInfoBuffer, m_meshInfoBufferMemory);
   }
 
-  void RayTracer::updateRTDescriptorSets(const std::shared_ptr<ImageResource>& imageResource,
+  void RayTracer::updateRTDescriptorSets(const ImageResource& imageResource,
                                          const uint32_t currentFrame)
   {
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, imageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, &imageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       auto storageBuffer = [&](const uint32_t binding, const vk::DescriptorBufferInfo* info) {
         return vk::WriteDescriptorSet {
@@ -450,7 +450,7 @@ namespace vke {
           .dstBinding = 1,
           .descriptorCount = 1,
           .descriptorType = vk::DescriptorType::eStorageImage,
-          .pImageInfo = &imageResource->getDescriptorImageInfo()
+          .pImageInfo = &imageResource.getDescriptorImageInfo()
         },
         m_cameraUniformRT->getDescriptorSet(2, descriptorSet, currentFrame),
         storageBuffer(3, &m_vertexBufferInfo),

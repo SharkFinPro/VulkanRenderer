@@ -102,7 +102,7 @@ namespace vke {
   void Renderer3D::doRayTracing(const RenderInfo* renderInfo,
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const std::shared_ptr<LightingManager>& lightingManager,
-                                const std::shared_ptr<ImageResource>& imageResource) const
+                                const ImageResource& imageResource) const
   {
     m_rayTracer->doRayTracing(
       renderInfo,

@@ -3,8 +3,60 @@
 
 namespace vke {
   RenderTarget::RenderTarget(const ImageResourceConfig& imageResourceConfig,
-                             const uint32_t numImages)
+                             const uint32_t numImages,
+                             const bool createRayTracingResources)
     : m_extent(imageResourceConfig.extent)
+  {
+    if (createRayTracingResources)
+    {
+      createRayTracingImageResources(imageResourceConfig, numImages);
+    }
+
+    createRasterizationImageResources(imageResourceConfig, numImages);
+  }
+
+  ImageResource& RenderTarget::getColorImageResource(const uint32_t imageIndex)
+  {
+    return m_colorImageResources.at(imageIndex);
+  }
+
+  ImageResource& RenderTarget::getDepthImageResource(const uint32_t imageIndex)
+  {
+    return m_depthImageResources.at(imageIndex);
+  }
+
+  ImageResource& RenderTarget::getResolveImageResource(const uint32_t imageIndex)
+  {
+    return m_resolveImageResources.at(imageIndex);
+  }
+
+  ImageResource& RenderTarget::getRayTracingImageResource(const uint32_t imageIndex)
+  {
+    return m_rayTracingImageResources.at(imageIndex);
+  }
+
+  vk::Extent2D RenderTarget::getExtent() const
+  {
+    return m_extent;
+  }
+
+  void RenderTarget::createRayTracingImageResources(ImageResourceConfig imageResourceConfig,
+                                                    const uint32_t numImages)
+  {
+    imageResourceConfig.imageResourceType = ImageResourceType::RayTracingOutput;
+    imageResourceConfig.rayTracingFormat = vk::Format::eR8G8B8A8Unorm;
+    imageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
+
+    m_rayTracingImageResources.reserve(numImages);
+
+    for (uint32_t i = 0; i < numImages; ++i)
+    {
+      m_rayTracingImageResources.emplace_back(imageResourceConfig);
+    }
+  }
+
+  void RenderTarget::createRasterizationImageResources(const ImageResourceConfig& imageResourceConfig,
+                                                       const uint32_t numImages)
   {
     m_colorImageResources.reserve(numImages);
     m_depthImageResources.reserve(numImages);
@@ -20,7 +72,7 @@ namespace vke {
     resolveImageResourceConfig.imageResourceType = ImageResourceType::Resolve;
     resolveImageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
 
-    for (int i = 0; i < numImages; ++i)
+    for (uint32_t i = 0; i < numImages; ++i)
     {
       if (imageResourceConfig.colorFormat != vk::Format::eUndefined)
       {
@@ -37,40 +89,5 @@ namespace vke {
         m_resolveImageResources.emplace_back(resolveImageResourceConfig);
       }
     }
-  }
-
-  ImageResource& RenderTarget::getColorImageResource(const uint32_t imageIndex)
-  {
-    return m_colorImageResources[imageIndex];
-  }
-
-  ImageResource& RenderTarget::getDepthImageResource(const uint32_t imageIndex)
-  {
-    return m_depthImageResources[imageIndex];
-  }
-
-  ImageResource& RenderTarget::getResolveImageResource(const uint32_t imageIndex)
-  {
-    return m_resolveImageResources[imageIndex];
-  }
-
-  uint32_t RenderTarget::hasColorImageResource() const
-  {
-    return m_colorImageResources.size();
-  }
-
-  uint32_t RenderTarget::hasDepthImageResource() const
-  {
-    return m_depthImageResources.size();
-  }
-
-  uint32_t RenderTarget::hasResolveImageResource() const
-  {
-    return m_resolveImageResources.size();
-  }
-
-  vk::Extent2D RenderTarget::getExtent() const
-  {
-    return m_extent;
   }
 } // vke

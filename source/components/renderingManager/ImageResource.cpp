@@ -203,7 +203,7 @@ namespace vke {
 
       if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
-        return config.resolveFormat;
+        return config.rayTracingFormat;
       }
 
       return vk::Format::eUndefined;

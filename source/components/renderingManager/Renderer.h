@@ -8,7 +8,6 @@
 namespace vke {
 
   class CommandBuffer;
-  class ImageResource;
   class Light;
   class LogicalDevice;
   class RenderTarget;
@@ -20,33 +19,27 @@ namespace vke {
                       const std::shared_ptr<SwapChain>& swapChain,
                       vk::CommandPool commandPool);
 
-    [[nodiscard]] vk::DescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) const;
+    [[nodiscard]] std::shared_ptr<RenderTarget> getOffscreenRenderTarget() const;
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
-    void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
+    void resetSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
-    void resetOffscreenImageResources(vk::Extent2D offscreenViewportExtent);
+    void resetOffscreenRenderTarget(vk::Extent2D offscreenViewportExtent);
 
-    void resetMousePickingImageResources(vk::Extent2D mousePickingExtent);
-
-    void resetRayTracingImageResources(vk::Extent2D extent);
+    void resetMousePickingRenderTarget(vk::Extent2D mousePickingExtent);
 
     void beginSwapchainRendering(uint32_t imageIndex,
-                                 vk::Extent2D extent,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  const std::shared_ptr<SwapChain>& swapChain) const;
 
     void beginOffscreenRendering(uint32_t currentFrame,
-                                 vk::Extent2D extent,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    static void beginShadowRendering(vk::Extent2D extent,
-                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
+    static void beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                      const std::shared_ptr<Light>& light);
 
     void beginMousePickingRendering(uint32_t currentFrame,
-                                    vk::Extent2D extent,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     static void endSwapchainRendering(uint32_t imageIndex,
@@ -58,8 +51,6 @@ namespace vke {
 
     void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                 uint32_t currentFrame) const;
-
-    [[nodiscard]] std::shared_ptr<ImageResource> getRayTracingImageResource(uint32_t currentFrame) const;
 
   protected:
     static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
@@ -78,8 +69,6 @@ namespace vke {
 
     std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
 
-    std::vector<std::shared_ptr<ImageResource>> m_rayTracingImageResources;
-
     vk::raii::Sampler m_sampler = nullptr;
 
     void createSampler();
@@ -89,8 +78,6 @@ namespace vke {
     void createOffscreenRenderTarget(vk::Extent2D extent);
 
     void createMousePickingRenderTarget(vk::Extent2D extent);
-
-    void createRayTracingImageResource(vk::Extent2D extent);
     
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   vk::Image image);
