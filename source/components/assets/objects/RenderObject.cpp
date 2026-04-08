@@ -3,10 +3,19 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
-#include "../../pipelines/implementations/common/Uniforms.h"
 #include "../../assets/textures/Texture.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+
+namespace {
+
+  struct TransformUniform {
+    alignas(16) glm::mat4 model;
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
+  };
+
+}
 
 namespace vke {
 

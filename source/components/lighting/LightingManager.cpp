@@ -7,7 +7,6 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../pipelines/descriptorSets/DescriptorSet.h"
-#include "../pipelines/implementations/common/Uniforms.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/Renderer.h"
@@ -75,6 +74,17 @@ namespace {
       .stageFlags = vk::ShaderStageFlagBits::eVertex
     }
   };
+
+}
+
+namespace {
+
+  struct LightMetadataUniform {
+    int numPointLights;
+    int numSpotLights;
+  };
+
+  using CameraUniform = glm::vec3;
 
 }
 
@@ -223,9 +233,8 @@ namespace vke {
   void LightingManager::updateUniforms(const uint32_t currentFrame,
                                        const glm::vec3 viewPosition)
   {
-    const CameraUniform cameraUBO {
-      .position = viewPosition
-    };
+    const CameraUniform cameraUBO = viewPosition;
+
     m_cameraUniform->update(currentFrame, &cameraUBO);
 
     updateLightMetadataUniform();

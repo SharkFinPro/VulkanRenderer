@@ -1,11 +1,16 @@
 #include "LinePipeline.h"
 #include "common/GraphicsPipelineStates.h"
-#include "common/Uniforms.h"
 #include "../descriptorSets/DescriptorSet.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"
 #include <stdexcept>
+
+namespace {
+
+  using MVPTransformPC = glm::mat4;
+
+}
 
 namespace vke {
 
@@ -30,7 +35,7 @@ namespace vke {
         {
           .stageFlags = vk::ShaderStageFlagBits::eVertex,
           .offset = 0,
-          .size = sizeof(MVPTransformUniform)
+          .size = sizeof(MVPTransformPC)
         }
       }
     };
@@ -69,9 +74,9 @@ namespace vke {
     const std::vector<vk::DeviceSize> offsets = {0};
     renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffer }, offsets);
 
-    const MVPTransformUniform transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
+    const MVPTransformPC transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
 
-    renderInfo->commandBuffer->pushConstants<MVPTransformUniform>(
+    renderInfo->commandBuffer->pushConstants<MVPTransformPC>(
       m_pipelineLayout,
       vk::ShaderStageFlagBits::eVertex,
       0,

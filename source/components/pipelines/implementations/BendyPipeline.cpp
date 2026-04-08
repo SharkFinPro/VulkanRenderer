@@ -37,6 +37,19 @@ namespace {
 
 }
 
+namespace {
+
+  using VPTransformUniform = glm::mat4;
+
+  struct BendyPlantInfo {
+    glm::mat4 model;
+    int leafLength;
+    float pitch;
+    float bendStrength;
+  };
+
+}
+
 namespace vke {
 
   BendyPipeline::BendyPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -119,7 +132,7 @@ namespace vke {
   {
     m_transformUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(VPTransformUniform));
 
-    m_bendyUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(BendyUniform));
+    m_timeUniform = std::make_shared<UniformBuffer>(logicalDevice, sizeof(float));
 
     m_texture = std::make_shared<Texture2D>(logicalDevice, commandPool, "assets/bendy/leaf.png", vk::SamplerAddressMode::eClampToEdge);
   }
@@ -132,7 +145,7 @@ namespace vke {
     {
       std::vector<vk::WriteDescriptorSet> descriptorWrites{{
         m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
-        m_bendyUniform->getDescriptorSet(1, descriptorSet, frame),
+        m_timeUniform->getDescriptorSet(1, descriptorSet, frame),
         m_texture->getDescriptorSet(2, descriptorSet)
       }};
 
@@ -150,9 +163,9 @@ namespace vke {
     const float dt = std::chrono::duration<float>(currentTime - m_previousTime).count();
     m_previousTime = currentTime;
 
-    m_bendyUBO.time += dt;
+    m_time += dt;
 
-    m_bendyUniform->update(renderInfo->currentFrame, &m_bendyUBO);
+    m_timeUniform->update(renderInfo->currentFrame, &m_time);
   }
 
   void BendyPipeline::bindDescriptorSets(const RenderInfo* renderInfo) const

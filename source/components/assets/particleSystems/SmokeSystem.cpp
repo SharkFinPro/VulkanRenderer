@@ -9,6 +9,15 @@
 #include <cstring>
 #include <random>
 
+namespace {
+
+  struct ViewProjTransformUniform {
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
+  };
+
+}
+
 namespace vke {
   SmokeSystem::SmokeSystem(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const vk::CommandPool commandPool,
