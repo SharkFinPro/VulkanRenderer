@@ -54,21 +54,6 @@ namespace vke {
     return m_resolveImageResources[imageIndex];
   }
 
-  uint32_t RenderTarget::hasColorImageResource() const
-  {
-    return m_colorImageResources.size();
-  }
-
-  uint32_t RenderTarget::hasDepthImageResource() const
-  {
-    return m_depthImageResources.size();
-  }
-
-  uint32_t RenderTarget::hasResolveImageResource() const
-  {
-    return m_resolveImageResources.size();
-  }
-
   vk::Extent2D RenderTarget::getExtent() const
   {
     return m_extent;

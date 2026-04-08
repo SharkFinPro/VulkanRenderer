@@ -20,12 +20,6 @@ namespace vke {
 
     [[nodiscard]] ImageResource& getResolveImageResource(uint32_t imageIndex);
 
-    [[nodiscard]] uint32_t hasColorImageResource() const;
-
-    [[nodiscard]] uint32_t hasDepthImageResource() const;
-
-    [[nodiscard]] uint32_t hasResolveImageResource() const;
-
     [[nodiscard]] vk::Extent2D getExtent() const;
 
   private:
