@@ -1,11 +1,41 @@
 #include "BendyPipeline.h"
 #include "common/GraphicsPipelineStates.h"
 #include "../descriptorSets/DescriptorSet.h"
-#include "../descriptorSets/LayoutBindings.h"
 #include "../uniformBuffers/UniformBuffer.h"
 #include "../../assets/textures/Texture2D.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../renderingManager/renderer3D/Renderer3D.h"
+
+namespace {
+
+  constexpr vk::DescriptorSetLayoutBinding MVPTransformLayout {
+    .binding = 0,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eVertex
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding bendyLayout {
+    .binding = 1,
+    .descriptorType = vk::DescriptorType::eUniformBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eVertex
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding textureLayout {
+    .binding = 2,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
+  };
+
+  inline std::vector bendyLayoutBindings {
+    MVPTransformLayout,
+    bendyLayout,
+    textureLayout
+  };
+
+}
 
 namespace vke {
 
@@ -97,7 +127,7 @@ namespace vke {
   void BendyPipeline::createDescriptorSets(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            vk::DescriptorPool descriptorPool)
   {
-    m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, LayoutBindings::bendyLayoutBindings);
+    m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, bendyLayoutBindings);
     m_BendyPipelineDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       std::vector<vk::WriteDescriptorSet> descriptorWrites{{
