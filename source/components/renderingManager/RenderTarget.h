@@ -12,7 +12,8 @@ namespace vke {
   class RenderTarget {
   public:
     RenderTarget(const ImageResourceConfig& imageResourceConfig,
-                 uint32_t numImages);
+                 uint32_t numImages,
+                 bool createRayTracingResources = false);
 
     [[nodiscard]] ImageResource& getColorImageResource(uint32_t imageIndex);
 
@@ -33,7 +34,7 @@ namespace vke {
 
     vk::Extent2D m_extent;
 
-    void createRayTracingImageResources(const ImageResourceConfig& imageResourceConfig,
+    void createRayTracingImageResources(ImageResourceConfig imageResourceConfig,
                                         uint32_t numImages);
 
     void createRasterizationImageResources(const ImageResourceConfig& imageResourceConfig,

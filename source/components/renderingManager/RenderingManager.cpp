@@ -262,7 +262,7 @@ namespace vke {
       if (m_rayTracingEnabled)
       {
         m_renderer->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
-        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getRayTracingRenderTarget()->getRayTracingImageResource(currentFrame));
+        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getOffscreenRenderTarget()->getRayTracingImageResource(currentFrame));
         m_renderer->endRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
 
         return;

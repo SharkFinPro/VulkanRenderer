@@ -3,10 +3,14 @@
 
 namespace vke {
   RenderTarget::RenderTarget(const ImageResourceConfig& imageResourceConfig,
-                             const uint32_t numImages)
+                             const uint32_t numImages,
+                             const bool createRayTracingResources)
     : m_extent(imageResourceConfig.extent)
   {
-    createRayTracingImageResources(imageResourceConfig, numImages);
+    if (createRayTracingResources)
+    {
+      createRayTracingImageResources(imageResourceConfig, numImages);
+    }
 
     createRasterizationImageResources(imageResourceConfig, numImages);
   }
@@ -36,13 +40,12 @@ namespace vke {
     return m_extent;
   }
 
-  void RenderTarget::createRayTracingImageResources(const ImageResourceConfig& imageResourceConfig,
+  void RenderTarget::createRayTracingImageResources(ImageResourceConfig imageResourceConfig,
                                                     const uint32_t numImages)
   {
-    if (imageResourceConfig.imageResourceType != ImageResourceType::RayTracingOutput)
-    {
-      return;
-    }
+    imageResourceConfig.imageResourceType = ImageResourceType::RayTracingOutput;
+    imageResourceConfig.colorFormat = vk::Format::eR8G8B8A8Uint;
+    imageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
 
     m_rayTracingImageResources.reserve(numImages);
 
@@ -55,11 +58,6 @@ namespace vke {
   void RenderTarget::createRasterizationImageResources(const ImageResourceConfig& imageResourceConfig,
                                                        const uint32_t numImages)
   {
-    if (imageResourceConfig.imageResourceType == ImageResourceType::RayTracingOutput)
-    {
-      return;
-    }
-
     m_colorImageResources.reserve(numImages);
     m_depthImageResources.reserve(numImages);
     m_resolveImageResources.reserve(numImages);

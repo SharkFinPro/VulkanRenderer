@@ -31,11 +31,6 @@ namespace vke {
     return m_mousePickingRenderTarget;
   }
 
-  std::shared_ptr<RenderTarget> Renderer::getRayTracingRenderTarget() const
-  {
-    return m_rayTracingRenderTarget;
-  }
-
   void Renderer::resetSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain)
   {
     m_swapchainRenderTarget.reset();
@@ -48,8 +43,6 @@ namespace vke {
     m_offscreenRenderTarget.reset();
 
     createOffscreenRenderTarget(offscreenViewportExtent);
-
-    resetRayTracingRenderTarget(offscreenViewportExtent);
   }
 
   void Renderer::resetMousePickingRenderTarget(const vk::Extent2D mousePickingExtent)
@@ -216,7 +209,7 @@ namespace vke {
       .newLayout = vk::ImageLayout::eGeneral,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
       .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .image = m_rayTracingRenderTarget->getRayTracingImageResource(currentFrame).getImage(),
+      .image = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage(),
       .subresourceRange = {
         .aspectMask = vk::ImageAspectFlagBits::eColor,
         .baseMipLevel = 0,
@@ -244,13 +237,6 @@ namespace vke {
     copyRayTracingImageToOffscreenImage(commandBuffer, currentFrame);
 
     transitionRayTracingImagePostCopy(commandBuffer, currentFrame);
-  }
-
-  void Renderer::resetRayTracingRenderTarget(const vk::Extent2D extent)
-  {
-    m_rayTracingRenderTarget.reset();
-
-    createRayTracingRenderTarget(extent);
   }
 
   void Renderer::createSampler()
@@ -303,7 +289,11 @@ namespace vke {
       .sampler = m_sampler
     };
 
-    m_offscreenRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
+    m_offscreenRenderTarget = std::make_shared<RenderTarget>(
+      imageResourceConfig,
+      m_logicalDevice->getMaxFramesInFlight(),
+      true
+    );
   }
 
   void Renderer::createMousePickingRenderTarget(const vk::Extent2D extent)
@@ -318,25 +308,6 @@ namespace vke {
     };
 
     m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
-  }
-
-  void Renderer::createRayTracingRenderTarget(const vk::Extent2D extent)
-  {
-    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
-    {
-      return;
-    }
-    
-    ImageResourceConfig imageResourceConfig {
-      .imageResourceType = ImageResourceType::RayTracingOutput,
-      .logicalDevice = m_logicalDevice,
-      .extent = extent,
-      .commandPool = m_commandPool,
-      .resolveFormat = vk::Format::eR8G8B8A8Unorm,
-      .numSamples = vk::SampleCountFlagBits::e1
-    };
-
-    m_rayTracingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
   void Renderer::transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -402,7 +373,7 @@ namespace vke {
   void Renderer::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const uint32_t currentFrame) const
   {
-    const auto rtImage = m_rayTracingRenderTarget->getRayTracingImageResource(currentFrame).getImage();
+    const auto rtImage = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage();
     const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImage();
 
     // Transition RT image: GENERAL -> TRANSFER_SRC_OPTIMAL
@@ -455,7 +426,7 @@ namespace vke {
   void Renderer::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const uint32_t currentFrame) const
   {
-    const auto rtImage = m_rayTracingRenderTarget->getRayTracingImageResource(currentFrame).getImage();
+    const auto rtImage = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage();
     const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImage();
 
     // Transition offscreen resolve: TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL
@@ -508,7 +479,7 @@ namespace vke {
   void Renderer::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                      const uint32_t currentFrame) const
   {
-    const auto rtImage = m_rayTracingRenderTarget->getRayTracingImageResource(currentFrame).getImage();
+    const auto rtImage = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage();
     const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImage();
 
     const auto extent = m_offscreenRenderTarget->getExtent();

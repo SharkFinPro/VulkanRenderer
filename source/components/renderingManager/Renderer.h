@@ -23,15 +23,11 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
-    [[nodiscard]] std::shared_ptr<RenderTarget> getRayTracingRenderTarget() const;
-
     void resetSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
     void resetOffscreenRenderTarget(vk::Extent2D offscreenViewportExtent);
 
     void resetMousePickingRenderTarget(vk::Extent2D mousePickingExtent);
-
-    void resetRayTracingRenderTarget(vk::Extent2D extent);
 
     void beginSwapchainRendering(uint32_t imageIndex,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -73,8 +69,6 @@ namespace vke {
 
     std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
 
-    std::shared_ptr<RenderTarget> m_rayTracingRenderTarget;
-
     vk::raii::Sampler m_sampler = nullptr;
 
     void createSampler();
@@ -84,8 +78,6 @@ namespace vke {
     void createOffscreenRenderTarget(vk::Extent2D extent);
 
     void createMousePickingRenderTarget(vk::Extent2D extent);
-
-    void createRayTracingRenderTarget(vk::Extent2D extent);
     
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   vk::Image image);
