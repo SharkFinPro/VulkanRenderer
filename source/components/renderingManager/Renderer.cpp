@@ -292,7 +292,7 @@ namespace vke {
     m_offscreenRenderTarget = std::make_shared<RenderTarget>(
       imageResourceConfig,
       m_logicalDevice->getMaxFramesInFlight(),
-      true
+      m_logicalDevice->getPhysicalDevice()->supportsRayTracing()
     );
   }
 
