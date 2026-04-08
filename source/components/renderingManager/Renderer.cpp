@@ -41,23 +41,23 @@ namespace vke {
     return m_rayTracingRenderTarget;
   }
 
-  void Renderer::resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain)
+  void Renderer::resetSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain)
   {
     m_swapchainRenderTarget.reset();
 
     createSwapchainRenderTarget(swapChain);
   }
 
-  void Renderer::resetOffscreenImageResources(const vk::Extent2D offscreenViewportExtent)
+  void Renderer::resetOffscreenRenderTarget(const vk::Extent2D offscreenViewportExtent)
   {
     m_offscreenRenderTarget.reset();
 
     createOffscreenRenderTarget(offscreenViewportExtent);
 
-    resetRayTracingImageResources(offscreenViewportExtent);
+    resetRayTracingRenderTarget(offscreenViewportExtent);
   }
 
-  void Renderer::resetMousePickingImageResources(const vk::Extent2D mousePickingExtent)
+  void Renderer::resetMousePickingRenderTarget(const vk::Extent2D mousePickingExtent)
   {
     m_mousePickingRenderTarget.reset();
 
@@ -250,11 +250,11 @@ namespace vke {
     transitionRayTracingImagePostCopy(commandBuffer, currentFrame);
   }
 
-  void Renderer::resetRayTracingImageResources(const vk::Extent2D extent)
+  void Renderer::resetRayTracingRenderTarget(const vk::Extent2D extent)
   {
     m_rayTracingRenderTarget.reset();
 
-    createRayTracingImageResource(extent);
+    createRayTracingRenderTarget(extent);
   }
 
   void Renderer::createSampler()
@@ -324,7 +324,7 @@ namespace vke {
     m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
   }
 
-  void Renderer::createRayTracingImageResource(const vk::Extent2D extent)
+  void Renderer::createRayTracingRenderTarget(const vk::Extent2D extent)
   {
     if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {

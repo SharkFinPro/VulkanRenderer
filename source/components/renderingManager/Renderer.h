@@ -8,7 +8,6 @@
 namespace vke {
 
   class CommandBuffer;
-  class ImageResource;
   class Light;
   class LogicalDevice;
   class RenderTarget;
@@ -26,13 +25,13 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getRayTracingRenderTarget() const;
 
-    void resetSwapchainImageResources(const std::shared_ptr<SwapChain>& swapChain);
+    void resetSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
 
-    void resetOffscreenImageResources(vk::Extent2D offscreenViewportExtent);
+    void resetOffscreenRenderTarget(vk::Extent2D offscreenViewportExtent);
 
-    void resetMousePickingImageResources(vk::Extent2D mousePickingExtent);
+    void resetMousePickingRenderTarget(vk::Extent2D mousePickingExtent);
 
-    void resetRayTracingImageResources(vk::Extent2D extent);
+    void resetRayTracingRenderTarget(vk::Extent2D extent);
 
     void beginSwapchainRendering(uint32_t imageIndex,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -87,7 +86,7 @@ namespace vke {
 
     void createMousePickingRenderTarget(vk::Extent2D extent);
 
-    void createRayTracingImageResource(vk::Extent2D extent);
+    void createRayTracingRenderTarget(vk::Extent2D extent);
     
     static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   vk::Image image);

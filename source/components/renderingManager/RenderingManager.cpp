@@ -126,7 +126,7 @@ namespace vke {
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
 
-    m_renderer->resetSwapchainImageResources(m_swapChain);
+    m_renderer->resetSwapchainRenderTarget(m_swapChain);
 
     if (m_shouldRenderOffscreen)
     {
@@ -135,14 +135,14 @@ namespace vke {
         return;
       }
 
-      m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
+      m_renderer->resetOffscreenRenderTarget(m_offscreenViewportExtent);
 
-      m_renderer->resetMousePickingImageResources(m_offscreenViewportExtent);
+      m_renderer->resetMousePickingRenderTarget(m_offscreenViewportExtent);
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
     else
     {
-      m_renderer->resetMousePickingImageResources(m_swapChain->getExtent());
+      m_renderer->resetMousePickingRenderTarget(m_swapChain->getExtent());
       m_renderer3D->getMousePicker()->setViewportExtent(m_swapChain->getExtent());
     }
   }
@@ -221,9 +221,9 @@ namespace vke {
 
       m_logicalDevice->waitIdle();
 
-      m_renderer->resetOffscreenImageResources(m_offscreenViewportExtent);
+      m_renderer->resetOffscreenRenderTarget(m_offscreenViewportExtent);
 
-      m_renderer->resetMousePickingImageResources(m_offscreenViewportExtent);
+      m_renderer->resetMousePickingRenderTarget(m_offscreenViewportExtent);
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
