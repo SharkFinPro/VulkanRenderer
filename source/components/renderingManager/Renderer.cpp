@@ -21,14 +21,9 @@ namespace vke {
     createMousePickingRenderTarget(swapChain->getExtent());
   }
 
-  vk::DescriptorSet Renderer::getOffscreenImageDescriptorSet(const uint32_t imageIndex) const
+  std::shared_ptr<RenderTarget> Renderer::getOffscreenRenderTarget() const
   {
-    if (!m_offscreenRenderTarget)
-    {
-      return nullptr;
-    }
-
-    return m_offscreenRenderTarget->getResolveImageResource(imageIndex).getDescriptorSet();
+    return m_offscreenRenderTarget;
   }
 
   std::shared_ptr<RenderTarget> Renderer::getMousePickingRenderTarget() const

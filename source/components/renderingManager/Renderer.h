@@ -19,7 +19,7 @@ namespace vke {
                       const std::shared_ptr<SwapChain>& swapChain,
                       vk::CommandPool commandPool);
 
-    [[nodiscard]] vk::DescriptorSet getOffscreenImageDescriptorSet(uint32_t imageIndex) const;
+    [[nodiscard]] std::shared_ptr<RenderTarget> getOffscreenRenderTarget() const;
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
