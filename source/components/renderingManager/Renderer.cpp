@@ -134,12 +134,13 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void Renderer::beginShadowRendering(const vk::Extent2D extent,
-                                      const std::shared_ptr<CommandBuffer>& commandBuffer,
+  void Renderer::beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                       const std::shared_ptr<Light>& light)
   {
+    const auto shadowMapRenderTarget = light->getShadowMapRenderTarget();
+
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = light->getShadowMapView(),
+      .imageView = shadowMapRenderTarget->getDepthImageResource(0).getImageView(),
       .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eStore,
@@ -150,7 +151,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = extent,
+        .extent = shadowMapRenderTarget->getExtent(),
       },
       .layerCount = 1,
       .viewMask = light->getLightType() == LightType::pointLight ? kCubemapFacesMask : 0,

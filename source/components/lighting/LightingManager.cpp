@@ -9,7 +9,9 @@
 #include "../pipelines/descriptorSets/DescriptorSet.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
+#include "../renderingManager/ImageResource.h"
 #include "../renderingManager/Renderer.h"
+#include "../renderingManager/RenderTarget.h"
 
 namespace {
 
@@ -307,7 +309,7 @@ namespace vke {
 
       imageInfos.push_back({
         m_shadowMapSampler,
-        light->getShadowMapView(),
+        light->getShadowMapRenderTarget()->getDepthImageResource(0).getImageView(),
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
       });
 
@@ -397,7 +399,7 @@ namespace vke {
 
       imageInfos.push_back({
         m_shadowMapSampler,
-        light->getShadowMapView(),
+        light->getShadowMapRenderTarget()->getDepthImageResource(0).getImageView(),
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
       });
 
@@ -464,7 +466,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      m_renderer->beginShadowRendering(shadowExtent, commandBuffer, light);
+      m_renderer->beginShadowRendering(commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,
@@ -542,7 +544,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      m_renderer->beginShadowRendering(shadowExtent, commandBuffer, light);
+      m_renderer->beginShadowRendering(commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,

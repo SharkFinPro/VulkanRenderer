@@ -40,8 +40,7 @@ namespace vke {
     void beginOffscreenRendering(uint32_t currentFrame,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    static void beginShadowRendering(vk::Extent2D extent,
-                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
+    static void beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                      const std::shared_ptr<Light>& light);
 
     void beginMousePickingRendering(uint32_t currentFrame,

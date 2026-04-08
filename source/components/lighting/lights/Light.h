@@ -71,10 +71,6 @@ namespace vke {
     void setDiffuse(float diffuse);
     void setSpecular(float specular);
 
-    [[nodiscard]] vk::Image getShadowMap() const;
-
-    [[nodiscard]] vk::ImageView getShadowMapView() const;
-
     [[nodiscard]] uint32_t getShadowMapSize() const;
 
     [[nodiscard]] bool castsShadows() const;
