@@ -33,12 +33,10 @@ namespace vke {
     void resetRayTracingImageResources(vk::Extent2D extent);
 
     void beginSwapchainRendering(uint32_t imageIndex,
-                                 vk::Extent2D extent,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  const std::shared_ptr<SwapChain>& swapChain) const;
 
     void beginOffscreenRendering(uint32_t currentFrame,
-                                 vk::Extent2D extent,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     static void beginShadowRendering(vk::Extent2D extent,
@@ -46,7 +44,6 @@ namespace vke {
                                      const std::shared_ptr<Light>& light);
 
     void beginMousePickingRendering(uint32_t currentFrame,
-                                    vk::Extent2D extent,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     static void endSwapchainRendering(uint32_t imageIndex,

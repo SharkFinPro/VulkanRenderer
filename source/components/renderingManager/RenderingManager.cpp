@@ -249,7 +249,7 @@ namespace vke {
     };
 
     auto recordMousePicking = [&](const RenderInfo& renderInfo) {
-      m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
+      m_renderer->beginMousePickingRendering(currentFrame, renderInfo.commandBuffer);
 
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
@@ -266,7 +266,7 @@ namespace vke {
         return;
       }
 
-      m_renderer->beginOffscreenRendering(currentFrame, m_offscreenViewportExtent, m_offscreenCommandBuffer);
+      m_renderer->beginOffscreenRendering(currentFrame, m_offscreenCommandBuffer);
 
       m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
 
@@ -371,7 +371,7 @@ namespace vke {
       };
       renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer->beginSwapchainRendering(imageIndex, m_swapChain->getExtent(), renderInfo.commandBuffer, m_swapChain);
+      m_renderer->beginSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
 
       if (!m_shouldRenderOffscreen)
       {

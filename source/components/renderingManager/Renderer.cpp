@@ -60,7 +60,6 @@ namespace vke {
   }
 
   void Renderer::beginSwapchainRendering(const uint32_t imageIndex,
-                                         const vk::Extent2D extent,
                                          const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<SwapChain>& swapChain) const
   {
@@ -88,7 +87,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = extent,
+        .extent = m_swapchainRenderTarget->getExtent(),
       },
       .layerCount = 1,
       .colorAttachmentCount = 1,
@@ -100,7 +99,6 @@ namespace vke {
   }
 
   void Renderer::beginOffscreenRendering(const uint32_t currentFrame,
-                                         const vk::Extent2D extent,
                                          const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
@@ -125,7 +123,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = extent,
+        .extent = m_offscreenRenderTarget->getExtent(),
       },
       .layerCount = 1,
       .colorAttachmentCount = 1,
@@ -165,7 +163,6 @@ namespace vke {
   }
 
   void Renderer::beginMousePickingRendering(const uint32_t currentFrame,
-                                            const vk::Extent2D extent,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
@@ -188,7 +185,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = extent,
+        .extent = m_mousePickingRenderTarget->getExtent(),
       },
       .layerCount = 1,
       .colorAttachmentCount = 1,
