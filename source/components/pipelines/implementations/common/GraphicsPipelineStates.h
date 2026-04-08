@@ -11,7 +11,7 @@
 #include <array>
 #include <memory>
 
-namespace vke::GraphicsPipelineStates {
+namespace vke::gps {
 
   inline vk::PipelineColorBlendAttachmentState colorBlendAttachment {
     .blendEnable = vk::False,
@@ -292,6 +292,6 @@ namespace vke::GraphicsPipelineStates {
     .scissorCount = 1
   };
 
-} // namespace vke::GraphicsPipelineStates
+} // namespace vke::gps
 
 #endif //VKE_GRAPHICSPIPELINESTATES_H

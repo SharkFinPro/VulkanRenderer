@@ -29,14 +29,14 @@ namespace vke {
         .fragmentShader = "assets/shaders/Smoke.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateSmoke,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStatePointList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateSmokeParticle,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateSmoke,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStatePointList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateSmokeParticle,
+        .viewportState = gps::viewportState
       },
       .descriptorSetLayouts {
         smokeSystemDescriptorSetLayout,

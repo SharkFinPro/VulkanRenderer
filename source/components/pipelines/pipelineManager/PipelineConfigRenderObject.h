@@ -16,14 +16,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/TexturedPlane.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .descriptorSetLayouts {
         objectDescriptorSetLayout
@@ -40,14 +40,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/ObjectHighlight.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateDots,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionOnly,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateDots,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertexPositionOnly,
+        .viewportState = gps::viewportState
       },
       .descriptorSetLayouts {
         objectDescriptorSetLayout
@@ -64,14 +64,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/MagnifyWhirlMosaic.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -94,14 +94,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/MousePicking.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::multisampleStateNone,
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionOnly,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::multisampleStateNone,
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertexPositionOnly,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -124,14 +124,14 @@ namespace vke::PipelineConfig {
         .vertexShader = "assets/shaders/renderObject/Shadow.vert.spv",
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::multisampleStateNone,
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateShadow,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::multisampleStateNone,
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -156,14 +156,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/ShadowCubeMap.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateShadow,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::multisampleStateNone,
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateShadow,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::multisampleStateNone,
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -191,14 +191,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/EllipticalDots.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -225,14 +225,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/Crosses.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertexPositionAndNormal,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertexPositionAndNormal,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -258,14 +258,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/Curtain.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -291,14 +291,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/objects.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .descriptorSetLayouts {
         objectDescriptorSetLayout,
@@ -318,14 +318,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/Snake.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -352,14 +352,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/NoisyEllipticalDots.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -387,14 +387,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/BumpyCurtain.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
@@ -421,14 +421,14 @@ namespace vke::PipelineConfig {
         .fragmentShader = "assets/shaders/renderObject/CubeMap.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateCullBack,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateCullBack,
+        .vertexInputState = gps::vertexInputStateVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {

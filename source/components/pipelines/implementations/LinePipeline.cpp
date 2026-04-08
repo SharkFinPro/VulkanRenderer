@@ -17,14 +17,14 @@ namespace vke {
         .fragmentShader = "assets/shaders/Line.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendState,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateLineList,
-        .multisampleState = GraphicsPipelineStates::getMultsampleState(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateLineVertex,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateLineList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateLineVertex,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {

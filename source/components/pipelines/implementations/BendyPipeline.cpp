@@ -55,14 +55,14 @@ namespace vke {
         .fragmentShader = "assets/shaders/Bendy.frag.spv"
       },
       .states {
-        .colorBlendState = GraphicsPipelineStates::colorBlendStateBendy,
-        .depthStencilState = GraphicsPipelineStates::depthStencilState,
-        .dynamicState = GraphicsPipelineStates::dynamicState,
-        .inputAssemblyState = GraphicsPipelineStates::inputAssemblyStateTriangleStrip,
-        .multisampleState = GraphicsPipelineStates::getMultsampleStateAlpha(logicalDevice),
-        .rasterizationState = GraphicsPipelineStates::rasterizationStateNoCull,
-        .vertexInputState = GraphicsPipelineStates::vertexInputStateRaw,
-        .viewportState = GraphicsPipelineStates::viewportState
+        .colorBlendState = gps::colorBlendStateBendy,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleStateAlpha(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
