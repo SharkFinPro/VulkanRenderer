@@ -201,8 +201,7 @@ namespace vke {
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
-    m_offscreenViewportPos = ImGui::GetCursorScreenPos();
-    m_renderer3D->getMousePicker()->setViewportPos(m_offscreenViewportPos);
+    m_renderer3D->getMousePicker()->setViewportPos(ImGui::GetCursorScreenPos());
 
     const auto offscreenImageDescriptorSet = m_renderer->getOffscreenRenderTarget()->getResolveImageResource(currentFrame).getDescriptorSet();
 

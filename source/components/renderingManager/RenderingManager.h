@@ -77,8 +77,6 @@ namespace vke {
 
     vk::Extent2D m_offscreenViewportExtent{0, 0};
 
-    ImVec2 m_offscreenViewportPos{0, 0};
-
     std::string m_sceneViewName;
 
     std::shared_ptr<Renderer2D> m_renderer2D;
