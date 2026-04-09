@@ -78,7 +78,7 @@ namespace vke {
 
     bool m_sceneIsFocused = false;
 
-    vk::Extent2D m_offscreenViewportExtent{};
+    vk::Extent2D m_offscreenViewportExtent{0, 0};
 
     ImVec2 m_offscreenViewportPos{0, 0};
 

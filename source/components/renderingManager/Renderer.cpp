@@ -5,18 +5,14 @@
 #include "../lighting/lights/Light.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../window/SwapChain.h"
 
 namespace vke {
 
   Renderer::Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
-                     const std::shared_ptr<SwapChain>& swapChain,
                      const vk::CommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     createSampler();
-
-    createMousePickingRenderTarget(swapChain->getExtent());
   }
 
   std::shared_ptr<RenderTarget> Renderer::getOffscreenRenderTarget() const

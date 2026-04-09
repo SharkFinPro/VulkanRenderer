@@ -8,15 +8,12 @@
 namespace vke {
 
   class CommandBuffer;
-  class Light;
   class LogicalDevice;
   class RenderTarget;
-  class SwapChain;
 
   class Renderer {
   public:
     explicit Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
-                      const std::shared_ptr<SwapChain>& swapChain,
                       vk::CommandPool commandPool);
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getOffscreenRenderTarget() const;

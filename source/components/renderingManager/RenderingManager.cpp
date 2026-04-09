@@ -42,7 +42,7 @@ namespace vke {
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
 
-    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_swapChain, m_commandPool);
+    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_commandPool);
 
     m_framebufferResizeEventListener = m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
       m_framebufferResized = true;
@@ -312,7 +312,9 @@ namespace vke {
 
     m_logicalDevice->submitOffscreenCommandBuffer(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
 
-    if (m_shouldRenderOffscreen)
+    if (m_shouldRenderOffscreen &&
+        m_offscreenViewportExtent.width != 0 &&
+        m_offscreenViewportExtent.height != 0)
     {
       m_logicalDevice->waitForOffscreenFence(currentFrame);
       m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
