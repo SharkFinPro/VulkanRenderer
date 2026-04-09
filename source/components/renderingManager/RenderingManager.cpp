@@ -40,7 +40,7 @@ namespace vke {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
+    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
 
     m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_swapChain, m_commandPool);
 
@@ -119,9 +119,7 @@ namespace vke {
 
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
-
-    m_renderer->resetSwapchainRenderTarget(m_swapChain);
+    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
 
     if (m_shouldRenderOffscreen)
     {
@@ -368,7 +366,7 @@ namespace vke {
       };
       renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer->beginSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
+      m_swapChain->beginRendering(imageIndex, renderInfo.commandBuffer);
 
       if (!m_shouldRenderOffscreen)
       {
@@ -387,7 +385,7 @@ namespace vke {
 
       ImGuiInstance::render(renderInfo.commandBuffer);
 
-      m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
+      m_swapChain->endRendering(imageIndex, renderInfo.commandBuffer);
     });
 
     m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());

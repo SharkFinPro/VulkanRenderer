@@ -7,7 +7,9 @@
 
 namespace vke {
 
+  class CommandBuffer;
   class LogicalDevice;
+  class RenderTarget;
   class Surface;
   class Window;
 
@@ -15,7 +17,8 @@ namespace vke {
   public:
     SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
               const std::shared_ptr<Window>& window,
-              const std::shared_ptr<Surface>& surface);
+              const std::shared_ptr<Surface>& surface,
+              vk::CommandPool commandPool);
 
     [[nodiscard]] vk::Format getImageFormat() const;
 
@@ -27,12 +30,20 @@ namespace vke {
 
     [[nodiscard]] const std::vector<vk::Image>& getImages() const;
 
+    void beginRendering(uint32_t imageIndex,
+                        const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void endRendering(uint32_t imageIndex,
+                      const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
   private:
     vk::raii::SwapchainKHR m_swapchain = nullptr;
     std::vector<vk::Image> m_swapChainImages;
     vk::Format m_swapChainImageFormat = vk::Format::eUndefined;
     vk::Extent2D m_swapChainExtent{};
     std::vector<vk::raii::ImageView> m_swapChainImageViews;
+
+    std::shared_ptr<RenderTarget> m_swapchainRenderTarget;
 
     static vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 
@@ -48,6 +59,15 @@ namespace vke {
                          const std::shared_ptr<Surface>& surface);
 
     void createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice);
+
+    void createRenderTarget(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                     vk::CommandPool commandPool);
+
+    static void transitionImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                  vk::Image image);
+
+    static void transitionImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                   vk::Image image);
   };
 
 } // namespace vke

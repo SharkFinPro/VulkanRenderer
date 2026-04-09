@@ -23,25 +23,15 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
-    void resetSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
-
     void resetOffscreenRenderTarget(vk::Extent2D offscreenViewportExtent);
 
     void resetMousePickingRenderTarget(vk::Extent2D mousePickingExtent);
-
-    void beginSwapchainRendering(uint32_t imageIndex,
-                                 const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                 const std::shared_ptr<SwapChain>& swapChain) const;
 
     void beginOffscreenRendering(uint32_t currentFrame,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
     void beginMousePickingRendering(uint32_t currentFrame,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer) const;
-
-    static void endSwapchainRendering(uint32_t imageIndex,
-                                      const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                      const std::shared_ptr<SwapChain>& swapChain);
 
     void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                   uint32_t currentFrame) const;
@@ -62,25 +52,15 @@ namespace vke {
 
     std::shared_ptr<RenderTarget> m_offscreenRenderTarget;
 
-    std::shared_ptr<RenderTarget> m_swapchainRenderTarget;
-
     std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
 
     vk::raii::Sampler m_sampler = nullptr;
 
     void createSampler();
 
-    void createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain);
-
     void createOffscreenRenderTarget(vk::Extent2D extent);
 
     void createMousePickingRenderTarget(vk::Extent2D extent);
-    
-    static void transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                  vk::Image image);
-
-    static void transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                   vk::Image image);
 
     void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                           uint32_t currentFrame) const;

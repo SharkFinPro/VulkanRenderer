@@ -1,8 +1,10 @@
 #include "SwapChain.h"
 #include "Surface.h"
 #include "Window.h"
+#include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include "../renderingManager/RenderTarget.h"
 #include "../../utilities/Images.h"
 #include <limits>
 #include <algorithm>
@@ -11,11 +13,14 @@ namespace vke {
 
   SwapChain::SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<Window>& window,
-                       const std::shared_ptr<Surface>& surface)
+                       const std::shared_ptr<Surface>& surface,
+                       const vk::CommandPool commandPool)
   {
     createSwapChain(logicalDevice, window, surface);
 
     createImageViews(logicalDevice);
+
+    createRenderTarget(logicalDevice, commandPool);
   }
 
   vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
@@ -142,6 +147,81 @@ namespace vke {
     }
   }
 
+  void SwapChain::createRenderTarget(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                              const vk::CommandPool commandPool)
+  {
+    ImageResourceConfig imageResourceConfig {
+      .logicalDevice = logicalDevice,
+      .extent = m_swapChainExtent,
+      .commandPool = commandPool,
+      .colorFormat = m_swapChainImageFormat,
+      .depthFormat = logicalDevice->getPhysicalDevice()->findDepthFormat(),
+      .numSamples = logicalDevice->getPhysicalDevice()->getMsaaSamples()
+    };
+
+    m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, static_cast<uint32_t>(m_swapChainImages.size()));
+  }
+
+  void SwapChain::transitionImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           const vk::Image image)
+  {
+    const vk::ImageMemoryBarrier imageMemoryBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eNone,
+      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .oldLayout = vk::ImageLayout::eUndefined,
+      .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .image = image,
+      .subresourceRange = {
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      vk::PipelineStageFlagBits::eTopOfPipe,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      {},
+      {},
+      {},
+      { imageMemoryBarrier }
+    );
+  }
+
+  void SwapChain::transitionImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                            const vk::Image image)
+  {
+    const vk::ImageMemoryBarrier imageMemoryBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .dstAccessMask = vk::AccessFlagBits::eNone,
+      .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .newLayout = vk::ImageLayout::ePresentSrcKHR,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .image = image,
+      .subresourceRange = {
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      vk::PipelineStageFlagBits::eBottomOfPipe,
+      {},
+      {},
+      {},
+      { imageMemoryBarrier }
+    );
+  }
+
   vk::Format SwapChain::getImageFormat() const
   {
     return m_swapChainImageFormat;
@@ -165,6 +245,58 @@ namespace vke {
   const std::vector<vk::Image>& SwapChain::getImages() const
   {
     return m_swapChainImages;
+  }
+
+  void SwapChain::beginRendering(const uint32_t imageIndex,
+                                 const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
+      .depth = 1.0f,
+      .stencil = 0
+    };
+
+    transitionImagePreRender(commandBuffer, m_swapChainImages.at(imageIndex));
+
+    vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
+      .imageView = m_swapchainRenderTarget->getColorImageResource(imageIndex).getImageView(),
+      .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .resolveMode = vk::ResolveModeFlagBits::eAverage,
+      .resolveImageView = m_swapChainImageViews.at(imageIndex),
+      .resolveImageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .clearValue = s_clearColor
+    };
+
+    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
+      .imageView = m_swapchainRenderTarget->getDepthImageResource(imageIndex).getImageView(),
+      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eDontCare,
+      .clearValue = s_clearDepth
+    };
+
+    const vk::RenderingInfo renderingInfo {
+      .renderArea = {
+        .offset = {0, 0},
+        .extent = m_swapchainRenderTarget->getExtent(),
+      },
+      .layerCount = 1,
+      .colorAttachmentCount = 1,
+      .pColorAttachments = &colorRenderingAttachmentInfo,
+      .pDepthAttachment = &depthRenderingAttachmentInfo,
+    };
+
+    commandBuffer->beginRendering(renderingInfo);
+  }
+
+  void SwapChain::endRendering(const uint32_t imageIndex,
+                               const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  {
+    commandBuffer->endRendering();
+
+    transitionImagePostRender(commandBuffer, m_swapChainImages.at(imageIndex));
   }
 
 } // namespace vke
