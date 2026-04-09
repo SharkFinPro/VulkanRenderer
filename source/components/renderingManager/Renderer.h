@@ -23,9 +23,7 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
 
-    void resetOffscreenRenderTarget(vk::Extent2D offscreenViewportExtent);
-
-    void resetMousePickingRenderTarget(vk::Extent2D mousePickingExtent);
+    void recreateRenderTargets(vk::Extent2D extent);
 
     void beginOffscreenRendering(uint32_t currentFrame,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer) const;

@@ -29,18 +29,13 @@ namespace vke {
     return m_mousePickingRenderTarget;
   }
 
-  void Renderer::resetOffscreenRenderTarget(const vk::Extent2D offscreenViewportExtent)
+  void Renderer::recreateRenderTargets(const vk::Extent2D extent)
   {
     m_offscreenRenderTarget.reset();
-
-    createOffscreenRenderTarget(offscreenViewportExtent);
-  }
-
-  void Renderer::resetMousePickingRenderTarget(const vk::Extent2D mousePickingExtent)
-  {
     m_mousePickingRenderTarget.reset();
 
-    createMousePickingRenderTarget(mousePickingExtent);
+    createOffscreenRenderTarget(extent);
+    createMousePickingRenderTarget(extent);
   }
 
   void Renderer::beginOffscreenRendering(const uint32_t currentFrame,
