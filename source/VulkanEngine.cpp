@@ -129,7 +129,7 @@ namespace vke {
       m_assetManager
     );
 
-    m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_renderingManager->getRenderer());
+    m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice);
 
     m_pipelineManager = std::make_shared<PipelineManager>(
       m_logicalDevice,

@@ -19,8 +19,7 @@ namespace vke {
 
   class LightingManager {
   public:
-    LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                    std::shared_ptr<Renderer> renderer);
+    explicit LightingManager(std::shared_ptr<LogicalDevice> logicalDevice);
 
     [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
                                                           glm::vec3 color,

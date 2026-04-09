@@ -92,9 +92,8 @@ namespace {
 
 namespace vke {
 
-  LightingManager::LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                                   std::shared_ptr<Renderer> renderer)
-    : m_logicalDevice(std::move(logicalDevice)), m_renderer(std::move(renderer))
+  LightingManager::LightingManager(std::shared_ptr<LogicalDevice> logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     createCommandPool();
 
@@ -466,7 +465,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      m_renderer->beginShadowRendering(commandBuffer, light);
+      Renderer::beginShadowRendering(commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,
@@ -544,7 +543,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      m_renderer->beginShadowRendering(commandBuffer, light);
+      Renderer::beginShadowRendering(commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,
