@@ -27,7 +27,6 @@ namespace vke {
     RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                      std::shared_ptr<Surface> surface,
                      std::shared_ptr<Window> window,
-                     bool shouldRenderOffscreen,
                      std::string sceneViewName,
                      const std::shared_ptr<AssetManager>& assetManager);
 
@@ -72,8 +71,6 @@ namespace vke {
 
     std::shared_ptr<SwapChain> m_swapChain;
 
-    bool m_shouldRenderOffscreen;
-
     bool m_framebufferResized = false;
 
     bool m_sceneIsFocused = false;
@@ -98,13 +95,8 @@ namespace vke {
                                       const std::shared_ptr<LightingManager>& lightingManager,
                                       uint32_t currentFrame) const;
 
-    void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                      const std::shared_ptr<LightingManager>& lightingManager,
-                                      uint32_t currentFrame,
+    void recordSwapchainCommandBuffer(uint32_t currentFrame,
                                       uint32_t imageIndex) const;
-
-    static void resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                 vk::Extent2D extent);
 
     void createCommandPool();
   };
