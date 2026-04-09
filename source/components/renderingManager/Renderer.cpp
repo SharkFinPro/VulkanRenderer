@@ -127,35 +127,6 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void Renderer::beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                      const std::shared_ptr<Light>& light)
-  {
-    const auto shadowMapRenderTarget = light->getShadowMapRenderTarget();
-
-    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = shadowMapRenderTarget->getDepthImageResource(0).getImageView(),
-      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
-      .loadOp = vk::AttachmentLoadOp::eClear,
-      .storeOp = vk::AttachmentStoreOp::eStore,
-      .clearValue = s_clearDepth
-    };
-
-    constexpr uint32_t kCubemapFacesMask = 0x3Fu;
-    const vk::RenderingInfo renderingInfo {
-      .renderArea = {
-        .offset = {0, 0},
-        .extent = shadowMapRenderTarget->getExtent(),
-      },
-      .layerCount = 1,
-      .viewMask = light->getLightType() == LightType::pointLight ? kCubemapFacesMask : 0,
-      .colorAttachmentCount = 0,
-      .pColorAttachments = nullptr,
-      .pDepthAttachment = &depthRenderingAttachmentInfo,
-    };
-
-    commandBuffer->beginRendering(renderingInfo);
-  }
-
   void Renderer::beginMousePickingRendering(const uint32_t currentFrame,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {

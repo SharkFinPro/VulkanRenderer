@@ -10,7 +10,6 @@
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/ImageResource.h"
-#include "../renderingManager/Renderer.h"
 #include "../renderingManager/RenderTarget.h"
 
 namespace {
@@ -465,7 +464,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      Renderer::beginShadowRendering(commandBuffer, light);
+      beginShadowRendering(commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,
@@ -543,7 +542,7 @@ namespace vke {
         .height = light->getShadowMapSize()
       };
 
-      Renderer::beginShadowRendering(commandBuffer, light);
+      beginShadowRendering(commandBuffer, light);
 
       vk::Viewport viewport {
         .x = 0.0f,
@@ -660,5 +659,39 @@ namespace vke {
     {
       m_lightMetadataUniform->update(i, &lightMetadataUBO);
     }
+  }
+
+  void LightingManager::beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             const std::shared_ptr<Light>& light)
+  {
+    static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
+      .depth = 1.0f,
+      .stencil = 0
+    };
+
+    const auto shadowMapRenderTarget = light->getShadowMapRenderTarget();
+
+    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
+      .imageView = shadowMapRenderTarget->getDepthImageResource(0).getImageView(),
+      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eClear,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+      .clearValue = s_clearDepth
+    };
+
+    constexpr uint32_t kCubemapFacesMask = 0x3Fu;
+    const vk::RenderingInfo renderingInfo {
+      .renderArea = {
+        .offset = {0, 0},
+        .extent = shadowMapRenderTarget->getExtent(),
+      },
+      .layerCount = 1,
+      .viewMask = light->getLightType() == LightType::pointLight ? kCubemapFacesMask : 0,
+      .colorAttachmentCount = 0,
+      .pColorAttachments = nullptr,
+      .pDepthAttachment = &depthRenderingAttachmentInfo,
+    };
+
+    commandBuffer->beginRendering(renderingInfo);
   }
 } // namespace vke
