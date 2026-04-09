@@ -98,11 +98,6 @@ namespace vke {
     }
   }
 
-  std::shared_ptr<Renderer> RenderingManager::getRenderer() const
-  {
-    return m_renderer;
-  }
-
   bool RenderingManager::isSceneFocused() const
   {
     return m_sceneIsFocused || !m_shouldRenderOffscreen;

@@ -37,8 +37,6 @@ namespace vke {
                      const std::shared_ptr<LightingManager>& lightingManager,
                      uint32_t currentFrame);
 
-    [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
-
     [[nodiscard]] bool isSceneFocused() const;
 
     void recreateSwapChain();
