@@ -10,7 +10,6 @@
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/ImageResource.h"
-#include "../renderingManager/RenderTarget.h"
 
 namespace {
 
