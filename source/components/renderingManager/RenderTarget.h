@@ -1,6 +1,7 @@
 #ifndef VKE_RENDERTARGET_H
 #define VKE_RENDERTARGET_H
 
+#include "ImageResource.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <vector>
@@ -8,7 +9,6 @@
 namespace vke {
 
   class CommandBuffer;
-  class ImageResource;
   class LogicalDevice;
 
   class RenderTarget {

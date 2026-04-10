@@ -1,7 +1,6 @@
 #include "RenderTarget.h"
 #include "ImageResource.h"
 #include "../commandBuffer/CommandBuffer.h"
-#include "../lighting/lights/Light.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 

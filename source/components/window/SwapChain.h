@@ -1,6 +1,7 @@
 #ifndef VKE_SWAPCHAIN_H
 #define VKE_SWAPCHAIN_H
 
+#include "../renderingManager/ImageResource.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <vector>
@@ -8,7 +9,6 @@
 namespace vke {
 
   class CommandBuffer;
-  class ImageResource;
   class LogicalDevice;
   class Surface;
   class Window;
