@@ -63,7 +63,7 @@ namespace vke {
                           stagingBuffer, stagingBufferMemory);
 
     Buffers::doMappedMemoryOperation(stagingBufferMemory, [imageData, imageSize](void* data) {
-      memcpy(data, imageData, static_cast<size_t>(imageSize));
+      memcpy(data, imageData, imageSize);
     });
 
     delete[] imageData;

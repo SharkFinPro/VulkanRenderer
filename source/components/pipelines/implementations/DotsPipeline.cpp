@@ -143,7 +143,7 @@ namespace vke {
                           stagingBuffer, stagingBufferMemory);
 
     Buffers::doMappedMemoryOperation(stagingBufferMemory, [particles](void* data) {
-      memcpy(data, particles.data(), static_cast<size_t>(bufferSize));
+      memcpy(data, particles.data(), bufferSize);
     });
 
     for (size_t i = 0; i < logicalDevice->getMaxFramesInFlight(); i++)

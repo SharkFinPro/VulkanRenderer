@@ -47,7 +47,7 @@ namespace vke {
       for (size_t i = 0; i < pixels.size(); ++i)
       {
         const vk::DeviceSize offset = i * imageSize;
-        memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], static_cast<size_t>(imageSize));
+        memcpy(static_cast<uint8_t*>(data) + offset, pixels[i], imageSize);
         stbi_image_free(pixels[i]);
       }
     });

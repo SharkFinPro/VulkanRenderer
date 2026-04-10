@@ -45,7 +45,7 @@ namespace vke {
                           stagingBuffer, stagingBufferMemory);
 
     Buffers::doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
-      memcpy(data, pixels, static_cast<size_t>(imageSize));
+      memcpy(data, pixels, imageSize);
     });
 
     stbi_image_free(pixels);
