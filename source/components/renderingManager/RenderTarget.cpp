@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "RenderTarget.h"
 #include "ImageResource.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../lighting/lights/Light.h"
@@ -7,29 +7,29 @@
 
 namespace vke {
 
-  Renderer::Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
+  RenderTarget::RenderTarget(std::shared_ptr<LogicalDevice> logicalDevice,
                      const vk::CommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     createSampler();
   }
 
-  ImageResource& Renderer::getOffscreenResolveImageResource(const uint32_t currentFrame)
+  ImageResource& RenderTarget::getOffscreenResolveImageResource(const uint32_t currentFrame)
   {
     return m_offscreenResolveImageResources.at(currentFrame);
   }
 
-  ImageResource& Renderer::getOffscreenRayTracingImageResource(const uint32_t currentFrame)
+  ImageResource& RenderTarget::getOffscreenRayTracingImageResource(const uint32_t currentFrame)
   {
     return m_offscreenRayTracingImageResources.at(currentFrame);
   }
 
-  ImageResource& Renderer::getMousePickingColorImageResource(const uint32_t currentFrame)
+  ImageResource& RenderTarget::getMousePickingColorImageResource(const uint32_t currentFrame)
   {
     return m_mousePickingColorImageResources.at(currentFrame);
   }
 
-  void Renderer::recreateImageResources(const vk::Extent2D extent)
+  void RenderTarget::recreateImageResources(const vk::Extent2D extent)
   {
     m_offscreenColorImageResources.clear();
     m_offscreenDepthImageResources.clear();
@@ -46,7 +46,7 @@ namespace vke {
     createMousePickingImageResources(extent);
   }
 
-  void Renderer::beginOffscreenRendering(const uint32_t currentFrame,
+  void RenderTarget::beginOffscreenRendering(const uint32_t currentFrame,
                                          const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
@@ -82,7 +82,7 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void Renderer::beginMousePickingRendering(const uint32_t currentFrame,
+  void RenderTarget::beginMousePickingRendering(const uint32_t currentFrame,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
@@ -116,7 +116,7 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void Renderer::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+  void RenderTarget::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                           const uint32_t currentFrame) const
   {
     const vk::ImageMemoryBarrier imageMemoryBarrier {
@@ -146,7 +146,7 @@ namespace vke {
     );
   }
 
-  void Renderer::endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+  void RenderTarget::endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                         const uint32_t currentFrame) const
   {
     transitionRayTracingImagePreCopy(commandBuffer, currentFrame);
@@ -156,7 +156,7 @@ namespace vke {
     transitionRayTracingImagePostCopy(commandBuffer, currentFrame);
   }
 
-  void Renderer::createSampler()
+  void RenderTarget::createSampler()
   {
     constexpr vk::SamplerCreateInfo samplerInfo {
       .magFilter = vk::Filter::eLinear,
@@ -179,7 +179,7 @@ namespace vke {
     m_sampler = m_logicalDevice->createSampler(samplerInfo);
   }
 
-  void Renderer::createOffscreenImageResources(vk::Extent2D extent)
+  void RenderTarget::createOffscreenImageResources(vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
@@ -231,7 +231,7 @@ namespace vke {
     }
   }
 
-  void Renderer::createMousePickingImageResources(vk::Extent2D extent)
+  void RenderTarget::createMousePickingImageResources(vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
@@ -260,7 +260,7 @@ namespace vke {
     }
   }
 
-  void Renderer::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+  void RenderTarget::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const uint32_t currentFrame) const
   {
     const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
@@ -313,7 +313,7 @@ namespace vke {
     );
   }
 
-  void Renderer::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+  void RenderTarget::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const uint32_t currentFrame) const
   {
     const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
@@ -366,7 +366,7 @@ namespace vke {
     );
   }
 
-  void Renderer::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+  void RenderTarget::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                      const uint32_t currentFrame) const
   {
     const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();

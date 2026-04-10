@@ -2,7 +2,6 @@
 #define VKE_RENDERINGMANAGER_H
 
 #include "../../utilities/EventSystem.h"
-#include <imgui.h>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <string>
@@ -15,7 +14,7 @@ namespace vke {
   class LightingManager;
   class LogicalDevice;
   class PipelineManager;
-  class Renderer;
+  class RenderTarget;
   class Renderer2D;
   class Renderer3D;
   class Surface;
@@ -61,7 +60,7 @@ namespace vke {
 
     std::shared_ptr<Window> m_window;
 
-    std::shared_ptr<Renderer> m_renderer;
+    std::shared_ptr<RenderTarget> m_renderTarget;
 
     vk::raii::CommandPool m_commandPool = nullptr;
 

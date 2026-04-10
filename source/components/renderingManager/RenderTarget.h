@@ -1,5 +1,5 @@
-#ifndef VKE_RENDERER_H
-#define VKE_RENDERER_H
+#ifndef VKE_RENDERTARGET_H
+#define VKE_RENDERTARGET_H
 
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
@@ -11,9 +11,9 @@ namespace vke {
   class ImageResource;
   class LogicalDevice;
 
-  class Renderer {
+  class RenderTarget {
   public:
-    explicit Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
+    explicit RenderTarget(std::shared_ptr<LogicalDevice> logicalDevice,
                       vk::CommandPool commandPool);
 
     [[nodiscard]] ImageResource& getOffscreenResolveImageResource(uint32_t currentFrame);
@@ -78,4 +78,4 @@ namespace vke {
 
 } // namespace vke
 
-#endif //VKE_RENDERER_H
+#endif //VKE_RENDERTARGET_H

@@ -13,7 +13,6 @@ namespace vke {
   class Light;
   class LogicalDevice;
   class PipelineManager;
-  class Renderer;
   class RenderObject;
   class UniformBuffer;
 
@@ -73,8 +72,6 @@ namespace vke {
     vk::raii::Sampler m_shadowMapSampler = nullptr;
 
     vk::raii::DescriptorSetLayout m_pointLightDescriptorSetLayout = nullptr;
-
-    std::shared_ptr<Renderer> m_renderer;
 
     void createUniforms();
 
