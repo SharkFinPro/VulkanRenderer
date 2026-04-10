@@ -95,8 +95,6 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/renderingManager/Renderer.h
   components/renderingManager/RenderingManager.cpp
   components/renderingManager/RenderingManager.h
-  components/renderingManager/RenderTarget.cpp
-  components/renderingManager/RenderTarget.h
 
   # Windows
   components/window/Surface.cpp
