@@ -19,8 +19,7 @@ namespace vke {
 
   class LightingManager {
   public:
-    LightingManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                    std::shared_ptr<Renderer> renderer);
+    explicit LightingManager(std::shared_ptr<LogicalDevice> logicalDevice);
 
     [[nodiscard]] std::shared_ptr<Light> createPointLight(glm::vec3 position,
                                                           glm::vec3 color,
@@ -113,6 +112,9 @@ namespace vke {
     [[nodiscard]] vk::DescriptorPool getDescriptorPool();
 
     void updateLightMetadataUniform() const;
+
+    static void beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                     const std::shared_ptr<Light>& light);
   };
 
 } // namespace vke

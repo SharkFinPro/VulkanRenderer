@@ -124,12 +124,11 @@ namespace vke {
       m_logicalDevice,
       m_surface,
       m_window,
-      engineConfig.imGui.useDockspace,
       engineConfig.imGui.sceneViewName.c_str(),
       m_assetManager
     );
 
-    m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice, m_renderingManager->getRenderer());
+    m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice);
 
     m_pipelineManager = std::make_shared<PipelineManager>(
       m_logicalDevice,

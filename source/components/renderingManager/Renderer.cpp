@@ -5,20 +5,14 @@
 #include "../lighting/lights/Light.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../window/SwapChain.h"
 
 namespace vke {
 
   Renderer::Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
-                     const std::shared_ptr<SwapChain>& swapChain,
                      const vk::CommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     createSampler();
-
-    createSwapchainRenderTarget(swapChain);
-
-    createMousePickingRenderTarget(swapChain->getExtent());
   }
 
   std::shared_ptr<RenderTarget> Renderer::getOffscreenRenderTarget() const
@@ -31,64 +25,13 @@ namespace vke {
     return m_mousePickingRenderTarget;
   }
 
-  void Renderer::resetSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain)
-  {
-    m_swapchainRenderTarget.reset();
-
-    createSwapchainRenderTarget(swapChain);
-  }
-
-  void Renderer::resetOffscreenRenderTarget(const vk::Extent2D offscreenViewportExtent)
+  void Renderer::recreateRenderTargets(const vk::Extent2D extent)
   {
     m_offscreenRenderTarget.reset();
-
-    createOffscreenRenderTarget(offscreenViewportExtent);
-  }
-
-  void Renderer::resetMousePickingRenderTarget(const vk::Extent2D mousePickingExtent)
-  {
     m_mousePickingRenderTarget.reset();
 
-    createMousePickingRenderTarget(mousePickingExtent);
-  }
-
-  void Renderer::beginSwapchainRendering(const uint32_t imageIndex,
-                                         const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                         const std::shared_ptr<SwapChain>& swapChain) const
-  {
-    transitionSwapchainImagePreRender(commandBuffer, swapChain->getImages()[imageIndex]);
-
-    vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .imageView = m_swapchainRenderTarget->getColorImageResource(imageIndex).getImageView(),
-      .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
-      .resolveMode = vk::ResolveModeFlagBits::eAverage,
-      .resolveImageView = swapChain->getImageViews()[imageIndex],
-      .resolveImageLayout = vk::ImageLayout::eColorAttachmentOptimal,
-      .loadOp = vk::AttachmentLoadOp::eClear,
-      .storeOp = vk::AttachmentStoreOp::eStore,
-      .clearValue = s_clearColor
-    };
-
-    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = m_swapchainRenderTarget->getDepthImageResource(imageIndex).getImageView(),
-      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
-      .loadOp = vk::AttachmentLoadOp::eClear,
-      .storeOp = vk::AttachmentStoreOp::eDontCare,
-      .clearValue = s_clearDepth
-    };
-
-    const vk::RenderingInfo renderingInfo {
-      .renderArea = {
-        .offset = {0, 0},
-        .extent = m_swapchainRenderTarget->getExtent(),
-      },
-      .layerCount = 1,
-      .colorAttachmentCount = 1,
-      .pColorAttachments = &colorRenderingAttachmentInfo,
-      .pDepthAttachment = &depthRenderingAttachmentInfo,
-    };
-
-    commandBuffer->beginRendering(renderingInfo);
+    createOffscreenRenderTarget(extent);
+    createMousePickingRenderTarget(extent);
   }
 
   void Renderer::beginOffscreenRendering(const uint32_t currentFrame,
@@ -127,35 +70,6 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void Renderer::beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                      const std::shared_ptr<Light>& light)
-  {
-    const auto shadowMapRenderTarget = light->getShadowMapRenderTarget();
-
-    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = shadowMapRenderTarget->getDepthImageResource(0).getImageView(),
-      .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
-      .loadOp = vk::AttachmentLoadOp::eClear,
-      .storeOp = vk::AttachmentStoreOp::eStore,
-      .clearValue = s_clearDepth
-    };
-
-    constexpr uint32_t kCubemapFacesMask = 0x3Fu;
-    const vk::RenderingInfo renderingInfo {
-      .renderArea = {
-        .offset = {0, 0},
-        .extent = shadowMapRenderTarget->getExtent(),
-      },
-      .layerCount = 1,
-      .viewMask = light->getLightType() == LightType::pointLight ? kCubemapFacesMask : 0,
-      .colorAttachmentCount = 0,
-      .pColorAttachments = nullptr,
-      .pDepthAttachment = &depthRenderingAttachmentInfo,
-    };
-
-    commandBuffer->beginRendering(renderingInfo);
-  }
-
   void Renderer::beginMousePickingRendering(const uint32_t currentFrame,
                                             const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
@@ -188,15 +102,6 @@ namespace vke {
     };
 
     commandBuffer->beginRendering(renderingInfo);
-  }
-
-  void Renderer::endSwapchainRendering(const uint32_t imageIndex,
-                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                       const std::shared_ptr<SwapChain>& swapChain)
-  {
-    commandBuffer->endRendering();
-
-    transitionSwapchainImagePostRender(commandBuffer, swapChain->getImages()[imageIndex]);
   }
 
   void Renderer::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -262,20 +167,6 @@ namespace vke {
     m_sampler = m_logicalDevice->createSampler(samplerInfo);
   }
 
-  void Renderer::createSwapchainRenderTarget(const std::shared_ptr<SwapChain>& swapChain)
-  {
-    ImageResourceConfig imageResourceConfig {
-      .logicalDevice = m_logicalDevice,
-      .extent = swapChain->getExtent(),
-      .commandPool = m_commandPool,
-      .colorFormat = swapChain->getImageFormat(),
-      .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .numSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples()
-    };
-
-    m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, static_cast<uint32_t>(swapChain->getImages().size()));
-  }
-
   void Renderer::createOffscreenRenderTarget(const vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
@@ -308,66 +199,6 @@ namespace vke {
     };
 
     m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
-  }
-
-  void Renderer::transitionSwapchainImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                   const vk::Image image)
-  {
-    const vk::ImageMemoryBarrier imageMemoryBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eNone,
-      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
-      .oldLayout = vk::ImageLayout::eUndefined,
-      .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
-      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .image = image,
-      .subresourceRange = {
-        .aspectMask = vk::ImageAspectFlagBits::eColor,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1,
-      }
-    };
-
-    commandBuffer->pipelineBarrier(
-      vk::PipelineStageFlagBits::eTopOfPipe,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput,
-      {},
-      {},
-      {},
-      { imageMemoryBarrier }
-    );
-  }
-
-  void Renderer::transitionSwapchainImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                    const vk::Image image)
-  {
-    const vk::ImageMemoryBarrier imageMemoryBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
-      .dstAccessMask = vk::AccessFlagBits::eNone,
-      .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
-      .newLayout = vk::ImageLayout::ePresentSrcKHR,
-      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .image = image,
-      .subresourceRange = {
-        .aspectMask = vk::ImageAspectFlagBits::eColor,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1,
-      }
-    };
-
-    commandBuffer->pipelineBarrier(
-      vk::PipelineStageFlagBits::eColorAttachmentOutput,
-      vk::PipelineStageFlagBits::eBottomOfPipe,
-      {},
-      {},
-      {},
-      { imageMemoryBarrier }
-    );
   }
 
   void Renderer::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,

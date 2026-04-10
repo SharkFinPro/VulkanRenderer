@@ -22,13 +22,11 @@ namespace vke {
   RenderingManager::RenderingManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                      std::shared_ptr<Surface> surface,
                                      std::shared_ptr<Window> window,
-                                     const bool shouldRenderOffscreen,
                                      std::string sceneViewName,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
-      m_shouldRenderOffscreen(shouldRenderOffscreen),
       m_sceneViewName(std::move(sceneViewName)),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
       m_rayTracingEnabled(m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
@@ -40,9 +38,9 @@ namespace vke {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
+    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
 
-    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_swapChain, m_commandPool);
+    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_commandPool);
 
     m_framebufferResizeEventListener = m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
       m_framebufferResized = true;
@@ -83,7 +81,7 @@ namespace vke {
 
     recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
 
-    recordSwapchainCommandBuffer(pipelineManager, lightingManager, currentFrame, imageIndex);
+    recordSwapchainCommandBuffer(currentFrame, imageIndex);
 
     result = m_logicalDevice->queuePresent(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
 
@@ -98,14 +96,9 @@ namespace vke {
     }
   }
 
-  std::shared_ptr<Renderer> RenderingManager::getRenderer() const
-  {
-    return m_renderer;
-  }
-
   bool RenderingManager::isSceneFocused() const
   {
-    return m_sceneIsFocused || !m_shouldRenderOffscreen;
+    return m_sceneIsFocused;
   }
 
   void RenderingManager::recreateSwapChain()
@@ -124,27 +117,15 @@ namespace vke {
 
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface);
+    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
 
-    m_renderer->resetSwapchainRenderTarget(m_swapChain);
-
-    if (m_shouldRenderOffscreen)
+    if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
-      if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
-      {
-        return;
-      }
-
-      m_renderer->resetOffscreenRenderTarget(m_offscreenViewportExtent);
-
-      m_renderer->resetMousePickingRenderTarget(m_offscreenViewportExtent);
-      m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
+      return;
     }
-    else
-    {
-      m_renderer->resetMousePickingRenderTarget(m_swapChain->getExtent());
-      m_renderer3D->getMousePicker()->setViewportExtent(m_swapChain->getExtent());
-    }
+
+    m_renderer->recreateRenderTargets(m_offscreenViewportExtent);
+    m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
   }
 
   void RenderingManager::createNewFrame() const
@@ -191,11 +172,6 @@ namespace vke {
 
   void RenderingManager::renderGuiScene(const uint32_t currentFrame)
   {
-    if (!m_shouldRenderOffscreen)
-    {
-      return;
-    }
-
     ImGui::Begin(m_sceneViewName.c_str());
 
     m_sceneIsFocused = ImGui::IsWindowFocused();
@@ -221,14 +197,11 @@ namespace vke {
 
       m_logicalDevice->waitIdle();
 
-      m_renderer->resetOffscreenRenderTarget(m_offscreenViewportExtent);
-
-      m_renderer->resetMousePickingRenderTarget(m_offscreenViewportExtent);
+      m_renderer->recreateRenderTargets(m_offscreenViewportExtent);
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
-    m_offscreenViewportPos = ImGui::GetCursorScreenPos();
-    m_renderer3D->getMousePicker()->setViewportPos(m_offscreenViewportPos);
+    m_renderer3D->getMousePicker()->setViewportPos(ImGui::GetCursorScreenPos());
 
     const auto offscreenImageDescriptorSet = m_renderer->getOffscreenRenderTarget()->getResolveImageResource(currentFrame).getDescriptorSet();
 
@@ -272,7 +245,21 @@ namespace vke {
 
       m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
 
-      resetDepthBuffer(m_offscreenCommandBuffer, m_offscreenViewportExtent);
+      constexpr vk::ClearAttachment clearAttachment{
+        .aspectMask = vk::ImageAspectFlagBits::eDepth,
+        .clearValue = vk::ClearValue{ {1.0f, 0} }
+      };
+
+      const vk::ClearRect clearRect{
+        .rect = {
+          .offset = { 0, 0 },
+          .extent = renderInfo.extent
+        },
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      };
+
+      renderInfo.commandBuffer->clearAttachments({ clearAttachment }, { clearRect });
 
       RenderInfo renderInfo2D = renderInfo;
       renderInfo2D.extent = vk::Extent2D{
@@ -300,8 +287,7 @@ namespace vke {
       };
 
       if (renderInfo.extent.width == 0 ||
-          renderInfo.extent.height == 0 ||
-          !m_shouldRenderOffscreen)
+          renderInfo.extent.height == 0)
       {
         return;
       }
@@ -331,23 +317,22 @@ namespace vke {
 
     m_logicalDevice->submitOffscreenCommandBuffer(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
 
-    if (m_shouldRenderOffscreen)
+    if (m_offscreenViewportExtent.width != 0 &&
+        m_offscreenViewportExtent.height != 0)
     {
       m_logicalDevice->waitForOffscreenFence(currentFrame);
       m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
     }
   }
 
-  void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                      const std::shared_ptr<LightingManager>& lightingManager,
-                                                      uint32_t currentFrame,
+  void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame,
                                                       const uint32_t imageIndex) const
   {
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
 
     m_swapchainCommandBuffer->resetCommandBuffer();
 
-    m_swapchainCommandBuffer->record([this, pipelineManager, lightingManager, currentFrame, imageIndex]
+    m_swapchainCommandBuffer->record([this, currentFrame, imageIndex]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
@@ -373,49 +358,14 @@ namespace vke {
       };
       renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer->beginSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
-
-      if (!m_shouldRenderOffscreen)
-      {
-        m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
-
-        resetDepthBuffer(m_swapchainCommandBuffer, m_swapChain->getExtent());
-
-        RenderInfo renderInfo2D = renderInfo;
-        renderInfo2D.extent = vk::Extent2D{
-          .width = static_cast<uint32_t>(static_cast<float>(renderInfo.extent.width) / m_window->getContentScale()),
-          .height = static_cast<uint32_t>(static_cast<float>(renderInfo.extent.height) / m_window->getContentScale()),
-        };
-
-        m_renderer2D->render(&renderInfo2D, pipelineManager);
-      }
+      m_swapChain->beginRendering(imageIndex, renderInfo.commandBuffer);
 
       ImGuiInstance::render(renderInfo.commandBuffer);
 
-      m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapChain);
+      m_swapChain->endRendering(imageIndex, renderInfo.commandBuffer);
     });
 
     m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
-  }
-
-  void RenderingManager::resetDepthBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                          const vk::Extent2D extent)
-  {
-    constexpr vk::ClearAttachment clearAttachment{
-      .aspectMask = vk::ImageAspectFlagBits::eDepth,
-      .clearValue = vk::ClearValue{ {1.0f, 0} }
-    };
-
-    const vk::ClearRect clearRect{
-      .rect = {
-        .offset = { 0, 0 },
-        .extent = extent
-      },
-      .baseArrayLayer = 0,
-      .layerCount = 1
-    };
-
-    commandBuffer->clearAttachments({ clearAttachment }, { clearRect });
   }
 
   void RenderingManager::createCommandPool()
