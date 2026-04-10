@@ -8,19 +8,21 @@
 namespace vke {
 
   class CommandBuffer;
+  class ImageResource;
   class LogicalDevice;
-  class RenderTarget;
 
   class Renderer {
   public:
     explicit Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
                       vk::CommandPool commandPool);
 
-    [[nodiscard]] std::shared_ptr<RenderTarget> getOffscreenRenderTarget() const;
+    [[nodiscard]] ImageResource& getOffscreenResolveImageResource(uint32_t currentFrame);
 
-    [[nodiscard]] std::shared_ptr<RenderTarget> getMousePickingRenderTarget() const;
+    [[nodiscard]] ImageResource& getOffscreenRayTracingImageResource(uint32_t currentFrame);
 
-    void recreateRenderTargets(vk::Extent2D extent);
+    [[nodiscard]] ImageResource& getMousePickingColorImageResource(uint32_t currentFrame);
+
+    void recreateImageResources(vk::Extent2D extent);
 
     void beginOffscreenRendering(uint32_t currentFrame,
                                  const std::shared_ptr<CommandBuffer>& commandBuffer) const;
@@ -45,17 +47,24 @@ namespace vke {
 
     vk::CommandPool m_commandPool = nullptr;
 
-    std::shared_ptr<RenderTarget> m_offscreenRenderTarget;
-
-    std::shared_ptr<RenderTarget> m_mousePickingRenderTarget;
-
     vk::raii::Sampler m_sampler = nullptr;
+
+    vk::Extent2D m_extent{0, 0};
+
+    std::vector<ImageResource> m_offscreenColorImageResources;
+    std::vector<ImageResource> m_offscreenDepthImageResources;
+    std::vector<ImageResource> m_offscreenResolveImageResources;
+
+    std::vector<ImageResource> m_offscreenRayTracingImageResources;
+
+    std::vector<ImageResource> m_mousePickingColorImageResources;
+    std::vector<ImageResource> m_mousePickingDepthImageResources;
 
     void createSampler();
 
-    void createOffscreenRenderTarget(vk::Extent2D extent);
+    void createOffscreenImageResources(vk::Extent2D extent);
 
-    void createMousePickingRenderTarget(vk::Extent2D extent);
+    void createMousePickingImageResources(vk::Extent2D extent);
 
     void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                           uint32_t currentFrame) const;

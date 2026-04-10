@@ -1,6 +1,5 @@
 #include "Renderer.h"
 #include "ImageResource.h"
-#include "RenderTarget.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../lighting/lights/Light.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -15,33 +14,46 @@ namespace vke {
     createSampler();
   }
 
-  std::shared_ptr<RenderTarget> Renderer::getOffscreenRenderTarget() const
+  ImageResource& Renderer::getOffscreenResolveImageResource(const uint32_t currentFrame)
   {
-    return m_offscreenRenderTarget;
+    return m_offscreenResolveImageResources.at(currentFrame);
   }
 
-  std::shared_ptr<RenderTarget> Renderer::getMousePickingRenderTarget() const
+  ImageResource& Renderer::getOffscreenRayTracingImageResource(const uint32_t currentFrame)
   {
-    return m_mousePickingRenderTarget;
+    return m_offscreenRayTracingImageResources.at(currentFrame);
   }
 
-  void Renderer::recreateRenderTargets(const vk::Extent2D extent)
+  ImageResource& Renderer::getMousePickingColorImageResource(const uint32_t currentFrame)
   {
-    m_offscreenRenderTarget.reset();
-    m_mousePickingRenderTarget.reset();
+    return m_mousePickingColorImageResources.at(currentFrame);
+  }
 
-    createOffscreenRenderTarget(extent);
-    createMousePickingRenderTarget(extent);
+  void Renderer::recreateImageResources(const vk::Extent2D extent)
+  {
+    m_offscreenColorImageResources.clear();
+    m_offscreenDepthImageResources.clear();
+    m_offscreenResolveImageResources.clear();
+
+    m_offscreenRayTracingImageResources.clear();
+
+    m_mousePickingColorImageResources.clear();
+    m_mousePickingDepthImageResources.clear();
+
+    m_extent = extent;
+
+    createOffscreenImageResources(extent);
+    createMousePickingImageResources(extent);
   }
 
   void Renderer::beginOffscreenRendering(const uint32_t currentFrame,
                                          const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .imageView = m_offscreenRenderTarget->getColorImageResource(currentFrame).getImageView(),
+      .imageView = m_offscreenColorImageResources.at(currentFrame).getImageView(),
       .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .resolveMode = vk::ResolveModeFlagBits::eAverage,
-      .resolveImageView = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImageView(),
+      .resolveImageView = m_offscreenResolveImageResources.at(currentFrame).getImageView(),
       .resolveImageLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eStore,
@@ -49,7 +61,7 @@ namespace vke {
     };
 
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = m_offscreenRenderTarget->getDepthImageResource(currentFrame).getImageView(),
+      .imageView = m_offscreenDepthImageResources.at(currentFrame).getImageView(),
       .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eDontCare,
@@ -59,7 +71,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = m_offscreenRenderTarget->getExtent(),
+        .extent = m_extent,
       },
       .layerCount = 1,
       .colorAttachmentCount = 1,
@@ -74,7 +86,7 @@ namespace vke {
                                             const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .imageView = m_mousePickingRenderTarget->getColorImageResource(currentFrame).getImageView(),
+      .imageView = m_mousePickingColorImageResources.at(currentFrame).getImageView(),
       .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .resolveMode = vk::ResolveModeFlagBits::eNone,
       .loadOp = vk::AttachmentLoadOp::eClear,
@@ -83,7 +95,7 @@ namespace vke {
     };
 
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = m_mousePickingRenderTarget->getDepthImageResource(currentFrame).getImageView(),
+      .imageView = m_mousePickingDepthImageResources.at(currentFrame).getImageView(),
       .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eDontCare,
@@ -93,7 +105,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = m_mousePickingRenderTarget->getExtent(),
+        .extent = m_extent,
       },
       .layerCount = 1,
       .colorAttachmentCount = 1,
@@ -114,7 +126,7 @@ namespace vke {
       .newLayout = vk::ImageLayout::eGeneral,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
       .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .image = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage(),
+      .image = m_offscreenRayTracingImageResources.at(currentFrame).getImage(),
       .subresourceRange = {
         .aspectMask = vk::ImageAspectFlagBits::eColor,
         .baseMipLevel = 0,
@@ -167,7 +179,7 @@ namespace vke {
     m_sampler = m_logicalDevice->createSampler(samplerInfo);
   }
 
-  void Renderer::createOffscreenRenderTarget(const vk::Extent2D extent)
+  void Renderer::createOffscreenImageResources(vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
@@ -180,14 +192,46 @@ namespace vke {
       .sampler = m_sampler
     };
 
-    m_offscreenRenderTarget = std::make_shared<RenderTarget>(
-      imageResourceConfig,
-      m_logicalDevice->getMaxFramesInFlight(),
-      m_logicalDevice->getPhysicalDevice()->supportsRayTracing()
-    );
+    const auto numImages = m_logicalDevice->getMaxFramesInFlight();
+
+    if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+    {
+      auto rayTracingImageResourceConfig = imageResourceConfig;
+      rayTracingImageResourceConfig.imageResourceType = ImageResourceType::RayTracingOutput;
+      rayTracingImageResourceConfig.rayTracingFormat = vk::Format::eR8G8B8A8Unorm;
+      rayTracingImageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
+
+      m_offscreenRayTracingImageResources.reserve(numImages);
+
+      for (size_t i = 0; i < numImages; ++i)
+      {
+        m_offscreenRayTracingImageResources.emplace_back(rayTracingImageResourceConfig);
+      }
+    }
+
+    auto colorImageResourceConfig = imageResourceConfig;
+    colorImageResourceConfig.imageResourceType = ImageResourceType::Color;
+
+    auto depthImageResourceConfig = imageResourceConfig;
+    depthImageResourceConfig.imageResourceType = ImageResourceType::Depth;
+
+    auto resolveImageResourceConfig = imageResourceConfig;
+    resolveImageResourceConfig.imageResourceType = ImageResourceType::Resolve;
+    resolveImageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
+
+    m_offscreenColorImageResources.reserve(numImages);
+    m_offscreenDepthImageResources.reserve(numImages);
+    m_offscreenResolveImageResources.reserve(numImages);
+
+    for (size_t i = 0; i < numImages; ++i)
+    {
+      m_offscreenColorImageResources.emplace_back(colorImageResourceConfig);
+      m_offscreenDepthImageResources.emplace_back(depthImageResourceConfig);
+      m_offscreenResolveImageResources.emplace_back(resolveImageResourceConfig);
+    }
   }
 
-  void Renderer::createMousePickingRenderTarget(const vk::Extent2D extent)
+  void Renderer::createMousePickingImageResources(vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
@@ -198,14 +242,29 @@ namespace vke {
       .numSamples = vk::SampleCountFlagBits::e1
     };
 
-    m_mousePickingRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
+    auto colorImageResourceConfig = imageResourceConfig;
+    colorImageResourceConfig.imageResourceType = ImageResourceType::Color;
+
+    auto depthImageResourceConfig = imageResourceConfig;
+    depthImageResourceConfig.imageResourceType = ImageResourceType::Depth;
+
+    const auto numImages = m_logicalDevice->getMaxFramesInFlight();
+
+    m_mousePickingColorImageResources.reserve(numImages);
+    m_mousePickingDepthImageResources.reserve(numImages);
+
+    for (size_t i = 0; i < numImages; ++i)
+    {
+      m_mousePickingColorImageResources.emplace_back(colorImageResourceConfig);
+      m_mousePickingDepthImageResources.emplace_back(depthImageResourceConfig);
+    }
   }
 
   void Renderer::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const uint32_t currentFrame) const
   {
-    const auto rtImage = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage();
-    const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImage();
+    const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
+    const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
 
     // Transition RT image: GENERAL -> TRANSFER_SRC_OPTIMAL
     // Transition offscreen resolve image: UNDEFINED -> TRANSFER_DST_OPTIMAL
@@ -257,8 +316,8 @@ namespace vke {
   void Renderer::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const uint32_t currentFrame) const
   {
-    const auto rtImage = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage();
-    const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImage();
+    const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
+    const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
 
     // Transition offscreen resolve: TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL
     // Transition RT image back: TRANSFER_SRC_OPTIMAL -> GENERAL
@@ -310,17 +369,15 @@ namespace vke {
   void Renderer::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                      const uint32_t currentFrame) const
   {
-    const auto rtImage = m_offscreenRenderTarget->getRayTracingImageResource(currentFrame).getImage();
-    const auto offscreenImage = m_offscreenRenderTarget->getResolveImageResource(currentFrame).getImage();
-
-    const auto extent = m_offscreenRenderTarget->getExtent();
+    const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
+    const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
 
     const vk::ImageCopy imageCopy {
       .srcSubresource = { vk::ImageAspectFlagBits::eColor, 0, 0, 1 },
       .srcOffset = { 0, 0, 0 },
       .dstSubresource = { vk::ImageAspectFlagBits::eColor, 0, 0, 1 },
       .dstOffset = { 0, 0, 0 },
-      .extent = { extent.width, extent.height, 1 }
+      .extent = { m_extent.width, m_extent.height, 1 }
     };
 
     commandBuffer->copyImage(

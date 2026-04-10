@@ -1,7 +1,6 @@
 #include "RenderingManager.h"
 #include "ImageResource.h"
 #include "Renderer.h"
-#include "RenderTarget.h"
 #include "renderer2D/Renderer2D.h"
 #include "renderer3D/Renderer3D.h"
 #include "../commandBuffer/CommandBuffer.h"
@@ -124,7 +123,7 @@ namespace vke {
       return;
     }
 
-    m_renderer->recreateRenderTargets(m_offscreenViewportExtent);
+    m_renderer->recreateImageResources(m_offscreenViewportExtent);
     m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
   }
 
@@ -197,13 +196,13 @@ namespace vke {
 
       m_logicalDevice->waitIdle();
 
-      m_renderer->recreateRenderTargets(m_offscreenViewportExtent);
+      m_renderer->recreateImageResources(m_offscreenViewportExtent);
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
     m_renderer3D->getMousePicker()->setViewportPos(ImGui::GetCursorScreenPos());
 
-    const auto offscreenImageDescriptorSet = m_renderer->getOffscreenRenderTarget()->getResolveImageResource(currentFrame).getDescriptorSet();
+    const auto offscreenImageDescriptorSet = m_renderer->getOffscreenResolveImageResource(currentFrame).getDescriptorSet();
 
     ImGui::Image(static_cast<ImTextureRef>(offscreenImageDescriptorSet), contentRegionAvailable);
 
@@ -235,7 +234,7 @@ namespace vke {
       if (m_rayTracingEnabled)
       {
         m_renderer->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
-        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getOffscreenRenderTarget()->getRayTracingImageResource(currentFrame));
+        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getOffscreenRayTracingImageResource(currentFrame));
         m_renderer->endRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
 
         return;
@@ -321,7 +320,7 @@ namespace vke {
         m_offscreenViewportExtent.height != 0)
     {
       m_logicalDevice->waitForOffscreenFence(currentFrame);
-      m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
+      m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingColorImageResource(currentFrame).getImage());
     }
   }
 
