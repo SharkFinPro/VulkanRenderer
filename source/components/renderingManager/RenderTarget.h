@@ -14,7 +14,7 @@ namespace vke {
   class RenderTarget {
   public:
     explicit RenderTarget(std::shared_ptr<LogicalDevice> logicalDevice,
-                      vk::CommandPool commandPool);
+                          vk::CommandPool commandPool);
 
     [[nodiscard]] ImageResource& getOffscreenResolveImageResource(uint32_t currentFrame);
 
