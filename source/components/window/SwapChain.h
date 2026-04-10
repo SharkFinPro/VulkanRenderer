@@ -8,8 +8,8 @@
 namespace vke {
 
   class CommandBuffer;
+  class ImageResource;
   class LogicalDevice;
-  class RenderTarget;
   class Surface;
   class Window;
 
@@ -43,7 +43,8 @@ namespace vke {
     vk::Extent2D m_swapChainExtent{};
     std::vector<vk::raii::ImageView> m_swapChainImageViews;
 
-    std::shared_ptr<RenderTarget> m_swapchainRenderTarget;
+    std::vector<ImageResource> m_colorImageResources;
+    std::vector<ImageResource> m_depthImageResources;
 
     static vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 
@@ -60,7 +61,7 @@ namespace vke {
 
     void createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
-    void createRenderTarget(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    void createImageResources(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      vk::CommandPool commandPool);
 
     static void transitionImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,

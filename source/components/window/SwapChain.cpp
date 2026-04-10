@@ -20,7 +20,7 @@ namespace vke {
 
     createImageViews(logicalDevice);
 
-    createRenderTarget(logicalDevice, commandPool);
+    createImageResources(logicalDevice, commandPool);
   }
 
   vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
@@ -147,10 +147,9 @@ namespace vke {
     }
   }
 
-  void SwapChain::createRenderTarget(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                              const vk::CommandPool commandPool)
+  void SwapChain::createImageResources(const std::shared_ptr<LogicalDevice> &logicalDevice, vk::CommandPool commandPool)
   {
-    ImageResourceConfig imageResourceConfig {
+    const ImageResourceConfig imageResourceConfig {
       .logicalDevice = logicalDevice,
       .extent = m_swapChainExtent,
       .commandPool = commandPool,
@@ -159,7 +158,21 @@ namespace vke {
       .numSamples = logicalDevice->getPhysicalDevice()->getMsaaSamples()
     };
 
-    m_swapchainRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, static_cast<uint32_t>(m_swapChainImages.size()));
+    auto colorImageResourceConfig = imageResourceConfig;
+    colorImageResourceConfig.imageResourceType = ImageResourceType::Color;
+
+    auto depthImageResourceConfig = imageResourceConfig;
+    depthImageResourceConfig.imageResourceType = ImageResourceType::Depth;
+
+    const auto numImages = m_swapChainImages.size();
+    m_colorImageResources.reserve(numImages);
+    m_depthImageResources.reserve(numImages);
+
+    for (size_t i = 0; i < numImages; ++i)
+    {
+      m_colorImageResources.emplace_back(colorImageResourceConfig);
+      m_depthImageResources.emplace_back(depthImageResourceConfig);
+    }
   }
 
   void SwapChain::transitionImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -259,7 +272,7 @@ namespace vke {
     transitionImagePreRender(commandBuffer, m_swapChainImages.at(imageIndex));
 
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .imageView = m_swapchainRenderTarget->getColorImageResource(imageIndex).getImageView(),
+      .imageView = m_colorImageResources.at(imageIndex).getImageView(),
       .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .resolveMode = vk::ResolveModeFlagBits::eAverage,
       .resolveImageView = m_swapChainImageViews.at(imageIndex),
@@ -270,7 +283,7 @@ namespace vke {
     };
 
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = m_swapchainRenderTarget->getDepthImageResource(imageIndex).getImageView(),
+      .imageView = m_depthImageResources.at(imageIndex).getImageView(),
       .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eDontCare,
@@ -280,7 +293,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = m_swapchainRenderTarget->getExtent(),
+        .extent = m_swapChainExtent,
       },
       .layerCount = 1,
       .colorAttachmentCount = 1,
