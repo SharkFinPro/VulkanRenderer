@@ -10,7 +10,6 @@
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/ImageResource.h"
-#include "../renderingManager/RenderTarget.h"
 
 namespace {
 
@@ -307,7 +306,7 @@ namespace vke {
 
       imageInfos.push_back({
         m_shadowMapSampler,
-        light->getShadowMapRenderTarget()->getDepthImageResource(0).getImageView(),
+        light->getShadowMapDepthImageResource()->getImageView(),
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
       });
 
@@ -397,7 +396,7 @@ namespace vke {
 
       imageInfos.push_back({
         m_shadowMapSampler,
-        light->getShadowMapRenderTarget()->getDepthImageResource(0).getImageView(),
+        light->getShadowMapDepthImageResource()->getImageView(),
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
       });
 
@@ -459,10 +458,7 @@ namespace vke {
         continue;
       }
 
-      const vk::Extent2D shadowExtent {
-        .width = light->getShadowMapSize(),
-        .height = light->getShadowMapSize()
-      };
+      const auto shadowExtent = light->getShadowMapExtent();
 
       beginShadowRendering(commandBuffer, light);
 
@@ -537,10 +533,7 @@ namespace vke {
         continue;
       }
 
-      const vk::Extent2D shadowExtent {
-        .width = light->getShadowMapSize(),
-        .height = light->getShadowMapSize()
-      };
+      const auto shadowExtent = light->getShadowMapExtent();
 
       beginShadowRendering(commandBuffer, light);
 
@@ -669,10 +662,8 @@ namespace vke {
       .stencil = 0
     };
 
-    const auto shadowMapRenderTarget = light->getShadowMapRenderTarget();
-
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = shadowMapRenderTarget->getDepthImageResource(0).getImageView(),
+      .imageView = light->getShadowMapDepthImageResource()->getImageView(),
       .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eStore,
@@ -683,7 +674,7 @@ namespace vke {
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = shadowMapRenderTarget->getExtent(),
+        .extent = light->getShadowMapExtent(),
       },
       .layerCount = 1,
       .viewMask = light->getLightType() == LightType::pointLight ? kCubemapFacesMask : 0,

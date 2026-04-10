@@ -6,7 +6,6 @@
 #include <source/components/lighting/lights/Light.h>
 #include <source/components/lighting/lights/SpotLight.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
-#include <source/components/renderingManager/Renderer.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
 #include <glm/gtc/type_ptr.hpp>

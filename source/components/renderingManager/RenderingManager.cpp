@@ -1,6 +1,5 @@
 #include "RenderingManager.h"
 #include "ImageResource.h"
-#include "Renderer.h"
 #include "RenderTarget.h"
 #include "renderer2D/Renderer2D.h"
 #include "renderer3D/Renderer3D.h"
@@ -40,7 +39,7 @@ namespace vke {
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
 
-    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_commandPool);
+    m_renderTarget = std::make_shared<RenderTarget>(m_logicalDevice, m_commandPool);
 
     m_framebufferResizeEventListener = m_window->on<FramebufferResizeEvent>([this]([[maybe_unused]] const FramebufferResizeEvent& e) {
       m_framebufferResized = true;
@@ -124,7 +123,7 @@ namespace vke {
       return;
     }
 
-    m_renderer->recreateRenderTargets(m_offscreenViewportExtent);
+    m_renderTarget->recreateImageResources(m_offscreenViewportExtent);
     m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
   }
 
@@ -197,13 +196,13 @@ namespace vke {
 
       m_logicalDevice->waitIdle();
 
-      m_renderer->recreateRenderTargets(m_offscreenViewportExtent);
+      m_renderTarget->recreateImageResources(m_offscreenViewportExtent);
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
     m_renderer3D->getMousePicker()->setViewportPos(ImGui::GetCursorScreenPos());
 
-    const auto offscreenImageDescriptorSet = m_renderer->getOffscreenRenderTarget()->getResolveImageResource(currentFrame).getDescriptorSet();
+    const auto offscreenImageDescriptorSet = m_renderTarget->getOffscreenResolveImageResource(currentFrame).getDescriptorSet();
 
     ImGui::Image(static_cast<ImTextureRef>(offscreenImageDescriptorSet), contentRegionAvailable);
 
@@ -224,7 +223,7 @@ namespace vke {
     };
 
     auto recordMousePicking = [&](const RenderInfo& renderInfo) {
-      m_renderer->beginMousePickingRendering(currentFrame, renderInfo.commandBuffer);
+      m_renderTarget->beginMousePickingRendering(currentFrame, renderInfo.commandBuffer);
 
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
@@ -234,14 +233,14 @@ namespace vke {
     auto recordOffscreenRendering = [&](const RenderInfo& renderInfo) {
       if (m_rayTracingEnabled)
       {
-        m_renderer->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
-        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderer->getOffscreenRenderTarget()->getRayTracingImageResource(currentFrame));
-        m_renderer->endRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
+        m_renderTarget->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
+        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderTarget->getOffscreenRayTracingImageResource(currentFrame));
+        m_renderTarget->endRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
 
         return;
       }
 
-      m_renderer->beginOffscreenRendering(currentFrame, m_offscreenCommandBuffer);
+      m_renderTarget->beginOffscreenRendering(currentFrame, m_offscreenCommandBuffer);
 
       m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
 
@@ -321,7 +320,7 @@ namespace vke {
         m_offscreenViewportExtent.height != 0)
     {
       m_logicalDevice->waitForOffscreenFence(currentFrame);
-      m_renderer3D->handleRenderedMousePickingImage(m_renderer->getMousePickingRenderTarget()->getColorImageResource(0).getImage());
+      m_renderer3D->handleRenderedMousePickingImage(m_renderTarget->getMousePickingColorImageResource(currentFrame).getImage());
     }
   }
 

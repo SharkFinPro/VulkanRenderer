@@ -10,8 +10,8 @@
 
 namespace vke {
 
+  class ImageResource;
   class LogicalDevice;
-  class RenderTarget;
 
   struct alignas(16) PointLightUniform {
     std::array<glm::mat4, 6> lightViewProjections;
@@ -71,7 +71,7 @@ namespace vke {
     void setDiffuse(float diffuse);
     void setSpecular(float specular);
 
-    [[nodiscard]] uint32_t getShadowMapSize() const;
+    [[nodiscard]] vk::Extent2D getShadowMapExtent() const;
 
     [[nodiscard]] bool castsShadows() const;
 
@@ -79,15 +79,18 @@ namespace vke {
 
     [[nodiscard]] virtual LightUniform getUniform() const = 0;
 
-    [[nodiscard]] std::shared_ptr<RenderTarget> getShadowMapRenderTarget() const;
+    [[nodiscard]] std::shared_ptr<ImageResource> getShadowMapDepthImageResource() const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    std::shared_ptr<RenderTarget> m_shadowMapRenderTarget;
+    std::shared_ptr<ImageResource> m_shadowMapDepthImageResource;
 
     bool m_castsShadows = true;
-    uint32_t m_shadowMapSize = 1024;
+    vk::Extent2D m_shadowMapExtent = {
+      1024,
+      1024
+    };
 
     glm::vec3 m_position;
     glm::vec3 m_color;

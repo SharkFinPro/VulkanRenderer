@@ -1,43 +1,81 @@
-#ifndef VULKANPROJECT_RENDERTARGET_H
-#define VULKANPROJECT_RENDERTARGET_H
+#ifndef VKE_RENDERTARGET_H
+#define VKE_RENDERTARGET_H
 
 #include "ImageResource.h"
 #include <vulkan/vulkan_raii.hpp>
+#include <memory>
 #include <vector>
 
 namespace vke {
 
+  class CommandBuffer;
+  class LogicalDevice;
+
   class RenderTarget {
   public:
-    RenderTarget(const ImageResourceConfig& imageResourceConfig,
-                 uint32_t numImages,
-                 bool createRayTracingResources = false);
+    explicit RenderTarget(std::shared_ptr<LogicalDevice> logicalDevice,
+                      vk::CommandPool commandPool);
 
-    [[nodiscard]] ImageResource& getColorImageResource(uint32_t imageIndex);
+    [[nodiscard]] ImageResource& getOffscreenResolveImageResource(uint32_t currentFrame);
 
-    [[nodiscard]] ImageResource& getDepthImageResource(uint32_t imageIndex);
+    [[nodiscard]] ImageResource& getOffscreenRayTracingImageResource(uint32_t currentFrame);
 
-    [[nodiscard]] ImageResource& getResolveImageResource(uint32_t imageIndex);
+    [[nodiscard]] ImageResource& getMousePickingColorImageResource(uint32_t currentFrame);
 
-    [[nodiscard]] ImageResource& getRayTracingImageResource(uint32_t imageIndex);
+    void recreateImageResources(vk::Extent2D extent);
 
-    [[nodiscard]] vk::Extent2D getExtent() const;
+    void beginOffscreenRendering(uint32_t currentFrame,
+                                 const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-  private:
-    std::vector<ImageResource> m_colorImageResources;
-    std::vector<ImageResource> m_depthImageResources;
-    std::vector<ImageResource> m_resolveImageResources;
+    void beginMousePickingRendering(uint32_t currentFrame,
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
-    std::vector<ImageResource> m_rayTracingImageResources;
+    void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                  uint32_t currentFrame) const;
 
-    vk::Extent2D m_extent;
+    void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                uint32_t currentFrame) const;
 
-    void createRayTracingImageResources(ImageResourceConfig imageResourceConfig,
-                                        uint32_t numImages);
+  protected:
+    static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
+      .depth = 1.0f,
+      .stencil = 0
+    };
 
-    void createRasterizationImageResources(const ImageResourceConfig& imageResourceConfig,
-                                          uint32_t numImages);
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    vk::CommandPool m_commandPool = nullptr;
+
+    vk::raii::Sampler m_sampler = nullptr;
+
+    vk::Extent2D m_extent{0, 0};
+
+    std::vector<ImageResource> m_offscreenColorImageResources;
+    std::vector<ImageResource> m_offscreenDepthImageResources;
+    std::vector<ImageResource> m_offscreenResolveImageResources;
+
+    std::vector<ImageResource> m_offscreenRayTracingImageResources;
+
+    std::vector<ImageResource> m_mousePickingColorImageResources;
+    std::vector<ImageResource> m_mousePickingDepthImageResources;
+
+    void createSampler();
+
+    void createOffscreenImageResources(vk::Extent2D extent);
+
+    void createMousePickingImageResources(vk::Extent2D extent);
+
+    void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                          uint32_t currentFrame) const;
+
+    void transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           uint32_t currentFrame) const;
+
+    void copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             uint32_t currentFrame) const;
   };
-} // vke
 
-#endif //VULKANPROJECT_RENDERTARGET_H
+} // namespace vke
+
+#endif //VKE_RENDERTARGET_H
