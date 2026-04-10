@@ -1,7 +1,6 @@
 #include "SpotLight.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/ImageResource.h"
-#include "../../renderingManager/RenderTarget.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_RIGHT_HANDED
@@ -90,17 +89,15 @@ namespace vke {
     }
 
     ImageResourceConfig imageResourceConfig {
+      .imageResourceType = ImageResourceType::Depth,
       .logicalDevice = m_logicalDevice,
-      .extent = {
-        .width = m_shadowMapSize,
-        .height = m_shadowMapSize
-      },
+      .extent = m_shadowMapExtent,
       .commandPool = commandPool,
       .depthFormat = vk::Format::eD32Sfloat,
       .numSamples = vk::SampleCountFlagBits::e1
     };
 
-    m_shadowMapRenderTarget = std::make_shared<RenderTarget>(imageResourceConfig, m_logicalDevice->getMaxFramesInFlight());
+    m_shadowMapDepthImageResource = std::make_shared<ImageResource>(imageResourceConfig);
   }
 
 } // vke

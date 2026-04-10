@@ -1,7 +1,6 @@
 #include "Light.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/ImageResource.h"
-#include "../../renderingManager/RenderTarget.h"
 
 namespace vke {
 
@@ -66,19 +65,19 @@ namespace vke {
     m_specular = specular;
   }
 
-  uint32_t Light::getShadowMapSize() const
+  vk::Extent2D Light::getShadowMapExtent() const
   {
-    return m_shadowMapSize;
+    return m_shadowMapExtent;
+  }
+
+  std::shared_ptr<ImageResource> Light::getShadowMapDepthImageResource() const
+  {
+    return m_shadowMapDepthImageResource;
   }
 
   bool Light::castsShadows() const
   {
     return m_castsShadows;
-  }
-
-  std::shared_ptr<RenderTarget> Light::getShadowMapRenderTarget() const
-  {
-    return m_shadowMapRenderTarget;
   }
 
 } // namespace vke
