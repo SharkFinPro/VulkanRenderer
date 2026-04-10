@@ -14,7 +14,6 @@ namespace vke {
   enum class PipelineType;
   struct RenderInfo;
   class RenderObject;
-  class RenderTarget;
   class SingleUseCommandBuffer;
   class Window;
 
