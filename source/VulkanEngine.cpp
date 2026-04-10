@@ -17,7 +17,10 @@ namespace vke {
 
   VulkanEngine::VulkanEngine(const EngineConfig& engineConfig)
   {
-    glfwInit();
+    if (!glfwInit())
+    {
+      throw std::runtime_error("Failed to initialize GLFW!");
+    }
 
     initializeVulkanAndWindow(engineConfig);
 
