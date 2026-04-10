@@ -4,7 +4,7 @@
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../renderingManager/RenderTarget.h"
+#include "../renderingManager/ImageResource.h"
 #include "../../utilities/Images.h"
 #include <limits>
 #include <algorithm>
