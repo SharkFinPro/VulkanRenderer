@@ -52,7 +52,12 @@ namespace vke {
 
   bool VulkanEngine::isActive() const
   {
-    return m_window->isOpen();
+    if (m_window)
+    {
+      return m_window->isOpen();
+    }
+
+    return false;
   }
 
   void VulkanEngine::render()
