@@ -45,8 +45,8 @@ namespace vke {
     createMousePickingImageResources(extent);
   }
 
-  void RenderTarget::beginOffscreenRendering(const uint32_t currentFrame,
-                                             const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  void RenderTarget::beginOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             const uint32_t currentFrame) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_offscreenColorImageResources.at(currentFrame).getImageView(),
@@ -81,8 +81,8 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void RenderTarget::beginMousePickingRendering(const uint32_t currentFrame,
-                                                const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  void RenderTarget::beginMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                const uint32_t currentFrame) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_mousePickingColorImageResources.at(currentFrame).getImageView(),
