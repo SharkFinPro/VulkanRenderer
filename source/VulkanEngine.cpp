@@ -12,6 +12,7 @@
 #include "components/renderingManager/renderer3D/Renderer3D.h"
 #include "components/window/Surface.h"
 #include "components/window/Window.h"
+#include <stdexcept>
 
 namespace vke {
 
