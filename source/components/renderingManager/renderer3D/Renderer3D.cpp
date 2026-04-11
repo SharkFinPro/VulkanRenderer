@@ -422,14 +422,14 @@ namespace vke {
       .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
-    std::vector<vk::DescriptorSetLayoutBinding> noiseLayoutBindings {
+    std::vector noiseLayoutBindings {
       noiseSamplerLayout
     };
 
     m_noiseDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, noiseLayoutBindings);
     m_noiseDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         m_noiseTexture->getDescriptorSet(0, descriptorSet)
       }};
 
@@ -443,7 +443,7 @@ namespace vke {
       .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
-    std::vector<vk::DescriptorSetLayoutBinding> cubeMapLayoutBindings {
+    std::vector cubeMapLayoutBindings {
       noiseSamplerLayout,
       cubeMapSamplerLayout
     };
@@ -451,7 +451,7 @@ namespace vke {
     m_cubeMapDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, m_descriptorPool, cubeMapLayoutBindings);
     m_cubeMapDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         m_noiseTexture->getDescriptorSet(0, descriptorSet),
         m_cubeMapTexture->getDescriptorSet(1, descriptorSet)
       }};

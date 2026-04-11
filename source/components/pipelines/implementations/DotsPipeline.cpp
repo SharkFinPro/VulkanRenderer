@@ -116,8 +116,8 @@ namespace vke {
     m_shaderStorageBuffersMemory.reserve(logicalDevice->getMaxFramesInFlight());
 
     std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
-    std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
-    std::uniform_real_distribution<float> largeDistribution(-4.0f, 4.0f);
+    std::uniform_real_distribution distribution(0.0f, 1.0f);
+    std::uniform_real_distribution largeDistribution(-4.0f, 4.0f);
 
     std::vector<Particle> particles(PARTICLE_COUNT);
     for (auto&[position, velocity, color] : particles)
@@ -179,7 +179,7 @@ namespace vke {
       const uint32_t maxFrames = logicalDevice->getMaxFramesInFlight();
       const uint32_t previousFrame = frame == 0 ? maxFrames - 1 : static_cast<uint32_t>(frame - 1);
 
-      const std::vector<vk::WriteDescriptorSet> writeDescriptorSets {{
+      const std::vector writeDescriptorSets {{
         m_deltaTimeUniform->getDescriptorSet(0, descriptorSet, frame),
         {
           .dstSet = descriptorSet,

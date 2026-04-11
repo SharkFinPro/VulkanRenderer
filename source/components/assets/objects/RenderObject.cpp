@@ -176,7 +176,7 @@ namespace vke {
     m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, descriptorSetLayout);
     m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
         m_texture->getDescriptorSet(1, descriptorSet),
         m_specularMap->getDescriptorSet(4, descriptorSet)

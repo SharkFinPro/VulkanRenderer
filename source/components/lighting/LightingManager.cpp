@@ -215,7 +215,7 @@ namespace vke {
     m_lightingDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, getDescriptorPool(), lightingLayoutBindings);
     m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         m_lightMetadataUniform->getDescriptorSet(0, descriptorSet, frame),
         m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame),
         m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame),
@@ -264,7 +264,7 @@ namespace vke {
 
       m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
       {
-        std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+        std::vector descriptorWrites{{
           m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame)
         }};
 
@@ -354,7 +354,7 @@ namespace vke {
 
       m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
       {
-        std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+        std::vector descriptorWrites{{
           m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame)
         }};
 

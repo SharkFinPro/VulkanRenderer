@@ -131,15 +131,20 @@ namespace vke {
         0,
         1
       },
-      std::array<vk::Offset3D, 2>{vk::Offset3D{0, 0, 0}, vk::Offset3D{mipWidth, mipHeight, 1}},
+      std::array{
+        vk::Offset3D{0, 0, 0},
+        vk::Offset3D{mipWidth, mipHeight, 1}
+      },
       vk::ImageSubresourceLayers{
         vk::ImageAspectFlagBits::eColor,
         mipLevel + 1,
         0,
         1
       },
-      std::array<vk::Offset3D, 2>{vk::Offset3D{0, 0, 0},
-                                  vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1}}
+      std::array{
+        vk::Offset3D{0, 0, 0},
+        vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1}
+      }
     };
 
     commandBuffer.blitImage(

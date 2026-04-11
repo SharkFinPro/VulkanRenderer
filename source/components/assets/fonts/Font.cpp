@@ -50,7 +50,7 @@ namespace vke {
     }
 
     file.seekg(0);
-    std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    std::vector<uint8_t> buffer((std::istreambuf_iterator(file)), std::istreambuf_iterator<char>());
 
     if (!file)
     {
@@ -214,7 +214,7 @@ namespace vke {
     m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, descriptorSetLayout);
     m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         m_glyphTexture->getDescriptorSet(0, descriptorSet)
       }};
 

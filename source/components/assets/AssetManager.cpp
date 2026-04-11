@@ -239,7 +239,7 @@ namespace vke {
       return;
     }
 
-    const std::array rayTracingBindings {
+    constexpr std::array rayTracingBindings {
       vk::DescriptorSetLayoutBinding {
         .binding = 0,
         .descriptorType = vk::DescriptorType::eAccelerationStructureKHR,
@@ -292,7 +292,7 @@ namespace vke {
     };
 
     // Binding 7 uses variable descriptor count and partial binding.
-    const std::array<vk::DescriptorBindingFlags, 8> bindingFlags {
+    constexpr std::array bindingFlags {
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
