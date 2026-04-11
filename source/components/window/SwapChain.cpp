@@ -147,7 +147,8 @@ namespace vke {
     }
   }
 
-  void SwapChain::createImageResources(const std::shared_ptr<LogicalDevice> &logicalDevice, vk::CommandPool commandPool)
+  void SwapChain::createImageResources(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                       const vk::CommandPool commandPool)
   {
     const ImageResourceConfig imageResourceConfig {
       .logicalDevice = logicalDevice,

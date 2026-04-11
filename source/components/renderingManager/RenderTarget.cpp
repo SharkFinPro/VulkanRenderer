@@ -230,9 +230,9 @@ namespace vke {
     }
   }
 
-  void RenderTarget::createMousePickingImageResources(vk::Extent2D extent)
+  void RenderTarget::createMousePickingImageResources(const vk::Extent2D extent)
   {
-    ImageResourceConfig imageResourceConfig {
+    const ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
