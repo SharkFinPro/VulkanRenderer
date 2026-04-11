@@ -141,8 +141,8 @@ namespace vke {
                                                const vk::CommandPool& commandPool)
   {
     std::default_random_engine randomEngine(static_cast<unsigned int>(time(nullptr)));
-    std::uniform_real_distribution<float> colorDistribution(0.25f, 1.0f);
-    std::uniform_real_distribution<float> largeDistribution(-1000.0f, 1000.0f);
+    std::uniform_real_distribution colorDistribution(0.25f, 1.0f);
+    std::uniform_real_distribution largeDistribution(-1000.0f, 1000.0f);
 
     std::vector<SmokeParticle> particles(m_numParticles);
 
@@ -219,7 +219,7 @@ namespace vke {
       const uint32_t maxFrames = logicalDevice->getMaxFramesInFlight();
       const uint32_t previousFrame = frame == 0 ? maxFrames - 1 : static_cast<uint32_t>(frame - 1);
 
-      const std::vector<vk::WriteDescriptorSet> writeDescriptorSets {{
+      const std::vector writeDescriptorSets {{
         m_deltaTimeUniform->getDescriptorSet(0, descriptorSet, frame),
         {
           .dstSet = descriptorSet,

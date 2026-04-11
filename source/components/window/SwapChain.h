@@ -62,13 +62,13 @@ namespace vke {
     void createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
     void createImageResources(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                     vk::CommandPool commandPool);
+                              vk::CommandPool commandPool);
 
     static void transitionImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                  vk::Image image);
+                                         vk::Image image);
 
     static void transitionImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                   vk::Image image);
+                                          vk::Image image);
   };
 
 } // namespace vke

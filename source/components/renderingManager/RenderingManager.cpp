@@ -213,7 +213,7 @@ namespace vke {
                                                       const std::shared_ptr<LightingManager>& lightingManager,
                                                       const uint32_t currentFrame) const
   {
-    auto renderShadowMaps = [&] {
+    auto renderShadowMaps = [this, currentFrame, lightingManager, pipelineManager] {
       if (m_rayTracingEnabled)
       {
         return;
@@ -222,25 +222,25 @@ namespace vke {
       m_renderer3D->renderShadowMaps(lightingManager, m_offscreenCommandBuffer, pipelineManager, currentFrame);
     };
 
-    auto recordMousePicking = [&](const RenderInfo& renderInfo) {
-      m_renderTarget->beginMousePickingRendering(currentFrame, renderInfo.commandBuffer);
+    auto recordMousePicking = [this, currentFrame, pipelineManager](const RenderInfo& renderInfo) {
+      m_renderTarget->beginMousePickingRendering(renderInfo.commandBuffer, currentFrame);
 
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
       renderInfo.commandBuffer->endRendering();
     };
 
-    auto recordOffscreenRendering = [&](const RenderInfo& renderInfo) {
+    auto recordOffscreenRendering = [this, currentFrame, lightingManager, pipelineManager](const RenderInfo& renderInfo) {
       if (m_rayTracingEnabled)
       {
-        m_renderTarget->beginRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
+        m_renderTarget->beginRayTracingRendering(renderInfo.commandBuffer, currentFrame);
         m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderTarget->getOffscreenRayTracingImageResource(currentFrame));
-        m_renderTarget->endRayTracingRendering(m_offscreenCommandBuffer, currentFrame);
+        m_renderTarget->endRayTracingRendering(renderInfo.commandBuffer, currentFrame);
 
         return;
       }
 
-      m_renderTarget->beginOffscreenRendering(currentFrame, m_offscreenCommandBuffer);
+      m_renderTarget->beginOffscreenRendering(renderInfo.commandBuffer, currentFrame);
 
       m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
 

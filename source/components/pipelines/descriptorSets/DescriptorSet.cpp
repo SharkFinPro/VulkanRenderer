@@ -57,7 +57,7 @@ namespace vke {
   void DescriptorSet::allocateDescriptorSets(const vk::DescriptorPool descriptorPool,
                                              const void* allocationPNext)
   {
-    const std::vector<vk::DescriptorSetLayout> layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
+    const std::vector layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
     const vk::DescriptorSetAllocateInfo allocateInfo {
       .pNext = allocationPNext,
       .descriptorPool = descriptorPool,

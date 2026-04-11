@@ -29,7 +29,6 @@ namespace vke {
   class SmokeSystem;
   class Texture3D;
   class TextureCubemap;
-  class UniformBuffer;
   class Window;
 
   struct BendyPlant {

@@ -14,7 +14,7 @@ namespace vke {
   class RenderTarget {
   public:
     explicit RenderTarget(std::shared_ptr<LogicalDevice> logicalDevice,
-                      vk::CommandPool commandPool);
+                          vk::CommandPool commandPool);
 
     [[nodiscard]] ImageResource& getOffscreenResolveImageResource(uint32_t currentFrame);
 
@@ -24,11 +24,11 @@ namespace vke {
 
     void recreateImageResources(vk::Extent2D extent);
 
-    void beginOffscreenRendering(uint32_t currentFrame,
-                                 const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+    void beginOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                 uint32_t currentFrame) const;
 
-    void beginMousePickingRendering(uint32_t currentFrame,
-                                    const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+    void beginMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                    uint32_t currentFrame) const;
 
     void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                   uint32_t currentFrame) const;

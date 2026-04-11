@@ -437,7 +437,7 @@ namespace vke {
         };
       };
 
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         {
           .pNext = &m_tlasInfo,
           .dstSet = descriptorSet,

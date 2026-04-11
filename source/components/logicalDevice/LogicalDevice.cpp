@@ -357,7 +357,7 @@ namespace vke {
       }
     };
 
-    auto extensions = std::vector<const char*>(deviceExtensions.begin(), deviceExtensions.end());
+    auto extensions = std::vector(deviceExtensions.begin(), deviceExtensions.end());
 
     if (m_physicalDevice->supportsRayTracing())
     {

@@ -55,7 +55,7 @@ namespace vke {
 
     projection[1][1] *= -1;
 
-    const std::array<glm::mat4, 6> viewMatrices {
+    const std::array viewMatrices {
       glm::lookAt(m_position, m_position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)),
       glm::lookAt(m_position, m_position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)),
 
@@ -119,7 +119,7 @@ namespace vke {
     m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
     m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         m_viewProjectionUniform->getDescriptorSet(0, descriptorSet, frame)
       }};
 

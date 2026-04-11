@@ -143,7 +143,7 @@ namespace vke {
     m_BendyPipelineDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, bendyLayoutBindings);
     m_BendyPipelineDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
-      std::vector<vk::WriteDescriptorSet> descriptorWrites{{
+      std::vector descriptorWrites{{
         m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
         m_timeUniform->getDescriptorSet(1, descriptorSet, frame),
         m_texture->getDescriptorSet(2, descriptorSet)

@@ -12,12 +12,16 @@
 #include "components/renderingManager/renderer3D/Renderer3D.h"
 #include "components/window/Surface.h"
 #include "components/window/Window.h"
+#include <stdexcept>
 
 namespace vke {
 
   VulkanEngine::VulkanEngine(const EngineConfig& engineConfig)
   {
-    glfwInit();
+    if (!glfwInit())
+    {
+      throw std::runtime_error("Failed to initialize GLFW!");
+    }
 
     initializeVulkanAndWindow(engineConfig);
 
@@ -52,7 +56,12 @@ namespace vke {
 
   bool VulkanEngine::isActive() const
   {
-    return m_window->isOpen();
+    if (m_window)
+    {
+      return m_window->isOpen();
+    }
+
+    return false;
   }
 
   void VulkanEngine::render()

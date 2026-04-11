@@ -7,7 +7,7 @@
 namespace vke {
 
   RenderTarget::RenderTarget(std::shared_ptr<LogicalDevice> logicalDevice,
-                     const vk::CommandPool commandPool)
+                             const vk::CommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     createSampler();
@@ -45,8 +45,8 @@ namespace vke {
     createMousePickingImageResources(extent);
   }
 
-  void RenderTarget::beginOffscreenRendering(const uint32_t currentFrame,
-                                         const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  void RenderTarget::beginOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             const uint32_t currentFrame) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_offscreenColorImageResources.at(currentFrame).getImageView(),
@@ -81,8 +81,8 @@ namespace vke {
     commandBuffer->beginRendering(renderingInfo);
   }
 
-  void RenderTarget::beginMousePickingRendering(const uint32_t currentFrame,
-                                            const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  void RenderTarget::beginMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                const uint32_t currentFrame) const
   {
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_mousePickingColorImageResources.at(currentFrame).getImageView(),
@@ -116,7 +116,7 @@ namespace vke {
   }
 
   void RenderTarget::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                          const uint32_t currentFrame) const
+                                              const uint32_t currentFrame) const
   {
     const vk::ImageMemoryBarrier imageMemoryBarrier {
       .srcAccessMask = vk::AccessFlagBits::eNone,
@@ -146,7 +146,7 @@ namespace vke {
   }
 
   void RenderTarget::endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                        const uint32_t currentFrame) const
+                                            const uint32_t currentFrame) const
   {
     transitionRayTracingImagePreCopy(commandBuffer, currentFrame);
 
@@ -230,9 +230,9 @@ namespace vke {
     }
   }
 
-  void RenderTarget::createMousePickingImageResources(vk::Extent2D extent)
+  void RenderTarget::createMousePickingImageResources(const vk::Extent2D extent)
   {
-    ImageResourceConfig imageResourceConfig {
+    const ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
@@ -260,7 +260,7 @@ namespace vke {
   }
 
   void RenderTarget::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                  const uint32_t currentFrame) const
+                                                      const uint32_t currentFrame) const
   {
     const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
     const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
@@ -313,7 +313,7 @@ namespace vke {
   }
 
   void RenderTarget::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                   const uint32_t currentFrame) const
+                                                       const uint32_t currentFrame) const
   {
     const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
     const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
@@ -366,7 +366,7 @@ namespace vke {
   }
 
   void RenderTarget::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                     const uint32_t currentFrame) const
+                                                         const uint32_t currentFrame) const
   {
     const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
     const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
