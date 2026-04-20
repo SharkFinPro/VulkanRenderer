@@ -5,7 +5,7 @@ namespace vke {
   Cloud::Cloud(std::shared_ptr<LogicalDevice> logicalDevice,
                const vk::CommandPool& commandPool)
     : ProceduralVolume(
-        logicalDevice,
+        std::move(logicalDevice),
         commandPool,
         {
           -1.f, -1.f, -1.f,

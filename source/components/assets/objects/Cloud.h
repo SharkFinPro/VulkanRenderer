@@ -2,7 +2,6 @@
 #define VULKANPROJECT_CLOUD_H
 
 #include "ProceduralVolume.h"
-#include <vulkan/vulkan_raii.hpp>
 #include <memory>
 
 namespace vke {
