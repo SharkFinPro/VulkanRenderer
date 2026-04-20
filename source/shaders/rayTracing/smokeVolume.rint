@@ -3,9 +3,10 @@
 
 struct SmokeHitAttribute {
   vec4 color;
+  float exit;
 };
 
-hitAttributeEXT SmokeHitAttribute cloudHit;
+hitAttributeEXT SmokeHitAttribute smokeHit;
 
 void main()
 {
@@ -27,7 +28,9 @@ void main()
   tEnter = max(tEnter, gl_RayTminEXT);
   tExit = min(tExit, gl_RayTmaxEXT);
 
-  cloudHit.color = vec4(0.2, 0.3, 0.7, 1.0);
+  smokeHit.exit = tExit;
+
+  smokeHit.color = vec4(0.2, 0.3, 0.7, 0.8);
 
   reportIntersectionEXT(tEnter, 0);
 }
