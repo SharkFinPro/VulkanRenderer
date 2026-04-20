@@ -14,6 +14,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/objects/ProceduralVolume.h
     components/assets/objects/RenderObject.cpp
     components/assets/objects/RenderObject.h
+    components/assets/objects/SmokeVolume.cpp
+    components/assets/objects/SmokeVolume.h
 
     # Particle Systems
     components/assets/particleSystems/SmokeSystem.cpp
