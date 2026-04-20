@@ -8,8 +8,12 @@ namespace vke {
     : ProceduralVolume(
         std::move(logicalDevice),
         commandPool,
-        {-1, -1, -1, 1, 10, 1},
-        position)
+        {
+          -1.f, 0.f, -1.f,
+          1.f, 1.f, 1.f
+        },
+        position,
+        glm::vec3(1.5f, 15.0f, 1.5f))
   {}
 
 } // vke

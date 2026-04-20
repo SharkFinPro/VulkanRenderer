@@ -269,7 +269,7 @@ namespace vke {
         .transform = transformMatrix,
         .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
         .mask = 0xFF,
-        .instanceShaderBindingTableRecordOffset = 1,
+        .instanceShaderBindingTableRecordOffset = 2,
         .flags = 0,
         .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
       };

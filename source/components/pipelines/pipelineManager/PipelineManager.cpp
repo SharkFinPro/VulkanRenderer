@@ -254,7 +254,8 @@ namespace vke {
         },
         .hitGroups = {
           { "assets/shaders/rayTracing/object.rchit.spv", "" },
-          { "assets/shaders/rayTracing/cloud.rchit.spv", "assets/shaders/rayTracing/cloud.rint.spv" }
+          { "assets/shaders/rayTracing/cloud.rchit.spv", "assets/shaders/rayTracing/cloud.rint.spv" },
+          { "assets/shaders/rayTracing/smokeVolume.rchit.spv", "assets/shaders/rayTracing/smokeVolume.rint.spv" }
         },
       },
       .descriptorSetLayouts {
