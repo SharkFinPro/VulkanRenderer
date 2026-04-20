@@ -4,6 +4,7 @@
 #include "../../assets/objects/Cloud.h"
 #include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
+#include "../../assets/objects/SmokeVolume.h"
 #include "../../assets/textures/Texture.h"
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../lighting/LightingManager.h"
@@ -57,15 +58,16 @@ namespace vke {
                                const ImageResource& imageResource,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                const std::shared_ptr<Cloud>& cloud,
+                               const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes,
                                const glm::vec3& viewPosition,
                                const glm::mat4& viewMatrix)
   {
-    if (renderObjects.empty() && !cloud)
+    if (renderObjects.empty() && !cloud && smokeVolumes.empty())
     {
       return;
     }
 
-    createTLAS(renderObjects, cloud);
+    createTLAS(renderObjects, cloud, smokeVolumes);
 
     updateRTSceneInfo(renderObjects);
 
@@ -95,7 +97,8 @@ namespace vke {
   }
 
   void RayTracer::createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                             const std::shared_ptr<Cloud>& cloud)
+                             const std::shared_ptr<Cloud>& cloud,
+                             const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes)
   {
     if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
@@ -114,7 +117,7 @@ namespace vke {
     m_meshInfoBuffer = nullptr;
     m_meshInfoBufferMemory = nullptr;
 
-    const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud);
+    const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud, smokeVolumes);
 
     const vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
       .arrayOfPointers = vk::False,
@@ -150,12 +153,13 @@ namespace vke {
   }
 
   uint32_t RayTracer::createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                               const std::shared_ptr<Cloud>& cloud)
+                                               const std::shared_ptr<Cloud>& cloud,
+                                               const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes)
   {
     std::vector<vk::AccelerationStructureInstanceKHR> instances;
     instances.reserve(renderObjects.size());
 
-    populateInstanceArray(instances, renderObjects, cloud);
+    populateInstanceArray(instances, renderObjects, cloud, smokeVolumes);
 
     const vk::DeviceSize instancesBufferSize = instances.size() * sizeof(vk::AccelerationStructureInstanceKHR);
 
@@ -199,7 +203,8 @@ namespace vke {
 
   void RayTracer::populateInstanceArray(std::vector<vk::AccelerationStructureInstanceKHR>& instances,
                                         const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                        const std::shared_ptr<Cloud>& cloud) const
+                                        const std::shared_ptr<Cloud>& cloud,
+                                        const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes) const
   {
     for (const auto& renderObject : renderObjects)
     {
@@ -231,6 +236,30 @@ namespace vke {
       };
 
       const glm::mat4 modelTransform = glm::scale(glm::translate(glm::mat4(1.0f), cloud->getTranslation()), cloud->getScale());
+
+      const glm::mat4 modelMatrix = glm::transpose(modelTransform);
+      vk::TransformMatrixKHR transformMatrix;
+      memcpy(&transformMatrix, &modelMatrix, sizeof(vk::TransformMatrixKHR));
+
+      const vk::AccelerationStructureInstanceKHR instance {
+        .transform = transformMatrix,
+        .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
+        .mask = 0xFF,
+        .instanceShaderBindingTableRecordOffset = 1,
+        .flags = 0,
+        .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
+      };
+
+      instances.push_back(instance);
+    }
+
+    for (const auto& volume : smokeVolumes)
+    {
+      const vk::AccelerationStructureDeviceAddressInfoKHR accelerationStructureDeviceAddressInfo {
+        .accelerationStructure = volume->getBLAS()
+      };
+
+      const glm::mat4 modelTransform = glm::scale(glm::translate(glm::mat4(1.0f), volume->getTranslation()), volume->getScale());
 
       const glm::mat4 modelMatrix = glm::transpose(modelTransform);
       vk::TransformMatrixKHR transformMatrix;

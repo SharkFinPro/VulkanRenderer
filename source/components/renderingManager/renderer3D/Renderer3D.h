@@ -27,6 +27,7 @@ namespace vke {
   struct RenderInfo;
   class RenderObject;
   class SmokeSystem;
+  class SmokeVolume;
   class Texture3D;
   class TextureCubemap;
   class Window;
@@ -116,6 +117,8 @@ namespace vke {
 
     void setCloudToRender(std::shared_ptr<Cloud> cloud);
 
+    void renderSmokeVolume(std::shared_ptr<SmokeVolume> smokeVolume);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -140,6 +143,7 @@ namespace vke {
     std::vector<BendyPlant> m_bendyPlantsToRender;
 
     std::vector<std::shared_ptr<SmokeSystem>> m_smokeSystemsToRender;
+    std::vector<std::shared_ptr<SmokeVolume>> m_smokeVolumesToRender;
 
     std::shared_ptr<Texture3D> m_noiseTexture;
 

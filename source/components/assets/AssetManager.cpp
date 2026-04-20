@@ -3,6 +3,7 @@
 #include "objects/Cloud.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
+#include "objects/SmokeVolume.h"
 #include "particleSystems/SmokeSystem.h"
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -91,6 +92,15 @@ namespace vke {
       *m_smokeSystemDescriptorSetLayout,
       position,
       numParticles
+    );
+  }
+
+  std::shared_ptr<SmokeVolume> AssetManager::createSmokeVolume(glm::vec3 position)
+  {
+    return std::make_shared<SmokeVolume>(
+      m_logicalDevice,
+      *m_commandPool,
+      position
     );
   }
 

@@ -16,6 +16,7 @@ namespace vke {
   class Model;
   class RenderObject;
   class SmokeSystem;
+  class SmokeVolume;
   class Texture;
   class Texture2D;
 
@@ -61,6 +62,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<SmokeSystem> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
                                                                  uint32_t numParticles = 5'000'000);
+
+    [[nodiscard]] std::shared_ptr<SmokeVolume> createSmokeVolume(glm::vec3 position = glm::vec3(0.0f));
 
     [[nodiscard]] vk::DescriptorSetLayout getObjectDescriptorSetLayout() const;
 

@@ -110,6 +110,7 @@ namespace vke {
       imageResource,
       m_renderObjectsToRenderFlattened,
       m_cloudToRender,
+      m_smokeVolumesToRender,
       m_viewPosition,
       m_viewMatrix
     );
@@ -131,6 +132,8 @@ namespace vke {
     m_mousePicker->clearObjectsToMousePick();
 
     m_smokeSystemsToRender.clear();
+
+    m_smokeVolumesToRender.clear();
 
     m_cloudToRender.reset();
   }
@@ -215,6 +218,11 @@ namespace vke {
   void Renderer3D::setCloudToRender(std::shared_ptr<Cloud> cloud)
   {
     m_cloudToRender = std::move(cloud);
+  }
+
+  void Renderer3D::renderSmokeVolume(std::shared_ptr<SmokeVolume> smokeVolume)
+  {
+    m_smokeVolumesToRender.push_back(std::move(smokeVolume));
   }
 
   void Renderer3D::createCommandPool()

@@ -13,6 +13,8 @@ void createLights(const vke::VulkanEngine& renderer,
 
 std::vector<std::shared_ptr<vke::SmokeSystem>> createSmokeSystems(const vke::VulkanEngine& renderer);
 
+std::vector<std::shared_ptr<vke::SmokeVolume>> createSmokeVolumes(const vke::VulkanEngine& renderer);
+
 void displaySmokeSystemGui(const std::shared_ptr<vke::SmokeSystem>& smokeSystem,
                            uint32_t id);
 
@@ -48,6 +50,8 @@ int main()
 
     const auto smokeSystems = createSmokeSystems(renderer);
 
+    const auto smokeVolumes = createSmokeVolumes(renderer);
+
     const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
     while (renderer.isActive())
@@ -66,6 +70,11 @@ int main()
       for (const auto& system : smokeSystems)
       {
         r3d->renderSmokeSystem(system);
+      }
+
+      for (const auto volume : smokeVolumes)
+      {
+        r3d->renderSmokeVolume(volume);
       }
 
       for (const auto& light : lights)
@@ -112,6 +121,15 @@ std::vector<std::shared_ptr<vke::SmokeSystem>> createSmokeSystems(const vke::Vul
   systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2));
 
   return systems;
+}
+
+std::vector<std::shared_ptr<vke::SmokeVolume>> createSmokeVolumes(const vke::VulkanEngine& renderer)
+{
+  std::vector<std::shared_ptr<vke::SmokeVolume>> volumes;
+
+  volumes.push_back(renderer.getAssetManager()->createSmokeVolume({0, 0.95f, 0}));
+
+  return volumes;
 }
 
 void displaySmokeSystemGui(const std::shared_ptr<vke::SmokeSystem>& smokeSystem,

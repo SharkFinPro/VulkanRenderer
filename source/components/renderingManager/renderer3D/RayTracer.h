@@ -18,6 +18,7 @@ namespace vke {
   class PipelineManager;
   struct RenderInfo;
   class RenderObject;
+  class SmokeVolume;
   class UniformBuffer;
   struct Vertex;
 
@@ -45,6 +46,7 @@ namespace vke {
                       const ImageResource& imageResource,
                       const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                       const std::shared_ptr<Cloud>& cloud,
+                      const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes,
                       const glm::vec3& viewPosition,
                       const glm::mat4& viewMatrix);
 
@@ -86,14 +88,17 @@ namespace vke {
     float m_speed = 1.0f;
 
     void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                    const std::shared_ptr<Cloud>& cloud);
+                    const std::shared_ptr<Cloud>& cloud,
+                    const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes);
 
     [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                                    const std::shared_ptr<Cloud>& cloud);
+                                                    const std::shared_ptr<Cloud>& cloud,
+                                                    const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes);
 
     void populateInstanceArray(std::vector<vk::AccelerationStructureInstanceKHR>& instances,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                               const std::shared_ptr<Cloud>& cloud) const;
+                               const std::shared_ptr<Cloud>& cloud,
+                               const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes) const;
 
     void buildTLAS(vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                    const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
