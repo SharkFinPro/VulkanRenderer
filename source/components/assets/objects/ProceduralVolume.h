@@ -1,0 +1,12 @@
+#ifndef VULKANPROJECT_PROCEDURALVOLUME_H
+#define VULKANPROJECT_PROCEDURALVOLUME_H
+
+namespace vke {
+
+class ProceduralVolume {
+
+};
+
+} // vke
+
+#endif //VULKANPROJECT_PROCEDURALVOLUME_H

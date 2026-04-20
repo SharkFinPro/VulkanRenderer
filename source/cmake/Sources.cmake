@@ -10,6 +10,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/objects/Cloud.h
     components/assets/objects/Model.cpp
     components/assets/objects/Model.h
+    components/assets/objects/ProceduralVolume.cpp
+    components/assets/objects/ProceduralVolume.h
     components/assets/objects/RenderObject.cpp
     components/assets/objects/RenderObject.h
 
