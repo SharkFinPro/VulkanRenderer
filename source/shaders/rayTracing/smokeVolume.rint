@@ -155,7 +155,10 @@ void main()
 
     uvw.y *= smokeInfo.yScale;
 
-    float density = smokeDensity(uvw - vec3(0, smokeInfo.time, 0), smokeInfo.frequency) * smokeInfo.amplitude;
+    float heightT = clamp(pos.y, 0.0, 1.0);
+    float taper = 1.0 - smoothstep(0.0, 1.0, heightT);
+
+    float density = smokeDensity(uvw - vec3(0, smokeInfo.time, 0), smokeInfo.frequency) * smokeInfo.amplitude * taper;
     totalDensity += density / float(numSamples);
   }
 
