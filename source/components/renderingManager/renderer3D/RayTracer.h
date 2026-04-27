@@ -18,6 +18,7 @@ namespace vke {
   class PipelineManager;
   struct RenderInfo;
   class RenderObject;
+  struct SmokeUniform;
   class SmokeVolume;
   class UniformBuffer;
   struct Vertex;
@@ -77,13 +78,19 @@ namespace vke {
     vk::raii::Buffer m_meshInfoBuffer = nullptr;
     vk::raii::DeviceMemory m_meshInfoBufferMemory = nullptr;
 
+    vk::raii::Buffer m_smokeInfoBuffer = nullptr;
+    vk::raii::DeviceMemory m_smokeInfoBufferMemory = nullptr;
+
     vk::DescriptorBufferInfo m_vertexBufferInfo = { nullptr, 0, vk::WholeSize };
     vk::DescriptorBufferInfo m_indexBufferInfo = { nullptr, 0, vk::WholeSize };
     vk::DescriptorBufferInfo m_meshInfoInfo = { nullptr, 0, vk::WholeSize };
+    vk::DescriptorBufferInfo m_smokeInfoInfo = { nullptr, 0, vk::WholeSize };
 
     std::vector<vk::DescriptorImageInfo> m_textureImageInfos;
 
     std::shared_ptr<UniformBuffer> m_cloudUniform;
+
+    std::shared_ptr<UniformBuffer> m_smokeUniform;
 
     float m_speed = 1.0f;
 
@@ -104,11 +111,13 @@ namespace vke {
                    const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
                    uint32_t primitiveCount);
 
-    void updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+    void updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                           const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes);
 
     void uploadRTSceneInfoBuffers(const std::vector<Vertex>& mergedVertices,
                                   const std::vector<uint32_t>& mergedIndices,
-                                  const std::vector<MeshInfo>& meshInfos);
+                                  const std::vector<MeshInfo>& meshInfos,
+                                  const std::vector<SmokeUniform>& smokeInfos);
 
     void updateRTDescriptorSets(const ImageResource& imageResource,
                                 uint32_t currentFrame);

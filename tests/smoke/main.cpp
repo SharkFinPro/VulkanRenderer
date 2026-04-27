@@ -2,6 +2,7 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/assets/AssetManager.h>
 #include <source/components/assets/objects/RenderObject.h>
+#include <source/components/assets/objects/SmokeVolume.h>
 #include <source/components/assets/particleSystems/SmokeSystem.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
@@ -17,6 +18,8 @@ std::vector<std::shared_ptr<vke::SmokeVolume>> createSmokeVolumes(const vke::Vul
 
 void displaySmokeSystemGui(const std::shared_ptr<vke::SmokeSystem>& smokeSystem,
                            uint32_t id);
+
+void displaySmokeVolumeGUI(const std::shared_ptr<vke::SmokeVolume>& smokeVolume);
 
 int main()
 {
@@ -72,8 +75,10 @@ int main()
         r3d->renderSmokeSystem(system);
       }
 
-      for (const auto volume : smokeVolumes)
+      for (auto volume : smokeVolumes)
       {
+        displaySmokeVolumeGUI(volume);
+
         r3d->renderSmokeVolume(volume);
       }
 
@@ -127,7 +132,7 @@ std::vector<std::shared_ptr<vke::SmokeVolume>> createSmokeVolumes(const vke::Vul
 {
   std::vector<std::shared_ptr<vke::SmokeVolume>> volumes;
 
-  volumes.push_back(renderer.getAssetManager()->createSmokeVolume({0, 0.95f, 0}));
+  volumes.push_back(renderer.getAssetManager()->createSmokeVolume({0, 1.25f, 0}));
 
   return volumes;
 }
@@ -163,4 +168,46 @@ void displaySmokeSystemGui(const std::shared_ptr<vke::SmokeSystem>& smokeSystem,
   }
 
   ImGui::PopID();
+}
+
+void displaySmokeVolumeGUI(const std::shared_ptr<vke::SmokeVolume>& smokeVolume)
+{
+  ImGui::Begin("Smoke Volumes");
+
+  auto frequency = smokeVolume->getFrequency();
+  if (ImGui::DragFloat("Frequency", &frequency, 0.01f, 0.0f))
+  {
+    smokeVolume->setFrequency(frequency);
+  }
+
+  auto amplitude = smokeVolume->getAmplitude();
+  if (ImGui::DragFloat("Amplitude", &amplitude, 0.01f, 0.0f))
+  {
+    smokeVolume->setAmplitude(amplitude);
+  }
+
+  auto density = smokeVolume->getDensity();
+  if (ImGui::DragFloat("Density", &density, 0.001f, 0.0f))
+  {
+    smokeVolume->setDensity(density);
+  }
+
+  auto yScale = smokeVolume->getYScale();
+  if (ImGui::DragFloat("Y Scale", &yScale, 0.001f, 0.0f))
+  {
+    smokeVolume->setYScale(yScale);
+  }
+
+  static float speed = 25.0f;
+  ImGui::DragFloat("Speed", &speed, 0.01f);
+
+  ImGui::End();
+
+  static std::chrono::time_point<std::chrono::steady_clock> previousTime = std::chrono::steady_clock::now();
+
+  const auto currentTime = std::chrono::steady_clock::now();
+  const float dt = std::chrono::duration<float>(currentTime - previousTime).count() / 250.0f;
+  previousTime = currentTime;
+
+  smokeVolume->setTime(smokeVolume->getTime() + dt * speed);
 }

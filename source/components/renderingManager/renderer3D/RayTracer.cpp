@@ -50,6 +50,8 @@ namespace vke {
     m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
 
     m_cloudUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CloudUniform));
+
+    m_smokeUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SmokeUniform));
   }
 
   void RayTracer::doRayTracing(const RenderInfo* renderInfo,
@@ -69,7 +71,7 @@ namespace vke {
 
     createTLAS(renderObjects, cloud, smokeVolumes);
 
-    updateRTSceneInfo(renderObjects);
+    updateRTSceneInfo(renderObjects, smokeVolumes);
 
     updateRTDescriptorSetData(renderInfo->extent, renderInfo->currentFrame, viewPosition, viewMatrix);
 
@@ -324,11 +326,13 @@ namespace vke {
     };
   }
 
-  void RayTracer::updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
+  void RayTracer::updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                                    const std::vector<std::shared_ptr<SmokeVolume>>& smokeVolumes)
   {
     std::vector<Vertex> mergedVertices;
     std::vector<uint32_t> mergedIndices;
     std::vector<MeshInfo> meshInfos;
+    std::vector<SmokeUniform> smokeInfos;
     m_textureImageInfos.clear();
 
     std::unordered_map<std::shared_ptr<Texture>, uint32_t> textureIndices;
@@ -393,12 +397,18 @@ namespace vke {
       meshInfos.push_back(MeshInfo{});
     }
 
-    uploadRTSceneInfoBuffers(mergedVertices, mergedIndices, meshInfos);
+    for (const auto& volume : smokeVolumes)
+    {
+      smokeInfos.push_back(volume->getUniformData());
+    }
+
+    uploadRTSceneInfoBuffers(mergedVertices, mergedIndices, meshInfos, smokeInfos);
   }
 
   void RayTracer::uploadRTSceneInfoBuffers(const std::vector<Vertex>& mergedVertices,
                                            const std::vector<uint32_t>& mergedIndices,
-                                           const std::vector<MeshInfo>& meshInfos)
+                                           const std::vector<MeshInfo>& meshInfos,
+                                           const std::vector<SmokeUniform>& smokeInfos)
   {
     auto uploadBuffer = [&]<typename T>(const std::vector<T>& data,
                                         vk::raii::Buffer& outBuffer,
@@ -449,6 +459,7 @@ namespace vke {
     uploadBuffer(mergedVertices, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
     uploadBuffer(mergedIndices, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
     uploadBuffer(meshInfos, m_meshInfoBuffer, m_meshInfoBufferMemory);
+    uploadBuffer(smokeInfos, m_smokeInfoBuffer, m_smokeInfoBufferMemory);
   }
 
   void RayTracer::updateRTDescriptorSets(const ImageResource& imageResource,
@@ -485,14 +496,16 @@ namespace vke {
         storageBuffer(3, &m_vertexBufferInfo),
         storageBuffer(4, &m_indexBufferInfo),
         storageBuffer(5, &m_meshInfoInfo),
-        m_cloudUniform->getDescriptorSet(6, descriptorSet, currentFrame)
+        storageBuffer(6, &m_smokeInfoInfo),
+        m_cloudUniform->getDescriptorSet(7, descriptorSet, currentFrame),
+        m_smokeUniform->getDescriptorSet(8, descriptorSet, currentFrame)
       }};
 
       if (!m_textureImageInfos.empty())
       {
         descriptorWrites.push_back({
           .dstSet = descriptorSet,
-          .dstBinding = 7,
+          .dstBinding = 9,
           .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
           .descriptorType = vk::DescriptorType::eCombinedImageSampler,
           .pImageInfo = m_textureImageInfos.data()
@@ -528,6 +541,7 @@ namespace vke {
     m_vertexBufferInfo.buffer = *m_mergedVertexBuffer;
     m_indexBufferInfo.buffer = *m_mergedIndexBuffer;
     m_meshInfoInfo.buffer = *m_meshInfoBuffer;
+    m_smokeInfoInfo.buffer = *m_smokeInfoBuffer;
   }
 
 } // vke

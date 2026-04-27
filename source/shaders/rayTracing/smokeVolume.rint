@@ -6,7 +6,27 @@ struct SmokeHitAttribute {
   float exit;
 };
 
+struct SmokeInfo {
+  float frequency;
+  float amplitude;
+  float density;
+  float yScale;
+  float time;
+};
+
 hitAttributeEXT SmokeHitAttribute smokeHit;
+
+layout(binding = 6, set = 0) readonly buffer SmokeInfoBuffer {
+  SmokeInfo smokeInfos[];
+};
+
+layout(binding = 8, set = 0) uniform SmokeUniform {
+  float frequency;
+  float amplitude;
+  float density;
+  float yScale;
+  float time;
+} smoke;
 
 //	Classic Perlin 3D Noise
 //	by Stefan Gustavson (https://github.com/stegu/webgl-noise)
@@ -89,7 +109,7 @@ float smokeDensity(vec3 uvw, float freq) {
   val += 0.250 * cnoise(uvw * freq * 2.0);
   val += 0.125 * cnoise(uvw * freq * 4.0);
   val += 0.125 * cnoise(uvw * freq * 8.0);
-  return max(0.0, val - 0.0) * (1.0 / 0.6);
+  return max(0.0, val - smoke.density) * (1.0 / 0.6);
 }
 
 void main()
@@ -114,24 +134,35 @@ void main()
 
   smokeHit.exit = tExit;
 
+  SmokeInfo smokeInfo = smokeInfos[0];
+
   float traveled = tExit - tEnter;
 
-  float fixedStep = 0.1;
-  uint numSamples = 30u;
+  uint numSamples = 20u;
 
   float totalDensity = 0.0f;
   for (uint i = 0; i < numSamples; ++i)
   {
     float d = traveled / numSamples * float(i);
     vec3 pos = gl_ObjectRayOriginEXT + gl_ObjectRayDirectionEXT * (tEnter + d);
+
+    if (dot(pos.xz, pos.xz) > 1.0)
+    {
+      continue;
+    }
+
     vec3 uvw = pos * 0.5 + 0.5;
 
-    float density = smokeDensity(uvw, 5.0) * 1.0;
+    uvw.y *= smokeInfo.yScale;
+
+    float density = smokeDensity(uvw - vec3(0, smokeInfo.time, 0), smokeInfo.frequency) * smokeInfo.amplitude;
     totalDensity += density / float(numSamples);
   }
 
   float brightness = 1.0 - (totalDensity / 2.0);
-  float alpha = clamp(totalDensity * 3.0, 0.0, 1.0);
+
+  float stepSize = traveled / float(numSamples);
+  float alpha = clamp(totalDensity * stepSize * 5.0, 0.0, 1.0);
 
   smokeHit.color = vec4(vec3(brightness), alpha);
 

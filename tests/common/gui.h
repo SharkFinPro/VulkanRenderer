@@ -179,6 +179,7 @@ inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
     gui->dockBottom("Cube Map");
 
     gui->dockBottom("Smoke Systems");
+    gui->dockBottom("Smoke Volumes");
 
     gui->dockBottom("Selected Object");
 

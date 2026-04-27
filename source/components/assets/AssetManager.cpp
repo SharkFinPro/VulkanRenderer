@@ -289,12 +289,24 @@ namespace vke {
       },
       vk::DescriptorSetLayoutBinding {
         .binding = 6,
-        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorType = vk::DescriptorType::eStorageBuffer,
         .descriptorCount = 1,
         .stageFlags = vk::ShaderStageFlagBits::eIntersectionKHR
       },
       vk::DescriptorSetLayoutBinding {
         .binding = 7,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eIntersectionKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 8,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eIntersectionKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 9,
         .descriptorType = vk::DescriptorType::eCombinedImageSampler,
         .descriptorCount = 256,
         .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
@@ -303,6 +315,8 @@ namespace vke {
 
     // Binding 7 uses variable descriptor count and partial binding.
     constexpr std::array bindingFlags {
+      vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
