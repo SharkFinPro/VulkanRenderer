@@ -13,7 +13,7 @@ namespace vke {
           1.f, 1.f, 1.f
         },
         position,
-        glm::vec3(1.5f, 15.0f, 1.5f))
+        glm::vec3(2.5f, 15.0f, 2.5f))
   {}
 
   SmokeUniform SmokeVolume::getUniformData() const

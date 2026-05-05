@@ -138,7 +138,7 @@ void main()
 
   float traveled = tExit - tEnter;
 
-  uint numSamples = 20u;
+  uint numSamples = max(uint(traveled * 20), 10u);
 
   float totalDensity = 0.0f;
   for (uint i = 0; i < numSamples; ++i)
@@ -146,7 +146,9 @@ void main()
     float d = traveled / numSamples * float(i);
     vec3 pos = gl_ObjectRayOriginEXT + gl_ObjectRayDirectionEXT * (tEnter + d);
 
-    if (dot(pos.xz, pos.xz) > 1.0)
+    float height = clamp(pos.y, 0.0, 1.0) * 0.9;
+
+    if (dot(pos.xz, pos.xz) > 0.1 + height)
     {
       continue;
     }
@@ -165,7 +167,7 @@ void main()
   float brightness = 1.0 - (totalDensity / 2.0);
 
   float stepSize = traveled / float(numSamples);
-  float alpha = clamp(totalDensity * stepSize * 5.0, 0.0, 1.0);
+  float alpha = clamp(totalDensity * stepSize * 15.0, 0.0, 1.0);
 
   smokeHit.color = vec4(vec3(brightness), alpha);
 

@@ -46,6 +46,7 @@ int main()
     const auto model = renderer.getAssetManager()->loadModel("assets/models/square.glb");
 
     const auto object = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
+    object->setScale({ 10.0f, 1.0f, 10.0f });
     object->setPosition({ 0, 0, 0 });
 
     std::vector<std::shared_ptr<vke::Light>> lights;
@@ -117,13 +118,13 @@ std::vector<std::shared_ptr<vke::SmokeSystem>> createSmokeSystems(const vke::Vul
 {
   std::vector<std::shared_ptr<vke::SmokeSystem>> systems;
 
-  constexpr uint32_t numParticles = 2'500'000;
-
-  systems.push_back(renderer.getAssetManager()->createSmokeSystem({0, 0.95f, 0}, numParticles));
-  systems.push_back(renderer.getAssetManager()->createSmokeSystem({-5, 0.95f, -5}, numParticles * 2));
-  systems.push_back(renderer.getAssetManager()->createSmokeSystem({-5, 0.95f, 5}, numParticles / 2));
-  systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, .95f, 5}, numParticles * 2));
-  systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2));
+  // constexpr uint32_t numParticles = 2'500'000;
+  //
+  // systems.push_back(renderer.getAssetManager()->createSmokeSystem({0, 0.95f, 0}, numParticles));
+  // systems.push_back(renderer.getAssetManager()->createSmokeSystem({-5, 0.95f, -5}, numParticles * 2));
+  // systems.push_back(renderer.getAssetManager()->createSmokeSystem({-5, 0.95f, 5}, numParticles / 2));
+  // systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, .95f, 5}, numParticles * 2));
+  // systems.push_back(renderer.getAssetManager()->createSmokeSystem({5, 0.95f, -5}, numParticles / 2));
 
   return systems;
 }
