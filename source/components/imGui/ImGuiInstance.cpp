@@ -217,8 +217,9 @@ namespace vke {
   void ImGuiInstance::createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                            const uint32_t maxImGuiTextures)
   {
-    const std::array<vk::DescriptorPoolSize, 1> poolSizes {{
-      {vk::DescriptorType::eCombinedImageSampler, logicalDevice->getMaxFramesInFlight() * maxImGuiTextures}
+    const std::array<vk::DescriptorPoolSize, 2> poolSizes {{
+      {vk::DescriptorType::eSampler, logicalDevice->getMaxFramesInFlight() * maxImGuiTextures},
+      {vk::DescriptorType::eSampledImage, logicalDevice->getMaxFramesInFlight() * maxImGuiTextures}
     }};
 
     const vk::DescriptorPoolCreateInfo poolCreateInfo {
