@@ -54,6 +54,10 @@ namespace vke {
 
   class Light {
   public:
+    // Format of every shadow map image; the shadow pipelines must declare the same depth
+    // attachment format. D32Sfloat is also what makes ImageResource mark depth images sampled.
+    static constexpr auto s_shadowMapFormat = vk::Format::eD32Sfloat;
+
     Light(std::shared_ptr<LogicalDevice> logicalDevice,
           const CommonLightData& commonLightData);
 
