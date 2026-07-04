@@ -25,6 +25,7 @@ namespace vke {
                                       vk::CommandBuffer commandBuffer) const;
 
     void submitSwapchainCommandBuffer(uint32_t currentFrame,
+                                      uint32_t imageIndex,
                                       vk::CommandBuffer commandBuffer) const;
 
     void submitComputeCommandBuffer(uint32_t currentFrame,
@@ -38,13 +39,23 @@ namespace vke {
     void resetGraphicsFences(uint32_t currentFrame) const;
     void resetComputeFences(uint32_t currentFrame) const;
 
-    vk::Result queuePresent(uint32_t currentFrame,
-                            vk::SwapchainKHR swapchain,
-                            const uint32_t* imageIndex) const;
+    vk::Result queuePresent(vk::SwapchainKHR swapchain,
+                            uint32_t imageIndex) const;
 
     vk::Result acquireNextImage(uint32_t currentFrame,
                                 vk::SwapchainKHR swapchain,
                                 uint32_t* imageIndex) const;
+
+    // Render-finished semaphores are indexed by swapchain image (not frame in flight), because
+    // presentation may still be waiting on them after the frame's fences have signaled.
+    // Called by SwapChain whenever a swapchain is (re)created. Requires an idle device.
+    void updateRenderFinishedSemaphores(uint32_t swapchainImageCount);
+
+    // Recreates the per-frame semaphores and fences, returning them to their initial state.
+    // Needed on the swapchain-recreation path: an aborted frame can leave a binary semaphore
+    // signaled with no pending wait, which would be signaled again next time the frame index
+    // comes around. Requires an idle device.
+    void recreateFrameSyncObjects();
 
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
@@ -109,7 +120,7 @@ namespace vke {
 
     std::vector<vk::raii::Semaphore> m_imageAvailableSemaphores;
 
-    std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores;
+    std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores; // indexed by swapchain image
     std::vector<vk::raii::Semaphore> m_offscreenRenderFinishedSemaphores;
 
     std::vector<vk::raii::Fence> m_inFlightFences;

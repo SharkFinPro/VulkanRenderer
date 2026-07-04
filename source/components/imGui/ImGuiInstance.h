@@ -20,6 +20,7 @@ namespace vke {
     ImGuiInstance(const std::shared_ptr<Window>& window,
                   const std::shared_ptr<Instance>& instance,
                   const std::shared_ptr<LogicalDevice>& logicalDevice,
+                  vk::Format swapchainImageFormat,
                   const EngineConfig::ImGui& config);
 
     ~ImGuiInstance();
@@ -60,6 +61,10 @@ namespace vke {
     bool m_dockNeedsUpdate = true;
 
     bool m_useDockSpace;
+
+    // Must match the color attachment format of the swapchain pass ImGui renders into.
+    // Stored as a member because the ImGui Vulkan backend keeps a pointer to it.
+    VkFormat m_swapchainColorFormat = VK_FORMAT_UNDEFINED;
 
     float m_topDockPercent = 0.15f;
     float m_bottomDockPercent = 0.2f;

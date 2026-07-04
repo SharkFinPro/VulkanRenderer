@@ -516,7 +516,7 @@ namespace vke {
         object->draw(shadowRenderInfo.commandBuffer);
       }
 
-      commandBuffer->endRendering();
+      endShadowRendering(commandBuffer, light);
     }
   }
 
@@ -582,7 +582,7 @@ namespace vke {
         object->draw(shadowRenderInfo.commandBuffer);
       }
 
-      commandBuffer->endRendering();
+      endShadowRendering(commandBuffer, light);
     }
   }
 
@@ -662,6 +662,35 @@ namespace vke {
       .stencil = 0
     };
 
+    // The shadow map was last sampled as DEPTH_STENCIL_READ_ONLY_OPTIMAL (or is in its initial
+    // layout). It is cleared on load, so discard the old contents.
+    const vk::ImageMemoryBarrier shadowMapBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eNone,
+      .dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead |
+                       vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+      .oldLayout = vk::ImageLayout::eUndefined,
+      .newLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .image = light->getShadowMapDepthImageResource()->getImage(),
+      .subresourceRange = {
+        .aspectMask = vk::ImageAspectFlagBits::eDepth,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = vk::RemainingArrayLayers
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      vk::PipelineStageFlagBits::eFragmentShader,
+      vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
+      {},
+      {},
+      {},
+      { shadowMapBarrier }
+    );
+
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
       .imageView = light->getShadowMapDepthImageResource()->getImageView(),
       .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
@@ -684,5 +713,39 @@ namespace vke {
     };
 
     commandBuffer->beginRendering(renderingInfo);
+  }
+
+  void LightingManager::endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           const std::shared_ptr<Light>& light)
+  {
+    commandBuffer->endRendering();
+
+    // Hand the shadow map over to the lighting shaders, which sample it with a descriptor
+    // declaring DEPTH_STENCIL_READ_ONLY_OPTIMAL.
+    const vk::ImageMemoryBarrier shadowMapBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+      .dstAccessMask = vk::AccessFlagBits::eShaderRead,
+      .oldLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
+      .newLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .image = light->getShadowMapDepthImageResource()->getImage(),
+      .subresourceRange = {
+        .aspectMask = vk::ImageAspectFlagBits::eDepth,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = vk::RemainingArrayLayers
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
+      vk::PipelineStageFlagBits::eFragmentShader,
+      {},
+      {},
+      {},
+      { shadowMapBarrier }
+    );
   }
 } // namespace vke

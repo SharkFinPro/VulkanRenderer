@@ -20,7 +20,7 @@
 | `CMakeLists.txt` (root) | Top-level config, output dirs (`bin/`), RPATH, copies `tests/assets/`. Builds tests automatically when this is the top-level project. |
 | `source/` | The `VulkanEngine` library. The only place engine code lives. |
 | `source/VulkanEngine.{h,cpp}` | Engine facade: owns all subsystems, exposes accessors, drives the frame. |
-| `source/EngineConfig.h` | `EngineConfig` struct — window/camera/ImGui startup configuration. |
+| `source/EngineConfig.h` | `EngineConfig` struct — window/camera/ImGui/rendering startup configuration (e.g. initial ray tracing state). |
 | `source/components/` | The engine subsystems (see Architecture). Each subsystem is its own subdirectory. |
 | `source/components/pipelines/` | Pipeline infrastructure (`Pipeline`, `GraphicsPipeline`, `ComputePipeline`, `RayTracingPipeline`), descriptor sets, uniform buffers, shader modules, `PipelineManager`. |
 | `source/components/pipelines/implementations/` | Concrete pipelines + shared `PipelineTypes.h` (the `PipelineType` enum) and vertex input definitions. |

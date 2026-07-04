@@ -23,6 +23,7 @@ namespace vke {
                                      std::shared_ptr<Window> window,
                                      std::string sceneViewName,
                                      const bool useDockspace,
+                                     const bool rayTracingEnabled,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
@@ -30,7 +31,7 @@ namespace vke {
       m_useDockspace(useDockspace),
       m_sceneViewName(std::move(sceneViewName)),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
-      m_rayTracingEnabled(m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+      m_rayTracingEnabled(rayTracingEnabled && m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
   {
     createCommandPool();
 
@@ -84,7 +85,7 @@ namespace vke {
 
     recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
 
-    result = m_logicalDevice->queuePresent(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
+    result = m_logicalDevice->queuePresent(m_swapChain->getSwapChain(), imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized)
     {
@@ -124,11 +125,15 @@ namespace vke {
 
     m_logicalDevice->waitIdle();
 
-    m_swapChain.reset();
+    // An aborted frame (out-of-date at acquire) can leave binary semaphores signaled with no
+    // pending wait; reset them all now that the device is idle.
+    m_logicalDevice->recreateFrameSyncObjects();
 
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
+    auto newSwapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool,
+                                                    m_swapChain->getSwapChain());
+    m_swapChain = std::move(newSwapChain);
 
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
@@ -301,7 +306,7 @@ namespace vke {
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
-      renderInfo2D.commandBuffer->endRendering();
+      m_renderTarget->endOffscreenRendering(renderInfo2D.commandBuffer, currentFrame);
     };
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
@@ -414,7 +419,7 @@ namespace vke {
       m_swapChain->endRendering(imageIndex, renderInfo.commandBuffer);
     });
 
-    m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
+    m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, imageIndex, m_swapchainCommandBuffer->getCommandBuffer());
   }
 
   void RenderingManager::createCommandPool()

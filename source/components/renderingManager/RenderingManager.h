@@ -28,6 +28,7 @@ namespace vke {
                      std::shared_ptr<Window> window,
                      std::string sceneViewName,
                      bool useDockspace,
+                     bool rayTracingEnabled,
                      const std::shared_ptr<AssetManager>& assetManager);
 
     ~RenderingManager();

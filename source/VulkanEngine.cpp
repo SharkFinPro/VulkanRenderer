@@ -135,6 +135,7 @@ namespace vke {
       m_window,
       engineConfig.imGui.sceneViewName.c_str(),
       engineConfig.imGui.useDockspace,
+      engineConfig.rendering.rayTracingEnabled,
       m_assetManager
     );
 
@@ -151,6 +152,7 @@ namespace vke {
       m_window,
       m_instance,
       m_logicalDevice,
+      m_renderingManager->getSwapChainImageFormat(),
       engineConfig.imGui
     );
 

@@ -42,15 +42,13 @@ namespace vke {
   void LogicalDevice::submitOffscreenCommandBuffer(const uint32_t currentFrame,
                                                    const vk::CommandBuffer commandBuffer) const
   {
-    constexpr vk::PipelineStageFlags waitStages[] = {
-      vk::PipelineStageFlagBits::eVertexInput,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput
-    };
+    // Compute writes particle vertex buffers consumed by the offscreen pass.
+    constexpr vk::PipelineStageFlags waitStage = vk::PipelineStageFlagBits::eVertexInput;
 
     const vk::SubmitInfo submitInfo {
       .waitSemaphoreCount = 1,
       .pWaitSemaphores = &*m_computeFinishedSemaphores[currentFrame],
-      .pWaitDstStageMask = waitStages,
+      .pWaitDstStageMask = &waitStage,
       .commandBufferCount = 1,
       .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
@@ -61,21 +59,29 @@ namespace vke {
   }
 
   void LogicalDevice::submitSwapchainCommandBuffer(const uint32_t currentFrame,
+                                                   const uint32_t imageIndex,
                                                    const vk::CommandBuffer commandBuffer) const
   {
-    constexpr vk::PipelineStageFlags waitStages[] = {
-      vk::PipelineStageFlagBits::eVertexInput,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput
+    const std::array waitSemaphores = {
+      *m_imageAvailableSemaphores[currentFrame],
+      *m_offscreenRenderFinishedSemaphores[currentFrame]
+    };
+
+    // The swapchain image is first written as a color attachment; the offscreen resolve image
+    // is sampled in the fragment shader (scene view / offscreenToSwapchain).
+    constexpr std::array<vk::PipelineStageFlags, 2> waitStages = {
+      vk::PipelineStageFlags{vk::PipelineStageFlagBits::eColorAttachmentOutput},
+      vk::PipelineStageFlags{vk::PipelineStageFlagBits::eFragmentShader}
     };
 
     const vk::SubmitInfo submitInfo {
-      .waitSemaphoreCount = 1,
-      .pWaitSemaphores = &*m_imageAvailableSemaphores[currentFrame],
-      .pWaitDstStageMask = waitStages,
+      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+      .pWaitSemaphores = waitSemaphores.data(),
+      .pWaitDstStageMask = waitStages.data(),
       .commandBufferCount = 1,
       .pCommandBuffers = &commandBuffer,
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &*m_renderFinishedSemaphores[currentFrame]
+      .pSignalSemaphores = &*m_renderFinishedSemaphores[imageIndex]
     };
 
     m_graphicsQueue.submit(submitInfo, m_inFlightFences[currentFrame]);
@@ -132,24 +138,20 @@ namespace vke {
     m_device.resetFences(*m_computeInFlightFences[currentFrame]);
   }
 
-  vk::Result LogicalDevice::queuePresent(const uint32_t currentFrame,
-                                         const vk::SwapchainKHR swapchain,
-                                         const uint32_t* imageIndex) const
+  vk::Result LogicalDevice::queuePresent(const vk::SwapchainKHR swapchain,
+                                         const uint32_t imageIndex) const
   {
-    const std::array waitSemaphores = {
-      *m_renderFinishedSemaphores[currentFrame],
-      *m_offscreenRenderFinishedSemaphores[currentFrame]
-    };
-
     const vk::PresentInfoKHR presentInfo {
-      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
-      .pWaitSemaphores = waitSemaphores.data(),
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = &*m_renderFinishedSemaphores[imageIndex],
       .swapchainCount = 1,
       .pSwapchains = &swapchain,
-      .pImageIndices = imageIndex,
+      .pImageIndices = &imageIndex,
       .pResults = nullptr
     };
 
+    // eErrorOutOfDateKHR is returned (not thrown) thanks to
+    // VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS, so callers can recreate the swapchain.
     return m_presentQueue.presentKHR(presentInfo);
   }
 
@@ -305,7 +307,8 @@ namespace vke {
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set uniqueQueueFamilies = {
       queueFamilyIndices.graphicsFamily.value(),
-      queueFamilyIndices.presentFamily.value()
+      queueFamilyIndices.presentFamily.value(),
+      queueFamilyIndices.computeFamily.value()
     };
 
     float queuePriority = 1.0f;
@@ -380,11 +383,34 @@ namespace vke {
     m_presentQueue = m_device.getQueue(queueFamilyIndices.presentFamily.value(), 0);
   }
 
+  void LogicalDevice::updateRenderFinishedSemaphores(const uint32_t swapchainImageCount)
+  {
+    m_renderFinishedSemaphores.clear();
+    m_renderFinishedSemaphores.reserve(swapchainImageCount);
+
+    constexpr vk::SemaphoreCreateInfo semaphoreInfo {};
+
+    for (uint32_t i = 0; i < swapchainImageCount; i++)
+    {
+      m_renderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
+    }
+  }
+
+  void LogicalDevice::recreateFrameSyncObjects()
+  {
+    createSyncObjects();
+  }
+
   void LogicalDevice::createSyncObjects()
   {
-    m_imageAvailableSemaphores.reserve(m_maxFramesInFlight);
+    m_imageAvailableSemaphores.clear();
+    m_offscreenRenderFinishedSemaphores.clear();
+    m_computeFinishedSemaphores.clear();
+    m_inFlightFences.clear();
+    m_offscreenInFlightFences.clear();
+    m_computeInFlightFences.clear();
 
-    m_renderFinishedSemaphores.reserve(m_maxFramesInFlight);
+    m_imageAvailableSemaphores.reserve(m_maxFramesInFlight);
     m_offscreenRenderFinishedSemaphores.reserve(m_maxFramesInFlight);
 
     m_computeFinishedSemaphores.reserve(m_maxFramesInFlight);
@@ -402,7 +428,6 @@ namespace vke {
       constexpr vk::SemaphoreCreateInfo semaphoreInfo {};
 
       m_imageAvailableSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
-      m_renderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_offscreenRenderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
       m_inFlightFences.emplace_back(m_device.createFence(fenceInfo));
       m_offscreenInFlightFences.emplace_back(m_device.createFence(fenceInfo));

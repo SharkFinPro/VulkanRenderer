@@ -100,7 +100,7 @@ namespace vke {
       .logicalDevice = m_logicalDevice,
       .extent = m_shadowMapExtent,
       .commandPool = commandPool,
-      .depthFormat = vk::Format::eD32Sfloat,
+      .depthFormat = s_shadowMapFormat,
       .numSamples = vk::SampleCountFlagBits::e1,
       .isCubeMap = true
     };
