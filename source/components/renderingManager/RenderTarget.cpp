@@ -78,6 +78,34 @@ namespace vke {
   void RenderTarget::beginOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                              const uint32_t currentFrame) const
   {
+    // The resolve image was last sampled as SHADER_READ_ONLY_OPTIMAL (or is in its initial
+    // layout). Its contents are fully overwritten by the resolve, so discard them.
+    const vk::ImageMemoryBarrier resolveImageBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eNone,
+      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .oldLayout = vk::ImageLayout::eUndefined,
+      .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .image = m_offscreenResolveImageResources.at(currentFrame).getImage(),
+      .subresourceRange = {
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      vk::PipelineStageFlagBits::eFragmentShader,
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      {},
+      {},
+      {},
+      { resolveImageBarrier }
+    );
+
     vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
       .imageView = m_offscreenColorImageResources.at(currentFrame).getImageView(),
       .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
@@ -109,6 +137,40 @@ namespace vke {
     };
 
     commandBuffer->beginRendering(renderingInfo);
+  }
+
+  void RenderTarget::endOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                           const uint32_t currentFrame) const
+  {
+    commandBuffer->endRendering();
+
+    // Hand the resolved image over to the swapchain pass, which samples it in the fragment
+    // shader (ImGui scene view or the offscreenToSwapchain pipeline).
+    const vk::ImageMemoryBarrier resolveImageBarrier {
+      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+      .dstAccessMask = vk::AccessFlagBits::eShaderRead,
+      .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .newLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .image = m_offscreenResolveImageResources.at(currentFrame).getImage(),
+      .subresourceRange = {
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      }
+    };
+
+    commandBuffer->pipelineBarrier(
+      vk::PipelineStageFlagBits::eColorAttachmentOutput,
+      vk::PipelineStageFlagBits::eFragmentShader,
+      {},
+      {},
+      {},
+      { resolveImageBarrier }
+    );
   }
 
   void RenderTarget::beginMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,

@@ -115,6 +115,10 @@ namespace vke {
 
     vk::Format colorFormat = vk::Format::eR8G8B8A8Unorm;
 
+    // eUndefined selects the device's default depth format (PhysicalDevice::findDepthFormat).
+    // Pipelines rendering to other depth targets (e.g. shadow maps) must set this explicitly.
+    vk::Format depthFormat = vk::Format::eUndefined;
+
     bool renderToCubeMap = false;
   };
 

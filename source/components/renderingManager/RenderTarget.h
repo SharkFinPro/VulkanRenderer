@@ -32,6 +32,9 @@ namespace vke {
     void beginOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  uint32_t currentFrame) const;
 
+    void endOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                               uint32_t currentFrame) const;
+
     void beginMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     uint32_t currentFrame) const;
 

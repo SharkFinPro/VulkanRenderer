@@ -14,9 +14,10 @@ namespace vke {
   SwapChain::SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<Window>& window,
                        const std::shared_ptr<Surface>& surface,
-                       const vk::CommandPool commandPool)
+                       const vk::CommandPool commandPool,
+                       const vk::SwapchainKHR oldSwapchain)
   {
-    createSwapChain(logicalDevice, window, surface);
+    createSwapChain(logicalDevice, window, surface, oldSwapchain);
 
     createImageViews(logicalDevice);
 
@@ -85,7 +86,8 @@ namespace vke {
 
   void SwapChain::createSwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                   const std::shared_ptr<Window>& window,
-                                  const std::shared_ptr<Surface>& surface)
+                                  const std::shared_ptr<Surface>& surface,
+                                  const vk::SwapchainKHR oldSwapchain)
   {
     const SwapChainSupportDetails swapChainSupport = logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
@@ -117,7 +119,7 @@ namespace vke {
       .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
       .presentMode = presentMode,
       .clipped = vk::True,
-      .oldSwapchain = nullptr
+      .oldSwapchain = oldSwapchain
     };
 
     m_swapchain = logicalDevice->createSwapchain(createInfo);
@@ -125,6 +127,8 @@ namespace vke {
     m_swapChainImages = m_swapchain.getImages();
     m_swapChainImageFormat = surfaceFormat.format;
     m_swapChainExtent = extent;
+
+    logicalDevice->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChainImages.size()));
   }
 
   void SwapChain::createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice)
