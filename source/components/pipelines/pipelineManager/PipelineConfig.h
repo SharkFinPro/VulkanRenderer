@@ -34,6 +34,32 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createOffscreenToSwapchainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                           const vk::DescriptorSetLayout offscreenImageDescriptorSetLayout,
+                                                                           const vk::Format swapchainImageFormat)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/OffscreenToSwapchain.vert.spv",
+        .fragmentShader = "assets/shaders/OffscreenToSwapchain.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilStateNone,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .descriptorSetLayouts {
+        offscreenImageDescriptorSetLayout
+      },
+      .colorFormat = swapchainImageFormat
+    };
+  }
+
 } // vke::PipelineConfig
 
 #endif //VULKANPROJECT_PIPELINECONFIG_H
