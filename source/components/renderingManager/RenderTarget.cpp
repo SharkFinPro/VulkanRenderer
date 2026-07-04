@@ -11,6 +11,10 @@ namespace vke {
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     createSampler();
+
+    createDescriptorPool();
+
+    createOffscreenImageDescriptorSet();
   }
 
   ImageResource& RenderTarget::getOffscreenResolveImageResource(const uint32_t currentFrame)
@@ -28,6 +32,16 @@ namespace vke {
     return m_mousePickingColorImageResources.at(currentFrame);
   }
 
+  vk::DescriptorSetLayout RenderTarget::getOffscreenImageDescriptorSetLayout() const
+  {
+    return m_offscreenImageDescriptorSet->getDescriptorSetLayout();
+  }
+
+  vk::DescriptorSet RenderTarget::getOffscreenImageDescriptorSet(const uint32_t currentFrame) const
+  {
+    return m_offscreenImageDescriptorSet->getDescriptorSet(currentFrame);
+  }
+
   void RenderTarget::recreateImageResources(const vk::Extent2D extent)
   {
     m_offscreenColorImageResources.clear();
@@ -43,6 +57,22 @@ namespace vke {
 
     createOffscreenImageResources(extent);
     createMousePickingImageResources(extent);
+
+    m_offscreenImageDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
+    {
+      std::vector<vk::WriteDescriptorSet> descriptorWrites {{
+        {
+          .dstSet = descriptorSet,
+          .dstBinding = 0,
+          .dstArrayElement = 0,
+          .descriptorCount = 1,
+          .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+          .pImageInfo = &m_offscreenResolveImageResources.at(frame).getDescriptorImageInfo()
+        }
+      }};
+
+      return descriptorWrites;
+    });
   }
 
   void RenderTarget::beginOffscreenRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -176,6 +206,35 @@ namespace vke {
     };
 
     m_sampler = m_logicalDevice->createSampler(samplerInfo);
+  }
+
+  void RenderTarget::createDescriptorPool()
+  {
+    const std::array<vk::DescriptorPoolSize, 1> poolSizes {{
+      { vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() }
+    }};
+
+    const vk::DescriptorPoolCreateInfo poolCreateInfo {
+      .maxSets = m_logicalDevice->getMaxFramesInFlight(),
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()
+    };
+
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+  }
+
+  void RenderTarget::createOffscreenImageDescriptorSet()
+  {
+    const std::vector<vk::DescriptorSetLayoutBinding> layoutBindings {
+      {
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+      }
+    };
+
+    m_offscreenImageDescriptorSet = std::make_unique<DescriptorSet>(m_logicalDevice, m_descriptorPool, layoutBindings);
   }
 
   void RenderTarget::createOffscreenImageResources(vk::Extent2D extent)

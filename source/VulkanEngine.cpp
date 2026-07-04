@@ -134,6 +134,7 @@ namespace vke {
       m_surface,
       m_window,
       engineConfig.imGui.sceneViewName.c_str(),
+      engineConfig.imGui.useDockspace,
       m_assetManager
     );
 

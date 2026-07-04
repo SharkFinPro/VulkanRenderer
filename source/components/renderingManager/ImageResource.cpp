@@ -19,6 +19,12 @@ namespace vke {
           *m_imageView,
           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         );
+
+        m_descriptorImageInfo = vk::DescriptorImageInfo{
+          .sampler = config.sampler,
+          .imageView = *m_imageView,
+          .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal
+        };
       }
 
       if (config.imageResourceType == ImageResourceType::RayTracingOutput)
