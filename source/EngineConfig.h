@@ -28,6 +28,12 @@ namespace vke {
       uint32_t maxTextures = 5;
       std::function<void()> styleSetup;
     } imGui;
+
+    struct Rendering {
+      // Initial ray tracing state; only takes effect when the hardware supports ray tracing.
+      // Can be changed at runtime via RenderingManager::enableRayTracing()/disableRayTracing().
+      bool rayTracingEnabled = true;
+    } rendering;
   };
 
 } // namespace vke
