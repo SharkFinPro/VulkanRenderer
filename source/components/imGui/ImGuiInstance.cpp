@@ -15,8 +15,10 @@ namespace vke {
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                                const std::shared_ptr<Instance>& instance,
                                const std::shared_ptr<LogicalDevice>& logicalDevice,
+                               const vk::Format swapchainImageFormat,
                                const EngineConfig::ImGui& config)
-    : m_window(window), m_useDockSpace(config.useDockspace)
+    : m_window(window), m_useDockSpace(config.useDockspace),
+      m_swapchainColorFormat(static_cast<VkFormat>(swapchainImageFormat))
   {
     createDescriptorPool(logicalDevice, config.maxTextures);
 
@@ -65,12 +67,10 @@ namespace vke {
 
     initInfo.UseDynamicRendering = true;
 
-    static constexpr auto colorFormat = static_cast<VkFormat>(vk::Format::eR8G8B8A8Unorm);
-
     initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
       .colorAttachmentCount = 1,
-      .pColorAttachmentFormats = &colorFormat,
+      .pColorAttachmentFormats = &m_swapchainColorFormat,
       .depthAttachmentFormat = static_cast<VkFormat>(logicalDevice->getPhysicalDevice()->findDepthFormat())
     };
 
