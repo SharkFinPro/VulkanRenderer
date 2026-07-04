@@ -27,6 +27,7 @@ namespace vke {
                      std::shared_ptr<Surface> surface,
                      std::shared_ptr<Window> window,
                      std::string sceneViewName,
+                     bool useDockspace,
                      const std::shared_ptr<AssetManager>& assetManager);
 
     ~RenderingManager();
@@ -36,6 +37,10 @@ namespace vke {
                      uint32_t currentFrame);
 
     [[nodiscard]] bool isSceneFocused() const;
+
+    [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
+
+    [[nodiscard]] vk::Format getSwapChainImageFormat() const;
 
     void recreateSwapChain();
 
@@ -74,6 +79,8 @@ namespace vke {
 
     bool m_sceneIsFocused = false;
 
+    bool m_useDockspace;
+
     vk::Extent2D m_offscreenViewportExtent{0, 0};
 
     std::string m_sceneViewName;
@@ -92,7 +99,8 @@ namespace vke {
                                       const std::shared_ptr<LightingManager>& lightingManager,
                                       uint32_t currentFrame) const;
 
-    void recordSwapchainCommandBuffer(uint32_t currentFrame,
+    void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 
     void createCommandPool();

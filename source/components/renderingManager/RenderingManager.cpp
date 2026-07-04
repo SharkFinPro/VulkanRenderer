@@ -22,10 +22,12 @@ namespace vke {
                                      std::shared_ptr<Surface> surface,
                                      std::shared_ptr<Window> window,
                                      std::string sceneViewName,
+                                     const bool useDockspace,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
+      m_useDockspace(useDockspace),
       m_sceneViewName(std::move(sceneViewName)),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
       m_rayTracingEnabled(m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
@@ -80,7 +82,7 @@ namespace vke {
 
     recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
 
-    recordSwapchainCommandBuffer(currentFrame, imageIndex);
+    recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
 
     result = m_logicalDevice->queuePresent(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
 
@@ -98,6 +100,16 @@ namespace vke {
   bool RenderingManager::isSceneFocused() const
   {
     return m_sceneIsFocused;
+  }
+
+  vk::DescriptorSetLayout RenderingManager::getOffscreenImageDescriptorSetLayout() const
+  {
+    return m_renderTarget->getOffscreenImageDescriptorSetLayout();
+  }
+
+  vk::Format RenderingManager::getSwapChainImageFormat() const
+  {
+    return m_swapChain->getImageFormat();
   }
 
   void RenderingManager::recreateSwapChain()
@@ -171,6 +183,27 @@ namespace vke {
 
   void RenderingManager::renderGuiScene(const uint32_t currentFrame)
   {
+    if (!m_useDockspace)
+    {
+      const auto currentOffscreenViewportExtent = m_swapChain->getExtent();
+
+      if (m_offscreenViewportExtent.width != currentOffscreenViewportExtent.width ||
+          m_offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
+      {
+        m_offscreenViewportExtent = currentOffscreenViewportExtent;
+
+        m_logicalDevice->waitIdle();
+
+        m_renderTarget->recreateImageResources(m_offscreenViewportExtent);
+        m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
+      }
+
+      m_sceneIsFocused = !ImGui::GetIO().WantCaptureMouse;
+      m_renderer3D->getMousePicker()->setViewportPos({ 0.0f, 0.0f });
+
+      return;
+    }
+
     ImGui::Begin(m_sceneViewName.c_str());
 
     m_sceneIsFocused = ImGui::IsWindowFocused();
@@ -324,14 +357,15 @@ namespace vke {
     }
   }
 
-  void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame,
+  void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                      uint32_t currentFrame,
                                                       const uint32_t imageIndex) const
   {
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
 
     m_swapchainCommandBuffer->resetCommandBuffer();
 
-    m_swapchainCommandBuffer->record([this, currentFrame, imageIndex]
+    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
@@ -358,6 +392,22 @@ namespace vke {
       renderInfo.commandBuffer->setScissor(scissor);
 
       m_swapChain->beginRendering(imageIndex, renderInfo.commandBuffer);
+
+      if (!m_useDockspace &&
+          m_offscreenViewportExtent.width != 0 &&
+          m_offscreenViewportExtent.height != 0)
+      {
+        pipelineManager->bindGraphicsPipeline(renderInfo.commandBuffer, PipelineType::offscreenToSwapchain);
+
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
+          renderInfo.commandBuffer,
+          PipelineType::offscreenToSwapchain,
+          m_renderTarget->getOffscreenImageDescriptorSet(currentFrame),
+          0
+        );
+
+        renderInfo.commandBuffer->draw(4, 1, 0, 0);
+      }
 
       ImGuiInstance::render(renderInfo.commandBuffer);
 

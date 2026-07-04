@@ -20,6 +20,7 @@ namespace vke {
     font,
     grid,
     mousePicking,
+    offscreenToSwapchain,
     pointLightShadowMap,
     rect,
     shadow,

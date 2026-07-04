@@ -2,6 +2,7 @@
 #define VKE_RENDERTARGET_H
 
 #include "ImageResource.h"
+#include "../pipelines/descriptorSets/DescriptorSet.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
 #include <vector>
@@ -21,6 +22,10 @@ namespace vke {
     [[nodiscard]] ImageResource& getOffscreenRayTracingImageResource(uint32_t currentFrame);
 
     [[nodiscard]] ImageResource& getMousePickingColorImageResource(uint32_t currentFrame);
+
+    [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
+
+    [[nodiscard]] vk::DescriptorSet getOffscreenImageDescriptorSet(uint32_t currentFrame) const;
 
     void recreateImageResources(vk::Extent2D extent);
 
@@ -49,6 +54,10 @@ namespace vke {
 
     vk::raii::Sampler m_sampler = nullptr;
 
+    vk::raii::DescriptorPool m_descriptorPool = nullptr;
+
+    std::unique_ptr<DescriptorSet> m_offscreenImageDescriptorSet;
+
     vk::Extent2D m_extent{0, 0};
 
     std::vector<ImageResource> m_offscreenColorImageResources;
@@ -61,6 +70,10 @@ namespace vke {
     std::vector<ImageResource> m_mousePickingDepthImageResources;
 
     void createSampler();
+
+    void createDescriptorPool();
+
+    void createOffscreenImageDescriptorSet();
 
     void createOffscreenImageResources(vk::Extent2D extent);
 
