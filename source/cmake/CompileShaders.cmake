@@ -42,7 +42,7 @@ function(compile_shaders)
     # Add compilation command
     add_custom_command(
       OUTPUT ${SPV_FILE}
-      COMMAND glslangValidator --target-env vulkan1.2 -V -I${shadersSrc}/include ${SHADER} -o ${SPV_FILE}
+      COMMAND glslangValidator --target-env vulkan1.3 -V -I${shadersSrc}/include ${SHADER} -o ${SPV_FILE}
       DEPENDS ${SHADER} ${COMMON_SHADER_FILES}
       COMMENT "Compiling shader: ${REL_PATH}"
     )
