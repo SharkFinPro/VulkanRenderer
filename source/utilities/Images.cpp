@@ -44,10 +44,10 @@ namespace vke::Images {
 
   struct TransitionInfo {
     vk::ImageAspectFlags aspectMask;
-    vk::AccessFlags srcAccessMask;
-    vk::AccessFlags dstAccessMask;
-    vk::PipelineStageFlags sourceStage;
-    vk::PipelineStageFlags destinationStage;
+    vk::AccessFlags2 srcAccessMask;
+    vk::AccessFlags2 dstAccessMask;
+    vk::PipelineStageFlags2 sourceStage;
+    vk::PipelineStageFlags2 destinationStage;
   };
 
   struct LayoutPair {
@@ -74,77 +74,78 @@ namespace vke::Images {
       { vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal },
       {
         .srcAccessMask = {},
-        .dstAccessMask = vk::AccessFlagBits::eTransferWrite,
-        .sourceStage = vk::PipelineStageFlagBits::eTopOfPipe,
-        .destinationStage = vk::PipelineStageFlagBits::eTransfer
+        .dstAccessMask = vk::AccessFlagBits2::eTransferWrite,
+        .sourceStage = vk::PipelineStageFlagBits2::eNone,
+        .destinationStage = vk::PipelineStageFlagBits2::eTransfer
       }
     },
     {
       { vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal },
       {
-        .srcAccessMask = vk::AccessFlagBits::eTransferWrite,
-        .dstAccessMask = vk::AccessFlagBits::eShaderRead,
-        .sourceStage = vk::PipelineStageFlagBits::eTransfer,
-        .destinationStage = vk::PipelineStageFlagBits::eFragmentShader
+        .srcAccessMask = vk::AccessFlagBits2::eTransferWrite,
+        .dstAccessMask = vk::AccessFlagBits2::eShaderSampledRead,
+        .sourceStage = vk::PipelineStageFlagBits2::eTransfer,
+        .destinationStage = vk::PipelineStageFlagBits2::eFragmentShader
       }
     },
     {
       {vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal},
       {
         .srcAccessMask = {},
-        .dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead |
-                         vk::AccessFlagBits::eDepthStencilAttachmentWrite,
-        .sourceStage = vk::PipelineStageFlagBits::eTopOfPipe,
-        .destinationStage = vk::PipelineStageFlagBits::eEarlyFragmentTests
+        .dstAccessMask = vk::AccessFlagBits2::eDepthStencilAttachmentRead |
+                         vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+        .sourceStage = vk::PipelineStageFlagBits2::eNone,
+        .destinationStage = vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+                            vk::PipelineStageFlagBits2::eLateFragmentTests
       }
     },
     {
       {vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal},
       {
         .srcAccessMask = {},
-        .dstAccessMask = vk::AccessFlagBits::eShaderRead,
-        .sourceStage = vk::PipelineStageFlagBits::eTopOfPipe,
-        .destinationStage = vk::PipelineStageFlagBits::eFragmentShader
+        .dstAccessMask = vk::AccessFlagBits2::eShaderSampledRead,
+        .sourceStage = vk::PipelineStageFlagBits2::eNone,
+        .destinationStage = vk::PipelineStageFlagBits2::eFragmentShader
       }
     },
     {
       {vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal},
       {
         .srcAccessMask = {},
-        .dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead |
-                         vk::AccessFlagBits::eColorAttachmentWrite,
-        .sourceStage = vk::PipelineStageFlagBits::eTopOfPipe,
-        .destinationStage = vk::PipelineStageFlagBits::eColorAttachmentOutput
+        .dstAccessMask = vk::AccessFlagBits2::eColorAttachmentRead |
+                         vk::AccessFlagBits2::eColorAttachmentWrite,
+        .sourceStage = vk::PipelineStageFlagBits2::eNone,
+        .destinationStage = vk::PipelineStageFlagBits2::eColorAttachmentOutput
       }
     },
     {
       { vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eColorAttachmentOptimal },
       {
-        .srcAccessMask    = vk::AccessFlagBits::eShaderRead,
-        .dstAccessMask    = vk::AccessFlagBits::eColorAttachmentRead |
-                            vk::AccessFlagBits::eColorAttachmentWrite,
-        .sourceStage      = vk::PipelineStageFlagBits::eFragmentShader,
-        .destinationStage = vk::PipelineStageFlagBits::eColorAttachmentOutput
+        .srcAccessMask    = vk::AccessFlagBits2::eShaderSampledRead,
+        .dstAccessMask    = vk::AccessFlagBits2::eColorAttachmentRead |
+                            vk::AccessFlagBits2::eColorAttachmentWrite,
+        .sourceStage      = vk::PipelineStageFlagBits2::eFragmentShader,
+        .destinationStage = vk::PipelineStageFlagBits2::eColorAttachmentOutput
       }
     },
     {
       { vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal },
       {
-        .srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead |
-                         vk::AccessFlagBits::eColorAttachmentWrite,
-        .dstAccessMask = vk::AccessFlagBits::eShaderRead,
-        .sourceStage = vk::PipelineStageFlagBits::eColorAttachmentOutput,
-        .destinationStage = vk::PipelineStageFlagBits::eFragmentShader
+        .srcAccessMask = vk::AccessFlagBits2::eColorAttachmentRead |
+                         vk::AccessFlagBits2::eColorAttachmentWrite,
+        .dstAccessMask = vk::AccessFlagBits2::eShaderSampledRead,
+        .sourceStage = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        .destinationStage = vk::PipelineStageFlagBits2::eFragmentShader
       }
     },
     {
       { vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral },
       {
         .srcAccessMask = {},
-        .dstAccessMask = vk::AccessFlagBits::eShaderRead |
-                         vk::AccessFlagBits::eShaderWrite,
-        .sourceStage = vk::PipelineStageFlagBits::eTopOfPipe,
-        .destinationStage = vk::PipelineStageFlagBits::eRayTracingShaderKHR
+        .dstAccessMask = vk::AccessFlagBits2::eShaderRead |
+                         vk::AccessFlagBits2::eShaderWrite,
+        .sourceStage = vk::PipelineStageFlagBits2::eNone,
+        .destinationStage = vk::PipelineStageFlagBits2::eRayTracingShaderKHR
       }
     }
   };
@@ -198,8 +199,10 @@ namespace vke::Images {
                   sourceStage,
                   destinationStage] = getTransitionInfo(oldLayout, newLayout, format);
 
-      const vk::ImageMemoryBarrier imageMemoryBarrier {
+      const vk::ImageMemoryBarrier2 imageMemoryBarrier {
+        .srcStageMask = sourceStage,
         .srcAccessMask = srcAccessMask,
+        .dstStageMask = destinationStage,
         .dstAccessMask = dstAccessMask,
         .oldLayout = oldLayout,
         .newLayout = newLayout,
@@ -215,14 +218,12 @@ namespace vke::Images {
         }
       };
 
-      commandBuffer.pipelineBarrier(
-        sourceStage,
-        destinationStage,
-        {},
-        {},
-        {},
-        { imageMemoryBarrier }
-      );
+      const vk::DependencyInfo dependencyInfo {
+        .imageMemoryBarrierCount = 1,
+        .pImageMemoryBarriers = &imageMemoryBarrier
+      };
+
+      commandBuffer.pipelineBarrier(dependencyInfo);
     });
   }
 

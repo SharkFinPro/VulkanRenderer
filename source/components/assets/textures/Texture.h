@@ -51,15 +51,18 @@ namespace vke {
                           int32_t mipHeight);
 
     static void transitionMipLevelToTransferSrc(const SingleUseCommandBuffer& commandBuffer,
-                                                vk::ImageMemoryBarrier& barrier,
+                                                vk::ImageMemoryBarrier2& barrier,
                                                 uint32_t mipLevel);
 
     static void transitionMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
-                                               vk::ImageMemoryBarrier& barrier);
+                                               vk::ImageMemoryBarrier2& barrier);
 
     static void transitionFinalMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
-                                                    vk::ImageMemoryBarrier& barrier,
+                                                    vk::ImageMemoryBarrier2& barrier,
                                                     uint32_t mipLevel);
+
+    static void recordMipLevelBarrier(const SingleUseCommandBuffer& commandBuffer,
+                                      const vk::ImageMemoryBarrier2& barrier);
 
     void createTextureSampler(const std::shared_ptr<LogicalDevice>& logicalDevice,
                               vk::SamplerAddressMode addressMode);

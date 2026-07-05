@@ -78,12 +78,7 @@ namespace vke {
                        uint32_t offset,
                        const T& data) const;
 
-    void pipelineBarrier(vk::PipelineStageFlags srcStageMask,
-                         vk::PipelineStageFlags dstStageMask,
-                         vk::DependencyFlags dependencyFlags,
-                         const std::vector<vk::MemoryBarrier>& memoryBarriers,
-                         const std::vector<vk::BufferMemoryBarrier>& bufferMemoryBarriers,
-                         const std::vector<vk::ImageMemoryBarrier>& imageMemoryBarriers) const;
+    void pipelineBarrier(const vk::DependencyInfo& dependencyInfo) const;
 
     void clearAttachments(const std::vector<vk::ClearAttachment>& clearAttachments,
                           const std::vector<vk::ClearRect>& clearRects) const;
