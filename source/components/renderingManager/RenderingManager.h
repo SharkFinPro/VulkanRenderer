@@ -10,6 +10,7 @@ namespace vke {
 
   class AssetManager;
   class CommandBuffer;
+  class FrameScheduler;
   struct FramebufferResizeEvent;
   class LightingManager;
   class LogicalDevice;
@@ -51,6 +52,8 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Renderer3D> getRenderer3D() const;
 
+    [[nodiscard]] std::shared_ptr<FrameScheduler> getFrameScheduler() const;
+
     [[nodiscard]] bool supportsRayTracing() const;
 
     void enableRayTracing();
@@ -61,6 +64,8 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<FrameScheduler> m_frameScheduler;
 
     std::shared_ptr<Surface> m_surface;
 
