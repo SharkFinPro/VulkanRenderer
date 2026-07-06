@@ -11,9 +11,17 @@
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/ImageResource.h"
 
+#include <algorithm>
+
 namespace {
 
   constexpr uint32_t MAX_SHADOW_MAPS = 16;
+
+  // The point/spot light storage buffers are allocated once at these capacities and never
+  // resized, so the descriptor sets that reference them are written once and stay valid for
+  // in-flight frames. Lights beyond the cap are ignored.
+  constexpr uint32_t MAX_POINT_LIGHTS = 64;
+  constexpr uint32_t MAX_SPOT_LIGHTS = 64;
 
   constexpr vk::DescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 0,
@@ -203,9 +211,9 @@ namespace vke {
   {
     m_lightMetadataUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(LightMetadataUniform));
 
-    m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(PointLightUniform));
+    m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(PointLightUniform) * MAX_POINT_LIGHTS);
 
-    m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SpotLightUniform));
+    m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SpotLightUniform) * MAX_SPOT_LIGHTS);
 
     m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
   }
@@ -245,45 +253,17 @@ namespace vke {
 
   void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
   {
-    if (m_prevNumPointLights != m_pointLightsToRender.size())
-    {
-      if (m_pointLightsToRender.empty())
-      {
-        m_prevNumPointLights = 0;
-
-        return;
-      }
-
-      m_logicalDevice->waitIdle();
-
-      m_pointLightsUniform.reset();
-
-      auto lightsUniformBufferSize = sizeof(PointLightUniform) * m_pointLightsToRender.size();
-
-      m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
-
-      m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
-      {
-        std::vector descriptorWrites{{
-          m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame)
-        }};
-
-        descriptorWrites[0].descriptorType = vk::DescriptorType::eStorageBuffer;
-
-        return descriptorWrites;
-      });
-
-      m_prevNumPointLights = static_cast<int>(m_pointLightsToRender.size());
-    }
-
     if (m_pointLightsToRender.empty())
     {
       return;
     }
 
-    std::vector<PointLightUniform> lightUniforms;
-    lightUniforms.resize(m_pointLightsToRender.size());
-    for (int i = 0; i < m_pointLightsToRender.size(); i++)
+    const size_t count = std::min<size_t>(m_pointLightsToRender.size(), MAX_POINT_LIGHTS);
+
+    // Sized to the buffer's fixed capacity: UniformBuffer::update() copies the whole buffer, so
+    // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
+    std::vector<PointLightUniform> lightUniforms(MAX_POINT_LIGHTS);
+    for (size_t i = 0; i < count; i++)
     {
       lightUniforms[i] = std::get<PointLightUniform>(m_pointLightsToRender[i]->getUniform());
     }
@@ -335,45 +315,17 @@ namespace vke {
 
   void LightingManager::updateSpotLightUniforms(const uint32_t currentFrame)
   {
-    if (m_prevNumSpotLights != m_spotLightsToRender.size())
-    {
-      if (m_spotLightsToRender.empty())
-      {
-        m_prevNumSpotLights = 0;
-
-        return;
-      }
-
-      m_logicalDevice->waitIdle();
-
-      m_spotLightsUniform.reset();
-
-      auto lightsUniformBufferSize = sizeof(SpotLightUniform) * m_spotLightsToRender.size();
-
-      m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, lightsUniformBufferSize);
-
-      m_lightingDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
-      {
-        std::vector descriptorWrites{{
-          m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame)
-        }};
-
-        descriptorWrites[0].descriptorType = vk::DescriptorType::eStorageBuffer;
-
-        return descriptorWrites;
-      });
-
-      m_prevNumSpotLights = static_cast<int>(m_spotLightsToRender.size());
-    }
-
     if (m_spotLightsToRender.empty())
     {
       return;
     }
 
-    std::vector<SpotLightUniform> lightUniforms;
-    lightUniforms.resize(m_spotLightsToRender.size());
-    for (int i = 0; i < m_spotLightsToRender.size(); i++)
+    const size_t count = std::min<size_t>(m_spotLightsToRender.size(), MAX_SPOT_LIGHTS);
+
+    // Sized to the buffer's fixed capacity: UniformBuffer::update() copies the whole buffer, so
+    // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
+    std::vector<SpotLightUniform> lightUniforms(MAX_SPOT_LIGHTS);
+    for (size_t i = 0; i < count; i++)
     {
       lightUniforms[i] = std::get<SpotLightUniform>(m_spotLightsToRender[i]->getUniform());
     }
@@ -635,23 +587,29 @@ namespace vke {
     return m_descriptorPools.back();
   }
 
-  void LightingManager::updateLightMetadataUniform() const
+  void LightingManager::updateLightMetadataUniform()
   {
-    if (m_prevNumPointLights == m_pointLightsToRender.size() &&
-        m_prevNumSpotLights == m_spotLightsToRender.size())
+    const int numPointLights = static_cast<int>(std::min<size_t>(m_pointLightsToRender.size(), MAX_POINT_LIGHTS));
+    const int numSpotLights = static_cast<int>(std::min<size_t>(m_spotLightsToRender.size(), MAX_SPOT_LIGHTS));
+
+    if (m_prevNumPointLights == numPointLights &&
+        m_prevNumSpotLights == numSpotLights)
     {
       return;
     }
 
     const LightMetadataUniform lightMetadataUBO {
-      .numPointLights = static_cast<int>(m_pointLightsToRender.size()),
-      .numSpotLights = static_cast<int>(m_spotLightsToRender.size())
+      .numPointLights = numPointLights,
+      .numSpotLights = numSpotLights
     };
 
     for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
     {
       m_lightMetadataUniform->update(i, &lightMetadataUBO);
     }
+
+    m_prevNumPointLights = numPointLights;
+    m_prevNumSpotLights = numSpotLights;
   }
 
   void LightingManager::beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,

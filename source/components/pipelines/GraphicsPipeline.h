@@ -18,7 +18,10 @@ namespace vke {
     std::shared_ptr<CommandBuffer> commandBuffer;
     uint32_t currentFrame;
     glm::vec3 viewPosition;
-    const glm::mat4& viewMatrix;
+    // Stored by value (64 bytes): call sites bind temporaries here (e.g. glm::mat4(1.0), a
+    // light's view-projection return value), and RenderInfo is itself copied, so a reference
+    // member would dangle.
+    glm::mat4 viewMatrix;
     vk::Extent2D extent;
 
     mutable glm::mat4 projectionMatrix;

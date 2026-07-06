@@ -12,20 +12,19 @@ namespace vke {
   public:
     explicit LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
-    void render(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                const RenderInfo* renderInfo,
-                const vk::raii::CommandPool& commandPool,
+    void render(const RenderInfo* renderInfo,
                 const std::vector<LineVertex>* vertices) const;
 
   private:
-    vk::raii::Buffer m_vertexBuffer = nullptr;
-    vk::raii::DeviceMemory m_vertexBufferMemory = nullptr;
+    // One host-visible vertex buffer per frame in flight, persistently mapped. Line geometry is
+    // written straight into the current frame's buffer at record time, so there is no staging
+    // copy (and its device stall) between recording and drawing.
+    std::vector<vk::raii::Buffer> m_vertexBuffers;
+    std::vector<vk::raii::DeviceMemory> m_vertexBuffersMemory;
+    std::vector<void*> m_vertexBuffersMapped;
     size_t m_maxVertexBufferSize = sizeof(LineVertex) * 20'000;
 
-    vk::raii::Buffer m_stagingBuffer = nullptr;
-    vk::raii::DeviceMemory m_stagingBufferMemory = nullptr;
-
-    void createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice);
+    void createVertexBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice);
   };
 
 } // namespace vke
