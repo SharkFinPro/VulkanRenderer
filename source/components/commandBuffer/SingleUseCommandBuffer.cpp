@@ -22,12 +22,16 @@ namespace vke {
 
     m_commandBuffers[m_currentFrame].end();
 
-    const vk::SubmitInfo submitInfo {
-      .commandBufferCount = 1,
-      .pCommandBuffers = &*m_commandBuffers[m_currentFrame]
+    const vk::CommandBufferSubmitInfo commandBufferSubmitInfo {
+      .commandBuffer = *m_commandBuffers[m_currentFrame]
     };
 
-    m_queue.submit({ submitInfo });
+    const vk::SubmitInfo2 submitInfo {
+      .commandBufferInfoCount = 1,
+      .pCommandBufferInfos = &commandBufferSubmitInfo
+    };
+
+    m_queue.submit2({ submitInfo });
     m_queue.waitIdle();
   }
 

@@ -664,10 +664,13 @@ namespace vke {
 
     // The shadow map was last sampled as DEPTH_STENCIL_READ_ONLY_OPTIMAL (or is in its initial
     // layout). It is cleared on load, so discard the old contents.
-    const vk::ImageMemoryBarrier shadowMapBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eNone,
-      .dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead |
-                       vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+    const vk::ImageMemoryBarrier2 shadowMapBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eFragmentShader,
+      .srcAccessMask = vk::AccessFlagBits2::eNone,
+      .dstStageMask = vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+                      vk::PipelineStageFlagBits2::eLateFragmentTests,
+      .dstAccessMask = vk::AccessFlagBits2::eDepthStencilAttachmentRead |
+                       vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
       .oldLayout = vk::ImageLayout::eUndefined,
       .newLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -682,14 +685,12 @@ namespace vke {
       }
     };
 
-    commandBuffer->pipelineBarrier(
-      vk::PipelineStageFlagBits::eFragmentShader,
-      vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
-      {},
-      {},
-      {},
-      { shadowMapBarrier }
-    );
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &shadowMapBarrier
+    };
+
+    commandBuffer->pipelineBarrier(dependencyInfo);
 
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
       .imageView = light->getShadowMapDepthImageResource()->getImageView(),
@@ -722,9 +723,12 @@ namespace vke {
 
     // Hand the shadow map over to the lighting shaders, which sample it with a descriptor
     // declaring DEPTH_STENCIL_READ_ONLY_OPTIMAL.
-    const vk::ImageMemoryBarrier shadowMapBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite,
-      .dstAccessMask = vk::AccessFlagBits::eShaderRead,
+    const vk::ImageMemoryBarrier2 shadowMapBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+                      vk::PipelineStageFlagBits2::eLateFragmentTests,
+      .srcAccessMask = vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+      .dstStageMask = vk::PipelineStageFlagBits2::eFragmentShader,
+      .dstAccessMask = vk::AccessFlagBits2::eShaderSampledRead,
       .oldLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .newLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -739,13 +743,11 @@ namespace vke {
       }
     };
 
-    commandBuffer->pipelineBarrier(
-      vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
-      vk::PipelineStageFlagBits::eFragmentShader,
-      {},
-      {},
-      {},
-      { shadowMapBarrier }
-    );
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &shadowMapBarrier
+    };
+
+    commandBuffer->pipelineBarrier(dependencyInfo);
   }
 } // namespace vke

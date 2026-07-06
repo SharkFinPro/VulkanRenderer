@@ -76,10 +76,7 @@ namespace vke {
     const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([&commandBuffer, image, texWidth, texHeight, mipLevels] {
-      vk::ImageMemoryBarrier barrier {
-        .sType = vk::StructureType::eImageMemoryBarrier,
-        .srcAccessMask = {},
-        .dstAccessMask = {},
+      vk::ImageMemoryBarrier2 barrier {
         .oldLayout = vk::ImageLayout::eUndefined,
         .newLayout = vk::ImageLayout::eUndefined,
         .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -158,61 +155,57 @@ namespace vke {
   }
 
   void Texture::transitionMipLevelToTransferSrc(const SingleUseCommandBuffer& commandBuffer,
-                                                vk::ImageMemoryBarrier& barrier,
+                                                vk::ImageMemoryBarrier2& barrier,
                                                 const uint32_t mipLevel)
   {
     barrier.subresourceRange.baseMipLevel = mipLevel;
     barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
     barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
-    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-    barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+    barrier.srcStageMask = vk::PipelineStageFlagBits2::eTransfer;
+    barrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
+    barrier.dstStageMask = vk::PipelineStageFlagBits2::eTransfer;
+    barrier.dstAccessMask = vk::AccessFlagBits2::eTransferRead;
 
-    commandBuffer.pipelineBarrier(
-      vk::PipelineStageFlagBits::eTransfer,
-      vk::PipelineStageFlagBits::eTransfer,
-      {},
-      {},
-      {},
-      { barrier }
-    );
+    recordMipLevelBarrier(commandBuffer, barrier);
   }
 
   void Texture::transitionMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
-                                               vk::ImageMemoryBarrier& barrier)
+                                               vk::ImageMemoryBarrier2& barrier)
   {
     barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
     barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    barrier.srcStageMask = vk::PipelineStageFlagBits2::eTransfer;
+    barrier.srcAccessMask = vk::AccessFlagBits2::eTransferRead;
+    barrier.dstStageMask = vk::PipelineStageFlagBits2::eFragmentShader;
+    barrier.dstAccessMask = vk::AccessFlagBits2::eShaderSampledRead;
 
-    commandBuffer.pipelineBarrier(
-      vk::PipelineStageFlagBits::eTransfer,
-      vk::PipelineStageFlagBits::eFragmentShader,
-      {},
-      {},
-      {},
-      { barrier }
-    );
+    recordMipLevelBarrier(commandBuffer, barrier);
   }
 
   void Texture::transitionFinalMipLevelToShaderRead(const SingleUseCommandBuffer& commandBuffer,
-                                                    vk::ImageMemoryBarrier& barrier,
+                                                    vk::ImageMemoryBarrier2& barrier,
                                                     const uint32_t mipLevel)
   {
     barrier.subresourceRange.baseMipLevel = mipLevel;
     barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
     barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-    barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+    barrier.srcStageMask = vk::PipelineStageFlagBits2::eTransfer;
+    barrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
+    barrier.dstStageMask = vk::PipelineStageFlagBits2::eFragmentShader;
+    barrier.dstAccessMask = vk::AccessFlagBits2::eShaderSampledRead;
 
-    commandBuffer.pipelineBarrier(
-      vk::PipelineStageFlagBits::eTransfer,
-      vk::PipelineStageFlagBits::eFragmentShader,
-      {},
-      {},
-      {},
-      { barrier }
-    );
+    recordMipLevelBarrier(commandBuffer, barrier);
+  }
+
+  void Texture::recordMipLevelBarrier(const SingleUseCommandBuffer& commandBuffer,
+                                      const vk::ImageMemoryBarrier2& barrier)
+  {
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &barrier
+    };
+
+    commandBuffer.pipelineBarrier(dependencyInfo);
   }
 
   void Texture::createTextureSampler(const std::shared_ptr<LogicalDevice>& logicalDevice,

@@ -8,6 +8,7 @@
 #include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
 #include "components/pipelines/pipelineManager/PipelineManager.h"
+#include "components/renderingManager/FrameScheduler.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/renderingManager/renderer3D/Renderer3D.h"
 #include "components/window/Surface.h"
@@ -74,10 +75,16 @@ namespace vke {
       m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
     }
 
-    m_computingManager->doComputing(m_pipelineManager, m_currentFrame, m_renderingManager->getRenderer2D(),
+    const auto frameScheduler = m_renderingManager->getFrameScheduler();
+
+    frameScheduler->beginFrame();
+
+    const uint32_t currentFrame = frameScheduler->getCurrentFrame();
+
+    m_computingManager->doComputing(m_pipelineManager, currentFrame, m_renderingManager->getRenderer2D(),
                                     m_renderingManager->getRenderer3D());
 
-    m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, m_currentFrame);
+    m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, currentFrame);
 
     createNewFrame();
   }
@@ -156,7 +163,7 @@ namespace vke {
       engineConfig.imGui
     );
 
-    m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice);
+    m_computingManager = std::make_shared<ComputingManager>(m_logicalDevice, m_renderingManager->getFrameScheduler());
   }
 
   void VulkanEngine::createCamera(const EngineConfig& engineConfig)
@@ -166,8 +173,6 @@ namespace vke {
 
   void VulkanEngine::createNewFrame()
   {
-    m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
-
     m_imGuiInstance->createNewFrame();
 
     m_lightingManager->clearLightsToRender();

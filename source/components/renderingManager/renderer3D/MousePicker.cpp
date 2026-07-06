@@ -170,9 +170,11 @@ namespace vke {
   void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
                                               const vk::Image image)
   {
-    const vk::ImageMemoryBarrier imageMemoryBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
-      .dstAccessMask = vk::AccessFlagBits::eTransferRead,
+    const vk::ImageMemoryBarrier2 imageMemoryBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+      .srcAccessMask = vk::AccessFlagBits2::eColorAttachmentWrite,
+      .dstStageMask = vk::PipelineStageFlagBits2::eTransfer,
+      .dstAccessMask = vk::AccessFlagBits2::eTransferRead,
       .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .newLayout = vk::ImageLayout::eTransferSrcOptimal,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -187,22 +189,22 @@ namespace vke {
       }
     };
 
-    commandBuffer.pipelineBarrier(
-      vk::PipelineStageFlagBits::eColorAttachmentOutput,
-      vk::PipelineStageFlagBits::eTransfer,
-      {},
-      {},
-      {},
-      { imageMemoryBarrier }
-    );
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &imageMemoryBarrier
+    };
+
+    commandBuffer.pipelineBarrier(dependencyInfo);
   }
 
   void MousePicker::transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
                                               const vk::Image image)
   {
-    const vk::ImageMemoryBarrier imageMemoryBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eTransferRead,
-      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+    const vk::ImageMemoryBarrier2 imageMemoryBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eTransfer,
+      .srcAccessMask = vk::AccessFlagBits2::eTransferRead,
+      .dstStageMask = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+      .dstAccessMask = vk::AccessFlagBits2::eColorAttachmentWrite,
       .oldLayout = vk::ImageLayout::eTransferSrcOptimal,
       .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -217,13 +219,11 @@ namespace vke {
       }
     };
 
-    commandBuffer.pipelineBarrier(
-      vk::PipelineStageFlagBits::eTransfer,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput,
-      {},
-      {},
-      {},
-      { imageMemoryBarrier }
-    );
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &imageMemoryBarrier
+    };
+
+    commandBuffer.pipelineBarrier(dependencyInfo);
   }
 } // namespace vke

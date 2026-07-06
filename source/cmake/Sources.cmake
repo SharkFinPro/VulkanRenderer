@@ -89,6 +89,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/renderer3D/Renderer3D.cpp
     components/renderingManager/renderer3D/Renderer3D.h
 
+  components/renderingManager/FrameScheduler.cpp
+  components/renderingManager/FrameScheduler.h
   components/renderingManager/ImageResource.cpp
   components/renderingManager/ImageResource.h
   components/renderingManager/RenderingManager.cpp

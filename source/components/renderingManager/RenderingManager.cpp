@@ -1,4 +1,5 @@
 #include "RenderingManager.h"
+#include "FrameScheduler.h"
 #include "ImageResource.h"
 #include "RenderTarget.h"
 #include "renderer2D/Renderer2D.h"
@@ -35,12 +36,15 @@ namespace vke {
   {
     createCommandPool();
 
+    m_frameScheduler = std::make_shared<FrameScheduler>(m_logicalDevice);
+
     m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, assetManager, m_window);
 
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
+    m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
 
     m_renderTarget = std::make_shared<RenderTarget>(m_logicalDevice, m_commandPool);
 
@@ -58,15 +62,17 @@ namespace vke {
                                      const std::shared_ptr<LightingManager>& lightingManager,
                                      const uint32_t currentFrame)
   {
-    m_logicalDevice->waitForGraphicsFences(currentFrame);
-
     uint32_t imageIndex;
-    auto result = m_logicalDevice->acquireNextImage(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
+    auto result = m_frameScheduler->acquireNextImage(m_swapChain->getSwapChain(), &imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR)
     {
       m_framebufferResized = false;
       recreateSwapChain();
+
+      // The frame is abandoned with its compute work already submitted; bring the timeline up
+      // to the frame's final value (recreateSwapChain left the device idle).
+      m_frameScheduler->completeAbortedFrame();
       return;
     }
 
@@ -79,13 +85,11 @@ namespace vke {
 
     renderGuiScene(currentFrame);
 
-    m_logicalDevice->resetGraphicsFences(currentFrame);
-
     recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
 
     recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
 
-    result = m_logicalDevice->queuePresent(m_swapChain->getSwapChain(), imageIndex);
+    result = m_frameScheduler->queuePresent(m_swapChain->getSwapChain(), imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized)
     {
@@ -125,15 +129,13 @@ namespace vke {
 
     m_logicalDevice->waitIdle();
 
-    // An aborted frame (out-of-date at acquire) can leave binary semaphores signaled with no
-    // pending wait; reset them all now that the device is idle.
-    m_logicalDevice->recreateFrameSyncObjects();
-
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
     auto newSwapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool,
                                                     m_swapChain->getSwapChain());
     m_swapChain = std::move(newSwapChain);
+
+    m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
 
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
@@ -159,6 +161,11 @@ namespace vke {
   std::shared_ptr<Renderer3D> RenderingManager::getRenderer3D() const
   {
     return m_renderer3D;
+  }
+
+  std::shared_ptr<FrameScheduler> RenderingManager::getFrameScheduler() const
+  {
+    return m_frameScheduler;
   }
 
   bool RenderingManager::supportsRayTracing() const
@@ -352,12 +359,12 @@ namespace vke {
       recordOffscreenRendering(renderInfo);
     });
 
-    m_logicalDevice->submitOffscreenCommandBuffer(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
+    m_frameScheduler->submitOffscreenCommandBuffer(m_offscreenCommandBuffer->getCommandBuffer());
 
     if (m_offscreenViewportExtent.width != 0 &&
         m_offscreenViewportExtent.height != 0)
     {
-      m_logicalDevice->waitForOffscreenFence(currentFrame);
+      m_frameScheduler->waitForOffscreenWork();
       m_renderer3D->handleRenderedMousePickingImage(m_renderTarget->getMousePickingColorImageResource(currentFrame).getImage());
     }
   }
@@ -419,7 +426,7 @@ namespace vke {
       m_swapChain->endRendering(imageIndex, renderInfo.commandBuffer);
     });
 
-    m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, imageIndex, m_swapchainCommandBuffer->getCommandBuffer());
+    m_frameScheduler->submitSwapchainCommandBuffer(imageIndex, m_swapchainCommandBuffer->getCommandBuffer());
   }
 
   void RenderingManager::createCommandPool()
