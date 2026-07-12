@@ -3,6 +3,7 @@
 
 #include "../implementations/common/GraphicsPipelineStates.h"
 #include "../GraphicsPipeline.h"
+#include "../../lighting/lights/Light.h"
 #include "../../renderingManager/renderer3D/Renderer3D.h"
 
 namespace vke::PipelineConfig {
@@ -143,7 +144,8 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout
       },
-      .colorFormat = vk::Format::eUndefined
+      .colorFormat = vk::Format::eUndefined,
+      .depthFormat = Light::s_shadowMapFormat
     };
   }
 
@@ -177,6 +179,7 @@ namespace vke::PipelineConfig {
         pointLightDescriptorSetLayout
       },
       .colorFormat = vk::Format::eUndefined,
+      .depthFormat = Light::s_shadowMapFormat,
       .renderToCubeMap = true
     };
   }

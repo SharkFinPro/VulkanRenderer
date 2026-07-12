@@ -108,10 +108,13 @@ namespace vke {
 
     [[nodiscard]] vk::DescriptorPool getDescriptorPool();
 
-    void updateLightMetadataUniform() const;
+    void updateLightMetadataUniform();
 
     static void beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                      const std::shared_ptr<Light>& light);
+
+    static void endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   const std::shared_ptr<Light>& light);
   };
 
 } // namespace vke

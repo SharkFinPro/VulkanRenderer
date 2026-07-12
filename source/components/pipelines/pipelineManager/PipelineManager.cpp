@@ -76,7 +76,7 @@ namespace vke {
   void PipelineManager::renderLinePipeline(const RenderInfo* renderInfo,
                                            const std::vector<LineVertex>* lineVertices) const
   {
-    m_linePipeline->render(m_logicalDevice, renderInfo, m_commandPool, lineVertices);
+    m_linePipeline->render(renderInfo, lineVertices);
   }
 
   void PipelineManager::doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -106,7 +106,7 @@ namespace vke {
 
     createRenderObjectPipelines(assetManager, renderingManager, lightingManager);
 
-    createMiscPipelines(assetManager, lightingManager);
+    createMiscPipelines(assetManager, renderingManager, lightingManager);
 
     createRayTracingPipeline(assetManager, lightingManager);
   }
@@ -183,6 +183,7 @@ namespace vke {
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,
+                                            const std::shared_ptr<RenderingManager>& renderingManager,
                                             const std::shared_ptr<LightingManager>& lightingManager)
   {
     m_dotsPipeline = std::make_unique<DotsPipeline>(m_logicalDevice, m_commandPool, m_descriptorPool);
@@ -194,6 +195,11 @@ namespace vke {
 
     createGraphicsPipeline(PipelineType::grid,
       PipelineConfig::createGridPipelineOptions(m_logicalDevice));
+
+    createGraphicsPipeline(PipelineType::offscreenToSwapchain,
+      PipelineConfig::createOffscreenToSwapchainPipelineOptions(m_logicalDevice,
+      renderingManager->getOffscreenImageDescriptorSetLayout(),
+      renderingManager->getSwapChainImageFormat()));
 
     m_smokePipeline = std::make_unique<SmokePipeline>(
       m_logicalDevice, lightingManager->getLightingDescriptorSet(),

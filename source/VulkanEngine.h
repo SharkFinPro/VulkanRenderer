@@ -62,8 +62,6 @@ namespace vke {
 
     std::shared_ptr<Camera> m_camera;
 
-    uint32_t m_currentFrame = 0;
-
     void initializeVulkanAndWindow(const EngineConfig& engineConfig);
 
     void createComponents(const EngineConfig& engineConfig);

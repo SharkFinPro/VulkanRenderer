@@ -18,7 +18,10 @@ namespace vke {
     std::shared_ptr<CommandBuffer> commandBuffer;
     uint32_t currentFrame;
     glm::vec3 viewPosition;
-    const glm::mat4& viewMatrix;
+    // Stored by value (64 bytes): call sites bind temporaries here (e.g. glm::mat4(1.0), a
+    // light's view-projection return value), and RenderInfo is itself copied, so a reference
+    // member would dangle.
+    glm::mat4 viewMatrix;
     vk::Extent2D extent;
 
     mutable glm::mat4 projectionMatrix;
@@ -114,6 +117,10 @@ namespace vke {
     std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
 
     vk::Format colorFormat = vk::Format::eR8G8B8A8Unorm;
+
+    // eUndefined selects the device's default depth format (PhysicalDevice::findDepthFormat).
+    // Pipelines rendering to other depth targets (e.g. shadow maps) must set this explicitly.
+    vk::Format depthFormat = vk::Format::eUndefined;
 
     bool renderToCubeMap = false;
   };

@@ -21,30 +21,19 @@ namespace vke {
     [[nodiscard]] vk::Queue getPresentQueue() const;
     [[nodiscard]] vk::Queue getComputeQueue() const;
 
-    void submitOffscreenCommandBuffer(uint32_t currentFrame,
-                                      vk::CommandBuffer commandBuffer) const;
+    void submitToGraphicsQueue(const vk::SubmitInfo2& submitInfo) const;
 
-    void submitSwapchainCommandBuffer(uint32_t currentFrame,
-                                      vk::CommandBuffer commandBuffer) const;
+    void submitToComputeQueue(const vk::SubmitInfo2& submitInfo) const;
 
-    void submitComputeCommandBuffer(uint32_t currentFrame,
-                                    vk::CommandBuffer commandBuffer) const;
+    vk::Result queuePresent(const vk::PresentInfoKHR& presentInfo) const;
 
-    void waitForOffscreenFence(uint32_t currentFrame) const;
+    [[nodiscard]] std::pair<vk::Result, uint32_t> acquireNextImage(const vk::AcquireNextImageInfoKHR& acquireInfo) const;
 
-    void waitForGraphicsFences(uint32_t currentFrame) const;
-    void waitForComputeFences(uint32_t currentFrame) const;
+    [[nodiscard]] vk::raii::Semaphore createSemaphore(const vk::SemaphoreCreateInfo& semaphoreCreateInfo) const;
 
-    void resetGraphicsFences(uint32_t currentFrame) const;
-    void resetComputeFences(uint32_t currentFrame) const;
+    void waitSemaphores(const vk::SemaphoreWaitInfo& waitInfo) const;
 
-    vk::Result queuePresent(uint32_t currentFrame,
-                            vk::SwapchainKHR swapchain,
-                            const uint32_t* imageIndex) const;
-
-    vk::Result acquireNextImage(uint32_t currentFrame,
-                                vk::SwapchainKHR swapchain,
-                                uint32_t* imageIndex) const;
+    void signalSemaphore(const vk::SemaphoreSignalInfo& signalInfo) const;
 
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
@@ -107,22 +96,9 @@ namespace vke {
     vk::raii::Queue m_presentQueue = nullptr;
     vk::raii::Queue m_computeQueue = nullptr;
 
-    std::vector<vk::raii::Semaphore> m_imageAvailableSemaphores;
-
-    std::vector<vk::raii::Semaphore> m_renderFinishedSemaphores;
-    std::vector<vk::raii::Semaphore> m_offscreenRenderFinishedSemaphores;
-
-    std::vector<vk::raii::Fence> m_inFlightFences;
-    std::vector<vk::raii::Fence> m_offscreenInFlightFences;
-
-    std::vector<vk::raii::Semaphore> m_computeFinishedSemaphores;
-    std::vector<vk::raii::Fence> m_computeInFlightFences;
-
     uint8_t m_maxFramesInFlight = 2;
 
     void createDevice();
-
-    void createSyncObjects();
   };
 
 } // namespace vke

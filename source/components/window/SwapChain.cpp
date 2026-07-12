@@ -14,9 +14,10 @@ namespace vke {
   SwapChain::SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const std::shared_ptr<Window>& window,
                        const std::shared_ptr<Surface>& surface,
-                       const vk::CommandPool commandPool)
+                       const vk::CommandPool commandPool,
+                       const vk::SwapchainKHR oldSwapchain)
   {
-    createSwapChain(logicalDevice, window, surface);
+    createSwapChain(logicalDevice, window, surface, oldSwapchain);
 
     createImageViews(logicalDevice);
 
@@ -85,7 +86,8 @@ namespace vke {
 
   void SwapChain::createSwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                   const std::shared_ptr<Window>& window,
-                                  const std::shared_ptr<Surface>& surface)
+                                  const std::shared_ptr<Surface>& surface,
+                                  const vk::SwapchainKHR oldSwapchain)
   {
     const SwapChainSupportDetails swapChainSupport = logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
@@ -117,7 +119,7 @@ namespace vke {
       .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
       .presentMode = presentMode,
       .clipped = vk::True,
-      .oldSwapchain = nullptr
+      .oldSwapchain = oldSwapchain
     };
 
     m_swapchain = logicalDevice->createSwapchain(createInfo);
@@ -179,9 +181,12 @@ namespace vke {
   void SwapChain::transitionImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                            const vk::Image image)
   {
-    const vk::ImageMemoryBarrier imageMemoryBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eNone,
-      .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+    // srcStageMask chains after the image-acquire semaphore wait (eColorAttachmentOutput).
+    const vk::ImageMemoryBarrier2 imageMemoryBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+      .srcAccessMask = vk::AccessFlagBits2::eNone,
+      .dstStageMask = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+      .dstAccessMask = vk::AccessFlagBits2::eColorAttachmentWrite,
       .oldLayout = vk::ImageLayout::eUndefined,
       .newLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -196,22 +201,24 @@ namespace vke {
       }
     };
 
-    commandBuffer->pipelineBarrier(
-      vk::PipelineStageFlagBits::eTopOfPipe,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput,
-      {},
-      {},
-      {},
-      { imageMemoryBarrier }
-    );
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &imageMemoryBarrier
+    };
+
+    commandBuffer->pipelineBarrier(dependencyInfo);
   }
 
   void SwapChain::transitionImagePostRender(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                             const vk::Image image)
   {
-    const vk::ImageMemoryBarrier imageMemoryBarrier {
-      .srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
-      .dstAccessMask = vk::AccessFlagBits::eNone,
+    // No destination scope: visibility to the presentation engine is handled by the
+    // render-finished semaphore signal.
+    const vk::ImageMemoryBarrier2 imageMemoryBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+      .srcAccessMask = vk::AccessFlagBits2::eColorAttachmentWrite,
+      .dstStageMask = vk::PipelineStageFlagBits2::eNone,
+      .dstAccessMask = vk::AccessFlagBits2::eNone,
       .oldLayout = vk::ImageLayout::eColorAttachmentOptimal,
       .newLayout = vk::ImageLayout::ePresentSrcKHR,
       .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -226,14 +233,12 @@ namespace vke {
       }
     };
 
-    commandBuffer->pipelineBarrier(
-      vk::PipelineStageFlagBits::eColorAttachmentOutput,
-      vk::PipelineStageFlagBits::eBottomOfPipe,
-      {},
-      {},
-      {},
-      { imageMemoryBarrier }
-    );
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &imageMemoryBarrier
+    };
+
+    commandBuffer->pipelineBarrier(dependencyInfo);
   }
 
   vk::Format SwapChain::getImageFormat() const

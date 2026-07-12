@@ -10,8 +10,6 @@ namespace vke {
     : m_physicalDevice(physicalDevice)
   {
     createDevice();
-
-    createSyncObjects();
   }
 
   std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
@@ -39,136 +37,44 @@ namespace vke {
     return *m_computeQueue;
   }
 
-  void LogicalDevice::submitOffscreenCommandBuffer(const uint32_t currentFrame,
-                                                   const vk::CommandBuffer commandBuffer) const
+  void LogicalDevice::submitToGraphicsQueue(const vk::SubmitInfo2& submitInfo) const
   {
-    constexpr vk::PipelineStageFlags waitStages[] = {
-      vk::PipelineStageFlagBits::eVertexInput,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput
-    };
-
-    const vk::SubmitInfo submitInfo {
-      .waitSemaphoreCount = 1,
-      .pWaitSemaphores = &*m_computeFinishedSemaphores[currentFrame],
-      .pWaitDstStageMask = waitStages,
-      .commandBufferCount = 1,
-      .pCommandBuffers = &commandBuffer,
-      .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &*m_offscreenRenderFinishedSemaphores[currentFrame]
-    };
-
-    m_graphicsQueue.submit(submitInfo, m_offscreenInFlightFences[currentFrame]);
+    m_graphicsQueue.submit2(submitInfo);
   }
 
-  void LogicalDevice::submitSwapchainCommandBuffer(const uint32_t currentFrame,
-                                                   const vk::CommandBuffer commandBuffer) const
+  void LogicalDevice::submitToComputeQueue(const vk::SubmitInfo2& submitInfo) const
   {
-    constexpr vk::PipelineStageFlags waitStages[] = {
-      vk::PipelineStageFlagBits::eVertexInput,
-      vk::PipelineStageFlagBits::eColorAttachmentOutput
-    };
-
-    const vk::SubmitInfo submitInfo {
-      .waitSemaphoreCount = 1,
-      .pWaitSemaphores = &*m_imageAvailableSemaphores[currentFrame],
-      .pWaitDstStageMask = waitStages,
-      .commandBufferCount = 1,
-      .pCommandBuffers = &commandBuffer,
-      .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &*m_renderFinishedSemaphores[currentFrame]
-    };
-
-    m_graphicsQueue.submit(submitInfo, m_inFlightFences[currentFrame]);
+    m_computeQueue.submit2(submitInfo);
   }
 
-  void LogicalDevice::submitComputeCommandBuffer(const uint32_t currentFrame,
-                                                 const vk::CommandBuffer commandBuffer) const
+  vk::Result LogicalDevice::queuePresent(const vk::PresentInfoKHR& presentInfo) const
   {
-    const vk::SubmitInfo submitInfo {
-      .commandBufferCount = 1,
-      .pCommandBuffers = &commandBuffer,
-      .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &*m_computeFinishedSemaphores[currentFrame]
-    };
-
-    m_computeQueue.submit(submitInfo, m_computeInFlightFences[currentFrame]);
-  }
-
-  void LogicalDevice::waitForOffscreenFence(const uint32_t currentFrame) const
-  {
-    const auto result = m_device.waitForFences(*m_offscreenInFlightFences[currentFrame], vk::True, UINT64_MAX);
-    assert(result == vk::Result::eSuccess);
-  }
-
-  void LogicalDevice::waitForGraphicsFences(const uint32_t currentFrame) const
-  {
-    const std::array fences = {
-      *m_inFlightFences[currentFrame],
-      *m_offscreenInFlightFences[currentFrame]
-    };
-
-    const auto result = m_device.waitForFences(fences, vk::True, UINT64_MAX);
-    assert(result == vk::Result::eSuccess);
-  }
-
-  void LogicalDevice::waitForComputeFences(const uint32_t currentFrame) const
-  {
-    const auto result = m_device.waitForFences(*m_computeInFlightFences[currentFrame], vk::True, UINT64_MAX);
-    assert(result == vk::Result::eSuccess);
-  }
-
-  void LogicalDevice::resetGraphicsFences(const uint32_t currentFrame) const
-  {
-    const std::array fences = {
-      *m_inFlightFences[currentFrame],
-      *m_offscreenInFlightFences[currentFrame]
-    };
-
-    m_device.resetFences(fences);
-  }
-
-  void LogicalDevice::resetComputeFences(const uint32_t currentFrame) const
-  {
-    m_device.resetFences(*m_computeInFlightFences[currentFrame]);
-  }
-
-  vk::Result LogicalDevice::queuePresent(const uint32_t currentFrame,
-                                         const vk::SwapchainKHR swapchain,
-                                         const uint32_t* imageIndex) const
-  {
-    const std::array waitSemaphores = {
-      *m_renderFinishedSemaphores[currentFrame],
-      *m_offscreenRenderFinishedSemaphores[currentFrame]
-    };
-
-    const vk::PresentInfoKHR presentInfo {
-      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
-      .pWaitSemaphores = waitSemaphores.data(),
-      .swapchainCount = 1,
-      .pSwapchains = &swapchain,
-      .pImageIndices = imageIndex,
-      .pResults = nullptr
-    };
-
+    // eErrorOutOfDateKHR is returned (not thrown) thanks to
+    // VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS, so callers can recreate the swapchain.
     return m_presentQueue.presentKHR(presentInfo);
   }
 
-  vk::Result LogicalDevice::acquireNextImage(const uint32_t currentFrame,
-                                             const vk::SwapchainKHR swapchain,
-                                             uint32_t* imageIndex) const
+  std::pair<vk::Result, uint32_t> LogicalDevice::acquireNextImage(const vk::AcquireNextImageInfoKHR& acquireInfo) const
   {
-    const vk::AcquireNextImageInfoKHR acquireInfo {
-      .swapchain = swapchain,
-      .timeout = UINT64_MAX,
-      .semaphore = *m_imageAvailableSemaphores[currentFrame],
-      .fence = nullptr,
-      .deviceMask = 1
-    };
+    auto [result, imageIndex] = m_device.acquireNextImage2KHR(acquireInfo);
 
-    auto [result, index] = m_device.acquireNextImage2KHR(acquireInfo);
-    *imageIndex = index;
+    return { result, imageIndex };
+  }
 
-    return result;
+  vk::raii::Semaphore LogicalDevice::createSemaphore(const vk::SemaphoreCreateInfo& semaphoreCreateInfo) const
+  {
+    return m_device.createSemaphore(semaphoreCreateInfo);
+  }
+
+  void LogicalDevice::waitSemaphores(const vk::SemaphoreWaitInfo& waitInfo) const
+  {
+    const auto result = m_device.waitSemaphores(waitInfo, UINT64_MAX);
+    assert(result == vk::Result::eSuccess);
+  }
+
+  void LogicalDevice::signalSemaphore(const vk::SemaphoreSignalInfo& signalInfo) const
+  {
+    m_device.signalSemaphore(signalInfo);
   }
 
   uint32_t LogicalDevice::getMaxFramesInFlight() const
@@ -305,7 +211,8 @@ namespace vke {
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set uniqueQueueFamilies = {
       queueFamilyIndices.graphicsFamily.value(),
-      queueFamilyIndices.presentFamily.value()
+      queueFamilyIndices.presentFamily.value(),
+      queueFamilyIndices.computeFamily.value()
     };
 
     float queuePriority = 1.0f;
@@ -331,6 +238,8 @@ namespace vke {
 
     vk::PhysicalDeviceVulkan13Features vulkan13Features {
       .pNext = getPhysicalDevice()->supportsRayTracing() ? &accelerationStructureFeatures : nullptr,
+      .shaderDemoteToHelperInvocation = vk::True,
+      .synchronization2 = vk::True,
       .dynamicRendering = vk::True
     };
 
@@ -340,6 +249,7 @@ namespace vke {
       .descriptorBindingPartiallyBound = vk::True,
       .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False,
       .runtimeDescriptorArray = vk::True,
+      .timelineSemaphore = vk::True,
       .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False
     };
 
@@ -380,35 +290,4 @@ namespace vke {
     m_presentQueue = m_device.getQueue(queueFamilyIndices.presentFamily.value(), 0);
   }
 
-  void LogicalDevice::createSyncObjects()
-  {
-    m_imageAvailableSemaphores.reserve(m_maxFramesInFlight);
-
-    m_renderFinishedSemaphores.reserve(m_maxFramesInFlight);
-    m_offscreenRenderFinishedSemaphores.reserve(m_maxFramesInFlight);
-
-    m_computeFinishedSemaphores.reserve(m_maxFramesInFlight);
-
-    m_inFlightFences.reserve(m_maxFramesInFlight);
-    m_offscreenInFlightFences.reserve(m_maxFramesInFlight);
-    m_computeInFlightFences.reserve(m_maxFramesInFlight);
-
-    constexpr vk::FenceCreateInfo fenceInfo {
-      .flags = vk::FenceCreateFlagBits::eSignaled
-    };
-
-    for (size_t i = 0; i < m_maxFramesInFlight; i++)
-    {
-      constexpr vk::SemaphoreCreateInfo semaphoreInfo {};
-
-      m_imageAvailableSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
-      m_renderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
-      m_offscreenRenderFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
-      m_inFlightFences.emplace_back(m_device.createFence(fenceInfo));
-      m_offscreenInFlightFences.emplace_back(m_device.createFence(fenceInfo));
-
-      m_computeFinishedSemaphores.emplace_back(m_device.createSemaphore(semaphoreInfo));
-      m_computeInFlightFences.emplace_back(m_device.createFence(fenceInfo));
-    }
-  }
 } // namespace vke

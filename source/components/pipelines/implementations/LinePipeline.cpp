@@ -42,12 +42,10 @@ namespace vke {
 
     createPipeline(logicalDevice, graphicsPipelineOptions);
 
-    createVertexBuffer(logicalDevice);
+    createVertexBuffers(logicalDevice);
   }
 
-  void LinePipeline::render(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                            const RenderInfo* renderInfo,
-                            const vk::raii::CommandPool& commandPool,
+  void LinePipeline::render(const RenderInfo* renderInfo,
                             const std::vector<LineVertex>* vertices) const
   {
     if (vertices->empty())
@@ -64,15 +62,10 @@ namespace vke {
       throw std::runtime_error("Vertex data exceeds maximum buffer size");
     }
 
-    Buffers::doMappedMemoryOperation(m_stagingBufferMemory, [vertices, bufferSize](void* data) {
-      memcpy(data, vertices->data(), bufferSize);
-    });
-
-    Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), m_stagingBuffer,
-                        m_vertexBuffer, bufferSize);
+    memcpy(m_vertexBuffersMapped[renderInfo->currentFrame], vertices->data(), bufferSize);
 
     const std::vector<vk::DeviceSize> offsets = {0};
-    renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffer }, offsets);
+    renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffers[renderInfo->currentFrame] }, offsets);
 
     const MVPTransformPC transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
 
@@ -86,15 +79,23 @@ namespace vke {
     renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices->size()), 1, 0, 0);
   }
 
-  void LinePipeline::createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice)
+  void LinePipeline::createVertexBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
-    Buffers::createBuffer(logicalDevice, m_maxVertexBufferSize,
-                          vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
-                          vk::MemoryPropertyFlagBits::eDeviceLocal, m_vertexBuffer, m_vertexBufferMemory);
+    const auto maxFramesInFlight = logicalDevice->getMaxFramesInFlight();
 
-    Buffers::createBuffer(logicalDevice, m_maxVertexBufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                          m_stagingBuffer, m_stagingBufferMemory);
+    m_vertexBuffers.reserve(maxFramesInFlight);
+    m_vertexBuffersMemory.reserve(maxFramesInFlight);
+    m_vertexBuffersMapped.resize(maxFramesInFlight);
+
+    for (uint32_t i = 0; i < maxFramesInFlight; i++)
+    {
+      Buffers::createBuffer(logicalDevice, m_maxVertexBufferSize, vk::BufferUsageFlagBits::eVertexBuffer,
+                            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                            m_vertexBuffers.emplace_back(nullptr),
+                            m_vertexBuffersMemory.emplace_back(nullptr));
+
+      m_vertexBuffersMapped[i] = m_vertexBuffersMemory[i].mapMemory(0, m_maxVertexBufferSize, vk::MemoryMapFlags{});
+    }
   }
 
 } // namespace vke

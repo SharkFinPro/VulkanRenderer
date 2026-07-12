@@ -1,4 +1,5 @@
 #include "RenderingManager.h"
+#include "FrameScheduler.h"
 #include "ImageResource.h"
 #include "RenderTarget.h"
 #include "renderer2D/Renderer2D.h"
@@ -22,15 +23,20 @@ namespace vke {
                                      std::shared_ptr<Surface> surface,
                                      std::shared_ptr<Window> window,
                                      std::string sceneViewName,
+                                     const bool useDockspace,
+                                     const bool rayTracingEnabled,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
+      m_useDockspace(useDockspace),
       m_sceneViewName(std::move(sceneViewName)),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
-      m_rayTracingEnabled(m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+      m_rayTracingEnabled(rayTracingEnabled && m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
   {
     createCommandPool();
+
+    m_frameScheduler = std::make_shared<FrameScheduler>(m_logicalDevice);
 
     m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, assetManager, m_window);
 
@@ -38,6 +44,7 @@ namespace vke {
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
+    m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
 
     m_renderTarget = std::make_shared<RenderTarget>(m_logicalDevice, m_commandPool);
 
@@ -55,15 +62,17 @@ namespace vke {
                                      const std::shared_ptr<LightingManager>& lightingManager,
                                      const uint32_t currentFrame)
   {
-    m_logicalDevice->waitForGraphicsFences(currentFrame);
-
     uint32_t imageIndex;
-    auto result = m_logicalDevice->acquireNextImage(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
+    auto result = m_frameScheduler->acquireNextImage(m_swapChain->getSwapChain(), &imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR)
     {
       m_framebufferResized = false;
       recreateSwapChain();
+
+      // The frame is abandoned with its compute work already submitted; bring the timeline up
+      // to the frame's final value (recreateSwapChain left the device idle).
+      m_frameScheduler->completeAbortedFrame();
       return;
     }
 
@@ -76,13 +85,11 @@ namespace vke {
 
     renderGuiScene(currentFrame);
 
-    m_logicalDevice->resetGraphicsFences(currentFrame);
-
     recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
 
-    recordSwapchainCommandBuffer(currentFrame, imageIndex);
+    recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
 
-    result = m_logicalDevice->queuePresent(currentFrame, m_swapChain->getSwapChain(), &imageIndex);
+    result = m_frameScheduler->queuePresent(m_swapChain->getSwapChain(), imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || m_framebufferResized)
     {
@@ -100,6 +107,16 @@ namespace vke {
     return m_sceneIsFocused;
   }
 
+  vk::DescriptorSetLayout RenderingManager::getOffscreenImageDescriptorSetLayout() const
+  {
+    return m_renderTarget->getOffscreenImageDescriptorSetLayout();
+  }
+
+  vk::Format RenderingManager::getSwapChainImageFormat() const
+  {
+    return m_swapChain->getImageFormat();
+  }
+
   void RenderingManager::recreateSwapChain()
   {
     int width = 0, height = 0;
@@ -112,11 +129,13 @@ namespace vke {
 
     m_logicalDevice->waitIdle();
 
-    m_swapChain.reset();
-
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
+    auto newSwapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool,
+                                                    m_swapChain->getSwapChain());
+    m_swapChain = std::move(newSwapChain);
+
+    m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
 
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
@@ -142,6 +161,11 @@ namespace vke {
   std::shared_ptr<Renderer3D> RenderingManager::getRenderer3D() const
   {
     return m_renderer3D;
+  }
+
+  std::shared_ptr<FrameScheduler> RenderingManager::getFrameScheduler() const
+  {
+    return m_frameScheduler;
   }
 
   bool RenderingManager::supportsRayTracing() const
@@ -171,6 +195,27 @@ namespace vke {
 
   void RenderingManager::renderGuiScene(const uint32_t currentFrame)
   {
+    if (!m_useDockspace)
+    {
+      const auto currentOffscreenViewportExtent = m_swapChain->getExtent();
+
+      if (m_offscreenViewportExtent.width != currentOffscreenViewportExtent.width ||
+          m_offscreenViewportExtent.height != currentOffscreenViewportExtent.height)
+      {
+        m_offscreenViewportExtent = currentOffscreenViewportExtent;
+
+        m_logicalDevice->waitIdle();
+
+        m_renderTarget->recreateImageResources(m_offscreenViewportExtent);
+        m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
+      }
+
+      m_sceneIsFocused = !ImGui::GetIO().WantCaptureMouse;
+      m_renderer3D->getMousePicker()->setViewportPos({ 0.0f, 0.0f });
+
+      return;
+    }
+
     ImGui::Begin(m_sceneViewName.c_str());
 
     m_sceneIsFocused = ImGui::IsWindowFocused();
@@ -268,7 +313,7 @@ namespace vke {
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
-      renderInfo2D.commandBuffer->endRendering();
+      m_renderTarget->endOffscreenRendering(renderInfo2D.commandBuffer, currentFrame);
     };
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);
@@ -314,24 +359,25 @@ namespace vke {
       recordOffscreenRendering(renderInfo);
     });
 
-    m_logicalDevice->submitOffscreenCommandBuffer(currentFrame, m_offscreenCommandBuffer->getCommandBuffer());
+    m_frameScheduler->submitOffscreenCommandBuffer(m_offscreenCommandBuffer->getCommandBuffer());
 
     if (m_offscreenViewportExtent.width != 0 &&
         m_offscreenViewportExtent.height != 0)
     {
-      m_logicalDevice->waitForOffscreenFence(currentFrame);
+      m_frameScheduler->waitForOffscreenWork();
       m_renderer3D->handleRenderedMousePickingImage(m_renderTarget->getMousePickingColorImageResource(currentFrame).getImage());
     }
   }
 
-  void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame,
+  void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                      uint32_t currentFrame,
                                                       const uint32_t imageIndex) const
   {
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
 
     m_swapchainCommandBuffer->resetCommandBuffer();
 
-    m_swapchainCommandBuffer->record([this, currentFrame, imageIndex]
+    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
@@ -359,12 +405,28 @@ namespace vke {
 
       m_swapChain->beginRendering(imageIndex, renderInfo.commandBuffer);
 
+      if (!m_useDockspace &&
+          m_offscreenViewportExtent.width != 0 &&
+          m_offscreenViewportExtent.height != 0)
+      {
+        pipelineManager->bindGraphicsPipeline(renderInfo.commandBuffer, PipelineType::offscreenToSwapchain);
+
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
+          renderInfo.commandBuffer,
+          PipelineType::offscreenToSwapchain,
+          m_renderTarget->getOffscreenImageDescriptorSet(currentFrame),
+          0
+        );
+
+        renderInfo.commandBuffer->draw(4, 1, 0, 0);
+      }
+
       ImGuiInstance::render(renderInfo.commandBuffer);
 
       m_swapChain->endRendering(imageIndex, renderInfo.commandBuffer);
     });
 
-    m_logicalDevice->submitSwapchainCommandBuffer(currentFrame, m_swapchainCommandBuffer->getCommandBuffer());
+    m_frameScheduler->submitSwapchainCommandBuffer(imageIndex, m_swapchainCommandBuffer->getCommandBuffer());
   }
 
   void RenderingManager::createCommandPool()

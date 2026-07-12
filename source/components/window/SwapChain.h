@@ -18,7 +18,8 @@ namespace vke {
     SwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
               const std::shared_ptr<Window>& window,
               const std::shared_ptr<Surface>& surface,
-              vk::CommandPool commandPool);
+              vk::CommandPool commandPool,
+              vk::SwapchainKHR oldSwapchain = nullptr);
 
     [[nodiscard]] vk::Format getImageFormat() const;
 
@@ -57,7 +58,8 @@ namespace vke {
 
     void createSwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<Window>& window,
-                         const std::shared_ptr<Surface>& surface);
+                         const std::shared_ptr<Surface>& surface,
+                         vk::SwapchainKHR oldSwapchain);
 
     void createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice);
 

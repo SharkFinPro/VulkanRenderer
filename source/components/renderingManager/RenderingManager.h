@@ -10,6 +10,7 @@ namespace vke {
 
   class AssetManager;
   class CommandBuffer;
+  class FrameScheduler;
   struct FramebufferResizeEvent;
   class LightingManager;
   class LogicalDevice;
@@ -27,6 +28,8 @@ namespace vke {
                      std::shared_ptr<Surface> surface,
                      std::shared_ptr<Window> window,
                      std::string sceneViewName,
+                     bool useDockspace,
+                     bool rayTracingEnabled,
                      const std::shared_ptr<AssetManager>& assetManager);
 
     ~RenderingManager();
@@ -37,6 +40,10 @@ namespace vke {
 
     [[nodiscard]] bool isSceneFocused() const;
 
+    [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
+
+    [[nodiscard]] vk::Format getSwapChainImageFormat() const;
+
     void recreateSwapChain();
 
     void createNewFrame() const;
@@ -44,6 +51,8 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<Renderer2D> getRenderer2D() const;
 
     [[nodiscard]] std::shared_ptr<Renderer3D> getRenderer3D() const;
+
+    [[nodiscard]] std::shared_ptr<FrameScheduler> getFrameScheduler() const;
 
     [[nodiscard]] bool supportsRayTracing() const;
 
@@ -55,6 +64,8 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<FrameScheduler> m_frameScheduler;
 
     std::shared_ptr<Surface> m_surface;
 
@@ -74,6 +85,8 @@ namespace vke {
 
     bool m_sceneIsFocused = false;
 
+    bool m_useDockspace;
+
     vk::Extent2D m_offscreenViewportExtent{0, 0};
 
     std::string m_sceneViewName;
@@ -92,7 +105,8 @@ namespace vke {
                                       const std::shared_ptr<LightingManager>& lightingManager,
                                       uint32_t currentFrame) const;
 
-    void recordSwapchainCommandBuffer(uint32_t currentFrame,
+    void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      uint32_t currentFrame,
                                       uint32_t imageIndex) const;
 
     void createCommandPool();

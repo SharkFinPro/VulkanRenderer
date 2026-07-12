@@ -83,7 +83,7 @@ namespace vke::gps {
     .logicOpEnable = vk::False,
     .logicOp = vk::LogicOp::eCopy,
     .attachmentCount = 1,
-    .pAttachments = &colorBlendAttachmentSmoke,
+    .pAttachments = &colorBlendAttachmentBendy,
     .blendConstants = {{ 0.0f, 0.0f, 0.0f, 0.0f }}
   };
 

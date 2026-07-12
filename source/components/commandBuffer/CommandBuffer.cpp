@@ -112,21 +112,9 @@ namespace vke {
     m_commandBuffers[m_currentFrame].drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
   }
 
-  void CommandBuffer::pipelineBarrier(const vk::PipelineStageFlags srcStageMask,
-                                      const vk::PipelineStageFlags dstStageMask,
-                                      const vk::DependencyFlags dependencyFlags,
-                                      const std::vector<vk::MemoryBarrier>& memoryBarriers,
-                                      const std::vector<vk::BufferMemoryBarrier>& bufferMemoryBarriers,
-                                      const std::vector<vk::ImageMemoryBarrier>& imageMemoryBarriers) const
+  void CommandBuffer::pipelineBarrier(const vk::DependencyInfo& dependencyInfo) const
   {
-    m_commandBuffers[m_currentFrame].pipelineBarrier(
-      srcStageMask,
-      dstStageMask,
-      dependencyFlags,
-      memoryBarriers,
-      bufferMemoryBarriers,
-      imageMemoryBarriers
-    );
+    m_commandBuffers[m_currentFrame].pipelineBarrier2(dependencyInfo);
   }
 
   void CommandBuffer::clearAttachments(const std::vector<vk::ClearAttachment>& clearAttachments,

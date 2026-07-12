@@ -7,6 +7,7 @@
 namespace vke {
 
   class CommandBuffer;
+  class FrameScheduler;
   class LogicalDevice;
   class PipelineManager;
   class Renderer2D;
@@ -14,7 +15,8 @@ namespace vke {
 
   class ComputingManager {
   public:
-    explicit ComputingManager(std::shared_ptr<LogicalDevice> logicalDevice);
+    ComputingManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                     std::shared_ptr<FrameScheduler> frameScheduler);
 
     void doComputing(const std::shared_ptr<PipelineManager>& pipelineManager,
                      uint32_t currentFrame,
@@ -23,6 +25,8 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<FrameScheduler> m_frameScheduler;
 
     vk::raii::CommandPool m_commandPool = nullptr;
 
