@@ -20,7 +20,7 @@
 | `CMakeLists.txt` (root) | Top-level config, output dirs (`bin/`), RPATH, copies `tests/assets/`. Builds tests automatically when this is the top-level project. |
 | `source/` | The `VulkanEngine` library. The only place engine code lives. |
 | `source/VulkanEngine.{h,cpp}` | Engine facade: owns all subsystems, exposes accessors, drives the frame. |
-| `source/EngineConfig.h` | `EngineConfig` struct — window/camera/ImGui/rendering startup configuration (e.g. initial ray tracing state). |
+| `source/EngineConfig.h` | `EngineConfig` struct — window/device/camera/ImGui/rendering startup configuration (e.g. preferred GPU name, initial ray tracing state). |
 | `source/components/` | The engine subsystems (see Architecture). Each subsystem is its own subdirectory. |
 | `source/components/pipelines/` | Pipeline infrastructure (`Pipeline`, `GraphicsPipeline`, `ComputePipeline`, `RayTracingPipeline`), descriptor sets, uniform buffers, shader modules, `PipelineManager`. |
 | `source/components/pipelines/implementations/` | Concrete pipelines + shared `PipelineTypes.h` (the `PipelineType` enum) and vertex input definitions. |
@@ -49,6 +49,10 @@
 
 **Core / device layer** — `Instance` (+ `DebugMessenger`), `Surface`, `Window` (GLFW), `PhysicalDevice`, `LogicalDevice`. These form the Vulkan context the rest of the engine builds on.
 
+`PhysicalDevice` evaluates *every* enumerated GPU in one gather pass (`evaluateDevice`), rejects any that cannot satisfy the full requirement set (Vulkan 1.3, all device extensions, all requested features, complete queue families, a usable swapchain), then picks the highest weighted score: device type dominates, then ray tracing support, then device-local memory / max MSAA / API minor as tiebreakers. Two `static_assert`s in `PhysicalDevice.cpp` prove a tiebreaker can never promote a device past its type tier. `EngineConfig::Device::preferredName` is a case-insensitive substring override that wins outright when it matches a suitable device. The selected GPU is reported on `std::cout`; rejections are reported per device in debug builds, and always on `std::cerr` when nothing is suitable.
+
+**Invariant:** `components/physicalDevice/DeviceRequirements.h` is the single source of truth for device extensions and features. `LogicalDevice::createDevice()` requests exactly the bits listed there (via `requestFeatures`) and `PhysicalDevice` verifies exactly those bits (via `findMissingFeature`), so the two cannot drift.
+
 **Rendering** — `RenderingManager` orchestrates per-frame work: an offscreen pass rendered into a `RenderTarget`/`ImageResource`, presented into an ImGui "Scene View" dock, plus the swapchain pass. It delegates to `Renderer3D` (render objects grouped by `PipelineType`, shadow maps, mouse picking, grid, lines, smoke, plants, clouds, optional ray tracing) and `Renderer2D`. `SwapChain` and `CommandBuffer`/`SingleUseCommandBuffer` support it. `FrameScheduler` (owned by `RenderingManager`, also used by `ComputingManager` and the engine loop) owns all frame synchronization: one timeline semaphore paces the CPU and orders the per-frame compute → offscreen → swapchain submissions; binary semaphores are used only for WSI acquire/present. Barriers use Synchronization2 (`vk::ImageMemoryBarrier2` via `CommandBuffer::pipelineBarrier`).
 
 **Pipelines** — `PipelineManager` builds and owns pipelines keyed by the `PipelineType` enum (`PipelineTypes.h`), and exposes bind/push-constant/descriptor helpers. Concrete pipelines live in `pipelines/implementations/`. Push-constant payloads are modeled as a `std::variant` per pipeline type in `Renderer3D`.
@@ -72,6 +76,7 @@
 - **`[[nodiscard]]`** on getters/queries is standard. Prefer `const` accessors.
 - **Separation:** one class per subsystem directory; managers coordinate, components do the work. The `PipelineType` enum is the central key tying render requests to pipelines.
 - **Source list discipline:** every new engine source/header must be registered in `Sources.cmake`.
+- **Device requirements:** never hardcode a Vulkan feature bit or device extension in `LogicalDevice::createDevice()`. Add it to the appropriate list in `DeviceRequirements.h` so device selection verifies it too — otherwise the engine requests something it never checked for, and an unsupported GPU fails at `vkCreateDevice` instead of being cleanly rejected.
 
 ## Test Applications
 

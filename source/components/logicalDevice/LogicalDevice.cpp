@@ -1,5 +1,6 @@
 #include "LogicalDevice.h"
 #include "../instance/Instance.h"
+#include "../physicalDevice/DeviceRequirements.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include <array>
 #include <set>
@@ -227,49 +228,47 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures {
-      .rayTracingPipeline = vk::True
-    };
+    // Every feature bit below comes from the lists in DeviceRequirements.h, which
+    // PhysicalDevice also checks during selection. Adding a feature here directly would make
+    // the engine request something selection never verified.
+    const bool rayTracing = m_physicalDevice->supportsRayTracing();
 
-    vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
-      .pNext = &rayTracingPipelineFeatures,
-      .accelerationStructure = vk::True
+    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeaturesToRequest {};
+    requestFeatures(rayTracingPipelineFeaturesToRequest, rayTracingPipelineFeatures);
+
+    vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeaturesToRequest {
+      .pNext = &rayTracingPipelineFeaturesToRequest
     };
+    requestFeatures(accelerationStructureFeaturesToRequest, rayTracingAccelerationStructureFeatures);
 
     vk::PhysicalDeviceVulkan13Features vulkan13Features {
-      .pNext = getPhysicalDevice()->supportsRayTracing() ? &accelerationStructureFeatures : nullptr,
-      .shaderDemoteToHelperInvocation = vk::True,
-      .synchronization2 = vk::True,
-      .dynamicRendering = vk::True
+      .pNext = rayTracing ? &accelerationStructureFeaturesToRequest : nullptr
     };
+    requestFeatures(vulkan13Features, requiredVulkan13Features);
 
     vk::PhysicalDeviceVulkan12Features vulkan12Features {
-      .pNext = &vulkan13Features,
-      .shaderSampledImageArrayNonUniformIndexing = vk::True,
-      .descriptorBindingPartiallyBound = vk::True,
-      .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False,
-      .runtimeDescriptorArray = vk::True,
-      .timelineSemaphore = vk::True,
-      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False
+      .pNext = &vulkan13Features
     };
+    requestFeatures(vulkan12Features, requiredVulkan12Features);
+
+    if (rayTracing)
+    {
+      requestFeatures(vulkan12Features, rayTracingVulkan12Features);
+    }
 
     vk::PhysicalDeviceVulkan11Features vulkan11Features {
-      .pNext = &vulkan12Features,
-      .multiview = vk::True
+      .pNext = &vulkan12Features
     };
+    requestFeatures(vulkan11Features, requiredVulkan11Features);
 
     vk::PhysicalDeviceFeatures2 deviceFeatures2 {
-      .pNext = &vulkan11Features,
-      .features {
-        .geometryShader = vk::True,
-        .fillModeNonSolid = vk::True,
-        .samplerAnisotropy = vk::True
-      }
+      .pNext = &vulkan11Features
     };
+    requestFeatures(deviceFeatures2.features, requiredCoreFeatures);
 
     auto extensions = std::vector(deviceExtensions.begin(), deviceExtensions.end());
 
-    if (m_physicalDevice->supportsRayTracing())
+    if (rayTracing)
     {
       extensions.insert(extensions.end(), rayTracingDeviceExtensions.begin(), rayTracingDeviceExtensions.end());
     }

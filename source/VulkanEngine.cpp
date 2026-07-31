@@ -109,6 +109,11 @@ namespace vke {
     return m_lightingManager;
   }
 
+  std::shared_ptr<PhysicalDevice> VulkanEngine::getPhysicalDevice() const
+  {
+    return m_physicalDevice;
+  }
+
   std::shared_ptr<RenderingManager> VulkanEngine::getRenderingManager() const
   {
     return m_renderingManager;
@@ -127,7 +132,7 @@ namespace vke {
 
     m_surface = std::make_shared<Surface>(m_instance, m_window);
 
-    m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_surface);
+    m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_surface, engineConfig.device);
 
     m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
   }

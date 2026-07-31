@@ -17,6 +17,14 @@ namespace vke {
       bool resizable = true;
     } window;
 
+    struct Device {
+      // Case-insensitive substring match against VkPhysicalDeviceProperties::deviceName
+      // (e.g. "RTX", "Radeon", "Intel"). When it matches a suitable device, that device is
+      // used outright; when it matches nothing suitable, a warning is printed and the
+      // highest-scoring device is used instead. Empty means automatic selection.
+      std::string preferredName;
+    } device;
+
     struct Camera {
       glm::vec3 position = glm::vec3{ 0.0f };
       float speed = 1.0f;
