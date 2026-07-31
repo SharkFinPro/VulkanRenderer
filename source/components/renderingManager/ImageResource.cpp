@@ -1,4 +1,5 @@
 #include "ImageResource.h"
+#include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
@@ -176,6 +177,21 @@ namespace vke {
       else if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
         imageLayout = vk::ImageLayout::eGeneral;
+      }
+
+      if (config.batchCommandBuffer)
+      {
+        Images::recordImageLayoutTransition(
+          *config.batchCommandBuffer,
+          m_image,
+          getFormat(config),
+          vk::ImageLayout::eUndefined,
+          imageLayout,
+          1,
+          config.isCubeMap ? 6 : 1
+        );
+
+        return;
       }
 
       Images::transitionImageLayout(

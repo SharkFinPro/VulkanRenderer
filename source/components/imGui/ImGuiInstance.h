@@ -49,6 +49,11 @@ namespace vke {
 
     void setMenuBarHeight(float height);
 
+    // Closes the ImGui frame and flushes any pending texture uploads. The Vulkan backend uploads
+    // textures with its own submit followed by vkQueueWaitIdle, so this has to run before the
+    // frame's command buffers are submitted — otherwise that drain waits on the frame's own work.
+    static void prepareFrame();
+
     static void render(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
   private:
@@ -90,6 +95,8 @@ namespace vke {
     void initFromWindow();
 
     void displayDockSpace();
+
+    static void uploadPendingTextures();
 
     static void renderPlatformWindows();
 

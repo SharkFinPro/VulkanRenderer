@@ -20,8 +20,11 @@ namespace vke {
                                                           vk::DescriptorSet dstSet,
                                                           size_t frame) const;
 
+    // size defaults to the whole buffer. Pass the number of bytes actually populated when only a
+    // prefix is in use, so the copy does not scale with the buffer's capacity.
     void update(uint32_t frame,
-                const void* data) const;
+                const void* data,
+                vk::DeviceSize size = 0) const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;

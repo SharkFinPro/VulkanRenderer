@@ -56,8 +56,18 @@ namespace vke {
     void registerFont(std::string fontName,
                       std::string fontPath);
 
+    // Loads on a cache miss, which costs a font rasterization and several queue drains. Call it
+    // during setup, or via preloadFont, rather than from inside the frame.
     [[nodiscard]] std::shared_ptr<Font> getFont(const std::string& fontName,
                                                 uint32_t fontSize);
+
+    // Cache lookup only; returns nullptr rather than loading. Safe to call mid-frame.
+    [[nodiscard]] std::shared_ptr<Font> findFont(const std::string& fontName,
+                                                 uint32_t fontSize) const;
+
+    // Brings a font/size into the cache up front so the first text() call does not stall.
+    void preloadFont(const std::string& fontName,
+                     uint32_t fontSize);
 
     [[nodiscard]] std::shared_ptr<SmokeSystem> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
                                                                  uint32_t numParticles = 5'000'000);

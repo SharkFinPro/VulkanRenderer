@@ -2,6 +2,7 @@
 #include "Surface.h"
 #include "Window.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../commandBuffer/SingleUseCommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../renderingManager/ImageResource.h"
@@ -152,30 +153,37 @@ namespace vke {
   void SwapChain::createImageResources(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                        const vk::CommandPool commandPool)
   {
-    const ImageResourceConfig imageResourceConfig {
-      .logicalDevice = logicalDevice,
-      .extent = m_swapChainExtent,
-      .commandPool = commandPool,
-      .colorFormat = m_swapChainImageFormat,
-      .depthFormat = logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .numSamples = logicalDevice->getPhysicalDevice()->getMsaaSamples()
-    };
+    // One command buffer for every image's initial transition, rather than a submit and queue
+    // drain per image.
+    const auto batchCommandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
-    auto colorImageResourceConfig = imageResourceConfig;
-    colorImageResourceConfig.imageResourceType = ImageResourceType::Color;
+    batchCommandBuffer.record([this, &logicalDevice, commandPool, &batchCommandBuffer] {
+      const ImageResourceConfig imageResourceConfig {
+        .logicalDevice = logicalDevice,
+        .extent = m_swapChainExtent,
+        .commandPool = commandPool,
+        .colorFormat = m_swapChainImageFormat,
+        .depthFormat = logicalDevice->getPhysicalDevice()->findDepthFormat(),
+        .numSamples = logicalDevice->getPhysicalDevice()->getMsaaSamples(),
+        .batchCommandBuffer = &batchCommandBuffer
+      };
 
-    auto depthImageResourceConfig = imageResourceConfig;
-    depthImageResourceConfig.imageResourceType = ImageResourceType::Depth;
+      auto colorImageResourceConfig = imageResourceConfig;
+      colorImageResourceConfig.imageResourceType = ImageResourceType::Color;
 
-    const auto numImages = m_swapChainImages.size();
-    m_colorImageResources.reserve(numImages);
-    m_depthImageResources.reserve(numImages);
+      auto depthImageResourceConfig = imageResourceConfig;
+      depthImageResourceConfig.imageResourceType = ImageResourceType::Depth;
 
-    for (size_t i = 0; i < numImages; ++i)
-    {
-      m_colorImageResources.emplace_back(colorImageResourceConfig);
-      m_depthImageResources.emplace_back(depthImageResourceConfig);
-    }
+      const auto numImages = m_swapChainImages.size();
+      m_colorImageResources.reserve(numImages);
+      m_depthImageResources.reserve(numImages);
+
+      for (size_t i = 0; i < numImages; ++i)
+      {
+        m_colorImageResources.emplace_back(colorImageResourceConfig);
+        m_depthImageResources.emplace_back(depthImageResourceConfig);
+      }
+    });
   }
 
   void SwapChain::transitionImagePreRender(const std::shared_ptr<CommandBuffer>& commandBuffer,

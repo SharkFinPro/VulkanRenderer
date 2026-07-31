@@ -1,6 +1,7 @@
 #include "RenderTarget.h"
 #include "ImageResource.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../commandBuffer/SingleUseCommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 
@@ -55,8 +56,14 @@ namespace vke {
 
     m_extent = extent;
 
-    createOffscreenImageResources(extent);
-    createMousePickingImageResources(extent);
+    // Every image's initial layout transition goes into one command buffer. Submitting each
+    // separately would drain the graphics queue a dozen times per resize.
+    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
+
+    commandBuffer.record([this, extent, &commandBuffer] {
+      createOffscreenImageResources(extent, &commandBuffer);
+      createMousePickingImageResources(extent, &commandBuffer);
+    });
 
     m_offscreenImageDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
@@ -299,7 +306,8 @@ namespace vke {
     m_offscreenImageDescriptorSet = std::make_unique<DescriptorSet>(m_logicalDevice, m_descriptorPool, layoutBindings);
   }
 
-  void RenderTarget::createOffscreenImageResources(vk::Extent2D extent)
+  void RenderTarget::createOffscreenImageResources(vk::Extent2D extent,
+                                                   const CommandBuffer* batchCommandBuffer)
   {
     ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
@@ -309,7 +317,8 @@ namespace vke {
       .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
       .resolveFormat = vk::Format::eR8G8B8A8Unorm,
       .numSamples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
-      .sampler = m_sampler
+      .sampler = m_sampler,
+      .batchCommandBuffer = batchCommandBuffer
     };
 
     const auto numImages = m_logicalDevice->getMaxFramesInFlight();
@@ -351,7 +360,8 @@ namespace vke {
     }
   }
 
-  void RenderTarget::createMousePickingImageResources(const vk::Extent2D extent)
+  void RenderTarget::createMousePickingImageResources(const vk::Extent2D extent,
+                                                      const CommandBuffer* batchCommandBuffer)
   {
     const ImageResourceConfig imageResourceConfig {
       .logicalDevice = m_logicalDevice,
@@ -359,7 +369,8 @@ namespace vke {
       .commandPool = m_commandPool,
       .colorFormat = vk::Format::eR8G8B8A8Uint,
       .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
-      .numSamples = vk::SampleCountFlagBits::e1
+      .numSamples = vk::SampleCountFlagBits::e1,
+      .batchCommandBuffer = batchCommandBuffer
     };
 
     auto colorImageResourceConfig = imageResourceConfig;

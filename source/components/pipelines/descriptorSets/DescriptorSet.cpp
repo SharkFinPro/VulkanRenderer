@@ -33,6 +33,14 @@ namespace vke {
     }
   }
 
+  void DescriptorSet::updateDescriptorSet(const size_t frame,
+                                          const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet)>& getWriteDescriptorSets) const
+  {
+    std::vector<vk::WriteDescriptorSet> writeDescriptorSets = getWriteDescriptorSets(m_descriptorSets[frame]);
+
+    m_logicalDevice->updateDescriptorSets(writeDescriptorSets);
+  }
+
   vk::DescriptorSetLayout DescriptorSet::getDescriptorSetLayout() const
   {
     return m_descriptorSetLayout;

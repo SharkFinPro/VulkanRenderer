@@ -205,10 +205,15 @@ namespace vke {
     m_menuBarHeight = height;
   }
 
-  void ImGuiInstance::render(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void ImGuiInstance::prepareFrame()
   {
     ImGui::Render();
 
+    uploadPendingTextures();
+  }
+
+  void ImGuiInstance::render(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
     renderPlatformWindows();
 
     renderDrawData(commandBuffer);
@@ -287,6 +292,26 @@ namespace vke {
     }
 
     ImGui::DockSpaceOverViewport(dockSpaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+  }
+
+  void ImGuiInstance::uploadPendingTextures()
+  {
+    // Mirrors the loop at the top of ImGui_ImplVulkan_RenderDrawData. Doing it here leaves that
+    // loop with nothing to do, so its vkQueueWaitIdle no longer fires mid-recording.
+    const ImDrawData* drawData = ImGui::GetDrawData();
+
+    if (drawData == nullptr || drawData->Textures == nullptr)
+    {
+      return;
+    }
+
+    for (ImTextureData* texture : *drawData->Textures)
+    {
+      if (texture->Status != ImTextureStatus_OK)
+      {
+        ImGui_ImplVulkan_UpdateTexture(texture);
+      }
+    }
   }
 
   void ImGuiInstance::renderPlatformWindows()

@@ -78,9 +78,11 @@ namespace vke {
 
     void createOffscreenImageDescriptorSet();
 
-    void createOffscreenImageResources(vk::Extent2D extent);
+    void createOffscreenImageResources(vk::Extent2D extent,
+                                       const CommandBuffer* batchCommandBuffer);
 
-    void createMousePickingImageResources(vk::Extent2D extent);
+    void createMousePickingImageResources(vk::Extent2D extent,
+                                          const CommandBuffer* batchCommandBuffer);
 
     void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                           uint32_t currentFrame) const;

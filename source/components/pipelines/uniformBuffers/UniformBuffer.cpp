@@ -55,9 +55,10 @@ namespace vke {
   }
 
   void UniformBuffer::update(const uint32_t frame,
-                             const void* data) const
+                             const void* data,
+                             const vk::DeviceSize size) const
   {
-    memcpy(m_uniformBuffersMapped[frame], data, m_bufferSize);
+    memcpy(m_uniformBuffersMapped[frame], data, size == 0 ? m_bufferSize : std::min(size, m_bufferSize));
   }
 
 } // namespace vke

@@ -81,6 +81,20 @@ namespace vke {
     return font->second;
   }
 
+  std::shared_ptr<Font> AssetManager::findFont(const std::string& fontName,
+                                               const uint32_t fontSize) const
+  {
+    const auto font = m_fonts.find(FontKey { fontName, fontSize });
+
+    return font == m_fonts.end() ? nullptr : font->second;
+  }
+
+  void AssetManager::preloadFont(const std::string& fontName,
+                                 const uint32_t fontSize)
+  {
+    getFont(fontName, fontSize);
+  }
+
   std::shared_ptr<SmokeSystem> AssetManager::createSmokeSystem(glm::vec3 position,
                                                                uint32_t numParticles)
   {

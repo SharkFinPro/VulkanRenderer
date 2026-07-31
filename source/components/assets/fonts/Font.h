@@ -100,24 +100,32 @@ namespace vke {
                           const std::vector<uint8_t>& fontBuffer,
                           uint32_t fontSize);
 
+    // A glyph rendered once and kept, so that sizing the atlas and then filling it does not
+    // require rasterizing the entire charset twice.
+    struct RasterizedGlyph {
+      FT_ULong charcode = 0;
+      uint32_t width = 0;
+      uint32_t rows = 0;
+      float bearingX = 0.0f;
+      float bearingY = 0.0f;
+      float advance = 0.0f;
+      std::vector<uint8_t> bitmap;
+    };
+
     static std::vector<FT_ULong> getCharset(FT_Face face);
 
-    static std::vector<uint8_t> createAtlasBuffer(FT_Face face,
-                                                  const std::vector<FT_ULong>& charset,
-                                                  uint32_t& maxGlyphWidth,
-                                                  uint32_t& maxGlyphHeight,
-                                                  uint32_t& glyphsPerRow,
-                                                  uint32_t& atlasWidth,
-                                                  uint32_t& atlasHeight);
+    static std::vector<RasterizedGlyph> rasterizeCharset(FT_Face face,
+                                                         const std::vector<FT_ULong>& charset,
+                                                         uint32_t& maxGlyphWidth,
+                                                         uint32_t& maxGlyphHeight);
 
-    void populateAtlasBuffer(FT_Face face,
-                             const std::vector<FT_ULong>& charset,
-                             std::vector<uint8_t>& atlasBuffer,
-                             uint32_t maxGlyphWidth,
-                             uint32_t maxGlyphHeight,
-                             uint32_t glyphsPerRow,
-                             uint32_t atlasWidth,
-                             uint32_t atlasHeight);
+    void buildAtlas(const std::vector<RasterizedGlyph>& glyphs,
+                    std::vector<uint8_t>& atlasBuffer,
+                    uint32_t maxGlyphWidth,
+                    uint32_t maxGlyphHeight,
+                    uint32_t glyphsPerRow,
+                    uint32_t atlasWidth,
+                    uint32_t atlasHeight);
 
     void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              vk::DescriptorPool descriptorPool,

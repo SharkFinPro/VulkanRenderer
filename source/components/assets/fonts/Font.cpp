@@ -84,13 +84,20 @@ namespace vke {
 
     const auto charset = getCharset(face);
 
-    uint32_t maxGlyphWidth, maxGlyphHeight, glyphsPerRow, atlasWidth, atlasHeight;
-    auto atlasBuffer = createAtlasBuffer(face, charset, maxGlyphWidth, maxGlyphHeight,
-                                         glyphsPerRow, atlasWidth, atlasHeight);
+    uint32_t maxGlyphWidth = 0;
+    uint32_t maxGlyphHeight = 0;
+    const auto glyphs = rasterizeCharset(face, charset, maxGlyphWidth, maxGlyphHeight);
 
+    // Sized from the full charset rather than the glyphs that loaded, matching the original
+    // layout: failed glyphs consume a slot in the grid's width calculation but not a cell.
+    const auto glyphsPerRow = static_cast<uint32_t>(std::ceil(std::sqrt(charset.size())));
+    const uint32_t atlasWidth = glyphsPerRow * maxGlyphWidth;
+    const uint32_t atlasHeight = glyphsPerRow * maxGlyphHeight;
 
-    populateAtlasBuffer(face, charset, atlasBuffer, maxGlyphWidth, maxGlyphHeight,
-                        glyphsPerRow, atlasWidth, atlasHeight);
+    std::vector<uint8_t> atlasBuffer(atlasWidth * atlasHeight, 0);
+
+    buildAtlas(glyphs, atlasBuffer, maxGlyphWidth, maxGlyphHeight,
+               glyphsPerRow, atlasWidth, atlasHeight);
 
     m_glyphTexture = std::make_shared<TextureGlyph>(
       logicalDevice,
@@ -121,50 +128,18 @@ namespace vke {
     return charset;
   }
 
-  std::vector<uint8_t> Font::createAtlasBuffer(const FT_Face face,
-                                               const std::vector<FT_ULong>& charset,
-                                               uint32_t& maxGlyphWidth,
-                                               uint32_t& maxGlyphHeight,
-                                               uint32_t& glyphsPerRow,
-                                               uint32_t& atlasWidth,
-                                               uint32_t& atlasHeight)
+  std::vector<Font::RasterizedGlyph> Font::rasterizeCharset(const FT_Face face,
+                                                            const std::vector<FT_ULong>& charset,
+                                                            uint32_t& maxGlyphWidth,
+                                                            uint32_t& maxGlyphHeight)
   {
     maxGlyphWidth = 0;
     maxGlyphHeight = 0;
 
+    std::vector<RasterizedGlyph> glyphs;
+    glyphs.reserve(charset.size());
+
     for (const FT_ULong charcode : charset)
-    {
-      if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
-      {
-        continue;
-      }
-      maxGlyphWidth = std::max(maxGlyphWidth, face->glyph->bitmap.width);
-      maxGlyphHeight = std::max(maxGlyphHeight, face->glyph->bitmap.rows);
-    }
-
-    glyphsPerRow = static_cast<uint32_t>(std::ceil(std::sqrt(charset.size())));
-    atlasWidth = glyphsPerRow * maxGlyphWidth;
-    atlasHeight = glyphsPerRow * maxGlyphHeight;
-
-    std::vector<uint8_t> atlasBuffer(atlasWidth * atlasHeight, 0);
-
-    return atlasBuffer;
-  }
-
-  void Font::populateAtlasBuffer(const FT_Face face,
-                                 const std::vector<FT_ULong>& charset,
-                                 std::vector<uint8_t>& atlasBuffer,
-                                 const uint32_t maxGlyphWidth,
-                                 const uint32_t maxGlyphHeight,
-                                 const uint32_t glyphsPerRow,
-                                 const uint32_t atlasWidth,
-                                 const uint32_t atlasHeight)
-  {
-    uint32_t x = 0;
-    uint32_t y = 0;
-    uint32_t currentGlyph = 0;
-
-    for (FT_ULong charcode : charset)
     {
       if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
       {
@@ -173,27 +148,65 @@ namespace vke {
 
       const FT_Bitmap& bitmap = face->glyph->bitmap;
 
-      for (uint32_t row = 0; row < bitmap.rows; ++row)
-      {
-        const uint32_t atlasOffset = (y + row) * atlasWidth + x;
-        const uint32_t bitmapOffset = row * bitmap.width;
-
-        if (atlasOffset + bitmap.width <= atlasBuffer.size())
-        {
-          std::memcpy(&atlasBuffer[atlasOffset], &bitmap.buffer[bitmapOffset], bitmap.width);
-        }
-      }
-
-      m_glyphMap.emplace(charcode, GlyphInfo {
-        .u0 = static_cast<float>(x) / static_cast<float>(atlasWidth),
-        .v0 = static_cast<float>(y) / static_cast<float>(atlasHeight),
-        .u1 = static_cast<float>(x + bitmap.width) / static_cast<float>(atlasWidth),
-        .v1 = static_cast<float>(y + bitmap.rows) / static_cast<float>(atlasHeight),
-        .width = static_cast<float>(bitmap.width),
-        .height = static_cast<float>(bitmap.rows),
+      RasterizedGlyph glyph {
+        .charcode = charcode,
+        .width = bitmap.width,
+        .rows = bitmap.rows,
         .bearingX = static_cast<float>(face->glyph->bitmap_left),
         .bearingY = static_cast<float>(face->glyph->bitmap_top),
         .advance = static_cast<float>(face->glyph->advance.x >> 6)
+      };
+
+      // Kept because the next FT_Load_Char overwrites the face's glyph slot.
+      if (bitmap.width > 0 && bitmap.rows > 0)
+      {
+        glyph.bitmap.assign(bitmap.buffer, bitmap.buffer + static_cast<size_t>(bitmap.width) * bitmap.rows);
+      }
+
+      maxGlyphWidth = std::max(maxGlyphWidth, bitmap.width);
+      maxGlyphHeight = std::max(maxGlyphHeight, bitmap.rows);
+
+      glyphs.push_back(std::move(glyph));
+    }
+
+    return glyphs;
+  }
+
+  void Font::buildAtlas(const std::vector<RasterizedGlyph>& glyphs,
+                        std::vector<uint8_t>& atlasBuffer,
+                        const uint32_t maxGlyphWidth,
+                        const uint32_t maxGlyphHeight,
+                        const uint32_t glyphsPerRow,
+                        const uint32_t atlasWidth,
+                        const uint32_t atlasHeight)
+  {
+    uint32_t x = 0;
+    uint32_t y = 0;
+    uint32_t currentGlyph = 0;
+
+    for (const auto& glyph : glyphs)
+    {
+      for (uint32_t row = 0; row < glyph.rows; ++row)
+      {
+        const uint32_t atlasOffset = (y + row) * atlasWidth + x;
+        const uint32_t bitmapOffset = row * glyph.width;
+
+        if (atlasOffset + glyph.width <= atlasBuffer.size())
+        {
+          std::memcpy(&atlasBuffer[atlasOffset], &glyph.bitmap[bitmapOffset], glyph.width);
+        }
+      }
+
+      m_glyphMap.emplace(glyph.charcode, GlyphInfo {
+        .u0 = static_cast<float>(x) / static_cast<float>(atlasWidth),
+        .v0 = static_cast<float>(y) / static_cast<float>(atlasHeight),
+        .u1 = static_cast<float>(x + glyph.width) / static_cast<float>(atlasWidth),
+        .v1 = static_cast<float>(y + glyph.rows) / static_cast<float>(atlasHeight),
+        .width = static_cast<float>(glyph.width),
+        .height = static_cast<float>(glyph.rows),
+        .bearingX = glyph.bearingX,
+        .bearingY = glyph.bearingY,
+        .advance = glyph.advance
       });
 
       x += maxGlyphWidth;

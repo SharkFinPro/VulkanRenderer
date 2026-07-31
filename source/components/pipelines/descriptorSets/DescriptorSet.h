@@ -24,6 +24,11 @@ namespace vke {
 
     void updateDescriptorSets(const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const;
 
+    // Writes a single frame's set. Required when the descriptors reference per-frame resources:
+    // rewriting every set would touch descriptors a frame still in flight is using.
+    void updateDescriptorSet(size_t frame,
+                             const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet)>& getWriteDescriptorSets) const;
+
     [[nodiscard]] vk::DescriptorSetLayout getDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSet getDescriptorSet(size_t frame) const;

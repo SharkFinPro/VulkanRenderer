@@ -27,19 +27,9 @@ namespace vke {
                                            vk::raii::Buffer& stagingBuffer,
                                            vk::raii::DeviceMemory& stagingBufferMemory);
 
-    void createAndPrepareImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                               vk::CommandPool commandPool,
-                               uint32_t width,
-                               uint32_t height);
-
-    void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           vk::CommandPool commandPool,
-                           uint32_t width,
-                           uint32_t height,
-                           vk::raii::Buffer& stagingBuffer) const;
-
-    void transitionImageToShaderReadable(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                         vk::CommandPool commandPool) const;
+    void createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                     uint32_t width,
+                     uint32_t height);
 
     void createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice) override;
   };

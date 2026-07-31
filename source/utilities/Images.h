@@ -28,6 +28,23 @@ namespace vke {
     std::pair<vk::raii::Image, vk::raii::DeviceMemory> createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                    const ImageConfig& imageConfig);
 
+    // Recording-only variants: no submit, no wait. Use these to batch several transitions and
+    // copies into one command buffer instead of paying a queue drain for each.
+    void recordImageLayoutTransition(const CommandBuffer& commandBuffer,
+                                     vk::Image image,
+                                     vk::Format format,
+                                     vk::ImageLayout oldLayout,
+                                     vk::ImageLayout newLayout,
+                                     uint32_t mipLevels,
+                                     uint32_t layerCount);
+
+    void recordCopyBufferToImage(const CommandBuffer& commandBuffer,
+                                 vk::Buffer buffer,
+                                 vk::Image image,
+                                 uint32_t width,
+                                 uint32_t height,
+                                 uint32_t depth);
+
     void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                vk::CommandPool commandPool,
                                vk::Image image,

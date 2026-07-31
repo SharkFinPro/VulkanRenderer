@@ -11,6 +11,7 @@ namespace vke {
 
   class AssetManager;
   class Cloud;
+  class CommandBuffer;
   class DescriptorSet;
   class ImageResource;
   class LightingManager;
@@ -49,56 +50,81 @@ namespace vke {
                       const glm::mat4& viewMatrix);
 
   private:
-    // The TLAS and the scene buffers are rebuilt from scratch every frame, but the frames still
-    // in flight hold them in their descriptor sets, so the previous build cannot be freed as soon
-    // as it is replaced. Each frame hands its predecessor's build to its own retire slot; the slot
-    // is only freed when it comes back around maxFramesInFlight frames later, by which point
-    // FrameScheduler::beginFrame() has waited for the frame that referenced it.
-    struct RetiredResources {
+    // Everything rebuilt per frame lives in a per-frame-in-flight slot. FrameScheduler::beginFrame()
+    // has already waited for the frame that last used slot `currentFrame`, so the slot can be
+    // rewritten with no further synchronization and nothing needs deferring.
+    //
+    // Buffers grow to a high-water mark and are then reused, so the steady state allocates
+    // nothing: the TLAS is rebuilt in place into the same acceleration structure object, and the
+    // instance and mesh-info buffers are host-visible and persistently mapped.
+    struct FrameResources {
       vk::raii::AccelerationStructureKHR tlas = nullptr;
+      vk::WriteDescriptorSetAccelerationStructureKHR tlasInfo {};
+
       vk::raii::Buffer tlasBuffer = nullptr;
       vk::raii::DeviceMemory tlasBufferMemory = nullptr;
-      vk::raii::Buffer tlasInstanceBuffer = nullptr;
-      vk::raii::DeviceMemory tlasInstanceBufferMemory = nullptr;
-      vk::raii::Buffer mergedVertexBuffer = nullptr;
-      vk::raii::DeviceMemory mergedVertexBufferMemory = nullptr;
-      vk::raii::Buffer mergedIndexBuffer = nullptr;
-      vk::raii::DeviceMemory mergedIndexBufferMemory = nullptr;
+      vk::DeviceSize tlasBufferSize = 0;
+
+      vk::raii::Buffer scratchBuffer = nullptr;
+      vk::raii::DeviceMemory scratchBufferMemory = nullptr;
+      vk::DeviceSize scratchBufferSize = 0;
+
+      // The instance array is small and fully rewritten every frame, so staging it through a
+      // device-local copy would cost more than letting the build read host-visible memory.
+      vk::raii::Buffer instanceBuffer = nullptr;
+      vk::raii::DeviceMemory instanceBufferMemory = nullptr;
+      void* instanceMapped = nullptr;
+      vk::DeviceSize instanceBufferSize = 0;
+
+      // MeshInfo carries per-frame-mutable material values, unlike the geometry buffers.
       vk::raii::Buffer meshInfoBuffer = nullptr;
       vk::raii::DeviceMemory meshInfoBufferMemory = nullptr;
+      void* meshInfoMapped = nullptr;
+      vk::DeviceSize meshInfoBufferSize = 0;
+      vk::DescriptorBufferInfo meshInfoBufferInfo { nullptr, 0, vk::WholeSize };
+
+      // Descriptors are only rewritten when a bound resource is actually replaced.
+      bool descriptorsDirty = true;
+      vk::Image boundStorageImage = nullptr;
+    };
+
+    // Buffers replaced mid-run (only when the scene's object set changes) cannot be freed
+    // immediately, and staging buffers must outlive the frame's copy. Both are parked here and
+    // released when the slot next comes around.
+    struct RetiredResources {
+      std::vector<vk::raii::Buffer> buffers;
+      std::vector<vk::raii::DeviceMemory> memories;
     };
 
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     vk::CommandPool m_commandPool;
 
-    std::vector<RetiredResources> m_retiredResources;
-
-    vk::raii::Buffer m_tlasInstanceBuffer = nullptr;
-    vk::raii::DeviceMemory m_tlasInstanceBufferMemory = nullptr;
-
-    vk::raii::Buffer m_tlasBuffer = nullptr;
-    vk::raii::DeviceMemory m_tlasBufferMemory = nullptr;
-
-    vk::raii::AccelerationStructureKHR m_tlas = nullptr;
-    vk::WriteDescriptorSetAccelerationStructureKHR m_tlasInfo{};
+    std::vector<FrameResources> m_frames;
+    std::vector<RetiredResources> m_retired;
 
     std::shared_ptr<UniformBuffer> m_cameraUniformRT;
 
     std::shared_ptr<DescriptorSet> m_rayTracingDescriptorSet;
 
+    // Merged geometry is immutable for a given set of models, so it is shared across slots and
+    // only re-uploaded when the scene's signature changes.
     vk::raii::Buffer m_mergedVertexBuffer = nullptr;
     vk::raii::DeviceMemory m_mergedVertexBufferMemory = nullptr;
+    vk::DeviceSize m_mergedVertexBufferSize = 0;
 
     vk::raii::Buffer m_mergedIndexBuffer = nullptr;
     vk::raii::DeviceMemory m_mergedIndexBufferMemory = nullptr;
-
-    vk::raii::Buffer m_meshInfoBuffer = nullptr;
-    vk::raii::DeviceMemory m_meshInfoBufferMemory = nullptr;
+    vk::DeviceSize m_mergedIndexBufferSize = 0;
 
     vk::DescriptorBufferInfo m_vertexBufferInfo = { nullptr, 0, vk::WholeSize };
     vk::DescriptorBufferInfo m_indexBufferInfo = { nullptr, 0, vk::WholeSize };
-    vk::DescriptorBufferInfo m_meshInfoInfo = { nullptr, 0, vk::WholeSize };
+
+    // Identifies the geometry currently uploaded: the ordered model/texture/specular pointers.
+    std::vector<const void*> m_sceneSignature;
+
+    // Mesh-info layout is derived from the scene; only the material values change per frame.
+    std::vector<MeshInfo> m_meshInfos;
 
     std::vector<vk::DescriptorImageInfo> m_textureImageInfos;
 
@@ -106,34 +132,51 @@ namespace vke {
 
     float m_speed = 1.0f;
 
-    void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                    const std::shared_ptr<Cloud>& cloud,
-                    uint32_t currentFrame);
+    void createFrameResources();
 
-    [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                                    const std::shared_ptr<Cloud>& cloud);
+    // Re-uploads merged vertices/indices and rebuilds the mesh-info layout when the object set has
+    // changed, recording its copies into commandBuffer. Returns true if anything was replaced.
+    bool updateSceneGeometry(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                             uint32_t currentFrame,
+                             const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+
+    void refreshMeshInfoMaterials(uint32_t currentFrame,
+                                  FrameResources& frame,
+                                  const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+
+    void buildTLAS(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                   uint32_t currentFrame,
+                   FrameResources& frame,
+                   const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                   const std::shared_ptr<Cloud>& cloud);
 
     void populateInstanceArray(std::vector<vk::AccelerationStructureInstanceKHR>& instances,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                const std::shared_ptr<Cloud>& cloud) const;
 
-    void buildTLAS(vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                   const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
-                   uint32_t primitiveCount);
-
-    void updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
-
-    void uploadRTSceneInfoBuffers(const std::vector<Vertex>& mergedVertices,
-                                  const std::vector<uint32_t>& mergedIndices,
-                                  const std::vector<MeshInfo>& meshInfos);
-
     void updateRTDescriptorSets(const ImageResource& imageResource,
-                                uint32_t currentFrame);
+                                uint32_t currentFrame,
+                                FrameResources& frame);
 
     void updateRTDescriptorSetData(vk::Extent2D extent,
                                    uint32_t currentFrame,
                                    const glm::vec3& viewPosition,
-                                   const glm::mat4& viewMatrix);
+                                   const glm::mat4& viewMatrix) const;
+
+    // Grows buffer/memory to at least size, retiring the previous allocation. Returns true when a
+    // new allocation was made, so anything holding the old handle must be refreshed.
+    bool ensureBuffer(uint32_t currentFrame,
+                      vk::DeviceSize size,
+                      vk::BufferUsageFlags usage,
+                      vk::MemoryPropertyFlags properties,
+                      vk::raii::Buffer& buffer,
+                      vk::raii::DeviceMemory& memory,
+                      vk::DeviceSize& currentSize,
+                      void** mapped = nullptr);
+
+    void retire(uint32_t currentFrame,
+                vk::raii::Buffer&& buffer,
+                vk::raii::DeviceMemory&& memory);
   };
 } // vke
 

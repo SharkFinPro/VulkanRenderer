@@ -181,6 +181,47 @@ namespace vke::Images {
     return transitionInfo;
   }
 
+  void recordImageLayoutTransition(const CommandBuffer& commandBuffer,
+                                   vk::Image image,
+                                   const vk::Format format,
+                                   const vk::ImageLayout oldLayout,
+                                   const vk::ImageLayout newLayout,
+                                   const uint32_t mipLevels,
+                                   const uint32_t layerCount)
+  {
+    const auto [aspectMask,
+                srcAccessMask,
+                dstAccessMask,
+                sourceStage,
+                destinationStage] = getTransitionInfo(oldLayout, newLayout, format);
+
+    const vk::ImageMemoryBarrier2 imageMemoryBarrier {
+      .srcStageMask = sourceStage,
+      .srcAccessMask = srcAccessMask,
+      .dstStageMask = destinationStage,
+      .dstAccessMask = dstAccessMask,
+      .oldLayout = oldLayout,
+      .newLayout = newLayout,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .image = image,
+      .subresourceRange = {
+        .aspectMask = aspectMask,
+        .baseMipLevel = 0,
+        .levelCount = mipLevels,
+        .baseArrayLayer = 0,
+        .layerCount = layerCount
+      }
+    };
+
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = 1,
+      .pImageMemoryBarriers = &imageMemoryBarrier
+    };
+
+    commandBuffer.pipelineBarrier(dependencyInfo);
+  }
+
   void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              const vk::CommandPool commandPool,
                              vk::Image image,
@@ -193,38 +234,37 @@ namespace vke::Images {
     const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([&commandBuffer, image, format, oldLayout, newLayout, mipLevels, layerCount] {
-      const auto [aspectMask,
-                  srcAccessMask,
-                  dstAccessMask,
-                  sourceStage,
-                  destinationStage] = getTransitionInfo(oldLayout, newLayout, format);
-
-      const vk::ImageMemoryBarrier2 imageMemoryBarrier {
-        .srcStageMask = sourceStage,
-        .srcAccessMask = srcAccessMask,
-        .dstStageMask = destinationStage,
-        .dstAccessMask = dstAccessMask,
-        .oldLayout = oldLayout,
-        .newLayout = newLayout,
-        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .image = image,
-        .subresourceRange = {
-          .aspectMask = aspectMask,
-          .baseMipLevel = 0,
-          .levelCount = mipLevels,
-          .baseArrayLayer = 0,
-          .layerCount = layerCount
-        }
-      };
-
-      const vk::DependencyInfo dependencyInfo {
-        .imageMemoryBarrierCount = 1,
-        .pImageMemoryBarriers = &imageMemoryBarrier
-      };
-
-      commandBuffer.pipelineBarrier(dependencyInfo);
+      recordImageLayoutTransition(commandBuffer, image, format, oldLayout, newLayout, mipLevels, layerCount);
     });
+  }
+
+  void recordCopyBufferToImage(const CommandBuffer& commandBuffer,
+                               vk::Buffer buffer,
+                               vk::Image image,
+                               const uint32_t width,
+                               const uint32_t height,
+                               const uint32_t depth)
+  {
+    const vk::BufferImageCopy region {
+      .bufferOffset = 0,
+      .bufferRowLength = 0,
+      .bufferImageHeight = 0,
+      .imageSubresource = {
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      },
+      .imageOffset = { 0, 0, 0 },
+      .imageExtent = { width, height, depth }
+    };
+
+    commandBuffer.copyBufferToImage(
+      buffer,
+      image,
+      vk::ImageLayout::eTransferDstOptimal,
+      { region }
+    );
   }
 
   void copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -238,26 +278,7 @@ namespace vke::Images {
     const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([&commandBuffer, buffer, image, width, height, depth] {
-      const vk::BufferImageCopy region {
-        .bufferOffset = 0,
-        .bufferRowLength = 0,
-        .bufferImageHeight = 0,
-        .imageSubresource = {
-          .aspectMask = vk::ImageAspectFlagBits::eColor,
-          .mipLevel = 0,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-        },
-        .imageOffset = { 0, 0, 0 },
-        .imageExtent = { width, height, depth }
-      };
-
-      commandBuffer.copyBufferToImage(
-        buffer,
-        image,
-        vk::ImageLayout::eTransferDstOptimal,
-        { region }
-      );
+      recordCopyBufferToImage(commandBuffer, buffer, image, width, height, depth);
     });
   }
 

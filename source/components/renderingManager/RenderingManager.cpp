@@ -62,6 +62,19 @@ namespace vke {
                                      const std::shared_ptr<LightingManager>& lightingManager,
                                      const uint32_t currentFrame)
   {
+    m_renderer3D->updateLightingManager(lightingManager, currentFrame);
+
+    renderGuiScene(currentFrame);
+
+    // Closes the ImGui frame and flushes texture uploads before anything is submitted, so the
+    // backend's upload drain cannot end up waiting on this frame's own rendering.
+    ImGuiInstance::prepareFrame();
+
+    recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
+
+    // Acquired only once the image index is actually needed. vkAcquireNextImageKHR blocks when no
+    // swapchain image is free, so acquiring up front would put all of the recording above behind
+    // that wait instead of overlapping it.
     uint32_t imageIndex;
     auto result = m_frameScheduler->acquireNextImage(m_swapChain->getSwapChain(), &imageIndex);
 
@@ -70,8 +83,8 @@ namespace vke {
       m_framebufferResized = false;
       recreateSwapChain();
 
-      // The frame is abandoned with its compute work already submitted; bring the timeline up
-      // to the frame's final value (recreateSwapChain left the device idle).
+      // The frame is abandoned with its compute and offscreen work already submitted; bring the
+      // timeline up to the frame's final value (recreateSwapChain left the device idle).
       m_frameScheduler->completeAbortedFrame();
       return;
     }
@@ -80,12 +93,6 @@ namespace vke {
     {
       throw std::runtime_error("failed to acquire swap chain image!");
     }
-
-    m_renderer3D->updateLightingManager(lightingManager, currentFrame);
-
-    renderGuiScene(currentFrame);
-
-    recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
 
     recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
 
@@ -137,13 +144,9 @@ namespace vke {
 
     m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
 
-    if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
-    {
-      return;
-    }
-
-    m_renderTarget->recreateImageResources(m_offscreenViewportExtent);
-    m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
+    // The offscreen resources are deliberately not recreated here. m_offscreenViewportExtent still
+    // holds the pre-resize value, so this would build them at the wrong size only for
+    // renderGuiScene to notice the change next frame and rebuild them all over again.
   }
 
   void RenderingManager::createNewFrame() const

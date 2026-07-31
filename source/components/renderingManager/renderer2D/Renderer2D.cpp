@@ -43,7 +43,15 @@ namespace vke {
 
     m_ellipsesToRender.clear();
 
-    m_glyphsToRender.clear();
+    // Clearing the inner vectors keeps their capacity, unlike clearing the outer map, which would
+    // destroy every per-font bucket and force them to be reallocated from scratch each frame.
+    for (auto& [fontName, glyphsBySize] : m_glyphsToRender)
+    {
+      for (auto& [fontSize, glyphs] : glyphsBySize)
+      {
+        glyphs.clear();
+      }
+    }
   }
 
   bool Renderer2D::shouldDoDots() const
@@ -188,17 +196,26 @@ namespace vke {
                         const float x,
                         const float y)
   {
+    if (!m_currentFont)
+    {
+      // No font has been selected yet; textFont()/textSize() are what resolve one.
+      return;
+    }
+
     const float maxGlyphHeight = m_currentFont->getMaxGlyphHeight();
 
     float currentX = x;
 
     const auto codepoints = decodeUTF8(text);
 
+    // Resolved once rather than hashing the font name and size for every character.
+    auto& glyphs = m_glyphsToRender[m_currentFontName][m_currentFontSize];
+
     for (const auto& codepoint : codepoints)
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
-        m_glyphsToRender[m_currentFontName][m_currentFontSize].push_back({
+        glyphs.push_back({
           .bounds = glm::vec4(
             currentX + glyphInfo->bearingX,
             y - glyphInfo->bearingY + maxGlyphHeight,
@@ -359,7 +376,21 @@ namespace vke {
     {
       for (const auto& [fontSize, text] : fontSizes)
       {
-        const auto descriptorSet = m_assetManager->getFont(fontName, fontSize)->getDescriptorSet(renderInfo->currentFrame);
+        // Buckets are emptied rather than erased each frame, so most of them have nothing to draw.
+        if (text.empty())
+        {
+          continue;
+        }
+
+        // findFont never loads: a cache miss inside command buffer recording would upload a font
+        // atlas mid-frame. A non-empty bucket means text() already resolved this font.
+        const auto font = m_assetManager->findFont(fontName, fontSize);
+        if (!font)
+        {
+          continue;
+        }
+
+        const auto descriptorSet = font->getDescriptorSet(renderInfo->currentFrame);
 
         pipelineManager->bindGraphicsPipelineDescriptorSet(
           renderInfo->commandBuffer,

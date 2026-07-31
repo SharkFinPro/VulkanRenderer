@@ -6,6 +6,7 @@
 
 namespace vke {
 
+  class CommandBuffer;
   class LogicalDevice;
 
   enum class ImageResourceType {
@@ -28,6 +29,10 @@ namespace vke {
     vk::SampleCountFlagBits numSamples;
     vk::Sampler sampler = nullptr;
     bool isCubeMap = false;
+
+    // When set, the initial layout transition is recorded here instead of being submitted on its
+    // own. Creating a set of resources costs one queue drain in total rather than one each.
+    const CommandBuffer* batchCommandBuffer = nullptr;
   };
 
   class ImageResource final {

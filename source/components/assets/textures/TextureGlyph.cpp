@@ -29,11 +29,35 @@ namespace vke {
 
     createAndFillStagingBuffer(logicalDevice, pixelData, width, height, stagingBuffer, stagingBufferMemory);
 
-    createAndPrepareImage(logicalDevice, commandPool, width, height);
+    createImage(logicalDevice, width, height);
 
-    copyBufferToImage(logicalDevice, commandPool, width, height, stagingBuffer);
+    // Both transitions and the copy go into one command buffer: three separate SingleUseCommandBuffers
+    // would each submit and drain the graphics queue.
+    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
-    transitionImageToShaderReadable(logicalDevice, commandPool);
+    commandBuffer.record([this, &commandBuffer, width, height, &stagingBuffer] {
+      Images::recordImageLayoutTransition(
+        commandBuffer,
+        m_textureImage,
+        vk::Format::eR8Unorm,
+        vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eTransferDstOptimal,
+        m_mipLevels,
+        1
+      );
+
+      Images::recordCopyBufferToImage(commandBuffer, stagingBuffer, m_textureImage, width, height, 1);
+
+      Images::recordImageLayoutTransition(
+        commandBuffer,
+        m_textureImage,
+        vk::Format::eR8Unorm,
+        vk::ImageLayout::eTransferDstOptimal,
+        vk::ImageLayout::eShaderReadOnlyOptimal,
+        m_mipLevels,
+        1
+      );
+    });
   }
 
   void TextureGlyph::createAndFillStagingBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -59,10 +83,9 @@ namespace vke {
     });
   }
 
-  void TextureGlyph::createAndPrepareImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                           const vk::CommandPool commandPool,
-                                           const uint32_t width,
-                                           const uint32_t height)
+  void TextureGlyph::createImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                 const uint32_t width,
+                                 const uint32_t height)
   {
     auto [ image, imageMemory ] = Images::createImage(
       logicalDevice,
@@ -86,64 +109,6 @@ namespace vke {
 
     m_textureImage = std::move(image);
     m_textureImageMemory = std::move(imageMemory);
-
-    Images::transitionImageLayout(
-      logicalDevice,
-      commandPool,
-      m_textureImage,
-      vk::Format::eR8Unorm,
-      vk::ImageLayout::eUndefined,
-      vk::ImageLayout::eTransferDstOptimal,
-      m_mipLevels,
-      1
-    );
-  }
-
-  void TextureGlyph::copyBufferToImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                       const vk::CommandPool commandPool,
-                                       const uint32_t width,
-                                       const uint32_t height,
-                                       vk::raii::Buffer& stagingBuffer) const
-  {
-    const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
-
-    commandBuffer.record([this, &commandBuffer, width, height, &stagingBuffer] {
-      const vk::BufferImageCopy region{
-        0,
-        0,
-        0,
-        vk::ImageSubresourceLayers{
-          vk::ImageAspectFlagBits::eColor,
-          0,
-          0,
-          1,
-        },
-        vk::Offset3D{0, 0, 0},
-        vk::Extent3D{width, height, 1}
-      };
-
-      commandBuffer.copyBufferToImage(
-        stagingBuffer,
-        m_textureImage,
-        vk::ImageLayout::eTransferDstOptimal,
-        { region }
-      );
-    });
-  }
-
-  void TextureGlyph::transitionImageToShaderReadable(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                     const vk::CommandPool commandPool) const
-  {
-    Images::transitionImageLayout(
-      logicalDevice,
-      commandPool,
-      m_textureImage,
-      vk::Format::eR8Unorm,
-      vk::ImageLayout::eTransferDstOptimal,
-      vk::ImageLayout::eShaderReadOnlyOptimal,
-      m_mipLevels,
-      1
-    );
   }
 
   void TextureGlyph::createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice)

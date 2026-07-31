@@ -1,6 +1,7 @@
 #ifndef VKE_LIGHTINGMANAGER_H
 #define VKE_LIGHTINGMANAGER_H
 
+#include "lights/Light.h"
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
@@ -63,6 +64,15 @@ namespace vke {
     std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
     std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
 
+    // Reused across frames so packing the light uniforms costs no allocation.
+    std::vector<PointLightUniform> m_pointLightUniformScratch;
+    std::vector<SpotLightUniform> m_spotLightUniformScratch;
+
+    // Last shadow-map image views written to each frame's descriptor set, so an unchanged set of
+    // shadow maps does not re-issue the write every frame.
+    std::vector<std::vector<vk::ImageView>> m_pointShadowMapViews;
+    std::vector<std::vector<vk::ImageView>> m_spotShadowMapViews;
+
     vk::raii::CommandPool m_commandPool = nullptr;
 
     std::vector<vk::raii::DescriptorPool> m_descriptorPools;
@@ -82,11 +92,16 @@ namespace vke {
 
     void updatePointLightUniforms(uint32_t currentFrame);
 
-    void updatePointLightShadowMaps(uint32_t currentFrame) const;
+    void updatePointLightShadowMaps(uint32_t currentFrame);
 
     void updateSpotLightUniforms(uint32_t currentFrame);
 
-    void updateSpotLightShadowMaps(uint32_t currentFrame) const;
+    void updateSpotLightShadowMaps(uint32_t currentFrame);
+
+    void updateShadowMapDescriptors(uint32_t currentFrame,
+                                    uint32_t binding,
+                                    const std::vector<std::shared_ptr<Light>>& lights,
+                                    std::vector<std::vector<vk::ImageView>>& cachedViews);
 
     void createShadowMapSampler();
 

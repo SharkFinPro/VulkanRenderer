@@ -260,35 +260,53 @@ namespace vke {
 
     const size_t count = std::min<size_t>(m_pointLightsToRender.size(), MAX_POINT_LIGHTS);
 
-    // Sized to the buffer's fixed capacity: UniformBuffer::update() copies the whole buffer, so
-    // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
-    std::vector<PointLightUniform> lightUniforms(MAX_POINT_LIGHTS);
+    // Only the populated prefix is copied, and the scratch vector is a member so the per-frame
+    // allocation and zero-fill of the buffer's full capacity disappear. Entries past the count are
+    // never read: the shaders bound their loops by the count in LightMetadataUniform.
+    m_pointLightUniformScratch.resize(MAX_POINT_LIGHTS);
+
     for (size_t i = 0; i < count; i++)
     {
-      lightUniforms[i] = std::get<PointLightUniform>(m_pointLightsToRender[i]->getUniform());
+      m_pointLightUniformScratch[i] = std::get<PointLightUniform>(m_pointLightsToRender[i]->getUniform());
     }
 
-    m_pointLightsUniform->update(currentFrame, lightUniforms.data());
+    m_pointLightsUniform->update(currentFrame, m_pointLightUniformScratch.data(), count * sizeof(PointLightUniform));
 
     updatePointLightShadowMaps(currentFrame);
   }
 
-  void LightingManager::updatePointLightShadowMaps(const uint32_t currentFrame) const
+  void LightingManager::updatePointLightShadowMaps(const uint32_t currentFrame)
+  {
+    updateShadowMapDescriptors(currentFrame, 5, m_pointLightsToRender, m_pointShadowMapViews);
+  }
+
+  // The bound image views only change when a light is added or removed, or a shadow map is
+  // recreated. Rewriting identical descriptors every frame is pure driver-side work, so the last
+  // write is cached per frame in flight and an unchanged list is skipped.
+  void LightingManager::updateShadowMapDescriptors(const uint32_t currentFrame,
+                                                   const uint32_t binding,
+                                                   const std::vector<std::shared_ptr<Light>>& lights,
+                                                   std::vector<std::vector<vk::ImageView>>& cachedViews)
   {
     std::vector<vk::DescriptorImageInfo> imageInfos;
+    std::vector<vk::ImageView> views;
 
-    for (auto& light : m_pointLightsToRender)
+    for (auto& light : lights)
     {
       if (!light->castsShadows())
       {
         continue;
       }
 
+      const auto imageView = light->getShadowMapDepthImageResource()->getImageView();
+
       imageInfos.push_back({
         m_shadowMapSampler,
-        light->getShadowMapDepthImageResource()->getImageView(),
+        imageView,
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
       });
+
+      views.push_back(imageView);
 
       if (imageInfos.size() >= MAX_SHADOW_MAPS)
       {
@@ -301,9 +319,21 @@ namespace vke {
       return;
     }
 
+    if (cachedViews.size() <= currentFrame)
+    {
+      cachedViews.resize(currentFrame + 1);
+    }
+
+    if (cachedViews[currentFrame] == views)
+    {
+      return;
+    }
+
+    cachedViews[currentFrame] = views;
+
     const vk::WriteDescriptorSet samplerWrite {
       .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
-      .dstBinding = 5,
+      .dstBinding = binding,
       .dstArrayElement = 0,
       .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
       .descriptorType = vk::DescriptorType::eCombinedImageSampler,
@@ -322,57 +352,22 @@ namespace vke {
 
     const size_t count = std::min<size_t>(m_spotLightsToRender.size(), MAX_SPOT_LIGHTS);
 
-    // Sized to the buffer's fixed capacity: UniformBuffer::update() copies the whole buffer, so
-    // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
-    std::vector<SpotLightUniform> lightUniforms(MAX_SPOT_LIGHTS);
+    // See updatePointLightUniforms: member scratch, and only the populated prefix is copied.
+    m_spotLightUniformScratch.resize(MAX_SPOT_LIGHTS);
+
     for (size_t i = 0; i < count; i++)
     {
-      lightUniforms[i] = std::get<SpotLightUniform>(m_spotLightsToRender[i]->getUniform());
+      m_spotLightUniformScratch[i] = std::get<SpotLightUniform>(m_spotLightsToRender[i]->getUniform());
     }
 
-    m_spotLightsUniform->update(currentFrame, lightUniforms.data());
+    m_spotLightsUniform->update(currentFrame, m_spotLightUniformScratch.data(), count * sizeof(SpotLightUniform));
 
     updateSpotLightShadowMaps(currentFrame);
   }
 
-  void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) const
+  void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame)
   {
-    std::vector<vk::DescriptorImageInfo> imageInfos;
-
-    for (auto& light : m_spotLightsToRender)
-    {
-      if (!light->castsShadows())
-      {
-        continue;
-      }
-
-      imageInfos.push_back({
-        m_shadowMapSampler,
-        light->getShadowMapDepthImageResource()->getImageView(),
-        vk::ImageLayout::eDepthStencilReadOnlyOptimal
-      });
-
-      if (imageInfos.size() >= MAX_SHADOW_MAPS)
-      {
-        break;
-      }
-    }
-
-    if (imageInfos.empty())
-    {
-      return;
-    }
-
-    const vk::WriteDescriptorSet samplerWrite {
-      .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
-      .dstBinding = 4,
-      .dstArrayElement = 0,
-      .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
-      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
-      .pImageInfo = imageInfos.data(),
-    };
-
-    m_logicalDevice->updateDescriptorSets({ samplerWrite });
+    updateShadowMapDescriptors(currentFrame, 4, m_spotLightsToRender, m_spotShadowMapViews);
   }
 
   void LightingManager::createShadowMapSampler()
