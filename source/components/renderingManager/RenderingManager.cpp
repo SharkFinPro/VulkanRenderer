@@ -258,6 +258,11 @@ namespace vke {
                                                       const std::shared_ptr<LightingManager>& lightingManager,
                                                       const uint32_t currentFrame) const
   {
+    // Apply the picking readback this slot recorded maxFramesInFlight frames ago. beginFrame()
+    // has already waited for that frame, so this costs nothing, but it has to happen before the
+    // slot's staging buffer is written again below.
+    m_renderer3D->resolveMousePickingReadback(currentFrame);
+
     auto renderShadowMaps = [this, currentFrame, lightingManager, pipelineManager] {
       if (m_rayTracingEnabled)
       {
@@ -273,6 +278,12 @@ namespace vke {
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
       renderInfo.commandBuffer->endRendering();
+
+      m_renderer3D->recordMousePickingReadback(
+        renderInfo.commandBuffer,
+        currentFrame,
+        m_renderTarget->getMousePickingColorImageResource(currentFrame).getImage()
+      );
     };
 
     auto recordOffscreenRendering = [this, currentFrame, lightingManager, pipelineManager](const RenderInfo& renderInfo) {
@@ -360,13 +371,6 @@ namespace vke {
     });
 
     m_frameScheduler->submitOffscreenCommandBuffer(m_offscreenCommandBuffer->getCommandBuffer());
-
-    if (m_offscreenViewportExtent.width != 0 &&
-        m_offscreenViewportExtent.height != 0)
-    {
-      m_frameScheduler->waitForOffscreenWork();
-      m_renderer3D->handleRenderedMousePickingImage(m_renderTarget->getMousePickingColorImageResource(currentFrame).getImage());
-    }
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,

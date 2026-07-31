@@ -32,6 +32,8 @@ namespace vke {
                        const vk::DescriptorPool descriptorPool)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
+    m_retiredResources.resize(m_logicalDevice->getMaxFramesInFlight());
+
     std::vector<uint32_t> maxTextures;
     for (uint32_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
     {
@@ -65,7 +67,7 @@ namespace vke {
       return;
     }
 
-    createTLAS(renderObjects, cloud);
+    createTLAS(renderObjects, cloud, renderInfo->currentFrame);
 
     updateRTSceneInfo(renderObjects);
 
@@ -95,24 +97,30 @@ namespace vke {
   }
 
   void RayTracer::createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                             const std::shared_ptr<Cloud>& cloud)
+                             const std::shared_ptr<Cloud>& cloud,
+                             const uint32_t currentFrame)
   {
     if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
       return;
     }
 
-    m_tlas = nullptr;
-    m_tlasBuffer = nullptr;
-    m_tlasBufferMemory = nullptr;
-    m_tlasInstanceBuffer = nullptr;
-    m_tlasInstanceBufferMemory = nullptr;
-    m_mergedVertexBuffer = nullptr;
-    m_mergedVertexBufferMemory = nullptr;
-    m_mergedIndexBuffer = nullptr;
-    m_mergedIndexBufferMemory = nullptr;
-    m_meshInfoBuffer = nullptr;
-    m_meshInfoBufferMemory = nullptr;
+    // Retire the previous build rather than freeing it here: frames still in flight reference it.
+    // Each assignment drops what this slot held from maxFramesInFlight frames ago, which is dead
+    // by now, and leaves the member null for the rebuild below.
+    auto& retired = m_retiredResources.at(currentFrame);
+
+    retired.tlas = std::move(m_tlas);
+    retired.tlasBuffer = std::move(m_tlasBuffer);
+    retired.tlasBufferMemory = std::move(m_tlasBufferMemory);
+    retired.tlasInstanceBuffer = std::move(m_tlasInstanceBuffer);
+    retired.tlasInstanceBufferMemory = std::move(m_tlasInstanceBufferMemory);
+    retired.mergedVertexBuffer = std::move(m_mergedVertexBuffer);
+    retired.mergedVertexBufferMemory = std::move(m_mergedVertexBufferMemory);
+    retired.mergedIndexBuffer = std::move(m_mergedIndexBuffer);
+    retired.mergedIndexBufferMemory = std::move(m_mergedIndexBufferMemory);
+    retired.meshInfoBuffer = std::move(m_meshInfoBuffer);
+    retired.meshInfoBufferMemory = std::move(m_meshInfoBufferMemory);
 
     const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud);
 

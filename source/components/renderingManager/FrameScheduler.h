@@ -34,10 +34,6 @@ namespace vke {
     void submitSwapchainCommandBuffer(uint32_t imageIndex,
                                       vk::CommandBuffer commandBuffer) const;
 
-    // Blocks until this frame's offscreen submission has finished executing
-    // (used for the mouse picking readback).
-    void waitForOffscreenWork() const;
-
     vk::Result acquireNextImage(vk::SwapchainKHR swapchain,
                                 uint32_t* imageIndex) const;
 

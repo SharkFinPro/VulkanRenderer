@@ -1,6 +1,6 @@
 #include "MousePicker.h"
 #include "../../assets/objects/RenderObject.h"
-#include "../../commandBuffer/SingleUseCommandBuffer.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../window/Window.h"
@@ -10,20 +10,10 @@
 namespace vke {
 
   MousePicker::MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
-                           std::shared_ptr<Window> window,
-                           const vk::CommandPool commandPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window)), m_commandPool(commandPool)
+                           std::shared_ptr<Window> window)
+    : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window))
   {
-    constexpr vk::DeviceSize bufferSize = 4;
-
-    Buffers::createBuffer(
-      m_logicalDevice,
-      bufferSize,
-      vk::BufferUsageFlagBits::eTransferDst,
-      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-      m_stagingBuffer,
-      m_stagingBufferMemory
-    );
+    createReadbackSlots();
   }
 
   bool MousePicker::canMousePick() const
@@ -34,6 +24,10 @@ namespace vke {
   void MousePicker::clearObjectsToMousePick()
   {
     m_renderObjectsToMousePick.clear();
+
+    // The registered bools belong to the caller and only stay valid for the frame that
+    // registered them, so the mapping cannot outlive the frame either.
+    m_mousePickingItems.clear();
   }
 
   void MousePicker::setViewportExtent(const vk::Extent2D viewportExtent)
@@ -83,26 +77,92 @@ namespace vke {
     }
   }
 
-  void MousePicker::handleRenderedMousePickingImage(const vk::Image image)
+  void MousePicker::resolveReadback(const uint32_t currentFrame)
   {
-	  if (m_mousePickingItems.empty())
-	  {
-	    return;
-	  }
+    auto& slot = m_readbackSlots.at(currentFrame);
+
+    const bool hasResult = slot.pending;
+    slot.pending = false;
+
+    // Refreshes m_canMousePick for this frame; a cursor that has left the viewport drops the
+    // stale result rather than letting it linger for another maxFramesInFlight frames.
     int32_t mouseX, mouseY;
-    if (!validateMousePickingMousePosition(mouseX, mouseY))
+    if (!validateMousePickingMousePosition(mouseX, mouseY) || !hasResult)
     {
       return;
     }
 
-    const auto objectID = getIDFromMousePickingImage(image, mouseX, mouseY);
+    const auto objectID = getObjectIDFromBuffer(slot.mapped);
 
     if (objectID == 0)
     {
       return;
     }
 
-    *m_mousePickingItems.at(objectID) = true;
+    // The ID was assigned maxFramesInFlight frames ago, so it may not correspond to anything
+    // registered this frame.
+    if (const auto it = m_mousePickingItems.find(objectID); it != m_mousePickingItems.end())
+    {
+      *it->second = true;
+    }
+  }
+
+  void MousePicker::recordReadback(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   const uint32_t currentFrame,
+                                   const vk::Image image)
+  {
+    auto& slot = m_readbackSlots.at(currentFrame);
+    slot.pending = false;
+
+    int32_t mouseX, mouseY;
+    if (!validateMousePickingMousePosition(mouseX, mouseY))
+    {
+      // No copy recorded, so the image stays in the layout the next picking pass expects.
+      return;
+    }
+
+    transitionImageForReading(commandBuffer, image);
+
+    Images::copyImageToBuffer(
+      image,
+      { mouseX, mouseY, 0 },
+      { 1, 1, 1 },
+      *commandBuffer,
+      slot.buffer
+    );
+
+    transitionImageForWriting(commandBuffer, image);
+
+    barrierForHostRead(commandBuffer, slot.buffer);
+
+    slot.pending = true;
+  }
+
+  void MousePicker::createReadbackSlots()
+  {
+    constexpr vk::DeviceSize bufferSize = 4;
+
+    const auto maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
+
+    m_readbackSlots.reserve(maxFramesInFlight);
+
+    for (uint32_t i = 0; i < maxFramesInFlight; ++i)
+    {
+      auto& slot = m_readbackSlots.emplace_back();
+
+      Buffers::createBuffer(
+        m_logicalDevice,
+        bufferSize,
+        vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        slot.buffer,
+        slot.memory
+      );
+
+      // Mapped for the lifetime of the picker: a slot is only read after its frame's timeline
+      // wait, so there is nothing for a per-frame map/unmap to guard against.
+      slot.mapped = slot.memory.mapMemory(0, vk::WholeSize);
+    }
   }
 
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,
@@ -129,45 +189,16 @@ namespace vke {
     return m_canMousePick;
   }
 
-  uint32_t MousePicker::getIDFromMousePickingImage(vk::Image image,
-                                                   const int32_t mouseX,
-                                                   const int32_t mouseY) const
+  uint32_t MousePicker::getObjectIDFromBuffer(const void* mappedMemory)
   {
-    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
+    const auto* pixel = static_cast<const uint8_t*>(mappedMemory);
 
-    commandBuffer.record([this, &commandBuffer, image, mouseX, mouseY] {
-      transitionImageForReading(commandBuffer, image);
-
-      Images::copyImageToBuffer(
-        image,
-        { mouseX, mouseY, 0 },
-        { 1, 1, 1 },
-        commandBuffer,
-        m_stagingBuffer
-      );
-
-      transitionImageForWriting(commandBuffer, image);
-    });
-
-    return getObjectIDFromBuffer(m_stagingBufferMemory);
+    return static_cast<uint32_t>(pixel[0]) << 16 |
+           static_cast<uint32_t>(pixel[1]) << 8 |
+           static_cast<uint32_t>(pixel[2]);
   }
 
-  uint32_t MousePicker::getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory)
-  {
-    uint32_t objectID = 0;
-
-    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
-      const uint8_t* pixel = static_cast<uint8_t*>(data);
-
-      objectID = static_cast<uint32_t>(pixel[0]) << 16 |
-                 static_cast<uint32_t>(pixel[1]) << 8 |
-                 static_cast<uint32_t>(pixel[2]);
-    });
-
-    return objectID;
-  }
-
-  void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
+  void MousePicker::transitionImageForReading(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                               const vk::Image image)
   {
     const vk::ImageMemoryBarrier2 imageMemoryBarrier {
@@ -194,10 +225,10 @@ namespace vke {
       .pImageMemoryBarriers = &imageMemoryBarrier
     };
 
-    commandBuffer.pipelineBarrier(dependencyInfo);
+    commandBuffer->pipelineBarrier(dependencyInfo);
   }
 
-  void MousePicker::transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
+  void MousePicker::transitionImageForWriting(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                               const vk::Image image)
   {
     const vk::ImageMemoryBarrier2 imageMemoryBarrier {
@@ -224,6 +255,31 @@ namespace vke {
       .pImageMemoryBarriers = &imageMemoryBarrier
     };
 
-    commandBuffer.pipelineBarrier(dependencyInfo);
+    commandBuffer->pipelineBarrier(dependencyInfo);
+  }
+
+  void MousePicker::barrierForHostRead(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                       const vk::Buffer buffer)
+  {
+    // Makes the copy visible to the host read that resolveReadback() performs once this frame's
+    // timeline value has been reached.
+    const vk::BufferMemoryBarrier2 bufferMemoryBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eTransfer,
+      .srcAccessMask = vk::AccessFlagBits2::eTransferWrite,
+      .dstStageMask = vk::PipelineStageFlagBits2::eHost,
+      .dstAccessMask = vk::AccessFlagBits2::eHostRead,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .buffer = buffer,
+      .offset = 0,
+      .size = vk::WholeSize
+    };
+
+    const vk::DependencyInfo dependencyInfo {
+      .bufferMemoryBarrierCount = 1,
+      .pBufferMemoryBarriers = &bufferMemoryBarrier
+    };
+
+    commandBuffer->pipelineBarrier(dependencyInfo);
   }
 } // namespace vke

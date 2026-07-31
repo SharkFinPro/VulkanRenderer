@@ -129,11 +129,6 @@ namespace vke {
     m_logicalDevice->submitToGraphicsQueue(submitInfo);
   }
 
-  void FrameScheduler::waitForOffscreenWork() const
-  {
-    waitForTimelineValue(frameBaseValue() + s_offscreenFinished);
-  }
-
   vk::Result FrameScheduler::acquireNextImage(const vk::SwapchainKHR swapchain,
                                               uint32_t* imageIndex) const
   {

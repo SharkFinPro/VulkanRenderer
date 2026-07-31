@@ -264,7 +264,7 @@ namespace vke::Images {
   void copyImageToBuffer(const vk::Image image,
                          const vk::Offset3D offset,
                          const vk::Extent3D extent,
-                         const SingleUseCommandBuffer& commandBuffer,
+                         const CommandBuffer& commandBuffer,
                          const vk::Buffer stagingBuffer)
   {
     const vk::BufferImageCopy region {

@@ -49,9 +49,30 @@ namespace vke {
                       const glm::mat4& viewMatrix);
 
   private:
+    // The TLAS and the scene buffers are rebuilt from scratch every frame, but the frames still
+    // in flight hold them in their descriptor sets, so the previous build cannot be freed as soon
+    // as it is replaced. Each frame hands its predecessor's build to its own retire slot; the slot
+    // is only freed when it comes back around maxFramesInFlight frames later, by which point
+    // FrameScheduler::beginFrame() has waited for the frame that referenced it.
+    struct RetiredResources {
+      vk::raii::AccelerationStructureKHR tlas = nullptr;
+      vk::raii::Buffer tlasBuffer = nullptr;
+      vk::raii::DeviceMemory tlasBufferMemory = nullptr;
+      vk::raii::Buffer tlasInstanceBuffer = nullptr;
+      vk::raii::DeviceMemory tlasInstanceBufferMemory = nullptr;
+      vk::raii::Buffer mergedVertexBuffer = nullptr;
+      vk::raii::DeviceMemory mergedVertexBufferMemory = nullptr;
+      vk::raii::Buffer mergedIndexBuffer = nullptr;
+      vk::raii::DeviceMemory mergedIndexBufferMemory = nullptr;
+      vk::raii::Buffer meshInfoBuffer = nullptr;
+      vk::raii::DeviceMemory meshInfoBufferMemory = nullptr;
+    };
+
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     vk::CommandPool m_commandPool;
+
+    std::vector<RetiredResources> m_retiredResources;
 
     vk::raii::Buffer m_tlasInstanceBuffer = nullptr;
     vk::raii::DeviceMemory m_tlasInstanceBufferMemory = nullptr;
@@ -86,7 +107,8 @@ namespace vke {
     float m_speed = 1.0f;
 
     void createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                    const std::shared_ptr<Cloud>& cloud);
+                    const std::shared_ptr<Cloud>& cloud,
+                    uint32_t currentFrame);
 
     [[nodiscard]] uint32_t createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                                                     const std::shared_ptr<Cloud>& cloud);

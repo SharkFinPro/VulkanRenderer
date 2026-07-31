@@ -24,7 +24,7 @@ namespace vke {
 
     createDescriptorPool();
 
-    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, std::move(window), m_commandPool);
+    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, std::move(window));
 
     createDescriptorSets();
 
@@ -62,9 +62,16 @@ namespace vke {
     m_mousePicker->render(&renderInfoMousePicking, pipelineManager);
   }
 
-  void Renderer3D::handleRenderedMousePickingImage(const vk::Image image) const
+  void Renderer3D::resolveMousePickingReadback(const uint32_t currentFrame) const
   {
-    m_mousePicker->handleRenderedMousePickingImage(image);
+    m_mousePicker->resolveReadback(currentFrame);
+  }
+
+  void Renderer3D::recordMousePickingReadback(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                              const uint32_t currentFrame,
+                                              const vk::Image image) const
+  {
+    m_mousePicker->recordReadback(commandBuffer, currentFrame, image);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,
