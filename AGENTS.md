@@ -61,7 +61,7 @@
 
 **UI** — `ImGuiInstance` integrates Dear ImGui (docking) with a configurable dockspace and scene-view window.
 
-**Utilities** — header-only templated `EventSystem` (typed listener tuples; e.g. `FramebufferResizeEvent`); `Buffers`, `Images`.
+**Utilities** — header-only templated `EventSystem` (typed listener tuples; e.g. `FramebufferResizeEvent`; a listener may add or remove listeners, itself included, during emission - removed ones are skipped, added ones start with the next emission); `Buffers`, `Images`.
 
 ## Development Principles
 

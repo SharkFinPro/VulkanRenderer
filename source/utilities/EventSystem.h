@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_EVENTSYSTEM_H
 #define VULKANPROJECT_EVENTSYSTEM_H
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <tuple>
@@ -32,9 +33,14 @@ namespace vke {
     template<typename EventType>
     void emit(const EventType& event) const
     {
-      for (const auto& pCallback : getListeners<EventType>())
+      // Listeners may add or remove listeners, including themselves, while being called. Iterating a snapshot keeps
+      // a running callback alive; the membership check skips one removed earlier in this emission.
+      const auto& listeners = getListeners<EventType>();
+      const auto snapshot = listeners;
+
+      for (const auto& pCallback : snapshot)
       {
-        if (pCallback)
+        if (pCallback && std::ranges::find(listeners, pCallback) != listeners.end())
         {
           (*pCallback)(event);
         }
