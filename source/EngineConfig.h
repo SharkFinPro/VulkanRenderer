@@ -15,7 +15,8 @@ namespace vke {
       std::string title = "Vulkan Engine";
       bool fullscreen = false;
       bool resizable = true;
-      // Escape raises a close request like the window system's close button, which listeners can veto.
+      // Escape raises a close request like the window system's close button, which listeners can veto. ImGui also
+      // uses Escape to cancel text edits and popups, so applications with text input usually leave this off.
       bool closeOnEscape = false;
     } window;
 

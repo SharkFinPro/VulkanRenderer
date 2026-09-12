@@ -49,10 +49,14 @@ namespace vke {
 
     [[nodiscard]] bool isOpen() const;
 
-    // Marks the window to close and emits CloseRequestEvent. A listener may call cancelClose() to veto.
+    // Marks the window to close and emits CloseRequestEvent. A listener may call cancelClose() to veto; the decision
+    // must be made inside the listener, because the frame loop checks isOpen() before any GUI code runs again.
     void requestClose();
 
     void cancelClose();
+
+    // Closes without emitting CloseRequestEvent, for when the application has already confirmed.
+    void close();
 
     void update();
 
@@ -101,7 +105,11 @@ namespace vke {
 
     float m_contentScale = 1.0f;
 
-    bool m_closeOnEscape;
+    const bool m_closeOnEscape;
+
+    bool m_emittingCloseRequest = false;
+
+    void emitCloseRequest();
 
     static void keyCallback(GLFWwindow* window,
                             int key,

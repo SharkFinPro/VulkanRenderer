@@ -75,12 +75,30 @@ namespace vke {
   {
     glfwSetWindowShouldClose(m_window, GLFW_TRUE);
 
-    emit(CloseRequestEvent{});
+    emitCloseRequest();
   }
 
   void Window::cancelClose()
   {
     glfwSetWindowShouldClose(m_window, GLFW_FALSE);
+  }
+
+  void Window::close()
+  {
+    glfwSetWindowShouldClose(m_window, GLFW_TRUE);
+  }
+
+  void Window::emitCloseRequest()
+  {
+    // A listener that routes its own closes through requestClose() would otherwise recurse without end.
+    if (m_emittingCloseRequest)
+    {
+      return;
+    }
+
+    m_emittingCloseRequest = true;
+    emit(CloseRequestEvent{});
+    m_emittingCloseRequest = false;
   }
 
   void Window::update()
@@ -211,6 +229,6 @@ namespace vke {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
     // GLFW has already set the close flag, so listeners see the same state as requestClose().
-    app->emit(CloseRequestEvent{});
+    app->emitCloseRequest();
   }
 } // namespace vke
