@@ -24,6 +24,11 @@ namespace vke {
     glm::mat4 viewMatrix;
     vk::Extent2D extent;
 
+    float fieldOfView = 45.0f;
+    float nearPlane = 0.1f;
+    float farPlane = 1000.0f;
+
+    // Read through getProjectionMatrix(); the field is only filled on first use.
     mutable glm::mat4 projectionMatrix;
     mutable bool shouldCreateProjectionMatrix = true;
 
@@ -32,10 +37,10 @@ namespace vke {
       if (shouldCreateProjectionMatrix)
       {
         projectionMatrix = glm::perspective(
-          glm::radians(45.0f),
+          glm::radians(fieldOfView),
           static_cast<float>(extent.width) / static_cast<float>(extent.height),
-          0.1f,
-          1000.0f
+          nearPlane,
+          farPlane
         );
 
         projectionMatrix[1][1] *= -1;

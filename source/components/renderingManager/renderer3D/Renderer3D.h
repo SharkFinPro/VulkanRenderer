@@ -94,6 +94,11 @@ namespace vke {
     void setCameraParameters(glm::vec3 position,
                              const glm::mat4& viewMatrix);
 
+    // Vertical field of view in degrees. Throws std::invalid_argument unless 0 < fov < 180 and 0 < near < far.
+    void setProjectionParameters(float fieldOfViewDegrees,
+                                 float nearPlane,
+                                 float farPlane);
+
     [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
 
     [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
@@ -131,6 +136,10 @@ namespace vke {
 
     glm::vec3 m_viewPosition{};
     glm::mat4 m_viewMatrix{};
+
+    float m_fieldOfView = 45.0f;
+    float m_nearPlane = 0.1f;
+    float m_farPlane = 1000.0f;
 
     std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;

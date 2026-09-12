@@ -155,7 +155,7 @@ namespace vke {
 
   void BendyPipeline::updateUniformVariables(const RenderInfo* renderInfo)
   {
-    const VPTransformUniform transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
+    const VPTransformUniform transformUBO = renderInfo->getProjectionMatrix() * renderInfo->viewMatrix;
 
     m_transformUniform->update(renderInfo->currentFrame, &transformUBO);
 
