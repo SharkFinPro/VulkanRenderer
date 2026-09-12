@@ -39,12 +39,20 @@ namespace vke {
     std::vector<std::string> paths;
   };
 
-  class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent, DropEvent> {
+  struct CloseRequestEvent {};
+
+  class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent, DropEvent,
+                                    CloseRequestEvent> {
   public:
     explicit Window(const EngineConfig::Window& config);
     ~Window();
 
     [[nodiscard]] bool isOpen() const;
+
+    // Marks the window to close and emits CloseRequestEvent. A listener may call cancelClose() to veto.
+    void requestClose();
+
+    void cancelClose();
 
     void update();
 
@@ -93,6 +101,8 @@ namespace vke {
 
     float m_contentScale = 1.0f;
 
+    bool m_closeOnEscape;
+
     static void keyCallback(GLFWwindow* window,
                             int key,
                             int scancode,
@@ -102,6 +112,8 @@ namespace vke {
     static void dropCallback(GLFWwindow* window,
                              int pathCount,
                              const char* paths[]);
+
+    static void closeCallback(GLFWwindow* window);
   };
 
 } // namespace vke

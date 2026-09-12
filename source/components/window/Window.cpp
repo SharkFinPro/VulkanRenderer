@@ -4,6 +4,7 @@
 namespace vke {
 
   Window::Window(const EngineConfig::Window& config)
+    : m_closeOnEscape(config.closeOnEscape)
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -56,6 +57,8 @@ namespace vke {
     glfwSetWindowContentScaleCallback(m_window, contentScaleCallback);
 
     glfwSetDropCallback(m_window, dropCallback);
+
+    glfwSetWindowCloseCallback(m_window, closeCallback);
   }
 
   Window::~Window()
@@ -68,16 +71,23 @@ namespace vke {
     return !glfwWindowShouldClose(m_window);
   }
 
+  void Window::requestClose()
+  {
+    glfwSetWindowShouldClose(m_window, GLFW_TRUE);
+
+    emit(CloseRequestEvent{});
+  }
+
+  void Window::cancelClose()
+  {
+    glfwSetWindowShouldClose(m_window, GLFW_FALSE);
+  }
+
   void Window::update()
   {
     m_scroll = 0;
 
     glfwPollEvents();
-
-    if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-      glfwSetWindowShouldClose(m_window, true);
-    }
 
     m_previousMouseX = m_mouseX;
     m_previousMouseY = m_mouseY;
@@ -174,6 +184,11 @@ namespace vke {
     app->m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
 
     app->emit(KeyCallbackEvent{key, scancode, action, mods});
+
+    if (app->m_closeOnEscape && key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+      app->requestClose();
+    }
   }
 
   void Window::dropCallback(GLFWwindow* window,
@@ -189,5 +204,13 @@ namespace vke {
     }
 
     app->emit(DropEvent{ pathsVec });
+  }
+
+  void Window::closeCallback(GLFWwindow* window)
+  {
+    const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+    // GLFW has already set the close flag, so listeners see the same state as requestClose().
+    app->emit(CloseRequestEvent{});
   }
 } // namespace vke

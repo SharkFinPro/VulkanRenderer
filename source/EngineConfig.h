@@ -15,6 +15,8 @@ namespace vke {
       std::string title = "Vulkan Engine";
       bool fullscreen = false;
       bool resizable = true;
+      // Escape raises a close request like the window system's close button, which listeners can veto.
+      bool closeOnEscape = false;
     } window;
 
     struct Camera {

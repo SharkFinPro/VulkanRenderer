@@ -47,7 +47,7 @@
 
 **Engine facade** — `VulkanEngine` owns and wires the subsystems (all `shared_ptr`), exposes a subset via getters (`getAssetManager`, `getCamera`, `getImGuiInstance`, `getLightingManager`, `getRenderingManager`, `getWindow`), and runs the loop via `isActive()` / `render()`.
 
-**Core / device layer** — `Instance` (+ `DebugMessenger`), `Surface`, `Window` (GLFW), `PhysicalDevice`, `LogicalDevice`. These form the Vulkan context the rest of the engine builds on.
+**Core / device layer** — `Instance` (+ `DebugMessenger`), `Surface`, `Window` (GLFW), `PhysicalDevice`, `LogicalDevice`. These form the Vulkan context the rest of the engine builds on. Closing is a request, not a command: the window system's close button (and Escape, only when `EngineConfig::Window::closeOnEscape` is set) emits `CloseRequestEvent`, and a listener can veto with `Window::cancelClose()`.
 
 **Rendering** — `RenderingManager` orchestrates per-frame work: an offscreen pass rendered into a `RenderTarget`/`ImageResource`, presented into an ImGui "Scene View" dock, plus the swapchain pass. It delegates to `Renderer3D` (render objects grouped by `PipelineType`, shadow maps, mouse picking, grid, lines, smoke, plants, clouds, optional ray tracing) and `Renderer2D`. `SwapChain` and `CommandBuffer`/`SingleUseCommandBuffer` support it. `FrameScheduler` (owned by `RenderingManager`, also used by `ComputingManager` and the engine loop) owns all frame synchronization: one timeline semaphore paces the CPU and orders the per-frame compute → offscreen → swapchain submissions; binary semaphores are used only for WSI acquire/present. Barriers use Synchronization2 (`vk::ImageMemoryBarrier2` via `CommandBuffer::pipelineBarrier`).
 
