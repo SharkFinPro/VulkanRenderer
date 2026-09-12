@@ -21,7 +21,10 @@ namespace vke {
 
     void setSpeed(float cameraSpeed);
 
+    // Rotation and keyboard movement. The wheel is separate because it should follow the cursor, not focus.
     void processInput(const std::shared_ptr<Window>& window);
+
+    void processScroll(const std::shared_ptr<Window>& window);
 
     void enable();
 

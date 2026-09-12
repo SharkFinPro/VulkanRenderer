@@ -40,6 +40,8 @@ namespace vke {
 
     [[nodiscard]] bool isSceneFocused() const;
 
+    [[nodiscard]] bool isSceneHovered() const;
+
     [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
 
     [[nodiscard]] vk::Format getSwapChainImageFormat() const;
@@ -84,6 +86,8 @@ namespace vke {
     bool m_framebufferResized = false;
 
     bool m_sceneIsFocused = false;
+
+    bool m_sceneIsHovered = false;
 
     bool m_useDockspace;
 

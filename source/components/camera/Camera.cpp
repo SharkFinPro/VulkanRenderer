@@ -40,9 +40,12 @@ namespace vke {
 
     handleRotation(window);
 
-    handleZoom(window);
-
     handleMovement(window, dt);
+  }
+
+  void Camera::processScroll(const std::shared_ptr<Window>& window)
+  {
+    handleZoom(window);
   }
 
   void Camera::enable()
