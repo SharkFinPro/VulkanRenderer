@@ -33,8 +33,8 @@ namespace vke {
     template<typename EventType>
     void emit(const EventType& event) const
     {
-      // Listeners may add or remove listeners, including themselves, while being called. Iterating a snapshot keeps
-      // a running callback alive; the membership check skips one removed earlier in this emission.
+      // Listeners may add or remove listeners, including themselves, while being called. Iterating a snapshot survives
+      // additions and keeps a running callback alive; the membership check skips one removed earlier in this emission.
       const auto& listeners = getListeners<EventType>();
       const auto snapshot = listeners;
 
