@@ -94,7 +94,9 @@ namespace vke {
     void setCameraParameters(glm::vec3 position,
                              const glm::mat4& viewMatrix);
 
-    // Vertical field of view in degrees. Throws std::invalid_argument unless 0 < fov < 180 and 0 < near < far.
+    // Vertical field of view in degrees. Throws std::invalid_argument unless all values are finite, 0 < fov < 180 and
+    // 0 < near < far. The projection maps depth to -1..1 while Vulkan clips at 0, so raster geometry is cut at about
+    // twice nearPlane. Ray tracing uses the field of view only; its ray range is fixed.
     void setProjectionParameters(float fieldOfViewDegrees,
                                  float nearPlane,
                                  float farPlane);

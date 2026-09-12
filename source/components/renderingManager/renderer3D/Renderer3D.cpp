@@ -12,6 +12,7 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include <cmath>
 #include <stdexcept>
 
 namespace vke {
@@ -179,15 +180,15 @@ namespace vke {
                                            const float nearPlane,
                                            const float farPlane)
   {
-    // Written so that NaN fails every check.
-    if (!(fieldOfViewDegrees > 0.0f && fieldOfViewDegrees < 180.0f))
+    // Infinite or NaN values would make the projection, and the ray tracer's inverse of it, NaN.
+    if (!std::isfinite(fieldOfViewDegrees) || !(fieldOfViewDegrees > 0.0f && fieldOfViewDegrees < 180.0f))
     {
       throw std::invalid_argument("field of view must be between 0 and 180 degrees");
     }
 
-    if (!(nearPlane > 0.0f && farPlane > nearPlane))
+    if (!std::isfinite(nearPlane) || !std::isfinite(farPlane) || !(nearPlane > 0.0f && farPlane > nearPlane))
     {
-      throw std::invalid_argument("clip planes must satisfy 0 < near < far");
+      throw std::invalid_argument("clip planes must be finite and satisfy 0 < near < far");
     }
 
     m_fieldOfView = fieldOfViewDegrees;
