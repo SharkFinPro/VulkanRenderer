@@ -134,7 +134,8 @@ namespace vke {
                               const double yoffset)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-    app->m_scroll = yoffset;
+    // One poll can deliver several scroll events; update() resets the total once per frame.
+    app->m_scroll += yoffset;
 
     app->emit(ScrollEvent{xoffset, yoffset});
   }
