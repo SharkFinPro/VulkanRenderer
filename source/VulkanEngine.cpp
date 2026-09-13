@@ -67,6 +67,8 @@ namespace vke {
 
   void VulkanEngine::render()
   {
+    m_assetManager->destroyReleasedResources();
+
     m_window->update();
 
     if (m_camera->isEnabled())

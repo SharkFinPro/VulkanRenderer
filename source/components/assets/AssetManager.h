@@ -53,6 +53,18 @@ namespace vke {
                                                                  const std::shared_ptr<Texture2D>& specularMap,
                                                                  const std::shared_ptr<Model>& model);
 
+    // Hands over the caller's reference. Nothing is destroyed here, so this is safe at any point in the frame: the
+    // resource is destroyed at the start of a later frame, once nothing else holds it (a render object keeps its
+    // texture and model alive, and the renderer holds what was submitted this frame). Do not submit it again.
+    void release(std::shared_ptr<RenderObject> renderObject);
+
+    void release(std::shared_ptr<Model> model);
+
+    void release(std::shared_ptr<Texture> texture);
+
+    // Called by the engine at the start of each frame, after the previous frame dropped its per-frame references.
+    void destroyReleasedResources();
+
     void registerFont(std::string fontName,
                       std::string fontPath);
 
@@ -92,6 +104,8 @@ namespace vke {
     std::unordered_map<std::string, std::string> m_fontNames;
     std::unordered_map<FontKey, std::shared_ptr<Font>, FontKeyHash> m_fonts;
 
+    std::vector<std::shared_ptr<void>> m_releasedResources;
+
     void createDescriptorSetLayouts();
 
     void createObjectDescriptorSetLayout();
@@ -110,6 +124,8 @@ namespace vke {
     void createDescriptorPool();
 
     [[nodiscard]] vk::DescriptorPool getDescriptorPool();
+
+    void queueRelease(std::shared_ptr<void> resource);
   };
 
 } // namespace vke

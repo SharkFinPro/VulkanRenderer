@@ -53,7 +53,7 @@
 
 **Pipelines** — `PipelineManager` builds and owns pipelines keyed by the `PipelineType` enum (`PipelineTypes.h`), and exposes bind/push-constant/descriptor helpers. Concrete pipelines live in `pipelines/implementations/`. Push-constant payloads are modeled as a `std::variant` per pipeline type in `Renderer3D`.
 
-**Resources / assets** — `AssetManager` loads and owns textures (`Texture2D/3D/Cubemap/Glyph`), models (`Model`, via Assimp), `RenderObject`s, fonts (`Font`), smoke systems, and clouds; it manages descriptor set layouts and a pooled descriptor allocator. `utilities/Buffers` and `utilities/Images` are the low-level VkBuffer/VkImage helpers.
+**Resources / assets** — `AssetManager` loads and owns textures (`Texture2D/3D/Cubemap/Glyph`), models (`Model`, via Assimp), `RenderObject`s, fonts (`Font`), smoke systems, and clouds; it manages descriptor set layouts and a pooled descriptor allocator. `AssetManager::release()` takes a render object, model or texture and destroys it at the start of a later frame once nothing else holds it, after one device wait for the batch; descriptor sets are not yet returned to their pools. `utilities/Buffers` and `utilities/Images` are the low-level VkBuffer/VkImage helpers.
 
 **Lighting** — `LightingManager` owns `PointLight`/`SpotLight` (`Light` base) and drives shadow-map data.
 
