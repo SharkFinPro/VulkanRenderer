@@ -7,6 +7,7 @@
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include <algorithm>
 #include <array>
 #include <stdexcept>
 
@@ -57,6 +58,48 @@ namespace vke {
       specularMap,
       model
     );
+  }
+
+  void AssetManager::release(std::shared_ptr<RenderObject> renderObject)
+  {
+    queueRelease(std::move(renderObject));
+  }
+
+  void AssetManager::release(std::shared_ptr<Model> model)
+  {
+    queueRelease(std::move(model));
+  }
+
+  void AssetManager::release(std::shared_ptr<Texture> texture)
+  {
+    queueRelease(std::move(texture));
+  }
+
+  void AssetManager::release(std::shared_ptr<Texture2D> texture)
+  {
+    queueRelease(std::move(texture));
+  }
+
+  void AssetManager::destroyReleasedResources()
+  {
+    const auto isSoleOwner = [](const std::shared_ptr<void>& resource) {
+      return resource.use_count() == 1;
+    };
+
+    if (std::ranges::none_of(m_releasedResources, isSoleOwner))
+    {
+      return;
+    }
+
+    // One wait covers every frame that could still reference the batch.
+    m_logicalDevice->waitIdle();
+
+    // Destroying a render object can leave its released texture or model with no other owner.
+    std::size_t destroyedCount;
+    do
+    {
+      destroyedCount = std::erase_if(m_releasedResources, isSoleOwner);
+    } while (destroyedCount > 0);
   }
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)
@@ -376,6 +419,23 @@ namespace vke {
     }
 
     return *m_descriptorPools.back();
+  }
+
+  void AssetManager::queueRelease(std::shared_ptr<void> resource)
+  {
+    if (!resource)
+    {
+      return;
+    }
+
+    const auto alreadyQueued = std::ranges::any_of(m_releasedResources, [&resource](const std::shared_ptr<void>& queued) {
+      return !queued.owner_before(resource) && !resource.owner_before(queued);
+    });
+
+    if (!alreadyQueued)
+    {
+      m_releasedResources.push_back(std::move(resource));
+    }
   }
 
 } // namespace vke
