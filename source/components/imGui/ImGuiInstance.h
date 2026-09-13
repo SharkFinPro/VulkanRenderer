@@ -6,7 +6,6 @@
 #include <imgui.h>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
-#include <string>
 #include <unordered_map>
 
 struct ImGuiDockNode;
@@ -49,8 +48,9 @@ namespace vke {
 
     void setRightDockPercent(float percent);
 
-    // Docking discards ImGui size constraints, so this floor is enforced on whichever dock node holds the window,
-    // including after the user re-docks it. Size is in unscaled pixels; a zero size removes the floor.
+    // Docking discards ImGui size constraints, so this floor is enforced on the node holding the window inside the
+    // engine's dockspace, and every tab's floor in that node applies. The widget is matched by ImGui ID like dockTop(),
+    // so "Label##id" must be passed in full. Size is in unscaled pixels; a zero size removes the floor.
     void setDockedWindowMinimumSize(const char* widget,
                                     ImVec2 minimumSize);
 
@@ -89,7 +89,7 @@ namespace vke {
 
     float m_menuBarHeight = 0.0f;
 
-    std::unordered_map<std::string, ImVec2> m_dockedWindowMinimumSizes;
+    std::unordered_map<ImGuiID, ImVec2> m_dockedWindowMinimumSizes;
 
     EventListener<ContentScaleEvent> m_contentScaleEventListener;
 
@@ -106,9 +106,9 @@ namespace vke {
 
     void enforceDockNodeMinimumSize(ImGuiDockNode* node) const;
 
-    void layoutDockNode(ImGuiDockNode* node,
-                        ImVec2 pos,
-                        ImVec2 size) const;
+    static void layoutDockNodeSubtree(ImGuiDockNode* node,
+                                      ImVec2 pos,
+                                      ImVec2 size);
 
     [[nodiscard]] ImVec2 getDockNodeMinimumSize(const ImGuiDockNode* node) const;
 
