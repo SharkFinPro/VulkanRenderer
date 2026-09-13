@@ -75,6 +75,11 @@ namespace vke {
     queueRelease(std::move(texture));
   }
 
+  void AssetManager::release(std::shared_ptr<Texture2D> texture)
+  {
+    queueRelease(std::move(texture));
+  }
+
   void AssetManager::destroyReleasedResources()
   {
     const auto isSoleOwner = [](const std::shared_ptr<void>& resource) {
@@ -90,9 +95,11 @@ namespace vke {
     m_logicalDevice->waitIdle();
 
     // Destroying a render object can leave its released texture or model with no other owner.
-    while (std::erase_if(m_releasedResources, isSoleOwner) > 0)
+    std::size_t destroyedCount;
+    do
     {
-    }
+      destroyedCount = std::erase_if(m_releasedResources, isSoleOwner);
+    } while (destroyedCount > 0);
   }
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)
@@ -422,7 +429,7 @@ namespace vke {
     }
 
     const auto alreadyQueued = std::ranges::any_of(m_releasedResources, [&resource](const std::shared_ptr<void>& queued) {
-      return queued.get() == resource.get();
+      return !queued.owner_before(resource) && !resource.owner_before(queued);
     });
 
     if (!alreadyQueued)

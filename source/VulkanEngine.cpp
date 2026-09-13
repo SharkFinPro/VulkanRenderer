@@ -37,6 +37,13 @@ namespace vke {
     {
       m_logicalDevice->waitIdle();
 
+      // An application can hold the asset manager longer than the engine; what it released must go while ImGui and
+      // the device still exist.
+      if (m_assetManager)
+      {
+        m_assetManager->destroyReleasedResources();
+      }
+
       m_renderingManager.reset();
       m_pipelineManager.reset();
       m_surface.reset();
@@ -67,8 +74,6 @@ namespace vke {
 
   void VulkanEngine::render()
   {
-    m_assetManager->destroyReleasedResources();
-
     m_window->update();
 
     if (m_camera->isEnabled())
@@ -104,6 +109,9 @@ namespace vke {
     m_renderingManager->doRendering(m_pipelineManager, m_lightingManager, currentFrame);
 
     createNewFrame();
+
+    // Only once this frame's draws, including ImGui's, were recorded and submitted.
+    m_assetManager->destroyReleasedResources();
   }
 
   std::shared_ptr<AssetManager> VulkanEngine::getAssetManager() const
