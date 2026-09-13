@@ -7,6 +7,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
+#include <algorithm>
+#include <cmath>
 
 constexpr bool ALLOW_VIEWPORTS = false;
 
@@ -195,6 +197,18 @@ namespace vke {
     markDockNeedsUpdate();
   }
 
+  void ImGuiInstance::setDockedWindowMinimumSize(const char* widget,
+                                                 const ImVec2 minimumSize)
+  {
+    if (minimumSize.x <= 0.0f && minimumSize.y <= 0.0f)
+    {
+      m_dockedWindowMinimumSizes.erase(widget);
+      return;
+    }
+
+    m_dockedWindowMinimumSizes[widget] = minimumSize;
+  }
+
   ImGuiContext* ImGuiInstance::getImGuiContext()
   {
     return ImGui::GetCurrentContext();
@@ -287,6 +301,169 @@ namespace vke {
     }
 
     ImGui::DockSpaceOverViewport(dockSpaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+
+    // The dock layout for this frame, including any splitter drag, is final here, and docked windows read their node's
+    // rect when they begin later in the frame.
+    enforceDockedWindowMinimumSizes(dockSpaceID);
+  }
+
+  void ImGuiInstance::enforceDockedWindowMinimumSizes(const ImGuiID dockSpaceID) const
+  {
+    if (m_dockedWindowMinimumSizes.empty())
+    {
+      return;
+    }
+
+    ImGuiDockNode* root = ImGui::DockBuilderGetNode(dockSpaceID);
+    if (root == nullptr || root->Size.x <= 0.0f || root->Size.y <= 0.0f)
+    {
+      return;
+    }
+
+    enforceDockNodeMinimumSize(root);
+  }
+
+  void ImGuiInstance::enforceDockNodeMinimumSize(ImGuiDockNode* node) const
+  {
+    if (node->IsLeafNode())
+    {
+      return;
+    }
+
+    ImGuiDockNode* child0 = node->ChildNodes[0];
+    ImGuiDockNode* child1 = node->ChildNodes[1];
+
+    if (child0->IsVisible && child1->IsVisible)
+    {
+      const int axis = node->SplitAxis;
+      const float available = std::max(node->Size[axis] - ImGui::GetStyle().DockingSeparatorSize, 0.0f);
+      const float minimum0 = getDockNodeMinimumSize(child0)[axis];
+      const float minimum1 = getDockNodeMinimumSize(child1)[axis];
+
+      // When the floors cannot all fit, ImGui's own split is left alone rather than traded for a different violation.
+      if (minimum0 + minimum1 <= available && (child0->Size[axis] < minimum0 || child1->Size[axis] < minimum1))
+      {
+        layoutDockNode(node, node->Pos, node->Size);
+        return;
+      }
+    }
+
+    if (child0->IsVisible)
+    {
+      enforceDockNodeMinimumSize(child0);
+    }
+
+    if (child1->IsVisible)
+    {
+      enforceDockNodeMinimumSize(child1);
+    }
+  }
+
+  void ImGuiInstance::layoutDockNode(ImGuiDockNode* node,
+                                     const ImVec2 pos,
+                                     const ImVec2 size) const
+  {
+    node->Pos = pos;
+    node->Size = size;
+
+    if (node->IsLeafNode())
+    {
+      return;
+    }
+
+    ImGuiDockNode* child0 = node->ChildNodes[0];
+    ImGuiDockNode* child1 = node->ChildNodes[1];
+
+    if (!child0->IsVisible || !child1->IsVisible)
+    {
+      if (child0->IsVisible)
+      {
+        layoutDockNode(child0, pos, size);
+      }
+
+      if (child1->IsVisible)
+      {
+        layoutDockNode(child1, pos, size);
+      }
+
+      return;
+    }
+
+    const int axis = node->SplitAxis;
+    const float spacing = ImGui::GetStyle().DockingSeparatorSize;
+    const float available = std::max(size[axis] - spacing, 2.0f);
+    const float minimum0 = getDockNodeMinimumSize(child0)[axis];
+    const float minimum1 = getDockNodeMinimumSize(child1)[axis];
+
+    const float currentTotal = child0->Size[axis] + child1->Size[axis];
+    const float ratio = currentTotal > 0.0f ? child0->Size[axis] / currentTotal : 0.5f;
+
+    float size0 = minimum0 + minimum1 <= available
+      ? std::clamp(std::floor(available * ratio), minimum0, available - minimum1)
+      : std::floor(available * minimum0 / (minimum0 + minimum1));
+    size0 = std::clamp(size0, 1.0f, available - 1.0f);
+    const float size1 = available - size0;
+
+    // ImGui lays out from SizeRef on later frames, so it must agree with the clamped result.
+    child0->SizeRef[axis] = size0;
+    child1->SizeRef[axis] = size1;
+
+    ImVec2 size0Vec = size;
+    ImVec2 size1Vec = size;
+    size0Vec[axis] = size0;
+    size1Vec[axis] = size1;
+
+    ImVec2 pos1 = pos;
+    pos1[axis] += size0 + spacing;
+
+    layoutDockNode(child0, pos, size0Vec);
+    layoutDockNode(child1, pos1, size1Vec);
+  }
+
+  ImVec2 ImGuiInstance::getDockNodeMinimumSize(const ImGuiDockNode* node) const
+  {
+    const ImGuiStyle& style = ImGui::GetStyle();
+
+    if (node->IsLeafNode())
+    {
+      ImVec2 minimumSize = style.WindowMinSize;
+      const float contentScale = m_window->getContentScale();
+
+      for (const ImGuiWindow* window : node->Windows)
+      {
+        if (const auto entry = m_dockedWindowMinimumSizes.find(window->Name); entry != m_dockedWindowMinimumSizes.end())
+        {
+          // Whole pixels, because dock layout and window rects are truncated to them.
+          minimumSize.x = std::max(minimumSize.x, std::ceil(entry->second.x * contentScale));
+          minimumSize.y = std::max(minimumSize.y, std::ceil(entry->second.y * contentScale));
+        }
+      }
+
+      return minimumSize;
+    }
+
+    const ImGuiDockNode* child0 = node->ChildNodes[0];
+    const ImGuiDockNode* child1 = node->ChildNodes[1];
+
+    if (!child0->IsVisible && !child1->IsVisible)
+    {
+      return style.WindowMinSize;
+    }
+
+    if (!child0->IsVisible || !child1->IsVisible)
+    {
+      return getDockNodeMinimumSize(child0->IsVisible ? child0 : child1);
+    }
+
+    const ImVec2 minimum0 = getDockNodeMinimumSize(child0);
+    const ImVec2 minimum1 = getDockNodeMinimumSize(child1);
+    const int axis = node->SplitAxis;
+
+    ImVec2 minimumSize;
+    minimumSize[axis] = minimum0[axis] + style.DockingSeparatorSize + minimum1[axis];
+    minimumSize[axis ^ 1] = std::max(minimum0[axis ^ 1], minimum1[axis ^ 1]);
+
+    return minimumSize;
   }
 
   void ImGuiInstance::renderPlatformWindows()
