@@ -107,6 +107,11 @@ namespace vke {
     return m_sceneIsFocused;
   }
 
+  bool RenderingManager::isSceneHovered() const
+  {
+    return m_sceneIsHovered;
+  }
+
   vk::DescriptorSetLayout RenderingManager::getOffscreenImageDescriptorSetLayout() const
   {
     return m_renderTarget->getOffscreenImageDescriptorSetLayout();
@@ -211,6 +216,7 @@ namespace vke {
       }
 
       m_sceneIsFocused = !ImGui::GetIO().WantCaptureMouse;
+      m_sceneIsHovered = m_sceneIsFocused;
       m_renderer3D->getMousePicker()->setViewportPos({ 0.0f, 0.0f });
 
       return;
@@ -219,6 +225,7 @@ namespace vke {
     ImGui::Begin(m_sceneViewName.c_str());
 
     m_sceneIsFocused = ImGui::IsWindowFocused();
+    m_sceneIsHovered = ImGui::IsWindowHovered();
 
     const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 

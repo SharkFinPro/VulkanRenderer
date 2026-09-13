@@ -11,6 +11,9 @@ namespace vke {
     : m_position(config.position), m_previousTime(std::chrono::steady_clock::now())
   {
     setSpeed(config.speed);
+
+    // The view can be pushed before any rotation input, so the direction must already agree with the rotation.
+    updateDirection();
   }
 
   glm::mat4 Camera::getViewMatrix() const
@@ -40,9 +43,12 @@ namespace vke {
 
     handleRotation(window);
 
-    handleZoom(window);
-
     handleMovement(window, dt);
+  }
+
+  void Camera::processScroll(const std::shared_ptr<Window>& window)
+  {
+    handleZoom(window);
   }
 
   void Camera::enable()
@@ -113,6 +119,11 @@ namespace vke {
       m_rotation.pitch = std::clamp(m_rotation.pitch, -89.9f, 89.9f);
     }
 
+    updateDirection();
+  }
+
+  void Camera::updateDirection()
+  {
     m_direction = normalize(glm::vec3(
       std::cos(glm::radians(m_rotation.yaw)) * std::cos(glm::radians(m_rotation.pitch)),
       std::sin(glm::radians(m_rotation.pitch)),

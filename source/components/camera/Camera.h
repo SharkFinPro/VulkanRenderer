@@ -21,7 +21,10 @@ namespace vke {
 
     void setSpeed(float cameraSpeed);
 
+    // Rotation and keyboard movement. The wheel is separate because it should follow the cursor, not focus.
     void processInput(const std::shared_ptr<Window>& window);
+
+    void processScroll(const std::shared_ptr<Window>& window);
 
     void enable();
 
@@ -33,7 +36,7 @@ namespace vke {
     bool m_enabled = true;
 
     glm::vec3 m_position;
-    glm::vec3 m_direction = glm::vec3(0, 0, -1);
+    glm::vec3 m_direction{};
 
     struct SpeedSettings {
       float speed = 0;
@@ -52,6 +55,7 @@ namespace vke {
     void handleMovement(const std::shared_ptr<Window>& window, float dt);
     void handleRotation(const std::shared_ptr<Window>& window);
     void handleZoom(const std::shared_ptr<Window>& window);
+    void updateDirection();
   };
 
 } // namespace vke
