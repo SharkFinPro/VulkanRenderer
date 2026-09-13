@@ -100,6 +100,8 @@ namespace vke {
 
     void initFromWindow();
 
+    void applyContentScale(float contentScale);
+
     void displayDockSpace();
 
     void enforceDockedWindowMinimumSizes(ImGuiID dockSpaceID) const;

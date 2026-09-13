@@ -37,6 +37,12 @@ namespace vke {
       if (config.detachableWindows && queueFamilies.graphicsFamily == queueFamilies.presentFamily)
       {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+        // A detached window can sit on a monitor with a different DPI from the main window. ImGui then sizes each
+        // window's text for its own monitor and rescales windows that move between monitors. Padding and other style
+        // sizes stay at the main window's scale; ImGui can't scale those per monitor yet.
+        ImGui::GetIO().ConfigDpiScaleFonts = true;
+        ImGui::GetIO().ConfigDpiScaleViewports = true;
       }
     }
 
@@ -290,15 +296,32 @@ namespace vke {
     float xscale, yscale;
     glfwGetWindowContentScale(m_window->getWindow(), &xscale, &yscale);
 
-    ImGui::GetStyle().ScaleAllSizes(xscale);
-    ImGui::GetIO().FontGlobalScale = xscale;
+    applyContentScale(xscale);
 
     m_contentScaleEventListener = m_window->on<ContentScaleEvent>([this](const ContentScaleEvent& e) {
-      ImGui::GetStyle() = m_baseStyle;
-
-      ImGui::GetStyle().ScaleAllSizes(e.xscale);
-      ImGui::GetIO().FontGlobalScale = e.xscale;
+      applyContentScale(e.xscale);
     });
+  }
+
+  void ImGuiInstance::applyContentScale(const float contentScale)
+  {
+    ImGuiStyle& style = ImGui::GetStyle();
+    style = m_baseStyle;
+    style.ScaleAllSizes(contentScale);
+
+    if (!ImGui::GetIO().ConfigDpiScaleFonts)
+    {
+      ImGui::GetIO().FontGlobalScale = contentScale;
+      return;
+    }
+
+    // ImGui multiplies text by the DPI scale of each window's monitor. That scale is 1 where the platform works in
+    // points (macOS), so whatever part of the main window's content scale it doesn't cover goes into the main font scale.
+    const float monitorScale = ImGui_ImplGlfw_GetContentScaleForWindow(m_window->getWindow());
+    if (monitorScale > 0.0f)
+    {
+      style.FontScaleMain = m_baseStyle.FontScaleMain * contentScale / monitorScale;
+    }
   }
 
   void ImGuiInstance::displayDockSpace()
