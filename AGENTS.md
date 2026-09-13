@@ -59,7 +59,7 @@
 
 **Compute** — `ComputingManager` handles compute-pipeline dispatch (e.g. particle/smoke systems).
 
-**UI** — `ImGuiInstance` integrates Dear ImGui (docking) with a configurable dockspace and scene-view window.
+**UI** — `ImGuiInstance` integrates Dear ImGui (docking) with a configurable dockspace and scene-view window. Docking ignores ImGui size constraints, so `setDockedWindowMinimumSize` floors are enforced by clamping dock node sizes right after each frame's dock layout.
 
 **Utilities** — header-only templated `EventSystem` (typed listener tuples; e.g. `FramebufferResizeEvent`; listeners may add or remove listeners during emission: removals take effect immediately, additions from the next emission); `Buffers`, `Images`.
 
