@@ -25,7 +25,8 @@ int main()
       .window {
         .width = 800,
         .height = 600,
-        .title = "Cube Map"
+        .title = "Cube Map",
+        .closeOnEscape = true
       },
       .camera {
         .position = { 0.0f, 0.0f, -10.0f }

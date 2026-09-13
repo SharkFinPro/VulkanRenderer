@@ -14,7 +14,8 @@ int main()
       .window {
         .width = 800,
         .height = 600,
-        .title = "Object Loading"
+        .title = "Object Loading",
+        .closeOnEscape = true
       },
       .camera {
         .speed = 0.5f

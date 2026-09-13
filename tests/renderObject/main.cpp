@@ -10,7 +10,8 @@ const vke::EngineConfig ENGINE_CONFIG {
   .window {
     .width = 800,
     .height = 600,
-    .title = "Render Object"
+    .title = "Render Object",
+    .closeOnEscape = true
   },
   .camera {
     .position = { 0.0f, 5.0f, -15.0f }
