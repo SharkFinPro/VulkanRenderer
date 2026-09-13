@@ -27,6 +27,8 @@ namespace vke {
 
     struct ImGui {
       bool useDockspace = true;
+      // With the dockspace, a window dragged outside the main window becomes its own OS window.
+      bool detachableWindows = true;
       std::string sceneViewName = "Scene View";
       uint32_t maxTextures = 5;
       std::function<void()> styleSetup;

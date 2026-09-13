@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <cmath>
 
-constexpr bool ALLOW_VIEWPORTS = false;
-
 namespace vke {
 
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
@@ -30,7 +28,7 @@ namespace vke {
     {
       ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-      if (ALLOW_VIEWPORTS)
+      if (config.detachableWindows)
       {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
       }
@@ -57,6 +55,7 @@ namespace vke {
       .Instance = static_cast<VkInstance>(*instance->m_instance),
       .PhysicalDevice = static_cast<VkPhysicalDevice>(*logicalDevice->getPhysicalDevice()->m_physicalDevice),
       .Device = static_cast<VkDevice>(*logicalDevice->m_device),
+      .QueueFamily = logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value(),
       .Queue = static_cast<VkQueue>(logicalDevice->getGraphicsQueue()),
       .DescriptorPool = static_cast<VkDescriptorPool>(*m_descriptorPool),
       .MinImageCount = imageCount,
@@ -76,6 +75,14 @@ namespace vke {
       .depthAttachmentFormat = static_cast<VkFormat>(logicalDevice->getPhysicalDevice()->findDepthFormat())
     };
 
+    // Detached windows get their own swapchains from the backend. Asking for the main swapchain's format keeps their
+    // colors matching the main window's wherever the surface supports it.
+    initInfo.PipelineInfoForViewports.PipelineRenderingCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+      .colorAttachmentCount = 1,
+      .pColorAttachmentFormats = &m_swapchainColorFormat
+    };
+
     ImGui_ImplVulkan_Init(&initInfo);
 
     createNewFrame();
@@ -92,6 +99,14 @@ namespace vke {
 
   void ImGuiInstance::createNewFrame()
   {
+    // A frame abandoned before its draws were recorded (an out-of-date swapchain) never reached ImGui::Render(), but
+    // ImGui requires every frame to be ended, and its platform windows updated, before the next one begins.
+    if (ImGui::GetCurrentContext()->WithinFrameScope)
+    {
+      ImGui::EndFrame();
+      ImGui::UpdatePlatformWindows();
+    }
+
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -223,9 +238,11 @@ namespace vke {
   {
     ImGui::Render();
 
-    renderPlatformWindows();
-
     renderDrawData(commandBuffer);
+
+    // Detached windows are submitted and presented here, before the swapchain pass is submitted. They can sample images
+    // the frame's offscreen pass writes, and queue order then keeps them inside the frame the scheduler waits on.
+    renderPlatformWindows();
   }
 
   void ImGuiInstance::createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -485,27 +502,17 @@ namespace vke {
 
   void ImGuiInstance::renderPlatformWindows()
   {
-    if (!ALLOW_VIEWPORTS)
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
     {
       return;
     }
 
+    // Creates, resizes and destroys the OS windows. The backend waits for the device to be idle before destroying or
+    // rebuilding a window's swapchain.
     ImGui::UpdatePlatformWindows();
 
-    ImGuiPlatformIO& pio = ImGui::GetPlatformIO();
-
-    for (int i = 1; i < pio.Viewports.Size; i++) // skip [0] = main viewport
-    {
-      ImGuiViewport* vp = pio.Viewports[i];
-      if (pio.Renderer_RenderWindow)
-      {
-        pio.Renderer_RenderWindow(vp, nullptr);
-      }
-      if (pio.Renderer_SwapBuffers)
-      {
-        pio.Renderer_SwapBuffers(vp, nullptr);
-      }
-    }
+    // Skips minimized windows, which have no drawable surface.
+    ImGui::RenderPlatformWindowsDefault();
   }
 
   void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)
