@@ -12,6 +12,8 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include <cmath>
+#include <stdexcept>
 
 namespace vke {
 
@@ -56,7 +58,10 @@ namespace vke {
       .currentFrame = renderInfo->currentFrame,
       .viewPosition = m_viewPosition,
       .viewMatrix = m_viewMatrix,
-      .extent = renderInfo->extent
+      .extent = renderInfo->extent,
+      .fieldOfView = m_fieldOfView,
+      .nearPlane = m_nearPlane,
+      .farPlane = m_farPlane
     };
 
     m_mousePicker->render(&renderInfoMousePicking, pipelineManager);
@@ -78,7 +83,10 @@ namespace vke {
       .currentFrame = renderInfo->currentFrame,
       .viewPosition = m_viewPosition,
       .viewMatrix = m_viewMatrix,
-      .extent = renderInfo->extent
+      .extent = renderInfo->extent,
+      .fieldOfView = m_fieldOfView,
+      .nearPlane = m_nearPlane,
+      .farPlane = m_farPlane
     };
 
     auto& cubeMapPC = std::get<CubeMapPushConstant>(m_pushConstants.at(PipelineType::cubeMap).data);
@@ -103,8 +111,19 @@ namespace vke {
                                 const std::shared_ptr<LightingManager>& lightingManager,
                                 const ImageResource& imageResource) const
   {
+    const RenderInfo renderInfoRayTracing {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent,
+      .fieldOfView = m_fieldOfView,
+      .nearPlane = m_nearPlane,
+      .farPlane = m_farPlane
+    };
+
     m_rayTracer->doRayTracing(
-      renderInfo,
+      &renderInfoRayTracing,
       pipelineManager,
       lightingManager,
       imageResource,
@@ -155,6 +174,26 @@ namespace vke {
   {
     m_viewPosition = position;
     m_viewMatrix = viewMatrix;
+  }
+
+  void Renderer3D::setProjectionParameters(const float fieldOfViewDegrees,
+                                           const float nearPlane,
+                                           const float farPlane)
+  {
+    // Infinite or NaN values would make the projection, and the ray tracer's inverse of it, NaN.
+    if (!std::isfinite(fieldOfViewDegrees) || !(fieldOfViewDegrees > 0.0f && fieldOfViewDegrees < 180.0f))
+    {
+      throw std::invalid_argument("field of view must be between 0 and 180 degrees");
+    }
+
+    if (!std::isfinite(nearPlane) || !std::isfinite(farPlane) || !(nearPlane > 0.0f && farPlane > nearPlane))
+    {
+      throw std::invalid_argument("clip planes must be finite and satisfy 0 < near < far");
+    }
+
+    m_fieldOfView = fieldOfViewDegrees;
+    m_nearPlane = nearPlane;
+    m_farPlane = farPlane;
   }
 
   std::shared_ptr<MousePicker> Renderer3D::getMousePicker() const

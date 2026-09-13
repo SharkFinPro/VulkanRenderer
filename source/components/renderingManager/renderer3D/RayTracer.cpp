@@ -69,7 +69,7 @@ namespace vke {
 
     updateRTSceneInfo(renderObjects);
 
-    updateRTDescriptorSetData(renderInfo->extent, renderInfo->currentFrame, viewPosition, viewMatrix);
+    updateRTDescriptorSetData(renderInfo, viewPosition, viewMatrix);
 
     if (cloud)
     {
@@ -474,27 +474,17 @@ namespace vke {
     });
   }
 
-  void RayTracer::updateRTDescriptorSetData(const vk::Extent2D extent,
-                                            const uint32_t currentFrame,
+  void RayTracer::updateRTDescriptorSetData(const RenderInfo* renderInfo,
                                             const glm::vec3& viewPosition,
                                             const glm::mat4& viewMatrix)
   {
-    auto projectionMatrix = glm::perspective(
-      glm::radians(45.0f),
-      static_cast<float>(extent.width) / static_cast<float>(extent.height),
-      0.1f,
-      1000.0f
-    );
-
-    projectionMatrix[1][1] *= -1;
-
     const CameraUniformRT cameraUBORT {
       .viewInverse = glm::inverse(viewMatrix),
-      .projInverse = glm::inverse(projectionMatrix),
+      .projInverse = glm::inverse(renderInfo->getProjectionMatrix()),
       .viewPosition = viewPosition
     };
 
-    m_cameraUniformRT->update(currentFrame, &cameraUBORT);
+    m_cameraUniformRT->update(renderInfo->currentFrame, &cameraUBORT);
 
     m_vertexBufferInfo.buffer = *m_mergedVertexBuffer;
     m_indexBufferInfo.buffer = *m_mergedIndexBuffer;

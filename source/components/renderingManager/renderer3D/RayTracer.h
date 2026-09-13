@@ -108,8 +108,7 @@ namespace vke {
     void updateRTDescriptorSets(const ImageResource& imageResource,
                                 uint32_t currentFrame);
 
-    void updateRTDescriptorSetData(vk::Extent2D extent,
-                                   uint32_t currentFrame,
+    void updateRTDescriptorSetData(const RenderInfo* renderInfo,
                                    const glm::vec3& viewPosition,
                                    const glm::mat4& viewMatrix);
   };

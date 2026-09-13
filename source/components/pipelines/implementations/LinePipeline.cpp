@@ -67,7 +67,7 @@ namespace vke {
     const std::vector<vk::DeviceSize> offsets = {0};
     renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffers[renderInfo->currentFrame] }, offsets);
 
-    const MVPTransformPC transformUBO = renderInfo->projectionMatrix * renderInfo->viewMatrix;
+    const MVPTransformPC transformUBO = renderInfo->getProjectionMatrix() * renderInfo->viewMatrix;
 
     renderInfo->commandBuffer->pushConstants<MVPTransformPC>(
       m_pipelineLayout,
