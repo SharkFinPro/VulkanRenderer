@@ -9,6 +9,8 @@
 #include <imgui_internal.h>
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
+#include <string>
 
 namespace vke {
 
@@ -24,11 +26,15 @@ namespace vke {
 
     ImGui::CreateContext();
 
+    const QueueFamilyIndices queueFamilies = logicalDevice->getPhysicalDevice()->getQueueFamilies();
+
     if (m_useDockSpace)
     {
       ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-      if (config.detachableWindows)
+      // The backend presents detached windows on the graphics queue, so they are only enabled when the engine presents
+      // from that queue family too.
+      if (config.detachableWindows && queueFamilies.graphicsFamily == queueFamilies.presentFamily)
       {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
       }
@@ -55,7 +61,7 @@ namespace vke {
       .Instance = static_cast<VkInstance>(*instance->m_instance),
       .PhysicalDevice = static_cast<VkPhysicalDevice>(*logicalDevice->getPhysicalDevice()->m_physicalDevice),
       .Device = static_cast<VkDevice>(*logicalDevice->m_device),
-      .QueueFamily = logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value(),
+      .QueueFamily = queueFamilies.graphicsFamily.value(),
       .Queue = static_cast<VkQueue>(logicalDevice->getGraphicsQueue()),
       .DescriptorPool = static_cast<VkDescriptorPool>(*m_descriptorPool),
       .MinImageCount = imageCount,
@@ -81,6 +87,15 @@ namespace vke {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
       .colorAttachmentCount = 1,
       .pColorAttachmentFormats = &m_swapchainColorFormat
+    };
+
+    // The backend passes every result here, including successes. Detached windows make it submit and present on its
+    // own, so its failures are raised like the engine's instead of being dropped.
+    initInfo.CheckVkResultFn = [](const VkResult result) {
+      if (result < 0)
+      {
+        throw std::runtime_error("ImGui Vulkan backend call failed with VkResult " + std::to_string(result));
+      }
     };
 
     ImGui_ImplVulkan_Init(&initInfo);
@@ -511,7 +526,7 @@ namespace vke {
     // rebuilding a window's swapchain.
     ImGui::UpdatePlatformWindows();
 
-    // Skips minimized windows, which have no drawable surface.
+    // Skips minimized windows, whose swapchains would be zero-sized.
     ImGui::RenderPlatformWindowsDefault();
   }
 
