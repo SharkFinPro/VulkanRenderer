@@ -9,8 +9,8 @@
 #include <imgui_internal.h>
 #include <algorithm>
 #include <cmath>
-
-constexpr bool ALLOW_VIEWPORTS = false;
+#include <stdexcept>
+#include <string>
 
 namespace vke {
 
@@ -26,17 +26,38 @@ namespace vke {
 
     ImGui::CreateContext();
 
+    const QueueFamilyIndices queueFamilies = logicalDevice->getPhysicalDevice()->getQueueFamilies();
+
     if (m_useDockSpace)
     {
       ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-      if (ALLOW_VIEWPORTS)
+      // The backend presents detached windows on the graphics queue, so they are only enabled when the engine presents
+      // from that queue family too.
+      if (config.detachableWindows && queueFamilies.graphicsFamily == queueFamilies.presentFamily)
       {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+        // A detached window can sit on a monitor with a different DPI from the main window. ImGui then sizes each
+        // window's text for its own monitor and rescales windows that move between monitors, with the DPI chosen by
+        // getViewportDpiScale(). Padding and other style sizes stay at the main window's scale; ImGui can't scale those
+        // per monitor yet.
+        ImGui::GetIO().ConfigDpiScaleFonts = true;
+        ImGui::GetIO().ConfigDpiScaleViewports = true;
+
+        // GLFW keeps window hints, so the windows ImGui creates would inherit the main window's scale-to-monitor hint.
+        // Windows would then resize them for DPI on its own, on top of ImGui's rescale, and their size would stop
+        // matching the size ImGui draws.
+        glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
       }
     }
 
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
+
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+      ImGui::GetPlatformIO().Platform_GetWindowDpiScale = getViewportDpiScale;
+    }
 
     if (config.styleSetup)
     {
@@ -57,6 +78,7 @@ namespace vke {
       .Instance = static_cast<VkInstance>(*instance->m_instance),
       .PhysicalDevice = static_cast<VkPhysicalDevice>(*logicalDevice->getPhysicalDevice()->m_physicalDevice),
       .Device = static_cast<VkDevice>(*logicalDevice->m_device),
+      .QueueFamily = queueFamilies.graphicsFamily.value(),
       .Queue = static_cast<VkQueue>(logicalDevice->getGraphicsQueue()),
       .DescriptorPool = static_cast<VkDescriptorPool>(*m_descriptorPool),
       .MinImageCount = imageCount,
@@ -76,6 +98,23 @@ namespace vke {
       .depthAttachmentFormat = static_cast<VkFormat>(logicalDevice->getPhysicalDevice()->findDepthFormat())
     };
 
+    // Detached windows get their own swapchains from the backend. Asking for the main swapchain's format keeps their
+    // colors matching the main window's wherever the surface supports it.
+    initInfo.PipelineInfoForViewports.PipelineRenderingCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+      .colorAttachmentCount = 1,
+      .pColorAttachmentFormats = &m_swapchainColorFormat
+    };
+
+    // The backend passes every result here, including successes. Detached windows make it submit and present on its
+    // own, so its failures are raised like the engine's instead of being dropped.
+    initInfo.CheckVkResultFn = [](const VkResult result) {
+      if (result < 0)
+      {
+        throw std::runtime_error("ImGui Vulkan backend call failed with VkResult " + std::to_string(result));
+      }
+    };
+
     ImGui_ImplVulkan_Init(&initInfo);
 
     createNewFrame();
@@ -92,6 +131,14 @@ namespace vke {
 
   void ImGuiInstance::createNewFrame()
   {
+    // A frame abandoned before its draws were recorded (an out-of-date swapchain) never reached ImGui::Render(), but
+    // ImGui requires every frame to be ended, and its platform windows updated, before the next one begins.
+    if (ImGui::GetCurrentContext()->WithinFrameScope)
+    {
+      ImGui::EndFrame();
+      ImGui::UpdatePlatformWindows();
+    }
+
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -223,9 +270,11 @@ namespace vke {
   {
     ImGui::Render();
 
-    renderPlatformWindows();
-
     renderDrawData(commandBuffer);
+
+    // Detached windows are submitted and presented here, before the swapchain pass is submitted. They can sample images
+    // the frame's offscreen pass writes, and queue order then keeps them inside the frame the scheduler waits on.
+    renderPlatformWindows();
   }
 
   void ImGuiInstance::createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -258,15 +307,32 @@ namespace vke {
     float xscale, yscale;
     glfwGetWindowContentScale(m_window->getWindow(), &xscale, &yscale);
 
-    ImGui::GetStyle().ScaleAllSizes(xscale);
-    ImGui::GetIO().FontGlobalScale = xscale;
+    applyContentScale(xscale);
 
     m_contentScaleEventListener = m_window->on<ContentScaleEvent>([this](const ContentScaleEvent& e) {
-      ImGui::GetStyle() = m_baseStyle;
-
-      ImGui::GetStyle().ScaleAllSizes(e.xscale);
-      ImGui::GetIO().FontGlobalScale = e.xscale;
+      applyContentScale(e.xscale);
     });
+  }
+
+  void ImGuiInstance::applyContentScale(const float contentScale)
+  {
+    ImGuiStyle& style = ImGui::GetStyle();
+    style = m_baseStyle;
+    style.ScaleAllSizes(contentScale);
+
+    if (!ImGui::GetIO().ConfigDpiScaleFonts)
+    {
+      ImGui::GetIO().FontGlobalScale = contentScale;
+      return;
+    }
+
+    // ImGui multiplies text by the DPI scale of each window's monitor. That scale is 1 where the platform works in
+    // points (macOS), so whatever part of the main window's content scale it doesn't cover goes into the main font scale.
+    const float monitorScale = ImGui_ImplGlfw_GetContentScaleForWindow(m_window->getWindow());
+    if (monitorScale > 0.0f)
+    {
+      style.FontScaleMain = m_baseStyle.FontScaleMain * contentScale / monitorScale;
+    }
   }
 
   void ImGuiInstance::displayDockSpace()
@@ -483,29 +549,83 @@ namespace vke {
     return minimumSize;
   }
 
+  float ImGuiInstance::getViewportDpiScale(ImGuiViewport* viewport)
+  {
+    // ImGui would otherwise take the DPI of the monitor holding most of the window. Rescaling a window for a new DPI
+    // resizes it around its top-left corner, which can hand that majority back to the previous monitor, so a window
+    // straddling the border changed DPI every frame. The DPI only changes once another monitor holds more than
+    // ratio / (1 + ratio) of the window, where ratio is the size change the switch causes; after that resize the
+    // previous monitor can't hold as much. The margin keeps rounding from reopening the loop.
+    const ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+
+    const auto overlapArea = [viewport](const ImGuiPlatformMonitor& monitor) {
+      const float width = std::min(viewport->Pos.x + viewport->Size.x, monitor.MainPos.x + monitor.MainSize.x) -
+                          std::max(viewport->Pos.x, monitor.MainPos.x);
+      const float height = std::min(viewport->Pos.y + viewport->Size.y, monitor.MainPos.y + monitor.MainSize.y) -
+                           std::max(viewport->Pos.y, monitor.MainPos.y);
+      return std::max(width, 0.0f) * std::max(height, 0.0f);
+    };
+
+    float totalArea = 0.0f;
+    float bestScale = 0.0f;
+    float bestArea = 0.0f;
+    for (const ImGuiPlatformMonitor& monitor : platformIO.Monitors)
+    {
+      if (monitor.DpiScale <= 0.0f)
+      {
+        continue;
+      }
+
+      totalArea += overlapArea(monitor);
+
+      // Monitors sharing a scale count together, so a window spanning two of them isn't split between them.
+      float scaleArea = 0.0f;
+      for (const ImGuiPlatformMonitor& other : platformIO.Monitors)
+      {
+        if (other.DpiScale == monitor.DpiScale)
+        {
+          scaleArea += overlapArea(other);
+        }
+      }
+
+      if (scaleArea > bestArea)
+      {
+        bestArea = scaleArea;
+        bestScale = monitor.DpiScale;
+      }
+    }
+
+    const float currentScale = viewport->DpiScale;
+
+    if (bestArea <= 0.0f)
+    {
+      return currentScale > 0.0f ? currentScale : 1.0f;
+    }
+
+    if (currentScale <= 0.0f || bestScale == currentScale)
+    {
+      return bestScale;
+    }
+
+    const float ratio = std::max(bestScale, currentScale) / std::min(bestScale, currentScale);
+    const float switchShare = ratio / (1.0f + ratio) + 0.05f;
+
+    return bestArea / totalArea > switchShare ? bestScale : currentScale;
+  }
+
   void ImGuiInstance::renderPlatformWindows()
   {
-    if (!ALLOW_VIEWPORTS)
+    if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
     {
       return;
     }
 
+    // Creates, resizes and destroys the OS windows. The backend waits for the device to be idle before destroying or
+    // rebuilding a window's swapchain.
     ImGui::UpdatePlatformWindows();
 
-    ImGuiPlatformIO& pio = ImGui::GetPlatformIO();
-
-    for (int i = 1; i < pio.Viewports.Size; i++) // skip [0] = main viewport
-    {
-      ImGuiViewport* vp = pio.Viewports[i];
-      if (pio.Renderer_RenderWindow)
-      {
-        pio.Renderer_RenderWindow(vp, nullptr);
-      }
-      if (pio.Renderer_SwapBuffers)
-      {
-        pio.Renderer_SwapBuffers(vp, nullptr);
-      }
-    }
+    // Skips minimized windows, whose swapchains would be zero-sized.
+    ImGui::RenderPlatformWindowsDefault();
   }
 
   void ImGuiInstance::renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer)

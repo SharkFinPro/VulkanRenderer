@@ -252,7 +252,11 @@ namespace vke {
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
-    m_renderer3D->getMousePicker()->setViewportPos(ImGui::GetCursorScreenPos());
+    // The picker compares this with a window-relative cursor, and ImGui positions are screen positions once windows can
+    // detach.
+    const ImVec2 imagePos = ImGui::GetCursorScreenPos();
+    const ImVec2 windowViewportPos = ImGui::GetWindowViewport()->Pos;
+    m_renderer3D->getMousePicker()->setViewportPos({ imagePos.x - windowViewportPos.x, imagePos.y - windowViewportPos.y });
 
     const auto offscreenImageDescriptorSet = m_renderTarget->getOffscreenResolveImageResource(currentFrame).getDescriptorSet();
 

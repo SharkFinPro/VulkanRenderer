@@ -27,6 +27,9 @@ namespace vke {
 
     struct ImGui {
       bool useDockspace = true;
+      // With the dockspace, a window dragged outside the main window becomes its own OS window. Has no effect on Wayland,
+      // where windows can't be positioned, or when the engine presents from a queue family other than graphics.
+      bool detachableWindows = true;
       std::string sceneViewName = "Scene View";
       uint32_t maxTextures = 5;
       std::function<void()> styleSetup;

@@ -72,7 +72,7 @@ namespace vke {
     bool m_useDockSpace;
 
     // Must match the color attachment format of the swapchain pass ImGui renders into.
-    // Stored as a member because the ImGui Vulkan backend keeps a pointer to it.
+    // Stored as a member because the ImGui Vulkan backend reads it again when it creates the first detached window.
     VkFormat m_swapchainColorFormat = VK_FORMAT_UNDEFINED;
 
     float m_topDockPercent = 0.15f;
@@ -100,6 +100,8 @@ namespace vke {
 
     void initFromWindow();
 
+    void applyContentScale(float contentScale);
+
     void displayDockSpace();
 
     void enforceDockedWindowMinimumSizes(ImGuiID dockSpaceID) const;
@@ -111,6 +113,8 @@ namespace vke {
                                       ImVec2 size);
 
     [[nodiscard]] ImVec2 getDockNodeMinimumSize(const ImGuiDockNode* node) const;
+
+    static float getViewportDpiScale(ImGuiViewport* viewport);
 
     static void renderPlatformWindows();
 
