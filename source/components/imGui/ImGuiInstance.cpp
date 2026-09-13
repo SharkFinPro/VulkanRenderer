@@ -39,14 +39,25 @@ namespace vke {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
         // A detached window can sit on a monitor with a different DPI from the main window. ImGui then sizes each
-        // window's text for its own monitor and rescales windows that move between monitors. Padding and other style
-        // sizes stay at the main window's scale; ImGui can't scale those per monitor yet.
+        // window's text for its own monitor and rescales windows that move between monitors, with the DPI chosen by
+        // getViewportDpiScale(). Padding and other style sizes stay at the main window's scale; ImGui can't scale those
+        // per monitor yet.
         ImGui::GetIO().ConfigDpiScaleFonts = true;
         ImGui::GetIO().ConfigDpiScaleViewports = true;
+
+        // GLFW keeps window hints, so the windows ImGui creates would inherit the main window's scale-to-monitor hint.
+        // Windows would then resize them for DPI on its own, on top of ImGui's rescale, and their size would stop
+        // matching the size ImGui draws.
+        glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
       }
     }
 
     ImGui_ImplGlfw_InitForVulkan(window->getWindow(), true);
+
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+      ImGui::GetPlatformIO().Platform_GetWindowDpiScale = getViewportDpiScale;
+    }
 
     if (config.styleSetup)
     {
@@ -536,6 +547,70 @@ namespace vke {
     minimumSize[axis ^ 1] = std::max(minimum0[axis ^ 1], minimum1[axis ^ 1]);
 
     return minimumSize;
+  }
+
+  float ImGuiInstance::getViewportDpiScale(ImGuiViewport* viewport)
+  {
+    // ImGui would otherwise take the DPI of the monitor holding most of the window. Rescaling a window for a new DPI
+    // resizes it around its top-left corner, which can hand that majority back to the previous monitor, so a window
+    // straddling the border changed DPI every frame. The DPI only changes once another monitor holds more than
+    // ratio / (1 + ratio) of the window, where ratio is the size change the switch causes; after that resize the
+    // previous monitor can't hold as much. The margin keeps rounding from reopening the loop.
+    const ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+
+    const auto overlapArea = [viewport](const ImGuiPlatformMonitor& monitor) {
+      const float width = std::min(viewport->Pos.x + viewport->Size.x, monitor.MainPos.x + monitor.MainSize.x) -
+                          std::max(viewport->Pos.x, monitor.MainPos.x);
+      const float height = std::min(viewport->Pos.y + viewport->Size.y, monitor.MainPos.y + monitor.MainSize.y) -
+                           std::max(viewport->Pos.y, monitor.MainPos.y);
+      return std::max(width, 0.0f) * std::max(height, 0.0f);
+    };
+
+    float totalArea = 0.0f;
+    float bestScale = 0.0f;
+    float bestArea = 0.0f;
+    for (const ImGuiPlatformMonitor& monitor : platformIO.Monitors)
+    {
+      if (monitor.DpiScale <= 0.0f)
+      {
+        continue;
+      }
+
+      totalArea += overlapArea(monitor);
+
+      // Monitors sharing a scale count together, so a window spanning two of them isn't split between them.
+      float scaleArea = 0.0f;
+      for (const ImGuiPlatformMonitor& other : platformIO.Monitors)
+      {
+        if (other.DpiScale == monitor.DpiScale)
+        {
+          scaleArea += overlapArea(other);
+        }
+      }
+
+      if (scaleArea > bestArea)
+      {
+        bestArea = scaleArea;
+        bestScale = monitor.DpiScale;
+      }
+    }
+
+    const float currentScale = viewport->DpiScale;
+
+    if (bestArea <= 0.0f)
+    {
+      return currentScale > 0.0f ? currentScale : 1.0f;
+    }
+
+    if (currentScale <= 0.0f || bestScale == currentScale)
+    {
+      return bestScale;
+    }
+
+    const float ratio = std::max(bestScale, currentScale) / std::min(bestScale, currentScale);
+    const float switchShare = ratio / (1.0f + ratio) + 0.05f;
+
+    return bestArea / totalArea > switchShare ? bestScale : currentScale;
   }
 
   void ImGuiInstance::renderPlatformWindows()

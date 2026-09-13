@@ -114,6 +114,8 @@ namespace vke {
 
     [[nodiscard]] ImVec2 getDockNodeMinimumSize(const ImGuiDockNode* node) const;
 
+    static float getViewportDpiScale(ImGuiViewport* viewport);
+
     static void renderPlatformWindows();
 
     static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);
