@@ -69,10 +69,25 @@ namespace vke {
   {
     m_window->update();
 
-    if (m_renderingManager->isSceneFocused() && m_camera->isEnabled())
+    if (m_camera->isEnabled())
     {
-      m_camera->processInput(m_window);
-      m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
+      const bool sceneFocused = m_renderingManager->isSceneFocused();
+      const bool sceneHovered = m_renderingManager->isSceneHovered();
+
+      if (sceneFocused)
+      {
+        m_camera->processInput(m_window);
+      }
+
+      if (sceneHovered)
+      {
+        m_camera->processScroll(m_window);
+      }
+
+      if (sceneFocused || sceneHovered)
+      {
+        m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
+      }
     }
 
     const auto frameScheduler = m_renderingManager->getFrameScheduler();
