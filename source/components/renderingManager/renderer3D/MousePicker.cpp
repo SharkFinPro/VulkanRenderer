@@ -108,19 +108,19 @@ namespace vke {
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,
                                                       int32_t& mouseY)
   {
-    if (m_viewportExtent.width == 0 || m_viewportExtent.height == 0)
+    const ImVec2 mousePos = ImGui::GetIO().MousePos;
+
+    // ImGui reports this when no mouse is available/positioned (e.g. this frame's window lost the mouse).
+    if (m_viewportExtent.width == 0 || m_viewportExtent.height == 0 || !ImGui::IsMousePosValid(&mousePos))
     {
       m_canMousePick = false;
     }
     else
     {
-      double mouseXPos, mouseYPos;
-      m_window->getCursorPos(mouseXPos, mouseYPos);
-      mouseX = static_cast<int32_t>(mouseXPos);
-      mouseY = static_cast<int32_t>(mouseYPos);
-
-      mouseX -= static_cast<int32_t>(m_viewportPos.x);
-      mouseY -= static_cast<int32_t>(m_viewportPos.y);
+      // Both mousePos and m_viewportPos are absolute screen coordinates, so this holds whichever OS window (main or
+      // a detached viewport) the cursor and the scene image are actually in.
+      mouseX = static_cast<int32_t>(mousePos.x - m_viewportPos.x);
+      mouseY = static_cast<int32_t>(mousePos.y - m_viewportPos.y);
 
       m_canMousePick = !(mouseX < 0 || mouseX > m_viewportExtent.width - 1 ||
                          mouseY < 0 || mouseY > m_viewportExtent.height - 1);
