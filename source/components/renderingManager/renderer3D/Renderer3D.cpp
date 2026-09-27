@@ -18,15 +18,14 @@
 namespace vke {
 
   Renderer3D::Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
-                         std::shared_ptr<AssetManager> assetManager,
-                         std::shared_ptr<Window> window)
+                         std::shared_ptr<AssetManager> assetManager)
     : m_logicalDevice(std::move(logicalDevice)), m_assetManager(std::move(assetManager))
   {
     createCommandPool();
 
     createDescriptorPool();
 
-    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, std::move(window), m_commandPool);
+    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_commandPool);
 
     createDescriptorSets();
 
