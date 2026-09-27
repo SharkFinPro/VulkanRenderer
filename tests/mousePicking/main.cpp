@@ -50,6 +50,19 @@ int main()
     std::vector<std::shared_ptr<vke::Light>> lights;
     setupScene(renderer, mousePickingObjects, objects, lights);
 
+    renderer.getRenderingManager()->setSceneOverlay([](ImDrawList* drawList, const vke::SceneViewRect& rect) {
+      constexpr float inset = 4.0f;
+      drawList->AddRect(
+        ImVec2(rect.x + inset, rect.y + inset),
+        ImVec2(rect.x + rect.width - inset, rect.y + rect.height - inset),
+        IM_COL32(255, 255, 0, 255));
+
+      const ImVec2 center(rect.x + rect.width * 0.5f, rect.y + rect.height * 0.5f);
+      constexpr float crosshairSize = 6.0f;
+      drawList->AddLine(ImVec2(center.x - crosshairSize, center.y), ImVec2(center.x + crosshairSize, center.y), IM_COL32(255, 255, 0, 255));
+      drawList->AddLine(ImVec2(center.x, center.y - crosshairSize), ImVec2(center.x, center.y + crosshairSize), IM_COL32(255, 255, 0, 255));
+    });
+
     while (renderer.isActive())
     {
       displayGui(renderer.getImGuiInstance(), lights, objects, renderer.getRenderingManager());

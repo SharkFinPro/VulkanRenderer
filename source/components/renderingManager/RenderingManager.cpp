@@ -219,6 +219,22 @@ namespace vke {
       m_sceneIsHovered = m_sceneIsFocused;
       m_renderer3D->getMousePicker()->setViewportPos({ 0.0f, 0.0f });
 
+      const auto mainViewport = ImGui::GetMainViewport();
+
+      // The swapchain extent is framebuffer pixels; mainViewport->Size is already in the same ImGui
+      // screen coordinates as Pos and MousePos, so it is what a caller mapping the cursor needs.
+      m_sceneViewRect = SceneViewRect {
+        .x = mainViewport->Pos.x,
+        .y = mainViewport->Pos.y,
+        .width = mainViewport->Size.x,
+        .height = mainViewport->Size.y
+      };
+
+      if (m_sceneOverlay)
+      {
+        m_sceneOverlay(ImGui::GetBackgroundDrawList(mainViewport), m_sceneViewRect);
+      }
+
       return;
     }
 
@@ -237,6 +253,7 @@ namespace vke {
     if (currentOffscreenViewportExtent.width == 0 || currentOffscreenViewportExtent.height == 0)
     {
       m_offscreenViewportExtent = currentOffscreenViewportExtent;
+      m_sceneViewRect = SceneViewRect{};
       ImGui::End();
       return;
     }
@@ -258,11 +275,33 @@ namespace vke {
     const ImVec2 windowViewportPos = ImGui::GetWindowViewport()->Pos;
     m_renderer3D->getMousePicker()->setViewportPos({ imagePos.x - windowViewportPos.x, imagePos.y - windowViewportPos.y });
 
+    m_sceneViewRect = SceneViewRect {
+      .x = imagePos.x,
+      .y = imagePos.y,
+      .width = contentRegionAvailable.x,
+      .height = contentRegionAvailable.y
+    };
+
     const auto offscreenImageDescriptorSet = m_renderTarget->getOffscreenResolveImageResource(currentFrame).getDescriptorSet();
 
     ImGui::Image(static_cast<ImTextureRef>(offscreenImageDescriptorSet), contentRegionAvailable);
 
+    if (m_sceneOverlay)
+    {
+      m_sceneOverlay(ImGui::GetWindowDrawList(), m_sceneViewRect);
+    }
+
     ImGui::End();
+  }
+
+  SceneViewRect RenderingManager::getSceneViewRect() const
+  {
+    return m_sceneViewRect;
+  }
+
+  void RenderingManager::setSceneOverlay(SceneOverlayCallback callback)
+  {
+    m_sceneOverlay = std::move(callback);
   }
 
   void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
