@@ -219,6 +219,19 @@ namespace vke {
       m_sceneIsHovered = m_sceneIsFocused;
       m_renderer3D->getMousePicker()->setViewportPos({ 0.0f, 0.0f });
 
+      const ImVec2 mainViewportPos = ImGui::GetMainViewport()->Pos;
+      m_sceneViewRect = SceneViewRect {
+        .x = mainViewportPos.x,
+        .y = mainViewportPos.y,
+        .width = static_cast<float>(currentOffscreenViewportExtent.width),
+        .height = static_cast<float>(currentOffscreenViewportExtent.height)
+      };
+
+      if (m_sceneOverlay)
+      {
+        m_sceneOverlay(ImGui::GetBackgroundDrawList(ImGui::GetMainViewport()), m_sceneViewRect);
+      }
+
       return;
     }
 
@@ -237,6 +250,7 @@ namespace vke {
     if (currentOffscreenViewportExtent.width == 0 || currentOffscreenViewportExtent.height == 0)
     {
       m_offscreenViewportExtent = currentOffscreenViewportExtent;
+      m_sceneViewRect = SceneViewRect{};
       ImGui::End();
       return;
     }
@@ -258,11 +272,33 @@ namespace vke {
     const ImVec2 windowViewportPos = ImGui::GetWindowViewport()->Pos;
     m_renderer3D->getMousePicker()->setViewportPos({ imagePos.x - windowViewportPos.x, imagePos.y - windowViewportPos.y });
 
+    m_sceneViewRect = SceneViewRect {
+      .x = imagePos.x,
+      .y = imagePos.y,
+      .width = contentRegionAvailable.x,
+      .height = contentRegionAvailable.y
+    };
+
     const auto offscreenImageDescriptorSet = m_renderTarget->getOffscreenResolveImageResource(currentFrame).getDescriptorSet();
 
     ImGui::Image(static_cast<ImTextureRef>(offscreenImageDescriptorSet), contentRegionAvailable);
 
+    if (m_sceneOverlay)
+    {
+      m_sceneOverlay(ImGui::GetWindowDrawList(), m_sceneViewRect);
+    }
+
     ImGui::End();
+  }
+
+  SceneViewRect RenderingManager::getSceneViewRect() const
+  {
+    return m_sceneViewRect;
+  }
+
+  void RenderingManager::setSceneOverlay(SceneOverlayCallback callback)
+  {
+    m_sceneOverlay = std::move(callback);
   }
 
   void RenderingManager::recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,

@@ -3,8 +3,11 @@
 
 #include "../../utilities/EventSystem.h"
 #include <vulkan/vulkan_raii.hpp>
+#include <functional>
 #include <memory>
 #include <string>
+
+struct ImDrawList;
 
 namespace vke {
 
@@ -21,6 +24,16 @@ namespace vke {
   class Surface;
   class SwapChain;
   class Window;
+
+  // Where the scene image sits, in ImGui screen coordinates (the space ImGui::GetIO().MousePos uses).
+  struct SceneViewRect {
+    float x = 0.0f;
+    float y = 0.0f;
+    float width = 0.0f;
+    float height = 0.0f;
+  };
+
+  using SceneOverlayCallback = std::function<void(ImDrawList* drawList, const SceneViewRect& rect)>;
 
   class RenderingManager {
   public:
@@ -64,6 +77,11 @@ namespace vke {
 
     [[nodiscard]] bool isRayTracingEnabled() const;
 
+    [[nodiscard]] SceneViewRect getSceneViewRect() const;
+
+    // Called once per frame right after the scene image is drawn; pass nullptr / an empty function to clear.
+    void setSceneOverlay(SceneOverlayCallback callback);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -102,6 +120,10 @@ namespace vke {
     EventListener<FramebufferResizeEvent> m_framebufferResizeEventListener;
 
     bool m_rayTracingEnabled;
+
+    SceneViewRect m_sceneViewRect;
+
+    SceneOverlayCallback m_sceneOverlay;
 
     void renderGuiScene(uint32_t currentFrame);
 
