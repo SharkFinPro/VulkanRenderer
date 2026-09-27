@@ -3,16 +3,14 @@
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
-#include "../../window/Window.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
 
 namespace vke {
 
   MousePicker::MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
-                           std::shared_ptr<Window> window,
                            const vk::CommandPool commandPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_window(std::move(window)), m_commandPool(commandPool)
+    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
     constexpr vk::DeviceSize bufferSize = 4;
 
