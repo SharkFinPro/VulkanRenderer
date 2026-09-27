@@ -219,17 +219,20 @@ namespace vke {
       m_sceneIsHovered = m_sceneIsFocused;
       m_renderer3D->getMousePicker()->setViewportPos({ 0.0f, 0.0f });
 
-      const ImVec2 mainViewportPos = ImGui::GetMainViewport()->Pos;
+      const auto mainViewport = ImGui::GetMainViewport();
+
+      // The swapchain extent is framebuffer pixels; mainViewport->Size is already in the same ImGui
+      // screen coordinates as Pos and MousePos, so it is what a caller mapping the cursor needs.
       m_sceneViewRect = SceneViewRect {
-        .x = mainViewportPos.x,
-        .y = mainViewportPos.y,
-        .width = static_cast<float>(currentOffscreenViewportExtent.width),
-        .height = static_cast<float>(currentOffscreenViewportExtent.height)
+        .x = mainViewport->Pos.x,
+        .y = mainViewport->Pos.y,
+        .width = mainViewport->Size.x,
+        .height = mainViewport->Size.y
       };
 
       if (m_sceneOverlay)
       {
-        m_sceneOverlay(ImGui::GetBackgroundDrawList(ImGui::GetMainViewport()), m_sceneViewRect);
+        m_sceneOverlay(ImGui::GetBackgroundDrawList(mainViewport), m_sceneViewRect);
       }
 
       return;
