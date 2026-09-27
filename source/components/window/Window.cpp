@@ -130,7 +130,54 @@ namespace vke {
 
   bool Window::buttonIsPressed(const int button) const
   {
-    return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
+    if (glfwGetMouseButton(m_window, button) == GLFW_PRESS)
+    {
+      return true;
+    }
+
+    for (GLFWwindow* inputWindow : m_inputWindows)
+    {
+      if (glfwGetMouseButton(inputWindow, button) == GLFW_PRESS)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void Window::handleKey(const int key,
+                         const int scancode,
+                         const int action,
+                         const int mods)
+  {
+    m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
+
+    emit(KeyCallbackEvent{key, scancode, action, mods});
+
+    if (m_closeOnEscape && key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+      requestClose();
+    }
+  }
+
+  void Window::handleScroll(const double xoffset,
+                            const double yoffset)
+  {
+    // One poll can deliver several scroll events; update() resets the total once per frame.
+    m_scroll += yoffset;
+
+    emit(ScrollEvent{xoffset, yoffset});
+  }
+
+  void Window::addInputWindow(GLFWwindow* window)
+  {
+    m_inputWindows.push_back(window);
+  }
+
+  void Window::removeInputWindow(GLFWwindow* window)
+  {
+    std::erase(m_inputWindows, window);
   }
 
   void Window::getCursorPos(double& xpos,
@@ -162,10 +209,7 @@ namespace vke {
                               const double yoffset)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-    // One poll can deliver several scroll events; update() resets the total once per frame.
-    app->m_scroll += yoffset;
-
-    app->emit(ScrollEvent{xoffset, yoffset});
+    app->handleScroll(xoffset, yoffset);
   }
 
   void Window::framebufferResizeCallback(GLFWwindow* window,
@@ -199,15 +243,7 @@ namespace vke {
                            const int mods)
   {
     const auto app = static_cast<Window*>(glfwGetWindowUserPointer(window));
-
-    app->m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
-
-    app->emit(KeyCallbackEvent{key, scancode, action, mods});
-
-    if (app->m_closeOnEscape && key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-      app->requestClose();
-    }
+    app->handleKey(key, scancode, action, mods);
   }
 
   void Window::dropCallback(GLFWwindow* window,

@@ -217,9 +217,13 @@ namespace vke {
 
       m_sceneIsFocused = !ImGui::GetIO().WantCaptureMouse;
       m_sceneIsHovered = m_sceneIsFocused;
-      m_renderer3D->getMousePicker()->setViewportPos({ 0.0f, 0.0f });
 
       const auto mainViewport = ImGui::GetMainViewport();
+
+      // mainViewport->Pos is (0, 0) with viewports disabled, matching io.MousePos being main-window-client-relative
+      // there; with viewports enabled it is the main window's actual screen position, matching io.MousePos being a
+      // screen coordinate.
+      m_renderer3D->getMousePicker()->setViewportPos(mainViewport->Pos);
 
       // The swapchain extent is framebuffer pixels; mainViewport->Size is already in the same ImGui
       // screen coordinates as Pos and MousePos, so it is what a caller mapping the cursor needs.
@@ -269,11 +273,11 @@ namespace vke {
       m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
     }
 
-    // The picker compares this with a window-relative cursor, and ImGui positions are screen positions once windows can
-    // detach.
+    // The picker now compares this against io.MousePos, which is an absolute screen coordinate once windows can
+    // detach (and main-window-client-relative, matching this, with viewports disabled), so no window-relative
+    // origin needs subtracting here.
     const ImVec2 imagePos = ImGui::GetCursorScreenPos();
-    const ImVec2 windowViewportPos = ImGui::GetWindowViewport()->Pos;
-    m_renderer3D->getMousePicker()->setViewportPos({ imagePos.x - windowViewportPos.x, imagePos.y - windowViewportPos.y });
+    m_renderer3D->getMousePicker()->setViewportPos(imagePos);
 
     m_sceneViewRect = SceneViewRect {
       .x = imagePos.x,

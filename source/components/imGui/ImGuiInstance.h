@@ -116,6 +116,22 @@ namespace vke {
 
     static float getViewportDpiScale(ImGuiViewport* viewport);
 
+    // ImGui's own GLFW backend creates a plain GLFW window per detached viewport and installs only its own key/
+    // scroll callbacks on it (unlike the main window's, which chains through ImGui_ImplGlfw_InstallCallbacks), so
+    // without this a detached window's input never reaches vke::Window. Wraps Platform_CreateWindow/DestroyWindow
+    // to also forward key/scroll events there.
+    static void enableSecondaryWindowInput(const std::shared_ptr<Window>& window);
+
+    static void forwardPlatformCreateWindow(ImGuiViewport* viewport);
+
+    static void forwardPlatformDestroyWindow(ImGuiViewport* viewport);
+
+    // Only one vke::Window exists per process, so a static pointer is enough for the platform trampolines above
+    // (which ImGui calls with no per-viewport user data of ours) to reach it.
+    static Window* s_inputWindow;
+    static void (*s_platformCreateWindow)(ImGuiViewport*);
+    static void (*s_platformDestroyWindow)(ImGuiViewport*);
+
     static void renderPlatformWindows();
 
     static void renderDrawData(const std::shared_ptr<CommandBuffer>& commandBuffer);

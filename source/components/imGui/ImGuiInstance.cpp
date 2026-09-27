@@ -14,6 +14,10 @@
 
 namespace vke {
 
+  Window* ImGuiInstance::s_inputWindow = nullptr;
+  void (*ImGuiInstance::s_platformCreateWindow)(ImGuiViewport*) = nullptr;
+  void (*ImGuiInstance::s_platformDestroyWindow)(ImGuiViewport*) = nullptr;
+
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                                const std::shared_ptr<Instance>& instance,
                                const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -57,6 +61,8 @@ namespace vke {
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
       ImGui::GetPlatformIO().Platform_GetWindowDpiScale = getViewportDpiScale;
+
+      enableSecondaryWindowInput(window);
     }
 
     if (config.styleSetup)
@@ -127,6 +133,11 @@ namespace vke {
     ImGui::DestroyContext();
 
     m_window->removeListener(m_contentScaleEventListener);
+
+    if (s_inputWindow == m_window.get())
+    {
+      s_inputWindow = nullptr;
+    }
   }
 
   void ImGuiInstance::createNewFrame()
@@ -611,6 +622,52 @@ namespace vke {
     const float switchShare = ratio / (1.0f + ratio) + 0.05f;
 
     return bestArea / totalArea > switchShare ? bestScale : currentScale;
+  }
+
+  void ImGuiInstance::enableSecondaryWindowInput(const std::shared_ptr<Window>& window)
+  {
+    s_inputWindow = window.get();
+
+    ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+    s_platformCreateWindow = platformIO.Platform_CreateWindow;
+    s_platformDestroyWindow = platformIO.Platform_DestroyWindow;
+
+    platformIO.Platform_CreateWindow = forwardPlatformCreateWindow;
+    platformIO.Platform_DestroyWindow = forwardPlatformDestroyWindow;
+  }
+
+  void ImGuiInstance::forwardPlatformCreateWindow(ImGuiViewport* viewport)
+  {
+    s_platformCreateWindow(viewport);
+
+    // PlatformHandle is the GLFWwindow* ImGui_ImplGlfw_CreateWindow just created; it is only valid after that call.
+    const auto glfwWindow = static_cast<GLFWwindow*>(viewport->PlatformHandle);
+
+    // Do not use glfwSetWindowUserPointer here: ImGui's own GLFW backend deliberately avoids it (it looks up its
+    // per-window backend data through its own map instead) because it is a single, shared slot a detached window's
+    // owner can't safely share with us.
+    glfwSetKeyCallback(glfwWindow, [](GLFWwindow* w, const int key, const int scancode, const int action, const int mods) {
+      ImGui_ImplGlfw_KeyCallback(w, key, scancode, action, mods);
+      s_inputWindow->handleKey(key, scancode, action, mods);
+    });
+
+    glfwSetScrollCallback(glfwWindow, [](GLFWwindow* w, const double xoffset, const double yoffset) {
+      ImGui_ImplGlfw_ScrollCallback(w, xoffset, yoffset);
+      s_inputWindow->handleScroll(xoffset, yoffset);
+    });
+
+    s_inputWindow->addInputWindow(glfwWindow);
+  }
+
+  void ImGuiInstance::forwardPlatformDestroyWindow(ImGuiViewport* viewport)
+  {
+    // PlatformHandle is cleared by the real Platform_DestroyWindow, so it must be read before calling it.
+    if (const auto glfwWindow = static_cast<GLFWwindow*>(viewport->PlatformHandle))
+    {
+      s_inputWindow->removeInputWindow(glfwWindow);
+    }
+
+    s_platformDestroyWindow(viewport);
   }
 
   void ImGuiInstance::renderPlatformWindows()

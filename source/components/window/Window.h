@@ -67,6 +67,23 @@ namespace vke {
 
     [[nodiscard]] bool buttonIsPressed(int button) const;
 
+    // Routes a key event from a GLFW window other than the main one (a detached ImGui viewport) through the same
+    // state update and KeyCallbackEvent the main window's own keyCallback triggers.
+    void handleKey(int key,
+                   int scancode,
+                   int action,
+                   int mods);
+
+    // Same as handleKey(), for scroll events from a detached window.
+    void handleScroll(double xoffset,
+                      double yoffset);
+
+    // Registers/unregisters a GLFW window (a detached ImGui viewport) whose mouse buttons buttonIsPressed() should
+    // also check. GLFW tracks per-window button state regardless of callbacks, so no event needs forwarding for it.
+    void addInputWindow(GLFWwindow* window);
+
+    void removeInputWindow(GLFWwindow* window);
+
     void getCursorPos(double& xpos,
                       double& ypos) const;
 
@@ -102,6 +119,8 @@ namespace vke {
     double m_scroll = 0.0;
 
     std::unordered_map<int, bool> m_keysPressed;
+
+    std::vector<GLFWwindow*> m_inputWindows;
 
     float m_contentScale = 1.0f;
 
