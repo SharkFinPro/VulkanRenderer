@@ -151,6 +151,13 @@ namespace vke {
                          const int action,
                          const int mods)
   {
+    // A press or release that arrives through any path settles the key's state, so any secondary window it was
+    // recorded against must not release it again later; handleSecondaryWindowKey() re-records its own presses.
+    if (action != GLFW_REPEAT)
+    {
+      m_keyOwnerWindow.erase(key);
+    }
+
     m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
 
     emit(KeyCallbackEvent{key, scancode, action, mods});
@@ -176,19 +183,12 @@ namespace vke {
                                         const int action,
                                         const int mods)
   {
-    if (key >= 0)
-    {
-      if (action == GLFW_PRESS)
-      {
-        m_keyOwnerWindow[key] = sourceWindow;
-      }
-      else if (action == GLFW_RELEASE)
-      {
-        m_keyOwnerWindow.erase(key);
-      }
-    }
-
     handleKey(key, scancode, action, mods);
+
+    if (key >= 0 && action == GLFW_PRESS)
+    {
+      m_keyOwnerWindow[key] = sourceWindow;
+    }
   }
 
   void Window::addInputWindow(GLFWwindow* window)
