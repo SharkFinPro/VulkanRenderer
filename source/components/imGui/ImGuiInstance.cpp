@@ -648,7 +648,7 @@ namespace vke {
     // owner can't safely share with us.
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* w, const int key, const int scancode, const int action, const int mods) {
       ImGui_ImplGlfw_KeyCallback(w, key, scancode, action, mods);
-      s_inputWindow->handleKey(key, scancode, action, mods);
+      s_inputWindow->handleSecondaryWindowKey(w, key, scancode, action, mods);
     });
 
     glfwSetScrollCallback(glfwWindow, [](GLFWwindow* w, const double xoffset, const double yoffset) {
