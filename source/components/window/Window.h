@@ -67,8 +67,8 @@ namespace vke {
 
     [[nodiscard]] bool buttonIsPressed(int button) const;
 
-    // Routes a key event from a GLFW window other than the main one (a detached ImGui viewport) through the same
-    // state update and KeyCallbackEvent the main window's own keyCallback triggers.
+    // The state update and KeyCallbackEvent emission shared by the main window's own keyCallback and
+    // handleSecondaryWindowKey() below.
     void handleKey(int key,
                    int scancode,
                    int action,
@@ -78,10 +78,22 @@ namespace vke {
     void handleScroll(double xoffset,
                       double yoffset);
 
-    // Registers/unregisters a GLFW window (a detached ImGui viewport) whose mouse buttons buttonIsPressed() should
-    // also check. GLFW tracks per-window button state regardless of callbacks, so no event needs forwarding for it.
+    // Entry point for a key event from a GLFW window other than the main one (a detached ImGui viewport). Records
+    // which window a pressed key came from, so removeInputWindow() can synthesize its release: GLFW never delivers
+    // one for a window it is about to destroy, so without this a key held when its window closes would stay "down"
+    // forever (e.g. a stuck WASD key after redocking the scene view).
+    void handleSecondaryWindowKey(GLFWwindow* sourceWindow,
+                                  int key,
+                                  int scancode,
+                                  int action,
+                                  int mods);
+
+    // Registers a GLFW window (a detached ImGui viewport) whose mouse buttons buttonIsPressed() should also check.
+    // GLFW tracks per-window button state regardless of callbacks, so no event needs forwarding for it.
     void addInputWindow(GLFWwindow* window);
 
+    // Unregisters the window, releasing (through handleKey(), so KeyCallbackEvent still fires) every key still
+    // recorded as held through it.
     void removeInputWindow(GLFWwindow* window);
 
     void getCursorPos(double& xpos,
@@ -121,6 +133,9 @@ namespace vke {
     std::unordered_map<int, bool> m_keysPressed;
 
     std::vector<GLFWwindow*> m_inputWindows;
+
+    // Which registered input window last pressed a given key, so removeInputWindow() knows what to release.
+    std::unordered_map<int, GLFWwindow*> m_keyOwnerWindow;
 
     float m_contentScale = 1.0f;
 

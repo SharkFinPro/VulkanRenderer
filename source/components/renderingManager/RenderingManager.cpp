@@ -38,7 +38,7 @@ namespace vke {
 
     m_frameScheduler = std::make_shared<FrameScheduler>(m_logicalDevice);
 
-    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, assetManager, m_window);
+    m_renderer3D = std::make_shared<Renderer3D>(m_logicalDevice, assetManager);
 
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);

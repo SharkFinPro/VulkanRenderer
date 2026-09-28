@@ -29,7 +29,6 @@ namespace vke {
   class SmokeSystem;
   class Texture3D;
   class TextureCubemap;
-  class Window;
 
   struct BendyPlant {
     glm::vec3 position = glm::vec3(0.0f);
@@ -58,8 +57,7 @@ namespace vke {
   class Renderer3D {
   public:
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
-               std::shared_ptr<AssetManager> assetManager,
-               std::shared_ptr<Window> window);
+               std::shared_ptr<AssetManager> assetManager);
 
     void updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
                                uint32_t currentFrame) const;

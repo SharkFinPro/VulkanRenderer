@@ -151,6 +151,13 @@ namespace vke {
                          const int action,
                          const int mods)
   {
+    // A press or release that arrives through any path settles the key's state, so any secondary window it was
+    // recorded against must not release it again later; handleSecondaryWindowKey() re-records its own presses.
+    if (action != GLFW_REPEAT)
+    {
+      m_keyOwnerWindow.erase(key);
+    }
+
     m_keysPressed[key] = action == GLFW_PRESS || action == GLFW_REPEAT;
 
     emit(KeyCallbackEvent{key, scancode, action, mods});
@@ -170,6 +177,20 @@ namespace vke {
     emit(ScrollEvent{xoffset, yoffset});
   }
 
+  void Window::handleSecondaryWindowKey(GLFWwindow* sourceWindow,
+                                        const int key,
+                                        const int scancode,
+                                        const int action,
+                                        const int mods)
+  {
+    handleKey(key, scancode, action, mods);
+
+    if (key >= 0 && action == GLFW_PRESS)
+    {
+      m_keyOwnerWindow[key] = sourceWindow;
+    }
+  }
+
   void Window::addInputWindow(GLFWwindow* window)
   {
     m_inputWindows.push_back(window);
@@ -178,6 +199,22 @@ namespace vke {
   void Window::removeInputWindow(GLFWwindow* window)
   {
     std::erase(m_inputWindows, window);
+
+    // GLFW will not deliver release events for a window it is about to destroy, so any key still recorded as held
+    // through it must be released here first, the same way ImGui_ImplGlfw_DestroyWindow releases its own key state.
+    for (auto it = m_keyOwnerWindow.begin(); it != m_keyOwnerWindow.end();)
+    {
+      if (it->second == window)
+      {
+        const int key = it->first;
+        it = m_keyOwnerWindow.erase(it);
+        handleKey(key, 0, GLFW_RELEASE, 0);
+      }
+      else
+      {
+        ++it;
+      }
+    }
   }
 
   void Window::getCursorPos(double& xpos,

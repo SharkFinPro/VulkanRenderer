@@ -15,12 +15,10 @@ namespace vke {
   struct RenderInfo;
   class RenderObject;
   class SingleUseCommandBuffer;
-  class Window;
 
   class MousePicker {
   public:
     MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
-                std::shared_ptr<Window> window,
                 vk::CommandPool commandPool);
 
     [[nodiscard]] bool canMousePick() const;
@@ -40,7 +38,6 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
-    std::shared_ptr<Window> m_window;
 
     vk::Extent2D m_viewportExtent { 1, 1 };
 
