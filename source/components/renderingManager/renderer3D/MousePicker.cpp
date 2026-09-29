@@ -29,9 +29,18 @@ namespace vke {
     return m_canMousePick;
   }
 
+  void MousePicker::beginFrame()
+  {
+    m_canMousePick = false;
+  }
+
   void MousePicker::clearObjectsToMousePick()
   {
     m_renderObjectsToMousePick.clear();
+
+    // Ids restart at 1 each frame, and the pointers belong to the application, which may free them once it stops
+    // submitting an object.
+    m_mousePickingItems.clear();
   }
 
   void MousePicker::setViewportExtent(const vk::Extent2D viewportExtent)
@@ -83,24 +92,19 @@ namespace vke {
 
   void MousePicker::handleRenderedMousePickingImage(const vk::Image image)
   {
-	  if (m_mousePickingItems.empty())
-	  {
-	    return;
-	  }
+    // Checked even with nothing to pick, so canMousePick() still says whether the cursor is over the scene.
     int32_t mouseX, mouseY;
-    if (!validateMousePickingMousePosition(mouseX, mouseY))
+    if (!validateMousePickingMousePosition(mouseX, mouseY) || m_mousePickingItems.empty())
     {
       return;
     }
 
     const auto objectID = getIDFromMousePickingImage(image, mouseX, mouseY);
 
-    if (objectID == 0)
+    if (const auto item = m_mousePickingItems.find(objectID); item != m_mousePickingItems.end())
     {
-      return;
+      *item->second = true;
     }
-
-    *m_mousePickingItems.at(objectID) = true;
   }
 
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,

@@ -23,6 +23,10 @@ namespace vke {
 
     [[nodiscard]] bool canMousePick() const;
 
+    // Called before each frame's rendering, so a frame that never reaches the picking readback (a zero-sized scene
+    // view, a frame abandoned for a swapchain rebuild) reports that it can't pick rather than the previous answer.
+    void beginFrame();
+
     void clearObjectsToMousePick();
 
     void setViewportExtent(vk::Extent2D viewportExtent);
