@@ -93,7 +93,7 @@ namespace vke {
                              const glm::mat4& viewMatrix);
 
     // Vertical field of view in degrees. Throws std::invalid_argument unless all values are finite, 0 < fov < 180 and
-    // 0 < near < far. Ray tracing uses the field of view only; its ray range is fixed.
+    // 0 < near < far. Raster geometry and ray-traced camera rays are both cut at nearPlane and farPlane.
     void setProjectionParameters(float fieldOfViewDegrees,
                                  float nearPlane,
                                  float farPlane);

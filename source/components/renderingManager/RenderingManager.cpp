@@ -62,13 +62,23 @@ namespace vke {
                                      const std::shared_ptr<LightingManager>& lightingManager,
                                      const uint32_t currentFrame)
   {
+    if (isMinimized())
+    {
+      renderWithoutSwapchain(pipelineManager, lightingManager, currentFrame);
+      return;
+    }
+
     uint32_t imageIndex;
     auto result = m_frameScheduler->acquireNextImage(m_swapChain->getSwapChain(), &imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR)
     {
       m_framebufferResized = false;
-      recreateSwapChain();
+      if (!recreateSwapChain())
+      {
+        renderWithoutSwapchain(pipelineManager, lightingManager, currentFrame);
+        return;
+      }
 
       // The frame is abandoned with its compute work already submitted; bring the timeline up
       // to the frame's final value (recreateSwapChain left the device idle).
@@ -122,14 +132,14 @@ namespace vke {
     return m_swapChain->getImageFormat();
   }
 
-  void RenderingManager::recreateSwapChain()
+  bool RenderingManager::recreateSwapChain()
   {
-    int width = 0, height = 0;
-    m_window->getFramebufferSize(&width, &height);
-    while (width == 0 || height == 0)
+    // A minimized window has no size to build a swapchain for. Frames go on without one (detached windows are still on
+    // screen) until the window is restored, when this is retried.
+    if (isMinimized())
     {
-      m_window->getFramebufferSize(&width, &height);
-      glfwWaitEvents();
+      m_framebufferResized = true;
+      return false;
     }
 
     m_logicalDevice->waitIdle();
@@ -144,11 +154,59 @@ namespace vke {
 
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
-      return;
+      return true;
     }
 
     m_renderTarget->recreateImageResources(m_offscreenViewportExtent);
     m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
+
+    return true;
+  }
+
+  bool RenderingManager::isMinimized() const
+  {
+    int width = 0, height = 0;
+    m_window->getFramebufferSize(&width, &height);
+
+    return width == 0 || height == 0;
+  }
+
+  void RenderingManager::renderWithoutSwapchain(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                const std::shared_ptr<LightingManager>& lightingManager,
+                                                const uint32_t currentFrame)
+  {
+    // With nothing on screen, wait for the window system rather than render frames nobody sees.
+    if (!ImGuiInstance::hasVisibleDetachedWindows())
+    {
+      m_frameScheduler->submitFrameEndWithoutSwapchain();
+
+      // Without detached windows ImGui has no minimized state for the main window, and its next frame would lay the
+      // dockspace out at zero size, so wait for the window to be restored. With them, one event is enough to look again.
+      if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
+      {
+        while (isMinimized())
+        {
+          glfwWaitEvents();
+        }
+      }
+      else
+      {
+        glfwWaitEvents();
+      }
+
+      return;
+    }
+
+    m_renderer3D->updateLightingManager(lightingManager, currentFrame);
+
+    // The scene view may be one of the detached windows.
+    renderGuiScene(currentFrame);
+
+    recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
+
+    ImGuiInstance::renderDetachedWindows();
+
+    m_frameScheduler->submitFrameEndWithoutSwapchain();
   }
 
   void RenderingManager::createNewFrame() const
@@ -217,6 +275,7 @@ namespace vke {
 
       m_sceneIsFocused = !ImGui::GetIO().WantCaptureMouse;
       m_sceneIsHovered = m_sceneIsFocused;
+      m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
 
       const auto mainViewport = ImGui::GetMainViewport();
 
@@ -224,6 +283,7 @@ namespace vke {
       // there; with viewports enabled it is the main window's actual screen position, matching io.MousePos being a
       // screen coordinate.
       m_renderer3D->getMousePicker()->setViewportPos(mainViewport->Pos);
+      m_renderer3D->getMousePicker()->setViewportDisplaySize(mainViewport->Size);
 
       // The swapchain extent is framebuffer pixels; mainViewport->Size is already in the same ImGui
       // screen coordinates as Pos and MousePos, so it is what a caller mapping the cursor needs.
@@ -246,6 +306,7 @@ namespace vke {
 
     m_sceneIsFocused = ImGui::IsWindowFocused();
     m_sceneIsHovered = ImGui::IsWindowHovered();
+    m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
 
     const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
@@ -278,6 +339,7 @@ namespace vke {
     // origin needs subtracting here.
     const ImVec2 imagePos = ImGui::GetCursorScreenPos();
     m_renderer3D->getMousePicker()->setViewportPos(imagePos);
+    m_renderer3D->getMousePicker()->setViewportDisplaySize(contentRegionAvailable);
 
     m_sceneViewRect = SceneViewRect {
       .x = imagePos.x,
@@ -289,6 +351,21 @@ namespace vke {
     const auto offscreenImageDescriptorSet = m_renderTarget->getOffscreenResolveImageResource(currentFrame).getDescriptorSet();
 
     ImGui::Image(static_cast<ImTextureRef>(offscreenImageDescriptorSet), contentRegionAvailable);
+
+    // An image isn't an interactive item, so a left press on it counts as a press on the window's body, which moves
+    // the window once it is undocked. A button over the image takes the press instead. Overlap is allowed so items an
+    // application submits from the overlay, over the scene, still receive the mouse.
+    ImGui::SetCursorScreenPos(imagePos);
+    ImGui::SetNextItemAllowOverlap();
+    ImGui::InvisibleButton("##sceneImage", contentRegionAvailable);
+
+    // While the button holds the mouse it is the active item, which would otherwise stop the window counting as
+    // hovered for the rest of a drag over the scene, including the frame it is released on (the check at the top of
+    // this function still saw it active).
+    if (ImGui::IsItemActive() || ImGui::IsItemDeactivated())
+    {
+      m_sceneIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+    }
 
     if (m_sceneOverlay)
     {

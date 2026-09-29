@@ -59,7 +59,8 @@ namespace vke {
 
     [[nodiscard]] vk::Format getSwapChainImageFormat() const;
 
-    void recreateSwapChain();
+    // Returns false, leaving the swapchain for a later frame, while the window is minimized.
+    bool recreateSwapChain();
 
     void createNewFrame() const;
 
@@ -124,6 +125,12 @@ namespace vke {
     SceneViewRect m_sceneViewRect;
 
     SceneOverlayCallback m_sceneOverlay;
+
+    [[nodiscard]] bool isMinimized() const;
+
+    void renderWithoutSwapchain(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const std::shared_ptr<LightingManager>& lightingManager,
+                                uint32_t currentFrame);
 
     void renderGuiScene(uint32_t currentFrame);
 
