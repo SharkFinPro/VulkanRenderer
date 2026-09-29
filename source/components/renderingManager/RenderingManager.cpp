@@ -249,9 +249,14 @@ namespace vke {
 
     const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
+    // The content region is in ImGui units, which are points rather than pixels where the window system scales
+    // coordinates (macOS Retina, scaled Wayland). The scene is rendered at the pixel size it covers in the window it is
+    // in, or ImGui would stretch a lower-resolution image over it.
+    const ImVec2 framebufferScale = ImGui::GetWindowViewport()->FramebufferScale;
+
     const vk::Extent2D currentOffscreenViewportExtent {
-      .width = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.x)),
-      .height = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.y))
+      .width = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.x * framebufferScale.x)),
+      .height = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.y * framebufferScale.y))
     };
 
     if (currentOffscreenViewportExtent.width == 0 || currentOffscreenViewportExtent.height == 0)
