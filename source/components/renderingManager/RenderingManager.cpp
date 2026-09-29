@@ -290,6 +290,20 @@ namespace vke {
 
     ImGui::Image(static_cast<ImTextureRef>(offscreenImageDescriptorSet), contentRegionAvailable);
 
+    // An image isn't an interactive item, so a left press on it counts as a press on the window's body, which moves
+    // the window once it is undocked. A button over the image takes the press instead. Overlap is allowed so items an
+    // application submits from the overlay, over the scene, still receive the mouse.
+    ImGui::SetCursorScreenPos(imagePos);
+    ImGui::SetNextItemAllowOverlap();
+    ImGui::InvisibleButton("##sceneImage", contentRegionAvailable);
+
+    // While the button holds the mouse it is the active item, which would otherwise stop the window counting as
+    // hovered for the rest of a drag over the scene.
+    if (ImGui::IsItemActive())
+    {
+      m_sceneIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+    }
+
     if (m_sceneOverlay)
     {
       m_sceneOverlay(ImGui::GetWindowDrawList(), m_sceneViewRect);
