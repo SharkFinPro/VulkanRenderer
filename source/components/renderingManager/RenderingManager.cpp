@@ -283,6 +283,7 @@ namespace vke {
       // there; with viewports enabled it is the main window's actual screen position, matching io.MousePos being a
       // screen coordinate.
       m_renderer3D->getMousePicker()->setViewportPos(mainViewport->Pos);
+      m_renderer3D->getMousePicker()->setViewportDisplaySize(mainViewport->Size);
 
       // The swapchain extent is framebuffer pixels; mainViewport->Size is already in the same ImGui
       // screen coordinates as Pos and MousePos, so it is what a caller mapping the cursor needs.
@@ -338,6 +339,7 @@ namespace vke {
     // origin needs subtracting here.
     const ImVec2 imagePos = ImGui::GetCursorScreenPos();
     m_renderer3D->getMousePicker()->setViewportPos(imagePos);
+    m_renderer3D->getMousePicker()->setViewportDisplaySize(contentRegionAvailable);
 
     m_sceneViewRect = SceneViewRect {
       .x = imagePos.x,
