@@ -62,13 +62,23 @@ namespace vke {
                                      const std::shared_ptr<LightingManager>& lightingManager,
                                      const uint32_t currentFrame)
   {
+    if (isMinimized())
+    {
+      renderWithoutSwapchain(pipelineManager, lightingManager, currentFrame);
+      return;
+    }
+
     uint32_t imageIndex;
     auto result = m_frameScheduler->acquireNextImage(m_swapChain->getSwapChain(), &imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR)
     {
       m_framebufferResized = false;
-      recreateSwapChain();
+      if (!recreateSwapChain())
+      {
+        renderWithoutSwapchain(pipelineManager, lightingManager, currentFrame);
+        return;
+      }
 
       // The frame is abandoned with its compute work already submitted; bring the timeline up
       // to the frame's final value (recreateSwapChain left the device idle).
@@ -122,14 +132,14 @@ namespace vke {
     return m_swapChain->getImageFormat();
   }
 
-  void RenderingManager::recreateSwapChain()
+  bool RenderingManager::recreateSwapChain()
   {
-    int width = 0, height = 0;
-    m_window->getFramebufferSize(&width, &height);
-    while (width == 0 || height == 0)
+    // A minimized window has no size to build a swapchain for. Frames go on without one (detached windows are still on
+    // screen) until the window is restored, when this is retried.
+    if (isMinimized())
     {
-      m_window->getFramebufferSize(&width, &height);
-      glfwWaitEvents();
+      m_framebufferResized = true;
+      return false;
     }
 
     m_logicalDevice->waitIdle();
@@ -144,11 +154,47 @@ namespace vke {
 
     if (m_offscreenViewportExtent.width == 0 || m_offscreenViewportExtent.height == 0)
     {
-      return;
+      return true;
     }
 
     m_renderTarget->recreateImageResources(m_offscreenViewportExtent);
     m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
+
+    return true;
+  }
+
+  bool RenderingManager::isMinimized() const
+  {
+    int width = 0, height = 0;
+    m_window->getFramebufferSize(&width, &height);
+
+    return width == 0 || height == 0;
+  }
+
+  void RenderingManager::renderWithoutSwapchain(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                const std::shared_ptr<LightingManager>& lightingManager,
+                                                const uint32_t currentFrame)
+  {
+    // With nothing on screen, wait for the window system rather than render frames nobody sees as fast as possible.
+    // Otherwise detached windows present with vsync, which paces the loop.
+    if (!ImGuiInstance::hasVisibleDetachedWindows())
+    {
+      glfwWaitEvents();
+
+      m_frameScheduler->submitFrameEndWithoutSwapchain();
+      return;
+    }
+
+    m_renderer3D->updateLightingManager(lightingManager, currentFrame);
+
+    // The scene view may be one of the detached windows.
+    renderGuiScene(currentFrame);
+
+    recordOffscreenCommandBuffer(pipelineManager, lightingManager, currentFrame);
+
+    ImGuiInstance::renderDetachedWindows();
+
+    m_frameScheduler->submitFrameEndWithoutSwapchain();
   }
 
   void RenderingManager::createNewFrame() const

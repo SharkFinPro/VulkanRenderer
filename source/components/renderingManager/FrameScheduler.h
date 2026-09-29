@@ -34,6 +34,12 @@ namespace vke {
     void submitSwapchainCommandBuffer(uint32_t imageIndex,
                                       vk::CommandBuffer commandBuffer) const;
 
+    // Ends a frame that has no swapchain pass (the main window is minimized) in place of
+    // submitSwapchainCommandBuffer: signals the frame's final timeline value on the graphics queue
+    // once the frame's compute work and everything submitted to the graphics queue before it has
+    // finished, so frame pacing stays ordered behind the GPU.
+    void submitFrameEndWithoutSwapchain() const;
+
     // Blocks until this frame's offscreen submission has finished executing
     // (used for the mouse picking readback).
     void waitForOffscreenWork() const;
