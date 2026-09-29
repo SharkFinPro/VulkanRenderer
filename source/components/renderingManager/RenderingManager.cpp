@@ -275,6 +275,7 @@ namespace vke {
 
       m_sceneIsFocused = !ImGui::GetIO().WantCaptureMouse;
       m_sceneIsHovered = m_sceneIsFocused;
+      m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
 
       const auto mainViewport = ImGui::GetMainViewport();
 
@@ -304,6 +305,7 @@ namespace vke {
 
     m_sceneIsFocused = ImGui::IsWindowFocused();
     m_sceneIsHovered = ImGui::IsWindowHovered();
+    m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
 
     const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
