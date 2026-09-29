@@ -17,6 +17,7 @@ namespace vke {
   Window* ImGuiInstance::s_inputWindow = nullptr;
   void (*ImGuiInstance::s_platformCreateWindow)(ImGuiViewport*) = nullptr;
   void (*ImGuiInstance::s_platformDestroyWindow)(ImGuiViewport*) = nullptr;
+  bool (*ImGuiInstance::s_platformGetWindowMinimized)(ImGuiViewport*) = nullptr;
 
   ImGuiInstance::ImGuiInstance(const std::shared_ptr<Window>& window,
                                const std::shared_ptr<Instance>& instance,
@@ -61,6 +62,9 @@ namespace vke {
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
       ImGui::GetPlatformIO().Platform_GetWindowDpiScale = getViewportDpiScale;
+
+      s_platformGetWindowMinimized = ImGui::GetPlatformIO().Platform_GetWindowMinimized;
+      ImGui::GetPlatformIO().Platform_GetWindowMinimized = getViewportMinimized;
 
       enableSecondaryWindowInput(window);
     }
@@ -286,6 +290,29 @@ namespace vke {
     // Detached windows are submitted and presented here, before the swapchain pass is submitted. They can sample images
     // the frame's offscreen pass writes, and queue order then keeps them inside the frame the scheduler waits on.
     renderPlatformWindows();
+  }
+
+  void ImGuiInstance::renderDetachedWindows()
+  {
+    ImGui::Render();
+
+    renderPlatformWindows();
+  }
+
+  bool ImGuiInstance::hasVisibleDetachedWindows()
+  {
+    const auto& viewports = ImGui::GetPlatformIO().Viewports;
+
+    // The first viewport is the main window's.
+    for (int i = 1; i < viewports.Size; ++i)
+    {
+      if (!(viewports[i]->Flags & ImGuiViewportFlags_IsMinimized))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   void ImGuiInstance::createDescriptorPool(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -622,6 +649,22 @@ namespace vke {
     const float switchShare = ratio / (1.0f + ratio) + 0.05f;
 
     return bestArea / totalArea > switchShare ? bestScale : currentScale;
+  }
+
+  bool ImGuiInstance::getViewportMinimized(ImGuiViewport* viewport)
+  {
+    if (s_platformGetWindowMinimized(viewport))
+    {
+      return true;
+    }
+
+    // While a window is being restored, GLFW can report it as no longer iconified before it has its size back. ImGui
+    // would take the main window's zero size as real and move every window in it out into its own OS window, so a
+    // window without a size still counts as minimized.
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(static_cast<GLFWwindow*>(viewport->PlatformHandle), &width, &height);
+
+    return width == 0 || height == 0;
   }
 
   void ImGuiInstance::enableSecondaryWindowInput(const std::shared_ptr<Window>& window)
