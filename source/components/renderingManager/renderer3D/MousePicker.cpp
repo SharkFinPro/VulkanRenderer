@@ -5,6 +5,7 @@
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
+#include <cmath>
 
 namespace vke {
 
@@ -42,6 +43,11 @@ namespace vke {
   void MousePicker::setViewportPos(const ImVec2 viewportPos)
   {
     m_viewportPos = viewportPos;
+  }
+
+  void MousePicker::setViewportDisplaySize(const ImVec2 viewportDisplaySize)
+  {
+    m_viewportDisplaySize = viewportDisplaySize;
   }
 
   void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
@@ -109,16 +115,21 @@ namespace vke {
     const ImVec2 mousePos = ImGui::GetIO().MousePos;
 
     // ImGui reports this when no mouse is available/positioned (e.g. this frame's window lost the mouse).
-    if (m_viewportExtent.width == 0 || m_viewportExtent.height == 0 || !ImGui::IsMousePosValid(&mousePos))
+    if (m_viewportExtent.width == 0 || m_viewportExtent.height == 0 ||
+        m_viewportDisplaySize.x <= 0.0f || m_viewportDisplaySize.y <= 0.0f || !ImGui::IsMousePosValid(&mousePos))
     {
       m_canMousePick = false;
     }
     else
     {
       // Both mousePos and m_viewportPos are absolute screen coordinates, so this holds whichever OS window (main or
-      // a detached viewport) the cursor and the scene image are actually in.
-      mouseX = static_cast<int32_t>(mousePos.x - m_viewportPos.x);
-      mouseY = static_cast<int32_t>(mousePos.y - m_viewportPos.y);
+      // a detached viewport) the cursor and the scene image are actually in. The offset is then scaled from the size
+      // the image is displayed at to the picking image's pixels, which differ on high-density displays.
+      const float scaleX = static_cast<float>(m_viewportExtent.width) / m_viewportDisplaySize.x;
+      const float scaleY = static_cast<float>(m_viewportExtent.height) / m_viewportDisplaySize.y;
+
+      mouseX = static_cast<int32_t>(std::floor((mousePos.x - m_viewportPos.x) * scaleX));
+      mouseY = static_cast<int32_t>(std::floor((mousePos.y - m_viewportPos.y) * scaleY));
 
       m_canMousePick = !(mouseX < 0 || mouseX > m_viewportExtent.width - 1 ||
                          mouseY < 0 || mouseY > m_viewportExtent.height - 1);
