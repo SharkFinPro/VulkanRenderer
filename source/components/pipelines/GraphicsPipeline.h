@@ -10,6 +10,12 @@
 #include <string>
 #include <vector>
 
+// getProjectionMatrix() below is compiled into every translation unit that calls it, so one built without the engine's
+// compile definitions would produce a different matrix under the same inline function.
+static_assert(GLM_CONFIG_CLIP_CONTROL & GLM_CLIP_CONTROL_ZO_BIT,
+              "GLM must use Vulkan's 0..1 depth range: define GLM_FORCE_DEPTH_ZERO_TO_ONE before any GLM include "
+              "(linking the VulkanEngine target does this)");
+
 namespace vke {
 
   class CommandBuffer;
