@@ -175,13 +175,25 @@ namespace vke {
                                                 const std::shared_ptr<LightingManager>& lightingManager,
                                                 const uint32_t currentFrame)
   {
-    // With nothing on screen, wait for the window system rather than render frames nobody sees as fast as possible.
-    // Otherwise detached windows present with vsync, which paces the loop.
+    // With nothing on screen, wait for the window system rather than render frames nobody sees.
     if (!ImGuiInstance::hasVisibleDetachedWindows())
     {
-      glfwWaitEvents();
-
       m_frameScheduler->submitFrameEndWithoutSwapchain();
+
+      // Without detached windows ImGui has no minimized state for the main window, and its next frame would lay the
+      // dockspace out at zero size, so wait for the window to be restored. With them, one event is enough to look again.
+      if (!(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable))
+      {
+        while (isMinimized())
+        {
+          glfwWaitEvents();
+        }
+      }
+      else
+      {
+        glfwWaitEvents();
+      }
+
       return;
     }
 
