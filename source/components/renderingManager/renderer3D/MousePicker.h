@@ -47,7 +47,7 @@ namespace vke {
 
     ImVec2 m_viewportPos {0, 0};
 
-    ImVec2 m_viewportDisplaySize {1, 1};
+    ImVec2 m_viewportDisplaySize {0, 0};
 
     std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
     std::unordered_map<uint32_t, bool*> m_mousePickingItems;

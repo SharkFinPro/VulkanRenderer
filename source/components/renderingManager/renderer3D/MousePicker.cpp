@@ -128,11 +128,18 @@ namespace vke {
       const float scaleX = static_cast<float>(m_viewportExtent.width) / m_viewportDisplaySize.x;
       const float scaleY = static_cast<float>(m_viewportExtent.height) / m_viewportDisplaySize.y;
 
-      mouseX = static_cast<int32_t>(std::floor((mousePos.x - m_viewportPos.x) * scaleX));
-      mouseY = static_cast<int32_t>(std::floor((mousePos.y - m_viewportPos.y) * scaleY));
+      const float pixelX = std::floor((mousePos.x - m_viewportPos.x) * scaleX);
+      const float pixelY = std::floor((mousePos.y - m_viewportPos.y) * scaleY);
 
-      m_canMousePick = !(mouseX < 0 || mouseX > m_viewportExtent.width - 1 ||
-                         mouseY < 0 || mouseY > m_viewportExtent.height - 1);
+      // Checked as floats so a cursor far outside the image can't overflow the conversion to a pixel index.
+      m_canMousePick = pixelX >= 0.0f && pixelX < static_cast<float>(m_viewportExtent.width) &&
+                       pixelY >= 0.0f && pixelY < static_cast<float>(m_viewportExtent.height);
+
+      if (m_canMousePick)
+      {
+        mouseX = static_cast<int32_t>(pixelX);
+        mouseY = static_cast<int32_t>(pixelY);
+      }
     }
 
     return m_canMousePick;
