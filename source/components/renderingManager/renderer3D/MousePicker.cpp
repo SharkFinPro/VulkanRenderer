@@ -50,6 +50,11 @@ namespace vke {
     m_viewportDisplaySize = viewportDisplaySize;
   }
 
+  void MousePicker::setSceneHovered(const bool sceneHovered)
+  {
+    m_sceneHovered = sceneHovered;
+  }
+
   void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
                                  bool* mousePicked)
   {
@@ -114,8 +119,9 @@ namespace vke {
   {
     const ImVec2 mousePos = ImGui::GetIO().MousePos;
 
-    // ImGui reports this when no mouse is available/positioned (e.g. this frame's window lost the mouse).
-    if (m_viewportExtent.width == 0 || m_viewportExtent.height == 0 ||
+    // ImGui reports an invalid position when no mouse is available/positioned (e.g. this frame's window lost the
+    // mouse). The cursor can also lie within the scene image while another window covers it there.
+    if (!m_sceneHovered || m_viewportExtent.width == 0 || m_viewportExtent.height == 0 ||
         m_viewportDisplaySize.x <= 0.0f || m_viewportDisplaySize.y <= 0.0f || !ImGui::IsMousePosValid(&mousePos))
     {
       m_canMousePick = false;

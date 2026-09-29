@@ -24,6 +24,9 @@ namespace vke {
     glm::mat4 viewInverse;
     glm::mat4 projInverse;
     glm::vec3 viewPosition;
+    // std140 packs these straight after the vec3, matching this struct's layout.
+    float nearPlane;
+    float farPlane;
   };
 
   RayTracer::RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -481,7 +484,9 @@ namespace vke {
     const CameraUniformRT cameraUBORT {
       .viewInverse = glm::inverse(viewMatrix),
       .projInverse = glm::inverse(renderInfo->getProjectionMatrix()),
-      .viewPosition = viewPosition
+      .viewPosition = viewPosition,
+      .nearPlane = renderInfo->nearPlane,
+      .farPlane = renderInfo->farPlane
     };
 
     m_cameraUniformRT->update(renderInfo->currentFrame, &cameraUBORT);

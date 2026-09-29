@@ -60,6 +60,12 @@ namespace vke {
 
     static void render(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
+    // Ends the frame and draws only the detached windows, for frames where the main window can't be drawn to.
+    static void renderDetachedWindows();
+
+    // Whether a window detached from the main window is on screen (not minimized).
+    [[nodiscard]] static bool hasVisibleDetachedWindows();
+
   private:
     std::shared_ptr<Window> m_window;
 
@@ -131,6 +137,9 @@ namespace vke {
     static Window* s_inputWindow;
     static void (*s_platformCreateWindow)(ImGuiViewport*);
     static void (*s_platformDestroyWindow)(ImGuiViewport*);
+    static bool (*s_platformGetWindowMinimized)(ImGuiViewport*);
+
+    static bool getViewportMinimized(ImGuiViewport* viewport);
 
     static void renderPlatformWindows();
 
