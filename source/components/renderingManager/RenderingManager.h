@@ -124,6 +124,9 @@ namespace vke {
 
     SceneViewRect m_sceneViewRect;
 
+    // Offscreen pixels per unit of the 2D pass's coordinate space, for the window the scene is shown in.
+    float m_scenePixelsPer2DUnit = 1.0f;
+
     SceneOverlayCallback m_sceneOverlay;
 
     [[nodiscard]] bool isMinimized() const;
