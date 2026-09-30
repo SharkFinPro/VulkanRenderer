@@ -129,6 +129,31 @@ namespace vke {
     m_logicalDevice->submitToGraphicsQueue(submitInfo);
   }
 
+  void FrameScheduler::submitFrameEndWithoutSwapchain() const
+  {
+    // Graphics queue submission order covers the offscreen pass and detached windows; compute may run on another queue.
+    const vk::SemaphoreSubmitInfo waitSemaphoreInfo {
+      .semaphore = *m_timelineSemaphore,
+      .value = frameBaseValue() + s_computeFinished,
+      .stageMask = vk::PipelineStageFlagBits2::eAllCommands
+    };
+
+    const vk::SemaphoreSubmitInfo signalSemaphoreInfo {
+      .semaphore = *m_timelineSemaphore,
+      .value = frameBaseValue() + s_swapchainFinished,
+      .stageMask = vk::PipelineStageFlagBits2::eAllCommands
+    };
+
+    const vk::SubmitInfo2 submitInfo {
+      .waitSemaphoreInfoCount = 1,
+      .pWaitSemaphoreInfos = &waitSemaphoreInfo,
+      .signalSemaphoreInfoCount = 1,
+      .pSignalSemaphoreInfos = &signalSemaphoreInfo
+    };
+
+    m_logicalDevice->submitToGraphicsQueue(submitInfo);
+  }
+
   void FrameScheduler::waitForOffscreenWork() const
   {
     waitForTimelineValue(frameBaseValue() + s_offscreenFinished);

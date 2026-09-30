@@ -94,7 +94,7 @@ namespace vke {
 
     // Vertical field of view in degrees. Throws std::invalid_argument unless all values are finite, 0 < fov < 180 and
     // 0 < near < far. The projection maps depth to -1..1 while Vulkan clips at 0, so raster geometry is cut at about
-    // twice nearPlane. Ray tracing uses the field of view only; its ray range is fixed.
+    // twice nearPlane. Ray tracing cuts camera rays at nearPlane and farPlane themselves.
     void setProjectionParameters(float fieldOfViewDegrees,
                                  float nearPlane,
                                  float farPlane);
