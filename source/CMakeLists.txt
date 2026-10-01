@@ -16,6 +16,9 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
   VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
   VULKAN_HPP_DISPATCH_LOADER_DYNAMIC
   VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS
+  # Vulkan clips depth to 0..1, not OpenGL's -1..1. Defined for every translation unit, and publicly so code
+  # built against the engine agrees, because GLM reads it only the first time any of its headers is included.
+  GLM_FORCE_DEPTH_ZERO_TO_ONE
 )
 
 # Link dependencies

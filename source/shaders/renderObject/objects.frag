@@ -76,7 +76,7 @@ void main()
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
-    float bias = 0.0001;
+    float bias = 0.00005;
     projCoords.z -= bias;
 
     float shadow = texture(spotLightShadowMaps[nonuniformEXT(i)], projCoords);
