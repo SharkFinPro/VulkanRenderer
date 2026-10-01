@@ -275,6 +275,8 @@ namespace vke {
         m_renderer3D->getMousePicker()->setViewportExtent(m_offscreenViewportExtent);
       }
 
+      m_scenePixelsPer2DUnit = m_window->getContentScale();
+
       m_sceneIsFocused = !ImGui::GetIO().WantCaptureMouse;
       m_sceneIsHovered = m_sceneIsFocused;
       m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
@@ -312,10 +314,20 @@ namespace vke {
 
     const auto contentRegionAvailable = ImGui::GetContentRegionAvail();
 
+    // The content region is in ImGui units, which are points rather than pixels where the window system scales
+    // coordinates (macOS Retina, scaled Wayland). The scene is rendered at the pixel size it covers in the window it is
+    // in, or ImGui would stretch a lower-resolution image over it.
+    const ImVec2 framebufferScale = ImGui::GetWindowViewport()->FramebufferScale;
+
     const vk::Extent2D currentOffscreenViewportExtent {
-      .width = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.x)),
-      .height = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.y))
+      .width = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.x * framebufferScale.x)),
+      .height = static_cast<uint32_t>(std::max(0.0f, contentRegionAvailable.y * framebufferScale.y))
     };
+
+    // The 2D pass works in the main window's logical units (its pixels over its content scale). The main window's
+    // framebuffer scale converts ImGui units there to pixels, so a scene view detached to a display with another
+    // density still gets 2D content at the same size.
+    m_scenePixelsPer2DUnit = framebufferScale.x * m_window->getContentScale() / ImGui::GetMainViewport()->FramebufferScale.x;
 
     if (currentOffscreenViewportExtent.width == 0 || currentOffscreenViewportExtent.height == 0)
     {
@@ -440,8 +452,8 @@ namespace vke {
 
       RenderInfo renderInfo2D = renderInfo;
       renderInfo2D.extent = vk::Extent2D{
-        .width = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_window->getContentScale()),
-        .height = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_window->getContentScale()),
+        .width = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.width) / m_scenePixelsPer2DUnit),
+        .height = static_cast<uint32_t>(static_cast<float>(m_offscreenViewportExtent.height) / m_scenePixelsPer2DUnit),
       };
 
       m_renderer2D->render(&renderInfo2D, pipelineManager);
