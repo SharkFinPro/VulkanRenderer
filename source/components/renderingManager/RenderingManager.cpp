@@ -62,6 +62,8 @@ namespace vke {
                                      const std::shared_ptr<LightingManager>& lightingManager,
                                      const uint32_t currentFrame)
   {
+    m_renderer3D->getMousePicker()->beginFrame();
+
     if (isMinimized())
     {
       renderWithoutSwapchain(pipelineManager, lightingManager, currentFrame);

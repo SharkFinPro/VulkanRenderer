@@ -21,7 +21,13 @@ namespace vke {
     MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
                 vk::CommandPool commandPool);
 
+    // Whether the cursor was over the scene image in the most recently rendered frame, whether or not anything pickable
+    // was submitted. False after a frame that skipped picking.
     [[nodiscard]] bool canMousePick() const;
+
+    // Called before each frame's rendering, so a frame that never reaches the picking readback (a zero-sized scene
+    // view, a frame abandoned for a swapchain rebuild) reports that it can't pick rather than the previous answer.
+    void beginFrame();
 
     void clearObjectsToMousePick();
 
