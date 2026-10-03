@@ -124,6 +124,11 @@ namespace vke {
     return m_sceneIsHovered;
   }
 
+  bool RenderingManager::isSceneRightDragged() const
+  {
+    return m_sceneOwnsRightDrag;
+  }
+
   vk::DescriptorSetLayout RenderingManager::getOffscreenImageDescriptorSetLayout() const
   {
     return m_renderTarget->getOffscreenImageDescriptorSetLayout();
@@ -281,6 +286,15 @@ namespace vke {
       m_sceneIsHovered = m_sceneIsFocused;
       m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
 
+      if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+      {
+        m_sceneOwnsRightDrag = m_sceneIsHovered;
+      }
+      else if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
+      {
+        m_sceneOwnsRightDrag = false;
+      }
+
       const auto mainViewport = ImGui::GetMainViewport();
 
       // mainViewport->Pos is (0, 0) with viewports disabled, matching io.MousePos being main-window-client-relative
@@ -333,6 +347,7 @@ namespace vke {
     {
       m_offscreenViewportExtent = currentOffscreenViewportExtent;
       m_sceneViewRect = SceneViewRect{};
+      m_sceneOwnsRightDrag = false;
       ImGui::End();
       return;
     }
@@ -379,6 +394,23 @@ namespace vke {
     if (ImGui::IsItemActive() || ImGui::IsItemDeactivated())
     {
       m_sceneIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+    }
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+      m_sceneOwnsRightDrag = m_sceneIsHovered;
+
+      // ImGui focuses a window on a left press only, so a right press has to focus the scene itself for the
+      // keyboard to move the camera along with the drag.
+      if (m_sceneOwnsRightDrag)
+      {
+        ImGui::SetWindowFocus();
+        m_sceneIsFocused = true;
+      }
+    }
+    else if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
+    {
+      m_sceneOwnsRightDrag = false;
     }
 
     if (m_sceneOverlay)

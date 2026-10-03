@@ -55,6 +55,10 @@ namespace vke {
 
     [[nodiscard]] bool isSceneHovered() const;
 
+    // True while the right button is held after being pressed over the scene view. The drag keeps it even once the
+    // cursor leaves the scene.
+    [[nodiscard]] bool isSceneRightDragged() const;
+
     [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
 
     [[nodiscard]] vk::Format getSwapChainImageFormat() const;
@@ -107,6 +111,8 @@ namespace vke {
     bool m_sceneIsFocused = false;
 
     bool m_sceneIsHovered = false;
+
+    bool m_sceneOwnsRightDrag = false;
 
     bool m_useDockspace;
 

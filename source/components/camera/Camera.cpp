@@ -35,15 +35,18 @@ namespace vke {
     m_speedSettings.swivelSpeed = m_speedSettings.speed * 0.005f;
   }
 
-  void Camera::processInput(const std::shared_ptr<Window>& window)
+  void Camera::processInput(const std::shared_ptr<Window>& window, const bool move, const bool rotate)
   {
     const auto currentTime = std::chrono::steady_clock::now();
     const auto dt = std::chrono::duration<float>(currentTime - m_previousTime).count() * 1000.0f;
     m_previousTime = currentTime;
 
-    handleRotation(window);
+    handleRotation(window, rotate);
 
-    handleMovement(window, dt);
+    if (move)
+    {
+      handleMovement(window, dt);
+    }
   }
 
   void Camera::processScroll(const std::shared_ptr<Window>& window)
@@ -102,9 +105,9 @@ namespace vke {
     }
   }
 
-  void Camera::handleRotation(const std::shared_ptr<Window>& window)
+  void Camera::handleRotation(const std::shared_ptr<Window>& window, const bool rotate)
   {
-    if (window->buttonIsPressed(GLFW_MOUSE_BUTTON_RIGHT))
+    if (rotate)
     {
       double mx, my, omx, omy;
       window->getCursorPos(mx, my);
