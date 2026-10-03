@@ -107,7 +107,8 @@ namespace vke {
 
   void Camera::handleRotation(const std::shared_ptr<Window>& window, const bool rotate)
   {
-    if (rotate)
+    // The drag flag is only refreshed on frames that lay out the scene view, so the button is checked too.
+    if (rotate && window->buttonIsPressed(GLFW_MOUSE_BUTTON_RIGHT))
     {
       double mx, my, omx, omy;
       window->getCursorPos(mx, my);
