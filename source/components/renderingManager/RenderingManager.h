@@ -141,6 +141,10 @@ namespace vke {
                                 const std::shared_ptr<LightingManager>& lightingManager,
                                 uint32_t currentFrame);
 
+    // Starts the right-button drag on a press when pressStartsDrag, and ends it on release. Returns whether a drag
+    // started this frame.
+    bool updateSceneRightDrag(bool pressStartsDrag);
+
     void renderGuiScene(uint32_t currentFrame);
 
     void recordOffscreenCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,

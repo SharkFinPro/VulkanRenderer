@@ -82,10 +82,8 @@ namespace vke {
       const bool sceneHovered = m_renderingManager->isSceneHovered();
       const bool sceneRightDragged = m_renderingManager->isSceneRightDragged();
 
-      if (sceneFocused || sceneRightDragged)
-      {
-        m_camera->processInput(m_window, sceneFocused, sceneRightDragged);
-      }
+      // Every frame, so the camera's clock does not count the time the scene spent unfocused as one long step.
+      m_camera->processInput(m_window, sceneFocused, sceneRightDragged);
 
       if (sceneHovered)
       {

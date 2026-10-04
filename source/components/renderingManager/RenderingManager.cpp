@@ -64,6 +64,12 @@ namespace vke {
   {
     m_renderer3D->getMousePicker()->beginFrame();
 
+    // Frames that end before the scene view is laid out would otherwise miss the release.
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
+    {
+      m_sceneOwnsRightDrag = false;
+    }
+
     if (isMinimized())
     {
       renderWithoutSwapchain(pipelineManager, lightingManager, currentFrame);
@@ -286,14 +292,10 @@ namespace vke {
       m_sceneIsHovered = m_sceneIsFocused;
       m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
 
-      if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-      {
-        m_sceneOwnsRightDrag = m_sceneIsHovered;
-      }
-      else if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
-      {
-        m_sceneOwnsRightDrag = false;
-      }
+      updateSceneRightDrag(m_sceneIsHovered);
+
+      // A drag that leaves the scene for a window keeps the keyboard moving the camera, as with the dockspace.
+      m_sceneIsFocused = m_sceneIsFocused || m_sceneOwnsRightDrag;
 
       const auto mainViewport = ImGui::GetMainViewport();
 
@@ -388,6 +390,10 @@ namespace vke {
     ImGui::SetNextItemAllowOverlap();
     ImGui::InvisibleButton("##sceneImage", contentRegionAvailable);
 
+    // The image rather than the window: a press on a floating scene view's title bar or border, or on an item an
+    // application drew over the scene (which takes hover from this overlapping button), is not a camera drag.
+    const bool imageHovered = ImGui::IsItemHovered();
+
     // While the button holds the mouse it is the active item, which would otherwise stop the window counting as
     // hovered for the rest of a drag over the scene, including the frame it is released on (the check at the top of
     // this function still saw it active).
@@ -396,21 +402,12 @@ namespace vke {
       m_sceneIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
     }
 
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    // ImGui focuses a window on a left press only, so a right press has to focus the scene itself for the keyboard to
+    // move the camera along with the drag.
+    if (updateSceneRightDrag(imageHovered))
     {
-      m_sceneOwnsRightDrag = m_sceneIsHovered;
-
-      // ImGui focuses a window on a left press only, so a right press has to focus the scene itself for the
-      // keyboard to move the camera along with the drag.
-      if (m_sceneOwnsRightDrag)
-      {
-        ImGui::SetWindowFocus();
-        m_sceneIsFocused = true;
-      }
-    }
-    else if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
-    {
-      m_sceneOwnsRightDrag = false;
+      ImGui::SetWindowFocus();
+      m_sceneIsFocused = true;
     }
 
     if (m_sceneOverlay)
@@ -419,6 +416,22 @@ namespace vke {
     }
 
     ImGui::End();
+  }
+
+  bool RenderingManager::updateSceneRightDrag(const bool pressStartsDrag)
+  {
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+      m_sceneOwnsRightDrag = pressStartsDrag;
+      return m_sceneOwnsRightDrag;
+    }
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
+    {
+      m_sceneOwnsRightDrag = false;
+    }
+
+    return false;
   }
 
   SceneViewRect RenderingManager::getSceneViewRect() const
