@@ -118,16 +118,18 @@ void pipelineTypeGui(vke::PipelineType& currentPipeline)
 
 void linesGui(const std::shared_ptr<vke::Renderer3D>& r3d)
 {
-  r3d->renderLine({ 0, 0, 0 }, { 5, 0, 0 }, { 1, 0, 0, 1 }, 3.0f);
-  r3d->renderLine({ 0, 0, 0 }, { 0, 5, 0 }, { 0, 1, 0, 1 }, 3.0f);
-  r3d->renderLine({ 0, 0, 0 }, { 0, 0, 5 }, { 0, 0, 1, 1 }, 3.0f);
+  // Above the floor and beside the cube, so depth testing doesn't hide the axes.
+  constexpr glm::vec3 axesOrigin { -4.0f, 2.0f, -4.0f };
+  r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(3, 0, 0), { 1, 0, 0, 1 }, 3.0f);
+  r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 3, 0), { 0, 1, 0, 1 }, 3.0f);
+  r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 0, 3), { 0, 0, 1, 1 }, 3.0f);
 
   ImGui::Begin("Rendering");
   if (ImGui::Button("Emit Lines (3 s)"))
   {
     for (int i = 0; i < 20; ++i)
     {
-      r3d->renderLine(glm::ballRand(8.0f), glm::ballRand(8.0f), { glm::linearRand(glm::vec3(0.2f), glm::vec3(1.0f)), 0.8f },
+      r3d->renderLine(glm::vec3(0, 4, 0) + glm::ballRand(4.0f), glm::vec3(0, 4, 0) + glm::ballRand(4.0f), { glm::linearRand(glm::vec3(0.2f), glm::vec3(1.0f)), 0.8f },
                       glm::linearRand(1.0f, 6.0f), 3.0f);
     }
   }
