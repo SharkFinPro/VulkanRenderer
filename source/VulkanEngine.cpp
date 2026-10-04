@@ -80,18 +80,17 @@ namespace vke {
     {
       const bool sceneFocused = m_renderingManager->isSceneFocused();
       const bool sceneHovered = m_renderingManager->isSceneHovered();
+      const bool sceneRightDragged = m_renderingManager->isSceneRightDragged();
 
-      if (sceneFocused)
-      {
-        m_camera->processInput(m_window);
-      }
+      // Every frame, so the camera's clock does not count the time the scene spent unfocused as one long step.
+      m_camera->processInput(m_window, sceneFocused, sceneRightDragged);
 
       if (sceneHovered)
       {
         m_camera->processScroll(m_window);
       }
 
-      if (sceneFocused || sceneHovered)
+      if (sceneFocused || sceneHovered || sceneRightDragged)
       {
         m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
       }
