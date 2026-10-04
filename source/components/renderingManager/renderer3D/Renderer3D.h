@@ -126,8 +126,8 @@ namespace vke {
 
     // Outlines the object for this frame in the given color (alpha included), on top of however the application draws
     // it. The outline also shows where other geometry hides the object, as the outline of a selection usually does.
-    // It is drawn from the object's own draw call, so it follows whatever geometry the object draws. Throws
-    // std::length_error beyond 255 different colors in a frame.
+    // It is drawn from the object's own draw call, so it follows whatever geometry the object draws. Beyond 255
+    // different colors in a frame, further colors draw in the last one.
     void renderOutline(const std::shared_ptr<RenderObject>& renderObject, glm::vec4 color);
 
     // Outline width in pixels of the scene image, clamped to 1..8.
@@ -175,6 +175,7 @@ namespace vke {
     // Each outlined object with its value in the mask, which is its color's index plus one (zero is no outline)
     std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_outlineObjects;
     std::vector<glm::vec4> m_outlineColors;
+    bool m_warnedAboutOutlineColors = false;
     float m_outlineWidth = 3.0f;
 
     std::vector<LineVertex> m_lineVerticesToRender;

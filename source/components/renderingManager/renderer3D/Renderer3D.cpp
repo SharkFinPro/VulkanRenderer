@@ -16,6 +16,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iostream>
+#include <iterator>
 #include <stdexcept>
 
 namespace vke {
@@ -314,10 +316,19 @@ namespace vke {
     {
       if (m_outlineColors.size() >= s_maxOutlineColors)
       {
-        throw std::length_error("too many different outline colors in one frame");
-      }
+        // A selection effect shouldn't take the application down, so extra colors share the last one.
+        if (!m_warnedAboutOutlineColors)
+        {
+          std::cerr << "More than " << s_maxOutlineColors << " outline colors in a frame; extra colors use the last one" << std::endl;
+          m_warnedAboutOutlineColors = true;
+        }
 
-      colorIt = m_outlineColors.insert(m_outlineColors.end(), color);
+        colorIt = std::prev(m_outlineColors.end());
+      }
+      else
+      {
+        colorIt = m_outlineColors.insert(m_outlineColors.end(), color);
+      }
     }
 
     m_outlineObjects.emplace_back(renderObject, static_cast<uint32_t>(colorIt - m_outlineColors.begin()) + 1);
