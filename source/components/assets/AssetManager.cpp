@@ -84,18 +84,18 @@ namespace vke {
   {
     // A retired render object leaves its texture and model sole-owned only once the device destroys it, so
     // they are retired by a later call.
-    const auto firstSoleOwned = std::ranges::stable_partition(m_releasedResources, [](const std::shared_ptr<void>& resource) {
+    const auto firstSoleOwned = std::stable_partition(m_releasedResources.begin(), m_releasedResources.end(), [](const std::shared_ptr<void>& resource) {
       return resource.use_count() != 1;
     });
 
-    const bool retiredAny = !firstSoleOwned.empty();
+    const bool retiredAny = firstSoleOwned != m_releasedResources.end();
 
-    for (auto& resource : firstSoleOwned)
+    for (auto it = firstSoleOwned; it != m_releasedResources.end(); ++it)
     {
-      m_logicalDevice->retire(std::move(resource));
+      m_logicalDevice->retire(std::move(*it));
     }
 
-    m_releasedResources.erase(firstSoleOwned.begin(), firstSoleOwned.end());
+    m_releasedResources.erase(firstSoleOwned, m_releasedResources.end());
 
     return retiredAny;
   }

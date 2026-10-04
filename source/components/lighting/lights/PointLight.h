@@ -17,8 +17,6 @@ namespace vke {
                vk::DescriptorPool descriptorPool,
                vk::DescriptorSetLayout descriptorSetLayout);
 
-    ~PointLight() override;
-
     [[nodiscard]] LightType getLightType() const override;
 
     [[nodiscard]] LightUniform getUniform() const override;

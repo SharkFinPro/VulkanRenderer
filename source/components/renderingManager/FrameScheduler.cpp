@@ -93,11 +93,19 @@ namespace vke {
   {
     // The offscreen resolve image is sampled in the fragment shader (scene view /
     // offscreenToSwapchain); the swapchain image is first written as a color attachment.
+    //
+    // Compute is awaited at every stage as well: the frame's final value must imply the whole frame, compute
+    // included, has finished, because deferred destruction relies on it.
     const std::array waitSemaphoreInfos {
       vk::SemaphoreSubmitInfo {
         .semaphore = *m_timelineSemaphore,
         .value = frameBaseValue() + s_offscreenFinished,
         .stageMask = vk::PipelineStageFlagBits2::eFragmentShader
+      },
+      vk::SemaphoreSubmitInfo {
+        .semaphore = *m_timelineSemaphore,
+        .value = frameBaseValue() + s_computeFinished,
+        .stageMask = vk::PipelineStageFlagBits2::eAllCommands
       },
       vk::SemaphoreSubmitInfo {
         .semaphore = *m_imageAvailableSemaphores[getCurrentFrame()],
