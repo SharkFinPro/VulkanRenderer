@@ -12,7 +12,7 @@ namespace vke {
   struct PickResult {
     std::shared_ptr<RenderObject> renderObject;
 
-    // Within the model's index buffer.
+    // Triangle number within the object's draw (indices 3n to 3n + 2 of its index buffer, since a model is one draw).
     uint32_t triangleIndex;
 
     glm::vec3 worldPosition;

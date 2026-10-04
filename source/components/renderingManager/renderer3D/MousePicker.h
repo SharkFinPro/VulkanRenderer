@@ -29,7 +29,8 @@ namespace vke {
     [[nodiscard]] bool canMousePick() const;
 
     // What the cursor was over in the most recently rendered frame: nullopt over empty space, off the scene, in a frame
-    // that skipped picking, or once the object has been destroyed. Objects submitted without a flag are picked too.
+    // that skipped picking, or once the object has been destroyed. Objects submitted without a flag are picked too. Like
+    // the flags, it describes the previous frame, so read it before submitting this frame's objects.
     [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
     // Called before each frame's rendering, so a frame that never reaches the picking readback (a zero-sized scene
