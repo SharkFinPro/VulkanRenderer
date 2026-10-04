@@ -11,7 +11,9 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
+#include "../../pipelines/implementations/LinePipeline.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
@@ -97,7 +99,13 @@ namespace vke {
 
     renderSmokeSystems(&renderInfo3D, pipelineManager);
 
-    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineVerticesToRender);
+    m_lineBatch.assign(m_linesToRender.begin(), m_linesToRender.end());
+    for (const auto& [line, _] : m_timedLines)
+    {
+      m_lineBatch.push_back(line);
+    }
+
+    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineBatch);
 
     if (m_shouldRenderGrid)
     {
@@ -142,7 +150,12 @@ namespace vke {
 
     m_renderObjectsToRenderFlattened.clear();
 
-    m_lineVerticesToRender.clear();
+    m_linesToRender.clear();
+
+    const auto now = std::chrono::steady_clock::now();
+    std::erase_if(m_timedLines, [now](const TimedLine& timedLine) {
+      return timedLine.expiry <= now;
+    });
 
     m_bendyPlantsToRender.clear();
 
@@ -220,9 +233,38 @@ namespace vke {
   }
 
   void Renderer3D::renderLine(const glm::vec3 start,
-                              const glm::vec3 end)
+                              const glm::vec3 end,
+                              const glm::vec4 color,
+                              const float width,
+                              const float lifetimeSeconds)
   {
-    m_lineVerticesToRender.insert(m_lineVerticesToRender.end(), { LineVertex{start}, LineVertex{end} });
+    const LineInstance line { start, end, color, width };
+
+    if (!(lifetimeSeconds > 0.0f))
+    {
+      m_linesToRender.push_back(line);
+      return;
+    }
+
+    // Kept lines beyond what can be drawn are dropped oldest first, so the list can't grow without bound.
+    if (m_timedLines.size() >= LinePipeline::s_maxLines)
+    {
+      m_timedLines.erase(m_timedLines.begin());
+    }
+
+    // Clamped so an enormous or infinite lifetime can't overflow the clock's integer duration.
+    constexpr float maxLifetimeSeconds = 1.0e6f;
+
+    m_timedLines.push_back({
+      line,
+      std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        std::chrono::duration<float>(std::min(lifetimeSeconds, maxLifetimeSeconds)))
+    });
+  }
+
+  void Renderer3D::clearLines()
+  {
+    m_timedLines.clear();
   }
 
   void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)

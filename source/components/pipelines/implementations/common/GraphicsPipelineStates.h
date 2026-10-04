@@ -1,7 +1,7 @@
 #ifndef VKE_GRAPHICSPIPELINESTATES_H
 #define VKE_GRAPHICSPIPELINESTATES_H
 
-#include "../vertexInputs/LineVertex.h"
+#include "../vertexInputs/LineInstance.h"
 #include "../vertexInputs/Particle.h"
 #include "../vertexInputs/Vertex.h"
 #include "../vertexInputs/SmokeParticle.h"
@@ -44,6 +44,28 @@ namespace vke::gps {
     .logicOp = vk::LogicOp::eCopy,
     .attachmentCount = 1,
     .pAttachments = &colorBlendAttachmentDots,
+    .blendConstants = {{ 0.0f, 0.0f, 0.0f, 0.0f }}
+  };
+
+  // Blends color by source alpha but keeps the destination's alpha opaque, since the scene image is itself drawn
+  // alpha blended into the UI.
+  inline vk::PipelineColorBlendAttachmentState colorBlendAttachmentLine {
+    .blendEnable = vk::True,
+    .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
+    .dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+    .colorBlendOp = vk::BlendOp::eAdd,
+    .srcAlphaBlendFactor = vk::BlendFactor::eOne,
+    .dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+    .alphaBlendOp = vk::BlendOp::eAdd,
+    .colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                      vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+  };
+
+  inline vk::PipelineColorBlendStateCreateInfo colorBlendStateLine {
+    .logicOpEnable = vk::False,
+    .logicOp = vk::LogicOp::eCopy,
+    .attachmentCount = 1,
+    .pAttachments = &colorBlendAttachmentLine,
     .blendConstants = {{ 0.0f, 0.0f, 0.0f, 0.0f }}
   };
 
@@ -154,11 +176,6 @@ namespace vke::gps {
     .primitiveRestartEnable = vk::False
   };
 
-  inline vk::PipelineInputAssemblyStateCreateInfo inputAssemblyStateLineList {
-    .topology = vk::PrimitiveTopology::eLineList,
-    .primitiveRestartEnable = vk::False
-  };
-
   inline vk::PipelineMultisampleStateCreateInfo getMultsampleState(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {
@@ -257,14 +274,14 @@ namespace vke::gps {
     .pVertexAttributeDescriptions = vertexAttributeDescriptionsPositionAndNormal.data()
   };
 
-  inline vk::VertexInputBindingDescription lineVertexBindingDescription = LineVertex::getBindingDescription();
-  inline std::array lineVertexAttributeDescriptions = LineVertex::getAttributeDescriptions();
+  inline vk::VertexInputBindingDescription lineInstanceBindingDescription = LineInstance::getBindingDescription();
+  inline std::array lineInstanceAttributeDescriptions = LineInstance::getAttributeDescriptions();
 
-  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateLineVertex {
+  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateLineInstance {
     .vertexBindingDescriptionCount = 1,
-    .pVertexBindingDescriptions = &lineVertexBindingDescription,
-    .vertexAttributeDescriptionCount = static_cast<uint32_t>(lineVertexAttributeDescriptions.size()),
-    .pVertexAttributeDescriptions = lineVertexAttributeDescriptions.data()
+    .pVertexBindingDescriptions = &lineInstanceBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(lineInstanceAttributeDescriptions.size()),
+    .pVertexAttributeDescriptions = lineInstanceAttributeDescriptions.data()
   };
 
   inline vk::VertexInputBindingDescription particleBindingDescription = Particle::getBindingDescription();
