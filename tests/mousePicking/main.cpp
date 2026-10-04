@@ -7,6 +7,7 @@
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
+#include <algorithm>
 #include <iostream>
 
 struct MousePickingObject {
@@ -136,6 +137,24 @@ void renderScene(vke::VulkanEngine& renderer,
     {
       displayObjectGui(object, 0);
     }
+  }
+  ImGui::End();
+
+  ImGui::Begin("Pick Result");
+  if (const auto pick = r3d->getPickResult())
+  {
+    const auto found = std::ranges::find_if(objects, [&pick](const MousePickingObject& candidate) {
+      return candidate.object == pick->renderObject;
+    });
+
+    ImGui::Text("Object: %d", static_cast<int>(found - objects.begin()));
+    ImGui::Text("Mesh: %u  Triangle: %u", pick->meshIndex, pick->triangleIndex);
+    ImGui::Text("World: %.3f %.3f %.3f", pick->worldPosition.x, pick->worldPosition.y, pick->worldPosition.z);
+    ImGui::Text("Depth: %.6f", pick->depth);
+  }
+  else
+  {
+    ImGui::TextUnformatted("Object: none");
   }
   ImGui::End();
 

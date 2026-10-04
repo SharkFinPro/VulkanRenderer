@@ -77,7 +77,7 @@ namespace vke {
           imageUsageFlags |= vk::ImageUsageFlagBits::eTransientAttachment;
         }
 
-        if (getFormat(config) == vk::Format::eR8G8B8A8Uint)
+        if (getFormat(config) == vk::Format::eR32G32B32A32Uint)
         {
           imageUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
         }

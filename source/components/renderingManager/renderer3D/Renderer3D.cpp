@@ -219,6 +219,19 @@ namespace vke {
     }
   }
 
+  void Renderer3D::renderPickableObject(const std::shared_ptr<RenderObject>& renderObject,
+                                        const PipelineType pipelineType)
+  {
+    this->renderObject(renderObject, pipelineType);
+
+    m_mousePicker->renderObject(renderObject, nullptr);
+  }
+
+  std::optional<PickResult> Renderer3D::getPickResult() const
+  {
+    return m_mousePicker->getPickResult();
+  }
+
   void Renderer3D::renderLine(const glm::vec3 start,
                               const glm::vec3 end)
   {

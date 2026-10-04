@@ -2,12 +2,14 @@
 #define VULKANPROJECT_RENDERER3D_H
 
 #include "RayTracer.h"
+#include "PickResult.h"
 #include "Renderer3DPushConstants.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -105,6 +107,12 @@ namespace vke {
     void renderObject(const std::shared_ptr<RenderObject>& renderObject,
                       PipelineType pipelineType,
                       bool* mousePicked = nullptr);
+
+    // Pickable without a flag: read the outcome through getPickResult().
+    void renderPickableObject(const std::shared_ptr<RenderObject>& renderObject,
+                              PipelineType pipelineType);
+
+    [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
     void renderLine(glm::vec3 start, glm::vec3 end);
 

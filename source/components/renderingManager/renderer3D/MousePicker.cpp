@@ -1,11 +1,14 @@
 #include "MousePicker.h"
+#include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
+#include <glm/matrix.hpp>
 #include <cmath>
+#include <cstring>
 
 namespace vke {
 
@@ -13,7 +16,7 @@ namespace vke {
                            const vk::CommandPool commandPool)
     : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
   {
-    constexpr vk::DeviceSize bufferSize = 4;
+    constexpr vk::DeviceSize bufferSize = sizeof(uint32_t) * 4;
 
     Buffers::createBuffer(
       m_logicalDevice,
@@ -30,9 +33,32 @@ namespace vke {
     return m_canMousePick;
   }
 
+  std::optional<PickResult> MousePicker::getPickResult() const
+  {
+    if (!m_pick)
+    {
+      return std::nullopt;
+    }
+
+    auto renderObject = m_pick->renderObject.lock();
+    if (!renderObject)
+    {
+      return std::nullopt;
+    }
+
+    return PickResult {
+      .renderObject = renderObject,
+      .meshIndex = renderObject->getModel()->getMeshIndex(m_pick->triangleIndex),
+      .triangleIndex = m_pick->triangleIndex,
+      .worldPosition = m_pick->worldPosition,
+      .depth = m_pick->depth
+    };
+  }
+
   void MousePicker::beginFrame()
   {
     m_canMousePick = false;
+    m_pick.reset();
   }
 
   void MousePicker::clearObjectsToMousePick()
@@ -41,7 +67,7 @@ namespace vke {
 
     // Ids restart at 1 each frame, and the pointers belong to the application, which may free them once it stops
     // submitting an object.
-    m_mousePickingItems.clear();
+    m_mousePickingFlags.clear();
   }
 
   void MousePicker::setViewportExtent(const vk::Extent2D viewportExtent)
@@ -69,13 +95,20 @@ namespace vke {
   {
     uint32_t objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
     m_renderObjectsToMousePick.emplace_back( renderObject, objectID );
-    m_mousePickingItems[objectID] = mousePicked;
-    *mousePicked = false;
+    m_mousePickingFlags.push_back(mousePicked);
+
+    if (mousePicked)
+    {
+      *mousePicked = false;
+    }
   }
 
   void MousePicker::render(const RenderInfo* renderInfo,
                            const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
+    m_viewMatrix = renderInfo->viewMatrix;
+    m_projectionMatrix = renderInfo->getProjectionMatrix();
+
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::mousePicking);
 
     for (const auto& [object, id] : m_renderObjectsToMousePick)
@@ -105,17 +138,34 @@ namespace vke {
   {
     // Checked even with nothing to pick, so canMousePick() still says whether the cursor is over the scene.
     int32_t mouseX, mouseY;
-    if (!validateMousePickingMousePosition(mouseX, mouseY) || m_mousePickingItems.empty())
+    if (!validateMousePickingMousePosition(mouseX, mouseY) || m_mousePickingFlags.empty())
     {
       return;
     }
 
-    const auto objectID = getIDFromMousePickingImage(image, mouseX, mouseY);
+    // An identifier buffer rather than a ray query: it works without ray tracing, matches exactly what was
+    // rasterized, and needs only this one-pixel readback.
+    const auto [objectID, triangleIndex, depthBits, _] = getPixelFromMousePickingImage(image, mouseX, mouseY);
 
-    if (const auto item = m_mousePickingItems.find(objectID); item != m_mousePickingItems.end())
+    if (objectID == 0 || objectID > m_renderObjectsToMousePick.size())
     {
-      *item->second = true;
+      return;
     }
+
+    if (bool* mousePicked = m_mousePickingFlags[objectID - 1])
+    {
+      *mousePicked = true;
+    }
+
+    float depth;
+    std::memcpy(&depth, &depthBits, sizeof(depth));
+
+    m_pick = Pick {
+      .renderObject = m_renderObjectsToMousePick[objectID - 1].first,
+      .triangleIndex = triangleIndex,
+      .worldPosition = getWorldPosition(mouseX, mouseY, depth),
+      .depth = depth
+    };
   }
 
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,
@@ -155,9 +205,26 @@ namespace vke {
     return m_canMousePick;
   }
 
-  uint32_t MousePicker::getIDFromMousePickingImage(vk::Image image,
-                                                   const int32_t mouseX,
-                                                   const int32_t mouseY) const
+  glm::vec3 MousePicker::getWorldPosition(const int32_t mouseX,
+                                          const int32_t mouseY,
+                                          const float depth) const
+  {
+    // The projection already flips Y for Vulkan, so framebuffer rows map straight to NDC y.
+    const glm::vec4 ndc {
+      2.0f * (static_cast<float>(mouseX) + 0.5f) / static_cast<float>(m_viewportExtent.width) - 1.0f,
+      2.0f * (static_cast<float>(mouseY) + 0.5f) / static_cast<float>(m_viewportExtent.height) - 1.0f,
+      depth,
+      1.0f
+    };
+
+    const glm::vec4 world = glm::inverse(m_projectionMatrix * m_viewMatrix) * ndc;
+
+    return glm::vec3(world) / world.w;
+  }
+
+  std::array<uint32_t, 4> MousePicker::getPixelFromMousePickingImage(vk::Image image,
+                                                                     const int32_t mouseX,
+                                                                     const int32_t mouseY) const
   {
     const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
 
@@ -175,22 +242,18 @@ namespace vke {
       transitionImageForWriting(commandBuffer, image);
     });
 
-    return getObjectIDFromBuffer(m_stagingBufferMemory);
+    return getPixelFromBuffer(m_stagingBufferMemory);
   }
 
-  uint32_t MousePicker::getObjectIDFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory)
+  std::array<uint32_t, 4> MousePicker::getPixelFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory)
   {
-    uint32_t objectID = 0;
+    std::array<uint32_t, 4> pixel {};
 
-    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&objectID](void* data) {
-      const uint8_t* pixel = static_cast<uint8_t*>(data);
-
-      objectID = static_cast<uint32_t>(pixel[0]) << 16 |
-                 static_cast<uint32_t>(pixel[1]) << 8 |
-                 static_cast<uint32_t>(pixel[2]);
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&pixel](void* data) {
+      std::memcpy(pixel.data(), data, sizeof(pixel));
     });
 
-    return objectID;
+    return pixel;
   }
 
   void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
