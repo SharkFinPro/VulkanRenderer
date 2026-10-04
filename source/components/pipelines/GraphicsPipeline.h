@@ -134,6 +134,9 @@ namespace vke {
     vk::Format depthFormat = vk::Format::eUndefined;
 
     bool renderToCubeMap = false;
+
+    // False for pipelines drawn in a pass that has no depth attachment.
+    bool hasDepthAttachment = true;
   };
 
   class GraphicsPipeline : public Pipeline {
