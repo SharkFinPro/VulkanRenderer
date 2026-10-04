@@ -56,6 +56,8 @@ namespace vke {
     }
   };
 
+  static_assert(sizeof(LineInstance) == 44, "The vertex attributes assume a tightly packed LineInstance");
+
 } // namespace vke
 
 #endif //VKE_LINEINSTANCE_H

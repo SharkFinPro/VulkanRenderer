@@ -108,14 +108,17 @@ namespace vke {
                       PipelineType pipelineType,
                       bool* mousePicked = nullptr);
 
-    // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above
-    // zero keeps the line drawn each frame until it expires; otherwise it is drawn this frame only.
+    // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above zero keeps the line
+    // drawn each frame until that much wall time has passed, whether or not the scene was drawn meanwhile, so submit
+    // such a line once rather than every frame; otherwise it is drawn this frame only. Lines are drawn by the raster
+    // path only, not while ray tracing is on.
     void renderLine(glm::vec3 start,
                     glm::vec3 end,
                     glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f },
                     float width = 1.0f,
                     float lifetimeSeconds = 0.0f);
 
+    // Drops lines kept for a lifetime, including from the frame being built.
     void clearLines();
 
     void renderBendyPlant(const BendyPlant& bendyPlant);
@@ -158,9 +161,10 @@ namespace vke {
       std::chrono::steady_clock::time_point expiry;
     };
 
-    // Everything drawn this frame: the unexpired timed lines first, then this frame's lines.
+    // This frame's lines, then the unexpired timed lines, so lines past the limit are the oldest timed ones.
     std::vector<LineInstance> m_linesToRender;
     std::vector<TimedLine> m_timedLines;
+    std::vector<LineInstance> m_lineBatch;
 
     std::vector<BendyPlant> m_bendyPlantsToRender;
 

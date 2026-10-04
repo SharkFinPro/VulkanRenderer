@@ -47,6 +47,28 @@ namespace vke::gps {
     .blendConstants = {{ 0.0f, 0.0f, 0.0f, 0.0f }}
   };
 
+  // Blends color by source alpha but keeps the destination's alpha opaque, since the scene image is itself drawn
+  // alpha blended into the UI.
+  inline vk::PipelineColorBlendAttachmentState colorBlendAttachmentLine {
+    .blendEnable = vk::True,
+    .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
+    .dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+    .colorBlendOp = vk::BlendOp::eAdd,
+    .srcAlphaBlendFactor = vk::BlendFactor::eOne,
+    .dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+    .alphaBlendOp = vk::BlendOp::eAdd,
+    .colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                      vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+  };
+
+  inline vk::PipelineColorBlendStateCreateInfo colorBlendStateLine {
+    .logicOpEnable = vk::False,
+    .logicOp = vk::LogicOp::eCopy,
+    .attachmentCount = 1,
+    .pAttachments = &colorBlendAttachmentLine,
+    .blendConstants = {{ 0.0f, 0.0f, 0.0f, 0.0f }}
+  };
+
   inline vk::PipelineColorBlendAttachmentState colorBlendAttachmentSmoke {
     .blendEnable = vk::True,
     .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,

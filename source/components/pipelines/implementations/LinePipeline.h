@@ -12,6 +12,8 @@ namespace vke {
   public:
     explicit LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
+    static constexpr size_t s_maxLines = 10'000;
+
     void render(const RenderInfo* renderInfo,
                 const std::vector<LineInstance>* lines) const;
 
@@ -22,8 +24,7 @@ namespace vke {
     std::vector<vk::raii::Buffer> m_vertexBuffers;
     std::vector<vk::raii::DeviceMemory> m_vertexBuffersMemory;
     std::vector<void*> m_vertexBuffersMapped;
-    static constexpr size_t m_maxLines = 10'000;
-    size_t m_maxVertexBufferSize = sizeof(LineInstance) * m_maxLines;
+    size_t m_maxVertexBufferSize = sizeof(LineInstance) * s_maxLines;
     mutable bool m_warnedAboutLineLimit = false;
 
     void createVertexBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice);

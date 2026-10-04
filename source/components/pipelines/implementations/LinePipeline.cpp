@@ -26,7 +26,7 @@ namespace vke {
         .fragmentShader = "assets/shaders/Line.frag.spv"
       },
       .states {
-        .colorBlendState = gps::colorBlendStateDots,
+        .colorBlendState = gps::colorBlendStateLine,
         .depthStencilState = gps::depthStencilState,
         .dynamicState = gps::dynamicState,
         .inputAssemblyState = gps::inputAssemblyStateTriangleList,
@@ -59,12 +59,12 @@ namespace vke {
 
     // Debug drawing must not take an application down, so lines past the buffer's capacity are
     // dropped (with one warning) instead of throwing mid-frame.
-    const size_t lineCount = std::min(lines->size(), m_maxLines);
+    const size_t lineCount = std::min(lines->size(), s_maxLines);
 
     if (lineCount < lines->size() && !m_warnedAboutLineLimit)
     {
       m_warnedAboutLineLimit = true;
-      std::cerr << "Line limit of " << m_maxLines << " exceeded; extra lines are not drawn" << std::endl;
+      std::cerr << "Line limit of " << s_maxLines << " exceeded; extra lines are not drawn" << std::endl;
     }
 
     bind(renderInfo->commandBuffer);
