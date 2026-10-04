@@ -134,9 +134,6 @@ namespace vke {
       PipelineConfig::createObjectsPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
-    createGraphicsPipeline(PipelineType::objectHighlight,
-      PipelineConfig::createObjectHighlightPipelineOptions(m_logicalDevice, objectDescriptorSetLayout));
-
     createGraphicsPipeline(PipelineType::ellipticalDots,
       PipelineConfig::createEllipticalDotsPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
       lightingDescriptorSetLayout));
@@ -180,6 +177,20 @@ namespace vke {
 
     createGraphicsPipeline(PipelineType::mousePicking,
       PipelineConfig::createMousePickingPipelineOptions(objectDescriptorSetLayout));
+
+    createGraphicsPipeline(PipelineType::outlineMask,
+      PipelineConfig::createOutlineMaskPipelineOptions(objectDescriptorSetLayout));
+
+    const auto outlineMaskDescriptorSetLayout = renderingManager->getOutlineMaskDescriptorSetLayout();
+    const auto outlineColorsDescriptorSetLayout = renderingManager->getRenderer3D()->getOutlineColorsDescriptorSetLayout();
+
+    createGraphicsPipeline(PipelineType::outline,
+      PipelineConfig::createOutlinePipelineOptions(gps::getMultsampleState(m_logicalDevice), true,
+      outlineMaskDescriptorSetLayout, outlineColorsDescriptorSetLayout));
+
+    createGraphicsPipeline(PipelineType::outlineSingleSample,
+      PipelineConfig::createOutlinePipelineOptions(gps::multisampleStateNone, false,
+      outlineMaskDescriptorSetLayout, outlineColorsDescriptorSetLayout));
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,

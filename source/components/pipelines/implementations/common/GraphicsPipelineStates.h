@@ -114,6 +114,27 @@ namespace vke::gps {
     .blendConstants = {{ 0.0f, 0.0f, 0.0f, 0.0f }}
   };
 
+  // Blends the color only, so an overlay leaves the destination's alpha alone.
+  inline vk::PipelineColorBlendAttachmentState colorBlendAttachmentOverlay {
+    .blendEnable = vk::True,
+    .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
+    .dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+    .colorBlendOp = vk::BlendOp::eAdd,
+    .srcAlphaBlendFactor = vk::BlendFactor::eZero,
+    .dstAlphaBlendFactor = vk::BlendFactor::eOne,
+    .alphaBlendOp = vk::BlendOp::eAdd,
+    .colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                      vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
+  };
+
+  inline vk::PipelineColorBlendStateCreateInfo colorBlendStateOverlay {
+    .logicOpEnable = vk::False,
+    .logicOp = vk::LogicOp::eCopy,
+    .attachmentCount = 1,
+    .pAttachments = &colorBlendAttachmentOverlay,
+    .blendConstants = {{ 0.0f, 0.0f, 0.0f, 0.0f }}
+  };
+
   inline vk::PipelineDepthStencilStateCreateInfo depthStencilState {
     .depthTestEnable = vk::True,
     .depthWriteEnable = vk::True,
