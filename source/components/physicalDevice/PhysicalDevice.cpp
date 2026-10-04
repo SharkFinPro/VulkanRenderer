@@ -192,7 +192,7 @@ namespace vke {
     >().get<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
   }
 
-  DeviceCapabilities PhysicalDevice::getCapabilities() const
+  GpuCapabilities PhysicalDevice::getCapabilities() const
   {
     const auto properties = m_physicalDevice.getProperties();
 

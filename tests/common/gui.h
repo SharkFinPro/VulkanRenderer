@@ -5,7 +5,7 @@
 #include <source/components/imGui/ImGuiInstance.h>
 #include <source/components/lighting/lights/Light.h>
 #include <source/components/lighting/lights/SpotLight.h>
-#include <source/components/physicalDevice/DeviceCapabilities.h>
+#include <source/components/physicalDevice/GpuCapabilities.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
@@ -195,7 +195,7 @@ inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
 }
 
 inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& renderingManager,
-                                const vke::DeviceCapabilities& capabilities)
+                                const vke::GpuCapabilities& capabilities)
 {
   ImGui::Begin("Scene Options");
 
@@ -247,7 +247,7 @@ inline void displayGui(const std::shared_ptr<vke::ImGuiInstance>& gui,
                        const std::vector<std::shared_ptr<vke::Light>>& lights,
                        const std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                        const std::shared_ptr<vke::RenderingManager>& renderingManager,
-                       const vke::DeviceCapabilities& capabilities)
+                       const vke::GpuCapabilities& capabilities)
 {
   setDockOptions(gui);
 

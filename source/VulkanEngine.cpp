@@ -144,7 +144,7 @@ namespace vke {
     return m_window;
   }
 
-  DeviceCapabilities VulkanEngine::getDeviceCapabilities() const
+  GpuCapabilities VulkanEngine::getGpuCapabilities() const
   {
     return m_physicalDevice->getCapabilities();
   }

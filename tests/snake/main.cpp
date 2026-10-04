@@ -48,7 +48,7 @@ int main()
       x += 0.025f;
       object->setPosition({x, 0, 0});
 
-      displayGui(gui, lights, { object }, renderer.getRenderingManager(), renderer.getDeviceCapabilities());
+      displayGui(gui, lights, { object }, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
       // Render Objects
       r3d->renderObject(object, vke::PipelineType::snake);

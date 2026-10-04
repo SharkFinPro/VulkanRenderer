@@ -1,7 +1,7 @@
 #ifndef VKE_PHYSICALDEVICE_H
 #define VKE_PHYSICALDEVICE_H
 
-#include "DeviceCapabilities.h"
+#include "GpuCapabilities.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <memory>
@@ -86,7 +86,7 @@ namespace vke {
 
     [[nodiscard]] vk::PhysicalDeviceRayTracingPipelinePropertiesKHR getRayTracingPipelineProperties() const;
 
-    [[nodiscard]] DeviceCapabilities getCapabilities() const;
+    [[nodiscard]] GpuCapabilities getCapabilities() const;
 
     // The features the engine enables; the suitability check tests exactly these.
     using FeatureChain = vk::StructureChain<

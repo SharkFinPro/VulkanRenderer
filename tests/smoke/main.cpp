@@ -53,7 +53,7 @@ int main()
 
     while (renderer.isActive())
     {
-      displayGui(gui, lights, { object }, renderer.getRenderingManager(), renderer.getDeviceCapabilities());
+      displayGui(gui, lights, { object }, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
       ImGui::Begin("Smoke Systems");
       for (uint32_t i = 0; i < smokeSystems.size(); ++i)

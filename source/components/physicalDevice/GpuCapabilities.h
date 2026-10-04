@@ -1,5 +1,5 @@
-#ifndef VKE_DEVICECAPABILITIES_H
-#define VKE_DEVICECAPABILITIES_H
+#ifndef VKE_GPUCAPABILITIES_H
+#define VKE_GPUCAPABILITIES_H
 
 #include <vulkan/vulkan_raii.hpp>
 #include <cstdint>
@@ -8,7 +8,7 @@
 namespace vke {
 
   // What the selected GPU offers, for applications to adapt their UI or content to.
-  struct DeviceCapabilities {
+  struct GpuCapabilities {
     std::string deviceName;
     vk::PhysicalDeviceType deviceType = vk::PhysicalDeviceType::eOther;
     uint32_t apiVersion = 0;
@@ -20,4 +20,4 @@ namespace vke {
 
 } // namespace vke
 
-#endif //VKE_DEVICECAPABILITIES_H
+#endif //VKE_GPUCAPABILITIES_H
