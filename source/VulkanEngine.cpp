@@ -144,6 +144,11 @@ namespace vke {
     return m_window;
   }
 
+  DeviceCapabilities VulkanEngine::getDeviceCapabilities() const
+  {
+    return m_physicalDevice->getCapabilities();
+  }
+
   void VulkanEngine::initializeVulkanAndWindow(const EngineConfig& engineConfig)
   {
     m_instance = std::make_shared<Instance>();

@@ -94,7 +94,7 @@ void renderScene(vke::VulkanEngine& renderer,
 {
   const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
-  displayGui(gui, lights, objects, renderer.getRenderingManager());
+  displayGui(gui, lights, objects, renderer.getRenderingManager(), renderer.getDeviceCapabilities());
 
   // Render Objects
   for (auto& object : objects)

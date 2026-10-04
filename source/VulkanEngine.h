@@ -2,6 +2,7 @@
 #define VKE_VULKANENGINE_H
 
 #include "EngineConfig.h"
+#include "components/physicalDevice/DeviceCapabilities.h"
 #include <memory>
 
 namespace vke {
@@ -40,6 +41,8 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<RenderingManager> getRenderingManager() const;
 
     [[nodiscard]] std::shared_ptr<Window> getWindow() const;
+
+    [[nodiscard]] DeviceCapabilities getDeviceCapabilities() const;
 
   private:
     std::shared_ptr<Instance> m_instance;

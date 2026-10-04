@@ -83,7 +83,7 @@ void renderScene(vke::VulkanEngine& renderer,
 {
   const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
-  displayGui(gui, lights, { object }, renderer.getRenderingManager());
+  displayGui(gui, lights, { object }, renderer.getRenderingManager(), renderer.getDeviceCapabilities());
 
   ImGui::Begin("Rendering");
   ImGui::Checkbox("Use Magic Lens", &useMagicLens);

@@ -1,10 +1,13 @@
 #ifndef VKE_PHYSICALDEVICE_H
 #define VKE_PHYSICALDEVICE_H
 
+#include "DeviceCapabilities.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <memory>
 #include <optional>
+#include <span>
+#include <string>
 #include <vector>
 
 namespace vke {
@@ -83,6 +86,20 @@ namespace vke {
 
     [[nodiscard]] vk::PhysicalDeviceRayTracingPipelinePropertiesKHR getRayTracingPipelineProperties() const;
 
+    [[nodiscard]] DeviceCapabilities getCapabilities() const;
+
+    // The features the engine enables; the suitability check tests exactly these.
+    using FeatureChain = vk::StructureChain<
+      vk::PhysicalDeviceFeatures2,
+      vk::PhysicalDeviceVulkan11Features,
+      vk::PhysicalDeviceVulkan12Features,
+      vk::PhysicalDeviceVulkan13Features,
+      vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+      vk::PhysicalDeviceRayTracingPipelineFeaturesKHR
+    >;
+
+    [[nodiscard]] static FeatureChain makeEnabledFeatures(bool rayTracing);
+
     friend class ImGuiInstance;
 
   private:
@@ -100,13 +117,15 @@ namespace vke {
 
     void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
 
-    [[nodiscard]] bool isDeviceSuitable(const vk::raii::PhysicalDevice& device) const;
+    // The first missing requirement, or nothing when the device is suitable.
+    [[nodiscard]] std::optional<std::string> findRejectionReason(const vk::raii::PhysicalDevice& device) const;
 
     [[nodiscard]] QueueFamilyIndices findQueueFamilies(const vk::raii::PhysicalDevice& device) const;
 
-    static bool checkDeviceExtensionSupport(const vk::raii::PhysicalDevice& device);
+    [[nodiscard]] static std::string findMissingExtension(const vk::raii::PhysicalDevice& device,
+                                                          std::span<const char* const> extensions);
 
-    static bool checkDeviceRayTracingExtensionSupport(const vk::raii::PhysicalDevice& device);
+    [[nodiscard]] static bool checkRayTracingSupport(const vk::raii::PhysicalDevice& device);
 
     [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::raii::PhysicalDevice& device) const;
 
