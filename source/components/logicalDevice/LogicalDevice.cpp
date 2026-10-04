@@ -1,4 +1,5 @@
 #include "LogicalDevice.h"
+#include "DeferredDestructionQueue.h"
 #include "../instance/Instance.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include <array>
@@ -10,6 +11,19 @@ namespace vke {
     : m_physicalDevice(physicalDevice)
   {
     createDevice();
+
+    m_retiredResources = std::make_unique<DeferredDestructionQueue>();
+  }
+
+  LogicalDevice::~LogicalDevice()
+  {
+    // Anything retired late, such as during teardown, must go before the device does.
+    if (*m_device)
+    {
+      m_device.waitIdle();
+    }
+
+    m_retiredResources->destroyAll();
   }
 
   std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
@@ -20,6 +34,22 @@ namespace vke {
   void LogicalDevice::waitIdle() const
   {
     m_device.waitIdle();
+  }
+
+  void LogicalDevice::retire(std::shared_ptr<void> resource)
+  {
+    m_retiredResources->push(std::move(resource));
+  }
+
+  void LogicalDevice::beginFrameDestruction(const uint64_t frameNumber,
+                                            const uint64_t lastCompletedFrame)
+  {
+    m_retiredResources->beginFrame(frameNumber, lastCompletedFrame);
+  }
+
+  void LogicalDevice::destroyRetiredResources()
+  {
+    m_retiredResources->destroyAll();
   }
 
   vk::Queue LogicalDevice::getGraphicsQueue() const

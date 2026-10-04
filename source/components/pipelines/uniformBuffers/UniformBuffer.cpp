@@ -35,7 +35,16 @@ namespace vke {
 
   UniformBuffer::~UniformBuffer()
   {
-    m_logicalDevice->waitIdle();
+    // Buffers are declared after the memory they are bound to, so they are destroyed first.
+    struct Retired {
+      std::vector<vk::raii::DeviceMemory> memory;
+      std::vector<vk::raii::Buffer> buffers;
+    };
+
+    m_logicalDevice->retireHandles(Retired {
+      .memory = std::move(m_uniformBuffersMemory),
+      .buffers = std::move(m_uniformBuffers)
+    });
   }
 
   vk::WriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding,

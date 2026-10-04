@@ -24,6 +24,8 @@ namespace vke {
                 glm::vec3 position,
                 uint32_t numParticles);
 
+    ~SmokeSystem();
+
     void update(const RenderInfo* renderInfo);
 
     [[nodiscard]] uint32_t getNumParticles() const;
@@ -53,6 +55,8 @@ namespace vke {
     void setWindStrength(float windStrength);
 
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
     std::vector<vk::raii::Buffer> m_shaderStorageBuffers;
     std::vector<vk::raii::DeviceMemory> m_shaderStorageBuffersMemory;
     std::vector<vk::DescriptorBufferInfo> m_shaderStorageBufferInfos;

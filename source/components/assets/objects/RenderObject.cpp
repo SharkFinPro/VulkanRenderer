@@ -25,12 +25,21 @@ namespace vke {
                              std::shared_ptr<Texture> texture,
                              std::shared_ptr<Texture> specularMap,
                              std::shared_ptr<Model> model)
-    : m_texture(std::move(texture)),
+    : m_logicalDevice(logicalDevice),
+      m_texture(std::move(texture)),
       m_specularMap(std::move(specularMap)),
       m_model(std::move(model)),
       m_transformUniform(std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform)))
   {
     createDescriptorSet(logicalDevice, descriptorPool, descriptorSetLayout);
+  }
+
+  RenderObject::~RenderObject()
+  {
+    // Frames in flight may still draw this object's model and textures.
+    m_logicalDevice->retire(std::move(m_texture));
+    m_logicalDevice->retire(std::move(m_specularMap));
+    m_logicalDevice->retire(std::move(m_model));
   }
 
   void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
