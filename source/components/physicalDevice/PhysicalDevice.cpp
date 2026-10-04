@@ -90,6 +90,7 @@ namespace vke {
       }
     }
   } // namespace
+
   PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance,
                                  std::shared_ptr<Surface> surface)
     : m_surface(std::move(surface))

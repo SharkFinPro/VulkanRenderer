@@ -45,7 +45,7 @@
 
 ## Architecture Overview
 
-**Engine facade** — `VulkanEngine` owns and wires the subsystems (all `shared_ptr`), exposes a subset via getters (`getAssetManager`, `getCamera`, `getImGuiInstance`, `getLightingManager`, `getRenderingManager`, `getWindow`), and runs the loop via `isActive()` / `render()`.
+**Engine facade** — `VulkanEngine` owns and wires the subsystems (all `shared_ptr`), exposes a subset via getters (`getAssetManager`, `getCamera`, `getGpuCapabilities`, `getImGuiInstance`, `getLightingManager`, `getRenderingManager`, `getWindow`), and runs the loop via `isActive()` / `render()`.
 
 **Core / device layer** — `Instance` (+ `DebugMessenger`), `Surface`, `Window` (GLFW), `PhysicalDevice`, `LogicalDevice`. These form the Vulkan context the rest of the engine builds on. `PhysicalDevice` rejects a GPU unless it offers Vulkan 1.3, the required extensions, a swapchain and every core feature `LogicalDevice` enables (one feature table feeds both the check and `PhysicalDevice::makeEnabledFeatures`); if none qualifies, startup throws listing each device and why it was rejected. Of the suitable GPUs it prefers discrete, then integrated, then ray tracing support. Ray tracing is optional: it needs its extensions and features, and without them the engine rasterizes. `VulkanEngine::getGpuCapabilities()` reports the device name and type, API version, ray tracing, MSAA samples and depth format. The fixed `R8G8B8A8Unorm`/`R8G8B8A8Uint` image formats are mandatory in the Vulkan spec, so they have no fallback. Closing is a request, not a command: the window system's close button (and Escape, only when `EngineConfig::Window::closeOnEscape` is set) emits `CloseRequestEvent`, and a listener can veto with `Window::cancelClose()`.
 

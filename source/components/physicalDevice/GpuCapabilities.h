@@ -1,7 +1,7 @@
 #ifndef VKE_GPUCAPABILITIES_H
 #define VKE_GPUCAPABILITIES_H
 
-#include <vulkan/vulkan_raii.hpp>
+#include <vulkan/vulkan.hpp>
 #include <cstdint>
 #include <string>
 
@@ -11,6 +11,7 @@ namespace vke {
   struct GpuCapabilities {
     std::string deviceName;
     vk::PhysicalDeviceType deviceType = vk::PhysicalDeviceType::eOther;
+    // The highest Vulkan version the device supports; the engine itself uses 1.3.
     uint32_t apiVersion = 0;
     // Ray tracing extensions and every feature the engine enables for them are available.
     bool rayTracing = false;
