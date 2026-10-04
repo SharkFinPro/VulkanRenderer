@@ -3,8 +3,8 @@
 #include "../window/Surface.h"
 #include <algorithm>
 #include <array>
-#include <format>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 
 namespace vke {
@@ -248,7 +248,7 @@ namespace vke {
 
       if (const auto reason = findRejectionReason(device))
       {
-        rejections += std::format("\n  {}: {}", properties.deviceName.data(), *reason);
+        rejections += "\n  " + std::string(properties.deviceName.data()) + ": " + *reason;
         continue;
       }
 
@@ -283,9 +283,9 @@ namespace vke {
 
     if (properties.apiVersion < vk::ApiVersion13)
     {
-      return std::format("supports Vulkan {}.{}, 1.3 is required",
-                         vk::apiVersionMajor(properties.apiVersion),
-                         vk::apiVersionMinor(properties.apiVersion));
+      // Built without std::format, which the Linux CI's standard library lacks.
+      return "supports Vulkan " + std::to_string(vk::apiVersionMajor(properties.apiVersion)) + "." +
+             std::to_string(vk::apiVersionMinor(properties.apiVersion)) + ", 1.3 is required";
     }
 
     if (!findQueueFamilies(device).isComplete())
