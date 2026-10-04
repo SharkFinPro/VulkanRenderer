@@ -54,9 +54,9 @@ namespace vke {
                                                                  const std::shared_ptr<Model>& model);
 
     // Hands over the caller's reference. Nothing is destroyed here, so this is safe at any point in the frame: the
-    // resource is destroyed at the end of a frame, after that frame's draws were submitted and the device was waited
-    // on, once nothing else holds it (a render object keeps its texture and model alive). Handles taken from it, such
-    // as an ImTextureID from getImGuiTexture(), must not be used after the frame it is released in.
+    // resource is destroyed after the last frame that could use it has finished on the GPU, once nothing else holds
+    // it (a render object keeps its texture and model alive). Handles taken from it, such as an ImTextureID from
+    // getImGuiTexture(), must not be used after the frame it is released in.
     void release(std::shared_ptr<RenderObject> renderObject);
 
     void release(std::shared_ptr<Model> model);
@@ -65,8 +65,9 @@ namespace vke {
 
     void release(std::shared_ptr<Texture2D> texture);
 
-    // Called by the engine at the end of each frame and before teardown.
-    void destroyReleasedResources();
+    // Called by the engine at the end of each frame and before teardown. Hands every released resource nothing
+    // else holds to the logical device's deferred destruction; returns whether it handed over any.
+    bool destroyReleasedResources();
 
     void registerFont(std::string fontName,
                       std::string fontPath);

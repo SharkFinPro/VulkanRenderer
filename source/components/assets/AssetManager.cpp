@@ -80,26 +80,24 @@ namespace vke {
     queueRelease(std::move(texture));
   }
 
-  void AssetManager::destroyReleasedResources()
+  bool AssetManager::destroyReleasedResources()
   {
-    const auto isSoleOwner = [](const std::shared_ptr<void>& resource) {
-      return resource.use_count() == 1;
-    };
+    // A retired render object leaves its texture and model sole-owned only once the device destroys it, so
+    // they are retired by a later call.
+    const auto firstSoleOwned = std::ranges::stable_partition(m_releasedResources, [](const std::shared_ptr<void>& resource) {
+      return resource.use_count() != 1;
+    });
 
-    if (std::ranges::none_of(m_releasedResources, isSoleOwner))
+    const bool retiredAny = !firstSoleOwned.empty();
+
+    for (auto& resource : firstSoleOwned)
     {
-      return;
+      m_logicalDevice->retire(std::move(resource));
     }
 
-    // One wait covers every frame that could still reference the batch.
-    m_logicalDevice->waitIdle();
+    m_releasedResources.erase(firstSoleOwned.begin(), firstSoleOwned.end());
 
-    // Destroying a render object can leave its released texture or model with no other owner.
-    std::size_t destroyedCount;
-    do
-    {
-      destroyedCount = std::erase_if(m_releasedResources, isSoleOwner);
-    } while (destroyedCount > 0);
+    return retiredAny;
   }
 
   void AssetManager::registerFont(std::string fontName, std::string fontPath)

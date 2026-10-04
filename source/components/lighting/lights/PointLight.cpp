@@ -25,6 +25,11 @@ namespace vke {
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
+  PointLight::~PointLight()
+  {
+    m_logicalDevice->retire(std::move(m_descriptorSet));
+  }
+
   LightType PointLight::getLightType() const
   {
     return LightType::pointLight;

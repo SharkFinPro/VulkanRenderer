@@ -3,19 +3,42 @@
 
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 namespace vke {
 
+  class DeferredDestructionQueue;
   class PhysicalDevice;
 
   class LogicalDevice {
   public:
     explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
 
+    ~LogicalDevice();
+
     [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
 
     void waitIdle() const;
+
+    // Keeps a resource the GPU may still use alive until the last frame that could reference it has
+    // completed, then destroys it. Never waits on the device.
+    void retire(std::shared_ptr<void> resource);
+
+    // Moves handles (raii objects, a vector of them, a struct of them) into the retire queue. Members of a
+    // struct are destroyed in reverse declaration order.
+    template <typename T>
+    void retireHandles(T&& handles)
+    {
+      retire(std::make_shared<std::decay_t<T>>(std::forward<T>(handles)));
+    }
+
+    // Called once per frame by the frame scheduler.
+    void beginFrameDestruction(uint64_t frameNumber,
+                               uint64_t lastCompletedFrame);
+
+    // Destroys everything retired so far. Requires an idle device.
+    void destroyRetiredResources();
 
     [[nodiscard]] vk::Queue getGraphicsQueue() const;
     [[nodiscard]] vk::Queue getPresentQueue() const;
@@ -91,6 +114,9 @@ namespace vke {
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
     vk::raii::Device m_device = nullptr;
+
+    // Declared after m_device so retired resources are destroyed before the device.
+    std::unique_ptr<DeferredDestructionQueue> m_retiredResources;
 
     vk::raii::Queue m_graphicsQueue = nullptr;
     vk::raii::Queue m_presentQueue = nullptr;

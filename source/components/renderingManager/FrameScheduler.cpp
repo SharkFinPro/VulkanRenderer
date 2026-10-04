@@ -15,15 +15,19 @@ namespace vke {
 
     const uint64_t maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
 
-    if (m_frameNumber <= maxFramesInFlight)
+    if (m_frameNumber > maxFramesInFlight)
     {
-      return;
+      // Wait until the frame that last used this frame-in-flight slot has fully completed, so
+      // its command buffers, uniform buffers and per-frame images can be reused.
+      const uint64_t lastFrameInSlot = m_frameNumber - maxFramesInFlight;
+      waitForTimelineValue((lastFrameInSlot - 1) * s_signalsPerFrame + s_swapchainFinished);
     }
 
-    // Wait until the frame that last used this frame-in-flight slot has fully completed, so
-    // its command buffers, uniform buffers and per-frame images can be reused.
-    const uint64_t lastFrameInSlot = m_frameNumber - maxFramesInFlight;
-    waitForTimelineValue((lastFrameInSlot - 1) * s_signalsPerFrame + s_swapchainFinished);
+    // Frame k, however it ends (swapchain pass, no swapchain pass, or aborted), reaches the timeline
+    // value k * s_signalsPerFrame, so the counter tells which frames are done without blocking.
+    const uint64_t lastCompletedFrame = m_timelineSemaphore.getCounterValue() / s_signalsPerFrame;
+
+    m_logicalDevice->beginFrameDestruction(m_frameNumber, lastCompletedFrame);
   }
 
   uint32_t FrameScheduler::getCurrentFrame() const
