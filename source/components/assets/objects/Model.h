@@ -34,13 +34,9 @@ namespace vke {
 
     [[nodiscard]] const std::vector<uint32_t>& getIndices() const;
 
-    // The source mesh a triangle of the model's single indexed draw (as gl_PrimitiveID numbers it) came from.
-    [[nodiscard]] uint32_t getMeshIndex(uint32_t triangleIndex) const;
-
   private:
     std::vector<Vertex> m_vertices;
     std::vector<uint32_t> m_indices;
-    std::vector<uint32_t> m_meshFirstTriangles;
 
     vk::raii::Buffer m_vertexBuffer = nullptr;
     vk::raii::DeviceMemory m_vertexBufferMemory = nullptr;

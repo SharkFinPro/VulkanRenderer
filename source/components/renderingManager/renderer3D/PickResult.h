@@ -12,9 +12,6 @@ namespace vke {
   struct PickResult {
     std::shared_ptr<RenderObject> renderObject;
 
-    // Which source mesh of the model was hit (Model draws all its meshes with one indexed draw).
-    uint32_t meshIndex;
-
     // Within the model's index buffer.
     uint32_t triangleIndex;
 

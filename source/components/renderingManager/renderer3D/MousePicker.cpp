@@ -1,5 +1,4 @@
 #include "MousePicker.h"
-#include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../commandBuffer/SingleUseCommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -48,7 +47,6 @@ namespace vke {
 
     return PickResult {
       .renderObject = renderObject,
-      .meshIndex = renderObject->getModel()->getMeshIndex(m_pick->triangleIndex),
       .triangleIndex = m_pick->triangleIndex,
       .worldPosition = m_pick->worldPosition,
       .depth = m_pick->depth

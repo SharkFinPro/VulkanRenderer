@@ -148,7 +148,7 @@ void renderScene(vke::VulkanEngine& renderer,
     });
 
     ImGui::Text("Object: %d", static_cast<int>(found - objects.begin()));
-    ImGui::Text("Mesh: %u  Triangle: %u", pick->meshIndex, pick->triangleIndex);
+    ImGui::Text("Triangle: %u", pick->triangleIndex);
     ImGui::Text("World: %.3f %.3f %.3f", pick->worldPosition.x, pick->worldPosition.y, pick->worldPosition.z);
     ImGui::Text("Depth: %.6f", pick->depth);
   }

@@ -7,7 +7,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <algorithm>
 #include <stdexcept>
 
 namespace vke {
@@ -87,8 +86,6 @@ namespace vke {
 
   void Model::loadIndices(const aiMesh* mesh)
   {
-    m_meshFirstTriangles.push_back(static_cast<uint32_t>(m_indices.size() / 3));
-
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
       const aiFace face = mesh->mFaces[i];
@@ -296,13 +293,6 @@ namespace vke {
   vk::AccelerationStructureKHR Model::getBLAS() const
   {
     return *m_blas;
-  }
-
-  uint32_t Model::getMeshIndex(const uint32_t triangleIndex) const
-  {
-    const auto next = std::ranges::upper_bound(m_meshFirstTriangles, triangleIndex);
-
-    return next == m_meshFirstTriangles.begin() ? 0 : static_cast<uint32_t>(next - m_meshFirstTriangles.begin()) - 1;
   }
 
   const std::vector<Vertex>& Model::getVertices() const
