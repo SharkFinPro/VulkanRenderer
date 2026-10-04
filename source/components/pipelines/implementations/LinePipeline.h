@@ -1,7 +1,7 @@
 #ifndef VKE_LINEPIPELINE_H
 #define VKE_LINEPIPELINE_H
 
-#include "vertexInputs/LineVertex.h"
+#include "vertexInputs/LineInstance.h"
 #include "../GraphicsPipeline.h"
 #include <vector>
 #include <memory>
@@ -13,16 +13,18 @@ namespace vke {
     explicit LinePipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
     void render(const RenderInfo* renderInfo,
-                const std::vector<LineVertex>* vertices) const;
+                const std::vector<LineInstance>* lines) const;
 
   private:
-    // One host-visible vertex buffer per frame in flight, persistently mapped. Line geometry is
+    // One host-visible instance buffer per frame in flight, persistently mapped. Line data is
     // written straight into the current frame's buffer at record time, so there is no staging
     // copy (and its device stall) between recording and drawing.
     std::vector<vk::raii::Buffer> m_vertexBuffers;
     std::vector<vk::raii::DeviceMemory> m_vertexBuffersMemory;
     std::vector<void*> m_vertexBuffersMapped;
-    size_t m_maxVertexBufferSize = sizeof(LineVertex) * 20'000;
+    static constexpr size_t m_maxLines = 10'000;
+    size_t m_maxVertexBufferSize = sizeof(LineInstance) * m_maxLines;
+    mutable bool m_warnedAboutLineLimit = false;
 
     void createVertexBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice);
   };

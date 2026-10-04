@@ -151,7 +151,7 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/common/PipelineTypes.h
 
   # Vertex Input States
-  components/pipelines/implementations/vertexInputs/LineVertex.h
+  components/pipelines/implementations/vertexInputs/LineInstance.h
   components/pipelines/implementations/vertexInputs/Particle.h
   components/pipelines/implementations/vertexInputs/SmokeParticle.h
   components/pipelines/implementations/vertexInputs/Vertex.h

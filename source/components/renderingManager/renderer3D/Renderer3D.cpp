@@ -97,7 +97,7 @@ namespace vke {
 
     renderSmokeSystems(&renderInfo3D, pipelineManager);
 
-    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineVerticesToRender);
+    pipelineManager->renderLinePipeline(&renderInfo3D, &m_linesToRender);
 
     if (m_shouldRenderGrid)
     {
@@ -142,7 +142,17 @@ namespace vke {
 
     m_renderObjectsToRenderFlattened.clear();
 
-    m_lineVerticesToRender.clear();
+    m_linesToRender.clear();
+
+    const auto now = std::chrono::steady_clock::now();
+    std::erase_if(m_timedLines, [now](const TimedLine& timedLine) {
+      return timedLine.expiry <= now;
+    });
+
+    for (const auto& [line, _] : m_timedLines)
+    {
+      m_linesToRender.push_back(line);
+    }
 
     m_bendyPlantsToRender.clear();
 
@@ -220,9 +230,28 @@ namespace vke {
   }
 
   void Renderer3D::renderLine(const glm::vec3 start,
-                              const glm::vec3 end)
+                              const glm::vec3 end,
+                              const glm::vec4 color,
+                              const float width,
+                              const float lifetimeSeconds)
   {
-    m_lineVerticesToRender.insert(m_lineVerticesToRender.end(), { LineVertex{start}, LineVertex{end} });
+    const LineInstance line { start, end, color, width };
+
+    m_linesToRender.push_back(line);
+
+    if (lifetimeSeconds > 0.0f)
+    {
+      m_timedLines.push_back({
+        line,
+        std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::duration<float>(lifetimeSeconds))
+      });
+    }
+  }
+
+  void Renderer3D::clearLines()
+  {
+    m_timedLines.clear();
   }
 
   void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)

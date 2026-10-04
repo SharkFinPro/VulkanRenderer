@@ -4,9 +4,12 @@
 #include "RayTracer.h"
 #include "Renderer3DPushConstants.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
+#include "../../pipelines/implementations/vertexInputs/LineInstance.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <chrono>
 #include <memory>
 #include <unordered_map>
 #include <variant>
@@ -20,7 +23,6 @@ namespace vke {
   class DescriptorSet;
   class ImageResource;
   class LightingManager;
-  struct LineVertex;
   class LogicalDevice;
   class MousePicker;
   class PipelineManager;
@@ -106,7 +108,15 @@ namespace vke {
                       PipelineType pipelineType,
                       bool* mousePicked = nullptr);
 
-    void renderLine(glm::vec3 start, glm::vec3 end);
+    // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above
+    // zero keeps the line drawn each frame until it expires; otherwise it is drawn this frame only.
+    void renderLine(glm::vec3 start,
+                    glm::vec3 end,
+                    glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f },
+                    float width = 1.0f,
+                    float lifetimeSeconds = 0.0f);
+
+    void clearLines();
 
     void renderBendyPlant(const BendyPlant& bendyPlant);
 
@@ -143,7 +153,14 @@ namespace vke {
     std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;
 
-    std::vector<LineVertex> m_lineVerticesToRender;
+    struct TimedLine {
+      LineInstance line;
+      std::chrono::steady_clock::time_point expiry;
+    };
+
+    // Everything drawn this frame: the unexpired timed lines first, then this frame's lines.
+    std::vector<LineInstance> m_linesToRender;
+    std::vector<TimedLine> m_timedLines;
 
     std::vector<BendyPlant> m_bendyPlantsToRender;
 

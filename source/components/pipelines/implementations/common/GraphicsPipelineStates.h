@@ -1,7 +1,7 @@
 #ifndef VKE_GRAPHICSPIPELINESTATES_H
 #define VKE_GRAPHICSPIPELINESTATES_H
 
-#include "../vertexInputs/LineVertex.h"
+#include "../vertexInputs/LineInstance.h"
 #include "../vertexInputs/Particle.h"
 #include "../vertexInputs/Vertex.h"
 #include "../vertexInputs/SmokeParticle.h"
@@ -154,11 +154,6 @@ namespace vke::gps {
     .primitiveRestartEnable = vk::False
   };
 
-  inline vk::PipelineInputAssemblyStateCreateInfo inputAssemblyStateLineList {
-    .topology = vk::PrimitiveTopology::eLineList,
-    .primitiveRestartEnable = vk::False
-  };
-
   inline vk::PipelineMultisampleStateCreateInfo getMultsampleState(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {
@@ -257,14 +252,14 @@ namespace vke::gps {
     .pVertexAttributeDescriptions = vertexAttributeDescriptionsPositionAndNormal.data()
   };
 
-  inline vk::VertexInputBindingDescription lineVertexBindingDescription = LineVertex::getBindingDescription();
-  inline std::array lineVertexAttributeDescriptions = LineVertex::getAttributeDescriptions();
+  inline vk::VertexInputBindingDescription lineInstanceBindingDescription = LineInstance::getBindingDescription();
+  inline std::array lineInstanceAttributeDescriptions = LineInstance::getAttributeDescriptions();
 
-  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateLineVertex {
+  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateLineInstance {
     .vertexBindingDescriptionCount = 1,
-    .pVertexBindingDescriptions = &lineVertexBindingDescription,
-    .vertexAttributeDescriptionCount = static_cast<uint32_t>(lineVertexAttributeDescriptions.size()),
-    .pVertexAttributeDescriptions = lineVertexAttributeDescriptions.data()
+    .pVertexBindingDescriptions = &lineInstanceBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(lineInstanceAttributeDescriptions.size()),
+    .pVertexAttributeDescriptions = lineInstanceAttributeDescriptions.data()
   };
 
   inline vk::VertexInputBindingDescription particleBindingDescription = Particle::getBindingDescription();
