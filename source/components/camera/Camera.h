@@ -21,8 +21,9 @@ namespace vke {
 
     void setSpeed(float cameraSpeed);
 
-    // Rotation and keyboard movement. The wheel is separate because it should follow the cursor, not focus.
-    void processInput(const std::shared_ptr<Window>& window);
+    // Keyboard movement (when move) and rotation. Rotation is applied only when rotate is true; the engine passes
+    // whether a right-drag started over the scene. The wheel is separate because it should follow the cursor, not focus.
+    void processInput(const std::shared_ptr<Window>& window, bool move, bool rotate);
 
     void processScroll(const std::shared_ptr<Window>& window);
 
@@ -53,7 +54,7 @@ namespace vke {
     std::chrono::time_point<std::chrono::steady_clock> m_previousTime;
 
     void handleMovement(const std::shared_ptr<Window>& window, float dt);
-    void handleRotation(const std::shared_ptr<Window>& window);
+    void handleRotation(const std::shared_ptr<Window>& window, bool rotate);
     void handleZoom(const std::shared_ptr<Window>& window);
     void updateDirection();
   };
