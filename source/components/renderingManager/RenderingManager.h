@@ -55,6 +55,10 @@ namespace vke {
 
     [[nodiscard]] bool isSceneHovered() const;
 
+    // True while the right button is held after being pressed over the scene view. The drag keeps it even once the
+    // cursor leaves the scene.
+    [[nodiscard]] bool isSceneRightDragged() const;
+
     [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
 
     [[nodiscard]] vk::Format getSwapChainImageFormat() const;
@@ -108,6 +112,8 @@ namespace vke {
 
     bool m_sceneIsHovered = false;
 
+    bool m_sceneOwnsRightDrag = false;
+
     bool m_useDockspace;
 
     vk::Extent2D m_offscreenViewportExtent{0, 0};
@@ -134,6 +140,10 @@ namespace vke {
     void renderWithoutSwapchain(const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const std::shared_ptr<LightingManager>& lightingManager,
                                 uint32_t currentFrame);
+
+    // Starts the right-button drag on a press when pressStartsDrag, and ends it on release. Returns whether a drag
+    // started this frame.
+    bool updateSceneRightDrag(bool pressStartsDrag);
 
     void renderGuiScene(uint32_t currentFrame);
 
