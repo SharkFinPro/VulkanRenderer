@@ -15,15 +15,19 @@ namespace vke {
 
     const uint64_t maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
 
-    if (m_frameNumber <= maxFramesInFlight)
+    if (m_frameNumber > maxFramesInFlight)
     {
-      return;
+      // Wait until the frame that last used this frame-in-flight slot has fully completed, so
+      // its command buffers, uniform buffers and per-frame images can be reused.
+      const uint64_t lastFrameInSlot = m_frameNumber - maxFramesInFlight;
+      waitForTimelineValue((lastFrameInSlot - 1) * s_signalsPerFrame + s_swapchainFinished);
     }
 
-    // Wait until the frame that last used this frame-in-flight slot has fully completed, so
-    // its command buffers, uniform buffers and per-frame images can be reused.
-    const uint64_t lastFrameInSlot = m_frameNumber - maxFramesInFlight;
-    waitForTimelineValue((lastFrameInSlot - 1) * s_signalsPerFrame + s_swapchainFinished);
+    // Frame k, however it ends (swapchain pass, no swapchain pass, or aborted), reaches the timeline
+    // value k * s_signalsPerFrame, so the counter tells which frames are done without blocking.
+    const uint64_t lastCompletedFrame = m_timelineSemaphore.getCounterValue() / s_signalsPerFrame;
+
+    m_logicalDevice->beginFrameDestruction(m_frameNumber, lastCompletedFrame);
   }
 
   uint32_t FrameScheduler::getCurrentFrame() const
@@ -89,11 +93,19 @@ namespace vke {
   {
     // The offscreen resolve image is sampled in the fragment shader (scene view /
     // offscreenToSwapchain); the swapchain image is first written as a color attachment.
+    //
+    // Compute is awaited at every stage as well: the frame's final value must imply the whole frame, compute
+    // included, has finished, because deferred destruction relies on it.
     const std::array waitSemaphoreInfos {
       vk::SemaphoreSubmitInfo {
         .semaphore = *m_timelineSemaphore,
         .value = frameBaseValue() + s_offscreenFinished,
         .stageMask = vk::PipelineStageFlagBits2::eFragmentShader
+      },
+      vk::SemaphoreSubmitInfo {
+        .semaphore = *m_timelineSemaphore,
+        .value = frameBaseValue() + s_computeFinished,
+        .stageMask = vk::PipelineStageFlagBits2::eAllCommands
       },
       vk::SemaphoreSubmitInfo {
         .semaphore = *m_imageAvailableSemaphores[getCurrentFrame()],

@@ -25,7 +25,8 @@ namespace vke {
                            const vk::DescriptorSetLayout smokeSystemDescriptorSetLayout,
                            const glm::vec3 position,
                            const uint32_t numParticles)
-    : m_previousTime(std::chrono::steady_clock::now()),
+    : m_logicalDevice(logicalDevice),
+      m_previousTime(std::chrono::steady_clock::now()),
       m_numParticles(numParticles)
   {
     m_smokeUBO.systemPosition = position;
@@ -35,6 +36,20 @@ namespace vke {
     createShaderStorageBuffers(logicalDevice, commandPool);
 
     createDescriptorSet(logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
+  }
+
+  SmokeSystem::~SmokeSystem()
+  {
+    // Compute writes these buffers and the vertex input reads them, so frames in flight may still use them.
+    struct Retired {
+      std::vector<vk::raii::DeviceMemory> memory;
+      std::vector<vk::raii::Buffer> buffers;
+    };
+
+    m_logicalDevice->retireHandles(Retired {
+      .memory = std::move(m_shaderStorageBuffersMemory),
+      .buffers = std::move(m_shaderStorageBuffers)
+    });
   }
 
   void SmokeSystem::update(const RenderInfo* renderInfo)

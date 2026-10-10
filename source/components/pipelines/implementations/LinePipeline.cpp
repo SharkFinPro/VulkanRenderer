@@ -4,11 +4,15 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"
-#include <stdexcept>
+#include <algorithm>
+#include <iostream>
 
 namespace {
 
-  using MVPTransformPC = glm::mat4;
+  struct LinePC {
+    glm::mat4 viewProjection;
+    glm::vec2 viewportSize;
+  };
 
 }
 
@@ -22,20 +26,20 @@ namespace vke {
         .fragmentShader = "assets/shaders/Line.frag.spv"
       },
       .states {
-        .colorBlendState = gps::colorBlendState,
+        .colorBlendState = gps::colorBlendStateLine,
         .depthStencilState = gps::depthStencilState,
         .dynamicState = gps::dynamicState,
-        .inputAssemblyState = gps::inputAssemblyStateLineList,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
         .multisampleState = gps::getMultsampleState(logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
-        .vertexInputState = gps::vertexInputStateLineVertex,
+        .vertexInputState = gps::vertexInputStateLineInstance,
         .viewportState = gps::viewportState
       },
       .pushConstantRanges {
         {
           .stageFlags = vk::ShaderStageFlagBits::eVertex,
           .offset = 0,
-          .size = sizeof(MVPTransformPC)
+          .size = sizeof(LinePC)
         }
       }
     };
@@ -46,37 +50,43 @@ namespace vke {
   }
 
   void LinePipeline::render(const RenderInfo* renderInfo,
-                            const std::vector<LineVertex>* vertices) const
+                            const std::vector<LineInstance>* lines) const
   {
-    if (vertices->empty())
+    if (lines->empty())
     {
       return;
     }
 
-    bind(renderInfo->commandBuffer);
+    // Debug drawing must not take an application down, so lines past the buffer's capacity are
+    // dropped (with one warning) instead of throwing mid-frame.
+    const size_t lineCount = std::min(lines->size(), s_maxLines);
 
-    const vk::DeviceSize bufferSize = sizeof(LineVertex) * vertices->size();
-
-    if (bufferSize > m_maxVertexBufferSize)
+    if (lineCount < lines->size() && !m_warnedAboutLineLimit)
     {
-      throw std::runtime_error("Vertex data exceeds maximum buffer size");
+      m_warnedAboutLineLimit = true;
+      std::cerr << "Line limit of " << s_maxLines << " exceeded; extra lines are not drawn" << std::endl;
     }
 
-    memcpy(m_vertexBuffersMapped[renderInfo->currentFrame], vertices->data(), bufferSize);
+    bind(renderInfo->commandBuffer);
+
+    memcpy(m_vertexBuffersMapped[renderInfo->currentFrame], lines->data(), sizeof(LineInstance) * lineCount);
 
     const std::vector<vk::DeviceSize> offsets = {0};
     renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffers[renderInfo->currentFrame] }, offsets);
 
-    const MVPTransformPC transformUBO = renderInfo->getProjectionMatrix() * renderInfo->viewMatrix;
+    const LinePC pushConstants {
+      .viewProjection = renderInfo->getProjectionMatrix() * renderInfo->viewMatrix,
+      .viewportSize = { static_cast<float>(renderInfo->extent.width), static_cast<float>(renderInfo->extent.height) }
+    };
 
-    renderInfo->commandBuffer->pushConstants<MVPTransformPC>(
+    renderInfo->commandBuffer->pushConstants<LinePC>(
       m_pipelineLayout,
       vk::ShaderStageFlagBits::eVertex,
       0,
-      transformUBO
+      pushConstants
     );
 
-    renderInfo->commandBuffer->draw(static_cast<uint32_t>(vertices->size()), 1, 0, 0);
+    renderInfo->commandBuffer->draw(6, static_cast<uint32_t>(lineCount), 0, 0);
   }
 
   void LinePipeline::createVertexBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice)

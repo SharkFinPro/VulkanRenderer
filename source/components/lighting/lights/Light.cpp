@@ -12,7 +12,7 @@ namespace vke {
 
   Light::~Light()
   {
-    m_logicalDevice->waitIdle();
+    m_logicalDevice->retire(std::move(m_shadowMapDepthImageResource));
   }
 
   glm::vec3 Light::getPosition() const

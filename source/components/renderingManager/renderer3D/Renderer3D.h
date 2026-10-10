@@ -5,9 +5,12 @@
 #include "PickResult.h"
 #include "Renderer3DPushConstants.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
+#include "../../pipelines/implementations/vertexInputs/LineInstance.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <chrono>
 #include <memory>
 #include <optional>
 #include <unordered_map>
@@ -22,7 +25,6 @@ namespace vke {
   class DescriptorSet;
   class ImageResource;
   class LightingManager;
-  struct LineVertex;
   class LogicalDevice;
   class MousePicker;
   class PipelineManager;
@@ -114,7 +116,18 @@ namespace vke {
 
     [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
-    void renderLine(glm::vec3 start, glm::vec3 end);
+    // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above zero keeps the line
+    // drawn each frame until that much wall time has passed, whether or not the scene was drawn meanwhile, so submit
+    // such a line once rather than every frame; otherwise it is drawn this frame only. Lines are drawn by the raster
+    // path only, not while ray tracing is on.
+    void renderLine(glm::vec3 start,
+                    glm::vec3 end,
+                    glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f },
+                    float width = 1.0f,
+                    float lifetimeSeconds = 0.0f);
+
+    // Drops lines kept for a lifetime, including from the frame being built.
+    void clearLines();
 
     void renderBendyPlant(const BendyPlant& bendyPlant);
 
@@ -151,7 +164,15 @@ namespace vke {
     std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;
 
-    std::vector<LineVertex> m_lineVerticesToRender;
+    struct TimedLine {
+      LineInstance line;
+      std::chrono::steady_clock::time_point expiry;
+    };
+
+    // This frame's lines, then the unexpired timed lines, so lines past the limit are the oldest timed ones.
+    std::vector<LineInstance> m_linesToRender;
+    std::vector<TimedLine> m_timedLines;
+    std::vector<LineInstance> m_lineBatch;
 
     std::vector<BendyPlant> m_bendyPlantsToRender;
 

@@ -69,6 +69,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/lighting/LightingManager.h
 
   # Logical Device Management
+  components/logicalDevice/DeferredDestructionQueue.cpp
+  components/logicalDevice/DeferredDestructionQueue.h
   components/logicalDevice/LogicalDevice.cpp
   components/logicalDevice/LogicalDevice.h
 
@@ -152,7 +154,7 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/common/PipelineTypes.h
 
   # Vertex Input States
-  components/pipelines/implementations/vertexInputs/LineVertex.h
+  components/pipelines/implementations/vertexInputs/LineInstance.h
   components/pipelines/implementations/vertexInputs/Particle.h
   components/pipelines/implementations/vertexInputs/SmokeParticle.h
   components/pipelines/implementations/vertexInputs/Vertex.h

@@ -23,6 +23,8 @@ namespace vke {
                  std::shared_ptr<Texture> specularMap,
                  std::shared_ptr<Model> model);
 
+    ~RenderObject();
+
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
               const vk::PipelineLayout& pipelineLayout,
               uint32_t currentFrame) const;
@@ -67,6 +69,8 @@ namespace vke {
     [[nodiscard]] float getIndexOfRefraction() const;
 
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 
     std::shared_ptr<Texture> m_texture;
