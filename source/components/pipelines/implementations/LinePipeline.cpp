@@ -81,7 +81,7 @@ namespace vke {
         auto* slot = static_cast<char*>(m_vertexBuffersMapped[renderInfo->currentFrame]) +
                      mode * sizeof(LineInstance) * s_maxLines;
 
-        memcpy(slot, batch.data(), sizeof(LineInstance) * counts[mode]);
+        std::memcpy(slot, batch.data(), sizeof(LineInstance) * counts[mode]);
       }
     }
 

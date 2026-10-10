@@ -244,8 +244,8 @@ namespace vke {
       std::chrono::steady_clock::time_point expiry;
     };
 
-    // Per depth mode: this frame's lines, then the unexpired timed lines, so lines past the limit are the oldest
-    // timed ones.
+    // Per depth mode: this frame's lines, then the unexpired timed lines oldest first, so lines past the limit are the
+    // newest timed ones.
     LineBatches m_linesToRender;
     std::deque<TimedLine> m_timedLines;
     LineBatches m_lineBatches;
