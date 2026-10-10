@@ -21,7 +21,22 @@ namespace vke {
 
   Cloud::~Cloud()
   {
-    m_logicalDevice->waitIdle();
+    // Acceleration structures go before their buffers, buffers before their memory.
+    struct Retired {
+      vk::raii::DeviceMemory aabbBufferMemory;
+      vk::raii::Buffer aabbBuffer;
+      vk::raii::DeviceMemory blasBufferMemory;
+      vk::raii::Buffer blasBuffer;
+      vk::raii::AccelerationStructureKHR blas;
+    };
+
+    m_logicalDevice->retireHandles(Retired {
+      .aabbBufferMemory = std::move(m_aabbBufferMemory),
+      .aabbBuffer = std::move(m_aabbBuffer),
+      .blasBufferMemory = std::move(m_blasBufferMemory),
+      .blasBuffer = std::move(m_blasBuffer),
+      .blas = std::move(m_blas)
+    });
   }
 
   vk::AccelerationStructureKHR Cloud::getBLAS() const

@@ -69,6 +69,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/lighting/LightingManager.h
 
   # Logical Device Management
+  components/logicalDevice/DeferredDestructionQueue.cpp
+  components/logicalDevice/DeferredDestructionQueue.h
   components/logicalDevice/LogicalDevice.cpp
   components/logicalDevice/LogicalDevice.h
 
