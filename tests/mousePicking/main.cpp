@@ -171,9 +171,13 @@ void renderScene(vke::VulkanEngine& renderer,
   // Render Objects
   for (auto& [object, hovering, selected] : objects)
   {
-    if (selected || hovering)
+    if (selected)
     {
-      r3d->renderObject(object, vke::PipelineType::objectHighlight);
+      r3d->renderOutline(object, { 1.0f, 0.5f, 0.0f, 1.0f });
+    }
+    else if (hovering)
+    {
+      r3d->renderOutline(object, { 1.0f, 1.0f, 0.0f, 1.0f });
     }
 
     r3d->renderObject(object, vke::PipelineType::object, &hovering);

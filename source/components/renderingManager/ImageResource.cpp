@@ -81,6 +81,12 @@ namespace vke {
         {
           imageUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
         }
+
+        // The outline mask is read back by the composite pass.
+        if (getFormat(config) == vk::Format::eR8Uint)
+        {
+          imageUsageFlags |= vk::ImageUsageFlagBits::eSampled;
+        }
       }
       else if (config.imageResourceType == ImageResourceType::Depth)
       {

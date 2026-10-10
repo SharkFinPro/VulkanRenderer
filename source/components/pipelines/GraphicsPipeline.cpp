@@ -55,9 +55,11 @@ namespace vke {
       .viewMask = graphicsPipelineOptions.renderToCubeMap ? 0x3Fu : 0u,
       .colorAttachmentCount = static_cast<uint32_t>(hasColorFormat),
       .pColorAttachmentFormats = hasColorFormat ? &graphicsPipelineOptions.colorFormat : nullptr,
-      .depthAttachmentFormat = graphicsPipelineOptions.depthFormat != vk::Format::eUndefined
-                                 ? graphicsPipelineOptions.depthFormat
-                                 : logicalDevice->getPhysicalDevice()->findDepthFormat()
+      .depthAttachmentFormat = !graphicsPipelineOptions.hasDepthAttachment
+                                 ? vk::Format::eUndefined
+                                 : graphicsPipelineOptions.depthFormat != vk::Format::eUndefined
+                                   ? graphicsPipelineOptions.depthFormat
+                                   : logicalDevice->getPhysicalDevice()->findDepthFormat()
     };
 
     const vk::GraphicsPipelineCreateInfo pipelineInfo {

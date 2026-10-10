@@ -33,6 +33,7 @@ namespace vke {
   class SmokeSystem;
   class Texture3D;
   class TextureCubemap;
+  class UniformBuffer;
 
   struct BendyPlant {
     glm::vec3 position = glm::vec3(0.0f);
@@ -60,6 +61,9 @@ namespace vke {
 
   class Renderer3D {
   public:
+    // The mask holds a color's index plus one in 8 bits
+    static constexpr uint32_t s_maxOutlineColors = 255;
+
     Renderer3D(std::shared_ptr<LogicalDevice> logicalDevice,
                std::shared_ptr<AssetManager> assetManager);
 
@@ -75,6 +79,19 @@ namespace vke {
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void handleRenderedMousePickingImage(vk::Image image) const;
+
+    [[nodiscard]] bool hasOutlines() const;
+
+    // Draws the objects submitted with renderOutline into the mask the outline composite reads, one value per color.
+    void renderOutlineMask(const RenderInfo* renderInfo,
+                           const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    // Draws the outlines around the masked objects. multisampled selects the pipeline for the scene pass (true) or
+    // for a single-sample image without a depth attachment.
+    void renderOutlines(const RenderInfo* renderInfo,
+                        const std::shared_ptr<PipelineManager>& pipelineManager,
+                        vk::DescriptorSet maskDescriptorSet,
+                        bool multisampled) const;
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -116,6 +133,15 @@ namespace vke {
 
     [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
+    // Outlines the object for this frame in the given color (alpha included), on top of however the application draws
+    // it. The outline also shows where other geometry hides the object, as the outline of a selection usually does.
+    // It is drawn from the object's own draw call, so it follows whatever geometry the object draws. Beyond 255
+    // different colors in a frame, further colors draw in the last one.
+    void renderOutline(const std::shared_ptr<RenderObject>& renderObject, glm::vec4 color);
+
+    // Outline width in pixels of the scene image, clamped to 1..8.
+    void setOutlineWidth(float pixels);
+
     // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above zero keeps the line
     // drawn each frame until that much wall time has passed, whether or not the scene was drawn meanwhile, so submit
     // such a line once rather than every frame; otherwise it is drawn this frame only. Lines are drawn by the raster
@@ -138,6 +164,8 @@ namespace vke {
     [[nodiscard]] vk::DescriptorSetLayout getNoiseDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSetLayout getCubeMapDescriptorSetLayout() const;
+
+    [[nodiscard]] vk::DescriptorSetLayout getOutlineColorsDescriptorSetLayout() const;
 
     void setCloudToRender(std::shared_ptr<Cloud> cloud);
 
@@ -164,6 +192,12 @@ namespace vke {
     std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;
 
+    // Each outlined object with its value in the mask, which is its color's index plus one (zero is no outline)
+    std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_outlineObjects;
+    std::vector<glm::vec4> m_outlineColors;
+    bool m_warnedAboutOutlineColors = false;
+    float m_outlineWidth = 3.0f;
+
     struct TimedLine {
       LineInstance line;
       std::chrono::steady_clock::time_point expiry;
@@ -185,6 +219,10 @@ namespace vke {
     std::shared_ptr<DescriptorSet> m_noiseDescriptorSet;
 
     std::shared_ptr<DescriptorSet> m_cubeMapDescriptorSet;
+
+    std::shared_ptr<UniformBuffer> m_outlineColorsUniform;
+
+    std::shared_ptr<DescriptorSet> m_outlineColorsDescriptorSet;
 
     std::unordered_map<PipelineType, PushConstantEntry> m_pushConstants = {
       { PipelineType::magnifyWhirlMosaic,  { MagnifyWhirlMosaicPushConstant{},  vk::ShaderStageFlagBits::eFragment } },
