@@ -23,7 +23,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 
 # Parse the heavy, stable third-party and standard headers once per build instead of once per source file.
 # The tests reuse this header, so the library drops its <target>_EXPORTS define (nothing reads it; symbols are
-# exported by WINDOWS_EXPORT_ALL_SYMBOLS) to keep its compile definitions identical to theirs.
+# exported by WINDOWS_EXPORT_ALL_SYMBOLS) to keep its compile definitions the same as theirs.
 set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL "")
 target_precompile_headers(${PROJECT_NAME} PRIVATE
   <vulkan/vulkan_raii.hpp>

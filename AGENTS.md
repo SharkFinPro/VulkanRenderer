@@ -41,7 +41,7 @@
 - Shaders: `CompileShaders.cmake` globs `source/shaders/**` and compiles each to `bin/assets/shaders/...spv` via `glslangValidator --target-env vulkan1.2` (include dir `shaders/include`); the `Shaders` target is a build dependency of `VulkanEngine`. `*.spv` is git-ignored.
 - Assets are copied to `bin/assets/` at configure time (`Assets.cmake`, plus root copying `tests/assets/`). Runtime asset paths are relative (e.g. `assets/textures/white.png`), so executables must run from `bin/`.
 - `Headers.cmake` copies public headers into `include/VulkanEngine/` for external (FetchContent) consumers.
-- `VulkanEngine` has a private precompiled header (`target_precompile_headers` in `source/CMakeLists.txt`) holding Vulkan-Hpp, GLM and common standard headers; each test reuses it (`REUSE_FROM`), so tests are built position independent and the library has no `<target>_EXPORTS` define, keeping their compile options identical. Add only stable third-party or standard headers to it, never engine headers. Build with `-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON` to catch includes the precompiled header is hiding.
+- `VulkanEngine` has a private precompiled header (Vulkan-Hpp, GLM, common standard headers) that every test reuses (`REUSE_FROM`); reuse needs identical compile options, hence the tests' PIC flag and the library's empty `DEFINE_SYMBOL`. Add only stable third-party or standard headers, never engine headers; `-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON` catches includes it hides.
 - **Dependency direction (must hold):** `tests/*` → `VulkanEngine`; within the library, `components/*` may use `utilities/*`; `utilities/*` depends on nothing engine-specific. Tests never depend on each other; engine never depends on tests.
 
 ## Architecture Overview
@@ -76,7 +76,7 @@
 
 ## Test Applications
 
-- Each subdirectory under `tests/` is one executable: a `CMakeLists.txt` (`project(name)` + `add_executable` linking `VulkanEngine`) and a `main.cpp`. Register new apps in `tests/CMakeLists.txt` (both `add_subdirectory` and the `build_all` target).
+- Each subdirectory under `tests/` is one executable: a `CMakeLists.txt` (`project(name)` + `add_executable` linking `VulkanEngine`) and a `main.cpp`. Register new apps in the `TESTS` list in `tests/CMakeLists.txt`, which adds the subdirectory, the precompiled header reuse and the `build_all` dependency.
 - **Focused feature tests** validate one system (`mousePicking`, `cubeMap`, `shadows`, `2D`, `crosses`, `magicLens`, `objectLoading`, `clouds`, `smoke`, `plants`, `renderObject`).
 - **Integration tests** combine systems into a small interactive app (e.g. `snake`).
 - Pattern (`main.cpp`): construct `vke::VulkanEngine` from an `EngineConfig`, set the ImGui context, load assets via `AssetManager`, then loop `while (renderer.isActive()) { ...build GUI, submit render requests..., renderer.render(); }`, all inside a try/catch on `std::exception`.
