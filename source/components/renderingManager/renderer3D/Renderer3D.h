@@ -64,6 +64,7 @@ namespace vke {
     glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f };
     float width = 1.0f;
     float lifetimeSeconds = 0.0f;
+    DebugDepth depth = DebugDepth::tested;
   };
 
   class Renderer3D {
@@ -103,6 +104,11 @@ namespace vke {
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
                 const std::shared_ptr<LightingManager>& lightingManager);
+
+    // Draws the lines submitted with DebugDepth::onTop. Call after everything else in the scene pass, outlines
+    // included, so that nothing covers them.
+    void renderOnTopLines(const RenderInfo* renderInfo,
+                          const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void doRayTracing(const RenderInfo* renderInfo,
                       const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -146,12 +152,16 @@ namespace vke {
     // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above zero keeps the line
     // drawn each frame until that much wall time has passed, whether or not the scene was drawn meanwhile, so submit
     // such a line once rather than every frame; otherwise it is drawn this frame only. Lines are drawn by the raster
-    // path only, not while ray tracing is on.
+    // path only, not while ray tracing is on. depth chooses how the line meets the scene's depth: tested lines are
+    // hidden by nearer geometry, onTop lines are drawn over everything, and xray lines are drawn like tested ones
+    // where visible and at 35% of their alpha where hidden. Each depth mode keeps at most 10,000 lines per frame;
+    // further ones are not drawn, with one warning.
     void renderLine(glm::vec3 start,
                     glm::vec3 end,
                     glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f },
                     float width = 1.0f,
-                    float lifetimeSeconds = 0.0f);
+                    float lifetimeSeconds = 0.0f,
+                    DebugDepth depth = DebugDepth::tested);
 
     // Wireframe shapes, drawn as lines in the same batch (see DebugShapes.h for segment counts, all of which count
     // against the line limit). Degenerate input draws less, never garbage. The style applies to every segment. Past the
@@ -176,7 +186,11 @@ namespace vke {
     void renderFrustum(const glm::mat4& viewProjection, const DebugStyle& style = {});
 
     // Red X, green Y and blue Z lines of the given length from the transform's origin; the transform's scale applies.
-    void renderAxes(const glm::mat4& transform, float length = 1.0f, float width = 2.0f, float lifetimeSeconds = 0.0f);
+    void renderAxes(const glm::mat4& transform,
+                    float length = 1.0f,
+                    float width = 2.0f,
+                    float lifetimeSeconds = 0.0f,
+                    DebugDepth depth = DebugDepth::tested);
 
     // Drops lines kept for a lifetime, including from the frame being built.
     void clearLines();
@@ -226,13 +240,15 @@ namespace vke {
 
     struct TimedLine {
       LineInstance line;
+      DebugDepth depth;
       std::chrono::steady_clock::time_point expiry;
     };
 
-    // This frame's lines, then the unexpired timed lines, so lines past the limit are the oldest timed ones.
-    std::vector<LineInstance> m_linesToRender;
+    // Per depth mode: this frame's lines, then the unexpired timed lines oldest first, so lines past the limit are the
+    // newest timed ones.
+    LineBatches m_linesToRender;
     std::deque<TimedLine> m_timedLines;
-    std::vector<LineInstance> m_lineBatch;
+    LineBatches m_lineBatches;
     std::vector<DebugSegment> m_shapeSegments;
 
     std::vector<BendyPlant> m_bendyPlantsToRender;

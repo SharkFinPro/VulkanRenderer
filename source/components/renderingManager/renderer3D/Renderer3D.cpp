@@ -184,18 +184,35 @@ namespace vke {
 
     renderSmokeSystems(&renderInfo3D, pipelineManager);
 
-    m_lineBatch.assign(m_linesToRender.begin(), m_linesToRender.end());
-    for (const auto& [line, _] : m_timedLines)
+    m_lineBatches = m_linesToRender;
+    for (const auto& [line, depth, _] : m_timedLines)
     {
-      m_lineBatch.push_back(line);
+      m_lineBatches[static_cast<size_t>(depth)].push_back(line);
     }
 
-    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineBatch);
+    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineBatches);
 
     if (m_shouldRenderGrid)
     {
       renderGrid(pipelineManager, &renderInfo3D);
     }
+  }
+
+  void Renderer3D::renderOnTopLines(const RenderInfo* renderInfo,
+                                    const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    const RenderInfo renderInfoLines {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent,
+      .fieldOfView = m_fieldOfView,
+      .nearPlane = m_nearPlane,
+      .farPlane = m_farPlane
+    };
+
+    pipelineManager->renderOnTopLinePipeline(&renderInfoLines, m_lineBatches[static_cast<size_t>(DebugDepth::onTop)].size());
   }
 
   void Renderer3D::doRayTracing(const RenderInfo* renderInfo,
@@ -238,7 +255,10 @@ namespace vke {
     m_outlineObjects.clear();
     m_outlineColors.clear();
 
-    m_linesToRender.clear();
+    for (auto& batch : m_linesToRender)
+    {
+      batch.clear();
+    }
 
     const auto now = std::chrono::steady_clock::now();
     std::erase_if(m_timedLines, [now](const TimedLine& timedLine) {
@@ -361,13 +381,17 @@ namespace vke {
                               const glm::vec3 end,
                               const glm::vec4 color,
                               const float width,
-                              const float lifetimeSeconds)
+                              const float lifetimeSeconds,
+                              const DebugDepth depth)
   {
     const LineInstance line { start, end, color, width };
 
+    // An enumerator outside the three draws like the default
+    const auto mode = static_cast<size_t>(depth) < s_debugDepthModeCount ? depth : DebugDepth::tested;
+
     if (!(lifetimeSeconds > 0.0f))
     {
-      m_linesToRender.push_back(line);
+      m_linesToRender[static_cast<size_t>(mode)].push_back(line);
       return;
     }
 
@@ -382,6 +406,7 @@ namespace vke {
 
     m_timedLines.push_back({
       line,
+      mode,
       std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
         std::chrono::duration<float>(std::min(lifetimeSeconds, maxLifetimeSeconds)))
     });
@@ -437,7 +462,8 @@ namespace vke {
   void Renderer3D::renderAxes(const glm::mat4& transform,
                               const float length,
                               const float width,
-                              const float lifetimeSeconds)
+                              const float lifetimeSeconds,
+                              const DebugDepth depth)
   {
     bool finite = std::isfinite(length);
     for (int column = 0; column < 4; ++column)
@@ -459,7 +485,7 @@ namespace vke {
     for (const auto& direction : directions)
     {
       const auto end = glm::vec3(transform * glm::vec4(direction * length, 1.0f));
-      renderLine(origin, end, { direction, 1.0f }, width, lifetimeSeconds);
+      renderLine(origin, end, { direction, 1.0f }, width, lifetimeSeconds, depth);
     }
   }
 
@@ -467,7 +493,7 @@ namespace vke {
   {
     for (const auto& [start, end] : m_shapeSegments)
     {
-      renderLine(start, end, style.color, style.width, style.lifetimeSeconds);
+      renderLine(start, end, style.color, style.width, style.lifetimeSeconds, style.depth);
     }
 
     m_shapeSegments.clear();

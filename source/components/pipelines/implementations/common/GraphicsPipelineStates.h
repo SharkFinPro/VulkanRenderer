@@ -167,6 +167,18 @@ namespace vke::gps {
     .maxDepthBounds = 1.0f
   };
 
+  // Passes where the scene is at or in front of the fragment, the complement of depthStencilState's less test, so a line
+  // lying exactly on a surface is drawn dimmed rather than by neither pass
+  inline vk::PipelineDepthStencilStateCreateInfo depthStencilStateBehind {
+    .depthTestEnable = vk::True,
+    .depthWriteEnable = vk::False,
+    .depthCompareOp = vk::CompareOp::eGreaterOrEqual,
+    .depthBoundsTestEnable = vk::False,
+    .stencilTestEnable = vk::False,
+    .minDepthBounds = 0.0f,
+    .maxDepthBounds = 1.0f
+  };
+
   inline vk::PipelineDepthStencilStateCreateInfo depthStencilStateNone {
     .depthTestEnable = vk::False,
     .depthWriteEnable = vk::False

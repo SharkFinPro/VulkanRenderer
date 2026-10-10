@@ -74,9 +74,15 @@ namespace vke {
   }
 
   void PipelineManager::renderLinePipeline(const RenderInfo* renderInfo,
-                                           const std::vector<LineInstance>* lines) const
+                                           const LineBatches* lines) const
   {
     m_linePipeline->render(renderInfo, lines);
+  }
+
+  void PipelineManager::renderOnTopLinePipeline(const RenderInfo* renderInfo,
+                                                const size_t lineCount) const
+  {
+    m_linePipeline->renderOnTop(renderInfo, lineCount);
   }
 
   void PipelineManager::doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,

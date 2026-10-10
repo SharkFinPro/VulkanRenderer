@@ -3,6 +3,7 @@
 layout(push_constant) uniform PushConstants {
     mat4 viewProjection;
     vec2 viewportSize;
+    float alphaScale;
 };
 
 layout(location = 0) in vec3 inStart;
@@ -19,7 +20,7 @@ const vec2 CORNERS[6] = vec2[](
 );
 
 void main() {
-    outColor = inColor;
+    outColor = vec4(inColor.rgb, inColor.a * alphaScale);
 
     vec4 a = viewProjection * vec4(inStart, 1.0);
     vec4 b = viewProjection * vec4(inEnd, 1.0);
