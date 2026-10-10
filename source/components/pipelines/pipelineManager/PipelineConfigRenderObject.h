@@ -32,30 +32,6 @@ namespace vke::PipelineConfig {
     };
   }
 
-  inline GraphicsPipelineOptions createObjectHighlightPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                      vk::DescriptorSetLayout objectDescriptorSetLayout)
-  {
-    return {
-      .shaders {
-        .vertexShader = "assets/shaders/renderObject/ObjectHighlight.vert.spv",
-        .fragmentShader = "assets/shaders/renderObject/ObjectHighlight.frag.spv"
-      },
-      .states {
-        .colorBlendState = gps::colorBlendStateDots,
-        .depthStencilState = gps::depthStencilState,
-        .dynamicState = gps::dynamicState,
-        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
-        .multisampleState = gps::getMultsampleState(logicalDevice),
-        .rasterizationState = gps::rasterizationStateCullBack,
-        .vertexInputState = gps::vertexInputStateVertexPositionOnly,
-        .viewportState = gps::viewportState
-      },
-      .descriptorSetLayouts {
-        objectDescriptorSetLayout
-      }
-    };
-  }
-
   inline GraphicsPipelineOptions createMagnifyWhirlMosaicPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                          vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
@@ -115,6 +91,38 @@ namespace vke::PipelineConfig {
         objectDescriptorSetLayout
       },
       .colorFormat = vk::Format::eR8G8B8A8Uint
+    };
+  }
+
+  inline GraphicsPipelineOptions createOutlineMaskPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/renderObject/MousePicking.vert.spv",
+        .fragmentShader = "assets/shaders/renderObject/OutlineMask.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilStateNone,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::multisampleStateNone,
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateVertexPositionOnly,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
+          .offset = 0,
+          .size = sizeof(uint32_t)
+        }
+      },
+      .descriptorSetLayouts {
+        objectDescriptorSetLayout
+      },
+      .colorFormat = vk::Format::eR8Uint,
+      .hasDepthAttachment = false
     };
   }
 
