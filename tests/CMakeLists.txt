@@ -1,19 +1,4 @@
-add_subdirectory(2D)
-add_subdirectory(clouds)
-add_subdirectory(crosses)
-add_subdirectory(cubeMap)
-add_subdirectory(magicLens)
-add_subdirectory(mousePicking)
-add_subdirectory(objectLoading)
-add_subdirectory(plants)
-add_subdirectory(renderObject)
-add_subdirectory(shadows)
-add_subdirectory(smoke)
-add_subdirectory(snake)
-
-# Create a custom target that builds all projects
-add_custom_target(build_all
-  DEPENDS
+set(TESTS
   2D
   clouds
   crosses
@@ -26,5 +11,19 @@ add_custom_target(build_all
   shadows
   smoke
   snake
+)
+
+foreach(test ${TESTS})
+  add_subdirectory(${test})
+
+  # Compile against the engine's precompiled header instead of re-parsing Vulkan-Hpp. Reuse needs the library's
+  # exact compile options, so the tests take its PIC flag (POSITION_INDEPENDENT_CODE would give executables -fPIE).
+  target_compile_options(${test} PRIVATE ${CMAKE_CXX_COMPILE_OPTIONS_PIC})
+  target_precompile_headers(${test} REUSE_FROM VulkanEngine)
+endforeach()
+
+# Create a custom target that builds all projects
+add_custom_target(build_all
+  DEPENDS ${TESTS}
   COMMENT "Building all tests"
 )
