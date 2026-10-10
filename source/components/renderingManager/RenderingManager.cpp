@@ -511,6 +511,8 @@ namespace vke {
         m_renderer3D->renderOutlines(&renderInfo, pipelineManager, m_renderTarget->getOutlineMaskDescriptorSet(currentFrame), true);
       }
 
+      m_renderer3D->renderOnTopLines(&renderInfo, pipelineManager);
+
       constexpr vk::ClearAttachment clearAttachment{
         .aspectMask = vk::ImageAspectFlagBits::eDepth,
         .clearValue = vk::ClearValue{ {1.0f, 0} }

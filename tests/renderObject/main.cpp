@@ -136,6 +136,13 @@ void linesGui(const std::shared_ptr<vke::Renderer3D>& r3d)
   r3d->renderAxes(glm::translate(glm::mat4(1.0f), { 5.2f, 1.2f, z }), 1.5f);
   r3d->renderFrustum(glm::perspectiveFov(glm::radians(40.0f), 4.0f, 3.0f, 0.5f, 3.0f) * glm::lookAt(glm::vec3(7, 2, z), glm::vec3(7, 2, z + 1), glm::vec3(0, 1, 0)), { .color = { 1, 1, 1, 1 } });
 
+  // The same arrow through the floor in each depth mode, left to right as the camera sees them: tested is cut off
+  // below the floor, x-ray shows that part dimmer, and on-top never hides.
+  constexpr glm::vec4 arrowColor { 1, 0.4f, 0.4f, 1 };
+  r3d->renderArrow({ 1.5f, -2, -1 }, { 1.5f, 2, -1 }, { .color = arrowColor, .width = 3.0f, .depth = vke::DebugDepth::tested });
+  r3d->renderArrow({ 0, -2, -1 }, { 0, 2, -1 }, { .color = arrowColor, .width = 3.0f, .depth = vke::DebugDepth::xray });
+  r3d->renderArrow({ -1.5f, -2, -1 }, { -1.5f, 2, -1 }, { .color = arrowColor, .width = 3.0f, .depth = vke::DebugDepth::onTop });
+
   ImGui::Begin("Rendering");
   if (ImGui::Button("Emit Lines (3 s)"))
   {

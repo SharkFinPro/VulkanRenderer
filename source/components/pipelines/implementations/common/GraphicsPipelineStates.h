@@ -167,6 +167,17 @@ namespace vke::gps {
     .maxDepthBounds = 1.0f
   };
 
+  // Passes where something nearer already covers the fragment, the complement of depthStencilState's test
+  inline vk::PipelineDepthStencilStateCreateInfo depthStencilStateBehind {
+    .depthTestEnable = vk::True,
+    .depthWriteEnable = vk::False,
+    .depthCompareOp = vk::CompareOp::eGreater,
+    .depthBoundsTestEnable = vk::False,
+    .stencilTestEnable = vk::False,
+    .minDepthBounds = 0.0f,
+    .maxDepthBounds = 1.0f
+  };
+
   inline vk::PipelineDepthStencilStateCreateInfo depthStencilStateNone {
     .depthTestEnable = vk::False,
     .depthWriteEnable = vk::False

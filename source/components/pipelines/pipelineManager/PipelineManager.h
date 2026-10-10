@@ -55,8 +55,12 @@ namespace vke {
                               uint32_t currentFrame,
                               const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
+    // Draws the tested and x-ray lines; the on-top ones wait for renderOnTopLinePipeline.
     void renderLinePipeline(const RenderInfo* renderInfo,
-                            const std::vector<LineInstance>* lines) const;
+                            const LineBatches* lines) const;
+
+    void renderOnTopLinePipeline(const RenderInfo* renderInfo,
+                                 size_t lineCount) const;
 
     void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
                       vk::Extent2D extent) const;
