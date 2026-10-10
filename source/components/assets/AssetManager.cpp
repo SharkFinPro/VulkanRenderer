@@ -6,6 +6,7 @@
 #include "particleSystems/SmokeSystem.h"
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
+#include "../pipelines/descriptorSets/DescriptorAllocator.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include <algorithm>
 #include <array>
@@ -18,7 +19,7 @@ namespace vke {
   {
     createCommandPool();
 
-    createDescriptorPool();
+    m_descriptorAllocator = std::make_shared<DescriptorAllocator>(*m_logicalDevice);
 
     createDescriptorSetLayouts();
   }
@@ -52,7 +53,7 @@ namespace vke {
   {
     return std::make_shared<RenderObject>(
       m_logicalDevice,
-      getDescriptorPool(),
+      m_descriptorAllocator,
       *m_objectDescriptorSetLayout,
       texture,
       specularMap,
@@ -128,7 +129,7 @@ namespace vke {
     return std::make_shared<SmokeSystem>(
       m_logicalDevice,
       *m_commandPool,
-      getDescriptorPool(),
+      m_descriptorAllocator,
       *m_smokeSystemDescriptorSetLayout,
       position,
       numParticles
@@ -373,7 +374,7 @@ namespace vke {
       fontPath->second,
       fontSize,
       *m_commandPool,
-      getDescriptorPool(),
+      m_descriptorAllocator,
       *m_fontDescriptorSetLayout
     );
 
@@ -387,36 +388,6 @@ namespace vke {
     };
 
     m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
-  }
-
-  void AssetManager::createDescriptorPool()
-  {
-    const std::array<vk::DescriptorPoolSize, 3> poolSizes {{
-      { vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize },
-      { vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize },
-      { vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize }
-    }};
-
-    const vk::DescriptorPoolCreateInfo poolCreateInfo {
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize,
-      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-      .pPoolSizes = poolSizes.data()
-    };
-
-    m_descriptorPools.push_back(m_logicalDevice->createDescriptorPool(poolCreateInfo));
-  }
-
-  vk::DescriptorPool AssetManager::getDescriptorPool()
-  {
-    m_currentDescriptorPoolSize++;
-
-    if (m_currentDescriptorPoolSize > m_descriptorPoolSize)
-    {
-      m_currentDescriptorPoolSize = 1;
-      createDescriptorPool();
-    }
-
-    return *m_descriptorPools.back();
   }
 
   void AssetManager::queueRelease(std::shared_ptr<void> resource)
