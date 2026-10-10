@@ -10,6 +10,17 @@ namespace {
     vk::DescriptorPool pool;
     std::vector<vk::DescriptorSet> sets;
 
+    // A constructor rather than an aggregate, since make_shared can't aggregate-initialize before C++20 support for
+    // parenthesized aggregate initialization (missing from the Linux CI's clang).
+    DescriptorSetRelease(std::shared_ptr<vke::DescriptorAllocator> allocator,
+                         const vk::DescriptorPool pool,
+                         std::vector<vk::DescriptorSet> sets)
+      : allocator(std::move(allocator)), pool(pool), sets(std::move(sets))
+    {}
+
+    DescriptorSetRelease(const DescriptorSetRelease&) = delete;
+    DescriptorSetRelease& operator=(const DescriptorSetRelease&) = delete;
+
     ~DescriptorSetRelease()
     {
       allocator->free(pool, sets);
