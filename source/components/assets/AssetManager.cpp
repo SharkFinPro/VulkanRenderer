@@ -19,7 +19,7 @@ namespace vke {
   {
     createCommandPool();
 
-    m_descriptorAllocator = std::make_shared<DescriptorAllocator>(m_logicalDevice);
+    m_descriptorAllocator = std::make_shared<DescriptorAllocator>(*m_logicalDevice);
 
     createDescriptorSetLayouts();
   }

@@ -6,9 +6,9 @@
 
 namespace vke {
 
-  DescriptorAllocator::DescriptorAllocator(std::shared_ptr<LogicalDevice> logicalDevice,
+  DescriptorAllocator::DescriptorAllocator(LogicalDevice& logicalDevice,
                                            const uint32_t objectsPerPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_objectsPerPool(objectsPerPool)
+    : m_logicalDevice(&logicalDevice), m_objectsPerPool(objectsPerPool)
   {
     createPool();
   }
@@ -51,6 +51,7 @@ namespace vke {
     m_logicalDevice->freeDescriptorSets(pool, sets);
 
     it->liveSets -= static_cast<uint32_t>(sets.size());
+    it->full = false;
 
     // Nothing is live, so resetting only undoes fragmentation.
     if (it->liveSets == 0)
@@ -68,10 +69,12 @@ namespace vke {
   {
     const uint32_t maxSets = getMaxSetsPerPool();
 
+    // Per-set worst case across the layouts served: the smoke system uses 3 uniform and 2 storage buffers, a
+    // render object 1 uniform buffer and 2 samplers, a font 1 sampler.
     const std::array<vk::DescriptorPoolSize, 3> poolSizes {{
-      { vk::DescriptorType::eUniformBuffer, maxSets },
-      { vk::DescriptorType::eStorageBuffer, maxSets },
-      { vk::DescriptorType::eCombinedImageSampler, maxSets }
+      { vk::DescriptorType::eUniformBuffer, 3 * maxSets },
+      { vk::DescriptorType::eStorageBuffer, 2 * maxSets },
+      { vk::DescriptorType::eCombinedImageSampler, 2 * maxSets }
     }};
 
     const vk::DescriptorPoolCreateInfo poolCreateInfo {
@@ -91,7 +94,7 @@ namespace vke {
   {
     const auto setCount = static_cast<uint32_t>(layouts.size());
 
-    if (pool.liveSets + setCount > getMaxSetsPerPool())
+    if (pool.full || pool.liveSets + setCount > getMaxSetsPerPool())
     {
       return false;
     }
@@ -126,6 +129,8 @@ namespace vke {
       {
         throw;
       }
+
+      pool.full = true;
 
       return false;
     }

@@ -19,7 +19,7 @@ namespace vke {
       vk::DescriptorPool pool;
     };
 
-    explicit DescriptorAllocator(std::shared_ptr<LogicalDevice> logicalDevice,
+    explicit DescriptorAllocator(LogicalDevice& logicalDevice,
                                  uint32_t objectsPerPool = 500);
 
     [[nodiscard]] Allocation allocate(const std::vector<vk::DescriptorSetLayout>& layouts,
@@ -33,9 +33,12 @@ namespace vke {
     struct Pool {
       vk::raii::DescriptorPool pool;
       uint32_t liveSets = 0;
+      bool full = false;
     };
 
-    std::shared_ptr<LogicalDevice> m_logicalDevice;
+    // Not owning: the device's deferred queue can hold this allocator, and an owning pointer would make a cycle.
+    // Callers keep the device alive, and ~LogicalDevice drains the queue before m_device goes.
+    LogicalDevice* m_logicalDevice;
 
     std::vector<Pool> m_pools;
     uint32_t m_objectsPerPool;
