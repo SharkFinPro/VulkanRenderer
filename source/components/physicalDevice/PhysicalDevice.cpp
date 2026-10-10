@@ -1,11 +1,96 @@
 #include "PhysicalDevice.h"
 #include "../instance/Instance.h"
 #include "../window/Surface.h"
+#include <algorithm>
 #include <array>
-#include <set>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 
 namespace vke {
+
+  namespace {
+    template <typename Features>
+    struct FeatureSpec {
+      const char* name;
+      vk::Bool32 Features::* member;
+    };
+
+    // The features the engine requires, tables shared by the suitability check and the device creation.
+    constexpr std::array coreFeatures {
+      FeatureSpec<vk::PhysicalDeviceFeatures>{ "geometryShader", &vk::PhysicalDeviceFeatures::geometryShader },
+      FeatureSpec<vk::PhysicalDeviceFeatures>{ "fillModeNonSolid", &vk::PhysicalDeviceFeatures::fillModeNonSolid },
+      FeatureSpec<vk::PhysicalDeviceFeatures>{ "samplerAnisotropy", &vk::PhysicalDeviceFeatures::samplerAnisotropy }
+    };
+
+    constexpr std::array vulkan11Features {
+      FeatureSpec<vk::PhysicalDeviceVulkan11Features>{ "multiview", &vk::PhysicalDeviceVulkan11Features::multiview }
+    };
+
+    constexpr std::array vulkan12Features {
+      FeatureSpec<vk::PhysicalDeviceVulkan12Features>{ "shaderSampledImageArrayNonUniformIndexing", &vk::PhysicalDeviceVulkan12Features::shaderSampledImageArrayNonUniformIndexing },
+      FeatureSpec<vk::PhysicalDeviceVulkan12Features>{ "descriptorBindingPartiallyBound", &vk::PhysicalDeviceVulkan12Features::descriptorBindingPartiallyBound },
+      FeatureSpec<vk::PhysicalDeviceVulkan12Features>{ "runtimeDescriptorArray", &vk::PhysicalDeviceVulkan12Features::runtimeDescriptorArray },
+      FeatureSpec<vk::PhysicalDeviceVulkan12Features>{ "timelineSemaphore", &vk::PhysicalDeviceVulkan12Features::timelineSemaphore }
+    };
+
+    constexpr std::array vulkan13Features {
+      FeatureSpec<vk::PhysicalDeviceVulkan13Features>{ "shaderDemoteToHelperInvocation", &vk::PhysicalDeviceVulkan13Features::shaderDemoteToHelperInvocation },
+      FeatureSpec<vk::PhysicalDeviceVulkan13Features>{ "synchronization2", &vk::PhysicalDeviceVulkan13Features::synchronization2 },
+      FeatureSpec<vk::PhysicalDeviceVulkan13Features>{ "dynamicRendering", &vk::PhysicalDeviceVulkan13Features::dynamicRendering }
+    };
+
+    // Needed only for ray tracing.
+    constexpr std::array rayTracingVulkan12Features {
+      FeatureSpec<vk::PhysicalDeviceVulkan12Features>{ "descriptorBindingVariableDescriptorCount", &vk::PhysicalDeviceVulkan12Features::descriptorBindingVariableDescriptorCount },
+      FeatureSpec<vk::PhysicalDeviceVulkan12Features>{ "bufferDeviceAddress", &vk::PhysicalDeviceVulkan12Features::bufferDeviceAddress }
+    };
+
+    constexpr std::array accelerationStructureFeatures {
+      FeatureSpec<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>{ "accelerationStructure", &vk::PhysicalDeviceAccelerationStructureFeaturesKHR::accelerationStructure }
+    };
+
+    constexpr std::array rayTracingPipelineFeatures {
+      FeatureSpec<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>{ "rayTracingPipeline", &vk::PhysicalDeviceRayTracingPipelineFeaturesKHR::rayTracingPipeline }
+    };
+
+    template <typename Features, size_t N>
+    const char* findMissingFeature(const std::array<FeatureSpec<Features>, N>& specs, const Features& supported)
+    {
+      for (const auto& spec : specs)
+      {
+        if (!(supported.*spec.member))
+        {
+          return spec.name;
+        }
+      }
+
+      return nullptr;
+    }
+
+    template <typename Features, size_t N>
+    void enableFeatures(const std::array<FeatureSpec<Features>, N>& specs, Features& features)
+    {
+      for (const auto& spec : specs)
+      {
+        features.*spec.member = vk::True;
+      }
+    }
+
+    int rankDeviceType(const vk::PhysicalDeviceType type)
+    {
+      switch (type)
+      {
+        case vk::PhysicalDeviceType::eDiscreteGpu:
+          return 0;
+        case vk::PhysicalDeviceType::eIntegratedGpu:
+          return 1;
+        default:
+          return 2;
+      }
+    }
+  } // namespace
+
   PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance,
                                  std::shared_ptr<Surface> surface)
     : m_surface(std::move(surface))
@@ -108,42 +193,135 @@ namespace vke {
     >().get<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
   }
 
+  GpuCapabilities PhysicalDevice::getCapabilities() const
+  {
+    const auto properties = m_physicalDevice.getProperties();
+
+    return {
+      .deviceName = properties.deviceName,
+      .deviceType = properties.deviceType,
+      .apiVersion = properties.apiVersion,
+      .rayTracing = m_supportsRayTracing,
+      .msaaSamples = m_msaaSamples,
+      .depthFormat = findDepthFormat()
+    };
+  }
+
+  PhysicalDevice::FeatureChain PhysicalDevice::makeEnabledFeatures(const bool rayTracing)
+  {
+    FeatureChain chain;
+
+    enableFeatures(coreFeatures, chain.get<vk::PhysicalDeviceFeatures2>().features);
+    enableFeatures(vulkan11Features, chain.get<vk::PhysicalDeviceVulkan11Features>());
+    enableFeatures(vulkan12Features, chain.get<vk::PhysicalDeviceVulkan12Features>());
+    enableFeatures(vulkan13Features, chain.get<vk::PhysicalDeviceVulkan13Features>());
+
+    if (rayTracing)
+    {
+      enableFeatures(rayTracingVulkan12Features, chain.get<vk::PhysicalDeviceVulkan12Features>());
+      enableFeatures(accelerationStructureFeatures, chain.get<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>());
+      enableFeatures(rayTracingPipelineFeatures, chain.get<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>());
+    }
+    else
+    {
+      chain.unlink<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>();
+      chain.unlink<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>();
+    }
+
+    return chain;
+  }
+
   void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
   {
+    struct Candidate {
+      vk::raii::PhysicalDevice device;
+      int typeRank;
+      bool rayTracing;
+    };
+
+    std::optional<Candidate> best;
+    std::string rejections;
+
     for (const auto& device : instance->getPhysicalDevices())
     {
-      if (isDeviceSuitable(device))
+      const auto properties = device.getProperties();
+
+      if (const auto reason = findRejectionReason(device))
       {
-        m_physicalDevice = device;
-        m_msaaSamples = getMaxUsableSampleCount();
-        break;
+        rejections += "\n  " + std::string(properties.deviceName.data()) + ": " + *reason;
+        continue;
+      }
+
+      const Candidate candidate {
+        .device = device,
+        .typeRank = rankDeviceType(properties.deviceType),
+        .rayTracing = checkRayTracingSupport(device)
+      };
+
+      // Discrete before integrated before the rest, then ray tracing; otherwise the first one found stays.
+      if (!best ||
+          candidate.typeRank < best->typeRank ||
+          (candidate.typeRank == best->typeRank && candidate.rayTracing && !best->rayTracing))
+      {
+        best = candidate;
       }
     }
 
-    if (!*m_physicalDevice)
+    if (!best)
     {
-      throw std::runtime_error("failed to find a suitable GPU!");
+      throw std::runtime_error("failed to find a suitable GPU:" + rejections);
     }
 
-    m_supportsRayTracing = checkDeviceRayTracingExtensionSupport(m_physicalDevice);
+    m_physicalDevice = best->device;
+    m_supportsRayTracing = best->rayTracing;
+    m_msaaSamples = getMaxUsableSampleCount();
   }
 
-  bool PhysicalDevice::isDeviceSuitable(const vk::raii::PhysicalDevice& device) const
+  std::optional<std::string> PhysicalDevice::findRejectionReason(const vk::raii::PhysicalDevice& device) const
   {
-    QueueFamilyIndices indices = findQueueFamilies(device);
+    const auto properties = device.getProperties();
 
-    bool extensionsSupported = checkDeviceExtensionSupport(device);
-
-    bool swapChainAdequate = false;
-    if (extensionsSupported)
+    if (properties.apiVersion < vk::ApiVersion13)
     {
-      SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
-      swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+      // Built without std::format, which the Linux CI's standard library lacks.
+      return "supports Vulkan " + std::to_string(vk::apiVersionMajor(properties.apiVersion)) + "." +
+             std::to_string(vk::apiVersionMinor(properties.apiVersion)) + ", 1.3 is required";
     }
 
-    const auto supportedFeatures = device.getFeatures();
+    if (!findQueueFamilies(device).isComplete())
+    {
+      return "no graphics, compute and present queue families";
+    }
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+    if (const auto missing = findMissingExtension(device, deviceExtensions); !missing.empty())
+    {
+      return "missing extension " + missing;
+    }
+
+    const auto swapChainSupport = querySwapChainSupport(device);
+    if (swapChainSupport.formats.empty() || swapChainSupport.presentModes.empty())
+    {
+      return "the surface offers no swapchain formats or present modes";
+    }
+
+    const auto features = device.getFeatures2<
+      vk::PhysicalDeviceFeatures2,
+      vk::PhysicalDeviceVulkan11Features,
+      vk::PhysicalDeviceVulkan12Features,
+      vk::PhysicalDeviceVulkan13Features
+    >();
+
+    const char* missing = findMissingFeature(coreFeatures, features.get<vk::PhysicalDeviceFeatures2>().features);
+    missing = missing ? missing : findMissingFeature(vulkan11Features, features.get<vk::PhysicalDeviceVulkan11Features>());
+    missing = missing ? missing : findMissingFeature(vulkan12Features, features.get<vk::PhysicalDeviceVulkan12Features>());
+    missing = missing ? missing : findMissingFeature(vulkan13Features, features.get<vk::PhysicalDeviceVulkan13Features>());
+
+    if (missing)
+    {
+      return std::string("missing feature ") + missing;
+    }
+
+    return std::nullopt;
   }
 
   QueueFamilyIndices PhysicalDevice::findQueueFamilies(const vk::raii::PhysicalDevice& device) const
@@ -181,32 +359,43 @@ namespace vke {
     return indices;
   }
 
-  bool PhysicalDevice::checkDeviceExtensionSupport(const vk::raii::PhysicalDevice& device)
+  std::string PhysicalDevice::findMissingExtension(const vk::raii::PhysicalDevice& device,
+                                                   const std::span<const char* const> extensions)
   {
     const auto availableExtensions = device.enumerateDeviceExtensionProperties();
 
-    std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-
-    for (const auto& extension : availableExtensions)
+    for (const char* required : extensions)
     {
-      requiredExtensions.erase(extension.extensionName);
+      const bool available = std::ranges::any_of(availableExtensions, [required](const auto& extension) {
+        return std::string_view(extension.extensionName) == required;
+      });
+
+      if (!available)
+      {
+        return required;
+      }
     }
 
-    return requiredExtensions.empty();
+    return {};
   }
 
-  bool PhysicalDevice::checkDeviceRayTracingExtensionSupport(const vk::raii::PhysicalDevice& device)
+  bool PhysicalDevice::checkRayTracingSupport(const vk::raii::PhysicalDevice& device)
   {
-    const auto availableExtensions = device.enumerateDeviceExtensionProperties();
-
-    std::set<std::string> requiredExtensions(rayTracingDeviceExtensions.begin(), rayTracingDeviceExtensions.end());
-
-    for (const auto& extension : availableExtensions)
+    if (!findMissingExtension(device, rayTracingDeviceExtensions).empty())
     {
-      requiredExtensions.erase(extension.extensionName);
+      return false;
     }
 
-    return requiredExtensions.empty();
+    const auto features = device.getFeatures2<
+      vk::PhysicalDeviceFeatures2,
+      vk::PhysicalDeviceVulkan12Features,
+      vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+      vk::PhysicalDeviceRayTracingPipelineFeaturesKHR
+    >();
+
+    return !findMissingFeature(rayTracingVulkan12Features, features.get<vk::PhysicalDeviceVulkan12Features>()) &&
+           !findMissingFeature(accelerationStructureFeatures, features.get<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>()) &&
+           !findMissingFeature(rayTracingPipelineFeatures, features.get<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>());
   }
 
   SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(const vk::raii::PhysicalDevice& device) const

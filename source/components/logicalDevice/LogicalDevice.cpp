@@ -257,45 +257,7 @@ namespace vke {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    vk::PhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures {
-      .rayTracingPipeline = vk::True
-    };
-
-    vk::PhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures {
-      .pNext = &rayTracingPipelineFeatures,
-      .accelerationStructure = vk::True
-    };
-
-    vk::PhysicalDeviceVulkan13Features vulkan13Features {
-      .pNext = getPhysicalDevice()->supportsRayTracing() ? &accelerationStructureFeatures : nullptr,
-      .shaderDemoteToHelperInvocation = vk::True,
-      .synchronization2 = vk::True,
-      .dynamicRendering = vk::True
-    };
-
-    vk::PhysicalDeviceVulkan12Features vulkan12Features {
-      .pNext = &vulkan13Features,
-      .shaderSampledImageArrayNonUniformIndexing = vk::True,
-      .descriptorBindingPartiallyBound = vk::True,
-      .descriptorBindingVariableDescriptorCount = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False,
-      .runtimeDescriptorArray = vk::True,
-      .timelineSemaphore = vk::True,
-      .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False
-    };
-
-    vk::PhysicalDeviceVulkan11Features vulkan11Features {
-      .pNext = &vulkan12Features,
-      .multiview = vk::True
-    };
-
-    vk::PhysicalDeviceFeatures2 deviceFeatures2 {
-      .pNext = &vulkan11Features,
-      .features {
-        .geometryShader = vk::True,
-        .fillModeNonSolid = vk::True,
-        .samplerAnisotropy = vk::True
-      }
-    };
+    auto enabledFeatures = PhysicalDevice::makeEnabledFeatures(m_physicalDevice->supportsRayTracing());
 
     auto extensions = std::vector(deviceExtensions.begin(), deviceExtensions.end());
 
@@ -305,7 +267,7 @@ namespace vke {
     }
 
     const vk::DeviceCreateInfo createInfo {
-      .pNext = &deviceFeatures2,
+      .pNext = &enabledFeatures.get<vk::PhysicalDeviceFeatures2>(),
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
       .pQueueCreateInfos = queueCreateInfos.data(),
       .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),

@@ -61,7 +61,7 @@ int main()
 
     while (renderer.isActive())
     {
-      displayGui(renderer.getImGuiInstance(), lights, { cubeObject, curtainObject }, renderer.getRenderingManager());
+      displayGui(renderer.getImGuiInstance(), lights, { cubeObject, curtainObject }, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
       pipelineTypeGui(currentPipeline);
 

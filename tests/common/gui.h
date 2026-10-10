@@ -5,6 +5,7 @@
 #include <source/components/imGui/ImGuiInstance.h>
 #include <source/components/lighting/lights/Light.h>
 #include <source/components/lighting/lights/SpotLight.h>
+#include <source/components/physicalDevice/GpuCapabilities.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
@@ -193,7 +194,8 @@ inline void setDockOptions(const std::shared_ptr<vke::ImGuiInstance>& gui)
   }
 }
 
-inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& renderingManager)
+inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& renderingManager,
+                                const vke::GpuCapabilities& capabilities)
 {
   ImGui::Begin("Scene Options");
 
@@ -211,21 +213,31 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
     }
   }
 
-  if (renderingManager->supportsRayTracing())
-  {
-    bool rayTracingEnabled = renderingManager->isRayTracingEnabled();
+  ImGui::TextUnformatted(capabilities.deviceName.c_str());
 
-    if (ImGui::Checkbox("Do Ray Tracing", &rayTracingEnabled))
+  const bool supportsRayTracing = renderingManager->supportsRayTracing();
+
+  ImGui::BeginDisabled(!supportsRayTracing);
+
+  bool rayTracingEnabled = renderingManager->isRayTracingEnabled();
+
+  if (ImGui::Checkbox("Do Ray Tracing", &rayTracingEnabled))
+  {
+    if (rayTracingEnabled)
     {
-      if (rayTracingEnabled)
-      {
-        renderingManager->enableRayTracing();
-      }
-      else
-      {
-        renderingManager->disableRayTracing();
-      }
+      renderingManager->enableRayTracing();
     }
+    else
+    {
+      renderingManager->disableRayTracing();
+    }
+  }
+
+  ImGui::EndDisabled();
+
+  if (!supportsRayTracing && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_ForTooltip))
+  {
+    ImGui::SetTooltip("Ray tracing is not supported on this device");
   }
 
   ImGui::End();
@@ -234,7 +246,8 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
 inline void displayGui(const std::shared_ptr<vke::ImGuiInstance>& gui,
                        const std::vector<std::shared_ptr<vke::Light>>& lights,
                        const std::vector<std::shared_ptr<vke::RenderObject>>& objects,
-                       const std::shared_ptr<vke::RenderingManager>& renderingManager)
+                       const std::shared_ptr<vke::RenderingManager>& renderingManager,
+                       const vke::GpuCapabilities& capabilities)
 {
   setDockOptions(gui);
 
@@ -242,7 +255,7 @@ inline void displayGui(const std::shared_ptr<vke::ImGuiInstance>& gui,
 
   displayLightGuis(lights);
 
-  displaySceneOptions(renderingManager);
+  displaySceneOptions(renderingManager, capabilities);
 }
 
 #endif //VKE_TESTS_GUI_H
