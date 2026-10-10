@@ -5,11 +5,13 @@
 #include "Renderer3DPushConstants.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 #include "../../pipelines/implementations/vertexInputs/LineInstance.h"
+#include "DebugShapes.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <chrono>
+#include <deque>
 #include <memory>
 #include <unordered_map>
 #include <variant>
@@ -55,6 +57,13 @@ namespace vke {
   struct PushConstantEntry {
     PushConstantVariant data;
     vk::ShaderStageFlags stages;
+  };
+
+  // How a debug shape's lines look; the fields mean what they do for renderLine.
+  struct DebugStyle {
+    glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    float width = 1.0f;
+    float lifetimeSeconds = 0.0f;
   };
 
   class Renderer3D {
@@ -144,6 +153,31 @@ namespace vke {
                     float width = 1.0f,
                     float lifetimeSeconds = 0.0f);
 
+    // Wireframe shapes, drawn as lines in the same batch (see DebugShapes.h for segment counts, all of which count
+    // against the line limit). Degenerate input draws less, never garbage. The style applies to every segment. Past the
+    // limit of kept lines the oldest are dropped one segment at a time, which can leave older timed shapes partial.
+    void renderBox(const glm::mat4& transform, glm::vec3 halfExtents, const DebugStyle& style = {});
+
+    // Axis-aligned box between two corners
+    void renderBox(glm::vec3 min, glm::vec3 max, const DebugStyle& style = {});
+
+    void renderSphere(glm::vec3 center, float radius, const DebugStyle& style = {});
+
+    // The segment from a to b is the capsule's core; radius covers the hemispheres.
+    void renderCapsule(glm::vec3 a, glm::vec3 b, float radius, const DebugStyle& style = {});
+
+    void renderCylinder(glm::vec3 a, glm::vec3 b, float radius, const DebugStyle& style = {});
+
+    void renderCone(glm::vec3 apex, glm::vec3 baseCenter, float radius, const DebugStyle& style = {});
+
+    void renderArrow(glm::vec3 from, glm::vec3 to, const DebugStyle& style = {});
+
+    // The edges of the volume a view-projection matrix (camera projection times view) maps to the screen.
+    void renderFrustum(const glm::mat4& viewProjection, const DebugStyle& style = {});
+
+    // Red X, green Y and blue Z lines of the given length from the transform's origin; the transform's scale applies.
+    void renderAxes(const glm::mat4& transform, float length = 1.0f, float width = 2.0f, float lifetimeSeconds = 0.0f);
+
     // Drops lines kept for a lifetime, including from the frame being built.
     void clearLines();
 
@@ -197,8 +231,9 @@ namespace vke {
 
     // This frame's lines, then the unexpired timed lines, so lines past the limit are the oldest timed ones.
     std::vector<LineInstance> m_linesToRender;
-    std::vector<TimedLine> m_timedLines;
+    std::deque<TimedLine> m_timedLines;
     std::vector<LineInstance> m_lineBatch;
+    std::vector<DebugSegment> m_shapeSegments;
 
     std::vector<BendyPlant> m_bendyPlantsToRender;
 
@@ -234,6 +269,8 @@ namespace vke {
     void createCommandPool();
 
     void createDescriptorPool();
+
+    void renderShapeSegments(const DebugStyle& style);
 
     void renderRenderObjectsByPipeline(const RenderInfo* renderInfo,
                                        const std::shared_ptr<PipelineManager>& pipelineManager,
