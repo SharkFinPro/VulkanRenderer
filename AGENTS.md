@@ -41,6 +41,7 @@
 - Shaders: `CompileShaders.cmake` globs `source/shaders/**` and compiles each to `bin/assets/shaders/...spv` via `glslangValidator --target-env vulkan1.2` (include dir `shaders/include`); the `Shaders` target is a build dependency of `VulkanEngine`. `*.spv` is git-ignored.
 - Assets are copied to `bin/assets/` at configure time (`Assets.cmake`, plus root copying `tests/assets/`). Runtime asset paths are relative (e.g. `assets/textures/white.png`), so executables must run from `bin/`.
 - `Headers.cmake` copies public headers into `include/VulkanEngine/` for external (FetchContent) consumers.
+- `VulkanEngine` has a private precompiled header (`target_precompile_headers` in `source/CMakeLists.txt`) holding Vulkan-Hpp, GLM and common standard headers; each test reuses it (`REUSE_FROM`), so tests are built position independent and the library has no `<target>_EXPORTS` define, keeping their compile options identical. Add only stable third-party or standard headers to it, never engine headers. Build with `-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON` to catch includes the precompiled header is hiding.
 - **Dependency direction (must hold):** `tests/*` → `VulkanEngine`; within the library, `components/*` may use `utilities/*`; `utilities/*` depends on nothing engine-specific. Tests never depend on each other; engine never depends on tests.
 
 ## Architecture Overview
