@@ -68,6 +68,8 @@ namespace vke {
 
   protected:
     static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    // The picking image is an integer format, which a float clear color can't be used with.
+    static constexpr vk::ClearValue s_clearMousePicking = vk::ClearColorValue(std::array<uint32_t, 4>{ 0, 0, 0, 0 });
     static constexpr vk::ClearValue s_clearMask = vk::ClearColorValue(std::array<uint32_t, 4>{0, 0, 0, 0});
     static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
       .depth = 1.0f,

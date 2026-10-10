@@ -8,9 +8,7 @@ layout(location = 0) out uvec4 outColor;
 
 void main()
 {
-  float r = (objectID >> 16) & 0xFF;
-  float g = (objectID >> 8) & 0xFF;
-  float b = (objectID >> 0) & 0xFF;
-
-  outColor = uvec4(r, g, b, 255);
+  // Object (0 is the clear value, so ids start at 1), triangle within its draw, and the exact depth, so the CPU can
+  // rebuild the world position.
+  outColor = uvec4(objectID, uint(gl_PrimitiveID), floatBitsToUint(gl_FragCoord.z), 0u);
 }

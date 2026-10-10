@@ -2,6 +2,7 @@
 #define VULKANPROJECT_RENDERER3D_H
 
 #include "RayTracer.h"
+#include "PickResult.h"
 #include "Renderer3DPushConstants.h"
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 #include "../../pipelines/implementations/vertexInputs/LineInstance.h"
@@ -13,6 +14,7 @@
 #include <chrono>
 #include <deque>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -139,6 +141,12 @@ namespace vke {
     void renderObject(const std::shared_ptr<RenderObject>& renderObject,
                       PipelineType pipelineType,
                       bool* mousePicked = nullptr);
+
+    // Pickable without a flag: read the outcome through getPickResult().
+    void renderPickableObject(const std::shared_ptr<RenderObject>& renderObject,
+                              PipelineType pipelineType);
+
+    [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
     // Outlines the object for this frame in the given color (alpha included), on top of however the application draws
     // it. The outline also shows where other geometry hides the object, as the outline of a selection usually does.

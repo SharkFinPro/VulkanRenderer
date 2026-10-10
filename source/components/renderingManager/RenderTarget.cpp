@@ -223,7 +223,7 @@ namespace vke {
       .resolveMode = vk::ResolveModeFlagBits::eNone,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eStore,
-      .clearValue = s_clearColor
+      .clearValue = s_clearMousePicking
     };
 
     vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
@@ -535,7 +535,7 @@ namespace vke {
       .logicalDevice = m_logicalDevice,
       .extent = extent,
       .commandPool = m_commandPool,
-      .colorFormat = vk::Format::eR8G8B8A8Uint,
+      .colorFormat = vk::Format::eR32G32B32A32Uint,
       .depthFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat(),
       .numSamples = vk::SampleCountFlagBits::e1
     };
