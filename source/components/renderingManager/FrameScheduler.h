@@ -21,7 +21,7 @@ namespace vke {
 
     // Advances to the next frame, blocking until the GPU has fully finished the frame that
     // previously used this frame-in-flight slot. Must be called once per frame, before any
-    // recording or submission for that frame.
+    // recording or submission for that frame. Also destroys the retired resources whose last frame has finished.
     void beginFrame();
 
     // Frame-in-flight index of the frame started by the latest beginFrame().

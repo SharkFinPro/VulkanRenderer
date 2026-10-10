@@ -4,6 +4,7 @@
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
+#include <glm/gtc/random.hpp>
 #include <iostream>
 
 const vke::EngineConfig ENGINE_CONFIG {
@@ -29,6 +30,8 @@ constexpr std::array AVAILABLE_PIPELINES {
 const char* getPipelineTypeName(vke::PipelineType type);
 
 void pipelineTypeGui(vke::PipelineType& currentPipeline);
+
+void linesGui(const std::shared_ptr<vke::Renderer3D>& r3d);
 
 std::vector<std::shared_ptr<vke::Light>> createLights(const vke::VulkanEngine& renderer);
 
@@ -61,6 +64,8 @@ int main()
       displayGui(renderer.getImGuiInstance(), lights, { cubeObject, curtainObject }, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
       pipelineTypeGui(currentPipeline);
+
+      linesGui(r3d);
 
       r3d->renderObject(isCurtainPipeline(currentPipeline) ? curtainObject : cubeObject, currentPipeline);
 
@@ -107,6 +112,31 @@ void pipelineTypeGui(vke::PipelineType& currentPipeline)
       }
     }
     ImGui::EndCombo();
+  }
+  ImGui::End();
+}
+
+void linesGui(const std::shared_ptr<vke::Renderer3D>& r3d)
+{
+  // Above the floor and beside the cube, so depth testing doesn't hide the axes.
+  constexpr glm::vec3 axesOrigin { -4.0f, 2.0f, -4.0f };
+  r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(3, 0, 0), { 1, 0, 0, 1 }, 3.0f);
+  r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 3, 0), { 0, 1, 0, 1 }, 3.0f);
+  r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 0, 3), { 0, 0, 1, 1 }, 3.0f);
+
+  ImGui::Begin("Rendering");
+  if (ImGui::Button("Emit Lines (3 s)"))
+  {
+    for (int i = 0; i < 20; ++i)
+    {
+      r3d->renderLine(glm::vec3(0, 4, 0) + glm::ballRand(4.0f), glm::vec3(0, 4, 0) + glm::ballRand(4.0f), { glm::linearRand(glm::vec3(0.2f), glm::vec3(1.0f)), 0.8f },
+                      glm::linearRand(1.0f, 6.0f), 3.0f);
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Clear Lines"))
+  {
+    r3d->clearLines();
   }
   ImGui::End();
 }

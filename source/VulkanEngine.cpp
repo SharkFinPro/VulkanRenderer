@@ -38,10 +38,14 @@ namespace vke {
       m_logicalDevice->waitIdle();
 
       // An application can hold the asset manager longer than the engine; what it released must go while ImGui and
-      // the device still exist.
+      // the device still exist (textures remove their ImGui descriptor sets). The device is idle, so retired
+      // resources can be destroyed at once; a render object leaves its texture for the next pass.
       if (m_assetManager)
       {
-        m_assetManager->destroyReleasedResources();
+        do
+        {
+          m_logicalDevice->destroyRetiredResources();
+        } while (m_assetManager->destroyReleasedResources());
       }
 
       m_renderingManager.reset();
@@ -52,6 +56,10 @@ namespace vke {
       m_computingManager.reset();
       m_lightingManager.reset();
       m_assetManager.reset();
+
+      // Subsystems reset above may have retired resources that need ImGui to be destroyed.
+      m_logicalDevice->destroyRetiredResources();
+
       m_imGuiInstance.reset();
 
       m_logicalDevice.reset();
@@ -80,18 +88,17 @@ namespace vke {
     {
       const bool sceneFocused = m_renderingManager->isSceneFocused();
       const bool sceneHovered = m_renderingManager->isSceneHovered();
+      const bool sceneRightDragged = m_renderingManager->isSceneRightDragged();
 
-      if (sceneFocused)
-      {
-        m_camera->processInput(m_window);
-      }
+      // Every frame, so the camera's clock does not count the time the scene spent unfocused as one long step.
+      m_camera->processInput(m_window, sceneFocused, sceneRightDragged);
 
       if (sceneHovered)
       {
         m_camera->processScroll(m_window);
       }
 
-      if (sceneFocused || sceneHovered)
+      if (sceneFocused || sceneHovered || sceneRightDragged)
       {
         m_renderingManager->getRenderer3D()->setCameraParameters(m_camera->getPosition(), m_camera->getViewMatrix());
       }

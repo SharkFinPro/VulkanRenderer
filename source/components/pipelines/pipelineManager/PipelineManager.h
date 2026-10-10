@@ -56,7 +56,7 @@ namespace vke {
                               const std::vector<std::shared_ptr<SmokeSystem>>* systems) const;
 
     void renderLinePipeline(const RenderInfo* renderInfo,
-                            const std::vector<LineVertex>* lineVertices) const;
+                            const std::vector<LineInstance>* lines) const;
 
     void doRayTracing(const std::shared_ptr<CommandBuffer>& commandBuffer,
                       vk::Extent2D extent) const;
