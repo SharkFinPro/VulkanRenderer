@@ -11,6 +11,7 @@
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <chrono>
+#include <deque>
 #include <memory>
 #include <unordered_map>
 #include <variant>
@@ -153,7 +154,8 @@ namespace vke {
                     float lifetimeSeconds = 0.0f);
 
     // Wireframe shapes, drawn as lines in the same batch (see DebugShapes.h for segment counts, all of which count
-    // against the line limit). Degenerate input draws less, never garbage. The style applies to every segment.
+    // against the line limit). Degenerate input draws less, never garbage. The style applies to every segment. Past the
+    // limit of kept lines the oldest are dropped one segment at a time, which can leave older timed shapes partial.
     void renderBox(const glm::mat4& transform, glm::vec3 halfExtents, const DebugStyle& style = {});
 
     // Axis-aligned box between two corners
@@ -229,7 +231,7 @@ namespace vke {
 
     // This frame's lines, then the unexpired timed lines, so lines past the limit are the oldest timed ones.
     std::vector<LineInstance> m_linesToRender;
-    std::vector<TimedLine> m_timedLines;
+    std::deque<TimedLine> m_timedLines;
     std::vector<LineInstance> m_lineBatch;
     std::vector<DebugSegment> m_shapeSegments;
 

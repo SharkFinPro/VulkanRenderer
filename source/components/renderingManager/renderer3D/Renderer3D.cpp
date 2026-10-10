@@ -374,7 +374,7 @@ namespace vke {
     // Kept lines beyond what can be drawn are dropped oldest first, so the list can't grow without bound.
     if (m_timedLines.size() >= LinePipeline::s_maxLines)
     {
-      m_timedLines.erase(m_timedLines.begin());
+      m_timedLines.pop_front();
     }
 
     // Clamped so an enormous or infinite lifetime can't overflow the clock's integer duration.
@@ -439,6 +439,20 @@ namespace vke {
                               const float width,
                               const float lifetimeSeconds)
   {
+    bool finite = std::isfinite(length);
+    for (int column = 0; column < 4; ++column)
+    {
+      for (int row = 0; row < 4; ++row)
+      {
+        finite = finite && std::isfinite(transform[column][row]);
+      }
+    }
+
+    if (!finite)
+    {
+      return;
+    }
+
     const auto origin = glm::vec3(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     const std::array<glm::vec3, 3> directions {{ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } }};

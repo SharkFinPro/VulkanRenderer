@@ -1,4 +1,7 @@
 #include "DebugShapes.h"
+#include <glm/common.hpp>
+#include <glm/geometric.hpp>
+#include <glm/matrix.hpp>
 #include <array>
 #include <cmath>
 #include <numbers>
@@ -132,7 +135,7 @@ namespace vke::debugShapes {
 
   void appendSphere(std::vector<DebugSegment>& out, const glm::vec3 center, const float radius)
   {
-    if (!isFinite(center) || !std::isfinite(radius))
+    if (!isFinite(center) || !std::isfinite(radius) || radius == 0.0f)
     {
       return;
     }
@@ -145,13 +148,19 @@ namespace vke::debugShapes {
 
   void appendCapsule(std::vector<DebugSegment>& out, const glm::vec3 a, const glm::vec3 b, const float radius)
   {
-    if (!isFinite(a) || !isFinite(b) || !std::isfinite(radius))
+    if (!isFinite(a) || !isFinite(b) || !std::isfinite(radius) || radius == 0.0f)
     {
       return;
     }
 
     const float r = std::abs(radius);
     const Basis basis = makeBasis(a, b);
+
+    if (basis.length <= 0.0f)
+    {
+      appendSphere(out, a, r);
+      return;
+    }
 
     appendCircle(out, a, basis.u, basis.v, r, s_circleSegments);
     appendCircle(out, b, basis.u, basis.v, r, s_circleSegments);
@@ -167,7 +176,7 @@ namespace vke::debugShapes {
 
   void appendCylinder(std::vector<DebugSegment>& out, const glm::vec3 a, const glm::vec3 b, const float radius)
   {
-    if (!isFinite(a) || !isFinite(b) || !std::isfinite(radius))
+    if (!isFinite(a) || !isFinite(b) || !std::isfinite(radius) || radius == 0.0f)
     {
       return;
     }
@@ -176,13 +185,18 @@ namespace vke::debugShapes {
     const Basis basis = makeBasis(a, b);
 
     appendCircle(out, a, basis.u, basis.v, r, s_circleSegments);
+    if (basis.length <= 0.0f)
+    {
+      return;
+    }
+
     appendCircle(out, b, basis.u, basis.v, r, s_circleSegments);
     appendSideLines(out, a, b, basis, r);
   }
 
   void appendCone(std::vector<DebugSegment>& out, const glm::vec3 apex, const glm::vec3 baseCenter, const float radius)
   {
-    if (!isFinite(apex) || !isFinite(baseCenter) || !std::isfinite(radius))
+    if (!isFinite(apex) || !isFinite(baseCenter) || !std::isfinite(radius) || radius == 0.0f)
     {
       return;
     }
