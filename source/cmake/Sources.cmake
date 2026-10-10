@@ -84,6 +84,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/renderer2D/Renderer2D.h
 
     # Renderer3D
+    components/renderingManager/renderer3D/DebugShapes.cpp
+    components/renderingManager/renderer3D/DebugShapes.h
     components/renderingManager/renderer3D/MousePicker.cpp
     components/renderingManager/renderer3D/MousePicker.h
     components/renderingManager/renderer3D/PickResult.h
