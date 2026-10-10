@@ -4,6 +4,7 @@
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/random.hpp>
 #include <iostream>
 
@@ -123,6 +124,17 @@ void linesGui(const std::shared_ptr<vke::Renderer3D>& r3d)
   r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(3, 0, 0), { 1, 0, 0, 1 }, 3.0f);
   r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 3, 0), { 0, 1, 0, 1 }, 3.0f);
   r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 0, 3), { 0, 0, 1, 1 }, 3.0f);
+
+  // One of each shape in a row behind the cube
+  constexpr float z = 5.0f;
+  r3d->renderBox(glm::translate(glm::mat4(1.0f), { -7, 2, z }), glm::vec3(0.8f, 0.5f, 0.6f), { .color = { 1, 0.6f, 0, 1 } });
+  r3d->renderSphere({ -4.5f, 2, z }, 0.9f, { .color = { 0, 1, 1, 1 } });
+  r3d->renderCapsule({ -2, 1.2f, z }, { -2, 2.8f, z }, 0.6f, { .color = { 1, 0, 1, 1 } });
+  r3d->renderCylinder({ 0, 1.2f, z }, { 0, 2.8f, z }, 0.7f, { .color = { 1, 1, 0, 1 } });
+  r3d->renderCone({ 2, 3, z }, { 2, 1.2f, z }, 0.8f, { .color = { 0.5f, 1, 0.5f, 1 } });
+  r3d->renderArrow({ 3.8f, 1.2f, z }, { 3.8f, 3, z }, { .color = { 1, 0.4f, 0.4f, 1 }, .width = 2.0f });
+  r3d->renderAxes(glm::translate(glm::mat4(1.0f), { 5.2f, 1.2f, z }), 1.5f);
+  r3d->renderFrustum(glm::perspectiveFov(glm::radians(40.0f), 4.0f, 3.0f, 0.5f, 3.0f) * glm::lookAt(glm::vec3(7, 2, z), glm::vec3(7, 2, z + 1), glm::vec3(0, 1, 0)), { .color = { 1, 1, 1, 1 } });
 
   ImGui::Begin("Rendering");
   if (ImGui::Button("Emit Lines (3 s)"))

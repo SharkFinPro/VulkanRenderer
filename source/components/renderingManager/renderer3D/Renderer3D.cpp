@@ -13,7 +13,9 @@
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/implementations/LinePipeline.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <stdexcept>
 
@@ -260,6 +262,78 @@ namespace vke {
       std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
         std::chrono::duration<float>(std::min(lifetimeSeconds, maxLifetimeSeconds)))
     });
+  }
+
+  void Renderer3D::renderBox(const glm::mat4& transform, const glm::vec3 halfExtents, const DebugStyle& style)
+  {
+    debugShapes::appendBox(m_shapeSegments, transform, halfExtents);
+    renderShapeSegments(style);
+  }
+
+  void Renderer3D::renderBox(const glm::vec3 min, const glm::vec3 max, const DebugStyle& style)
+  {
+    renderBox(glm::translate(glm::mat4(1.0f), (min + max) * 0.5f), (max - min) * 0.5f, style);
+  }
+
+  void Renderer3D::renderSphere(const glm::vec3 center, const float radius, const DebugStyle& style)
+  {
+    debugShapes::appendSphere(m_shapeSegments, center, radius);
+    renderShapeSegments(style);
+  }
+
+  void Renderer3D::renderCapsule(const glm::vec3 a, const glm::vec3 b, const float radius, const DebugStyle& style)
+  {
+    debugShapes::appendCapsule(m_shapeSegments, a, b, radius);
+    renderShapeSegments(style);
+  }
+
+  void Renderer3D::renderCylinder(const glm::vec3 a, const glm::vec3 b, const float radius, const DebugStyle& style)
+  {
+    debugShapes::appendCylinder(m_shapeSegments, a, b, radius);
+    renderShapeSegments(style);
+  }
+
+  void Renderer3D::renderCone(const glm::vec3 apex, const glm::vec3 baseCenter, const float radius, const DebugStyle& style)
+  {
+    debugShapes::appendCone(m_shapeSegments, apex, baseCenter, radius);
+    renderShapeSegments(style);
+  }
+
+  void Renderer3D::renderArrow(const glm::vec3 from, const glm::vec3 to, const DebugStyle& style)
+  {
+    debugShapes::appendArrow(m_shapeSegments, from, to);
+    renderShapeSegments(style);
+  }
+
+  void Renderer3D::renderFrustum(const glm::mat4& viewProjection, const DebugStyle& style)
+  {
+    debugShapes::appendFrustum(m_shapeSegments, viewProjection);
+    renderShapeSegments(style);
+  }
+
+  void Renderer3D::renderAxes(const glm::mat4& transform,
+                              const float length,
+                              const float width,
+                              const float lifetimeSeconds)
+  {
+    const auto origin = glm::vec3(transform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+    const std::array<glm::vec3, 3> directions {{ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } }};
+    for (const auto& direction : directions)
+    {
+      const auto end = glm::vec3(transform * glm::vec4(direction * length, 1.0f));
+      renderLine(origin, end, { direction, 1.0f }, width, lifetimeSeconds);
+    }
+  }
+
+  void Renderer3D::renderShapeSegments(const DebugStyle& style)
+  {
+    for (const auto& [start, end] : m_shapeSegments)
+    {
+      renderLine(start, end, style.color, style.width, style.lifetimeSeconds);
+    }
+
+    m_shapeSegments.clear();
   }
 
   void Renderer3D::clearLines()
