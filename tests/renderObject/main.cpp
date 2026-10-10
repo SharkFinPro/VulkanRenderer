@@ -125,7 +125,7 @@ void linesGui(const std::shared_ptr<vke::Renderer3D>& r3d)
   r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 3, 0), { 0, 1, 0, 1 }, 3.0f);
   r3d->renderLine(axesOrigin, axesOrigin + glm::vec3(0, 0, 3), { 0, 0, 1, 1 }, 3.0f);
 
-  // One of each shape in a row behind the cube
+  // One of each shape in a row above the floor
   constexpr float z = 5.0f;
   r3d->renderBox(glm::translate(glm::mat4(1.0f), { -7, 2, z }), glm::vec3(0.8f, 0.5f, 0.6f), { .color = { 1, 0.6f, 0, 1 } });
   r3d->renderSphere({ -4.5f, 2, z }, 0.9f, { .color = { 0, 1, 1, 1 } });
