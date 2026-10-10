@@ -12,7 +12,6 @@ namespace vke {
     magnifyWhirlMosaic,
     noisyEllipticalDots,
     object,
-    objectHighlight,
     texturedPlane,
     snake,
 
@@ -20,6 +19,9 @@ namespace vke {
     font,
     grid,
     mousePicking,
+    outline,
+    outlineMask,
+    outlineSingleSample,
     offscreenToSwapchain,
     pointLightShadowMap,
     rect,

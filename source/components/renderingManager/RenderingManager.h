@@ -61,6 +61,8 @@ namespace vke {
 
     [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
 
+    [[nodiscard]] vk::DescriptorSetLayout getOutlineMaskDescriptorSetLayout() const;
+
     [[nodiscard]] vk::Format getSwapChainImageFormat() const;
 
     // Returns false, leaving the swapchain for a later frame, while the window is minimized.

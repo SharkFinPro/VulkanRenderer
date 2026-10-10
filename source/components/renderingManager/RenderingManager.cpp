@@ -140,6 +140,11 @@ namespace vke {
     return m_renderTarget->getOffscreenImageDescriptorSetLayout();
   }
 
+  vk::DescriptorSetLayout RenderingManager::getOutlineMaskDescriptorSetLayout() const
+  {
+    return m_renderTarget->getOutlineMaskDescriptorSetLayout();
+  }
+
   vk::Format RenderingManager::getSwapChainImageFormat() const
   {
     return m_swapChain->getImageFormat();
@@ -465,12 +470,34 @@ namespace vke {
       renderInfo.commandBuffer->endRendering();
     };
 
+    auto recordOutlineMask = [this, currentFrame, pipelineManager](const RenderInfo& renderInfo) {
+      if (!m_renderer3D->hasOutlines())
+      {
+        return;
+      }
+
+      m_renderTarget->beginOutlineMaskRendering(renderInfo.commandBuffer, currentFrame);
+
+      m_renderer3D->renderOutlineMask(&renderInfo, pipelineManager);
+
+      m_renderTarget->endOutlineMaskRendering(renderInfo.commandBuffer, currentFrame);
+    };
+
     auto recordOffscreenRendering = [this, currentFrame, lightingManager, pipelineManager](const RenderInfo& renderInfo) {
       if (m_rayTracingEnabled)
       {
+        const bool drawOutlines = m_renderer3D->hasOutlines();
+
         m_renderTarget->beginRayTracingRendering(renderInfo.commandBuffer, currentFrame);
         m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderTarget->getOffscreenRayTracingImageResource(currentFrame));
-        m_renderTarget->endRayTracingRendering(renderInfo.commandBuffer, currentFrame);
+        m_renderTarget->endRayTracingRendering(renderInfo.commandBuffer, currentFrame, drawOutlines);
+
+        if (drawOutlines)
+        {
+          m_renderTarget->beginOverlayRendering(renderInfo.commandBuffer, currentFrame);
+          m_renderer3D->renderOutlines(&renderInfo, pipelineManager, m_renderTarget->getOutlineMaskDescriptorSet(currentFrame), false);
+          m_renderTarget->endOverlayRendering(renderInfo.commandBuffer, currentFrame);
+        }
 
         return;
       }
@@ -478,6 +505,11 @@ namespace vke {
       m_renderTarget->beginOffscreenRendering(renderInfo.commandBuffer, currentFrame);
 
       m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
+
+      if (m_renderer3D->hasOutlines())
+      {
+        m_renderer3D->renderOutlines(&renderInfo, pipelineManager, m_renderTarget->getOutlineMaskDescriptorSet(currentFrame), true);
+      }
 
       constexpr vk::ClearAttachment clearAttachment{
         .aspectMask = vk::ImageAspectFlagBits::eDepth,
@@ -510,7 +542,7 @@ namespace vke {
 
     m_offscreenCommandBuffer->resetCommandBuffer();
 
-    m_offscreenCommandBuffer->record([this, currentFrame, renderShadowMaps, recordMousePicking, recordOffscreenRendering]
+    m_offscreenCommandBuffer->record([this, currentFrame, renderShadowMaps, recordMousePicking, recordOutlineMask, recordOffscreenRendering]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
@@ -545,6 +577,8 @@ namespace vke {
       renderInfo.commandBuffer->setScissor(scissor);
 
       recordMousePicking(renderInfo);
+
+      recordOutlineMask(renderInfo);
 
       recordOffscreenRendering(renderInfo);
     });

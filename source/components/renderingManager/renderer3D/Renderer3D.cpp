@@ -13,8 +13,12 @@
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/implementations/LinePipeline.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
+#include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <iostream>
+#include <iterator>
 #include <stdexcept>
 
 namespace vke {
@@ -71,6 +75,86 @@ namespace vke {
   void Renderer3D::handleRenderedMousePickingImage(const vk::Image image) const
   {
     m_mousePicker->handleRenderedMousePickingImage(image);
+  }
+
+  bool Renderer3D::hasOutlines() const
+  {
+    return !m_outlineObjects.empty();
+  }
+
+  void Renderer3D::renderOutlineMask(const RenderInfo* renderInfo,
+                                     const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    const RenderInfo renderInfoOutline {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent,
+      .fieldOfView = m_fieldOfView,
+      .nearPlane = m_nearPlane,
+      .farPlane = m_farPlane
+    };
+
+    pipelineManager->bindGraphicsPipeline(renderInfoOutline.commandBuffer, PipelineType::outlineMask);
+
+    // There is no depth test, so the outline of an object shows through whatever is in front of it
+    for (const auto& [object, maskValue] : m_outlineObjects)
+    {
+      pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
+        renderInfoOutline.commandBuffer,
+        PipelineType::outlineMask,
+        vk::ShaderStageFlagBits::eFragment,
+        0,
+        maskValue
+      );
+
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfoOutline.commandBuffer,
+        PipelineType::outlineMask,
+        object->getDescriptorSet(renderInfoOutline.currentFrame),
+        0
+      );
+
+      object->updateUniformBuffer(renderInfoOutline.currentFrame, renderInfoOutline.viewMatrix,
+                                  renderInfoOutline.getProjectionMatrix());
+
+      object->draw(renderInfoOutline.commandBuffer);
+    }
+  }
+
+  void Renderer3D::renderOutlines(const RenderInfo* renderInfo,
+                                  const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const vk::DescriptorSet maskDescriptorSet,
+                                  const bool multisampled) const
+  {
+    std::array<glm::vec4, s_maxOutlineColors + 1> colors{};
+    std::ranges::copy(m_outlineColors, colors.begin());
+
+    m_outlineColorsUniform->update(renderInfo->currentFrame, colors.data());
+
+    const auto pipelineType = multisampled ? PipelineType::outline : PipelineType::outlineSingleSample;
+
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(renderInfo->commandBuffer, pipelineType, maskDescriptorSet, 0);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      pipelineType,
+      m_outlineColorsDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      1
+    );
+
+    pipelineManager->pushGraphicsPipelineConstants<int32_t>(
+      renderInfo->commandBuffer,
+      pipelineType,
+      vk::ShaderStageFlagBits::eFragment,
+      0,
+      static_cast<int32_t>(std::lround(m_outlineWidth))
+    );
+
+    renderInfo->commandBuffer->draw(3, 1, 0, 0);
   }
 
   void Renderer3D::render(const RenderInfo* renderInfo,
@@ -149,6 +233,9 @@ namespace vke {
     }
 
     m_renderObjectsToRenderFlattened.clear();
+
+    m_outlineObjects.clear();
+    m_outlineColors.clear();
 
     m_linesToRender.clear();
 
@@ -232,6 +319,43 @@ namespace vke {
     }
   }
 
+  void Renderer3D::renderOutline(const std::shared_ptr<RenderObject>& renderObject,
+                                 const glm::vec4 color)
+  {
+    auto colorIt = std::ranges::find(m_outlineColors, color);
+
+    if (colorIt == m_outlineColors.end())
+    {
+      if (m_outlineColors.size() >= s_maxOutlineColors)
+      {
+        // A selection effect shouldn't take the application down, so extra colors share the last one.
+        if (!m_warnedAboutOutlineColors)
+        {
+          std::cerr << "More than " << s_maxOutlineColors << " outline colors in a frame; extra colors use the last one" << std::endl;
+          m_warnedAboutOutlineColors = true;
+        }
+
+        colorIt = std::prev(m_outlineColors.end());
+      }
+      else
+      {
+        colorIt = m_outlineColors.insert(m_outlineColors.end(), color);
+      }
+    }
+
+    m_outlineObjects.emplace_back(renderObject, static_cast<uint32_t>(colorIt - m_outlineColors.begin()) + 1);
+  }
+
+  void Renderer3D::setOutlineWidth(const float pixels)
+  {
+    if (std::isnan(pixels))
+    {
+      return;
+    }
+
+    m_outlineWidth = std::clamp(pixels, 1.0f, 8.0f);
+  }
+
   void Renderer3D::renderLine(const glm::vec3 start,
                               const glm::vec3 end,
                               const glm::vec4 color,
@@ -292,6 +416,11 @@ namespace vke {
     return m_cubeMapDescriptorSet->getDescriptorSetLayout();
   }
 
+  vk::DescriptorSetLayout Renderer3D::getOutlineColorsDescriptorSetLayout() const
+  {
+    return m_outlineColorsDescriptorSet->getDescriptorSetLayout();
+  }
+
   void Renderer3D::setCloudToRender(std::shared_ptr<Cloud> cloud)
   {
     m_cloudToRender = std::move(cloud);
@@ -314,10 +443,11 @@ namespace vke {
       {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 10},
     }};
 
+    poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 5});
+
     if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
       poolSizes.push_back({vk::DescriptorType::eAccelerationStructureKHR, m_logicalDevice->getMaxFramesInFlight() * 4});
-      poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 4});
     }
 
     const vk::DescriptorPoolCreateInfo poolCreateInfo {
@@ -333,7 +463,6 @@ namespace vke {
                                                  const std::shared_ptr<PipelineManager>& pipelineManager,
                                                  const std::shared_ptr<LightingManager>& lightingManager) const
   {
-    const std::vector<std::shared_ptr<RenderObject>>* highlightedRenderObjects = nullptr;
     for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
     {
       if (objects.empty())
@@ -341,18 +470,7 @@ namespace vke {
         continue;
       }
 
-      if (pipelineType == PipelineType::objectHighlight)
-      {
-        highlightedRenderObjects = &objects;
-        continue;
-      }
-
       renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
-    }
-
-    if (highlightedRenderObjects)
-    {
-      renderRenderObjects(pipelineManager, lightingManager, renderInfo, PipelineType::objectHighlight, highlightedRenderObjects);
     }
   }
 
@@ -510,6 +628,26 @@ namespace vke {
     {
       std::vector descriptorWrites{{
         m_noiseTexture->getDescriptorSet(0, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
+
+    constexpr vk::DescriptorSetLayoutBinding outlineColorsLayout {
+      .binding = 0,
+      .descriptorType = vk::DescriptorType::eUniformBuffer,
+      .descriptorCount = 1,
+      .stageFlags = vk::ShaderStageFlagBits::eFragment
+    };
+
+    m_outlineColorsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(glm::vec4) * (s_maxOutlineColors + 1));
+
+    m_outlineColorsDescriptorSet = std::make_shared<DescriptorSet>(
+      m_logicalDevice, m_descriptorPool, std::vector{ outlineColorsLayout });
+    m_outlineColorsDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
+    {
+      std::vector descriptorWrites{{
+        m_outlineColorsUniform->getDescriptorSet(0, descriptorSet, frame)
       }};
 
       return descriptorWrites;
