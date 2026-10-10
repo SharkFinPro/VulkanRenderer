@@ -8,6 +8,7 @@
 
 namespace vke {
 
+  class DescriptorAllocator;
   class LogicalDevice;
 
   class DescriptorSet final {
@@ -22,6 +23,17 @@ namespace vke {
                            vk::DescriptorSetLayout descriptorSetLayout,
                            const void* allocationPNext = nullptr);
 
+    // The sets are returned to the allocator once no frame in flight can use them.
+    explicit DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
+                           std::shared_ptr<DescriptorAllocator> descriptorAllocator,
+                           vk::DescriptorSetLayout descriptorSetLayout,
+                           const void* allocationPNext = nullptr);
+
+    ~DescriptorSet();
+
+    DescriptorSet(const DescriptorSet&) = delete;
+    DescriptorSet& operator=(const DescriptorSet&) = delete;
+
     void updateDescriptorSets(const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const;
 
     [[nodiscard]] vk::DescriptorSetLayout getDescriptorSetLayout() const;
@@ -35,6 +47,9 @@ namespace vke {
     vk::DescriptorSetLayout m_descriptorSetLayout = nullptr;
 
     std::vector<vk::DescriptorSet> m_descriptorSets;
+
+    std::shared_ptr<DescriptorAllocator> m_descriptorAllocator;
+    vk::DescriptorPool m_allocatorPool = nullptr;
 
     void createDescriptorSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings);
 

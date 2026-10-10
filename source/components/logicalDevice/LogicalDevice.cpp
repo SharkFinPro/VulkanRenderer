@@ -122,6 +122,17 @@ namespace vke {
     return m_device.allocateDescriptorSets(descriptorSetAllocateInfo);
   }
 
+  void LogicalDevice::freeDescriptorSets(const vk::DescriptorPool descriptorPool,
+                                         const std::vector<vk::DescriptorSet>& descriptorSets) const
+  {
+    m_device.getDispatcher()->vkFreeDescriptorSets(
+      *m_device,
+      descriptorPool,
+      static_cast<uint32_t>(descriptorSets.size()),
+      reinterpret_cast<const VkDescriptorSet*>(descriptorSets.data())
+    );
+  }
+
   void LogicalDevice::updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const
   {
     m_device.updateDescriptorSets(writeDescriptorSets, nullptr);

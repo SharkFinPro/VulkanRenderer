@@ -10,6 +10,7 @@
 
 namespace vke {
 
+  class DescriptorAllocator;
   class DescriptorSet;
   class LogicalDevice;
   class TextureGlyph;
@@ -75,7 +76,7 @@ namespace vke {
          const std::string& fileName,
          uint32_t fontSize,
          vk::CommandPool commandPool,
-         vk::DescriptorPool descriptorPool,
+         const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
          vk::DescriptorSetLayout descriptorSetLayout);
 
     [[nodiscard]] GlyphInfo* getGlyphInfo(uint32_t codepoint);
@@ -120,7 +121,7 @@ namespace vke {
                              uint32_t atlasHeight);
 
     void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             vk::DescriptorPool descriptorPool,
+                             const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                              vk::DescriptorSetLayout descriptorSetLayout);
   };
 

@@ -20,7 +20,7 @@ namespace {
 namespace vke {
 
   RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const vk::DescriptorPool descriptorPool,
+                             const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                              const vk::DescriptorSetLayout descriptorSetLayout,
                              std::shared_ptr<Texture> texture,
                              std::shared_ptr<Texture> specularMap,
@@ -31,7 +31,7 @@ namespace vke {
       m_model(std::move(model)),
       m_transformUniform(std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform)))
   {
-    createDescriptorSet(logicalDevice, descriptorPool, descriptorSetLayout);
+    createDescriptorSet(logicalDevice, descriptorAllocator, descriptorSetLayout);
   }
 
   RenderObject::~RenderObject()
@@ -179,10 +179,10 @@ namespace vke {
   }
 
   void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                         vk::DescriptorPool descriptorPool,
+                                         const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                                          vk::DescriptorSetLayout descriptorSetLayout)
   {
-    m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, descriptorSetLayout);
+    m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorAllocator, descriptorSetLayout);
     m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       std::vector descriptorWrites{{

@@ -21,7 +21,7 @@ namespace {
 namespace vke {
   SmokeSystem::SmokeSystem(const std::shared_ptr<LogicalDevice>& logicalDevice,
                            const vk::CommandPool commandPool,
-                           const vk::DescriptorPool descriptorPool,
+                           const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                            const vk::DescriptorSetLayout smokeSystemDescriptorSetLayout,
                            const glm::vec3 position,
                            const uint32_t numParticles)
@@ -35,7 +35,7 @@ namespace vke {
 
     createShaderStorageBuffers(logicalDevice, commandPool);
 
-    createDescriptorSet(logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
+    createDescriptorSet(logicalDevice, descriptorAllocator, smokeSystemDescriptorSetLayout);
   }
 
   SmokeSystem::~SmokeSystem()
@@ -220,10 +220,10 @@ namespace vke {
   }
 
   void SmokeSystem::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                        vk::DescriptorPool descriptorPool,
+                                        const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                                         vk::DescriptorSetLayout smokeSystemDescriptorSetLayout)
   {
-    m_smokeSystemDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, smokeSystemDescriptorSetLayout);
+    m_smokeSystemDescriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorAllocator, smokeSystemDescriptorSetLayout);
     m_smokeSystemDescriptorSet->updateDescriptorSets([this, logicalDevice](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       constexpr float deltaTimeUBO = 0;
