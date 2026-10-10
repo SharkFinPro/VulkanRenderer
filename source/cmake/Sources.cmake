@@ -120,6 +120,8 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES
   components/pipelines/RayTracingPipeline.h
 
   # Descriptor Sets
+  components/pipelines/descriptorSets/DescriptorAllocator.cpp
+  components/pipelines/descriptorSets/DescriptorAllocator.h
   components/pipelines/descriptorSets/DescriptorSet.cpp
   components/pipelines/descriptorSets/DescriptorSet.h
 

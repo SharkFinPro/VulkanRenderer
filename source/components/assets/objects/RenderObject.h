@@ -9,6 +9,7 @@
 namespace vke {
 
   class CommandBuffer;
+  class DescriptorAllocator;
   class DescriptorSet;
   class LogicalDevice;
   class Model;
@@ -17,7 +18,7 @@ namespace vke {
   class RenderObject {
   public:
     RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                 vk::DescriptorPool descriptorPool,
+                 const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                  vk::DescriptorSetLayout descriptorSetLayout,
                  std::shared_ptr<Texture> texture,
                  std::shared_ptr<Texture> specularMap,
@@ -88,7 +89,7 @@ namespace vke {
     float m_indexOfRefraction = 1.0f;
 
     void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             vk::DescriptorPool descriptorPool,
+                             const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                              vk::DescriptorSetLayout descriptorSetLayout);
   };
 

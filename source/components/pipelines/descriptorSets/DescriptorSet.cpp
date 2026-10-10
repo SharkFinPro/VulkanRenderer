@@ -1,5 +1,22 @@
 #include "DescriptorSet.h"
+#include "DescriptorAllocator.h"
 #include "../../logicalDevice/LogicalDevice.h"
+
+namespace {
+
+  // Frees descriptor sets when the frames that may still bind them have completed.
+  struct DescriptorSetRelease {
+    std::shared_ptr<vke::DescriptorAllocator> allocator;
+    vk::DescriptorPool pool;
+    std::vector<vk::DescriptorSet> sets;
+
+    ~DescriptorSetRelease()
+    {
+      allocator->free(pool, sets);
+    }
+  };
+
+}
 
 namespace vke {
 
@@ -21,6 +38,35 @@ namespace vke {
     : m_logicalDevice(std::move(logicalDevice)), m_descriptorSetLayout(descriptorSetLayout)
   {
     allocateDescriptorSets(descriptorPool, allocationPNext);
+  }
+
+  DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
+                               std::shared_ptr<DescriptorAllocator> descriptorAllocator,
+                               const vk::DescriptorSetLayout descriptorSetLayout,
+                               const void* allocationPNext)
+    : m_logicalDevice(std::move(logicalDevice)),
+      m_descriptorSetLayout(descriptorSetLayout),
+      m_descriptorAllocator(std::move(descriptorAllocator))
+  {
+    const std::vector layouts(m_logicalDevice->getMaxFramesInFlight(), m_descriptorSetLayout);
+
+    auto allocation = m_descriptorAllocator->allocate(layouts, allocationPNext);
+
+    m_descriptorSets = std::move(allocation.sets);
+    m_allocatorPool = allocation.pool;
+  }
+
+  DescriptorSet::~DescriptorSet()
+  {
+    if (!m_descriptorAllocator)
+    {
+      return;
+    }
+
+    // A frame in flight may still bind the sets, so they are freed once it has completed.
+    m_logicalDevice->retire(std::make_shared<DescriptorSetRelease>(
+      std::move(m_descriptorAllocator), m_allocatorPool, std::move(m_descriptorSets)
+    ));
   }
 
   void DescriptorSet::updateDescriptorSets(const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const
