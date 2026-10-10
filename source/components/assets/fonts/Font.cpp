@@ -13,14 +13,14 @@ namespace vke {
              const std::string& fileName,
              const uint32_t fontSize,
              const vk::CommandPool commandPool,
-             const vk::DescriptorPool descriptorPool,
+             const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
              const vk::DescriptorSetLayout descriptorSetLayout)
   {
     const auto fontBuffer = loadFontFromFile(fileName);
 
     createGlyphAtlas(logicalDevice, commandPool, fontBuffer, fontSize);
 
-    createDescriptorSet(logicalDevice, descriptorPool, descriptorSetLayout);
+    createDescriptorSet(logicalDevice, descriptorAllocator, descriptorSetLayout);
   }
 
   GlyphInfo* Font::getGlyphInfo(const uint32_t codepoint)
@@ -208,10 +208,10 @@ namespace vke {
   }
 
   void Font::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const vk::DescriptorPool descriptorPool,
+                                 const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                                  vk::DescriptorSetLayout descriptorSetLayout)
   {
-    m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorPool, descriptorSetLayout);
+    m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorAllocator, descriptorSetLayout);
     m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector descriptorWrites{{

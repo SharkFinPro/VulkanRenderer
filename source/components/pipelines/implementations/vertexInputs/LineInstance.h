@@ -5,8 +5,16 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <array>
+#include <cstddef>
+#include <vector>
 
 namespace vke {
+
+  // How debug geometry meets the scene's depth: tested is hidden by nearer geometry, onTop is drawn over everything,
+  // and xray is drawn like tested where visible and at reduced opacity where hidden.
+  enum class DebugDepth { tested, onTop, xray };
+
+  constexpr size_t s_debugDepthModeCount = 3;
 
   // One line segment; the vertex shader expands it into a screen-space quad.
   struct LineInstance {
@@ -57,6 +65,9 @@ namespace vke {
   };
 
   static_assert(sizeof(LineInstance) == 44, "The vertex attributes assume a tightly packed LineInstance");
+
+  // One list of lines per DebugDepth value, indexed by the enum
+  using LineBatches = std::array<std::vector<LineInstance>, s_debugDepthModeCount>;
 
 } // namespace vke
 

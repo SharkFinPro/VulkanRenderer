@@ -9,6 +9,7 @@
 
 namespace vke {
 
+  class DescriptorAllocator;
   class DescriptorSet;
   class LogicalDevice;
   struct RenderInfo;
@@ -19,7 +20,7 @@ namespace vke {
   public:
     SmokeSystem(const std::shared_ptr<LogicalDevice>& logicalDevice,
                 vk::CommandPool commandPool,
-                vk::DescriptorPool descriptorPool,
+                const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                 vk::DescriptorSetLayout smokeSystemDescriptorSetLayout,
                 glm::vec3 position,
                 uint32_t numParticles);
@@ -97,7 +98,7 @@ namespace vke {
                                     const std::vector<SmokeParticle>& particles);
 
     void createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             vk::DescriptorPool descriptorPool,
+                             const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
                              vk::DescriptorSetLayout smokeSystemDescriptorSetLayout);
   };
 } // vke

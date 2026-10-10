@@ -11,6 +11,7 @@
 namespace vke {
 
   class Cloud;
+  class DescriptorAllocator;
   class Font;
   class LogicalDevice;
   class Model;
@@ -93,9 +94,7 @@ namespace vke {
 
     vk::raii::CommandPool m_commandPool { nullptr };
 
-    std::vector<vk::raii::DescriptorPool> m_descriptorPools;
-    uint32_t m_descriptorPoolSize = 500;
-    uint32_t m_currentDescriptorPoolSize = 0;
+    std::shared_ptr<DescriptorAllocator> m_descriptorAllocator;
 
     vk::raii::DescriptorSetLayout m_objectDescriptorSetLayout = nullptr;
 
@@ -124,10 +123,6 @@ namespace vke {
                   uint32_t fontSize);
 
     void createCommandPool();
-
-    void createDescriptorPool();
-
-    [[nodiscard]] vk::DescriptorPool getDescriptorPool();
 
     void queueRelease(std::shared_ptr<void> resource);
   };
