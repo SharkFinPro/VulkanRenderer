@@ -46,9 +46,7 @@ namespace vke {
                                     const ImageResource& imageResource,
                                     const ImageResource& depthImageResource,
                                     const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                    const std::shared_ptr<Cloud>& cloud,
-                                    const glm::vec3& viewPosition,
-                                    const glm::mat4& viewMatrix);
+                                    const std::shared_ptr<Cloud>& cloud);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -111,9 +109,7 @@ namespace vke {
                                 const ImageResource& depthImageResource,
                                 uint32_t currentFrame);
 
-    void updateRTDescriptorSetData(const RenderInfo* renderInfo,
-                                   const glm::vec3& viewPosition,
-                                   const glm::mat4& viewMatrix);
+    void updateRTDescriptorSetData(const RenderInfo* renderInfo);
   };
 } // vke
 

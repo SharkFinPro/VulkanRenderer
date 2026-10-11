@@ -262,9 +262,7 @@ namespace vke {
       imageResource,
       depthImageResource,
       m_rayTracedRenderObjects,
-      m_cloudToRender,
-      m_viewPosition,
-      m_viewMatrix
+      m_cloudToRender
     );
   }
 

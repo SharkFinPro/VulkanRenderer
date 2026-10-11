@@ -61,9 +61,7 @@ namespace vke {
                                const ImageResource& imageResource,
                                const ImageResource& depthImageResource,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                               const std::shared_ptr<Cloud>& cloud,
-                               const glm::vec3& viewPosition,
-                               const glm::mat4& viewMatrix)
+                               const std::shared_ptr<Cloud>& cloud)
   {
     if (renderObjects.empty() && !cloud)
     {
@@ -74,7 +72,7 @@ namespace vke {
 
     updateRTSceneInfo(renderObjects);
 
-    updateRTDescriptorSetData(renderInfo, viewPosition, viewMatrix);
+    updateRTDescriptorSetData(renderInfo);
 
     if (cloud)
     {
@@ -489,17 +487,15 @@ namespace vke {
     });
   }
 
-  void RayTracer::updateRTDescriptorSetData(const RenderInfo* renderInfo,
-                                            const glm::vec3& viewPosition,
-                                            const glm::mat4& viewMatrix)
+  void RayTracer::updateRTDescriptorSetData(const RenderInfo* renderInfo)
   {
     const auto projectionMatrix = renderInfo->getProjectionMatrix();
 
     const CameraUniformRT cameraUBORT {
-      .viewInverse = glm::inverse(viewMatrix),
+      .viewInverse = glm::inverse(renderInfo->viewMatrix),
       .projInverse = glm::inverse(projectionMatrix),
       .projection = projectionMatrix,
-      .viewPosition = viewPosition,
+      .viewPosition = renderInfo->viewPosition,
       .nearPlane = renderInfo->nearPlane,
       .farPlane = renderInfo->farPlane
     };
