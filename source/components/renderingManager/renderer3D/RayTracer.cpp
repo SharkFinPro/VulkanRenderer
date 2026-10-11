@@ -23,6 +23,7 @@ namespace vke {
   struct CameraUniformRT {
     glm::mat4 viewInverse;
     glm::mat4 projInverse;
+    glm::mat4 projection;
     glm::vec3 viewPosition;
     // std140 packs these straight after the vec3, matching this struct's layout.
     float nearPlane;
@@ -54,25 +55,24 @@ namespace vke {
     m_cloudUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CloudUniform));
   }
 
-  void RayTracer::doRayTracing(const RenderInfo* renderInfo,
+  bool RayTracer::doRayTracing(const RenderInfo* renderInfo,
                                const std::shared_ptr<PipelineManager>& pipelineManager,
                                const std::shared_ptr<LightingManager>& lightingManager,
                                const ImageResource& imageResource,
+                               const ImageResource& depthImageResource,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                               const std::shared_ptr<Cloud>& cloud,
-                               const glm::vec3& viewPosition,
-                               const glm::mat4& viewMatrix)
+                               const std::shared_ptr<Cloud>& cloud)
   {
     if (renderObjects.empty() && !cloud)
     {
-      return;
+      return false;
     }
 
     createTLAS(renderObjects, cloud);
 
     updateRTSceneInfo(renderObjects);
 
-    updateRTDescriptorSetData(renderInfo, viewPosition, viewMatrix);
+    updateRTDescriptorSetData(renderInfo);
 
     if (cloud)
     {
@@ -80,7 +80,7 @@ namespace vke {
       m_cloudUniform->update(renderInfo->currentFrame, &cloudUBO);
     }
 
-    updateRTDescriptorSets(imageResource, renderInfo->currentFrame);
+    updateRTDescriptorSets(imageResource, depthImageResource, renderInfo->currentFrame);
 
     pipelineManager->bindRayTracingPipelineDescriptorSet(
       renderInfo->commandBuffer,
@@ -95,6 +95,8 @@ namespace vke {
     );
 
     pipelineManager->doRayTracing(renderInfo->commandBuffer, renderInfo->extent);
+
+    return true;
   }
 
   void RayTracer::createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
@@ -426,9 +428,10 @@ namespace vke {
   }
 
   void RayTracer::updateRTDescriptorSets(const ImageResource& imageResource,
+                                         const ImageResource& depthImageResource,
                                          const uint32_t currentFrame)
   {
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, &imageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_rayTracingDescriptorSet->updateDescriptorSets([this, &imageResource, &depthImageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       auto storageBuffer = [&](const uint32_t binding, const vk::DescriptorBufferInfo* info) {
         return vk::WriteDescriptorSet {
@@ -459,14 +462,21 @@ namespace vke {
         storageBuffer(3, &m_vertexBufferInfo),
         storageBuffer(4, &m_indexBufferInfo),
         storageBuffer(5, &m_meshInfoInfo),
-        m_cloudUniform->getDescriptorSet(6, descriptorSet, currentFrame)
+        m_cloudUniform->getDescriptorSet(6, descriptorSet, currentFrame),
+        {
+          .dstSet = descriptorSet,
+          .dstBinding = 7,
+          .descriptorCount = 1,
+          .descriptorType = vk::DescriptorType::eStorageImage,
+          .pImageInfo = &depthImageResource.getDescriptorImageInfo()
+        }
       }};
 
       if (!m_textureImageInfos.empty())
       {
         descriptorWrites.push_back({
           .dstSet = descriptorSet,
-          .dstBinding = 7,
+          .dstBinding = 8,
           .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
           .descriptorType = vk::DescriptorType::eCombinedImageSampler,
           .pImageInfo = m_textureImageInfos.data()
@@ -477,14 +487,15 @@ namespace vke {
     });
   }
 
-  void RayTracer::updateRTDescriptorSetData(const RenderInfo* renderInfo,
-                                            const glm::vec3& viewPosition,
-                                            const glm::mat4& viewMatrix)
+  void RayTracer::updateRTDescriptorSetData(const RenderInfo* renderInfo)
   {
+    const auto projectionMatrix = renderInfo->getProjectionMatrix();
+
     const CameraUniformRT cameraUBORT {
-      .viewInverse = glm::inverse(viewMatrix),
-      .projInverse = glm::inverse(renderInfo->getProjectionMatrix()),
-      .viewPosition = viewPosition,
+      .viewInverse = glm::inverse(renderInfo->viewMatrix),
+      .projInverse = glm::inverse(projectionMatrix),
+      .projection = projectionMatrix,
+      .viewPosition = renderInfo->viewPosition,
       .nearPlane = renderInfo->nearPlane,
       .farPlane = renderInfo->farPlane
     };
