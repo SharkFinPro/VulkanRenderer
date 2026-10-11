@@ -65,10 +65,11 @@ namespace vke {
   }
 
   void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                                 bool* mousePicked)
+                                 bool* mousePicked,
+                                 const bool alphaTested)
   {
     uint32_t objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
-    m_renderObjectsToMousePick.emplace_back( renderObject, objectID );
+    m_renderObjectsToMousePick.push_back({ renderObject, objectID, alphaTested });
     m_mousePickingItems[objectID] = mousePicked;
     *mousePicked = false;
   }
@@ -76,13 +77,33 @@ namespace vke {
   void MousePicker::render(const RenderInfo* renderInfo,
                            const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::mousePicking);
+    renderEntries(renderInfo, pipelineManager, false);
+    renderEntries(renderInfo, pipelineManager, true);
+  }
 
-    for (const auto& [object, id] : m_renderObjectsToMousePick)
+  void MousePicker::renderEntries(const RenderInfo* renderInfo,
+                                  const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const bool alphaTested) const
+  {
+    const auto pipelineType = alphaTested ? PipelineType::mousePickingAlphaTested : PipelineType::mousePicking;
+    bool bound = false;
+
+    for (const auto& [object, id, entryAlphaTested] : m_renderObjectsToMousePick)
     {
+      if (entryAlphaTested != alphaTested)
+      {
+        continue;
+      }
+
+      if (!bound)
+      {
+        pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
+        bound = true;
+      }
+
       pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
         renderInfo->commandBuffer,
-        PipelineType::mousePicking,
+        pipelineType,
         vk::ShaderStageFlagBits::eFragment,
         0,
         id
@@ -90,7 +111,7 @@ namespace vke {
 
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
-        PipelineType::mousePicking,
+        pipelineType,
         object->getDescriptorSet(renderInfo->currentFrame),
         0
       );

@@ -42,7 +42,8 @@ namespace vke {
     // Whether the scene view is the UI element under the cursor, rather than covered by another window.
     void setSceneHovered(bool sceneHovered);
 
-    void renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked);
+    // An alpha-tested object is picked only where its texture is opaque enough, matching how it is drawn.
+    void renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked, bool alphaTested);
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager) const;
@@ -60,7 +61,13 @@ namespace vke {
 
     bool m_sceneHovered = false;
 
-    std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_renderObjectsToMousePick;
+    struct PickEntry {
+      std::shared_ptr<RenderObject> object;
+      uint32_t id;
+      bool alphaTested;
+    };
+
+    std::vector<PickEntry> m_renderObjectsToMousePick;
     std::unordered_map<uint32_t, bool*> m_mousePickingItems;
 
     bool m_canMousePick = false;
@@ -69,6 +76,10 @@ namespace vke {
 
     vk::raii::Buffer m_stagingBuffer = nullptr;
     vk::raii::DeviceMemory m_stagingBufferMemory = nullptr;
+
+    void renderEntries(const RenderInfo* renderInfo,
+                       const std::shared_ptr<PipelineManager>& pipelineManager,
+                       bool alphaTested) const;
 
     bool validateMousePickingMousePosition(int32_t& mouseX,
                                            int32_t& mouseY);

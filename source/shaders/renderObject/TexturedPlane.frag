@@ -1,4 +1,6 @@
 #version 450
+#extension GL_GOOGLE_include_directive : require
+#include "../common/AlphaCutoff.glsl"
 
 layout(set = 0, binding = 1) uniform sampler2D texSampler;
 layout(set = 0, binding = 4) uniform sampler2D specSampler;
@@ -11,7 +13,12 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-  vec3 texColor = texture(texSampler, fragTexCoord).rgb;
+  const vec4 texColor = texture(texSampler, fragTexCoord);
 
-  outColor = vec4(texColor, 1.0);
+  if (texColor.a < ALPHA_CUTOFF)
+  {
+    discard;
+  }
+
+  outColor = vec4(texColor.rgb, 1.0);
 }
