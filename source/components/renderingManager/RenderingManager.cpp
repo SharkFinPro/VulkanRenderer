@@ -145,6 +145,11 @@ namespace vke {
     return m_renderTarget->getOutlineMaskDescriptorSetLayout();
   }
 
+  vk::DescriptorSetLayout RenderingManager::getRayTracingImagesDescriptorSetLayout() const
+  {
+    return m_renderTarget->getRayTracingImagesDescriptorSetLayout();
+  }
+
   vk::Format RenderingManager::getSwapChainImageFormat() const
   {
     return m_swapChain->getImageFormat();
@@ -483,32 +488,11 @@ namespace vke {
       m_renderTarget->endOutlineMaskRendering(renderInfo.commandBuffer, currentFrame);
     };
 
-    auto recordOffscreenRendering = [this, currentFrame, lightingManager, pipelineManager](const RenderInfo& renderInfo) {
-      if (m_rayTracingEnabled)
-      {
-        const bool drawOutlines = m_renderer3D->hasOutlines();
-
-        m_renderTarget->beginRayTracingRendering(renderInfo.commandBuffer, currentFrame);
-        m_renderer3D->doRayTracing(&renderInfo, pipelineManager, lightingManager, m_renderTarget->getOffscreenRayTracingImageResource(currentFrame));
-        m_renderTarget->endRayTracingRendering(renderInfo.commandBuffer, currentFrame, drawOutlines);
-
-        if (drawOutlines)
-        {
-          m_renderTarget->beginOverlayRendering(renderInfo.commandBuffer, currentFrame);
-          m_renderer3D->renderOutlines(&renderInfo, pipelineManager, m_renderTarget->getOutlineMaskDescriptorSet(currentFrame), false);
-          m_renderTarget->endOverlayRendering(renderInfo.commandBuffer, currentFrame);
-        }
-
-        return;
-      }
-
-      m_renderTarget->beginOffscreenRendering(renderInfo.commandBuffer, currentFrame);
-
-      m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
-
+    // What follows the scene's own geometry in the scene pass, whether it was rasterized or traced
+    auto recordSceneOverlays = [this, currentFrame, pipelineManager](const RenderInfo& renderInfo) {
       if (m_renderer3D->hasOutlines())
       {
-        m_renderer3D->renderOutlines(&renderInfo, pipelineManager, m_renderTarget->getOutlineMaskDescriptorSet(currentFrame), true);
+        m_renderer3D->renderOutlines(&renderInfo, pipelineManager, m_renderTarget->getOutlineMaskDescriptorSet(currentFrame));
       }
 
       m_renderer3D->renderOnTopLines(&renderInfo, pipelineManager);
@@ -538,6 +522,41 @@ namespace vke {
       m_renderer2D->render(&renderInfo2D, pipelineManager);
 
       m_renderTarget->endOffscreenRendering(renderInfo2D.commandBuffer, currentFrame);
+    };
+
+    auto recordOffscreenRendering = [this, currentFrame, lightingManager, pipelineManager, recordSceneOverlays](const RenderInfo& renderInfo) {
+      if (m_rayTracingEnabled)
+      {
+        m_renderTarget->beginRayTracingRendering(renderInfo.commandBuffer, currentFrame);
+
+        const bool traced = m_renderer3D->doRayTracing(
+          &renderInfo,
+          pipelineManager,
+          lightingManager,
+          m_renderTarget->getOffscreenRayTracingImageResource(currentFrame),
+          m_renderTarget->getOffscreenRayTracingDepthImageResource(currentFrame)
+        );
+
+        m_renderTarget->endRayTracingRendering(renderInfo.commandBuffer, currentFrame);
+
+        m_renderTarget->beginOffscreenRendering(renderInfo.commandBuffer, currentFrame);
+
+        // With nothing traced the images hold garbage, and the cleared scene stays
+        if (traced)
+        {
+          m_renderer3D->renderRayTracingComposite(&renderInfo, pipelineManager, m_renderTarget->getRayTracingImagesDescriptorSet(currentFrame));
+        }
+
+        m_renderer3D->renderViewOnly(&renderInfo, pipelineManager, lightingManager);
+      }
+      else
+      {
+        m_renderTarget->beginOffscreenRendering(renderInfo.commandBuffer, currentFrame);
+
+        m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
+      }
+
+      recordSceneOverlays(renderInfo);
     };
 
     m_offscreenCommandBuffer->setCurrentFrame(currentFrame);

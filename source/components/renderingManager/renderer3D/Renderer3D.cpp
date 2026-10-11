@@ -126,15 +126,14 @@ namespace vke {
 
   void Renderer3D::renderOutlines(const RenderInfo* renderInfo,
                                   const std::shared_ptr<PipelineManager>& pipelineManager,
-                                  const vk::DescriptorSet maskDescriptorSet,
-                                  const bool multisampled) const
+                                  const vk::DescriptorSet maskDescriptorSet) const
   {
     std::array<glm::vec4, s_maxOutlineColors + 1> colors{};
     std::ranges::copy(m_outlineColors, colors.begin());
 
     m_outlineColorsUniform->update(renderInfo->currentFrame, colors.data());
 
-    const auto pipelineType = multisampled ? PipelineType::outline : PipelineType::outlineSingleSample;
+    constexpr auto pipelineType = PipelineType::outline;
 
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
 
@@ -164,16 +163,7 @@ namespace vke {
   {
     displayGui();
 
-    const RenderInfo renderInfo3D {
-      .commandBuffer = renderInfo->commandBuffer,
-      .currentFrame = renderInfo->currentFrame,
-      .viewPosition = m_viewPosition,
-      .viewMatrix = m_viewMatrix,
-      .extent = renderInfo->extent,
-      .fieldOfView = m_fieldOfView,
-      .nearPlane = m_nearPlane,
-      .farPlane = m_farPlane
-    };
+    const RenderInfo renderInfo3D = makeSceneRenderInfo(renderInfo);
 
     auto& cubeMapPC = std::get<CubeMapPushConstant>(m_pushConstants.at(PipelineType::cubeMap).data);
     cubeMapPC.position = renderInfo3D.viewPosition;
@@ -184,17 +174,61 @@ namespace vke {
 
     renderSmokeSystems(&renderInfo3D, pipelineManager);
 
+    renderLinesAndGrid(&renderInfo3D, pipelineManager);
+  }
+
+  void Renderer3D::renderViewOnly(const RenderInfo* renderInfo,
+                                  const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const std::shared_ptr<LightingManager>& lightingManager)
+  {
+    const RenderInfo renderInfo3D = makeSceneRenderInfo(renderInfo);
+
+    for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
+    {
+      if (objects.empty() || !isViewOnlyPipeline(pipelineType))
+      {
+        continue;
+      }
+
+      renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, &objects);
+    }
+
+    renderLinesAndGrid(&renderInfo3D, pipelineManager);
+  }
+
+  RenderInfo Renderer3D::makeSceneRenderInfo(const RenderInfo* renderInfo) const
+  {
+    return {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .viewPosition = m_viewPosition,
+      .viewMatrix = m_viewMatrix,
+      .extent = renderInfo->extent,
+      .fieldOfView = m_fieldOfView,
+      .nearPlane = m_nearPlane,
+      .farPlane = m_farPlane
+    };
+  }
+
+  void Renderer3D::buildLineBatches()
+  {
     m_lineBatches = m_linesToRender;
     for (const auto& [line, depth, _] : m_timedLines)
     {
       m_lineBatches[static_cast<size_t>(depth)].push_back(line);
     }
+  }
 
-    pipelineManager->renderLinePipeline(&renderInfo3D, &m_lineBatches);
+  void Renderer3D::renderLinesAndGrid(const RenderInfo* renderInfo,
+                                      const std::shared_ptr<PipelineManager>& pipelineManager)
+  {
+    buildLineBatches();
+
+    pipelineManager->renderLinePipeline(renderInfo, &m_lineBatches);
 
     if (m_shouldRenderGrid)
     {
-      renderGrid(pipelineManager, &renderInfo3D);
+      renderGrid(pipelineManager, renderInfo);
     }
   }
 
@@ -215,32 +249,41 @@ namespace vke {
     pipelineManager->renderOnTopLinePipeline(&renderInfoLines, m_lineBatches[static_cast<size_t>(DebugDepth::onTop)].size());
   }
 
-  void Renderer3D::doRayTracing(const RenderInfo* renderInfo,
+  bool Renderer3D::doRayTracing(const RenderInfo* renderInfo,
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const std::shared_ptr<LightingManager>& lightingManager,
-                                const ImageResource& imageResource) const
+                                const ImageResource& imageResource,
+                                const ImageResource& depthImageResource) const
   {
-    const RenderInfo renderInfoRayTracing {
-      .commandBuffer = renderInfo->commandBuffer,
-      .currentFrame = renderInfo->currentFrame,
-      .viewPosition = m_viewPosition,
-      .viewMatrix = m_viewMatrix,
-      .extent = renderInfo->extent,
-      .fieldOfView = m_fieldOfView,
-      .nearPlane = m_nearPlane,
-      .farPlane = m_farPlane
-    };
+    const RenderInfo renderInfoRayTracing = makeSceneRenderInfo(renderInfo);
 
-    m_rayTracer->doRayTracing(
+    return m_rayTracer->doRayTracing(
       &renderInfoRayTracing,
       pipelineManager,
       lightingManager,
       imageResource,
-      m_renderObjectsToRenderFlattened,
+      depthImageResource,
+      m_rayTracedRenderObjects,
       m_cloudToRender,
       m_viewPosition,
       m_viewMatrix
     );
+  }
+
+  void Renderer3D::renderRayTracingComposite(const RenderInfo* renderInfo,
+                                             const std::shared_ptr<PipelineManager>& pipelineManager,
+                                             const vk::DescriptorSet rayTracingImagesDescriptorSet) const
+  {
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::rayTracingComposite);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::rayTracingComposite,
+      rayTracingImagesDescriptorSet,
+      0
+    );
+
+    renderInfo->commandBuffer->draw(3, 1, 0, 0);
   }
 
   void Renderer3D::createNewFrame()
@@ -251,6 +294,7 @@ namespace vke {
     }
 
     m_renderObjectsToRenderFlattened.clear();
+    m_rayTracedRenderObjects.clear();
 
     m_outlineObjects.clear();
     m_outlineColors.clear();
@@ -333,6 +377,11 @@ namespace vke {
     m_renderObjectsToRender[pipelineType].push_back(renderObject);
 
     m_renderObjectsToRenderFlattened.push_back(renderObject);
+
+    if (!isViewOnlyPipeline(pipelineType))
+    {
+      m_rayTracedRenderObjects.push_back(renderObject);
+    }
 
     if (mousePicked)
     {

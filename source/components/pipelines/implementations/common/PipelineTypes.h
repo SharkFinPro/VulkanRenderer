@@ -21,13 +21,19 @@ namespace vke {
     mousePicking,
     outline,
     outlineMask,
-    outlineSingleSample,
+    rayTracingComposite,
     offscreenToSwapchain,
     pointLightShadowMap,
     rect,
     shadow,
     triangle
   };
+
+  // View-only pipelines draw aids the ray tracer does not model, drawn by raster over the traced image.
+  [[nodiscard]] constexpr bool isViewOnlyPipeline(const PipelineType pipelineType)
+  {
+    return pipelineType == PipelineType::texturedPlane;
+  }
 
 } // namespace vke
 

@@ -191,12 +191,12 @@ namespace vke {
     const auto outlineColorsDescriptorSetLayout = renderingManager->getRenderer3D()->getOutlineColorsDescriptorSetLayout();
 
     createGraphicsPipeline(PipelineType::outline,
-      PipelineConfig::createOutlinePipelineOptions(gps::getMultsampleState(m_logicalDevice), true,
+      PipelineConfig::createOutlinePipelineOptions(m_logicalDevice,
       outlineMaskDescriptorSetLayout, outlineColorsDescriptorSetLayout));
 
-    createGraphicsPipeline(PipelineType::outlineSingleSample,
-      PipelineConfig::createOutlinePipelineOptions(gps::multisampleStateNone, false,
-      outlineMaskDescriptorSetLayout, outlineColorsDescriptorSetLayout));
+    createGraphicsPipeline(PipelineType::rayTracingComposite,
+      PipelineConfig::createRayTracingCompositePipelineOptions(m_logicalDevice,
+      renderingManager->getRayTracingImagesDescriptorSetLayout()));
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,

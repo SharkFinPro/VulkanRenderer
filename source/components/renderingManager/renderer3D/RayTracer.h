@@ -39,10 +39,12 @@ namespace vke {
                        vk::CommandPool commandPool,
                        vk::DescriptorPool descriptorPool);
 
-    void doRayTracing(const RenderInfo* renderInfo,
+    // False when there was nothing to trace, which leaves the images unwritten.
+    [[nodiscard]] bool doRayTracing(const RenderInfo* renderInfo,
                       const std::shared_ptr<PipelineManager>& pipelineManager,
                       const std::shared_ptr<LightingManager>& lightingManager,
                       const ImageResource& imageResource,
+                      const ImageResource& depthImageResource,
                       const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                       const std::shared_ptr<Cloud>& cloud,
                       const glm::vec3& viewPosition,
@@ -106,6 +108,7 @@ namespace vke {
                                   const std::vector<MeshInfo>& meshInfos);
 
     void updateRTDescriptorSets(const ImageResource& imageResource,
+                                const ImageResource& depthImageResource,
                                 uint32_t currentFrame);
 
     void updateRTDescriptorSetData(const RenderInfo* renderInfo,

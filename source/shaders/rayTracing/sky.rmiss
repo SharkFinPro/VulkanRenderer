@@ -1,7 +1,13 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
 
-layout(location = 0) rayPayloadInEXT vec3 payload;
+struct RayPayload {
+  vec3 color;
+  int depth;
+  float hitDistance;
+};
+
+layout(location = 0) rayPayloadInEXT RayPayload payload;
 
 void main()
 {
@@ -15,5 +21,5 @@ void main()
   float horizon = 1.0 - abs(rayDir.y);
   horizon = pow(horizon, 6.0);
 
-  payload = mix(zenithColor, horizonColor, horizon);
+  payload.color = mix(zenithColor, horizonColor, horizon);
 }

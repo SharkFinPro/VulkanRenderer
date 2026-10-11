@@ -22,6 +22,8 @@ namespace vke {
 
     [[nodiscard]] ImageResource& getOffscreenRayTracingImageResource(uint32_t currentFrame);
 
+    [[nodiscard]] ImageResource& getOffscreenRayTracingDepthImageResource(uint32_t currentFrame);
+
     [[nodiscard]] ImageResource& getMousePickingColorImageResource(uint32_t currentFrame);
 
     [[nodiscard]] vk::DescriptorSetLayout getOffscreenImageDescriptorSetLayout() const;
@@ -31,6 +33,11 @@ namespace vke {
     [[nodiscard]] vk::DescriptorSetLayout getOutlineMaskDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSet getOutlineMaskDescriptorSet(uint32_t currentFrame) const;
+
+    // The traced color (binding 0) and depth (binding 1), for the composite pass.
+    [[nodiscard]] vk::DescriptorSetLayout getRayTracingImagesDescriptorSetLayout() const;
+
+    [[nodiscard]] vk::DescriptorSet getRayTracingImagesDescriptorSet(uint32_t currentFrame) const;
 
     void recreateImageResources(vk::Extent2D extent);
 
@@ -53,18 +60,9 @@ namespace vke {
     void beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                   uint32_t currentFrame) const;
 
-    // With drawOverlay the ray traced image is left as a color attachment for beginOverlayRendering, and
-    // endOverlayRendering hands it over to the swapchain pass instead.
+    // Leaves the traced color and depth readable by the fragment shader of the composite pass.
     void endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                uint32_t currentFrame,
-                                bool drawOverlay) const;
-
-    // Draws over the ray traced image, keeping what the copy put there.
-    void beginOverlayRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                               uint32_t currentFrame) const;
-
-    void endOverlayRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                             uint32_t currentFrame) const;
+                                uint32_t currentFrame) const;
 
   protected:
     static constexpr vk::ClearValue s_clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
@@ -90,6 +88,9 @@ namespace vke {
     std::unique_ptr<DescriptorSet> m_outlineMaskDescriptorSet;
     std::vector<vk::DescriptorImageInfo> m_outlineMaskImageInfos;
 
+    std::unique_ptr<DescriptorSet> m_rayTracingImagesDescriptorSet;
+    std::vector<std::array<vk::DescriptorImageInfo, 2>> m_rayTracingImageInfos;
+
     vk::Extent2D m_extent{0, 0};
 
     std::vector<ImageResource> m_offscreenColorImageResources;
@@ -97,6 +98,7 @@ namespace vke {
     std::vector<ImageResource> m_offscreenResolveImageResources;
 
     std::vector<ImageResource> m_offscreenRayTracingImageResources;
+    std::vector<ImageResource> m_offscreenRayTracingDepthImageResources;
 
     std::vector<ImageResource> m_mousePickingColorImageResources;
     std::vector<ImageResource> m_mousePickingDepthImageResources;
@@ -111,21 +113,13 @@ namespace vke {
 
     void createOutlineMaskDescriptorSet();
 
+    void createRayTracingImagesDescriptorSet();
+
     void createOffscreenImageResources(vk::Extent2D extent);
 
     void createMousePickingImageResources(vk::Extent2D extent);
 
     void createOutlineMaskImageResources(vk::Extent2D extent);
-
-    void transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                          uint32_t currentFrame) const;
-
-    void transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           uint32_t currentFrame,
-                                           bool drawOverlay) const;
-
-    void copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                             uint32_t currentFrame) const;
   };
 
 } // namespace vke
