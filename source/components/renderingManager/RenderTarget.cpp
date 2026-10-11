@@ -394,7 +394,7 @@ namespace vke {
     // The traced images were last sampled by the composite pass; the trace overwrites them.
     const auto toTraceTarget = [currentFrame](const std::vector<ImageResource>& resources) {
       return vk::ImageMemoryBarrier2 {
-        .srcStageMask = vk::PipelineStageFlagBits2::eNone,
+        .srcStageMask = vk::PipelineStageFlagBits2::eFragmentShader,
         .srcAccessMask = vk::AccessFlagBits2::eNone,
         .dstStageMask = vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
         .dstAccessMask = vk::AccessFlagBits2::eShaderWrite,

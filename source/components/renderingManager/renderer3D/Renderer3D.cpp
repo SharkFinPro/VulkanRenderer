@@ -133,22 +133,20 @@ namespace vke {
 
     m_outlineColorsUniform->update(renderInfo->currentFrame, colors.data());
 
-    constexpr auto pipelineType = PipelineType::outline;
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::outline);
 
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
-
-    pipelineManager->bindGraphicsPipelineDescriptorSet(renderInfo->commandBuffer, pipelineType, maskDescriptorSet, 0);
+    pipelineManager->bindGraphicsPipelineDescriptorSet(renderInfo->commandBuffer, PipelineType::outline, maskDescriptorSet, 0);
 
     pipelineManager->bindGraphicsPipelineDescriptorSet(
       renderInfo->commandBuffer,
-      pipelineType,
+      PipelineType::outline,
       m_outlineColorsDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
       1
     );
 
     pipelineManager->pushGraphicsPipelineConstants<int32_t>(
       renderInfo->commandBuffer,
-      pipelineType,
+      PipelineType::outline,
       vk::ShaderStageFlagBits::eFragment,
       0,
       static_cast<int32_t>(std::lround(m_outlineWidth))

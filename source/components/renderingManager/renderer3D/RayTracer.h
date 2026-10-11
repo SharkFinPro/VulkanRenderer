@@ -41,14 +41,14 @@ namespace vke {
 
     // False when there was nothing to trace, which leaves the images unwritten.
     [[nodiscard]] bool doRayTracing(const RenderInfo* renderInfo,
-                      const std::shared_ptr<PipelineManager>& pipelineManager,
-                      const std::shared_ptr<LightingManager>& lightingManager,
-                      const ImageResource& imageResource,
-                      const ImageResource& depthImageResource,
-                      const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                      const std::shared_ptr<Cloud>& cloud,
-                      const glm::vec3& viewPosition,
-                      const glm::mat4& viewMatrix);
+                                    const std::shared_ptr<PipelineManager>& pipelineManager,
+                                    const std::shared_ptr<LightingManager>& lightingManager,
+                                    const ImageResource& imageResource,
+                                    const ImageResource& depthImageResource,
+                                    const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                                    const std::shared_ptr<Cloud>& cloud,
+                                    const glm::vec3& viewPosition,
+                                    const glm::mat4& viewMatrix);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;

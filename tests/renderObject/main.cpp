@@ -56,7 +56,7 @@ int main()
 
     const auto curtainObject = createCurtainObject(renderer);
 
-    // Rasterized over the ray traced image, so it is occluded by the cube in both modes
+    // Rasterized over the ray traced image, so the floor hides its lower half in both modes
     const auto iconObject = createIconObject(renderer);
 
     const auto lights = createLights(renderer);

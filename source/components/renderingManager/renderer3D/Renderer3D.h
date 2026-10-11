@@ -163,10 +163,10 @@ namespace vke {
     // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above zero keeps the line
     // drawn each frame until that much wall time has passed, whether or not the scene was drawn meanwhile, so submit
     // such a line once rather than every frame; otherwise it is drawn this frame only. Lines are drawn over the ray
-    // traced image too, tested against the depth of its first hit. depth chooses how the line meets the scene's depth: tested lines are
-    // hidden by nearer geometry, onTop lines are drawn over everything, and xray lines are drawn like tested ones
-    // where visible and at 35% of their alpha where hidden. Each depth mode keeps at most 10,000 lines per frame;
-    // further ones are not drawn, with one warning.
+    // traced image too, tested against the depth of its first hit. depth chooses how the line meets the scene's depth:
+    // tested lines are hidden by nearer geometry, onTop lines are drawn over everything, and xray lines are drawn like
+    // tested ones where visible and at 35% of their alpha where hidden. Each depth mode keeps at most 10,000 lines per
+    // frame; further ones are not drawn, with one warning.
     void renderLine(glm::vec3 start,
                     glm::vec3 end,
                     glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f },
