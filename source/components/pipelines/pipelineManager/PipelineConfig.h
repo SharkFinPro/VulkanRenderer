@@ -60,10 +60,33 @@ namespace vke::PipelineConfig {
     };
   }
 
-  // The outline composite is drawn either into the multisampled scene pass (with its depth attachment) or, over a
-  // ray traced image, into the single-sample resolve image alone.
-  inline GraphicsPipelineOptions createOutlinePipelineOptions(const vk::PipelineMultisampleStateCreateInfo& multisampleState,
-                                                              const bool hasDepthAttachment,
+  // Draws the ray traced color and depth into the scene pass.
+  inline GraphicsPipelineOptions createRayTracingCompositePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                          const vk::DescriptorSetLayout rayTracingImagesDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/Outline.vert.spv",
+        .fragmentShader = "assets/shaders/RayTracingComposite.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilStateWriteAlways,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .descriptorSetLayouts {
+        rayTracingImagesDescriptorSetLayout
+      }
+    };
+  }
+
+  // The outline composite is drawn into the multisampled scene pass.
+  inline GraphicsPipelineOptions createOutlinePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                               const vk::DescriptorSetLayout maskDescriptorSetLayout,
                                                               const vk::DescriptorSetLayout colorsDescriptorSetLayout)
   {
@@ -77,7 +100,7 @@ namespace vke::PipelineConfig {
         .depthStencilState = gps::depthStencilStateNone,
         .dynamicState = gps::dynamicState,
         .inputAssemblyState = gps::inputAssemblyStateTriangleList,
-        .multisampleState = multisampleState,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
         .vertexInputState = gps::vertexInputStateRaw,
         .viewportState = gps::viewportState
@@ -92,8 +115,7 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         maskDescriptorSetLayout,
         colorsDescriptorSetLayout
-      },
-      .hasDepthAttachment = hasDepthAttachment
+      }
     };
   }
 

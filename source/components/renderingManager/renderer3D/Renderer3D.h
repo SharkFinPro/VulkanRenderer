@@ -96,12 +96,10 @@ namespace vke {
     void renderOutlineMask(const RenderInfo* renderInfo,
                            const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    // Draws the outlines around the masked objects. multisampled selects the pipeline for the scene pass (true) or
-    // for a single-sample image without a depth attachment.
+    // Draws the outlines around the masked objects, in the scene pass.
     void renderOutlines(const RenderInfo* renderInfo,
                         const std::shared_ptr<PipelineManager>& pipelineManager,
-                        vk::DescriptorSet maskDescriptorSet,
-                        bool multisampled) const;
+                        vk::DescriptorSet maskDescriptorSet) const;
 
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -112,10 +110,23 @@ namespace vke {
     void renderOnTopLines(const RenderInfo* renderInfo,
                           const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    void doRayTracing(const RenderInfo* renderInfo,
-                      const std::shared_ptr<PipelineManager>& pipelineManager,
-                      const std::shared_ptr<LightingManager>& lightingManager,
-                      const ImageResource& imageResource) const;
+    // Draws the objects of view-only pipelines, the lines and the grid over a ray traced image, which the ray tracer
+    // does not model. Call after renderRayTracingComposite.
+    void renderViewOnly(const RenderInfo* renderInfo,
+                        const std::shared_ptr<PipelineManager>& pipelineManager,
+                        const std::shared_ptr<LightingManager>& lightingManager);
+
+    // Returns false when there was nothing to trace, which leaves the images unwritten.
+    [[nodiscard]] bool doRayTracing(const RenderInfo* renderInfo,
+                                    const std::shared_ptr<PipelineManager>& pipelineManager,
+                                    const std::shared_ptr<LightingManager>& lightingManager,
+                                    const ImageResource& imageResource,
+                                    const ImageResource& depthImageResource) const;
+
+    // Draws the traced color and depth into the scene pass.
+    void renderRayTracingComposite(const RenderInfo* renderInfo,
+                                   const std::shared_ptr<PipelineManager>& pipelineManager,
+                                   vk::DescriptorSet rayTracingImagesDescriptorSet) const;
 
     void createNewFrame();
 
@@ -159,11 +170,11 @@ namespace vke {
 
     // Color is RGBA (alpha blended) and width is in pixels of the scene image. A lifetime above zero keeps the line
     // drawn each frame until that much wall time has passed, whether or not the scene was drawn meanwhile, so submit
-    // such a line once rather than every frame; otherwise it is drawn this frame only. Lines are drawn by the raster
-    // path only, not while ray tracing is on. depth chooses how the line meets the scene's depth: tested lines are
-    // hidden by nearer geometry, onTop lines are drawn over everything, and xray lines are drawn like tested ones
-    // where visible and at 35% of their alpha where hidden. Each depth mode keeps at most 10,000 lines per frame;
-    // further ones are not drawn, with one warning.
+    // such a line once rather than every frame; otherwise it is drawn this frame only. Lines are drawn over the ray
+    // traced image too, tested against the depth of its first hit. depth chooses how the line meets the scene's depth:
+    // tested lines are hidden by nearer geometry, onTop lines are drawn over everything, and xray lines are drawn like
+    // tested ones where visible and at 35% of their alpha where hidden. Each depth mode keeps at most 10,000 lines per
+    // frame; further ones are not drawn, with one warning.
     void renderLine(glm::vec3 start,
                     glm::vec3 end,
                     glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f },
@@ -240,6 +251,9 @@ namespace vke {
     std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;
 
+    // The flattened list without view-only submissions, which are rasterized rather than traced
+    std::vector<std::shared_ptr<RenderObject>> m_rayTracedRenderObjects;
+
     // Each outlined object with its value in the mask, which is its color's index plus one (zero is no outline)
     std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_outlineObjects;
     std::vector<glm::vec4> m_outlineColors;
@@ -305,6 +319,13 @@ namespace vke {
 
     static void renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo);
+
+    [[nodiscard]] RenderInfo makeSceneRenderInfo(const RenderInfo* renderInfo) const;
+
+    void buildLineBatches();
+
+    void renderLinesAndGrid(const RenderInfo* renderInfo,
+                            const std::shared_ptr<PipelineManager>& pipelineManager);
 
     void renderRenderObjects(const std::shared_ptr<PipelineManager>& pipelineManager,
                              const std::shared_ptr<LightingManager>& lightingManager,

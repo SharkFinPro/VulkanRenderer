@@ -8,6 +8,8 @@
 struct RayPayload {
   vec3 color;
   int depth;
+  // Distance from the ray origin to the first surface hit, -1 where there is none.
+  float hitDistance;
 };
 
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
@@ -50,7 +52,7 @@ layout(binding = 5, set = 0) readonly buffer MeshInfoBuffer {
   MeshInfo meshInfos[];
 };
 
-layout(binding = 7, set = 0) uniform sampler2D textures[];
+layout(binding = 8, set = 0) uniform sampler2D textures[];
 
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
@@ -222,4 +224,5 @@ void main()
 
   payload.color = result;
   payload.depth = currentDepth;
+  payload.hitDistance = gl_HitTEXT;
 }

@@ -325,16 +325,23 @@ namespace vke {
         .descriptorCount = 1,
         .stageFlags = vk::ShaderStageFlagBits::eIntersectionKHR
       },
-      vk::DescriptorSetLayoutBinding {
+      vk::DescriptorSetLayoutBinding { // Depth of the primary hit
         .binding = 7,
+        .descriptorType = vk::DescriptorType::eStorageImage,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eRaygenKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 8,
         .descriptorType = vk::DescriptorType::eCombinedImageSampler,
         .descriptorCount = 256,
         .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
       }
     };
 
-    // Binding 7 uses variable descriptor count and partial binding.
+    // Binding 8, the last, uses variable descriptor count and partial binding.
     constexpr std::array bindingFlags {
+      vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},

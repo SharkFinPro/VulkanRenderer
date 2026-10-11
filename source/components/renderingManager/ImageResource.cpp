@@ -110,7 +110,7 @@ namespace vke {
       }
       else if (config.imageResourceType == ImageResourceType::RayTracingOutput)
       {
-        imageUsageFlags |= vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc;
+        imageUsageFlags |= vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled;
       }
 
       auto [image, imageMemory] = Images::createImage(

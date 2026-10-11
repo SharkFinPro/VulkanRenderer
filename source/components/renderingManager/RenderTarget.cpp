@@ -17,6 +17,8 @@ namespace vke {
     createOffscreenImageDescriptorSet();
 
     createOutlineMaskDescriptorSet();
+
+    createRayTracingImagesDescriptorSet();
   }
 
   ImageResource& RenderTarget::getOffscreenResolveImageResource(const uint32_t currentFrame)
@@ -27,6 +29,11 @@ namespace vke {
   ImageResource& RenderTarget::getOffscreenRayTracingImageResource(const uint32_t currentFrame)
   {
     return m_offscreenRayTracingImageResources.at(currentFrame);
+  }
+
+  ImageResource& RenderTarget::getOffscreenRayTracingDepthImageResource(const uint32_t currentFrame)
+  {
+    return m_offscreenRayTracingDepthImageResources.at(currentFrame);
   }
 
   ImageResource& RenderTarget::getMousePickingColorImageResource(const uint32_t currentFrame)
@@ -54,6 +61,16 @@ namespace vke {
     return m_outlineMaskDescriptorSet->getDescriptorSet(currentFrame);
   }
 
+  vk::DescriptorSetLayout RenderTarget::getRayTracingImagesDescriptorSetLayout() const
+  {
+    return m_rayTracingImagesDescriptorSet->getDescriptorSetLayout();
+  }
+
+  vk::DescriptorSet RenderTarget::getRayTracingImagesDescriptorSet(const uint32_t currentFrame) const
+  {
+    return m_rayTracingImagesDescriptorSet->getDescriptorSet(currentFrame);
+  }
+
   void RenderTarget::recreateImageResources(const vk::Extent2D extent)
   {
     m_offscreenColorImageResources.clear();
@@ -61,6 +78,7 @@ namespace vke {
     m_offscreenResolveImageResources.clear();
 
     m_offscreenRayTracingImageResources.clear();
+    m_offscreenRayTracingDepthImageResources.clear();
 
     m_mousePickingColorImageResources.clear();
     m_mousePickingDepthImageResources.clear();
@@ -109,6 +127,44 @@ namespace vke {
           .descriptorCount = 1,
           .descriptorType = vk::DescriptorType::eCombinedImageSampler,
           .pImageInfo = &m_outlineMaskImageInfos.at(frame)
+        }
+      }};
+
+      return descriptorWrites;
+    });
+
+    if (m_offscreenRayTracingImageResources.empty())
+    {
+      return;
+    }
+
+    m_rayTracingImageInfos.clear();
+    for (size_t frame = 0; frame < m_offscreenRayTracingImageResources.size(); ++frame)
+    {
+      m_rayTracingImageInfos.push_back({{
+        {
+          .sampler = *m_maskSampler,
+          .imageView = m_offscreenRayTracingImageResources.at(frame).getImageView(),
+          .imageLayout = vk::ImageLayout::eGeneral
+        },
+        {
+          .sampler = *m_maskSampler,
+          .imageView = m_offscreenRayTracingDepthImageResources.at(frame).getImageView(),
+          .imageLayout = vk::ImageLayout::eGeneral
+        }
+      }});
+    }
+
+    m_rayTracingImagesDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
+    {
+      std::vector<vk::WriteDescriptorSet> descriptorWrites {{
+        {
+          .dstSet = descriptorSet,
+          .dstBinding = 0,
+          .dstArrayElement = 0,
+          .descriptorCount = static_cast<uint32_t>(m_rayTracingImageInfos.at(frame).size()),
+          .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+          .pImageInfo = m_rayTracingImageInfos.at(frame).data()
         }
       }};
 
@@ -335,73 +391,76 @@ namespace vke {
   void RenderTarget::beginRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                               const uint32_t currentFrame) const
   {
-    const vk::ImageMemoryBarrier2 imageMemoryBarrier {
-      .srcStageMask = vk::PipelineStageFlagBits2::eNone,
-      .srcAccessMask = vk::AccessFlagBits2::eNone,
-      .dstStageMask = vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-      .dstAccessMask = vk::AccessFlagBits2::eShaderWrite,
-      .oldLayout = vk::ImageLayout::eUndefined,
-      .newLayout = vk::ImageLayout::eGeneral,
-      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-      .image = m_offscreenRayTracingImageResources.at(currentFrame).getImage(),
-      .subresourceRange = {
-        .aspectMask = vk::ImageAspectFlagBits::eColor,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-      }
+    // The traced images were last sampled by the composite pass; the trace overwrites them.
+    const auto toTraceTarget = [currentFrame](const std::vector<ImageResource>& resources) {
+      return vk::ImageMemoryBarrier2 {
+        .srcStageMask = vk::PipelineStageFlagBits2::eFragmentShader,
+        .srcAccessMask = vk::AccessFlagBits2::eNone,
+        .dstStageMask = vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+        .dstAccessMask = vk::AccessFlagBits2::eShaderWrite,
+        .oldLayout = vk::ImageLayout::eUndefined,
+        .newLayout = vk::ImageLayout::eGeneral,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .image = resources.at(currentFrame).getImage(),
+        .subresourceRange = {
+          .aspectMask = vk::ImageAspectFlagBits::eColor,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+        }
+      };
+    };
+
+    const std::array imageMemoryBarriers {
+      toTraceTarget(m_offscreenRayTracingImageResources),
+      toTraceTarget(m_offscreenRayTracingDepthImageResources)
     };
 
     const vk::DependencyInfo dependencyInfo {
-      .imageMemoryBarrierCount = 1,
-      .pImageMemoryBarriers = &imageMemoryBarrier
+      .imageMemoryBarrierCount = static_cast<uint32_t>(imageMemoryBarriers.size()),
+      .pImageMemoryBarriers = imageMemoryBarriers.data()
     };
 
     commandBuffer->pipelineBarrier(dependencyInfo);
   }
 
   void RenderTarget::endRayTracingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                            const uint32_t currentFrame,
-                                            const bool drawOverlay) const
+                                            const uint32_t currentFrame) const
   {
-    transitionRayTracingImagePreCopy(commandBuffer, currentFrame);
-
-    copyRayTracingImageToOffscreenImage(commandBuffer, currentFrame);
-
-    transitionRayTracingImagePostCopy(commandBuffer, currentFrame, drawOverlay);
-  }
-
-  void RenderTarget::beginOverlayRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           const uint32_t currentFrame) const
-  {
-    vk::RenderingAttachmentInfo colorRenderingAttachmentInfo {
-      .imageView = m_offscreenResolveImageResources.at(currentFrame).getImageView(),
-      .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
-      .resolveMode = vk::ResolveModeFlagBits::eNone,
-      .loadOp = vk::AttachmentLoadOp::eLoad,
-      .storeOp = vk::AttachmentStoreOp::eStore
+    const auto toSampled = [currentFrame](const std::vector<ImageResource>& resources) {
+      return vk::ImageMemoryBarrier2 {
+        .srcStageMask = vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+        .srcAccessMask = vk::AccessFlagBits2::eShaderWrite,
+        .dstStageMask = vk::PipelineStageFlagBits2::eFragmentShader,
+        .dstAccessMask = vk::AccessFlagBits2::eShaderSampledRead,
+        .oldLayout = vk::ImageLayout::eGeneral,
+        .newLayout = vk::ImageLayout::eGeneral,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .image = resources.at(currentFrame).getImage(),
+        .subresourceRange = {
+          .aspectMask = vk::ImageAspectFlagBits::eColor,
+          .baseMipLevel = 0,
+          .levelCount = 1,
+          .baseArrayLayer = 0,
+          .layerCount = 1
+        }
+      };
     };
 
-    const vk::RenderingInfo renderingInfo {
-      .renderArea = {
-        .offset = {0, 0},
-        .extent = m_extent,
-      },
-      .layerCount = 1,
-      .colorAttachmentCount = 1,
-      .pColorAttachments = &colorRenderingAttachmentInfo
+    const std::array imageMemoryBarriers {
+      toSampled(m_offscreenRayTracingImageResources),
+      toSampled(m_offscreenRayTracingDepthImageResources)
     };
 
-    commandBuffer->beginRendering(renderingInfo);
-  }
+    const vk::DependencyInfo dependencyInfo {
+      .imageMemoryBarrierCount = static_cast<uint32_t>(imageMemoryBarriers.size()),
+      .pImageMemoryBarriers = imageMemoryBarriers.data()
+    };
 
-  void RenderTarget::endOverlayRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                         const uint32_t currentFrame) const
-  {
-    // The same hand-over to the swapchain pass as after the offscreen pass
-    endOffscreenRendering(commandBuffer, currentFrame);
+    commandBuffer->pipelineBarrier(dependencyInfo);
   }
 
   void RenderTarget::createSampler()
@@ -437,11 +496,11 @@ namespace vke {
   void RenderTarget::createDescriptorPool()
   {
     const std::array<vk::DescriptorPoolSize, 1> poolSizes {{
-      { vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 2 }
+      { vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 4 }
     }};
 
     const vk::DescriptorPoolCreateInfo poolCreateInfo {
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 2,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 3,
       .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
       .pPoolSizes = poolSizes.data()
     };
@@ -477,6 +536,26 @@ namespace vke {
     m_outlineMaskDescriptorSet = std::make_unique<DescriptorSet>(m_logicalDevice, m_descriptorPool, layoutBindings);
   }
 
+  void RenderTarget::createRayTracingImagesDescriptorSet()
+  {
+    const std::vector<vk::DescriptorSetLayoutBinding> layoutBindings {
+      {
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+      },
+      {
+        .binding = 1,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+      }
+    };
+
+    m_rayTracingImagesDescriptorSet = std::make_unique<DescriptorSet>(m_logicalDevice, m_descriptorPool, layoutBindings);
+  }
+
   void RenderTarget::createOffscreenImageResources(vk::Extent2D extent)
   {
     ImageResourceConfig imageResourceConfig {
@@ -499,11 +578,16 @@ namespace vke {
       rayTracingImageResourceConfig.rayTracingFormat = vk::Format::eR8G8B8A8Unorm;
       rayTracingImageResourceConfig.numSamples = vk::SampleCountFlagBits::e1;
 
+      auto rayTracingDepthImageResourceConfig = rayTracingImageResourceConfig;
+      rayTracingDepthImageResourceConfig.rayTracingFormat = vk::Format::eR32Sfloat;
+
       m_offscreenRayTracingImageResources.reserve(numImages);
+      m_offscreenRayTracingDepthImageResources.reserve(numImages);
 
       for (size_t i = 0; i < numImages; ++i)
       {
         m_offscreenRayTracingImageResources.emplace_back(rayTracingImageResourceConfig);
+        m_offscreenRayTracingDepthImageResources.emplace_back(rayTracingDepthImageResourceConfig);
       }
     }
 
@@ -577,146 +661,6 @@ namespace vke {
     {
       m_outlineMaskImageResources.emplace_back(imageResourceConfig);
     }
-  }
-
-  void RenderTarget::transitionRayTracingImagePreCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                      const uint32_t currentFrame) const
-  {
-    const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
-    const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
-
-    // Transition RT image: GENERAL -> TRANSFER_SRC_OPTIMAL
-    // Transition offscreen resolve image (last sampled in a fragment shader; contents
-    // discarded): UNDEFINED -> TRANSFER_DST_OPTIMAL
-    const std::array preTransferBarriers {
-      vk::ImageMemoryBarrier2{
-        .srcStageMask = vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
-        .srcAccessMask = vk::AccessFlagBits2::eShaderWrite,
-        .dstStageMask = vk::PipelineStageFlagBits2::eTransfer,
-        .dstAccessMask = vk::AccessFlagBits2::eTransferRead,
-        .oldLayout = vk::ImageLayout::eGeneral,
-        .newLayout = vk::ImageLayout::eTransferSrcOptimal,
-        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .image = rtImage,
-        .subresourceRange = {
-          .aspectMask = vk::ImageAspectFlagBits::eColor,
-          .baseMipLevel = 0,
-          .levelCount = 1,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-        }
-      },
-      vk::ImageMemoryBarrier2{
-        .srcStageMask = vk::PipelineStageFlagBits2::eFragmentShader,
-        .srcAccessMask = vk::AccessFlagBits2::eNone,
-        .dstStageMask = vk::PipelineStageFlagBits2::eTransfer,
-        .dstAccessMask = vk::AccessFlagBits2::eTransferWrite,
-        .oldLayout = vk::ImageLayout::eUndefined,
-        .newLayout = vk::ImageLayout::eTransferDstOptimal,
-        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .image = offscreenImage,
-        .subresourceRange = {
-          .aspectMask = vk::ImageAspectFlagBits::eColor,
-          .baseMipLevel = 0,
-          .levelCount = 1,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-        }
-      }
-    };
-
-    const vk::DependencyInfo dependencyInfo {
-      .imageMemoryBarrierCount = static_cast<uint32_t>(preTransferBarriers.size()),
-      .pImageMemoryBarriers = preTransferBarriers.data()
-    };
-
-    commandBuffer->pipelineBarrier(dependencyInfo);
-  }
-
-  void RenderTarget::transitionRayTracingImagePostCopy(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                       const uint32_t currentFrame,
-                                                       const bool drawOverlay) const
-  {
-    const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
-    const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
-
-    // Transition offscreen resolve: TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL, or to
-    // COLOR_ATTACHMENT_OPTIMAL for an overlay drawn over it first
-    // Transition RT image back: TRANSFER_SRC_OPTIMAL -> GENERAL (its next use re-transitions
-    // from UNDEFINED, so no destination scope is needed)
-    const std::array postTransferBarriers {
-      vk::ImageMemoryBarrier2{
-        .srcStageMask = vk::PipelineStageFlagBits2::eTransfer,
-        .srcAccessMask = vk::AccessFlagBits2::eTransferWrite,
-        .dstStageMask = drawOverlay ? vk::PipelineStageFlagBits2::eColorAttachmentOutput
-                                    : vk::PipelineStageFlagBits2::eFragmentShader,
-        .dstAccessMask = drawOverlay ? vk::AccessFlagBits2::eColorAttachmentRead | vk::AccessFlagBits2::eColorAttachmentWrite
-                                     : vk::AccessFlagBits2::eShaderSampledRead,
-        .oldLayout = vk::ImageLayout::eTransferDstOptimal,
-        .newLayout = drawOverlay ? vk::ImageLayout::eColorAttachmentOptimal
-                                 : vk::ImageLayout::eShaderReadOnlyOptimal,
-        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .image = offscreenImage,
-        .subresourceRange = {
-          .aspectMask = vk::ImageAspectFlagBits::eColor,
-          .baseMipLevel = 0,
-          .levelCount = 1,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-        }
-      },
-      vk::ImageMemoryBarrier2{
-        .srcStageMask = vk::PipelineStageFlagBits2::eTransfer,
-        .srcAccessMask = vk::AccessFlagBits2::eTransferRead,
-        .dstStageMask = vk::PipelineStageFlagBits2::eNone,
-        .dstAccessMask = vk::AccessFlagBits2::eNone,
-        .oldLayout = vk::ImageLayout::eTransferSrcOptimal,
-        .newLayout = vk::ImageLayout::eGeneral,
-        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-        .image = rtImage,
-        .subresourceRange = {
-          .aspectMask = vk::ImageAspectFlagBits::eColor,
-          .baseMipLevel = 0,
-          .levelCount = 1,
-          .baseArrayLayer = 0,
-          .layerCount = 1
-        }
-      }
-    };
-
-    const vk::DependencyInfo dependencyInfo {
-      .imageMemoryBarrierCount = static_cast<uint32_t>(postTransferBarriers.size()),
-      .pImageMemoryBarriers = postTransferBarriers.data()
-    };
-
-    commandBuffer->pipelineBarrier(dependencyInfo);
-  }
-
-  void RenderTarget::copyRayTracingImageToOffscreenImage(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                                         const uint32_t currentFrame) const
-  {
-    const auto rtImage = m_offscreenRayTracingImageResources.at(currentFrame).getImage();
-    const auto offscreenImage = m_offscreenResolveImageResources.at(currentFrame).getImage();
-
-    const vk::ImageCopy imageCopy {
-      .srcSubresource = { vk::ImageAspectFlagBits::eColor, 0, 0, 1 },
-      .srcOffset = { 0, 0, 0 },
-      .dstSubresource = { vk::ImageAspectFlagBits::eColor, 0, 0, 1 },
-      .dstOffset = { 0, 0, 0 },
-      .extent = { m_extent.width, m_extent.height, 1 }
-    };
-
-    commandBuffer->copyImage(
-      rtImage,
-      vk::ImageLayout::eTransferSrcOptimal,
-      offscreenImage,
-      vk::ImageLayout::eTransferDstOptimal,
-      { imageCopy }
-    );
   }
 
 } // namespace vke

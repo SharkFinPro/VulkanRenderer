@@ -42,6 +42,8 @@ std::shared_ptr<vke::RenderObject> createCubeObject(const vke::VulkanEngine& ren
 
 std::shared_ptr<vke::RenderObject> createCurtainObject(const vke::VulkanEngine& renderer);
 
+std::shared_ptr<vke::RenderObject> createIconObject(const vke::VulkanEngine& renderer);
+
 int main()
 {
   try
@@ -53,6 +55,9 @@ int main()
     const auto cubeObject = createCubeObject(renderer);
 
     const auto curtainObject = createCurtainObject(renderer);
+
+    // Rasterized over the ray traced image, so the floor hides its lower half in both modes
+    const auto iconObject = createIconObject(renderer);
 
     const auto lights = createLights(renderer);
 
@@ -69,6 +74,8 @@ int main()
       linesGui(r3d);
 
       r3d->renderObject(isCurtainPipeline(currentPipeline) ? curtainObject : cubeObject, currentPipeline);
+
+      r3d->renderObject(iconObject, vke::PipelineType::texturedPlane);
 
       for (const auto& light : lights)
       {
@@ -200,4 +207,19 @@ std::shared_ptr<vke::RenderObject> createCurtainObject(const vke::VulkanEngine& 
   curtainObject->setPosition({ 0, 0, 5 });
 
   return curtainObject;
+}
+
+std::shared_ptr<vke::RenderObject> createIconObject(const vke::VulkanEngine& renderer)
+{
+  const auto texture = renderer.getAssetManager()->loadTexture("assets/cubeMap/nvposx.bmp", false);
+  const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
+
+  const auto planeModel = renderer.getAssetManager()->loadModel("assets/models/curtain.glb");
+
+  // Half sunk into the floor, so the floor hides the lower part
+  const auto iconObject = renderer.getAssetManager()->loadRenderObject(texture, specularMap, planeModel);
+  iconObject->setPosition({ 3.0f, 0.0f, -1.0f });
+  iconObject->setScale(0.3f);
+
+  return iconObject;
 }

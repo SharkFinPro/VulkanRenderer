@@ -179,6 +179,17 @@ namespace vke::gps {
     .maxDepthBounds = 1.0f
   };
 
+  // Writes depth wherever it is drawn, whatever the scene holds, for a pass that lays down the scene's first depth.
+  inline vk::PipelineDepthStencilStateCreateInfo depthStencilStateWriteAlways {
+    .depthTestEnable = vk::True,
+    .depthWriteEnable = vk::True,
+    .depthCompareOp = vk::CompareOp::eAlways,
+    .depthBoundsTestEnable = vk::False,
+    .stencilTestEnable = vk::False,
+    .minDepthBounds = 0.0f,
+    .maxDepthBounds = 1.0f
+  };
+
   inline vk::PipelineDepthStencilStateCreateInfo depthStencilStateNone {
     .depthTestEnable = vk::False,
     .depthWriteEnable = vk::False

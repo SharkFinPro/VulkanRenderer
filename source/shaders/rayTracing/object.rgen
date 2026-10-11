@@ -4,13 +4,17 @@
 struct RayPayload {
   vec3 color;
   int depth;
+  // Distance from the ray origin to the first surface hit, -1 where there is none.
+  float hitDistance;
 };
 
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 1, set = 0, rgba8) uniform image2D outputImage;
+layout(binding = 7, set = 0, r32f) uniform image2D depthImage;
 layout(binding = 2, set = 0) uniform Camera {
   mat4 viewInverse;
   mat4 projInverse;
+  mat4 projection;
   vec3 position;
   float nearPlane;
   float farPlane;
@@ -36,6 +40,7 @@ void main()
   float tMax = camera.farPlane / depthPerUnitDistance;
 
   payload.depth = 1;
+  payload.hitDistance = -1.0;
   traceRayEXT(
     tlas,
     gl_RayFlagsOpaqueEXT | gl_RayFlagsCullBackFacingTrianglesEXT,
@@ -50,5 +55,14 @@ void main()
     0              // payload location
   );
 
+  // The depth raster would write for the primary hit, so rasterized geometry can be tested against the traced image.
+  float depth = 1.0;
+  if (payload.hitDistance >= 0.0)
+  {
+    vec4 clip = camera.projection * vec4(viewDirection * payload.hitDistance, 1.0);
+    depth = clip.z / clip.w;
+  }
+
   imageStore(outputImage, ivec2(gl_LaunchIDEXT.xy), vec4(payload.color, 1.0));
+  imageStore(depthImage, ivec2(gl_LaunchIDEXT.xy), vec4(depth));
 }
