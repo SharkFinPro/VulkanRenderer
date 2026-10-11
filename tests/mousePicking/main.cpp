@@ -14,6 +14,7 @@ struct MousePickingObject {
   std::shared_ptr<vke::RenderObject> object;
   bool hovering = false;
   bool selected = false;
+  vke::PipelineType pipelineType = vke::PipelineType::object;
 };
 
 void setupScene(const vke::VulkanEngine& renderer,
@@ -70,7 +71,7 @@ int main()
 
       if (renderer.getRenderingManager()->getRenderer3D()->getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
       {
-        for (auto& [_, hovering, selected] : mousePickingObjects)
+        for (auto& [object, hovering, selected, pipelineType] : mousePickingObjects)
         {
           selected = hovering;
         }
@@ -112,6 +113,16 @@ void setupScene(const vke::VulkanEngine& renderer,
   mousePickingObjects.push_back({ object3 });
   objects.push_back(object3);
 
+  // A flat quad with a transparent-cornered ring icon, cut out by the textured plane pipeline.
+  const auto iconTexture = renderer.getAssetManager()->loadTexture("assets/textures/icon_ring.png");
+  const auto iconModel = renderer.getAssetManager()->loadModel("assets/models/curtain.glb");
+
+  const auto icon = renderer.getAssetManager()->loadRenderObject(iconTexture, specularMap, iconModel);
+  icon->setPosition({ 0, 0, 0 });
+  icon->setScale(0.25f);
+  mousePickingObjects.push_back({ icon, false, false, vke::PipelineType::texturedPlane });
+  objects.push_back(icon);
+
   lights.push_back(renderer.getLightingManager()->createPointLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
   lights.push_back(renderer.getLightingManager()->createPointLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
@@ -131,7 +142,7 @@ void renderScene(vke::VulkanEngine& renderer,
 
   // Render GUI
   ImGui::Begin("Selected Object");
-  for (auto& [object, _, selected] : objects)
+  for (auto& [object, hovering, selected, pipelineType] : objects)
   {
     if (selected)
     {
@@ -169,7 +180,7 @@ void renderScene(vke::VulkanEngine& renderer,
   ImGui::End();
 
   // Render Objects
-  for (auto& [object, hovering, selected] : objects)
+  for (auto& [object, hovering, selected, pipelineType] : objects)
   {
     if (selected)
     {
@@ -180,7 +191,7 @@ void renderScene(vke::VulkanEngine& renderer,
       r3d->renderOutline(object, { 1.0f, 1.0f, 0.0f, 1.0f });
     }
 
-    r3d->renderObject(object, vke::PipelineType::object, &hovering);
+    r3d->renderObject(object, pipelineType, &hovering);
   }
 
   for (const auto& light : lights)

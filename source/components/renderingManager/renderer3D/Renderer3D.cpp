@@ -12,6 +12,7 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/implementations/LinePipeline.h"
+#include "../../pipelines/implementations/common/PipelineTypes.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include <glm/gtc/matrix_transform.hpp>
@@ -336,7 +337,7 @@ namespace vke {
 
     if (mousePicked)
     {
-      m_mousePicker->renderObject(renderObject, mousePicked);
+      m_mousePicker->renderObject(renderObject, mousePicked, usesAlphaCutout(pipelineType));
     }
   }
 
@@ -345,7 +346,7 @@ namespace vke {
   {
     this->renderObject(renderObject, pipelineType);
 
-    m_mousePicker->renderObject(renderObject, nullptr);
+    m_mousePicker->renderObject(renderObject, nullptr, usesAlphaCutout(pipelineType));
   }
 
   std::optional<PickResult> Renderer3D::getPickResult() const

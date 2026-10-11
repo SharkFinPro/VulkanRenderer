@@ -89,10 +89,11 @@ namespace vke {
   }
 
   void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                                 bool* mousePicked)
+                                 bool* mousePicked,
+                                 const bool alphaTested)
   {
     uint32_t objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
-    m_renderObjectsToMousePick.emplace_back( renderObject, objectID );
+    m_renderObjectsToMousePick.push_back({ renderObject, objectID, alphaTested });
     m_mousePickingFlags.push_back(mousePicked);
 
     if (mousePicked)
@@ -107,13 +108,33 @@ namespace vke {
     m_viewMatrix = renderInfo->viewMatrix;
     m_projectionMatrix = renderInfo->getProjectionMatrix();
 
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::mousePicking);
+    renderEntries(renderInfo, pipelineManager, false);
+    renderEntries(renderInfo, pipelineManager, true);
+  }
 
-    for (const auto& [object, id] : m_renderObjectsToMousePick)
+  void MousePicker::renderEntries(const RenderInfo* renderInfo,
+                                  const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const bool alphaTested) const
+  {
+    const auto pipelineType = alphaTested ? PipelineType::mousePickingAlphaTested : PipelineType::mousePicking;
+    bool bound = false;
+
+    for (const auto& [object, id, entryAlphaTested] : m_renderObjectsToMousePick)
     {
+      if (entryAlphaTested != alphaTested)
+      {
+        continue;
+      }
+
+      if (!bound)
+      {
+        pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
+        bound = true;
+      }
+
       pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
         renderInfo->commandBuffer,
-        PipelineType::mousePicking,
+        pipelineType,
         vk::ShaderStageFlagBits::eFragment,
         0,
         id
@@ -121,7 +142,7 @@ namespace vke {
 
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         renderInfo->commandBuffer,
-        PipelineType::mousePicking,
+        pipelineType,
         object->getDescriptorSet(renderInfo->currentFrame),
         0
       );
@@ -159,7 +180,7 @@ namespace vke {
     std::memcpy(&depth, &depthBits, sizeof(depth));
 
     m_pick = Pick {
-      .renderObject = m_renderObjectsToMousePick[objectID - 1].first,
+      .renderObject = m_renderObjectsToMousePick[objectID - 1].object,
       .triangleIndex = triangleIndex,
       .worldPosition = getWorldPosition(mouseX, mouseY, depth),
       .depth = depth
