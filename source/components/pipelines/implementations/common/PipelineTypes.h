@@ -19,6 +19,7 @@ namespace vke {
     font,
     grid,
     mousePicking,
+    mousePickingAlphaTested,
     outline,
     outlineMask,
     outlineSingleSample,
@@ -28,6 +29,12 @@ namespace vke {
     shadow,
     triangle
   };
+
+// Whether the pipeline discards texels below the alpha cutoff, so picking must cut out the same shape.
+  [[nodiscard]] constexpr bool usesAlphaCutout(const PipelineType pipelineType)
+  {
+    return pipelineType == PipelineType::texturedPlane;
+  }
 
 } // namespace vke
 

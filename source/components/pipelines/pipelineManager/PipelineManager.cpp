@@ -184,6 +184,9 @@ namespace vke {
     createGraphicsPipeline(PipelineType::mousePicking,
       PipelineConfig::createMousePickingPipelineOptions(objectDescriptorSetLayout));
 
+    createGraphicsPipeline(PipelineType::mousePickingAlphaTested,
+      PipelineConfig::createMousePickingAlphaTestedPipelineOptions(objectDescriptorSetLayout));
+
     createGraphicsPipeline(PipelineType::outlineMask,
       PipelineConfig::createOutlineMaskPipelineOptions(objectDescriptorSetLayout));
 

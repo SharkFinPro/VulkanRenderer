@@ -94,6 +94,18 @@ namespace vke::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createMousePickingAlphaTestedPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
+  {
+    auto options = createMousePickingPipelineOptions(objectDescriptorSetLayout);
+
+    options.shaders.vertexShader = "assets/shaders/renderObject/MousePickingAlphaTested.vert.spv";
+    options.shaders.fragmentShader = "assets/shaders/renderObject/MousePickingAlphaTested.frag.spv";
+    options.states.rasterizationState = gps::rasterizationStateNoCull;
+    options.states.vertexInputState = gps::vertexInputStateVertex;
+
+    return options;
+  }
+
   inline GraphicsPipelineOptions createOutlineMaskPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
   {
     return {
