@@ -70,7 +70,7 @@ int main()
 
       if (renderer.getRenderingManager()->getRenderer3D()->getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
       {
-        for (auto& [_, hovering, selected, __] : mousePickingObjects)
+        for (auto& [object, hovering, selected, pipelineType] : mousePickingObjects)
         {
           selected = hovering;
         }
@@ -141,7 +141,7 @@ void renderScene(vke::VulkanEngine& renderer,
 
   // Render GUI
   ImGui::Begin("Selected Object");
-  for (auto& [object, _, selected, __] : objects)
+  for (auto& [object, hovering, selected, pipelineType] : objects)
   {
     if (selected)
     {

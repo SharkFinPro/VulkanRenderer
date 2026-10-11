@@ -30,7 +30,7 @@ namespace vke {
     triangle
   };
 
-// Whether the pipeline discards texels below the alpha cutoff, so picking must cut out the same shape.
+  // Whether the pipeline discards texels below the alpha cutoff, so picking must cut out the same shape.
   [[nodiscard]] constexpr bool usesAlphaCutout(const PipelineType pipelineType)
   {
     return pipelineType == PipelineType::texturedPlane;
