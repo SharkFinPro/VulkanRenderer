@@ -1,13 +1,17 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/renderingManager/renderer3D/MousePicker.h>
+#include <source/components/assets/objects/Model.h>
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/window/Window.h>
 #include <source/components/assets/AssetManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
+#include <array>
 #include <iostream>
+#include <span>
+#include <vector>
 
 struct MousePickingObject {
   std::shared_ptr<vke::RenderObject> object;
@@ -20,6 +24,8 @@ void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<MousePickingObject>& mousePickingObjects,
                 std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights);
+
+std::shared_ptr<vke::Model> createOctahedron(const vke::VulkanEngine& renderer);
 
 void renderScene(vke::VulkanEngine& renderer,
                  std::vector<MousePickingObject>& objects,
@@ -122,6 +128,12 @@ void setupScene(const vke::VulkanEngine& renderer,
   mousePickingObjects.push_back({ icon, false, false, vke::PipelineType::texturedPlane });
   objects.push_back(icon);
 
+  // A model built in code instead of loaded from a file.
+  const auto octahedronObject = renderer.getAssetManager()->loadRenderObject(texture, specularMap, createOctahedron(renderer));
+  octahedronObject->setPosition({ 3, 0, 3 });
+  mousePickingObjects.push_back({ octahedronObject });
+  objects.push_back(octahedronObject);
+
   lights.push_back(renderer.getLightingManager()->createPointLight({0, -3.5f, 0}, {1.0f, 1.0f, 1.0f}, 0.1f, 0.5f, 1.0f));
 
   lights.push_back(renderer.getLightingManager()->createPointLight({5.0f, -3.5f, 5.0f}, {1.0f, 1.0f, 0}, 0, 0.5f, 1.0f));
@@ -131,6 +143,42 @@ void setupScene(const vke::VulkanEngine& renderer,
   lights.push_back(renderer.getLightingManager()->createPointLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
 
   lights.push_back(renderer.getLightingManager()->createPointLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+}
+
+// Flat shaded: each of the 8 faces has its own 3 vertices and its face normal.
+std::shared_ptr<vke::Model> createOctahedron(const vke::VulkanEngine& renderer)
+{
+  constexpr std::array<glm::vec3, 6> corners {{
+    { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 }
+  }};
+
+  std::vector<vke::Vertex> vertices;
+  std::vector<uint32_t> indices;
+
+  for (const int x : { 0, 1 })
+  {
+    for (const int y : { 2, 3 })
+    {
+      for (const int z : { 4, 5 })
+      {
+        const glm::vec3 normal = glm::normalize(corners[x] + corners[y] + corners[z]);
+
+        // Counter-clockwise seen from outside, flipped when the three corners come out the other way.
+        const bool flip = glm::dot(glm::cross(corners[y] - corners[x], corners[z] - corners[x]), normal) < 0.0f;
+        const std::array<int, 3> face = flip ? std::array{ x, z, y } : std::array{ x, y, z };
+
+        constexpr std::array<glm::vec2, 3> texCoords {{ { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 0.5f, 1.0f } }};
+
+        for (int i = 0; i < 3; i++)
+        {
+          indices.push_back(static_cast<uint32_t>(vertices.size()));
+          vertices.push_back({ .pos = corners[face[i]], .normal = normal, .texCoord = texCoords[i] });
+        }
+      }
+    }
+  }
+
+  return renderer.getAssetManager()->createModel(vertices, indices);
 }
 
 void renderScene(vke::VulkanEngine& renderer,

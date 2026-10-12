@@ -18,9 +18,7 @@ namespace vke {
   {
     loadModel(path, glm::quat(glm::radians(rotation)));
 
-    createVertexBuffer(logicalDevice, commandPool);
-    createIndexBuffer(logicalDevice, commandPool);
-    createBLAS(logicalDevice, commandPool);
+    createBuffers(logicalDevice, commandPool);
   }
 
   Model::Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -30,9 +28,41 @@ namespace vke {
   {
     loadModel(path, glm::normalize(orientation));
 
-    createVertexBuffer(logicalDevice, commandPool);
-    createIndexBuffer(logicalDevice, commandPool);
-    createBLAS(logicalDevice, commandPool);
+    createBuffers(logicalDevice, commandPool);
+  }
+
+  Model::Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
+               const vk::CommandPool& commandPool,
+               const std::span<const Vertex> vertices,
+               const std::span<const uint32_t> indices)
+  {
+    if (vertices.empty())
+    {
+      throw std::invalid_argument("Model: no vertices");
+    }
+
+    if (indices.empty())
+    {
+      throw std::invalid_argument("Model: no indices");
+    }
+
+    if (indices.size() % 3 != 0)
+    {
+      throw std::invalid_argument("Model: index count is not a multiple of three");
+    }
+
+    for (const uint32_t index : indices)
+    {
+      if (index >= vertices.size())
+      {
+        throw std::invalid_argument("Model: index out of range");
+      }
+    }
+
+    m_vertices.assign(vertices.begin(), vertices.end());
+    m_indices.assign(indices.begin(), indices.end());
+
+    createBuffers(logicalDevice, commandPool);
   }
 
   void Model::loadModel(const char* path,
@@ -97,11 +127,40 @@ namespace vke {
     }
   }
 
-  void Model::createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const vk::CommandPool& commandPool)
+  void Model::createBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                            const vk::CommandPool& commandPool)
   {
-    const vk::DeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
+    createDeviceLocalBuffer(
+      logicalDevice,
+      commandPool,
+      m_vertices.data(),
+      sizeof(m_vertices[0]) * m_vertices.size(),
+      vk::BufferUsageFlagBits::eVertexBuffer,
+      m_vertexBuffer,
+      m_vertexBufferMemory
+    );
 
+    createDeviceLocalBuffer(
+      logicalDevice,
+      commandPool,
+      m_indices.data(),
+      sizeof(m_indices[0]) * m_indices.size(),
+      vk::BufferUsageFlagBits::eIndexBuffer,
+      m_indexBuffer,
+      m_indexBufferMemory
+    );
+
+    createBLAS(logicalDevice, commandPool);
+  }
+
+  void Model::createDeviceLocalBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                      const vk::CommandPool& commandPool,
+                                      const void* data,
+                                      const vk::DeviceSize bufferSize,
+                                      const vk::BufferUsageFlagBits usage,
+                                      vk::raii::Buffer& buffer,
+                                      vk::raii::DeviceMemory& bufferMemory)
+  {
     vk::raii::Buffer stagingBuffer = nullptr;
     vk::raii::DeviceMemory stagingBufferMemory = nullptr;
     Buffers::createBuffer(
@@ -113,18 +172,18 @@ namespace vke {
       stagingBufferMemory
     );
 
-    Buffers::doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
-      memcpy(data, m_vertices.data(), bufferSize);
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [data, bufferSize](void* mapped) {
+      memcpy(mapped, data, bufferSize);
     });
 
     Buffers::createBuffer(
       logicalDevice,
       bufferSize,
-      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer |
+      vk::BufferUsageFlagBits::eTransferDst | usage |
       (logicalDevice->getPhysicalDevice()->supportsRayTracing() ? vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR : vk::BufferUsageFlags{}),
       vk::MemoryPropertyFlagBits::eDeviceLocal,
-      m_vertexBuffer,
-      m_vertexBufferMemory
+      buffer,
+      bufferMemory
     );
 
     Buffers::copyBuffer(
@@ -132,44 +191,9 @@ namespace vke {
       commandPool,
       logicalDevice->getGraphicsQueue(),
       stagingBuffer,
-      m_vertexBuffer,
+      buffer,
       bufferSize
     );
-  }
-
-  void Model::createIndexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                const vk::CommandPool& commandPool)
-  {
-    const vk::DeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
-
-    vk::raii::Buffer stagingBuffer = nullptr;
-    vk::raii::DeviceMemory stagingBufferMemory = nullptr;
-
-    Buffers::createBuffer(
-      logicalDevice,
-      bufferSize,
-      vk::BufferUsageFlagBits::eTransferSrc,
-      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-      stagingBuffer,
-      stagingBufferMemory
-    );
-
-    Buffers::doMappedMemoryOperation(stagingBufferMemory, [this, bufferSize](void* data) {
-      memcpy(data, m_indices.data(), bufferSize);
-    });
-
-    Buffers::createBuffer(
-      logicalDevice,
-      bufferSize,
-      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer |
-      (logicalDevice->getPhysicalDevice()->supportsRayTracing() ? vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR : vk::BufferUsageFlags{}),
-      vk::MemoryPropertyFlagBits::eDeviceLocal,
-      m_indexBuffer,
-      m_indexBufferMemory
-    );
-
-    Buffers::copyBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue(), *stagingBuffer,
-                        *m_indexBuffer, bufferSize);
   }
 
   void Model::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
