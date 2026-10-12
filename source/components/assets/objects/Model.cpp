@@ -7,6 +7,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <cstring>
 #include <stdexcept>
 
 namespace vke {
@@ -173,7 +174,7 @@ namespace vke {
     );
 
     Buffers::doMappedMemoryOperation(stagingBufferMemory, [data, bufferSize](void* mapped) {
-      memcpy(mapped, data, bufferSize);
+      std::memcpy(mapped, data, bufferSize);
     });
 
     Buffers::createBuffer(

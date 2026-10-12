@@ -154,6 +154,8 @@ std::shared_ptr<vke::Model> createOctahedron(const vke::VulkanEngine& renderer)
 
   std::vector<vke::Vertex> vertices;
   std::vector<uint32_t> indices;
+  vertices.reserve(24);
+  indices.reserve(24);
 
   for (const int x : { 0, 1 })
   {

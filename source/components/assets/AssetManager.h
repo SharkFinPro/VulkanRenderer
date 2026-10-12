@@ -1,6 +1,7 @@
 #ifndef VKE_ASSETMANAGER_H
 #define VKE_ASSETMANAGER_H
 
+#include "../pipelines/implementations/vertexInputs/Vertex.h"
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
@@ -20,8 +21,6 @@ namespace vke {
   class SmokeSystem;
   class Texture;
   class Texture2D;
-
-  struct Vertex;
 
   struct FontKey {
     std::string name;
