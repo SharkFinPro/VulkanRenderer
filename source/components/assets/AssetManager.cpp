@@ -46,6 +46,17 @@ namespace vke {
     );
   }
 
+  std::shared_ptr<Model> AssetManager::createModel(const std::span<const Vertex> vertices,
+                                                   const std::span<const uint32_t> indices)
+  {
+    return std::make_shared<Model>(
+      m_logicalDevice,
+      *m_commandPool,
+      vertices,
+      indices
+    );
+  }
+
   std::shared_ptr<RenderObject> AssetManager::loadRenderObject(
     const std::shared_ptr<Texture2D>& texture,
     const std::shared_ptr<Texture2D>& specularMap,

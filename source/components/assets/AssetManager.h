@@ -1,9 +1,11 @@
 #ifndef VKE_ASSETMANAGER_H
 #define VKE_ASSETMANAGER_H
 
+#include "../pipelines/implementations/vertexInputs/Vertex.h"
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -49,6 +51,12 @@ namespace vke {
 
     [[nodiscard]] std::shared_ptr<Model> loadModel(const char* path,
                                                    glm::vec3 rotation = { 0, 0, 0 });
+
+    // Builds the same buffers and BLAS as loadModel from triangle data in memory. The data is copied, so the spans
+    // need not outlive the call. Throws std::invalid_argument on empty input, an index count that is not a multiple
+    // of three or an out-of-range index. Release it with release(std::shared_ptr<Model>) like any model.
+    [[nodiscard]] std::shared_ptr<Model> createModel(std::span<const Vertex> vertices,
+                                                     std::span<const uint32_t> indices);
 
     [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
                                                                  const std::shared_ptr<Texture2D>& specularMap,
