@@ -7,6 +7,7 @@
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
+#include <span>
 #include <vector>
 
 namespace vke {
@@ -25,6 +26,11 @@ namespace vke {
           const vk::CommandPool& commandPool,
           const char* path,
           glm::quat orientation);
+
+    Model(const std::shared_ptr<LogicalDevice>& logicalDevice,
+          const vk::CommandPool& commandPool,
+          std::span<const Vertex> vertices,
+          std::span<const uint32_t> indices);
 
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
@@ -56,11 +62,16 @@ namespace vke {
 
     void loadIndices(const aiMesh* mesh);
 
-    void createVertexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                            const vk::CommandPool& commandPool);
+    void createBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                       const vk::CommandPool& commandPool);
 
-    void createIndexBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           const vk::CommandPool& commandPool);
+    static void createDeviceLocalBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                        const vk::CommandPool& commandPool,
+                                        const void* data,
+                                        vk::DeviceSize bufferSize,
+                                        vk::BufferUsageFlagBits usage,
+                                        vk::raii::Buffer& buffer,
+                                        vk::raii::DeviceMemory& bufferMemory);
 
     void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
 
