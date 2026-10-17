@@ -90,7 +90,7 @@ namespace vke::PipelineConfig {
       .descriptorSetLayouts {
         objectDescriptorSetLayout
       },
-      .colorFormat = vk::Format::eR8G8B8A8Uint
+      .colorFormat = vk::Format::eR32G32B32A32Uint
     };
   }
 

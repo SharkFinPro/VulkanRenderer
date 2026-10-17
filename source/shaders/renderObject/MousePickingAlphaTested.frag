@@ -19,9 +19,6 @@ void main()
     discard;
   }
 
-  float r = (objectID >> 16) & 0xFF;
-  float g = (objectID >> 8) & 0xFF;
-  float b = (objectID >> 0) & 0xFF;
-
-  outColor = uvec4(r, g, b, 255);
+  // Same layout as MousePicking.frag: object, triangle within its draw, and the exact depth.
+  outColor = uvec4(objectID, uint(gl_PrimitiveID), floatBitsToUint(gl_FragCoord.z), 0u);
 }
