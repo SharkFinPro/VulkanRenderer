@@ -46,7 +46,7 @@ int main()
 
     while (renderer.isActive())
     {
-      displayGui(renderer.getImGuiInstance(), lights, { cubeObject }, renderer.getRenderingManager());
+      displayGui(renderer.getImGuiInstance(), lights, { cubeObject }, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
       displayCloudGUI(renderer, cloud);
 
