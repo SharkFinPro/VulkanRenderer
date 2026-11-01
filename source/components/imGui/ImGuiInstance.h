@@ -73,7 +73,9 @@ namespace vke {
 
     ImGuiStyle m_baseStyle;
 
-    bool m_dockNeedsUpdate = true;
+    // The default layout is built when no dock tree exists yet or a dock percent changes, so a layout the application
+    // loaded before the first frame (imgui.ini or LoadIniSettingsFromMemory) survives that frame.
+    bool m_dockNeedsUpdate = false;
 
     bool m_useDockSpace;
 
