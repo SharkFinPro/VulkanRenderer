@@ -488,7 +488,6 @@ namespace vke {
 
       drawShadowCasters(shadowRenderInfo.commandBuffer, *objects);
 
-
       endShadowRendering(commandBuffer, light);
     }
   }
@@ -550,7 +549,6 @@ namespace vke {
       );
 
       drawShadowCasters(shadowRenderInfo.commandBuffer, *objects);
-
 
       endShadowRendering(commandBuffer, light);
     }

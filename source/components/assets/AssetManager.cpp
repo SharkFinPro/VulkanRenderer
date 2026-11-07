@@ -210,7 +210,6 @@ namespace vke {
     m_materialDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(materialLayoutCreateInfo);
   }
 
-
   void AssetManager::createFontDescriptorSetLayout()
   {
     constexpr vk::DescriptorSetLayoutBinding glyphBinding {

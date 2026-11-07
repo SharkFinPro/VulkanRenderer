@@ -172,7 +172,6 @@ namespace vke {
     }
   }
 
-
   void MousePicker::resolveReadback(const uint32_t currentFrame)
   {
     auto& slot = m_readbackSlots[currentFrame];

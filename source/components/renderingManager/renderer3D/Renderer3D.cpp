@@ -3,7 +3,6 @@
 #include "ObjectTable.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/objects/Material.h"
-#include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../assets/textures/Texture3D.h"
@@ -25,8 +24,27 @@
 #include <iostream>
 #include <iterator>
 #include <stdexcept>
+#include <utility>
 
 namespace {
+
+  // The pipelines whose fragment shaders light the object, which take the lighting set at set 2
+  [[nodiscard]] bool usesLightingSet(const vke::PipelineType pipelineType)
+  {
+    switch (pipelineType)
+    {
+      case vke::PipelineType::bumpyCurtain:
+      case vke::PipelineType::crosses:
+      case vke::PipelineType::curtain:
+      case vke::PipelineType::ellipticalDots:
+      case vke::PipelineType::noisyEllipticalDots:
+      case vke::PipelineType::object:
+      case vke::PipelineType::snake:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   // The camera block of the scene set (SceneCamera in shaders/common/SceneData.glsl)
   struct SceneCamera {
@@ -461,7 +479,6 @@ namespace vke {
     m_pickIds[slot] = m_mousePicker->renderObject(renderObject, nullptr, usesAlphaCutout(pipelineType), slot);
   }
 
-
   std::optional<PickResult> Renderer3D::getPickResult() const
   {
     return m_mousePicker->getPickResult();
@@ -785,7 +802,6 @@ namespace vke {
     }
   }
 
-
   void Renderer3D::bindPushConstant(const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     const PipelineType pipelineType) const
@@ -843,13 +859,7 @@ namespace vke {
       );
     }
 
-    if (pipelineType == PipelineType::ellipticalDots ||
-        pipelineType == PipelineType::crosses ||
-        pipelineType == PipelineType::curtain ||
-        pipelineType == PipelineType::bumpyCurtain ||
-        pipelineType == PipelineType::object ||
-        pipelineType == PipelineType::snake ||
-        pipelineType == PipelineType::noisyEllipticalDots)
+    if (usesLightingSet(pipelineType))
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         commandBuffer,
@@ -905,7 +915,6 @@ namespace vke {
 
     return {{ objectTableWrite, m_cameraUniform->getDescriptorSet(1, descriptorSet, frame) }};
   }
-
 
   void Renderer3D::createDescriptorSets()
   {

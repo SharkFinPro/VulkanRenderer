@@ -57,16 +57,6 @@ namespace vke {
     // Whether the scene view is the UI element under the cursor, rather than covered by another window.
     void setSceneHovered(bool sceneHovered);
 
-    // mousePicked may be null; otherwise it is set to whether the object was under the cursor in the frame the readback
-    // describes (see getPickResult), on every submission of that object this frame. An alpha-tested object is picked
-    // only where its texture is opaque enough, matching how it is drawn. slot is the object table slot of the render
-    // submission this is for (Renderer3D submits the object for rendering first). Returns the picking id the table
-    // entry of that slot must carry, which the picking shaders write.
-    [[nodiscard]] uint32_t renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                                        bool* mousePicked,
-                                        bool alphaTested,
-                                        uint32_t slot);
-
     // sceneDescriptorSet is the frame's scene set (set 0), which holds the object table the entries index.
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -79,6 +69,19 @@ namespace vke {
                         uint32_t currentFrame);
 
   private:
+    // Only Renderer3D submits pick entries, since each needs the object table slot it gave the render submission.
+    friend class Renderer3D;
+
+    // mousePicked may be null; otherwise it is set to whether the object was under the cursor in the frame the readback
+    // describes (see getPickResult), on every submission of that object this frame. An alpha-tested object is picked
+    // only where its texture is opaque enough, matching how it is drawn. slot is the object table slot of the render
+    // submission this is for (Renderer3D submits the object for rendering first). Returns the picking id the table
+    // entry of that slot must carry, which the picking shaders write.
+    [[nodiscard]] uint32_t renderObject(const std::shared_ptr<RenderObject>& renderObject,
+                                        bool* mousePicked,
+                                        bool alphaTested,
+                                        uint32_t slot);
+
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     vk::Extent2D m_viewportExtent { 1, 1 };

@@ -3,6 +3,7 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include <array>
+#include <utility>
 
 namespace vke {
 

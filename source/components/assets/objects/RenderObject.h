@@ -2,7 +2,7 @@
 #define VKE_RENDEROBJECT_H
 
 #include <glm/gtc/quaternion.hpp>
-#include <vulkan/vulkan_raii.hpp>
+#include <cstdint>
 #include <memory>
 
 namespace vke {
@@ -23,7 +23,7 @@ namespace vke {
 
     // slot is the object's index in the frame's object table; the shaders read it as gl_InstanceIndex.
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
-              uint32_t slot = 0) const;
+              uint32_t slot) const;
 
     void setPosition(glm::vec3 position);
     void setScale(glm::vec3 scale);
