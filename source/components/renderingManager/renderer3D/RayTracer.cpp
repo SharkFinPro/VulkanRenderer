@@ -5,20 +5,20 @@
 #include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/textures/Texture.h"
-#include "../../commandBuffer/SingleUseCommandBuffer.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../../../utilities/Buffers.h"
+#include <algorithm>
+#include <bit>
+#include <cstring>
 
 namespace vke {
-
-  class Texture;
 
   struct CameraUniformRT {
     glm::mat4 viewInverse;
@@ -30,11 +30,21 @@ namespace vke {
     float farPlane;
   };
 
+  namespace {
+    // Smallest per-frame buffer, in elements, so a scene that grows one object at a time doesn't
+    // reallocate every frame at first.
+    constexpr uint32_t s_minimumCapacity = 16;
+
+    uint32_t growCapacity(const size_t count)
+    {
+      return std::bit_ceil(std::max(static_cast<uint32_t>(count), s_minimumCapacity));
+    }
+  }
+
   RayTracer::RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,
                        const std::shared_ptr<AssetManager>& assetManager,
-                       const vk::CommandPool commandPool,
                        const vk::DescriptorPool descriptorPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     std::vector<uint32_t> maxTextures;
     for (uint32_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
@@ -53,6 +63,8 @@ namespace vke {
     m_cameraUniformRT = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniformRT));
 
     m_cloudUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CloudUniform));
+
+    m_frameResources.resize(m_logicalDevice->getMaxFramesInFlight());
   }
 
   bool RayTracer::doRayTracing(const RenderInfo* renderInfo,
@@ -68,9 +80,36 @@ namespace vke {
       return false;
     }
 
-    createTLAS(renderObjects, cloud);
+    auto& frame = m_frameResources[renderInfo->currentFrame];
 
-    updateRTSceneInfo(renderObjects);
+    const bool copiedGeometry = updateMergedGeometry(renderInfo, renderObjects);
+
+    updateMeshInfos(frame, renderObjects);
+
+    buildTLAS(renderInfo, renderObjects, cloud);
+
+    // Host writes (instances, mesh infos) are made visible to the device by the queue submission itself.
+    const std::array memoryBarriers {
+      vk::MemoryBarrier2 {
+        .srcStageMask = vk::PipelineStageFlagBits2::eAccelerationStructureBuildKHR,
+        .srcAccessMask = vk::AccessFlagBits2::eAccelerationStructureWriteKHR,
+        .dstStageMask = vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+        .dstAccessMask = vk::AccessFlagBits2::eAccelerationStructureReadKHR
+      },
+      vk::MemoryBarrier2 {
+        .srcStageMask = vk::PipelineStageFlagBits2::eCopy,
+        .srcAccessMask = vk::AccessFlagBits2::eTransferWrite,
+        .dstStageMask = vk::PipelineStageFlagBits2::eRayTracingShaderKHR,
+        .dstAccessMask = vk::AccessFlagBits2::eShaderStorageRead
+      }
+    };
+
+    const vk::DependencyInfo dependencyInfo {
+      .memoryBarrierCount = copiedGeometry ? 2u : 1u,
+      .pMemoryBarriers = memoryBarriers.data()
+    };
+
+    renderInfo->commandBuffer->pipelineBarrier(dependencyInfo);
 
     updateRTDescriptorSetData(renderInfo);
 
@@ -80,7 +119,7 @@ namespace vke {
       m_cloudUniform->update(renderInfo->currentFrame, &cloudUBO);
     }
 
-    updateRTDescriptorSets(imageResource, depthImageResource, renderInfo->currentFrame);
+    updateRTDescriptorSet(imageResource, depthImageResource, renderInfo->currentFrame);
 
     pipelineManager->bindRayTracingPipelineDescriptorSet(
       renderInfo->commandBuffer,
@@ -99,113 +138,135 @@ namespace vke {
     return true;
   }
 
-  void RayTracer::createTLAS(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                             const std::shared_ptr<Cloud>& cloud)
+  void RayTracer::buildTLAS(const RenderInfo* renderInfo,
+                            const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                            const std::shared_ptr<Cloud>& cloud)
   {
-    if (!m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
-    {
-      return;
-    }
+    auto& frame = m_frameResources[renderInfo->currentFrame];
 
-    m_tlas = nullptr;
-    m_tlasBuffer = nullptr;
-    m_tlasBufferMemory = nullptr;
-    m_tlasInstanceBuffer = nullptr;
-    m_tlasInstanceBufferMemory = nullptr;
-    m_mergedVertexBuffer = nullptr;
-    m_mergedVertexBufferMemory = nullptr;
-    m_mergedIndexBuffer = nullptr;
-    m_mergedIndexBufferMemory = nullptr;
-    m_meshInfoBuffer = nullptr;
-    m_meshInfoBufferMemory = nullptr;
+    const auto instanceCount = static_cast<uint32_t>(renderObjects.size() + (cloud ? 1 : 0));
 
-    const auto primitiveCount = createTLASInstanceBuffer(renderObjects, cloud);
+    reserveTLAS(frame, instanceCount);
+
+    populateInstances(static_cast<vk::AccelerationStructureInstanceKHR*>(frame.instances.data), renderObjects, cloud);
 
     const vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
       .arrayOfPointers = vk::False,
-      .data = m_logicalDevice->getBufferDeviceAddress(m_tlasInstanceBuffer)
+      .data = frame.instancesAddress
     };
 
-    vk::AccelerationStructureGeometryKHR geometry {
+    const vk::AccelerationStructureGeometryKHR geometry {
       .geometryType = vk::GeometryTypeKHR::eInstances,
       .geometry = instancesData
     };
 
+    // Flags must match the ones reserveTLAS queried the sizes with.
     vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
       .type = vk::AccelerationStructureTypeKHR::eTopLevel,
       .flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace,
+      .mode = vk::BuildAccelerationStructureModeKHR::eBuild,
+      .dstAccelerationStructure = *frame.tlas,
+      .geometryCount = 1,
+      .pGeometries = &geometry
+    };
+    buildGeometryInfo.scratchData.deviceAddress = frame.scratchAddress;
+
+    const vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo {
+      .primitiveCount = instanceCount,
+      .primitiveOffset = 0,
+      .firstVertex = 0,
+      .transformOffset = 0
+    };
+
+    renderInfo->commandBuffer->buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
+  }
+
+  void RayTracer::reserveTLAS(FrameResources& frame,
+                              const uint32_t instanceCount) const
+  {
+    if (instanceCount <= frame.instanceCapacity)
+    {
+      return;
+    }
+
+    // This frame-in-flight slot's previous frame has completed, so its resources can be destroyed now.
+    const uint32_t capacity = growCapacity(instanceCount);
+
+    reserveMappedBuffer(
+      frame.instances,
+      capacity * sizeof(vk::AccelerationStructureInstanceKHR),
+      vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+    );
+    frame.instancesAddress = m_logicalDevice->getBufferDeviceAddress(*frame.instances.buffer);
+
+    const vk::AccelerationStructureGeometryKHR geometry {
+      .geometryType = vk::GeometryTypeKHR::eInstances,
+      .geometry = vk::AccelerationStructureGeometryInstancesDataKHR {
+        .arrayOfPointers = vk::False
+      }
+    };
+
+    const vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {
+      .type = vk::AccelerationStructureTypeKHR::eTopLevel,
+      .flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace,
+      .mode = vk::BuildAccelerationStructureModeKHR::eBuild,
       .geometryCount = 1,
       .pGeometries = &geometry
     };
 
+    // Sizes for the capacity hold for any build of up to that many instances.
     vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo{};
+    m_logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, capacity, buildSizesInfo);
 
-    m_logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
+    frame.tlas = nullptr;
+    frame.tlasBuffer = {};
 
     Buffers::createBuffer(
       m_logicalDevice,
       buildSizesInfo.accelerationStructureSize,
       vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
-      m_tlasBuffer,
-      m_tlasBufferMemory
+      frame.tlasBuffer.buffer,
+      frame.tlasBuffer.memory
     );
 
-    buildTLAS(buildGeometryInfo, buildSizesInfo, primitiveCount);
-  }
-
-  uint32_t RayTracer::createTLASInstanceBuffer(const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                               const std::shared_ptr<Cloud>& cloud)
-  {
-    std::vector<vk::AccelerationStructureInstanceKHR> instances;
-    instances.reserve(renderObjects.size());
-
-    populateInstanceArray(instances, renderObjects, cloud);
-
-    const vk::DeviceSize instancesBufferSize = instances.size() * sizeof(vk::AccelerationStructureInstanceKHR);
-
-    vk::raii::Buffer stagingBuffer = nullptr;
-    vk::raii::DeviceMemory stagingBufferMemory = nullptr;
-
-    Buffers::createBuffer(
-      m_logicalDevice,
-      instancesBufferSize,
-      vk::BufferUsageFlagBits::eTransferSrc,
-      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-      stagingBuffer,
-      stagingBufferMemory
-    );
-
-    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&instances, instancesBufferSize](void* data) {
-      memcpy(data, instances.data(), instancesBufferSize);
+    frame.tlas = m_logicalDevice->createAccelerationStructure({
+      .buffer = *frame.tlasBuffer.buffer,
+      .size = buildSizesInfo.accelerationStructureSize,
+      .type = vk::AccelerationStructureTypeKHR::eTopLevel
     });
 
-    Buffers::createBuffer(
-      m_logicalDevice,
-      instancesBufferSize,
-      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eShaderDeviceAddress |
-      vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
-      vk::MemoryPropertyFlagBits::eDeviceLocal,
-      m_tlasInstanceBuffer,
-      m_tlasInstanceBufferMemory
-    );
+    frame.tlasInfo = {
+      .accelerationStructureCount = 1,
+      .pAccelerationStructures = &*frame.tlas
+    };
 
-    Buffers::copyBuffer(
-      m_logicalDevice,
-      m_commandPool,
-      m_logicalDevice->getGraphicsQueue(),
-      *stagingBuffer,
-      *m_tlasInstanceBuffer,
-      instancesBufferSize
-    );
+    if (buildSizesInfo.buildScratchSize > frame.scratchSize)
+    {
+      frame.scratch = {};
 
-    return static_cast<uint32_t>(instances.size());
+      Buffers::createBuffer(
+        m_logicalDevice,
+        buildSizesInfo.buildScratchSize,
+        vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+        vk::MemoryPropertyFlagBits::eDeviceLocal,
+        frame.scratch.buffer,
+        frame.scratch.memory
+      );
+
+      frame.scratchSize = buildSizesInfo.buildScratchSize;
+      frame.scratchAddress = m_logicalDevice->getBufferDeviceAddress(*frame.scratch.buffer);
+    }
+
+    frame.instanceCapacity = capacity;
   }
 
-  void RayTracer::populateInstanceArray(std::vector<vk::AccelerationStructureInstanceKHR>& instances,
-                                        const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                        const std::shared_ptr<Cloud>& cloud) const
+  void RayTracer::populateInstances(vk::AccelerationStructureInstanceKHR* instances,
+                                    const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
+                                    const std::shared_ptr<Cloud>& cloud) const
   {
+    uint32_t instanceIndex = 0;
+
     for (const auto& renderObject : renderObjects)
     {
       const glm::mat4 modelMatrix = glm::transpose(renderObject->getModelMatrix());
@@ -217,16 +278,16 @@ namespace vke {
         .accelerationStructure = renderObject->getModel()->getBLAS()
       };
 
-      const vk::AccelerationStructureInstanceKHR instance {
+      instances[instanceIndex] = {
         .transform = transformMatrix,
-        .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
+        .instanceCustomIndex = instanceIndex,
         .mask = 0xFF,
         .instanceShaderBindingTableRecordOffset = 0,
         .flags = 0,
         .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
       };
 
-      instances.push_back(instance);
+      ++instanceIndex;
     }
 
     if (cloud)
@@ -241,117 +302,69 @@ namespace vke {
       vk::TransformMatrixKHR transformMatrix;
       memcpy(&transformMatrix, &modelMatrix, sizeof(vk::TransformMatrixKHR));
 
-      const vk::AccelerationStructureInstanceKHR instance {
+      instances[instanceIndex] = {
         .transform = transformMatrix,
-        .instanceCustomIndex = static_cast<uint32_t>(instances.size()),
+        .instanceCustomIndex = instanceIndex,
         .mask = 0xFF,
         .instanceShaderBindingTableRecordOffset = 1,
         .flags = 0,
         .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
       };
-
-      instances.push_back(instance);
     }
   }
 
-  void RayTracer::buildTLAS(vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
-                            const vk::AccelerationStructureBuildSizesInfoKHR& buildSizesInfo,
-                            const uint32_t primitiveCount)
+  bool RayTracer::updateMergedGeometry(const RenderInfo* renderInfo,
+                                       const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
   {
-    const vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
-      .buffer = *m_tlasBuffer,
-      .size = buildSizesInfo.accelerationStructureSize,
-      .type = vk::AccelerationStructureTypeKHR::eTopLevel
-    };
+    if (mergedGeometryIsCurrent(renderObjects))
+    {
+      return false;
+    }
 
-    m_tlas = m_logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo);
+    rebuildMergedGeometry(renderInfo, renderObjects);
 
-    vk::raii::Buffer scratchBuffer = nullptr;
-    vk::raii::DeviceMemory scratchBufferMemory = nullptr;
-
-    Buffers::createBuffer(
-      m_logicalDevice,
-      buildSizesInfo.buildScratchSize,
-      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
-      vk::MemoryPropertyFlagBits::eDeviceLocal,
-      scratchBuffer,
-      scratchBufferMemory
-    );
-
-    buildGeometryInfo.dstAccelerationStructure = *m_tlas;
-    buildGeometryInfo.scratchData.deviceAddress = m_logicalDevice->getBufferDeviceAddress(*scratchBuffer);
-
-    const vk::AccelerationStructureBuildRangeInfoKHR buildRangeInfo {
-      .primitiveCount = primitiveCount,
-      .primitiveOffset = 0,
-      .firstVertex = 0,
-      .transformOffset = 0
-    };
-
-    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
-
-    commandBuffer.record([&commandBuffer, buildGeometryInfo, buildRangeInfo] {
-      commandBuffer.buildAccelerationStructure(buildGeometryInfo, &buildRangeInfo);
-    });
-
-    m_tlasInfo = {
-      .accelerationStructureCount = 1,
-      .pAccelerationStructures = &*m_tlas
-    };
+    return true;
   }
 
-  void RayTracer::updateRTSceneInfo(const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
+  bool RayTracer::mergedGeometryIsCurrent(const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const
   {
+    if (!*m_mergedVertexBuffer.buffer)
+    {
+      return false;
+    }
+
+    return std::ranges::all_of(renderObjects, [this](const auto& renderObject) {
+      const auto entry = m_modelGeometry.find(renderObject->getModel().get());
+
+      // An expired entry is a released model; a live model at the same address is a different one.
+      return entry != m_modelGeometry.end() && !entry->second.model.expired();
+    });
+  }
+
+  void RayTracer::rebuildMergedGeometry(const RenderInfo* renderInfo,
+                                        const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
+  {
+    // Only the models traced this frame are kept, so released or unused models drop out here.
+    m_modelGeometry.clear();
+
     std::vector<Vertex> mergedVertices;
     std::vector<uint32_t> mergedIndices;
-    std::vector<MeshInfo> meshInfos;
-    m_textureImageInfos.clear();
-
-    std::unordered_map<std::shared_ptr<Texture>, uint32_t> textureIndices;
 
     for (const auto& renderObject : renderObjects)
     {
-      const auto& model = renderObject->getModel();
+      const auto model = renderObject->getModel();
 
-      auto texture = renderObject->getTexture();
-      uint32_t textureIndex = 0;
-      if (textureIndices.contains(texture))
+      const auto [entry, inserted] = m_modelGeometry.try_emplace(model.get());
+      if (!inserted)
       {
-        textureIndex = textureIndices.at(texture);
-      }
-      else
-      {
-        textureIndex = static_cast<uint32_t>(textureIndices.size());
-
-        textureIndices.emplace(texture, textureIndex);
-
-        m_textureImageInfos.push_back(texture->getImageInfo());
+        continue;
       }
 
-      auto specularMap = renderObject->getSpecularMap();
-      uint32_t specularIndex = 0;
-      if (textureIndices.contains(specularMap))
-      {
-        specularIndex = textureIndices.at(specularMap);
-      }
-      else
-      {
-        specularIndex = static_cast<uint32_t>(textureIndices.size());
-
-        textureIndices.emplace(specularMap, specularIndex);
-
-        m_textureImageInfos.push_back(specularMap->getImageInfo());
-      }
-
-      meshInfos.push_back({
+      entry->second = {
+        .model = model,
         .vertexOffset = static_cast<uint32_t>(mergedVertices.size()),
-        .indexOffset = static_cast<uint32_t>(mergedIndices.size()),
-        .textureIndex = textureIndex,
-        .specularIndex = specularIndex,
-        .reflectivity = renderObject->getReflectivity(),
-        .refractivity = renderObject->getRefractivity(),
-        .indexOfRefraction = renderObject->getIndexOfRefraction()
-      });
+        .indexOffset = static_cast<uint32_t>(mergedIndices.size())
+      };
 
       const auto& vertices = model->getVertices();
       const auto& indices = model->getIndices();
@@ -360,46 +373,36 @@ namespace vke {
       mergedIndices.insert(mergedIndices.end(), indices.begin(), indices.end());
     }
 
-    if (renderObjects.empty())
+    // The descriptors need a buffer even when only a cloud is traced.
+    if (mergedVertices.empty())
     {
-      mergedVertices.push_back(Vertex{});
-
+      mergedVertices.emplace_back();
       mergedIndices.push_back(0);
-
-      meshInfos.push_back(MeshInfo{});
     }
 
-    uploadRTSceneInfoBuffers(mergedVertices, mergedIndices, meshInfos);
-  }
-
-  void RayTracer::uploadRTSceneInfoBuffers(const std::vector<Vertex>& mergedVertices,
-                                           const std::vector<uint32_t>& mergedIndices,
-                                           const std::vector<MeshInfo>& meshInfos)
-  {
-    auto uploadBuffer = [&]<typename T>(const std::vector<T>& data,
-                                        vk::raii::Buffer& outBuffer,
-                                        vk::raii::DeviceMemory& outMemory)
+    // Frames still in flight may be reading the old buffers.
+    if (*m_mergedVertexBuffer.buffer)
     {
-      if (data.empty())
-      {
-        return;
-      }
+      m_logicalDevice->retireHandles(std::move(m_mergedVertexBuffer));
+      m_logicalDevice->retireHandles(std::move(m_mergedIndexBuffer));
+    }
 
+    auto upload = [this, renderInfo]<typename T>(const std::vector<T>& data, DeviceBuffer& outBuffer)
+    {
       const vk::DeviceSize size = data.size() * sizeof(T);
 
-      vk::raii::Buffer stagingBuffer = nullptr;
-      vk::raii::DeviceMemory stagingMemory = nullptr;
+      DeviceBuffer stagingBuffer;
 
       Buffers::createBuffer(
         m_logicalDevice,
         size,
         vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-        stagingBuffer,
-        stagingMemory
+        stagingBuffer.buffer,
+        stagingBuffer.memory
       );
 
-      Buffers::doMappedMemoryOperation(stagingMemory, [&data, size](void* ptr) {
+      Buffers::doMappedMemoryOperation(stagingBuffer.memory, [&data, size](void* ptr) {
         memcpy(ptr, data.data(), size);
       });
 
@@ -408,31 +411,115 @@ namespace vke {
         size,
         vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eStorageBuffer,
         vk::MemoryPropertyFlagBits::eDeviceLocal,
-        outBuffer,
-        outMemory
+        outBuffer.buffer,
+        outBuffer.memory
       );
 
-      Buffers::copyBuffer(
-        m_logicalDevice,
-        m_commandPool,
-        m_logicalDevice->getGraphicsQueue(),
-        *stagingBuffer,
-        *outBuffer,
-        size
-      );
+      renderInfo->commandBuffer->copyBuffer(*stagingBuffer.buffer, *outBuffer.buffer, vk::BufferCopy { .size = size });
+
+      // Kept alive until this frame's copy has run.
+      m_logicalDevice->retireHandles(std::move(stagingBuffer));
     };
 
-    uploadBuffer(mergedVertices, m_mergedVertexBuffer, m_mergedVertexBufferMemory);
-    uploadBuffer(mergedIndices, m_mergedIndexBuffer, m_mergedIndexBufferMemory);
-    uploadBuffer(meshInfos, m_meshInfoBuffer, m_meshInfoBufferMemory);
+    upload(mergedVertices, m_mergedVertexBuffer);
+    upload(mergedIndices, m_mergedIndexBuffer);
+
+    m_vertexBufferInfo.buffer = *m_mergedVertexBuffer.buffer;
+    m_indexBufferInfo.buffer = *m_mergedIndexBuffer.buffer;
   }
 
-  void RayTracer::updateRTDescriptorSets(const ImageResource& imageResource,
-                                         const ImageResource& depthImageResource,
-                                         const uint32_t currentFrame)
+  void RayTracer::updateMeshInfos(FrameResources& frame,
+                                  const std::vector<std::shared_ptr<RenderObject>>& renderObjects)
   {
-    m_rayTracingDescriptorSet->updateDescriptorSets([this, &imageResource, &depthImageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    m_textureImageInfos.clear();
+    m_textureKeys.clear();
+
+    // The descriptor needs a buffer even when only a cloud is traced.
+    const size_t meshCount = std::max<size_t>(renderObjects.size(), 1);
+
+    if (meshCount * sizeof(MeshInfo) > frame.meshInfos.size)
     {
+      // This frame-in-flight slot's previous frame has completed, so the old buffer can be destroyed now.
+      reserveMappedBuffer(frame.meshInfos, growCapacity(meshCount) * sizeof(MeshInfo), vk::BufferUsageFlagBits::eStorageBuffer);
+      frame.meshInfoInfo.buffer = *frame.meshInfos.buffer;
+    }
+
+    auto* meshInfos = static_cast<MeshInfo*>(frame.meshInfos.data);
+
+    if (renderObjects.empty())
+    {
+      meshInfos[0] = MeshInfo{};
+      return;
+    }
+
+    for (size_t i = 0; i < renderObjects.size(); ++i)
+    {
+      const auto& renderObject = renderObjects[i];
+
+      // updateMergedGeometry has just made sure every traced model is in the merged buffers.
+      const auto& geometry = m_modelGeometry.at(renderObject->getModel().get());
+
+      meshInfos[i] = {
+        .vertexOffset = geometry.vertexOffset,
+        .indexOffset = geometry.indexOffset,
+        .textureIndex = getTextureIndex(renderObject->getTexture()),
+        .specularIndex = getTextureIndex(renderObject->getSpecularMap()),
+        .reflectivity = renderObject->getReflectivity(),
+        .refractivity = renderObject->getRefractivity(),
+        .indexOfRefraction = renderObject->getIndexOfRefraction()
+      };
+    }
+  }
+
+  uint32_t RayTracer::getTextureIndex(const std::shared_ptr<Texture>& texture)
+  {
+    const auto entry = std::ranges::find(m_textureKeys, texture.get());
+
+    if (entry != m_textureKeys.end())
+    {
+      return static_cast<uint32_t>(entry - m_textureKeys.begin());
+    }
+
+    m_textureKeys.push_back(texture.get());
+    m_textureImageInfos.push_back(texture->getImageInfo());
+
+    return static_cast<uint32_t>(m_textureKeys.size() - 1);
+  }
+
+  void RayTracer::reserveMappedBuffer(MappedBuffer& mappedBuffer,
+                                      const vk::DeviceSize size,
+                                      const vk::BufferUsageFlags usage) const
+  {
+    if (size <= mappedBuffer.size)
+    {
+      return;
+    }
+
+    // Freeing the memory unmaps it.
+    mappedBuffer = {};
+
+    Buffers::createBuffer(
+      m_logicalDevice,
+      size,
+      usage,
+      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+      mappedBuffer.buffer,
+      mappedBuffer.memory
+    );
+
+    mappedBuffer.data = mappedBuffer.memory.mapMemory(0, vk::WholeSize);
+    mappedBuffer.size = size;
+  }
+
+  void RayTracer::updateRTDescriptorSet(const ImageResource& imageResource,
+                                        const ImageResource& depthImageResource,
+                                        const uint32_t currentFrame)
+  {
+    // Only this frame's set: the others may still be in use by frames in flight.
+    m_rayTracingDescriptorSet->updateDescriptorSet(currentFrame, [this, &imageResource, &depthImageResource, currentFrame](const vk::DescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      const auto& frameResources = m_frameResources[currentFrame];
+
       auto storageBuffer = [&](const uint32_t binding, const vk::DescriptorBufferInfo* info) {
         return vk::WriteDescriptorSet {
           .dstSet = descriptorSet,
@@ -446,7 +533,7 @@ namespace vke {
       auto& descriptorWrites = m_descriptorWrites;
       descriptorWrites = {{
         {
-          .pNext = &m_tlasInfo,
+          .pNext = &frameResources.tlasInfo,
           .dstSet = descriptorSet,
           .dstBinding = 0,
           .descriptorCount = 1,
@@ -462,7 +549,7 @@ namespace vke {
         m_cameraUniformRT->getDescriptorSet(2, descriptorSet, currentFrame),
         storageBuffer(3, &m_vertexBufferInfo),
         storageBuffer(4, &m_indexBufferInfo),
-        storageBuffer(5, &m_meshInfoInfo),
+        storageBuffer(5, &frameResources.meshInfoInfo),
         m_cloudUniform->getDescriptorSet(6, descriptorSet, currentFrame),
         {
           .dstSet = descriptorSet,
@@ -503,10 +590,6 @@ namespace vke {
     };
 
     m_cameraUniformRT->update(renderInfo->currentFrame, &cameraUBORT);
-
-    m_vertexBufferInfo.buffer = *m_mergedVertexBuffer;
-    m_indexBufferInfo.buffer = *m_mergedIndexBuffer;
-    m_meshInfoInfo.buffer = *m_meshInfoBuffer;
   }
 
 } // vke
