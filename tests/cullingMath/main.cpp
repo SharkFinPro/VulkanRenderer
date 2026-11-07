@@ -1,8 +1,10 @@
 // Headless checks of the culling math (AABB, transformAABB, Frustum). No engine, no GPU: ctest runs this.
 #include "source/utilities/Bounds.h"
 #include "source/utilities/Frustum.h"
+#include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/trigonometric.hpp>
+#include <glm/vector_relational.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -26,8 +28,8 @@ namespace {
   }
 
   bool approx(const glm::vec3& a,
-            const glm::vec3& b,
-            const float epsilon = 1e-4f)
+              const glm::vec3& b,
+              const float epsilon = 1e-4f)
   {
     return glm::all(glm::lessThanEqual(glm::abs(a - b), glm::vec3(epsilon)));
   }
@@ -80,6 +82,8 @@ namespace {
     check(approx(box.halfExtents(), { 2.0f, 2.0f, 2.0f }), "AABB half extents");
   }
 
+  void checkTransformAgainstCorners();
+
   void checkTransform()
   {
     const vke::AABB unit = boxAt(glm::vec3(0.0f), 1.0f);
@@ -101,6 +105,34 @@ namespace {
     check(approx(mirrored.min, { -4.0f, -1.0f, -1.0f }) && approx(mirrored.max, { 0.0f, 1.0f, 1.0f }), "negative scale bounds");
 
     check(vke::transformAABB(vke::AABB {}, glm::translate(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f })).isEmpty(), "empty stays empty");
+
+    checkTransformAgainstCorners();
+  }
+
+  // An offset, non-cubic box under a non-symmetric transform, so transposed indexing would give different extents.
+  void checkTransformAgainstCorners()
+  {
+    const vke::AABB box { { 0.0f, -2.0f, -3.0f }, { 2.0f, 2.0f, 3.0f } };
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), { 4.0f, 1.0f, -2.0f });
+    transform = glm::rotate(transform, glm::radians(30.0f), { 1.0f, 0.0f, 0.0f });
+    transform = glm::rotate(transform, glm::radians(50.0f), { 0.0f, 0.0f, 1.0f });
+    transform = glm::scale(transform, { 1.0f, 0.5f, 2.0f });
+
+    vke::AABB expected;
+    for (int corner = 0; corner < 8; ++corner)
+    {
+      const glm::vec3 point {
+        (corner & 1) != 0 ? box.max.x : box.min.x,
+        (corner & 2) != 0 ? box.max.y : box.min.y,
+        (corner & 4) != 0 ? box.max.z : box.min.z
+      };
+      expected.expand(glm::vec3(transform * glm::vec4(point, 1.0f)));
+    }
+
+    const vke::AABB transformed = vke::transformAABB(box, transform);
+    check(approx(transformed.min, expected.min) && approx(transformed.max, expected.max),
+          "rotated, scaled, offset box matches its transformed corners");
   }
 
   void checkPlanes()

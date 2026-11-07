@@ -1,6 +1,10 @@
 #include "Frustum.h"
 #include <glm/geometric.hpp>
 
+// The near plane below is the [0, 1] depth form; with OpenGL's [-1, 1] range it would cull visible objects.
+static_assert(GLM_CONFIG_CLIP_CONTROL & GLM_CLIP_CONTROL_ZO_BIT,
+              "GLM must use Vulkan's 0..1 depth range: define GLM_FORCE_DEPTH_ZERO_TO_ONE before any GLM include");
+
 namespace vke {
 
   Frustum Frustum::fromViewProjection(const glm::mat4& viewProjection)
