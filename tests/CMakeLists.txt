@@ -28,3 +28,9 @@ add_custom_target(build_all
   DEPENDS ${TESTS}
   COMMENT "Building all tests"
 )
+
+# Headless checks: no engine, no GPU. They compile the sources they check instead of linking VulkanEngine, whose
+# shared library needs the Vulkan loader at load time, and run under ctest.
+add_subdirectory(cullingMath)
+add_test(NAME cullingMath COMMAND cullingMath)
+add_dependencies(build_all cullingMath)

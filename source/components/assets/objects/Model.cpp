@@ -19,6 +19,8 @@ namespace vke {
   {
     loadModel(path, glm::quat(glm::radians(rotation)));
 
+    computeBounds();
+
     createBuffers(logicalDevice, commandPool);
   }
 
@@ -28,6 +30,8 @@ namespace vke {
                const glm::quat orientation)
   {
     loadModel(path, glm::normalize(orientation));
+
+    computeBounds();
 
     createBuffers(logicalDevice, commandPool);
   }
@@ -62,6 +66,8 @@ namespace vke {
 
     m_vertices.assign(vertices.begin(), vertices.end());
     m_indices.assign(indices.begin(), indices.end());
+
+    computeBounds();
 
     createBuffers(logicalDevice, commandPool);
   }
@@ -125,6 +131,16 @@ namespace vke {
       {
         m_indices.push_back(face.mIndices[j]);
       }
+    }
+  }
+
+  void Model::computeBounds()
+  {
+    m_bounds = AABB {};
+
+    for (const Vertex& vertex : m_vertices)
+    {
+      m_bounds.expand(vertex.pos);
     }
   }
 
@@ -328,5 +344,10 @@ namespace vke {
   const std::vector<uint32_t>& Model::getIndices() const
   {
     return m_indices;
+  }
+
+  const AABB& Model::getBounds() const
+  {
+    return m_bounds;
   }
 } // namespace vke

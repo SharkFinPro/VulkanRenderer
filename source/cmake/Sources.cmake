@@ -166,9 +166,12 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
 
 # Utilities - Helper functions and common operations
 set(VULKAN_ENGINE_SOURCES_UTILITIES
+  utilities/Bounds.h
   utilities/Buffers.cpp
   utilities/Buffers.h
   utilities/EventSystem.h
+  utilities/Frustum.cpp
+  utilities/Frustum.h
   utilities/Images.cpp
   utilities/Images.h
 )
