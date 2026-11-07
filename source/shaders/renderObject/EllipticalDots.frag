@@ -9,26 +9,28 @@ layout(push_constant) uniform PushConstants {
   float blendFactor;
 } pc;
 
-layout(set = 1, binding = 0) uniform PointLightsMetadata {
+layout(set = 2, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 1, binding = 1) readonly buffer PointLights {
+layout(set = 2, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 1, binding = 2) readonly buffer SpotLights {
+layout(set = 2, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 1, binding = 3) uniform Camera {
+layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
+// Written by the shared vertex shader; only some fragment shaders need the object
+layout(location = 3) flat in uint fragObject;
 
 layout(location = 0) out vec4 outColor;
 

@@ -324,11 +324,13 @@ namespace vke {
     });
   }
 
-  void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
+  void Model::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                   const uint32_t firstInstance,
+                   const uint32_t instanceCount) const
   {
     bind(commandBuffer);
 
-    commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
+    commandBuffer->drawIndexed(static_cast<uint32_t>(m_indices.size()), instanceCount, 0, 0, firstInstance);
   }
 
   vk::AccelerationStructureKHR Model::getBLAS() const

@@ -588,6 +588,10 @@ namespace vke {
         return;
       }
 
+      // Before any pass that draws render objects, shadows included, and for ray tracing too, which rasterizes view-only
+      // objects
+      m_renderer3D->updateSceneData(&renderInfo);
+
       renderShadowMaps();
 
       const vk::Viewport viewport = {

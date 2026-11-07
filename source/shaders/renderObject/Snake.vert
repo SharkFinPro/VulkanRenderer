@@ -1,10 +1,6 @@
 #version 450
-
-layout(set = 0, binding = 0) uniform Transform {
-  mat4 model;
-  mat4 view;
-  mat4 proj;
-} transform;
+#extension GL_GOOGLE_include_directive : require
+#include "../common/SceneData.glsl"
 
 layout(push_constant) uniform PushConstants {
   float wiggle;
@@ -20,10 +16,12 @@ layout(location = 2) out vec3 fragNormal;
 
 void main()
 {
+  const uint object = uint(gl_InstanceIndex);
+
   vec3 pos = inPosition;
   pos.z += sin(pos.x * 0.5) * wiggle;
 
-  fragPos = vec3(transform.model * vec4(pos, 1.0));
+  fragPos = vec3(objects[object].model * vec4(pos, 1.0));
   fragTexCoord = inTexCoord;
-  fragNormal = mat3(transpose(inverse(transform.model))) * inNormal;
+  fragNormal = mat3(objects[object].normalMatrix) * inNormal;
 }

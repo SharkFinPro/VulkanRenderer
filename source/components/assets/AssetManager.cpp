@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 #include "fonts/Font.h"
 #include "objects/Cloud.h"
+#include "objects/Material.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "particleSystems/SmokeSystem.h"
@@ -64,10 +65,7 @@ namespace vke {
   {
     return std::make_shared<RenderObject>(
       m_logicalDevice,
-      m_descriptorAllocator,
-      *m_objectDescriptorSetLayout,
-      texture,
-      specularMap,
+      getMaterial(texture, specularMap),
       model
     );
   }
@@ -152,9 +150,9 @@ namespace vke {
     return std::make_shared<Cloud>(m_logicalDevice, *m_commandPool);
   }
 
-  vk::DescriptorSetLayout AssetManager::getObjectDescriptorSetLayout() const
+  vk::DescriptorSetLayout AssetManager::getMaterialDescriptorSetLayout() const
   {
-    return *m_objectDescriptorSetLayout;
+    return *m_materialDescriptorSetLayout;
   }
 
   vk::DescriptorSetLayout AssetManager::getFontDescriptorSetLayout() const
@@ -174,7 +172,7 @@ namespace vke {
 
   void AssetManager::createDescriptorSetLayouts()
   {
-    createObjectDescriptorSetLayout();
+    createMaterialDescriptorSetLayout();
 
     createFontDescriptorSetLayout();
 
@@ -183,44 +181,35 @@ namespace vke {
     createRayTracingDescriptorSetLayout();
   }
 
-  void AssetManager::createObjectDescriptorSetLayout()
+  void AssetManager::createMaterialDescriptorSetLayout()
   {
-    constexpr vk::DescriptorSetLayoutBinding transformLayout {
-      .binding = 0,
-      .descriptorType = vk::DescriptorType::eUniformBuffer,
-      .descriptorCount = 1,
-      .stageFlags = vk::ShaderStageFlagBits::eVertex |
-                    vk::ShaderStageFlagBits::eGeometry |
-                    vk::ShaderStageFlagBits::eFragment
-    };
-
     constexpr vk::DescriptorSetLayoutBinding textureLayout {
-      .binding = 1,
+      .binding = 0,
       .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .descriptorCount = 1,
       .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
     constexpr vk::DescriptorSetLayoutBinding specularLayout {
-      .binding = 4,
+      .binding = 1,
       .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .descriptorCount = 1,
       .stageFlags = vk::ShaderStageFlagBits::eFragment
     };
 
-    constexpr std::array objectBindings {
-      transformLayout,
+    constexpr std::array materialBindings {
       textureLayout,
       specularLayout
     };
 
-    const vk::DescriptorSetLayoutCreateInfo objectLayoutCreateInfo {
-      .bindingCount = static_cast<uint32_t>(objectBindings.size()),
-      .pBindings = objectBindings.data()
+    const vk::DescriptorSetLayoutCreateInfo materialLayoutCreateInfo {
+      .bindingCount = static_cast<uint32_t>(materialBindings.size()),
+      .pBindings = materialBindings.data()
     };
 
-    m_objectDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(objectLayoutCreateInfo);
+    m_materialDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(materialLayoutCreateInfo);
   }
+
 
   void AssetManager::createFontDescriptorSetLayout()
   {
@@ -423,6 +412,35 @@ namespace vke {
     {
       m_releasedResources.push_back(std::move(resource));
     }
+  }
+
+  std::shared_ptr<Material> AssetManager::getMaterial(const std::shared_ptr<Texture2D>& texture,
+                                                      const std::shared_ptr<Texture2D>& specularMap)
+  {
+    const std::pair<const Texture*, const Texture*> key { texture.get(), specularMap.get() };
+
+    // A live material keeps its textures alive, so a key can only be reused for other textures once its entry has expired.
+    auto& cached = m_materials[key];
+
+    if (auto material = cached.lock())
+    {
+      return material;
+    }
+
+    auto material = std::make_shared<Material>(m_logicalDevice, m_descriptorAllocator, *m_materialDescriptorSetLayout,
+                                               texture, specularMap);
+    cached = material;
+
+    if (m_materials.size() >= m_materialPruneThreshold)
+    {
+      std::erase_if(m_materials, [](const auto& entry) {
+        return entry.second.expired();
+      });
+
+      m_materialPruneThreshold = std::max<size_t>(64, m_materials.size() * 2);
+    }
+
+    return material;
   }
 
 } // namespace vke

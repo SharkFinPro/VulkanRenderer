@@ -2,6 +2,7 @@
 #extension GL_GOOGLE_include_directive : require
 #include "../common/Lighting.glsl"
 #include "../common/Perturb.glsl"
+#include "../common/SceneData.glsl"
 
 layout(push_constant) uniform BumpyCurtainPC {
   float amplitude;
@@ -11,34 +12,29 @@ layout(push_constant) uniform BumpyCurtainPC {
   float noiseFrequency;
 } pc;
 
-layout(set = 0, binding = 0) uniform Transform {
-  mat4 model;
-  mat4 view;
-  mat4 proj;
-} transform;
-
-layout(set = 1, binding = 0) uniform PointLightsMetadata {
+layout(set = 2, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 1, binding = 1) readonly buffer PointLights {
+layout(set = 2, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 1, binding = 2) readonly buffer SpotLights {
+layout(set = 2, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 1, binding = 3) uniform Camera {
+layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-layout(set = 2, binding = 0) uniform sampler3D Noise3;
+layout(set = 3, binding = 0) uniform sampler3D Noise3;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
+layout(location = 3) flat in uint fragObject;
 
 layout(location = 0) out vec4 outColor;
 
@@ -53,7 +49,7 @@ void main()
   angy *= pc.noiseAmplitude;
 
   vec3 n = PerturbNormal2(angx, angy, fragNormal);
-  n = normalize(transpose(inverse(mat3(transform.model))) * n);
+  n = normalize(mat3(objects[fragObject].normalMatrix) * n);
 
   vec3 fragColor = vec3(1, 1, 1);
 

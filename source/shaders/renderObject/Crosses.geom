@@ -1,4 +1,6 @@
 #version 450
+#extension GL_GOOGLE_include_directive : require
+#include "../common/SceneData.glsl"
 
 layout(triangles) in;
 layout(line_strip, max_vertices=78) out;
@@ -14,14 +16,9 @@ layout(push_constant) uniform CrossesPC {
   uint useChromaDepth;
 } pc;
 
-layout(set = 0, binding = 0) uniform Transform {
-  mat4 model;
-  mat4 view;
-  mat4 proj;
-} transform;
-
 layout(location = 0) in vec3 gsPos[];
 layout(location = 1) in vec3 gsNormal[];
+layout(location = 2) flat in uint gsObject[];
 
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNormal;
@@ -35,10 +32,13 @@ vec3 V0, V1, V2;
 vec3 V01, V02;
 vec3 N0, N1, N2;
 vec3 N01, N02;
+uint OBJECT;
 vec3 LIGHTPOSITION = vec3(1);
 
 void main()
 {
+  OBJECT = gsObject[0];
+
   V0 = gsPos[0].xyz;
   V1 = gsPos[1].xyz;
   V2 = gsPos[2].xyz;
@@ -83,25 +83,25 @@ void ProduceCrosses(float s, float t)
 
   // Interpolate normal vectors using the same barycentric interpolation
   vec3 n = normalize((1.0 - s - t) * N0 + s * N1 + t * N2);
-  vec3 nv = normalize(mat3(transpose(inverse(transform.model))) * n);
+  vec3 nv = normalize(mat3(objects[OBJECT].normalMatrix) * n);
 
   // Cross size
   vec3 sizeVec = vec3(pc.size);
 
   // Eye Space
-  vec4 ECposition = transform.view * transform.model * vec4(v, 1.0);
+  vec4 ECposition = scene.view * objects[OBJECT].model * vec4(v, 1.0);
   float z = -ECposition.z;
 
   // X-line cross
   vec3 leftX = v - vec3(sizeVec.x, 0.0, 0.0);
   vec3 rightX = v + vec3(sizeVec.x, 0.0, 0.0);
-  gl_Position = transform.proj * transform.view * transform.model * vec4(leftX, 1.0);
+  gl_Position = scene.proj * scene.view * objects[OBJECT].model * vec4(leftX, 1.0);
   fragPos = leftX;
   fragNormal = nv;
   fragZ = z;
   EmitVertex();
 
-  gl_Position = transform.proj * transform.view * transform.model * vec4(rightX, 1.0);
+  gl_Position = scene.proj * scene.view * objects[OBJECT].model * vec4(rightX, 1.0);
   fragPos = rightX;
   fragNormal = nv;
   fragZ = z;
@@ -111,13 +111,13 @@ void ProduceCrosses(float s, float t)
   // Y-line cross
   vec3 downY = v - vec3(0.0, sizeVec.y, 0.0);
   vec3 upY = v + vec3(0.0, sizeVec.y, 0.0);
-  gl_Position = transform.proj * transform.view * transform.model * vec4(downY, 1.0);
+  gl_Position = scene.proj * scene.view * objects[OBJECT].model * vec4(downY, 1.0);
   fragPos = downY;
   fragNormal = nv;
   fragZ = z;
   EmitVertex();
 
-  gl_Position = transform.proj * transform.view * transform.model * vec4(upY, 1.0);
+  gl_Position = scene.proj * scene.view * objects[OBJECT].model * vec4(upY, 1.0);
   fragPos = upY;
   fragNormal = nv;
   fragZ = z;
@@ -127,13 +127,13 @@ void ProduceCrosses(float s, float t)
   // Z-line cross
   vec3 backZ = v - vec3(0.0, 0.0, sizeVec.z);
   vec3 forwardZ = v + vec3(0.0, 0.0, sizeVec.z);
-  gl_Position = transform.proj * transform.view * transform.model * vec4(backZ, 1.0);
+  gl_Position = scene.proj * scene.view * objects[OBJECT].model * vec4(backZ, 1.0);
   fragPos = backZ;
   fragNormal = nv;
   fragZ = z;
   EmitVertex();
 
-  gl_Position = transform.proj * transform.view * transform.model * vec4(forwardZ, 1.0);
+  gl_Position = scene.proj * scene.view * objects[OBJECT].model * vec4(forwardZ, 1.0);
   fragPos = forwardZ;
   fragNormal = nv;
   fragZ = z;

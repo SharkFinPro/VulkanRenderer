@@ -5,9 +5,11 @@ layout(location = 1) in vec3 inNormal;
 
 layout(location = 0) out vec3 gsPos;
 layout(location = 1) out vec3 gsNormal;
+layout(location = 2) flat out uint gsObject;
 
 void main()
 {
   gsPos = inPosition;
   gsNormal = inNormal;
+  gsObject = uint(gl_InstanceIndex);
 }
