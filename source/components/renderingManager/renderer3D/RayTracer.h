@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_RAYTRACER_H
 #define VULKANPROJECT_RAYTRACER_H
 
+#include <array>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
@@ -80,6 +81,9 @@ namespace vke {
     vk::DescriptorBufferInfo m_meshInfoInfo = { nullptr, 0, vk::WholeSize };
 
     std::vector<vk::DescriptorImageInfo> m_textureImageInfos;
+
+    // Scratch for updateRTDescriptorSets, which runs every frame: 8 fixed bindings plus the texture array.
+    std::array<vk::WriteDescriptorSet, 9> m_descriptorWrites{};
 
     std::shared_ptr<UniformBuffer> m_cloudUniform;
 

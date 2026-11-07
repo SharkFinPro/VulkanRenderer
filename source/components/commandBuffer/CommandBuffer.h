@@ -47,15 +47,15 @@ namespace vke {
     void bindDescriptorSets(vk::PipelineBindPoint pipelineBindPoint,
                             const vk::PipelineLayout& pipelineLayout,
                             uint32_t firstSet,
-                            const std::vector<vk::DescriptorSet>& descriptorSets) const;
+                            const vk::ArrayProxy<const vk::DescriptorSet>& descriptorSets) const;
 
     void dispatch(uint32_t groupCountX,
                   uint32_t groupCountY,
                   uint32_t groupCountZ) const;
 
     void bindVertexBuffers(uint32_t firstBinding,
-                           const std::vector<vk::Buffer>& buffers,
-                           const std::vector<vk::DeviceSize>& offsets) const;
+                           const vk::ArrayProxy<const vk::Buffer>& buffers,
+                           const vk::ArrayProxy<const vk::DeviceSize>& offsets) const;
 
     void bindIndexBuffer(const vk::Buffer& buffer,
                          vk::DeviceSize offset,
@@ -80,29 +80,29 @@ namespace vke {
 
     void pipelineBarrier(const vk::DependencyInfo& dependencyInfo) const;
 
-    void clearAttachments(const std::vector<vk::ClearAttachment>& clearAttachments,
-                          const std::vector<vk::ClearRect>& clearRects) const;
+    void clearAttachments(const vk::ArrayProxy<const vk::ClearAttachment>& clearAttachments,
+                          const vk::ArrayProxy<const vk::ClearRect>& clearRects) const;
 
     void copyImageToBuffer(const vk::Image& srcImage,
                            vk::ImageLayout srcImageLayout,
                            const vk::Buffer& dstBuffer,
-                           const std::vector<vk::BufferImageCopy>& regions) const;
+                           const vk::ArrayProxy<const vk::BufferImageCopy>& regions) const;
 
     void copyBufferToImage(const vk::Buffer& srcBuffer,
                            const vk::Image& dstImage,
                            vk::ImageLayout dstImageLayout,
-                           const std::vector<vk::BufferImageCopy>& regions) const;
+                           const vk::ArrayProxy<const vk::BufferImageCopy>& regions) const;
 
     void blitImage(const vk::Image& srcImage,
                    vk::ImageLayout srcImageLayout,
                    const vk::Image& dstImage,
                    vk::ImageLayout dstImageLayout,
-                   const std::vector<vk::ImageBlit>& regions,
+                   const vk::ArrayProxy<const vk::ImageBlit>& regions,
                    vk::Filter filter) const;
 
     void copyBuffer(const vk::Buffer& srcBuffer,
                     const vk::Buffer& dstBuffer,
-                    const std::vector<vk::BufferCopy>& regions) const;
+                    const vk::ArrayProxy<const vk::BufferCopy>& regions) const;
 
     void buildAccelerationStructure(const vk::AccelerationStructureBuildGeometryInfoKHR& buildGeometryInfo,
                                     const vk::AccelerationStructureBuildRangeInfoKHR* buildRangeInfo) const;
@@ -119,7 +119,7 @@ namespace vke {
                    vk::ImageLayout srcImageLayout,
                    const vk::Image& dstImage,
                    vk::ImageLayout dstImageLayout,
-                   const std::vector<vk::ImageCopy>& regions) const;
+                   const vk::ArrayProxy<const vk::ImageCopy>& regions) const;
 
     friend class ImGuiInstance;
 

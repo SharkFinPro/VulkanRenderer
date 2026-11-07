@@ -122,7 +122,7 @@ namespace vke {
   {
     pipeline.bind(renderInfo->commandBuffer);
 
-    const std::vector<vk::DeviceSize> offsets = {0};
+    constexpr vk::DeviceSize offsets = 0;
     renderInfo->commandBuffer->bindVertexBuffers(0, { m_vertexBuffers[renderInfo->currentFrame] }, offsets);
 
     const LinePC pushConstants {

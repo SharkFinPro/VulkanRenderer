@@ -63,7 +63,7 @@ namespace vke {
   void CommandBuffer::bindDescriptorSets(const vk::PipelineBindPoint pipelineBindPoint,
                                          const vk::PipelineLayout& pipelineLayout,
                                          const uint32_t firstSet,
-                                         const std::vector<vk::DescriptorSet>& descriptorSets) const
+                                         const vk::ArrayProxy<const vk::DescriptorSet>& descriptorSets) const
   {
     m_commandBuffers[m_currentFrame].bindDescriptorSets(
       pipelineBindPoint,
@@ -82,8 +82,8 @@ namespace vke {
   }
 
   void CommandBuffer::bindVertexBuffers(const uint32_t firstBinding,
-                                        const std::vector<vk::Buffer>& buffers,
-                                        const std::vector<vk::DeviceSize>& offsets) const
+                                        const vk::ArrayProxy<const vk::Buffer>& buffers,
+                                        const vk::ArrayProxy<const vk::DeviceSize>& offsets) const
   {
     m_commandBuffers[m_currentFrame].bindVertexBuffers(firstBinding, buffers, offsets);
   }
@@ -117,8 +117,8 @@ namespace vke {
     m_commandBuffers[m_currentFrame].pipelineBarrier2(dependencyInfo);
   }
 
-  void CommandBuffer::clearAttachments(const std::vector<vk::ClearAttachment>& clearAttachments,
-                                       const std::vector<vk::ClearRect>& clearRects) const
+  void CommandBuffer::clearAttachments(const vk::ArrayProxy<const vk::ClearAttachment>& clearAttachments,
+                                       const vk::ArrayProxy<const vk::ClearRect>& clearRects) const
   {
     m_commandBuffers[m_currentFrame].clearAttachments(clearAttachments, clearRects);
   }
@@ -126,7 +126,7 @@ namespace vke {
   void CommandBuffer::copyImageToBuffer(const vk::Image& srcImage,
                                         const vk::ImageLayout srcImageLayout,
                                         const vk::Buffer& dstBuffer,
-                                        const std::vector<vk::BufferImageCopy>& regions) const
+                                        const vk::ArrayProxy<const vk::BufferImageCopy>& regions) const
   {
     m_commandBuffers[m_currentFrame].copyImageToBuffer(srcImage, srcImageLayout, dstBuffer, regions);
   }
@@ -134,7 +134,7 @@ namespace vke {
   void CommandBuffer::copyBufferToImage(const vk::Buffer& srcBuffer,
                                         const vk::Image& dstImage,
                                         const vk::ImageLayout dstImageLayout,
-                                        const std::vector<vk::BufferImageCopy>& regions) const
+                                        const vk::ArrayProxy<const vk::BufferImageCopy>& regions) const
   {
     m_commandBuffers[m_currentFrame].copyBufferToImage(srcBuffer, dstImage, dstImageLayout, regions);
   }
@@ -143,7 +143,7 @@ namespace vke {
                                 const vk::ImageLayout srcImageLayout,
                                 const vk::Image& dstImage,
                                 const vk::ImageLayout dstImageLayout,
-                                const std::vector<vk::ImageBlit>& regions,
+                                const vk::ArrayProxy<const vk::ImageBlit>& regions,
                                 const vk::Filter filter) const
   {
     m_commandBuffers[m_currentFrame].blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions, filter);
@@ -151,7 +151,7 @@ namespace vke {
 
   void CommandBuffer::copyBuffer(const vk::Buffer& srcBuffer,
                                  const vk::Buffer& dstBuffer,
-                                 const std::vector<vk::BufferCopy>& regions) const
+                                 const vk::ArrayProxy<const vk::BufferCopy>& regions) const
   {
     m_commandBuffers[m_currentFrame].copyBuffer(srcBuffer, dstBuffer, regions);
   }
@@ -188,7 +188,7 @@ namespace vke {
                                 const vk::ImageLayout srcImageLayout,
                                 const vk::Image& dstImage,
                                 const vk::ImageLayout dstImageLayout,
-                                const std::vector<vk::ImageCopy>& regions) const
+                                const vk::ArrayProxy<const vk::ImageCopy>& regions) const
   {
     m_commandBuffers[m_currentFrame].copyImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions);
   }
