@@ -22,7 +22,7 @@ const float Y0 = 5;
 
 void main()
 {
-  const uint object = uint(gl_InstanceIndex);
+  const uint object = objectSlot();
 
   vec3 pos = inPosition;
   pos.z = pc.amplitude * (Y0 - pos.y) * sin ( 2. * PI * pos.x * pc.period);

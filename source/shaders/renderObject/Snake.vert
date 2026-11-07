@@ -16,7 +16,7 @@ layout(location = 2) out vec3 fragNormal;
 
 void main()
 {
-  const uint object = uint(gl_InstanceIndex);
+  const uint object = objectSlot();
 
   vec3 pos = inPosition;
   pos.z += sin(pos.x * 0.5) * wiggle;

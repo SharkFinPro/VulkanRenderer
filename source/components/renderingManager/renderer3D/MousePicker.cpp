@@ -1,5 +1,6 @@
 #include "MousePicker.h"
 #include "../../assets/objects/Material.h"
+#include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -120,45 +121,42 @@ namespace vke {
 
   void MousePicker::render(const RenderInfo* renderInfo,
                            const std::shared_ptr<PipelineManager>& pipelineManager,
-                           const vk::DescriptorSet sceneDescriptorSet) const
+                           const vk::DescriptorSet sceneDescriptorSet,
+                           const std::span<const DrawRun> plainRuns,
+                           const std::span<const DrawRun> alphaTestedRuns) const
   {
     m_viewMatrix = renderInfo->viewMatrix;
     m_projectionMatrix = renderInfo->getProjectionMatrix();
 
-    renderEntries(renderInfo, pipelineManager, sceneDescriptorSet, false);
-    renderEntries(renderInfo, pipelineManager, sceneDescriptorSet, true);
+    renderRuns(renderInfo, pipelineManager, sceneDescriptorSet, plainRuns, false);
+    renderRuns(renderInfo, pipelineManager, sceneDescriptorSet, alphaTestedRuns, true);
   }
 
-  void MousePicker::renderEntries(const RenderInfo* renderInfo,
-                                  const std::shared_ptr<PipelineManager>& pipelineManager,
-                                  const vk::DescriptorSet sceneDescriptorSet,
-                                  const bool alphaTested) const
+  void MousePicker::renderRuns(const RenderInfo* renderInfo,
+                               const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const vk::DescriptorSet sceneDescriptorSet,
+                               const std::span<const DrawRun> runs,
+                               const bool alphaTested) const
   {
+    if (runs.empty())
+    {
+      return;
+    }
+
     const auto pipelineType = alphaTested ? PipelineType::mousePickingAlphaTested : PipelineType::mousePicking;
-    bool bound = false;
+
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(renderInfo->commandBuffer, pipelineType, sceneDescriptorSet, 0);
 
     // Only alpha-tested picking samples a texture, so only it needs a material set
     const Material* boundMaterial = nullptr;
 
-    for (const auto& [object, slot, entryAlphaTested] : m_renderObjectsToMousePick)
+    for (const DrawRun& run : runs)
     {
-      if (entryAlphaTested != alphaTested)
+      if (alphaTested && run.material != boundMaterial)
       {
-        continue;
-      }
-
-      if (!bound)
-      {
-        pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
-
-        pipelineManager->bindGraphicsPipelineDescriptorSet(renderInfo->commandBuffer, pipelineType, sceneDescriptorSet, 0);
-
-        bound = true;
-      }
-
-      if (alphaTested && object->getMaterial().get() != boundMaterial)
-      {
-        boundMaterial = object->getMaterial().get();
+        boundMaterial = run.material;
 
         pipelineManager->bindGraphicsPipelineDescriptorSet(
           renderInfo->commandBuffer,
@@ -168,7 +166,7 @@ namespace vke {
         );
       }
 
-      object->draw(renderInfo->commandBuffer, slot);
+      run.model->draw(renderInfo->commandBuffer, run.firstInstance, run.instanceCount);
     }
   }
 

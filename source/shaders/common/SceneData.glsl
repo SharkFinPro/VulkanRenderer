@@ -1,5 +1,6 @@
-// Scene set (set 0): the per-frame object table and camera, shared by every object pipeline. An object's slot in the
-// table is passed as the draw's first instance, so gl_InstanceIndex in the vertex stage is the index into objects.
+// Scene set (set 0): the per-frame object table, draw slots and camera, shared by every object pipeline. A draw's first
+// instance indexes drawSlots, whose entry is the object's slot in the table, so one instanced draw covers several
+// objects. Vertex shaders get their object's slot with objectSlot(); later stages receive it as a flat varying.
 // Keep ObjectData in step with the C++ struct in ObjectTable.h (144 bytes).
 struct ObjectData {
   mat4 model;
@@ -13,6 +14,13 @@ struct ObjectData {
 layout(std430, set = 0, binding = 0) readonly buffer ObjectTable {
   ObjectData objects[];
 };
+
+layout(std430, set = 0, binding = 2) readonly buffer DrawSlots {
+  uint drawSlots[];
+};
+
+// A macro rather than a function, so including this in a stage without gl_InstanceIndex still compiles.
+#define objectSlot() drawSlots[gl_InstanceIndex]
 
 layout(std140, set = 0, binding = 1) uniform SceneCamera {
   mat4 view;

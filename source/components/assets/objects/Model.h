@@ -33,8 +33,8 @@ namespace vke {
           std::span<const Vertex> vertices,
           std::span<const uint32_t> indices);
 
-    // firstInstance reaches the vertex shader as gl_InstanceIndex, which the object pipelines use as the index of the
-    // draw in the object table.
+    // Binds the buffers and draws instanceCount instances. firstInstance reaches the vertex shader as gl_InstanceIndex,
+    // which the object pipelines use as the index into the frame's draw slots.
     void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
               uint32_t firstInstance = 0,
               uint32_t instanceCount = 1) const;

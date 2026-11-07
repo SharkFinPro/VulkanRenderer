@@ -3,6 +3,7 @@
 #include "ObjectTable.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/objects/Material.h"
+#include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../assets/textures/Texture3D.h"
@@ -20,6 +21,7 @@
 #include <glm/matrix.hpp>
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <iterator>
@@ -102,7 +104,7 @@ namespace vke {
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const uint32_t currentFrame) const
   {
-    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened,
+    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, m_shadowRuns,
                                       m_sceneDescriptorSet->getDescriptorSet(currentFrame), currentFrame);
   }
 
@@ -110,7 +112,14 @@ namespace vke {
   {
     const uint32_t currentFrame = renderInfo->currentFrame;
 
-    if (m_objectTable->reserve(currentFrame, m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size()))
+    const size_t objectCount = m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size();
+
+    // Every pass's list: all submissions for the shadow maps, then again split among the pipelines, the pickable ones
+    // and the outlines
+    const size_t slotCount = 2 * m_renderObjectsToRenderFlattened.size() +
+                             m_mousePicker->m_renderObjectsToMousePick.size() + m_outlineObjects.size();
+
+    if (m_objectTable->reserve(currentFrame, objectCount, slotCount))
     {
       // Only this frame's set: the others may still be in use by frames in flight.
       m_sceneDescriptorSet->updateDescriptorSet(currentFrame, [this](const vk::DescriptorSet descriptorSet, const size_t frame)
@@ -119,20 +128,11 @@ namespace vke {
       });
     }
 
-    ObjectData* entries = m_objectTable->getEntries(currentFrame);
+    writeObjectTable(currentFrame);
 
-    for (size_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
-    {
-      entries[slot] = makeObjectData(*m_renderObjectsToRenderFlattened[slot], m_pickIds[slot]);
-    }
-
-    // The outlines' entries follow the render submissions', as renderOutlineMask expects
-    entries += m_renderObjectsToRenderFlattened.size();
-
-    for (size_t i = 0; i < m_outlineObjects.size(); ++i)
-    {
-      entries[i] = makeObjectData(*m_outlineObjects[i].first, 0);
-    }
+    // slotCount is exact: each submission is in the shadow list and in one pipeline's list
+    [[maybe_unused]] const uint32_t slotsWritten = buildDrawLists(m_objectTable->getDrawSlots(currentFrame));
+    assert(slotsWritten <= m_objectTable->getDrawSlotCapacity(currentFrame));
 
     const RenderInfo sceneRenderInfo = makeSceneRenderInfo(renderInfo);
 
@@ -142,6 +142,128 @@ namespace vke {
     };
 
     m_cameraUniform->update(currentFrame, &camera);
+  }
+
+  void Renderer3D::writeObjectTable(const uint32_t currentFrame)
+  {
+    ObjectData* entries = m_objectTable->getEntries(currentFrame);
+
+    m_slotKeys.clear();
+
+    for (size_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+    {
+      const RenderObject& object = *m_renderObjectsToRenderFlattened[slot];
+
+      entries[slot] = makeObjectData(object, m_pickIds[slot]);
+
+      m_slotKeys.push_back({ object.getModel().get(), object.getMaterial().get() });
+    }
+
+    // The outlines' entries follow the render submissions'
+    entries += m_renderObjectsToRenderFlattened.size();
+
+    for (size_t i = 0; i < m_outlineObjects.size(); ++i)
+    {
+      const RenderObject& object = *m_outlineObjects[i].first;
+
+      entries[i] = makeObjectData(object, 0);
+
+      m_slotKeys.push_back({ object.getModel().get(), object.getMaterial().get() });
+    }
+  }
+
+  uint32_t Renderer3D::buildDrawLists(uint32_t* drawSlots)
+  {
+    uint32_t offset = buildShadowRuns(drawSlots, 0);
+
+    offset = buildPipelineRuns(drawSlots, offset);
+
+    offset = buildPickRuns(drawSlots, offset);
+
+    return buildOutlineRuns(drawSlots, offset);
+  }
+
+  DrawItem Renderer3D::makeDrawItem(const uint32_t slot,
+                                    const bool byMaterial,
+                                    const uint32_t maskValue) const
+  {
+    const SlotKey& key = m_slotKeys[slot];
+
+    return { key.model, byMaterial ? key.material : nullptr, maskValue, slot };
+  }
+
+  uint32_t Renderer3D::buildShadowRuns(uint32_t* drawSlots,
+                                       const uint32_t offset)
+  {
+    m_drawItems.clear();
+    m_shadowRuns.clear();
+
+    for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+    {
+      m_drawItems.push_back(makeDrawItem(slot, false, 0));
+    }
+
+    return buildDrawRuns(m_drawItems, drawSlots, offset, m_shadowRuns);
+  }
+
+  uint32_t Renderer3D::buildPipelineRuns(uint32_t* drawSlots,
+                                         uint32_t offset)
+  {
+    for (auto& [pipelineType, draws] : m_renderObjectsToRender)
+    {
+      m_drawItems.clear();
+      draws.runs.clear();
+
+      for (const uint32_t slot : draws.slots)
+      {
+        m_drawItems.push_back(makeDrawItem(slot, true, 0));
+      }
+
+      offset = buildDrawRuns(m_drawItems, drawSlots, offset, draws.runs);
+    }
+
+    return offset;
+  }
+
+  uint32_t Renderer3D::buildPickRuns(uint32_t* drawSlots,
+                                     uint32_t offset)
+  {
+    m_pickRuns.clear();
+    m_pickAlphaTestedRuns.clear();
+
+    for (const bool alphaTested : { false, true })
+    {
+      m_drawItems.clear();
+
+      for (const auto& entry : m_mousePicker->m_renderObjectsToMousePick)
+      {
+        if (entry.alphaTested == alphaTested)
+        {
+          m_drawItems.push_back(makeDrawItem(entry.slot, alphaTested, 0));
+        }
+      }
+
+      offset = buildDrawRuns(m_drawItems, drawSlots, offset, alphaTested ? m_pickAlphaTestedRuns : m_pickRuns);
+    }
+
+    return offset;
+  }
+
+  uint32_t Renderer3D::buildOutlineRuns(uint32_t* drawSlots,
+                                        const uint32_t offset)
+  {
+    m_drawItems.clear();
+    m_outlineRuns.clear();
+
+    // The outlines' table entries follow the render submissions'
+    const auto firstSlot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
+
+    for (uint32_t i = 0; i < m_outlineObjects.size(); ++i)
+    {
+      m_drawItems.push_back(makeDrawItem(firstSlot + i, false, m_outlineObjects[i].second));
+    }
+
+    return buildDrawRuns(m_drawItems, drawSlots, offset, m_outlineRuns);
   }
 
   void Renderer3D::renderMousePicking(const RenderInfo* renderInfo,
@@ -158,7 +280,8 @@ namespace vke {
       .farPlane = m_farPlane
     };
 
-    m_mousePicker->render(&renderInfoMousePicking, pipelineManager, m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
+    m_mousePicker->render(&renderInfoMousePicking, pipelineManager,
+                          m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame), m_pickRuns, m_pickAlphaTestedRuns);
   }
 
   void Renderer3D::recordMousePickingReadback(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -190,21 +313,26 @@ namespace vke {
       0
     );
 
-    // The outlines' table entries follow the render submissions'
-    auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
+    // There is no depth test, so the outline of an object shows through whatever is in front of it. The runs are
+    // sorted by mask value, which is pushed whenever it changes.
+    uint32_t pushedMaskValue = 0;
 
-    // There is no depth test, so the outline of an object shows through whatever is in front of it
-    for (const auto& [object, maskValue] : m_outlineObjects)
+    for (const DrawRun& run : m_outlineRuns)
     {
-      pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
-        renderInfo->commandBuffer,
-        PipelineType::outlineMask,
-        vk::ShaderStageFlagBits::eFragment,
-        0,
-        maskValue
-      );
+      if (run.maskValue != pushedMaskValue)
+      {
+        pushedMaskValue = run.maskValue;
 
-      object->draw(renderInfo->commandBuffer, slot++);
+        pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
+          renderInfo->commandBuffer,
+          PipelineType::outlineMask,
+          vk::ShaderStageFlagBits::eFragment,
+          0,
+          pushedMaskValue
+        );
+      }
+
+      run.model->draw(renderInfo->commandBuffer, run.firstInstance, run.instanceCount);
     }
   }
 
@@ -265,14 +393,14 @@ namespace vke {
   {
     const RenderInfo renderInfo3D = makeSceneRenderInfo(renderInfo);
 
-    for (const auto& [pipelineType, slots] : m_renderObjectsToRender)
+    for (const auto& [pipelineType, draws] : m_renderObjectsToRender)
     {
-      if (slots.empty() || !isViewOnlyPipeline(pipelineType))
+      if (draws.runs.empty() || !isViewOnlyPipeline(pipelineType))
       {
         continue;
       }
 
-      renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, &slots);
+      renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, draws.runs);
     }
 
     renderLinesAndGrid(&renderInfo3D, pipelineManager);
@@ -368,10 +496,16 @@ namespace vke {
 
   void Renderer3D::createNewFrame()
   {
-    for (auto& [_, objects] : m_renderObjectsToRender)
+    for (auto& [_, draws] : m_renderObjectsToRender)
     {
-      objects.clear();
+      draws.slots.clear();
+      draws.runs.clear();
     }
+
+    m_shadowRuns.clear();
+    m_pickRuns.clear();
+    m_pickAlphaTestedRuns.clear();
+    m_outlineRuns.clear();
 
     m_renderObjectsToRenderFlattened.clear();
     m_pickIds.clear();
@@ -452,7 +586,7 @@ namespace vke {
   {
     const auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
 
-    m_renderObjectsToRender[pipelineType].push_back(slot);
+    m_renderObjectsToRender[pipelineType].slots.push_back(slot);
 
     m_renderObjectsToRenderFlattened.push_back(renderObject);
 
@@ -702,7 +836,7 @@ namespace vke {
     std::vector<vk::DescriptorPoolSize> poolSizes {{
       {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 256},
       {vk::DescriptorType::eStorageImage, m_logicalDevice->getMaxFramesInFlight() * 4},
-      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 12},
+      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 14},
     }};
 
     poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 7});
@@ -725,14 +859,14 @@ namespace vke {
                                                  const std::shared_ptr<PipelineManager>& pipelineManager,
                                                  const std::shared_ptr<LightingManager>& lightingManager) const
   {
-    for (const auto& [pipelineType, slots] : m_renderObjectsToRender)
+    for (const auto& [pipelineType, draws] : m_renderObjectsToRender)
     {
-      if (slots.empty())
+      if (draws.runs.empty())
       {
         continue;
       }
 
-      renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &slots);
+      renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, draws.runs);
     }
   }
 
@@ -771,7 +905,7 @@ namespace vke {
                                        const std::shared_ptr<LightingManager>& lightingManager,
                                        const RenderInfo* renderInfo,
                                        const PipelineType pipelineType,
-                                       const std::vector<uint32_t>* slots) const
+                                       const std::vector<DrawRun>& runs) const
   {
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
 
@@ -779,16 +913,14 @@ namespace vke {
 
     bindDescriptorSets(pipelineManager, lightingManager, renderInfo->commandBuffer, pipelineType, renderInfo->currentFrame);
 
-    // Objects with the same textures share a material, so its set is only bound when it changes
+    // The runs are sorted by material, so a material's set is bound once however many models use it
     const Material* boundMaterial = nullptr;
 
-    for (const uint32_t slot : *slots)
+    for (const DrawRun& run : runs)
     {
-      const RenderObject& object = *m_renderObjectsToRenderFlattened[slot];
-
-      if (object.getMaterial().get() != boundMaterial)
+      if (run.material != boundMaterial)
       {
-        boundMaterial = object.getMaterial().get();
+        boundMaterial = run.material;
 
         pipelineManager->bindGraphicsPipelineDescriptorSet(
           renderInfo->commandBuffer,
@@ -798,7 +930,7 @@ namespace vke {
         );
       }
 
-      object.draw(renderInfo->commandBuffer, slot);
+      run.model->draw(renderInfo->commandBuffer, run.firstInstance, run.instanceCount);
     }
   }
 
@@ -894,15 +1026,22 @@ namespace vke {
                     vk::ShaderStageFlagBits::eFragment
     };
 
+    constexpr vk::DescriptorSetLayoutBinding drawSlotsLayout {
+      .binding = 2,
+      .descriptorType = vk::DescriptorType::eStorageBuffer,
+      .descriptorCount = 1,
+      .stageFlags = vk::ShaderStageFlagBits::eVertex
+    };
+
     m_sceneDescriptorSet = std::make_shared<DescriptorSet>(
-      m_logicalDevice, m_descriptorPool, std::vector{ objectTableLayout, cameraLayout });
+      m_logicalDevice, m_descriptorPool, std::vector{ objectTableLayout, cameraLayout, drawSlotsLayout });
     m_sceneDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
     {
       return getSceneDescriptorWrites(descriptorSet, frame);
     });
   }
 
-  std::array<vk::WriteDescriptorSet, 2> Renderer3D::getSceneDescriptorWrites(const vk::DescriptorSet descriptorSet,
+  std::array<vk::WriteDescriptorSet, 3> Renderer3D::getSceneDescriptorWrites(const vk::DescriptorSet descriptorSet,
                                                                              const size_t frame) const
   {
     const vk::WriteDescriptorSet objectTableWrite {
@@ -913,7 +1052,15 @@ namespace vke {
       .pBufferInfo = &m_objectTable->getBufferInfo(static_cast<uint32_t>(frame))
     };
 
-    return {{ objectTableWrite, m_cameraUniform->getDescriptorSet(1, descriptorSet, frame) }};
+    const vk::WriteDescriptorSet drawSlotsWrite {
+      .dstSet = descriptorSet,
+      .dstBinding = 2,
+      .descriptorCount = 1,
+      .descriptorType = vk::DescriptorType::eStorageBuffer,
+      .pBufferInfo = &m_objectTable->getDrawSlotsBufferInfo(static_cast<uint32_t>(frame))
+    };
+
+    return {{ objectTableWrite, m_cameraUniform->getDescriptorSet(1, descriptorSet, frame), drawSlotsWrite }};
   }
 
   void Renderer3D::createDescriptorSets()
@@ -998,7 +1145,7 @@ namespace vke {
 
   bool Renderer3D::pipelineIsActive(const PipelineType pipelineType) const
   {
-    return m_renderObjectsToRender.contains(pipelineType) && !m_renderObjectsToRender.at(pipelineType).empty();
+    return m_renderObjectsToRender.contains(pipelineType) && !m_renderObjectsToRender.at(pipelineType).slots.empty();
   }
 
   void Renderer3D::displayGui()

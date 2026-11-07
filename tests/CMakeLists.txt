@@ -34,3 +34,7 @@ add_custom_target(build_all
 add_subdirectory(cullingMath)
 add_test(NAME cullingMath COMMAND cullingMath)
 add_dependencies(build_all cullingMath)
+
+add_subdirectory(drawRuns)
+add_test(NAME drawRuns COMMAND drawRuns)
+add_dependencies(build_all drawRuns)

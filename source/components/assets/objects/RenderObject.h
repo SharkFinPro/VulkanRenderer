@@ -7,7 +7,6 @@
 
 namespace vke {
 
-  class CommandBuffer;
   class LogicalDevice;
   class Material;
   class Model;
@@ -20,10 +19,6 @@ namespace vke {
                  std::shared_ptr<Model> model);
 
     ~RenderObject();
-
-    // slot is the object's index in the frame's object table; the shaders read it as gl_InstanceIndex.
-    void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
-              uint32_t slot) const;
 
     void setPosition(glm::vec3 position);
     void setScale(glm::vec3 scale);
