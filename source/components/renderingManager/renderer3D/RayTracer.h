@@ -23,7 +23,6 @@ namespace vke {
   class RenderObject;
   class Texture;
   class UniformBuffer;
-  struct Vertex;
 
   struct MeshInfo {
     uint32_t vertexOffset = 0;
@@ -67,8 +66,8 @@ namespace vke {
     };
 
     // Resources written every frame, one set per frame in flight. A set is only touched again once
-    // FrameScheduler::beginFrame has waited for the frame that last used it, so it is reused in place and
-    // only reallocated when the scene outgrows it.
+    // FrameScheduler::beginFrame has waited for the frame that last used it, so it is rewritten in place. It
+    // is only reallocated when the scene outgrows it, and the replaced buffers are retired.
     struct FrameResources {
       // Instances the TLAS buffers are sized for.
       uint32_t instanceCapacity = 0;
@@ -122,6 +121,10 @@ namespace vke {
 
     std::shared_ptr<UniformBuffer> m_cloudUniform;
 
+    // Orders this frame's TLAS build (and any merged geometry upload) before the trace.
+    static void recordTraceInputBarrier(const RenderInfo* renderInfo,
+                                        bool copiedGeometry);
+
     // Records a build of this frame's TLAS into the frame's command buffer.
     void buildTLAS(const RenderInfo* renderInfo,
                    const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
@@ -130,9 +133,22 @@ namespace vke {
     void reserveTLAS(FrameResources& frame,
                      uint32_t instanceCount) const;
 
+    [[nodiscard]] vk::AccelerationStructureBuildSizesInfoKHR getTLASBuildSizes(uint32_t instanceCount) const;
+
+    void recreateTLAS(FrameResources& frame,
+                      vk::DeviceSize size) const;
+
+    void reserveScratch(FrameResources& frame,
+                        vk::DeviceSize size) const;
+
     void populateInstances(vk::AccelerationStructureInstanceKHR* instances,
                            const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
                            const std::shared_ptr<Cloud>& cloud) const;
+
+    [[nodiscard]] vk::AccelerationStructureInstanceKHR makeInstance(const glm::mat4& modelMatrix,
+                                                                    vk::AccelerationStructureKHR blas,
+                                                                    uint32_t instanceIndex,
+                                                                    uint32_t hitGroupOffset) const;
 
     // Returns true when it recorded a copy into the merged geometry buffers.
     [[nodiscard]] bool updateMergedGeometry(const RenderInfo* renderInfo,
@@ -140,8 +156,17 @@ namespace vke {
 
     [[nodiscard]] bool mergedGeometryIsCurrent(const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const;
 
+    [[nodiscard]] std::vector<std::shared_ptr<Model>> collectModelsToMerge(const std::vector<std::shared_ptr<RenderObject>>& renderObjects) const;
+
     void rebuildMergedGeometry(const RenderInfo* renderInfo,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+
+    // Records a copy of data into a new device-local storage buffer, through a staging buffer retired with
+    // the frame.
+    void uploadStorageBuffer(const RenderInfo* renderInfo,
+                             const void* data,
+                             vk::DeviceSize size,
+                             DeviceBuffer& outBuffer) const;
 
     void updateMeshInfos(FrameResources& frame,
                          const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
@@ -155,6 +180,12 @@ namespace vke {
     void updateRTDescriptorSet(const ImageResource& imageResource,
                                const ImageResource& depthImageResource,
                                uint32_t currentFrame);
+
+    // Fills m_descriptorWrites for one frame's set and returns how many writes it holds.
+    [[nodiscard]] uint32_t fillRTDescriptorWrites(vk::DescriptorSet descriptorSet,
+                                                  const ImageResource& imageResource,
+                                                  const ImageResource& depthImageResource,
+                                                  uint32_t currentFrame);
 
     void updateRTDescriptorSetData(const RenderInfo* renderInfo);
   };
