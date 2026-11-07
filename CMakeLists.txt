@@ -86,6 +86,9 @@ add_subdirectory(source)
 if (VulkanProject_BUILD_TESTS)
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
+  # Headless checks are registered with add_test; this must be in the top-level directory for ctest at the build root.
+  enable_testing()
+
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests/assets/" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/")
 
   add_subdirectory(tests)

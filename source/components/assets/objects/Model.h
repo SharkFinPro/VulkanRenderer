@@ -1,6 +1,7 @@
 #ifndef VKE_MODEL_H
 #define VKE_MODEL_H
 
+#include "../../../utilities/Bounds.h"
 #include "../../pipelines/implementations/vertexInputs/Vertex.h"
 #include <assimp/mesh.h>
 #include <glm/gtc/quaternion.hpp>
@@ -40,9 +41,13 @@ namespace vke {
 
     [[nodiscard]] const std::vector<uint32_t>& getIndices() const;
 
+    // Local-space bounds of the vertex positions.
+    [[nodiscard]] const AABB& getBounds() const;
+
   private:
     std::vector<Vertex> m_vertices;
     std::vector<uint32_t> m_indices;
+    AABB m_bounds;
 
     vk::raii::Buffer m_vertexBuffer = nullptr;
     vk::raii::DeviceMemory m_vertexBufferMemory = nullptr;
@@ -61,6 +66,8 @@ namespace vke {
                       glm::quat orientation);
 
     void loadIndices(const aiMesh* mesh);
+
+    void computeBounds();
 
     void createBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
                        const vk::CommandPool& commandPool);
