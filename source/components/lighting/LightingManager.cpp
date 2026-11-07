@@ -1,3 +1,5 @@
+#include <array>
+#include <type_traits>
 #include "LightingManager.h"
 #include "lights/Light.h"
 #include "lights/PointLight.h"
@@ -22,6 +24,12 @@ namespace {
   // in-flight frames. Lights beyond the cap are ignored.
   constexpr uint32_t MAX_POINT_LIGHTS = 64;
   constexpr uint32_t MAX_SPOT_LIGHTS = 64;
+
+  // m_lightUniformScratch is plain operator new storage, which is only aligned to the default new alignment.
+  static_assert(alignof(vke::PointLightUniform) <= __STDCPP_DEFAULT_NEW_ALIGNMENT__ &&
+                alignof(vke::SpotLightUniform) <= __STDCPP_DEFAULT_NEW_ALIGNMENT__,
+                "light uniforms need over-aligned scratch storage");
+  static_assert(std::is_trivially_copyable_v<vke::PointLightUniform> && std::is_trivially_copyable_v<vke::SpotLightUniform>);
 
   constexpr vk::DescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 0,
