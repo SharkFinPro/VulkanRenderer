@@ -39,7 +39,7 @@ namespace vke {
 
     if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
-      m_rayTracer = std::make_unique<RayTracer>(m_logicalDevice, m_assetManager, m_commandPool, m_descriptorPool);
+      m_rayTracer = std::make_unique<RayTracer>(m_logicalDevice, m_assetManager, m_descriptorPool);
     }
   }
 

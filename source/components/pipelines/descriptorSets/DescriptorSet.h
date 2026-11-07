@@ -46,6 +46,15 @@ namespace vke {
       }
     }
 
+    // As updateDescriptorSets, for one frame's set only: per-frame data can be rewritten while the other
+    // frames' sets are still in use by the GPU.
+    template<typename WriteGetter>
+    void updateDescriptorSet(const size_t frame,
+                             WriteGetter&& getWriteDescriptorSets) const
+    {
+      applyWriteDescriptorSets(getWriteDescriptorSets(m_descriptorSets[frame], frame));
+    }
+
     [[nodiscard]] vk::DescriptorSetLayout getDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSet getDescriptorSet(size_t frame) const;
