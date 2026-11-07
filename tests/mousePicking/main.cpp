@@ -73,7 +73,7 @@ int main()
 
     while (renderer.isActive())
     {
-      displayGui(renderer.getImGuiInstance(), lights, objects, renderer.getRenderingManager());
+      displayGui(renderer.getImGuiInstance(), lights, objects, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
       if (renderer.getRenderingManager()->getRenderer3D()->getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
       {

@@ -45,7 +45,7 @@ int main()
     while (renderer.isActive())
     {
       // Render GUI
-      displayGui(gui, lights, { object }, renderer.getRenderingManager());
+      displayGui(gui, lights, { object }, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
       // Render Objects
       r3d->renderObject(object, vke::PipelineType::crosses);

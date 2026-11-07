@@ -75,6 +75,7 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/logicalDevice/LogicalDevice.h
 
   # Physical Device Management
+  components/physicalDevice/GpuCapabilities.h
   components/physicalDevice/PhysicalDevice.cpp
   components/physicalDevice/PhysicalDevice.h
 

@@ -140,8 +140,9 @@ namespace vke {
       m_logicalDevice,
       AABB_BUFFER_SIZE,
       vk::BufferUsageFlagBits::eTransferDst |
-      vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-      vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      (m_logicalDevice->getPhysicalDevice()->supportsRayTracing()
+        ? vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress
+        : vk::BufferUsageFlags{}),
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_aabbBuffer,
       m_aabbBufferMemory

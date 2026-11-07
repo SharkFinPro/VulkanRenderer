@@ -82,7 +82,7 @@ void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::ImGuiInstance>& gui)
 {
   // Render GUI
-  displayGui(gui, {}, {}, renderer.getRenderingManager());
+  displayGui(gui, {}, {}, renderer.getRenderingManager(), renderer.getGpuCapabilities());
 
   // Render Frame
   renderer.render();
