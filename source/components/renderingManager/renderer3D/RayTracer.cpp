@@ -20,7 +20,6 @@
 #include <bit>
 #include <cstdint>
 #include <cstring>
-#include <ranges>
 #include <utility>
 
 namespace vke {
@@ -397,7 +396,8 @@ namespace vke {
     std::vector<std::shared_ptr<Model>> models;
     models.reserve(m_modelGeometry.size() + renderObjects.size());
 
-    for (const auto& geometry : m_modelGeometry | std::views::values)
+    // A plain loop: clang 14 with libstdc++ 12 rejects std::views::values over an unordered_map.
+    for (const auto& [modelAddress, geometry] : m_modelGeometry)
     {
       if (auto model = geometry.model.lock())
       {
