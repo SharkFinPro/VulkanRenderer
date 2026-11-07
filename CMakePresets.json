@@ -40,19 +40,5 @@
         "VKE_PROFILE": "ON"
       }
     }
-  ],
-  "buildPresets": [
-    {
-      "name": "vke-debug",
-      "configurePreset": "vke-debug"
-    },
-    {
-      "name": "vke-release",
-      "configurePreset": "vke-release"
-    },
-    {
-      "name": "vke-profile",
-      "configurePreset": "vke-profile"
-    }
   ]
 }
