@@ -4,6 +4,7 @@ set(TESTS
   crosses
   cubeMap
   magicLens
+  manyObjects
   mousePicking
   objectLoading
   plants
