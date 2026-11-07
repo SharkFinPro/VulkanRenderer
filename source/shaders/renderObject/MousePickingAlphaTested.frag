@@ -2,13 +2,10 @@
 #extension GL_GOOGLE_include_directive : require
 #include "../common/AlphaCutoff.glsl"
 
-layout(set = 0, binding = 1) uniform sampler2D texSampler;
-
-layout(push_constant) uniform PushConstants {
-  uint objectID;
-};
+layout(set = 1, binding = 0) uniform sampler2D texSampler;
 
 layout(location = 0) in vec2 fragTexCoord;
+layout(location = 1) flat in uint objectID;
 
 layout(location = 0) out uvec4 outColor;
 

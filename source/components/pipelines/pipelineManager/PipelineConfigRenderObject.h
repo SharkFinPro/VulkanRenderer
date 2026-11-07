@@ -9,7 +9,8 @@
 namespace vke::PipelineConfig {
 
   inline GraphicsPipelineOptions createTexturedPlanePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                    vk::DescriptorSetLayout objectDescriptorSetLayout)
+                                                                    vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                    vk::DescriptorSetLayout materialDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -27,13 +28,15 @@ namespace vke::PipelineConfig {
         .viewportState = gps::viewportState
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout
       }
     };
   }
 
   inline GraphicsPipelineOptions createMagnifyWhirlMosaicPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                         vk::DescriptorSetLayout objectDescriptorSetLayout)
+                                                                         vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                         vk::DescriptorSetLayout materialDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -58,12 +61,13 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout
       }
     };
   }
 
-  inline GraphicsPipelineOptions createMousePickingPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
+  inline GraphicsPipelineOptions createMousePickingPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -80,23 +84,19 @@ namespace vke::PipelineConfig {
         .vertexInputState = gps::vertexInputStateVertexPositionOnly,
         .viewportState = gps::viewportState
       },
-      .pushConstantRanges {
-        {
-          .stageFlags = vk::ShaderStageFlagBits::eFragment,
-          .offset = 0,
-          .size = sizeof(uint32_t)
-        }
-      },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout
+        sceneDescriptorSetLayout
       },
       .colorFormat = vk::Format::eR32G32B32A32Uint
     };
   }
 
-  inline GraphicsPipelineOptions createMousePickingAlphaTestedPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
+  inline GraphicsPipelineOptions createMousePickingAlphaTestedPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                              vk::DescriptorSetLayout materialDescriptorSetLayout)
   {
-    auto options = createMousePickingPipelineOptions(objectDescriptorSetLayout);
+    auto options = createMousePickingPipelineOptions(sceneDescriptorSetLayout);
+
+    options.descriptorSetLayouts.push_back(materialDescriptorSetLayout);
 
     options.shaders.vertexShader = "assets/shaders/renderObject/MousePickingAlphaTested.vert.spv";
     options.shaders.fragmentShader = "assets/shaders/renderObject/MousePickingAlphaTested.frag.spv";
@@ -106,7 +106,7 @@ namespace vke::PipelineConfig {
     return options;
   }
 
-  inline GraphicsPipelineOptions createOutlineMaskPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
+  inline GraphicsPipelineOptions createOutlineMaskPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -131,14 +131,14 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout
+        sceneDescriptorSetLayout
       },
       .colorFormat = vk::Format::eR8Uint,
       .hasDepthAttachment = false
     };
   }
 
-  inline GraphicsPipelineOptions createShadowMapPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout)
+  inline GraphicsPipelineOptions createShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -162,14 +162,14 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout
+        sceneDescriptorSetLayout
       },
       .colorFormat = vk::Format::eUndefined,
       .depthFormat = Light::s_shadowMapFormat
     };
   }
 
-  inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(vk::DescriptorSetLayout objectDescriptorSetLayout,
+  inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout,
                                                                           vk::DescriptorSetLayout pointLightDescriptorSetLayout)
   {
     return {
@@ -195,7 +195,7 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
         pointLightDescriptorSetLayout
       },
       .colorFormat = vk::Format::eUndefined,
@@ -205,7 +205,8 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                     vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                                     vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                     vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                                      vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
@@ -231,14 +232,16 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         lightingDescriptorSetLayout
       }
     };
   }
 
   inline GraphicsPipelineOptions createCrossesPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                               vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
@@ -265,14 +268,16 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         lightingDescriptorSetLayout
       }
     };
   }
 
   inline GraphicsPipelineOptions createCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                               vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
@@ -298,14 +303,16 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         lightingDescriptorSetLayout
       }
     };
   }
 
   inline GraphicsPipelineOptions createObjectsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                               vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
@@ -324,14 +331,16 @@ namespace vke::PipelineConfig {
         .viewportState = gps::viewportState
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         lightingDescriptorSetLayout
       }
     };
   }
 
   inline GraphicsPipelineOptions createSnakePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                            vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                            vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                            vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                             vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
@@ -358,14 +367,16 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         lightingDescriptorSetLayout
       }
     };
   }
 
   inline GraphicsPipelineOptions createNoisyEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                          vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                                          vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                          vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                                           vk::DescriptorSetLayout lightingDescriptorSetLayout,
                                                                           vk::DescriptorSetLayout noiseDescriptorSetLayout)
   {
@@ -392,7 +403,8 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         lightingDescriptorSetLayout,
         noiseDescriptorSetLayout
       }
@@ -400,7 +412,8 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createBumpyCurtainPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                   vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                                   vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                   vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                                    vk::DescriptorSetLayout lightingDescriptorSetLayout,
                                                                    vk::DescriptorSetLayout noiseDescriptorSetLayout)
   {
@@ -427,7 +440,8 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         lightingDescriptorSetLayout,
         noiseDescriptorSetLayout
       }
@@ -435,7 +449,8 @@ namespace vke::PipelineConfig {
   }
 
   inline GraphicsPipelineOptions createCubeMapPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                              vk::DescriptorSetLayout objectDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                              vk::DescriptorSetLayout materialDescriptorSetLayout,
                                                               vk::DescriptorSetLayout cubeMapDescriptorSetLayout)
   {
     return {
@@ -461,7 +476,8 @@ namespace vke::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        objectDescriptorSetLayout,
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
         cubeMapDescriptorSetLayout
       }
     };

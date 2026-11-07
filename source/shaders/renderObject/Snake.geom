@@ -1,13 +1,9 @@
 #version 450
+#extension GL_GOOGLE_include_directive : require
+#include "../common/SceneData.glsl"
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 9) out;
-
-layout(set = 0, binding = 0) uniform Transform {
-    mat4 model;
-    mat4 view;
-    mat4 proj;
-} transform;
 
 layout(push_constant) uniform PushConstants {
     float wiggle;
@@ -29,7 +25,7 @@ void EmitVertexModified(int i, float expansionFactor)
     gsTexCoord = fragTexCoord[i];
     gsNormal = fragNormal[i];
 
-    gl_Position = transform.proj * transform.view * vec4(pos, 1.0);
+    gl_Position = scene.proj * scene.view * vec4(pos, 1.0);
     EmitVertex();
 }
 

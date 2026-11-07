@@ -19,6 +19,17 @@ namespace {
 
   constexpr uint32_t MAX_SHADOW_MAPS = 16;
 
+  // A render submission's slot in the object table is its index in the list, which the shadow shaders read as the first
+  // instance. The scene set is bound by the caller.
+  void drawShadowCasters(const std::shared_ptr<vke::CommandBuffer>& commandBuffer,
+                         const std::vector<std::shared_ptr<vke::RenderObject>>& objects)
+  {
+    for (size_t slot = 0; slot < objects.size(); ++slot)
+    {
+      objects[slot]->draw(commandBuffer, static_cast<uint32_t>(slot));
+    }
+  }
+
   // The point/spot light storage buffers are allocated once at these capacities and never
   // resized, so the descriptor sets that reference them are written once and stay valid for
   // in-flight frames. Lights beyond the cap are ignored.
@@ -203,11 +214,12 @@ namespace vke {
   void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<PipelineManager>& pipelineManager,
                                          const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                         const vk::DescriptorSet sceneDescriptorSet,
                                          const uint32_t currentFrame) const
   {
-    renderPointLightShadowMaps(commandBuffer, pipelineManager, objects, currentFrame);
+    renderPointLightShadowMaps(commandBuffer, pipelineManager, objects, sceneDescriptorSet, currentFrame);
 
-    renderSpotLightShadowMaps(commandBuffer, pipelineManager, objects, currentFrame);
+    renderSpotLightShadowMaps(commandBuffer, pipelineManager, objects, sceneDescriptorSet, currentFrame);
   }
 
   vk::DescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
@@ -412,6 +424,7 @@ namespace vke {
   void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const std::shared_ptr<PipelineManager>& pipelineManager,
                                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                                   const vk::DescriptorSet sceneDescriptorSet,
                                                    const uint32_t currentFrame) const
   {
     for (auto& light : m_pointLightsToRender)
@@ -462,23 +475,18 @@ namespace vke {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         shadowRenderInfo.commandBuffer,
         PipelineType::pointLightShadowMap,
+        sceneDescriptorSet,
+        0
+      );
+
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        shadowRenderInfo.commandBuffer,
+        PipelineType::pointLightShadowMap,
         pointLight->getDescriptorSet(currentFrame),
         1
       );
 
-      for (const auto& object : *objects)
-      {
-        object->updateUniformBuffer(shadowRenderInfo.currentFrame, {1.0}, {1.0});
-
-        pipelineManager->bindGraphicsPipelineDescriptorSet(
-          shadowRenderInfo.commandBuffer,
-          PipelineType::pointLightShadowMap,
-          object->getDescriptorSet(currentFrame),
-          0
-        );
-
-        object->draw(shadowRenderInfo.commandBuffer);
-      }
+      drawShadowCasters(shadowRenderInfo.commandBuffer, *objects);
 
       endShadowRendering(commandBuffer, light);
     }
@@ -487,6 +495,7 @@ namespace vke {
   void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const std::shared_ptr<PipelineManager>& pipelineManager,
                                                   const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                                  const vk::DescriptorSet sceneDescriptorSet,
                                                   const uint32_t currentFrame) const
   {
     for (auto& light : m_spotLightsToRender)
@@ -532,19 +541,14 @@ namespace vke {
         shadowRenderInfo.viewMatrix
       );
 
-      for (const auto& object : *objects)
-      {
-        object->updateUniformBuffer(shadowRenderInfo.currentFrame, {1.0}, {1.0});
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        shadowRenderInfo.commandBuffer,
+        PipelineType::shadow,
+        sceneDescriptorSet,
+        0
+      );
 
-        pipelineManager->bindGraphicsPipelineDescriptorSet(
-          shadowRenderInfo.commandBuffer,
-          PipelineType::shadow,
-          object->getDescriptorSet(currentFrame),
-          0
-        );
-
-        object->draw(shadowRenderInfo.commandBuffer);
-      }
+      drawShadowCasters(shadowRenderInfo.commandBuffer, *objects);
 
       endShadowRendering(commandBuffer, light);
     }

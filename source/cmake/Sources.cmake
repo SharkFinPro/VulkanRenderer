@@ -8,6 +8,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     # Objects - Renderable objects and data structures
     components/assets/objects/Cloud.cpp
     components/assets/objects/Cloud.h
+    components/assets/objects/Material.cpp
+    components/assets/objects/Material.h
     components/assets/objects/Model.cpp
     components/assets/objects/Model.h
     components/assets/objects/RenderObject.cpp
@@ -88,6 +90,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/renderer3D/DebugShapes.h
     components/renderingManager/renderer3D/MousePicker.cpp
     components/renderingManager/renderer3D/MousePicker.h
+    components/renderingManager/renderer3D/ObjectTable.cpp
+    components/renderingManager/renderer3D/ObjectTable.h
     components/renderingManager/renderer3D/PickResult.h
     components/renderingManager/renderer3D/RayTracer.cpp
     components/renderingManager/renderer3D/RayTracer.h

@@ -11,7 +11,9 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <array>
 #include <chrono>
+#include <cstdint>
 #include <deque>
 #include <memory>
 #include <optional>
@@ -29,6 +31,7 @@ namespace vke {
   class LightingManager;
   class LogicalDevice;
   class MousePicker;
+  class ObjectTable;
   class PipelineManager;
   struct RenderInfo;
   class RenderObject;
@@ -79,6 +82,11 @@ namespace vke {
 
     void updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
                                uint32_t currentFrame) const;
+
+    // Writes the frame's object table (one entry per render submission, then one per outline) and camera, which every
+    // pass that draws render objects reads through the scene descriptor set. Call once per frame, after the frame's
+    // command buffer slot is known to be free and before the first pass that draws objects.
+    void updateSceneData(const RenderInfo* renderInfo);
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -152,8 +160,6 @@ namespace vke {
                                  float farPlane);
 
     [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker() const;
-
-    [[nodiscard]] std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& getRenderObjectsToRender();
 
     void renderObject(const std::shared_ptr<RenderObject>& renderObject,
                       PipelineType pipelineType,
@@ -229,6 +235,9 @@ namespace vke {
 
     [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;
 
+    // The scene set (set 0 of the object pipelines): the object table at binding 0 and the camera at binding 1.
+    [[nodiscard]] vk::DescriptorSetLayout getSceneDescriptorSetLayout() const;
+
     [[nodiscard]] vk::DescriptorSetLayout getNoiseDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSetLayout getCubeMapDescriptorSetLayout() const;
@@ -257,8 +266,13 @@ namespace vke {
     float m_nearPlane = 0.1f;
     float m_farPlane = 1000.0f;
 
-    std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>> m_renderObjectsToRender;
+    // A render submission's slot is its index in the flattened list, and its entry in the object table. The per-pipeline
+    // lists hold slots.
+    std::unordered_map<PipelineType, std::vector<uint32_t>> m_renderObjectsToRender;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;
+
+    // By slot: the submission's picking id, or 0 when it is not pickable
+    std::vector<uint32_t> m_pickIds;
 
     // The flattened list without view-only submissions, which are rasterized rather than traced
     std::vector<std::shared_ptr<RenderObject>> m_rayTracedRenderObjects;
@@ -289,6 +303,12 @@ namespace vke {
     std::shared_ptr<Texture3D> m_noiseTexture;
 
     std::shared_ptr<TextureCubemap> m_cubeMapTexture;
+
+    std::shared_ptr<ObjectTable> m_objectTable;
+
+    std::shared_ptr<UniformBuffer> m_cameraUniform;
+
+    std::shared_ptr<DescriptorSet> m_sceneDescriptorSet;
 
     std::shared_ptr<DescriptorSet> m_noiseDescriptorSet;
 
@@ -340,7 +360,7 @@ namespace vke {
                              const std::shared_ptr<LightingManager>& lightingManager,
                              const RenderInfo* renderInfo,
                              PipelineType pipelineType,
-                             const std::vector<std::shared_ptr<RenderObject>>* objects) const;
+                             const std::vector<uint32_t>* slots) const;
 
     void bindPushConstant(const std::shared_ptr<PipelineManager>& pipelineManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -353,6 +373,11 @@ namespace vke {
                             uint32_t currentFrame) const;
 
     void createDescriptorSets();
+
+    void createSceneDescriptorSet();
+
+    [[nodiscard]] std::array<vk::WriteDescriptorSet, 2> getSceneDescriptorWrites(vk::DescriptorSet descriptorSet,
+                                                                                  size_t frame) const;
 
     [[nodiscard]] bool pipelineIsActive(PipelineType pipelineType) const;
 

@@ -41,9 +41,12 @@ namespace vke {
 
     void update(uint32_t currentFrame, glm::vec3 viewPosition);
 
+    // Draws objects into every shadow-casting light's map. The slot of an object is its index in the list, which is its
+    // entry in the object table the scene descriptor set (set 0 of the shadow pipelines) binds.
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
                           const std::vector<std::shared_ptr<RenderObject>>* objects,
+                          vk::DescriptorSet sceneDescriptorSet,
                           uint32_t currentFrame) const;
 
     [[nodiscard]] vk::DescriptorSetLayout getPointLightDescriptorSetLayout() const;
@@ -97,11 +100,13 @@ namespace vke {
     void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                    vk::DescriptorSet sceneDescriptorSet,
                                     uint32_t currentFrame) const;
 
     void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                    const std::shared_ptr<PipelineManager>& pipelineManager,
                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                   vk::DescriptorSet sceneDescriptorSet,
                                    uint32_t currentFrame) const;
 
     void createPointLightDescriptorSetLayout();

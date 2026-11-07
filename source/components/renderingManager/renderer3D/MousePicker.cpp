@@ -1,4 +1,5 @@
 #include "MousePicker.h"
+#include "../../assets/objects/Material.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -100,38 +101,46 @@ namespace vke {
     m_sceneHovered = sceneHovered;
   }
 
-  void MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
-                                 bool* mousePicked,
-                                 const bool alphaTested)
+  uint32_t MousePicker::renderObject(const std::shared_ptr<RenderObject>& renderObject,
+                                     bool* mousePicked,
+                                     const bool alphaTested,
+                                     const uint32_t slot)
   {
-    uint32_t objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
-    m_renderObjectsToMousePick.push_back({ renderObject, objectID, alphaTested });
+    const auto objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
+    m_renderObjectsToMousePick.push_back({ renderObject, slot, alphaTested });
     m_mousePickingFlags.push_back(mousePicked);
 
     if (mousePicked)
     {
       *mousePicked = false;
     }
+
+    return objectID;
   }
 
   void MousePicker::render(const RenderInfo* renderInfo,
-                           const std::shared_ptr<PipelineManager>& pipelineManager) const
+                           const std::shared_ptr<PipelineManager>& pipelineManager,
+                           const vk::DescriptorSet sceneDescriptorSet) const
   {
     m_viewMatrix = renderInfo->viewMatrix;
     m_projectionMatrix = renderInfo->getProjectionMatrix();
 
-    renderEntries(renderInfo, pipelineManager, false);
-    renderEntries(renderInfo, pipelineManager, true);
+    renderEntries(renderInfo, pipelineManager, sceneDescriptorSet, false);
+    renderEntries(renderInfo, pipelineManager, sceneDescriptorSet, true);
   }
 
   void MousePicker::renderEntries(const RenderInfo* renderInfo,
                                   const std::shared_ptr<PipelineManager>& pipelineManager,
+                                  const vk::DescriptorSet sceneDescriptorSet,
                                   const bool alphaTested) const
   {
     const auto pipelineType = alphaTested ? PipelineType::mousePickingAlphaTested : PipelineType::mousePicking;
     bool bound = false;
 
-    for (const auto& [object, id, entryAlphaTested] : m_renderObjectsToMousePick)
+    // Only alpha-tested picking samples a texture, so only it needs a material set
+    const Material* boundMaterial = nullptr;
+
+    for (const auto& [object, slot, entryAlphaTested] : m_renderObjectsToMousePick)
     {
       if (entryAlphaTested != alphaTested)
       {
@@ -141,27 +150,25 @@ namespace vke {
       if (!bound)
       {
         pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
+
+        pipelineManager->bindGraphicsPipelineDescriptorSet(renderInfo->commandBuffer, pipelineType, sceneDescriptorSet, 0);
+
         bound = true;
       }
 
-      pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
-        renderInfo->commandBuffer,
-        pipelineType,
-        vk::ShaderStageFlagBits::eFragment,
-        0,
-        id
-      );
+      if (alphaTested && object->getMaterial().get() != boundMaterial)
+      {
+        boundMaterial = object->getMaterial().get();
 
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        renderInfo->commandBuffer,
-        pipelineType,
-        object->getDescriptorSet(renderInfo->currentFrame),
-        0
-      );
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
+          renderInfo->commandBuffer,
+          pipelineType,
+          boundMaterial->getDescriptorSet(renderInfo->currentFrame),
+          1
+        );
+      }
 
-      object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
-
-      object->draw(renderInfo->commandBuffer);
+      object->draw(renderInfo->commandBuffer, slot);
     }
   }
 

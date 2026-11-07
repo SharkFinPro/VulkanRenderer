@@ -1,7 +1,8 @@
 #include "Renderer3D.h"
 #include "MousePicker.h"
+#include "ObjectTable.h"
 #include "../../assets/AssetManager.h"
-#include "../../assets/objects/Model.h"
+#include "../../assets/objects/Material.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
 #include "../../assets/textures/Texture3D.h"
@@ -16,12 +17,57 @@
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/matrix.hpp>
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <iostream>
 #include <iterator>
 #include <stdexcept>
+#include <utility>
+
+namespace {
+
+  // The pipelines whose fragment shaders light the object, which take the lighting set at set 2
+  [[nodiscard]] bool usesLightingSet(const vke::PipelineType pipelineType)
+  {
+    switch (pipelineType)
+    {
+      case vke::PipelineType::bumpyCurtain:
+      case vke::PipelineType::crosses:
+      case vke::PipelineType::curtain:
+      case vke::PipelineType::ellipticalDots:
+      case vke::PipelineType::noisyEllipticalDots:
+      case vke::PipelineType::object:
+      case vke::PipelineType::snake:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  // The camera block of the scene set (SceneCamera in shaders/common/SceneData.glsl)
+  struct SceneCamera {
+    glm::mat4 view;
+    glm::mat4 proj;
+  };
+
+  [[nodiscard]] vke::ObjectData makeObjectData(const vke::RenderObject& object,
+                                               const uint32_t pickId)
+  {
+    const glm::mat4 model = object.getModelMatrix();
+
+    return {
+      .model = model,
+      .normalMatrix = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model)))),
+      .pickId = pickId,
+      .pad0 = 0,
+      .pad1 = 0,
+      .pad2 = 0
+    };
+  }
+
+} // namespace
 
 namespace vke {
 
@@ -36,6 +82,8 @@ namespace vke {
     m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice);
 
     createDescriptorSets();
+
+    createSceneDescriptorSet();
 
     if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
@@ -54,7 +102,46 @@ namespace vke {
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const uint32_t currentFrame) const
   {
-    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened, currentFrame);
+    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, &m_renderObjectsToRenderFlattened,
+                                      m_sceneDescriptorSet->getDescriptorSet(currentFrame), currentFrame);
+  }
+
+  void Renderer3D::updateSceneData(const RenderInfo* renderInfo)
+  {
+    const uint32_t currentFrame = renderInfo->currentFrame;
+
+    if (m_objectTable->reserve(currentFrame, m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size()))
+    {
+      // Only this frame's set: the others may still be in use by frames in flight.
+      m_sceneDescriptorSet->updateDescriptorSet(currentFrame, [this](const vk::DescriptorSet descriptorSet, const size_t frame)
+      {
+        return getSceneDescriptorWrites(descriptorSet, frame);
+      });
+    }
+
+    ObjectData* entries = m_objectTable->getEntries(currentFrame);
+
+    for (size_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+    {
+      entries[slot] = makeObjectData(*m_renderObjectsToRenderFlattened[slot], m_pickIds[slot]);
+    }
+
+    // The outlines' entries follow the render submissions', as renderOutlineMask expects
+    entries += m_renderObjectsToRenderFlattened.size();
+
+    for (size_t i = 0; i < m_outlineObjects.size(); ++i)
+    {
+      entries[i] = makeObjectData(*m_outlineObjects[i].first, 0);
+    }
+
+    const RenderInfo sceneRenderInfo = makeSceneRenderInfo(renderInfo);
+
+    const SceneCamera camera {
+      .view = m_viewMatrix,
+      .proj = sceneRenderInfo.getProjectionMatrix()
+    };
+
+    m_cameraUniform->update(currentFrame, &camera);
   }
 
   void Renderer3D::renderMousePicking(const RenderInfo* renderInfo,
@@ -71,7 +158,7 @@ namespace vke {
       .farPlane = m_farPlane
     };
 
-    m_mousePicker->render(&renderInfoMousePicking, pipelineManager);
+    m_mousePicker->render(&renderInfoMousePicking, pipelineManager, m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame));
   }
 
   void Renderer3D::recordMousePickingReadback(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -94,41 +181,30 @@ namespace vke {
   void Renderer3D::renderOutlineMask(const RenderInfo* renderInfo,
                                      const std::shared_ptr<PipelineManager>& pipelineManager) const
   {
-    const RenderInfo renderInfoOutline {
-      .commandBuffer = renderInfo->commandBuffer,
-      .currentFrame = renderInfo->currentFrame,
-      .viewPosition = m_viewPosition,
-      .viewMatrix = m_viewMatrix,
-      .extent = renderInfo->extent,
-      .fieldOfView = m_fieldOfView,
-      .nearPlane = m_nearPlane,
-      .farPlane = m_farPlane
-    };
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::outlineMask);
 
-    pipelineManager->bindGraphicsPipeline(renderInfoOutline.commandBuffer, PipelineType::outlineMask);
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::outlineMask,
+      m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    // The outlines' table entries follow the render submissions'
+    auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
 
     // There is no depth test, so the outline of an object shows through whatever is in front of it
     for (const auto& [object, maskValue] : m_outlineObjects)
     {
       pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
-        renderInfoOutline.commandBuffer,
+        renderInfo->commandBuffer,
         PipelineType::outlineMask,
         vk::ShaderStageFlagBits::eFragment,
         0,
         maskValue
       );
 
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        renderInfoOutline.commandBuffer,
-        PipelineType::outlineMask,
-        object->getDescriptorSet(renderInfoOutline.currentFrame),
-        0
-      );
-
-      object->updateUniformBuffer(renderInfoOutline.currentFrame, renderInfoOutline.viewMatrix,
-                                  renderInfoOutline.getProjectionMatrix());
-
-      object->draw(renderInfoOutline.commandBuffer);
+      object->draw(renderInfo->commandBuffer, slot++);
     }
   }
 
@@ -189,14 +265,14 @@ namespace vke {
   {
     const RenderInfo renderInfo3D = makeSceneRenderInfo(renderInfo);
 
-    for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
+    for (const auto& [pipelineType, slots] : m_renderObjectsToRender)
     {
-      if (objects.empty() || !isViewOnlyPipeline(pipelineType))
+      if (slots.empty() || !isViewOnlyPipeline(pipelineType))
       {
         continue;
       }
 
-      renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, &objects);
+      renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, &slots);
     }
 
     renderLinesAndGrid(&renderInfo3D, pipelineManager);
@@ -298,6 +374,7 @@ namespace vke {
     }
 
     m_renderObjectsToRenderFlattened.clear();
+    m_pickIds.clear();
     m_rayTracedRenderObjects.clear();
 
     m_outlineObjects.clear();
@@ -369,18 +446,17 @@ namespace vke {
     return m_mousePicker;
   }
 
-  std::unordered_map<PipelineType, std::vector<std::shared_ptr<RenderObject>>>& Renderer3D::getRenderObjectsToRender()
-  {
-    return m_renderObjectsToRender;
-  }
-
   void Renderer3D::renderObject(const std::shared_ptr<RenderObject>& renderObject,
                                 const PipelineType pipelineType,
                                 bool* mousePicked)
   {
-    m_renderObjectsToRender[pipelineType].push_back(renderObject);
+    const auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
+
+    m_renderObjectsToRender[pipelineType].push_back(slot);
 
     m_renderObjectsToRenderFlattened.push_back(renderObject);
+
+    m_pickIds.push_back(0);
 
     if (!isViewOnlyPipeline(pipelineType))
     {
@@ -389,7 +465,7 @@ namespace vke {
 
     if (mousePicked)
     {
-      m_mousePicker->renderObject(renderObject, mousePicked, usesAlphaCutout(pipelineType));
+      m_pickIds[slot] = m_mousePicker->renderObject(renderObject, mousePicked, usesAlphaCutout(pipelineType), slot);
     }
   }
 
@@ -398,7 +474,9 @@ namespace vke {
   {
     this->renderObject(renderObject, pipelineType);
 
-    m_mousePicker->renderObject(renderObject, nullptr, usesAlphaCutout(pipelineType));
+    const auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size() - 1);
+
+    m_pickIds[slot] = m_mousePicker->renderObject(renderObject, nullptr, usesAlphaCutout(pipelineType), slot);
   }
 
   std::optional<PickResult> Renderer3D::getPickResult() const
@@ -585,6 +663,11 @@ namespace vke {
     return m_smokeSystemsToRender;
   }
 
+  vk::DescriptorSetLayout Renderer3D::getSceneDescriptorSetLayout() const
+  {
+    return m_sceneDescriptorSet->getDescriptorSetLayout();
+  }
+
   vk::DescriptorSetLayout Renderer3D::getNoiseDescriptorSetLayout() const
   {
     return m_noiseDescriptorSet->getDescriptorSetLayout();
@@ -619,10 +702,10 @@ namespace vke {
     std::vector<vk::DescriptorPoolSize> poolSizes {{
       {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 256},
       {vk::DescriptorType::eStorageImage, m_logicalDevice->getMaxFramesInFlight() * 4},
-      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 10},
+      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 12},
     }};
 
-    poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 5});
+    poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 7});
 
     if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
     {
@@ -642,14 +725,14 @@ namespace vke {
                                                  const std::shared_ptr<PipelineManager>& pipelineManager,
                                                  const std::shared_ptr<LightingManager>& lightingManager) const
   {
-    for (const auto& [pipelineType, objects] : m_renderObjectsToRender)
+    for (const auto& [pipelineType, slots] : m_renderObjectsToRender)
     {
-      if (objects.empty())
+      if (slots.empty())
       {
         continue;
       }
 
-      renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &objects);
+      renderRenderObjects(pipelineManager, lightingManager, renderInfo, pipelineType, &slots);
     }
   }
 
@@ -688,7 +771,7 @@ namespace vke {
                                        const std::shared_ptr<LightingManager>& lightingManager,
                                        const RenderInfo* renderInfo,
                                        const PipelineType pipelineType,
-                                       const std::vector<std::shared_ptr<RenderObject>>* objects) const
+                                       const std::vector<uint32_t>* slots) const
   {
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
 
@@ -696,18 +779,26 @@ namespace vke {
 
     bindDescriptorSets(pipelineManager, lightingManager, renderInfo->commandBuffer, pipelineType, renderInfo->currentFrame);
 
-    for (const auto& object : *objects)
+    // Objects with the same textures share a material, so its set is only bound when it changes
+    const Material* boundMaterial = nullptr;
+
+    for (const uint32_t slot : *slots)
     {
-      object->updateUniformBuffer(renderInfo->currentFrame, renderInfo->viewMatrix, renderInfo->getProjectionMatrix());
+      const RenderObject& object = *m_renderObjectsToRenderFlattened[slot];
 
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        renderInfo->commandBuffer,
-        pipelineType,
-        object->getDescriptorSet(renderInfo->currentFrame),
-        0
-      );
+      if (object.getMaterial().get() != boundMaterial)
+      {
+        boundMaterial = object.getMaterial().get();
 
-      object->draw(renderInfo->commandBuffer);
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
+          renderInfo->commandBuffer,
+          pipelineType,
+          boundMaterial->getDescriptorSet(renderInfo->currentFrame),
+          1
+        );
+      }
+
+      object.draw(renderInfo->commandBuffer, slot);
     }
   }
 
@@ -738,13 +829,22 @@ namespace vke {
                                       const PipelineType pipelineType,
                                       const uint32_t currentFrame) const
   {
+    // Set 0 is the scene, set 1 the material (bound per object). Rebound after every pipeline bind, since pipeline
+    // layouts differ in their push constant ranges, which makes earlier sets incompatible.
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      commandBuffer,
+      pipelineType,
+      m_sceneDescriptorSet->getDescriptorSet(currentFrame),
+      0
+    );
+
     if (pipelineType == PipelineType::cubeMap)
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         commandBuffer,
         pipelineType,
         m_cubeMapDescriptorSet->getDescriptorSet(currentFrame),
-        1
+        2
       );
     }
 
@@ -755,25 +855,65 @@ namespace vke {
         commandBuffer,
         pipelineType,
         m_noiseDescriptorSet->getDescriptorSet(currentFrame),
-        2
+        3
       );
     }
 
-    if (pipelineType == PipelineType::ellipticalDots ||
-        pipelineType == PipelineType::crosses ||
-        pipelineType == PipelineType::curtain ||
-        pipelineType == PipelineType::bumpyCurtain ||
-        pipelineType == PipelineType::object ||
-        pipelineType == PipelineType::snake ||
-        pipelineType == PipelineType::noisyEllipticalDots)
+    if (usesLightingSet(pipelineType))
     {
       pipelineManager->bindGraphicsPipelineDescriptorSet(
         commandBuffer,
         pipelineType,
         lightingManager->getLightingDescriptorSet()->getDescriptorSet(currentFrame),
-        1
+        2
       );
     }
+  }
+
+  void Renderer3D::createSceneDescriptorSet()
+  {
+    m_objectTable = std::make_shared<ObjectTable>(m_logicalDevice);
+
+    m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SceneCamera));
+
+    constexpr vk::DescriptorSetLayoutBinding objectTableLayout {
+      .binding = 0,
+      .descriptorType = vk::DescriptorType::eStorageBuffer,
+      .descriptorCount = 1,
+      .stageFlags = vk::ShaderStageFlagBits::eVertex |
+                    vk::ShaderStageFlagBits::eGeometry |
+                    vk::ShaderStageFlagBits::eFragment
+    };
+
+    constexpr vk::DescriptorSetLayoutBinding cameraLayout {
+      .binding = 1,
+      .descriptorType = vk::DescriptorType::eUniformBuffer,
+      .descriptorCount = 1,
+      .stageFlags = vk::ShaderStageFlagBits::eVertex |
+                    vk::ShaderStageFlagBits::eGeometry |
+                    vk::ShaderStageFlagBits::eFragment
+    };
+
+    m_sceneDescriptorSet = std::make_shared<DescriptorSet>(
+      m_logicalDevice, m_descriptorPool, std::vector{ objectTableLayout, cameraLayout });
+    m_sceneDescriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
+    {
+      return getSceneDescriptorWrites(descriptorSet, frame);
+    });
+  }
+
+  std::array<vk::WriteDescriptorSet, 2> Renderer3D::getSceneDescriptorWrites(const vk::DescriptorSet descriptorSet,
+                                                                             const size_t frame) const
+  {
+    const vk::WriteDescriptorSet objectTableWrite {
+      .dstSet = descriptorSet,
+      .dstBinding = 0,
+      .descriptorCount = 1,
+      .descriptorType = vk::DescriptorType::eStorageBuffer,
+      .pBufferInfo = &m_objectTable->getBufferInfo(static_cast<uint32_t>(frame))
+    };
+
+    return {{ objectTableWrite, m_cameraUniform->getDescriptorSet(1, descriptorSet, frame) }};
   }
 
   void Renderer3D::createDescriptorSets()

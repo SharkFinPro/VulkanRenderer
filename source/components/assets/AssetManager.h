@@ -4,10 +4,12 @@
 #include "../pipelines/implementations/vertexInputs/Vertex.h"
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <map>
 #include <memory>
 #include <span>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace vke {
@@ -16,6 +18,7 @@ namespace vke {
   class DescriptorAllocator;
   class Font;
   class LogicalDevice;
+  class Material;
   class Model;
   class RenderObject;
   class SmokeSystem;
@@ -87,7 +90,8 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<SmokeSystem> createSmokeSystem(glm::vec3 position = glm::vec3(0.0f),
                                                                  uint32_t numParticles = 5'000'000);
 
-    [[nodiscard]] vk::DescriptorSetLayout getObjectDescriptorSetLayout() const;
+    // The material set (set 1 of the object pipelines): a texture at binding 0 and a specular map at binding 1.
+    [[nodiscard]] vk::DescriptorSetLayout getMaterialDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSetLayout getFontDescriptorSetLayout() const;
 
@@ -104,7 +108,7 @@ namespace vke {
 
     std::shared_ptr<DescriptorAllocator> m_descriptorAllocator;
 
-    vk::raii::DescriptorSetLayout m_objectDescriptorSetLayout = nullptr;
+    vk::raii::DescriptorSetLayout m_materialDescriptorSetLayout = nullptr;
 
     vk::raii::DescriptorSetLayout m_fontDescriptorSetLayout = nullptr;
 
@@ -117,9 +121,14 @@ namespace vke {
 
     std::vector<std::shared_ptr<void>> m_releasedResources;
 
+    // Materials by texture and specular map, so render objects with the same textures share one. Weak, so a material
+    // lives as long as a render object uses it; expired entries are pruned as the map grows.
+    std::map<std::pair<const Texture*, const Texture*>, std::weak_ptr<Material>> m_materials;
+    size_t m_materialPruneThreshold = 64;
+
     void createDescriptorSetLayouts();
 
-    void createObjectDescriptorSetLayout();
+    void createMaterialDescriptorSetLayout();
 
     void createFontDescriptorSetLayout();
 
@@ -133,6 +142,9 @@ namespace vke {
     void createCommandPool();
 
     void queueRelease(std::shared_ptr<void> resource);
+
+    [[nodiscard]] std::shared_ptr<Material> getMaterial(const std::shared_ptr<Texture2D>& texture,
+                                                        const std::shared_ptr<Texture2D>& specularMap);
   };
 
 } // namespace vke

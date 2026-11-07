@@ -1,77 +1,32 @@
 #include "RenderObject.h"
+#include "Material.h"
 #include "Model.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
-#include "../../pipelines/descriptorSets/DescriptorSet.h"
-#include "../../assets/textures/Texture.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include <vector>
-
-namespace {
-
-  struct TransformUniform {
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-  };
-
-}
 
 namespace vke {
 
   RenderObject::RenderObject(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                             const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
-                             const vk::DescriptorSetLayout descriptorSetLayout,
-                             std::shared_ptr<Texture> texture,
-                             std::shared_ptr<Texture> specularMap,
+                             std::shared_ptr<Material> material,
                              std::shared_ptr<Model> model)
     : m_logicalDevice(logicalDevice),
-      m_texture(std::move(texture)),
-      m_specularMap(std::move(specularMap)),
-      m_model(std::move(model)),
-      m_transformUniform(std::make_unique<UniformBuffer>(logicalDevice, sizeof(TransformUniform)))
+      m_material(std::move(material)),
+      m_model(std::move(model))
   {
-    createDescriptorSet(logicalDevice, descriptorAllocator, descriptorSetLayout);
   }
 
   RenderObject::~RenderObject()
   {
-    // Frames in flight may still draw this object's model and textures.
-    m_logicalDevice->retire(std::move(m_texture));
-    m_logicalDevice->retire(std::move(m_specularMap));
+    // Frames in flight may still draw this object's model and sample its material.
+    m_logicalDevice->retire(std::move(m_material));
     m_logicalDevice->retire(std::move(m_model));
   }
 
   void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                          const vk::PipelineLayout& pipelineLayout,
-                          const uint32_t currentFrame) const
+                          const uint32_t slot) const
   {
-    commandBuffer->bindDescriptorSets(
-      vk::PipelineBindPoint::eGraphics,
-      pipelineLayout,
-      0,
-      { m_descriptorSet->getDescriptorSet(currentFrame) }
-    );
-
-    m_model->draw(commandBuffer);
-  }
-
-  void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const
-  {
-    m_model->draw(commandBuffer);
-  }
-
-  void RenderObject::updateUniformBuffer(const uint32_t currentFrame,
-                                         const glm::mat4& viewMatrix,
-                                         const glm::mat4& projectionMatrix) const
-  {
-    const TransformUniform transformUBO {
-      .model = getModelMatrix(),
-      .view = viewMatrix,
-      .proj = projectionMatrix
-    };
-
-    m_transformUniform->update(currentFrame, &transformUBO);
+    m_model->draw(commandBuffer, slot);
   }
 
   void RenderObject::setPosition(const glm::vec3 position)
@@ -119,14 +74,14 @@ namespace vke {
     return m_orientation;
   }
 
-  vk::DescriptorSet RenderObject::getDescriptorSet(const uint32_t currentFrame) const
-  {
-    return m_descriptorSet->getDescriptorSet(currentFrame);
-  }
-
-  std::shared_ptr<Model> RenderObject::getModel() const
+  const std::shared_ptr<Model>& RenderObject::getModel() const
   {
     return m_model;
+  }
+
+  const std::shared_ptr<Material>& RenderObject::getMaterial() const
+  {
+    return m_material;
   }
 
   glm::mat4 RenderObject::getModelMatrix() const
@@ -138,14 +93,14 @@ namespace vke {
     return model;
   }
 
-  std::shared_ptr<Texture> RenderObject::getTexture() const
+  const std::shared_ptr<Texture>& RenderObject::getTexture() const
   {
-    return m_texture;
+    return m_material->getTexture();
   }
 
-  std::shared_ptr<Texture> RenderObject::getSpecularMap() const
+  const std::shared_ptr<Texture>& RenderObject::getSpecularMap() const
   {
-    return m_specularMap;
+    return m_material->getSpecularMap();
   }
 
   void RenderObject::setReflectivity(const float reflectivity)
@@ -176,23 +131,6 @@ namespace vke {
   float RenderObject::getIndexOfRefraction() const
   {
     return m_indexOfRefraction;
-  }
-
-  void RenderObject::createDescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                         const std::shared_ptr<DescriptorAllocator>& descriptorAllocator,
-                                         vk::DescriptorSetLayout descriptorSetLayout)
-  {
-    m_descriptorSet = std::make_shared<DescriptorSet>(logicalDevice, descriptorAllocator, descriptorSetLayout);
-    m_descriptorSet->updateDescriptorSets([this](const vk::DescriptorSet descriptorSet, const size_t frame)
-    {
-      std::vector descriptorWrites{{
-        m_transformUniform->getDescriptorSet(0, descriptorSet, frame),
-        m_texture->getDescriptorSet(1, descriptorSet),
-        m_specularMap->getDescriptorSet(4, descriptorSet)
-      }};
-
-      return descriptorWrites;
-    });
   }
 
 } // namespace vke

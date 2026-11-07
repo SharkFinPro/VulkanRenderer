@@ -133,62 +133,63 @@ namespace vke {
                                                     const std::shared_ptr<RenderingManager>& renderingManager,
                                                     const std::shared_ptr<LightingManager>& lightingManager)
   {
-    const auto objectDescriptorSetLayout = assetManager->getObjectDescriptorSetLayout();
+    const auto sceneDescriptorSetLayout = renderingManager->getRenderer3D()->getSceneDescriptorSetLayout();
+    const auto materialDescriptorSetLayout = assetManager->getMaterialDescriptorSetLayout();
     const auto lightingDescriptorSetLayout = lightingManager->getLightingDescriptorSet()->getDescriptorSetLayout();
 
     createGraphicsPipeline(PipelineType::object,
-      PipelineConfig::createObjectsPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createObjectsPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::ellipticalDots,
-      PipelineConfig::createEllipticalDotsPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createEllipticalDotsPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::noisyEllipticalDots,
-      PipelineConfig::createNoisyEllipticalDotsPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createNoisyEllipticalDotsPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout, renderingManager->getRenderer3D()->getNoiseDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::bumpyCurtain,
-      PipelineConfig::createBumpyCurtainPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createBumpyCurtainPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout, renderingManager->getRenderer3D()->getNoiseDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::curtain,
-      PipelineConfig::createCurtainPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createCurtainPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::cubeMap,
-      PipelineConfig::createCubeMapPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createCubeMapPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       renderingManager->getRenderer3D()->getCubeMapDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::texturedPlane,
-      PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, objectDescriptorSetLayout));
+      PipelineConfig::createTexturedPlanePipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::magnifyWhirlMosaic,
-      PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, objectDescriptorSetLayout));
+      PipelineConfig::createMagnifyWhirlMosaicPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::snake,
-      PipelineConfig::createSnakePipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createSnakePipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::crosses,
-      PipelineConfig::createCrossesPipelineOptions(m_logicalDevice, objectDescriptorSetLayout,
+      PipelineConfig::createCrossesPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::shadow,
-      PipelineConfig::createShadowMapPipelineOptions(objectDescriptorSetLayout));
+      PipelineConfig::createShadowMapPipelineOptions(sceneDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::pointLightShadowMap,
-      PipelineConfig::createPointLightShadowMapPipelineOptions(objectDescriptorSetLayout,
+      PipelineConfig::createPointLightShadowMapPipelineOptions(sceneDescriptorSetLayout,
       lightingManager->getPointLightDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::mousePicking,
-      PipelineConfig::createMousePickingPipelineOptions(objectDescriptorSetLayout));
+      PipelineConfig::createMousePickingPipelineOptions(sceneDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::mousePickingAlphaTested,
-      PipelineConfig::createMousePickingAlphaTestedPipelineOptions(objectDescriptorSetLayout));
+      PipelineConfig::createMousePickingAlphaTestedPipelineOptions(sceneDescriptorSetLayout, materialDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::outlineMask,
-      PipelineConfig::createOutlineMaskPipelineOptions(objectDescriptorSetLayout));
+      PipelineConfig::createOutlineMaskPipelineOptions(sceneDescriptorSetLayout));
 
     const auto outlineMaskDescriptorSetLayout = renderingManager->getOutlineMaskDescriptorSetLayout();
     const auto outlineColorsDescriptorSetLayout = renderingManager->getRenderer3D()->getOutlineColorsDescriptorSetLayout();

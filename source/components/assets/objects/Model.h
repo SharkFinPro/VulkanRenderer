@@ -33,7 +33,11 @@ namespace vke {
           std::span<const Vertex> vertices,
           std::span<const uint32_t> indices);
 
-    void draw(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+    // firstInstance reaches the vertex shader as gl_InstanceIndex, which the object pipelines use as the index of the
+    // draw in the object table.
+    void draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
+              uint32_t firstInstance = 0,
+              uint32_t instanceCount = 1) const;
 
     [[nodiscard]] vk::AccelerationStructureKHR getBLAS() const;
 

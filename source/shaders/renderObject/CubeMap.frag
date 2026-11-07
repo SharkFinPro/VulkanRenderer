@@ -1,6 +1,7 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 #include "../common/Perturb.glsl"
+#include "../common/SceneData.glsl"
 
 layout(push_constant) uniform CubeMapPC {
   vec3 position;
@@ -11,19 +12,14 @@ layout(push_constant) uniform CubeMapPC {
   float noiseFrequency;
 } pc;
 
-layout(set = 0, binding = 0) uniform Transform {
-  mat4 model;
-  mat4 view;
-  mat4 proj;
-} transform;
+layout(set = 2, binding = 0) uniform sampler3D Noise3;
 
-layout(set = 1, binding = 0) uniform sampler3D Noise3;
-
-layout(set = 1, binding = 1) uniform samplerCube RoomCubeMap;
+layout(set = 2, binding = 1) uniform samplerCube RoomCubeMap;
 
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec3 fragNormal;
+layout(location = 3) flat in uint fragObject;
 
 layout(location = 0) out vec4 outColor;
 
@@ -51,7 +47,7 @@ void main()
   angz *= pc.noiseAmplitude;
 
   Normal = PerturbNormal3( angx, angy, angz, Normal );
-  Normal = normalize(transpose(inverse(mat3(transform.model))) * Normal);
+  Normal = normalize(mat3(objects[fragObject].normalMatrix) * Normal);
 
   vec3 reflectVector = reflect(Eye, Normal);
   vec3 reflectColor = texture(RoomCubeMap, reflectVector).rgb;

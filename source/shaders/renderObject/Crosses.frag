@@ -13,20 +13,20 @@ layout(push_constant) uniform CrossesPC {
   uint useChromaDepth;
 } pc;
 
-layout(set = 1, binding = 0) uniform PointLightsMetadata {
+layout(set = 2, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
 };
 
-layout(set = 1, binding = 1) readonly buffer PointLights {
+layout(set = 2, binding = 1) readonly buffer PointLights {
   PointLight pointLights[];
 };
 
-layout(set = 1, binding = 2) readonly buffer SpotLights {
+layout(set = 2, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
-layout(set = 1, binding = 3) uniform Camera {
+layout(set = 2, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
