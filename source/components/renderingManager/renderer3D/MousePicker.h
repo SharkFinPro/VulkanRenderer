@@ -24,7 +24,8 @@ namespace vke {
     explicit MousePicker(std::shared_ptr<LogicalDevice> logicalDevice);
 
     // Whether the cursor was over the scene image in the most recently rendered frame, whether or not anything pickable
-    // was submitted. False after a frame that skipped picking.
+    // was submitted. False after a frame that skipped picking. It describes a newer frame than getPickResult, so a pick
+    // can still be reported for a moment after this turns false.
     [[nodiscard]] bool canMousePick() const;
 
     // What the cursor was over in a frame rendered a few frames ago: nullopt over empty space, off the scene, when no
@@ -57,8 +58,8 @@ namespace vke {
     void setSceneHovered(bool sceneHovered);
 
     // mousePicked may be null; otherwise it is set to whether the object was under the cursor in the frame the readback
-    // describes (see getPickResult). An alpha-tested object
-    // is picked only where its texture is opaque enough, matching how it is drawn.
+    // describes (see getPickResult), on every submission of that object this frame. An alpha-tested object is picked
+    // only where its texture is opaque enough, matching how it is drawn.
     void renderObject(const std::shared_ptr<RenderObject>& renderObject, bool* mousePicked, bool alphaTested);
 
     void render(const RenderInfo* renderInfo,

@@ -261,34 +261,6 @@ namespace vke::Images {
     });
   }
 
-  void copyImageToBuffer(const vk::Image image,
-                         const vk::Offset3D offset,
-                         const vk::Extent3D extent,
-                         const SingleUseCommandBuffer& commandBuffer,
-                         const vk::Buffer stagingBuffer)
-  {
-    const vk::BufferImageCopy region {
-      .bufferOffset      = 0,
-      .bufferRowLength   = 0,
-      .bufferImageHeight = 0,
-      .imageSubresource  = {
-        .aspectMask = vk::ImageAspectFlagBits::eColor,
-        .mipLevel = 0,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-      },
-      .imageOffset = offset,
-      .imageExtent = extent
-    };
-
-    commandBuffer.copyImageToBuffer(
-      image,
-      vk::ImageLayout::eTransferSrcOptimal,
-      stagingBuffer,
-      { region }
-    );
-  }
-
   vk::raii::ImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                        const vk::Image image,
                                        const vk::Format format,
