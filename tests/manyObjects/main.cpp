@@ -99,6 +99,26 @@ void printMetric(const char* name,
 void printSummary(const Options& options,
                   Samples& samples);
 
+struct Scene {
+  std::vector<std::shared_ptr<vke::RenderObject>> objects;
+  std::vector<std::shared_ptr<vke::Light>> lights;
+};
+
+struct RollingTimes {
+  std::array<FrameTimes, ROLLING_FRAMES> times {};
+  size_t count = 0;
+};
+
+[[nodiscard]] FrameTimes runFrame(vke::VulkanEngine& renderer,
+                                  const Scene& scene,
+                                  const RollingTimes& rolling,
+                                  uint64_t frameIndex,
+                                  Clock::time_point startTime);
+
+[[nodiscard]] Samples runBenchmark(vke::VulkanEngine& renderer,
+                                   const Scene& scene,
+                                   const Options& options);
+
 int main(int argc, char** argv)
 {
   try
@@ -114,54 +134,12 @@ int main(int argc, char** argv)
 
     ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
 
-    const auto objects = createObjects(renderer, options.objects);
-    const auto lights = createLights(renderer, options.objects);
-    const auto gui = renderer.getImGuiInstance();
+    const Scene scene {
+      .objects = createObjects(renderer, options.objects),
+      .lights = createLights(renderer, options.objects)
+    };
 
-    Samples samples;
-    samples.submit.reserve(options.frames);
-    samples.render.reserve(options.frames);
-    samples.frame.reserve(options.frames);
-
-    std::array<FrameTimes, ROLLING_FRAMES> rolling {};
-    size_t rollingCount = 0;
-    uint64_t frameIndex = 0;
-    const auto startTime = Clock::now();
-
-    while (renderer.isActive() && (options.frames == 0 || samples.frame.size() < options.frames))
-    {
-      const auto frameStart = Clock::now();
-
-      dockWindow(gui, frameIndex);
-      displayStats(objects.size(), rolling, rollingCount);
-      updateObjects(objects, std::chrono::duration<float>(frameStart - startTime).count());
-      submitScene(renderer, objects, lights);
-
-      const auto submitEnd = Clock::now();
-
-      // Includes any wait on the GPU and on presentation
-      renderer.render();
-
-      const auto frameEnd = Clock::now();
-
-      const FrameTimes times {
-        .submitMs = milliseconds(frameStart, submitEnd),
-        .renderMs = milliseconds(submitEnd, frameEnd),
-        .frameMs = milliseconds(frameStart, frameEnd)
-      };
-
-      rolling[frameIndex % ROLLING_FRAMES] = times;
-      rollingCount = std::min(rollingCount + 1, ROLLING_FRAMES);
-
-      if (frameIndex >= options.warmup && options.frames > 0)
-      {
-        samples.submit.push_back(times.submitMs);
-        samples.render.push_back(times.renderMs);
-        samples.frame.push_back(times.frameMs);
-      }
-
-      ++frameIndex;
-    }
+    Samples samples = runBenchmark(renderer, scene, options);
 
     if (options.frames > 0)
     {
@@ -175,6 +153,66 @@ int main(int argc, char** argv)
   }
 
   return EXIT_SUCCESS;
+}
+
+FrameTimes runFrame(vke::VulkanEngine& renderer,
+                    const Scene& scene,
+                    const RollingTimes& rolling,
+                    const uint64_t frameIndex,
+                    const Clock::time_point startTime)
+{
+  const auto frameStart = Clock::now();
+
+  dockWindow(renderer.getImGuiInstance(), frameIndex);
+  displayStats(scene.objects.size(), rolling.times, rolling.count);
+  updateObjects(scene.objects, std::chrono::duration<float>(frameStart - startTime).count());
+  submitScene(renderer, scene.objects, scene.lights);
+
+  const auto submitEnd = Clock::now();
+
+  // Includes any wait on the GPU and on presentation
+  renderer.render();
+
+  const auto frameEnd = Clock::now();
+
+  return {
+    .submitMs = milliseconds(frameStart, submitEnd),
+    .renderMs = milliseconds(submitEnd, frameEnd),
+    .frameMs = milliseconds(frameStart, frameEnd)
+  };
+}
+
+Samples runBenchmark(vke::VulkanEngine& renderer,
+                     const Scene& scene,
+                     const Options& options)
+{
+  Samples samples;
+  samples.submit.reserve(options.frames);
+  samples.render.reserve(options.frames);
+  samples.frame.reserve(options.frames);
+
+  RollingTimes rolling;
+  uint64_t frameIndex = 0;
+  const auto startTime = Clock::now();
+
+  while (renderer.isActive() && (options.frames == 0 || samples.frame.size() < options.frames))
+  {
+    const FrameTimes times = runFrame(renderer, scene, rolling, frameIndex, startTime);
+
+    rolling.times[frameIndex % ROLLING_FRAMES] = times;
+    rolling.count = std::min(rolling.count + 1, ROLLING_FRAMES);
+
+    if (frameIndex >= options.warmup && options.frames > 0)
+    {
+      samples.submit.push_back(times.submitMs);
+      samples.render.push_back(times.renderMs);
+      samples.frame.push_back(times.frameMs);
+    }
+
+    ++frameIndex;
+  }
+
+  return samples;
 }
 
 bool parseValue(const char* text,
