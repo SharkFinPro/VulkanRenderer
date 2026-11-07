@@ -14,13 +14,16 @@
 #include <charconv>
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string_view>
+#include <system_error>
 #include <vector>
 
 constexpr float OBJECT_SPACING = 2.5f;
@@ -97,6 +100,7 @@ void printMetric(const char* name,
                  std::vector<double>& values);
 
 void printSummary(const Options& options,
+                  const vke::SceneViewRect& sceneView,
                   Samples& samples);
 
 struct Scene {
@@ -143,7 +147,7 @@ int main(int argc, char** argv)
 
     if (options.frames > 0)
     {
-      printSummary(options, samples);
+      printSummary(options, renderer.getRenderingManager()->getSceneViewRect(), samples);
     }
   }
   catch (const std::exception& e)
@@ -271,6 +275,10 @@ vke::EngineConfig createConfig(const uint32_t objects)
     .camera {
       .position = { 0.0f, 30.0f, -(halfExtent + 20.0f) }
     },
+    // A detached window would change what is rendered and presented between runs
+    .imGui {
+      .detachableWindows = false
+    },
     .rendering {
       .rayTracingEnabled = false
     }
@@ -352,15 +360,11 @@ void submitScene(vke::VulkanEngine& renderer,
   }
 }
 
-// The dock layout takes two frames: the percent first, then the placement
+// Placed once the first frame has built the dock tree; the default dock percents are kept
 void dockWindow(const std::shared_ptr<vke::ImGuiInstance>& gui,
                 const uint64_t frameIndex)
 {
-  if (frameIndex == 0)
-  {
-    gui->setBottomDockPercent(0.2f);
-  }
-  else if (frameIndex == 1)
+  if (frameIndex == 1)
   {
     gui->dockCenter("Scene View");
     gui->dockBottom("Benchmark");
@@ -429,10 +433,15 @@ void printMetric(const char* name,
 }
 
 void printSummary(const Options& options,
+                  const vke::SceneViewRect& sceneView,
                   Samples& samples)
 {
   std::cout << std::fixed << std::setprecision(3);
-  std::cout << "objects " << options.objects << " frames " << samples.frame.size() << " warmup " << options.warmup << " (times in ms)" << std::endl;
+  std::cout << "objects " << options.objects << " frames " << samples.frame.size() << " warmup " << options.warmup
+            << " scene " << static_cast<int>(sceneView.width) << "x" << static_cast<int>(sceneView.height)
+            << " (times in ms)\n";
+  // render() also waits on the GPU and on presentation, so a GPU-bound or vsync-limited run hides CPU changes.
+  std::cout << "render includes GPU and present waits; keep the window visible and untouched while measuring\n";
   printMetric("submit", samples.submit);
   printMetric("render", samples.render);
   printMetric("frame", samples.frame);
