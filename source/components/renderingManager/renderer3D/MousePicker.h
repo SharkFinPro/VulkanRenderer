@@ -1,6 +1,7 @@
 #ifndef VKE_MOUSEPICKER_H
 #define VKE_MOUSEPICKER_H
 
+#include "DrawRun.h"
 #include "PickResult.h"
 #include <glm/mat4x4.hpp>
 #include <imgui.h>
@@ -8,6 +9,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace vke {
@@ -57,10 +59,14 @@ namespace vke {
     // Whether the scene view is the UI element under the cursor, rather than covered by another window.
     void setSceneHovered(bool sceneHovered);
 
-    // sceneDescriptorSet is the frame's scene set (set 0), which holds the object table the entries index.
+    // sceneDescriptorSet is the frame's scene set (set 0), which holds the object table and draw slots the runs index.
+    // Renderer3D builds the runs from the pick entries: plainRuns for the objects drawn as opaque, alphaTestedRuns
+    // (grouped by material too) for those whose texture cuts them out.
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
-                vk::DescriptorSet sceneDescriptorSet) const;
+                vk::DescriptorSet sceneDescriptorSet,
+                std::span<const DrawRun> plainRuns,
+                std::span<const DrawRun> alphaTestedRuns) const;
 
     // Records the one-pixel copy under the cursor into the frame's command buffer, after the picking pass has ended.
     // Only the host read after the frame completes uses the result. Also updates canMousePick.
@@ -69,7 +75,8 @@ namespace vke {
                         uint32_t currentFrame);
 
   private:
-    // Only Renderer3D submits pick entries, since each needs the object table slot it gave the render submission.
+    // Only Renderer3D submits pick entries, since each needs the object table slot it gave the render submission, and
+    // it reads them to build the picking draws.
     friend class Renderer3D;
 
     // mousePicked may be null; otherwise it is set to whether the object was under the cursor in the frame the readback
@@ -135,10 +142,11 @@ namespace vke {
 
     void createReadbackSlots();
 
-    void renderEntries(const RenderInfo* renderInfo,
-                       const std::shared_ptr<PipelineManager>& pipelineManager,
-                       vk::DescriptorSet sceneDescriptorSet,
-                       bool alphaTested) const;
+    void renderRuns(const RenderInfo* renderInfo,
+                    const std::shared_ptr<PipelineManager>& pipelineManager,
+                    vk::DescriptorSet sceneDescriptorSet,
+                    std::span<const DrawRun> runs,
+                    bool alphaTested) const;
 
     bool validateMousePickingMousePosition(int32_t& mouseX,
                                            int32_t& mouseY);

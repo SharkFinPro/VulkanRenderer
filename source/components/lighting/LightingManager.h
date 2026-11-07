@@ -5,16 +5,17 @@
 #include <vulkan/vulkan_raii.hpp>
 #include <cstddef>
 #include <memory>
+#include <span>
 #include <vector>
 
 namespace vke {
 
   class CommandBuffer;
   class DescriptorSet;
+  struct DrawRun;
   class Light;
   class LogicalDevice;
   class PipelineManager;
-  class RenderObject;
   class UniformBuffer;
 
   class LightingManager {
@@ -41,11 +42,11 @@ namespace vke {
 
     void update(uint32_t currentFrame, glm::vec3 viewPosition);
 
-    // Draws objects into every shadow-casting light's map. The slot of an object is its index in the list, which is its
-    // entry in the object table the scene descriptor set (set 0 of the shadow pipelines) binds.
+    // Draws the runs into every shadow-casting light's map. Their first instances index the draw slots the scene
+    // descriptor set (set 0 of the shadow pipelines) binds.
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
-                          const std::vector<std::shared_ptr<RenderObject>>* objects,
+                          std::span<const DrawRun> runs,
                           vk::DescriptorSet sceneDescriptorSet,
                           uint32_t currentFrame) const;
 
@@ -99,13 +100,13 @@ namespace vke {
 
     void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
-                                    const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                    std::span<const DrawRun> runs,
                                     vk::DescriptorSet sceneDescriptorSet,
                                     uint32_t currentFrame) const;
 
     void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                    const std::shared_ptr<PipelineManager>& pipelineManager,
-                                   const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                   std::span<const DrawRun> runs,
                                    vk::DescriptorSet sceneDescriptorSet,
                                    uint32_t currentFrame) const;
 

@@ -14,7 +14,7 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 0) out vec3 fragPos;
 
 void main() {
-  vec4 worldPos = objects[gl_InstanceIndex].model * vec4(inPosition, 1.0);
+  vec4 worldPos = objects[objectSlot()].model * vec4(inPosition, 1.0);
   fragPos = worldPos.xyz;
 
   gl_Position = shadow.lightViewProj[gl_ViewIndex] * worldPos;

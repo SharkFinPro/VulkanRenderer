@@ -1,7 +1,6 @@
 #include "RenderObject.h"
 #include "Material.h"
 #include "Model.h"
-#include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -21,12 +20,6 @@ namespace vke {
     // Frames in flight may still draw this object's model and sample its material.
     m_logicalDevice->retire(std::move(m_material));
     m_logicalDevice->retire(std::move(m_model));
-  }
-
-  void RenderObject::draw(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                          const uint32_t slot) const
-  {
-    m_model->draw(commandBuffer, slot);
   }
 
   void RenderObject::setPosition(const glm::vec3 position)

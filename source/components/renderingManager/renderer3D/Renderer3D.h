@@ -1,6 +1,7 @@
 #ifndef VULKANPROJECT_RENDERER3D_H
 #define VULKANPROJECT_RENDERER3D_H
 
+#include "DrawRun.h"
 #include "RayTracer.h"
 #include "PickResult.h"
 #include "Renderer3DPushConstants.h"
@@ -30,6 +31,8 @@ namespace vke {
   class ImageResource;
   class LightingManager;
   class LogicalDevice;
+  class Material;
+  class Model;
   class MousePicker;
   class ObjectTable;
   class PipelineManager;
@@ -83,9 +86,11 @@ namespace vke {
     void updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
                                uint32_t currentFrame) const;
 
-    // Writes the frame's object table (one entry per render submission, then one per outline) and camera, which every
-    // pass that draws render objects reads through the scene descriptor set. Call once per frame, after the frame's
-    // command buffer slot is known to be free and before the first pass that draws objects.
+    // Writes the frame's object table (one entry per render submission, then one per outline), the draw slots of every
+    // pass's sorted draw list and the camera, which every pass that draws render objects reads through the scene
+    // descriptor set. Everything is written before the first pass records, since the buffers must not be replaced
+    // afterwards. Call once per frame, after the frame's command buffer slot is known to be free and before the first
+    // pass that draws objects.
     void updateSceneData(const RenderInfo* renderInfo);
 
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
@@ -235,7 +240,8 @@ namespace vke {
 
     [[nodiscard]] const std::vector<std::shared_ptr<SmokeSystem>>& getSmokeSystems() const;
 
-    // The scene set (set 0 of the object pipelines): the object table at binding 0 and the camera at binding 1.
+    // The scene set (set 0 of the object pipelines): the object table at binding 0, the camera at binding 1 and the draw
+    // slots at binding 2.
     [[nodiscard]] vk::DescriptorSetLayout getSceneDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSetLayout getNoiseDescriptorSetLayout() const;
@@ -266,9 +272,14 @@ namespace vke {
     float m_nearPlane = 0.1f;
     float m_farPlane = 1000.0f;
 
-    // A render submission's slot is its index in the flattened list, and its entry in the object table. The per-pipeline
-    // lists hold slots.
-    std::unordered_map<PipelineType, std::vector<uint32_t>> m_renderObjectsToRender;
+    // A render submission's slot is its index in the flattened list, and its entry in the object table. A pipeline's
+    // list holds its slots in submission order; its runs are the same draws sorted by material then model.
+    struct PipelineDraws {
+      std::vector<uint32_t> slots;
+      std::vector<DrawRun> runs;
+    };
+
+    std::unordered_map<PipelineType, PipelineDraws> m_renderObjectsToRender;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjectsToRenderFlattened;
 
     // By slot: the submission's picking id, or 0 when it is not pickable
@@ -276,6 +287,25 @@ namespace vke {
 
     // The flattened list without view-only submissions, which are rasterized rather than traced
     std::vector<std::shared_ptr<RenderObject>> m_rayTracedRenderObjects;
+
+    // The other passes' draws as runs: every submission by model for the shadow maps, the pickable ones by model (and
+    // by material too when alpha tested) and the outlines by mask value then model. The draw slots hold the lists one after
+    // another: shadow, the pipelines', picking, outline.
+    std::vector<DrawRun> m_shadowRuns;
+    std::vector<DrawRun> m_pickRuns;
+    std::vector<DrawRun> m_pickAlphaTestedRuns;
+    std::vector<DrawRun> m_outlineRuns;
+
+    // Scratch reused by every list build
+    std::vector<DrawItem> m_drawItems;
+
+    // By object table slot (submissions, then outlines): what draws are grouped by
+    struct SlotKey {
+      const Model* model;
+      const Material* material;
+    };
+
+    std::vector<SlotKey> m_slotKeys;
 
     // Each outlined object with its value in the mask, which is its color's index plus one (zero is no outline)
     std::vector<std::pair<std::shared_ptr<RenderObject>, uint32_t>> m_outlineObjects;
@@ -360,7 +390,28 @@ namespace vke {
                              const std::shared_ptr<LightingManager>& lightingManager,
                              const RenderInfo* renderInfo,
                              PipelineType pipelineType,
-                             const std::vector<uint32_t>* slots) const;
+                             const std::vector<DrawRun>& runs) const;
+
+    void writeObjectTable(uint32_t currentFrame);
+
+    // Fills the draw slots with every pass's runs, each list at the offset the previous one ended at.
+    void buildDrawLists(uint32_t* drawSlots);
+
+    [[nodiscard]] uint32_t buildShadowRuns(uint32_t* drawSlots,
+                                           uint32_t offset);
+
+    [[nodiscard]] uint32_t buildPipelineRuns(uint32_t* drawSlots,
+                                             uint32_t offset);
+
+    [[nodiscard]] uint32_t buildPickRuns(uint32_t* drawSlots,
+                                         uint32_t offset);
+
+    [[nodiscard]] uint32_t buildOutlineRuns(uint32_t* drawSlots,
+                                            uint32_t offset);
+
+    [[nodiscard]] DrawItem makeDrawItem(uint32_t slot,
+                                        bool byMaterial,
+                                        uint32_t maskValue) const;
 
     void bindPushConstant(const std::shared_ptr<PipelineManager>& pipelineManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -376,7 +427,7 @@ namespace vke {
 
     void createSceneDescriptorSet();
 
-    [[nodiscard]] std::array<vk::WriteDescriptorSet, 2> getSceneDescriptorWrites(vk::DescriptorSet descriptorSet,
+    [[nodiscard]] std::array<vk::WriteDescriptorSet, 3> getSceneDescriptorWrites(vk::DescriptorSet descriptorSet,
                                                                                   size_t frame) const;
 
     [[nodiscard]] bool pipelineIsActive(PipelineType pipelineType) const;

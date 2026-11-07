@@ -4,7 +4,7 @@
 #include "lights/Light.h"
 #include "lights/PointLight.h"
 #include "lights/SpotLight.h"
-#include "../assets/objects/RenderObject.h"
+#include "../assets/objects/Model.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
@@ -12,6 +12,7 @@
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../pipelines/uniformBuffers/UniformBuffer.h"
 #include "../renderingManager/ImageResource.h"
+#include "../renderingManager/renderer3D/DrawRun.h"
 
 #include <algorithm>
 
@@ -19,14 +20,14 @@ namespace {
 
   constexpr uint32_t MAX_SHADOW_MAPS = 16;
 
-  // A render submission's slot in the object table is its index in the list, which the shadow shaders read as the first
-  // instance. The scene set is bound by the caller.
+  // One instanced draw per run; the runs' first instances index the draw slots the shadow shaders read. The scene set is
+  // bound by the caller.
   void drawShadowCasters(const std::shared_ptr<vke::CommandBuffer>& commandBuffer,
-                         const std::vector<std::shared_ptr<vke::RenderObject>>& objects)
+                         const std::span<const vke::DrawRun> runs)
   {
-    for (size_t slot = 0; slot < objects.size(); ++slot)
+    for (const vke::DrawRun& run : runs)
     {
-      objects[slot]->draw(commandBuffer, static_cast<uint32_t>(slot));
+      run.model->draw(commandBuffer, run.firstInstance, run.instanceCount);
     }
   }
 
@@ -213,13 +214,13 @@ namespace vke {
 
   void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<PipelineManager>& pipelineManager,
-                                         const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                         const std::span<const DrawRun> runs,
                                          const vk::DescriptorSet sceneDescriptorSet,
                                          const uint32_t currentFrame) const
   {
-    renderPointLightShadowMaps(commandBuffer, pipelineManager, objects, sceneDescriptorSet, currentFrame);
+    renderPointLightShadowMaps(commandBuffer, pipelineManager, runs, sceneDescriptorSet, currentFrame);
 
-    renderSpotLightShadowMaps(commandBuffer, pipelineManager, objects, sceneDescriptorSet, currentFrame);
+    renderSpotLightShadowMaps(commandBuffer, pipelineManager, runs, sceneDescriptorSet, currentFrame);
   }
 
   vk::DescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
@@ -423,7 +424,7 @@ namespace vke {
 
   void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                   const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                                   const std::span<const DrawRun> runs,
                                                    const vk::DescriptorSet sceneDescriptorSet,
                                                    const uint32_t currentFrame) const
   {
@@ -486,7 +487,7 @@ namespace vke {
         1
       );
 
-      drawShadowCasters(shadowRenderInfo.commandBuffer, *objects);
+      drawShadowCasters(shadowRenderInfo.commandBuffer, runs);
 
       endShadowRendering(commandBuffer, light);
     }
@@ -494,7 +495,7 @@ namespace vke {
 
   void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                  const std::vector<std::shared_ptr<RenderObject>>* objects,
+                                                  const std::span<const DrawRun> runs,
                                                   const vk::DescriptorSet sceneDescriptorSet,
                                                   const uint32_t currentFrame) const
   {
@@ -548,7 +549,7 @@ namespace vke {
         0
       );
 
-      drawShadowCasters(shadowRenderInfo.commandBuffer, *objects);
+      drawShadowCasters(shadowRenderInfo.commandBuffer, runs);
 
       endShadowRendering(commandBuffer, light);
     }

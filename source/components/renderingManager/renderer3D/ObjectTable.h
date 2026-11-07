@@ -26,9 +26,11 @@ namespace vke {
 
   static_assert(sizeof(ObjectData) == 144, "ObjectData must match the std430 layout in SceneData.glsl");
 
-  // The per-frame table of object data the object shaders index with the draw's first instance: a storage buffer per
-  // frame in flight, persistently mapped and written by the CPU, so there is no staging copy. A buffer only grows, to
-  // the next power of two, and the one it replaces is retired.
+  // The per-frame data the object shaders read through the scene set: the table of object data (binding 0) and the draw
+  // slots (binding 2). A draw's first instance indexes the draw slots, whose entry is the object's index in the table,
+  // so one instanced draw can cover objects that are not adjacent in the table. Each is a storage buffer per frame in
+  // flight, persistently mapped and written by the CPU, so there is no staging copy. A buffer only grows, to the next
+  // power of two, and the one it replaces is retired.
   class ObjectTable {
   public:
     // The fewest entries a buffer is made for, so a scene that grows one object at a time doesn't reallocate each frame.
@@ -36,34 +38,54 @@ namespace vke {
 
     explicit ObjectTable(std::shared_ptr<LogicalDevice> logicalDevice);
 
-    // Makes the frame's buffer hold at least count entries. Returns whether the buffer was replaced, in which case the
-    // frame's descriptor set must be rewritten with getBufferInfo().
+    // Makes the frame's buffers hold at least objectCount table entries and slotCount draw slots. Returns whether
+    // either buffer was replaced, in which case the frame's descriptor set must be rewritten with getBufferInfo() and
+    // getDrawSlotsBufferInfo(). Call it before any command that uses the frame's set is recorded.
     [[nodiscard]] bool reserve(uint32_t frame,
-                               size_t count);
+                               size_t objectCount,
+                               size_t slotCount);
 
     // The frame's mapped entries, valid up to the reserved capacity and until the next reserve that returns true.
     [[nodiscard]] ObjectData* getEntries(uint32_t frame) const;
 
+    // The frame's mapped draw slots, with the same validity.
+    [[nodiscard]] uint32_t* getDrawSlots(uint32_t frame) const;
+
     [[nodiscard]] const vk::DescriptorBufferInfo& getBufferInfo(uint32_t frame) const;
+
+    [[nodiscard]] const vk::DescriptorBufferInfo& getDrawSlotsBufferInfo(uint32_t frame) const;
 
     [[nodiscard]] size_t getCapacity(uint32_t frame) const;
 
+    [[nodiscard]] size_t getDrawSlotCapacity(uint32_t frame) const;
+
   private:
     // Memory is declared first so that, on destruction, the buffer goes before the memory bound to it.
-    struct FrameTable {
+    struct MappedBuffer {
       vk::raii::DeviceMemory memory = nullptr;
       vk::raii::Buffer buffer = nullptr;
-      ObjectData* entries = nullptr;
+      void* mapped = nullptr;
       size_t capacity = 0;
       vk::DescriptorBufferInfo bufferInfo {};
     };
 
+    struct Frame {
+      MappedBuffer objects;
+      MappedBuffer drawSlots;
+    };
+
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    std::vector<FrameTable> m_frames;
+    std::vector<Frame> m_frames;
 
-    void allocate(FrameTable& frame,
-                  size_t capacity) const;
+    // Replaces the buffer when it holds fewer than count elements. Returns whether it did.
+    [[nodiscard]] bool grow(MappedBuffer& target,
+                            size_t count,
+                            size_t elementSize) const;
+
+    void allocate(MappedBuffer& target,
+                  size_t capacity,
+                  size_t elementSize) const;
   };
 
 } // namespace vke

@@ -13,7 +13,7 @@ layout(location = 3) flat out uint fragObject;
 
 void main()
 {
-  const uint object = uint(gl_InstanceIndex);
+  const uint object = objectSlot();
 
   fragPos = vec3(objects[object].model * vec4(inPosition, 1.0));
   fragTexCoord = inTexCoord;

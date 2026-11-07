@@ -8,7 +8,7 @@ layout(location = 0) flat out uint pickId;
 
 void main()
 {
-  const uint object = uint(gl_InstanceIndex);
+  const uint object = objectSlot();
 
   pickId = objects[object].pickId;
 
