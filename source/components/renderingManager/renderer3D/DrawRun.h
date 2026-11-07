@@ -1,7 +1,6 @@
 #ifndef VKE_DRAWRUN_H
 #define VKE_DRAWRUN_H
 
-#include <cstddef>
 #include <cstdint>
 #include <vector>
 

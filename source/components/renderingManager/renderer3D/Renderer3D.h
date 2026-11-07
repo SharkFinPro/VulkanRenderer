@@ -394,8 +394,9 @@ namespace vke {
 
     void writeObjectTable(uint32_t currentFrame);
 
-    // Fills the draw slots with every pass's runs, each list at the offset the previous one ended at.
-    void buildDrawLists(uint32_t* drawSlots);
+    // Fills the draw slots with every pass's runs, each list at the offset the previous one ended at. Returns the
+    // number of slots written.
+    [[nodiscard]] uint32_t buildDrawLists(uint32_t* drawSlots);
 
     [[nodiscard]] uint32_t buildShadowRuns(uint32_t* drawSlots,
                                            uint32_t offset);

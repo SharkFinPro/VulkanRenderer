@@ -1,6 +1,6 @@
 #include "DrawRun.h"
 #include <algorithm>
-#include <tuple>
+#include <functional>
 
 namespace vke {
 
@@ -15,7 +15,25 @@ namespace vke {
     [[nodiscard]] bool drawsBefore(const DrawItem& a,
                                    const DrawItem& b)
     {
-      return std::tie(a.maskValue, a.material, a.model, a.slot) < std::tie(b.maskValue, b.material, b.model, b.slot);
+      // std::less, since < on pointers to unrelated objects is unspecified
+      constexpr std::less<const void*> pointerLess;
+
+      if (a.maskValue != b.maskValue)
+      {
+        return a.maskValue < b.maskValue;
+      }
+
+      if (a.material != b.material)
+      {
+        return pointerLess(a.material, b.material);
+      }
+
+      if (a.model != b.model)
+      {
+        return pointerLess(a.model, b.model);
+      }
+
+      return a.slot < b.slot;
     }
 
   } // namespace

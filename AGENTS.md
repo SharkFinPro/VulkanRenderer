@@ -84,7 +84,7 @@
 - **Integration tests** combine systems into a small interactive app (e.g. `snake`).
 - **Benchmarks** measure CPU cost: `manyObjects` submits many objects sharing a few meshes and materials, with point-light shadows and picking (`--objects N`; `--frames N` prints a summary of per-frame timings, excluding the first `--warmup` frames, and exits). Its `render` time includes GPU and present waits, so compare runs that stay CPU-bound.
 - Pattern (`main.cpp`): construct `vke::VulkanEngine` from an `EngineConfig`, set the ImGui context, load assets via `AssetManager`, then loop `while (renderer.isActive()) { ...build GUI, submit render requests..., renderer.render(); }`, all inside a try/catch on `std::exception`.
-- **Headless checks** (`cullingMath`) need no GPU and are registered with CTest (`add_test`), so CI runs them. Such a test compiles the utility sources it checks instead of linking the engine, and is not in the `TESTS` list.
+- **Headless checks** (`cullingMath`, `drawRuns`) need no GPU and are registered with CTest (`add_test`), so CI runs them. Such a test compiles the engine-independent sources it checks instead of linking the engine, and is not in the `TESTS` list.
 - Shared GUI helpers live in `tests/common/`. Tests include engine headers via repo-relative paths (`<source/...>`), enabled by the root `include_directories(<repo root>)`.
 - Tests consume the public engine API only; they must not reach into engine internals or modify engine behavior to work.
 

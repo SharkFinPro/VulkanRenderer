@@ -21,6 +21,7 @@
 #include <glm/matrix.hpp>
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <iterator>
@@ -129,7 +130,9 @@ namespace vke {
 
     writeObjectTable(currentFrame);
 
-    buildDrawLists(m_objectTable->getDrawSlots(currentFrame));
+    // slotCount is exact: each submission is in the shadow list and in one pipeline's list
+    [[maybe_unused]] const uint32_t slotsWritten = buildDrawLists(m_objectTable->getDrawSlots(currentFrame));
+    assert(slotsWritten <= m_objectTable->getDrawSlotCapacity(currentFrame));
 
     const RenderInfo sceneRenderInfo = makeSceneRenderInfo(renderInfo);
 
@@ -169,7 +172,7 @@ namespace vke {
     }
   }
 
-  void Renderer3D::buildDrawLists(uint32_t* drawSlots)
+  uint32_t Renderer3D::buildDrawLists(uint32_t* drawSlots)
   {
     uint32_t offset = buildShadowRuns(drawSlots, 0);
 
@@ -177,7 +180,7 @@ namespace vke {
 
     offset = buildPickRuns(drawSlots, offset);
 
-    [[maybe_unused]] const uint32_t end = buildOutlineRuns(drawSlots, offset);
+    return buildOutlineRuns(drawSlots, offset);
   }
 
   DrawItem Renderer3D::makeDrawItem(const uint32_t slot,
