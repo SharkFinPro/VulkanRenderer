@@ -34,6 +34,7 @@
 ## Build System
 
 - **CMake ≥ 3.27**, C++23. Built as a **shared library** (`BUILD_SHARED_LIBS ON`); on MSVC, `WINDOWS_EXPORT_ALL_SYMBOLS`.
+- `CMakePresets.json` has Ninja configure presets `vke-debug`, `vke-release` and `vke-profile`, each writing to `cmake-build-<preset>` (`cmake --preset vke-profile`, then `cmake --build cmake-build-vke-profile`). Configure presets only, like ECS3D's: build presets would show up as extra IDE profiles. `vke-profile` is RelWithDebInfo plus the top-level-only `VKE_PROFILE` option, set before anything is added so every target gets it: on MSVC Release-level inlining (`/Ob2`) and `/DEBUG /OPT:REF /OPT:NOICF /INCREMENTAL:NO`, so each DLL and executable in `bin/` gets a PDB; on GCC/Clang frame pointers.
 - Layering: root → `add_subdirectory(source)` then (conditionally) `add_subdirectory(tests)`.
 - `VulkanProject_BUILD_TESTS` defaults OFF, but is forced ON when this repo is the top-level project. So building standalone builds the tests; consuming via FetchContent does not.
 - Source files are enumerated explicitly in `source/cmake/Sources.cmake` (grouped lists, not globs) with an existence-check validation loop. **Add new engine files there.**

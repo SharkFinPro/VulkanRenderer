@@ -1,0 +1,44 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 27,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "vke-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/cmake-build-${presetName}"
+    },
+    {
+      "name": "vke-debug",
+      "inherits": "vke-base",
+      "displayName": "VulkanRenderer Debug",
+      "description": "Debug build with assertions live, the configuration day-to-day work happens in. Writes to cmake-build-vke-debug.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "vke-release",
+      "inherits": "vke-base",
+      "displayName": "VulkanRenderer Release",
+      "description": "Optimized build, the build type CI covers. Writes to cmake-build-vke-release.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "vke-profile",
+      "inherits": "vke-base",
+      "displayName": "VulkanRenderer Profile",
+      "description": "Optimized build with full debug info (a PDB next to each DLL and executable on MSVC) and frame pointers, for sampling profilers. Unlike vke-release, call stacks unwind and resolve to source lines. Writes to cmake-build-vke-profile.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "VKE_PROFILE": "ON"
+      }
+    }
+  ]
+}
