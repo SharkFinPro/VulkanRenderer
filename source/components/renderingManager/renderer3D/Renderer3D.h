@@ -88,7 +88,13 @@ namespace vke {
     void renderMousePicking(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
-    void handleRenderedMousePickingImage(vk::Image image) const;
+    // Records the one-pixel picking readback into the frame's command buffer, after the picking pass.
+    void recordMousePickingReadback(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                    vk::Image image,
+                                    uint32_t currentFrame) const;
+
+    // Reads the result of the frame that last used this frame-in-flight slot; call once it is known to be complete.
+    void resolveMousePicking(uint32_t currentFrame) const;
 
     [[nodiscard]] bool hasOutlines() const;
 
@@ -153,10 +159,13 @@ namespace vke {
                       PipelineType pipelineType,
                       bool* mousePicked = nullptr);
 
+    // The flag reports a frame rendered a few frames earlier (frames in flight), as getPickResult() does.
     // Pickable without a flag: read the outcome through getPickResult().
     void renderPickableObject(const std::shared_ptr<RenderObject>& renderObject,
                               PipelineType pipelineType);
 
+    // What the cursor was over a few frames ago: the readback is read once its frame has completed, so it never waits
+    // on the GPU but arrives up to the number of frames in flight late.
     [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
     // Outlines the object for this frame in the given color (alpha included), on top of however the application draws

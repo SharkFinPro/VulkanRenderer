@@ -64,6 +64,9 @@ namespace vke {
   {
     m_renderer3D->getMousePicker()->beginFrame();
 
+    // The frame that last used this slot has completed (FrameScheduler::beginFrame waited for it).
+    m_renderer3D->resolveMousePicking(currentFrame);
+
     // Frames that end before the scene view is laid out would otherwise miss the release.
     if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
     {
@@ -473,6 +476,12 @@ namespace vke {
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);
 
       renderInfo.commandBuffer->endRendering();
+
+      m_renderer3D->recordMousePickingReadback(
+        renderInfo.commandBuffer,
+        m_renderTarget->getMousePickingColorImageResource(currentFrame).getImage(),
+        currentFrame
+      );
     };
 
     auto recordOutlineMask = [this, currentFrame, pipelineManager](const RenderInfo& renderInfo) {
@@ -605,13 +614,6 @@ namespace vke {
     });
 
     m_frameScheduler->submitOffscreenCommandBuffer(m_offscreenCommandBuffer->getCommandBuffer());
-
-    if (m_offscreenViewportExtent.width != 0 &&
-        m_offscreenViewportExtent.height != 0)
-    {
-      m_frameScheduler->waitForOffscreenWork();
-      m_renderer3D->handleRenderedMousePickingImage(m_renderTarget->getMousePickingColorImageResource(currentFrame).getImage());
-    }
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,

@@ -1,30 +1,42 @@
 #include "MousePicker.h"
 #include "../../assets/objects/RenderObject.h"
-#include "../../commandBuffer/SingleUseCommandBuffer.h"
+#include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../../utilities/Buffers.h"
-#include "../../../utilities/Images.h"
 #include <glm/matrix.hpp>
 #include <cmath>
 #include <cstring>
 
 namespace vke {
 
-  MousePicker::MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
-                           const vk::CommandPool commandPool)
-    : m_logicalDevice(std::move(logicalDevice)), m_commandPool(commandPool)
+  MousePicker::MousePicker(std::shared_ptr<LogicalDevice> logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
+  {
+    createReadbackSlots();
+  }
+
+  void MousePicker::createReadbackSlots()
   {
     constexpr vk::DeviceSize bufferSize = sizeof(uint32_t) * 4;
 
-    Buffers::createBuffer(
-      m_logicalDevice,
-      bufferSize,
-      vk::BufferUsageFlagBits::eTransferDst,
-      vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-      m_stagingBuffer,
-      m_stagingBufferMemory
-    );
+    const uint32_t slotCount = m_logicalDevice->getMaxFramesInFlight();
+    m_readbackSlots.resize(slotCount);
+
+    for (auto& slot : m_readbackSlots)
+    {
+      Buffers::createBuffer(
+        m_logicalDevice,
+        bufferSize,
+        vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        slot.buffer,
+        slot.memory
+      );
+
+      // Mapped for the slot's lifetime; freeing the memory unmaps it.
+      slot.mapped = slot.memory.mapMemory(0, bufferSize, vk::MemoryMapFlags{});
+    }
   }
 
   bool MousePicker::canMousePick() const
@@ -153,38 +165,89 @@ namespace vke {
     }
   }
 
-  void MousePicker::handleRenderedMousePickingImage(const vk::Image image)
+  void MousePicker::resolveReadback(const uint32_t currentFrame)
   {
-    // Checked even with nothing to pick, so canMousePick() still says whether the cursor is over the scene.
-    int32_t mouseX, mouseY;
-    if (!validateMousePickingMousePosition(mouseX, mouseY) || m_mousePickingFlags.empty())
+    auto& slot = m_readbackSlots[currentFrame];
+
+    if (!slot.pending)
     {
       return;
     }
 
-    // An identifier buffer rather than a ray query: it works without ray tracing, matches exactly what was
-    // rasterized, and needs only this one-pixel readback.
-    const auto [objectID, triangleIndex, depthBits, _] = getPixelFromMousePickingImage(image, mouseX, mouseY);
+    slot.pending = false;
 
-    if (objectID == 0 || objectID > m_renderObjectsToMousePick.size())
+    std::array<uint32_t, 4> pixel {};
+    std::memcpy(pixel.data(), slot.mapped, sizeof(pixel));
+
+    storePick(slot, pixel);
+
+    // Drops the objects; the vector keeps its capacity for the next swap.
+    slot.entries.clear();
+  }
+
+  void MousePicker::storePick(const ReadbackSlot& slot,
+                              const std::array<uint32_t, 4>& pixel)
+  {
+    const auto [objectID, triangleIndex, depthBits, _] = pixel;
+
+    if (objectID == 0 || objectID > slot.entries.size())
     {
       return;
-    }
-
-    if (bool* mousePicked = m_mousePickingFlags[objectID - 1])
-    {
-      *mousePicked = true;
     }
 
     float depth;
     std::memcpy(&depth, &depthBits, sizeof(depth));
 
+    const auto& object = slot.entries[objectID - 1].object;
+
     m_pick = Pick {
-      .renderObject = m_renderObjectsToMousePick[objectID - 1].object,
+      .renderObject = object,
       .triangleIndex = triangleIndex,
-      .worldPosition = getWorldPosition(mouseX, mouseY, depth),
+      .worldPosition = getWorldPosition(slot, depth),
       .depth = depth
     };
+
+    flagCurrentSubmissions(object.get());
+  }
+
+  void MousePicker::flagCurrentSubmissions(const RenderObject* picked)
+  {
+    // The ids belong to an earlier frame, so match this frame's submissions by object.
+    for (size_t i = 0; i < m_renderObjectsToMousePick.size(); i++)
+    {
+      if (m_renderObjectsToMousePick[i].object.get() == picked && m_mousePickingFlags[i])
+      {
+        *m_mousePickingFlags[i] = true;
+      }
+    }
+  }
+
+  void MousePicker::recordReadback(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                   const vk::Image image,
+                                   const uint32_t currentFrame)
+  {
+    // Checked even with nothing to pick, so canMousePick() still says whether the cursor is over the scene.
+    int32_t mouseX, mouseY;
+    if (!validateMousePickingMousePosition(mouseX, mouseY) || m_renderObjectsToMousePick.empty())
+    {
+      return;
+    }
+
+    auto& slot = m_readbackSlots[currentFrame];
+
+    slot.pending = true;
+    slot.mouseX = mouseX;
+    slot.mouseY = mouseY;
+    slot.extent = m_viewportExtent;
+    slot.viewMatrix = m_viewMatrix;
+    slot.projectionMatrix = m_projectionMatrix;
+
+    // The slot's previous entries were resolved and cleared, so this hands back an empty vector with capacity.
+    slot.entries.swap(m_renderObjectsToMousePick);
+
+    // An identifier buffer rather than a ray query: it works without ray tracing and matches exactly what was
+    // rasterized.
+    recordPixelCopy(*commandBuffer, image, slot);
   }
 
   bool MousePicker::validateMousePickingMousePosition(int32_t& mouseX,
@@ -224,58 +287,73 @@ namespace vke {
     return m_canMousePick;
   }
 
-  glm::vec3 MousePicker::getWorldPosition(const int32_t mouseX,
-                                          const int32_t mouseY,
-                                          const float depth) const
+  glm::vec3 MousePicker::getWorldPosition(const ReadbackSlot& slot,
+                                          const float depth)
   {
     // The projection already flips Y for Vulkan, so framebuffer rows map straight to NDC y.
     const glm::vec4 ndc {
-      2.0f * (static_cast<float>(mouseX) + 0.5f) / static_cast<float>(m_viewportExtent.width) - 1.0f,
-      2.0f * (static_cast<float>(mouseY) + 0.5f) / static_cast<float>(m_viewportExtent.height) - 1.0f,
+      2.0f * (static_cast<float>(slot.mouseX) + 0.5f) / static_cast<float>(slot.extent.width) - 1.0f,
+      2.0f * (static_cast<float>(slot.mouseY) + 0.5f) / static_cast<float>(slot.extent.height) - 1.0f,
       depth,
       1.0f
     };
 
-    const glm::vec4 world = glm::inverse(m_projectionMatrix * m_viewMatrix) * ndc;
+    const glm::vec4 world = glm::inverse(slot.projectionMatrix * slot.viewMatrix) * ndc;
 
     return glm::vec3(world) / world.w;
   }
 
-  std::array<uint32_t, 4> MousePicker::getPixelFromMousePickingImage(vk::Image image,
-                                                                     const int32_t mouseX,
-                                                                     const int32_t mouseY) const
+  void MousePicker::recordPixelCopy(const CommandBuffer& commandBuffer,
+                                    const vk::Image image,
+                                    const ReadbackSlot& slot)
   {
-    const auto commandBuffer = SingleUseCommandBuffer(m_logicalDevice, m_commandPool, m_logicalDevice->getGraphicsQueue());
+    transitionImageForReading(commandBuffer, image);
 
-    commandBuffer.record([this, &commandBuffer, image, mouseX, mouseY] {
-      transitionImageForReading(commandBuffer, image);
+    const vk::BufferImageCopy region {
+      .bufferOffset = 0,
+      .bufferRowLength = 0,
+      .bufferImageHeight = 0,
+      .imageSubresource = {
+        .aspectMask = vk::ImageAspectFlagBits::eColor,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      },
+      .imageOffset = { slot.mouseX, slot.mouseY, 0 },
+      .imageExtent = { 1, 1, 1 }
+    };
 
-      Images::copyImageToBuffer(
-        image,
-        { mouseX, mouseY, 0 },
-        { 1, 1, 1 },
-        commandBuffer,
-        m_stagingBuffer
-      );
+    commandBuffer.copyImageToBuffer(image, vk::ImageLayout::eTransferSrcOptimal, *slot.buffer, region);
 
-      transitionImageForWriting(commandBuffer, image);
-    });
+    transitionImageForWriting(commandBuffer, image);
 
-    return getPixelFromBuffer(m_stagingBufferMemory);
+    makeReadbackVisibleToHost(commandBuffer, *slot.buffer);
   }
 
-  std::array<uint32_t, 4> MousePicker::getPixelFromBuffer(const vk::raii::DeviceMemory& stagingBufferMemory)
+  void MousePicker::makeReadbackVisibleToHost(const CommandBuffer& commandBuffer,
+                                              const vk::Buffer buffer)
   {
-    std::array<uint32_t, 4> pixel {};
+    const vk::BufferMemoryBarrier2 bufferMemoryBarrier {
+      .srcStageMask = vk::PipelineStageFlagBits2::eTransfer,
+      .srcAccessMask = vk::AccessFlagBits2::eTransferWrite,
+      .dstStageMask = vk::PipelineStageFlagBits2::eHost,
+      .dstAccessMask = vk::AccessFlagBits2::eHostRead,
+      .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+      .buffer = buffer,
+      .offset = 0,
+      .size = vk::WholeSize
+    };
 
-    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&pixel](void* data) {
-      std::memcpy(pixel.data(), data, sizeof(pixel));
-    });
+    const vk::DependencyInfo dependencyInfo {
+      .bufferMemoryBarrierCount = 1,
+      .pBufferMemoryBarriers = &bufferMemoryBarrier
+    };
 
-    return pixel;
+    commandBuffer.pipelineBarrier(dependencyInfo);
   }
 
-  void MousePicker::transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
+  void MousePicker::transitionImageForReading(const CommandBuffer& commandBuffer,
                                               const vk::Image image)
   {
     const vk::ImageMemoryBarrier2 imageMemoryBarrier {
@@ -305,7 +383,7 @@ namespace vke {
     commandBuffer.pipelineBarrier(dependencyInfo);
   }
 
-  void MousePicker::transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
+  void MousePicker::transitionImageForWriting(const CommandBuffer& commandBuffer,
                                               const vk::Image image)
   {
     const vk::ImageMemoryBarrier2 imageMemoryBarrier {
