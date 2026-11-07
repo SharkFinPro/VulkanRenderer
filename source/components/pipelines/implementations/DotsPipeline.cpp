@@ -98,7 +98,7 @@ namespace vke {
     renderInfo->commandBuffer->bindVertexBuffers(
       0,
       { m_shaderStorageBuffers[renderInfo->currentFrame] },
-      {0}
+      vk::DeviceSize{0}
     );
 
     renderInfo->commandBuffer->draw(PARTICLE_COUNT, 1, 0, 0);

@@ -262,20 +262,22 @@ namespace vke {
 
     // Sized to the buffer's fixed capacity: UniformBuffer::update() copies the whole buffer, so
     // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
-    std::vector<PointLightUniform> lightUniforms(MAX_POINT_LIGHTS);
+    m_lightUniformScratch.assign(sizeof(PointLightUniform) * MAX_POINT_LIGHTS, std::byte{0});
+    auto* lightUniforms = reinterpret_cast<PointLightUniform*>(m_lightUniformScratch.data());
     for (size_t i = 0; i < count; i++)
     {
       lightUniforms[i] = std::get<PointLightUniform>(m_pointLightsToRender[i]->getUniform());
     }
 
-    m_pointLightsUniform->update(currentFrame, lightUniforms.data());
+    m_pointLightsUniform->update(currentFrame, lightUniforms);
 
     updatePointLightShadowMaps(currentFrame);
   }
 
   void LightingManager::updatePointLightShadowMaps(const uint32_t currentFrame) const
   {
-    std::vector<vk::DescriptorImageInfo> imageInfos;
+    std::array<vk::DescriptorImageInfo, MAX_SHADOW_MAPS> imageInfos;
+    size_t imageInfoCount = 0;
 
     for (auto& light : m_pointLightsToRender)
     {
@@ -284,19 +286,19 @@ namespace vke {
         continue;
       }
 
-      imageInfos.push_back({
+      imageInfos[imageInfoCount++] = {
         m_shadowMapSampler,
         light->getShadowMapDepthImageResource()->getImageView(),
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
-      });
+      };
 
-      if (imageInfos.size() >= MAX_SHADOW_MAPS)
+      if (imageInfoCount >= MAX_SHADOW_MAPS)
       {
         break;
       }
     }
 
-    if (imageInfos.empty())
+    if (imageInfoCount == 0)
     {
       return;
     }
@@ -305,7 +307,7 @@ namespace vke {
       .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
       .dstBinding = 5,
       .dstArrayElement = 0,
-      .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
+      .descriptorCount = static_cast<uint32_t>(imageInfoCount),
       .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .pImageInfo = imageInfos.data(),
     };
@@ -324,20 +326,22 @@ namespace vke {
 
     // Sized to the buffer's fixed capacity: UniformBuffer::update() copies the whole buffer, so
     // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
-    std::vector<SpotLightUniform> lightUniforms(MAX_SPOT_LIGHTS);
+    m_lightUniformScratch.assign(sizeof(SpotLightUniform) * MAX_SPOT_LIGHTS, std::byte{0});
+    auto* lightUniforms = reinterpret_cast<SpotLightUniform*>(m_lightUniformScratch.data());
     for (size_t i = 0; i < count; i++)
     {
       lightUniforms[i] = std::get<SpotLightUniform>(m_spotLightsToRender[i]->getUniform());
     }
 
-    m_spotLightsUniform->update(currentFrame, lightUniforms.data());
+    m_spotLightsUniform->update(currentFrame, lightUniforms);
 
     updateSpotLightShadowMaps(currentFrame);
   }
 
   void LightingManager::updateSpotLightShadowMaps(const uint32_t currentFrame) const
   {
-    std::vector<vk::DescriptorImageInfo> imageInfos;
+    std::array<vk::DescriptorImageInfo, MAX_SHADOW_MAPS> imageInfos;
+    size_t imageInfoCount = 0;
 
     for (auto& light : m_spotLightsToRender)
     {
@@ -346,19 +350,19 @@ namespace vke {
         continue;
       }
 
-      imageInfos.push_back({
+      imageInfos[imageInfoCount++] = {
         m_shadowMapSampler,
         light->getShadowMapDepthImageResource()->getImageView(),
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
-      });
+      };
 
-      if (imageInfos.size() >= MAX_SHADOW_MAPS)
+      if (imageInfoCount >= MAX_SHADOW_MAPS)
       {
         break;
       }
     }
 
-    if (imageInfos.empty())
+    if (imageInfoCount == 0)
     {
       return;
     }
@@ -367,7 +371,7 @@ namespace vke {
       .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
       .dstBinding = 4,
       .dstArrayElement = 0,
-      .descriptorCount = static_cast<uint32_t>(imageInfos.size()),
+      .descriptorCount = static_cast<uint32_t>(imageInfoCount),
       .descriptorType = vk::DescriptorType::eCombinedImageSampler,
       .pImageInfo = imageInfos.data(),
     };

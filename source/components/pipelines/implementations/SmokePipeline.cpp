@@ -77,7 +77,7 @@ namespace vke {
       1
     );
 
-    const std::vector<vk::DeviceSize> offsets = {0};
+    constexpr vk::DeviceSize offsets = 0;
 
     for (const auto& system : *systems)
     {

@@ -70,6 +70,7 @@
 - **Headers:** include guards are `#ifndef VKE_<NAME>_H` (newer files) — some older files still use `VULKANPROJECT_*`; prefer `VKE_*` for new files. Forward-declare engine types in headers and include in `.cpp` to keep build coupling low (widely used here).
 - **Naming:** `PascalCase` types, `camelCase` methods/locals, `m_` member prefix, `PascalCase.cpp/.h` files matching the class. Enum values are `camelCase`.
 - **Ownership:** subsystems are shared via `std::shared_ptr`; non-owning collaborators are passed by `const std::shared_ptr<T>&`. RAII (vulkan-hpp `vk::raii::*`) owns all Vulkan handles — avoid manual destroy.
+- **No heap allocation on per-draw/per-frame paths:** take `vk::ArrayProxy<const T>` (not `const std::vector<T>&`) for Vulkan arrays, so `{ x }` and single values don't build a vector; use `constexpr`/`std::array`/reused member scratch rather than local vectors; take templates (as `DescriptorSet::updateDescriptorSets` does) rather than `std::function` for callbacks run each frame.
 - **`[[nodiscard]]`** on getters/queries is standard. Prefer `const` accessors.
 - **Separation:** one class per subsystem directory; managers coordinate, components do the work. The `PipelineType` enum is the central key tying render requests to pipelines.
 - **Source list discipline:** every new engine source/header must be registered in `Sources.cmake`.

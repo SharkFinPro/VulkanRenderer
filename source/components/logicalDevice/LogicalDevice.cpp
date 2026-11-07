@@ -133,7 +133,7 @@ namespace vke {
     );
   }
 
-  void LogicalDevice::updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const
+  void LogicalDevice::updateDescriptorSets(const vk::ArrayProxy<const vk::WriteDescriptorSet>& writeDescriptorSets) const
   {
     m_device.updateDescriptorSets(writeDescriptorSets, nullptr);
   }

@@ -199,7 +199,7 @@ namespace vke {
 
   void Model::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
-    const std::vector<vk::DeviceSize> offsets = {0};
+    constexpr vk::DeviceSize offsets = 0;
     commandBuffer->bindVertexBuffers(0, { m_vertexBuffer }, offsets);
 
     commandBuffer->bindIndexBuffer(*m_indexBuffer, 0, vk::IndexType::eUint32);

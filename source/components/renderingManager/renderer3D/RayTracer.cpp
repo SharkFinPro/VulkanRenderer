@@ -176,7 +176,7 @@ namespace vke {
       stagingBufferMemory
     );
 
-    Buffers::doMappedMemoryOperation(stagingBufferMemory, [instances, instancesBufferSize](void* data) {
+    Buffers::doMappedMemoryOperation(stagingBufferMemory, [&instances, instancesBufferSize](void* data) {
       memcpy(data, instances.data(), instancesBufferSize);
     });
 
@@ -443,7 +443,8 @@ namespace vke {
         };
       };
 
-      std::vector descriptorWrites{{
+      auto& descriptorWrites = m_descriptorWrites;
+      descriptorWrites = {{
         {
           .pNext = &m_tlasInfo,
           .dstSet = descriptorSet,
@@ -472,18 +473,19 @@ namespace vke {
         }
       }};
 
+      size_t count = 8;
       if (!m_textureImageInfos.empty())
       {
-        descriptorWrites.push_back({
+        descriptorWrites[count++] = {
           .dstSet = descriptorSet,
           .dstBinding = 8,
           .descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size()),
           .descriptorType = vk::DescriptorType::eCombinedImageSampler,
           .pImageInfo = m_textureImageInfos.data()
-        });
+        };
       }
 
-      return descriptorWrites;
+      return vk::ArrayProxy<const vk::WriteDescriptorSet>(static_cast<uint32_t>(count), descriptorWrites.data());
     });
   }
 

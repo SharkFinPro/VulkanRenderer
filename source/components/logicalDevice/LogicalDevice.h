@@ -75,7 +75,7 @@ namespace vke {
     void freeDescriptorSets(vk::DescriptorPool descriptorPool,
                             const std::vector<vk::DescriptorSet>& descriptorSets) const;
 
-    void updateDescriptorSets(const std::vector<vk::WriteDescriptorSet>& writeDescriptorSets) const;
+    void updateDescriptorSets(const vk::ArrayProxy<const vk::WriteDescriptorSet>& writeDescriptorSets) const;
 
     [[nodiscard]] vk::raii::Buffer createBuffer(const vk::BufferCreateInfo& bufferCreateInfo) const;
 

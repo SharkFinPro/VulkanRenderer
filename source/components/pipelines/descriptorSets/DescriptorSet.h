@@ -34,7 +34,17 @@ namespace vke {
     DescriptorSet(const DescriptorSet&) = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
 
-    void updateDescriptorSets(const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const;
+    // Calls getWriteDescriptorSets(descriptorSet, frame) for every frame's set and applies the result.
+    // A template rather than a std::function so a callback with a large capture never allocates; the
+    // callback may return anything a vk::ArrayProxy converts from (vector, array, ArrayProxy).
+    template<typename WriteGetter>
+    void updateDescriptorSets(WriteGetter&& getWriteDescriptorSets) const
+    {
+      for (size_t i = 0; i < m_descriptorSets.size(); i++)
+      {
+        applyWriteDescriptorSets(getWriteDescriptorSets(m_descriptorSets[i], i));
+      }
+    }
 
     [[nodiscard]] vk::DescriptorSetLayout getDescriptorSetLayout() const;
 
@@ -50,6 +60,8 @@ namespace vke {
 
     std::shared_ptr<DescriptorAllocator> m_descriptorAllocator;
     vk::DescriptorPool m_allocatorPool = nullptr;
+
+    void applyWriteDescriptorSets(const vk::ArrayProxy<const vk::WriteDescriptorSet>& writes) const;
 
     void createDescriptorSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& layoutBindings);
 

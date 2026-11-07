@@ -3,6 +3,7 @@
 
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -56,6 +57,9 @@ namespace vke {
     std::shared_ptr<UniformBuffer> m_spotLightsUniform;
     std::shared_ptr<UniformBuffer> m_pointLightsUniform;
     std::shared_ptr<UniformBuffer> m_cameraUniform;
+
+    // Reused every frame to stage the point or spot light array before it is copied into its uniform buffer.
+    std::vector<std::byte> m_lightUniformScratch;
 
     int m_prevNumPointLights = 0;
     int m_prevNumSpotLights = 0;

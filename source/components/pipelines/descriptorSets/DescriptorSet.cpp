@@ -80,14 +80,9 @@ namespace vke {
     ));
   }
 
-  void DescriptorSet::updateDescriptorSets(const std::function<std::vector<vk::WriteDescriptorSet>(vk::DescriptorSet descriptorSet, size_t frame)>& getWriteDescriptorSets) const
+  void DescriptorSet::applyWriteDescriptorSets(const vk::ArrayProxy<const vk::WriteDescriptorSet>& writes) const
   {
-    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
-    {
-      std::vector<vk::WriteDescriptorSet> writeDescriptorSets = getWriteDescriptorSets(m_descriptorSets[i], i);
-
-      m_logicalDevice->updateDescriptorSets(writeDescriptorSets);
-    }
+    m_logicalDevice->updateDescriptorSets(writes);
   }
 
   vk::DescriptorSetLayout DescriptorSet::getDescriptorSetLayout() const
