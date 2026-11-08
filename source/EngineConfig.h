@@ -44,6 +44,8 @@ namespace vke {
       // Initial present mode preference; falls back per choosePresentMode when the surface lacks it.
       // RenderingManager::setPresentMode changes it at runtime.
       PresentMode presentMode = PresentMode::mailbox;
+      // Frames per second; 0 = unlimited. RenderingManager::setFrameRateLimit changes it at runtime.
+      double frameRateLimit = 0.0;
     } rendering;
   };
 

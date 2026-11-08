@@ -43,6 +43,10 @@ add_subdirectory(presentMode)
 add_test(NAME presentMode COMMAND presentMode)
 add_dependencies(build_all presentMode)
 
+add_subdirectory(frameLimiter)
+add_test(NAME frameLimiter COMMAND frameLimiter)
+add_dependencies(build_all frameLimiter)
+
 add_subdirectory(windowPlacement)
 add_test(NAME windowPlacement COMMAND windowPlacement)
 add_dependencies(build_all windowPlacement)

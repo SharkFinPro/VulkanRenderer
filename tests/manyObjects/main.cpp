@@ -7,6 +7,7 @@
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
+#include <source/components/window/PresentMode.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <algorithm>
@@ -22,6 +23,7 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <system_error>
 #include <vector>
@@ -43,6 +45,8 @@ struct Options {
   uint32_t objects = 10000;
   uint32_t frames = 0;
   uint32_t warmup = 120;
+  uint32_t frameRateLimit = 0;
+  std::optional<vke::PresentMode> presentMode;
 };
 
 struct FrameTimes {
@@ -61,6 +65,11 @@ using Clock = std::chrono::steady_clock;
 
 [[nodiscard]] bool parseValue(const char* text,
                               uint32_t& value);
+
+[[nodiscard]] bool parsePresentMode(const char* text,
+                                    vke::PresentMode& mode);
+
+[[nodiscard]] const char* presentModeName(vke::PresentMode mode);
 
 [[nodiscard]] bool parseOptions(int argc,
                                 char** argv,
@@ -100,7 +109,7 @@ void printMetric(const char* name,
                  std::vector<double>& values);
 
 void printSummary(const Options& options,
-                  const vke::SceneViewRect& sceneView,
+                  const vke::RenderingManager& rendering,
                   Samples& samples);
 
 struct Scene {
@@ -130,13 +139,21 @@ int main(int argc, char** argv)
     Options options;
     if (!parseOptions(argc, argv, options))
     {
-      std::cerr << "Usage: manyObjects [--objects N (>= 1)] [--frames N] [--warmup N]" << std::endl;
+      std::cerr << "Usage: manyObjects [--objects N (>= 1)] [--frames N] [--warmup N] [--frame-rate-limit N (0 = unlimited)]"
+                << " [--present-mode fifo|fifoRelaxed|mailbox|immediate]" << std::endl;
       return EXIT_FAILURE;
     }
 
     vke::VulkanEngine renderer(createConfig(options.objects));
 
     ImGui::SetCurrentContext(vke::ImGuiInstance::getImGuiContext());
+
+    const auto rendering = renderer.getRenderingManager();
+    rendering->setFrameRateLimit(options.frameRateLimit);
+    if (options.presentMode)
+    {
+      rendering->setPresentMode(*options.presentMode);
+    }
 
     const Scene scene {
       .objects = createObjects(renderer, options.objects),
@@ -147,7 +164,7 @@ int main(int argc, char** argv)
 
     if (options.frames > 0)
     {
-      printSummary(options, renderer.getRenderingManager()->getSceneViewRect(), samples);
+      printSummary(options, *rendering, samples);
     }
   }
   catch (const std::exception& e)
@@ -174,7 +191,7 @@ FrameTimes runFrame(vke::VulkanEngine& renderer,
 
   const auto submitEnd = Clock::now();
 
-  // Includes any wait on the GPU and on presentation
+  // Includes the frame rate limit wait and any wait on the GPU and on presentation
   renderer.render();
 
   const auto frameEnd = Clock::now();
@@ -227,6 +244,39 @@ bool parseValue(const char* text,
   return result.ec == std::errc() && result.ptr == view.data() + view.size();
 }
 
+bool parsePresentMode(const char* text,
+                      vke::PresentMode& mode)
+{
+  for (const vke::PresentMode candidate : { vke::PresentMode::fifo, vke::PresentMode::fifoRelaxed, vke::PresentMode::mailbox,
+                                            vke::PresentMode::immediate })
+  {
+    if (std::strcmp(text, presentModeName(candidate)) == 0)
+    {
+      mode = candidate;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+const char* presentModeName(const vke::PresentMode mode)
+{
+  switch (mode)
+  {
+    case vke::PresentMode::fifo:
+      return "fifo";
+    case vke::PresentMode::fifoRelaxed:
+      return "fifoRelaxed";
+    case vke::PresentMode::mailbox:
+      return "mailbox";
+    case vke::PresentMode::immediate:
+      return "immediate";
+  }
+
+  return "unknown";
+}
+
 bool parseOptions(const int argc,
                   char** argv,
                   Options& options)
@@ -245,6 +295,21 @@ bool parseOptions(const int argc,
     else if (std::strcmp(argv[i], "--warmup") == 0)
     {
       target = &options.warmup;
+    }
+    else if (std::strcmp(argv[i], "--frame-rate-limit") == 0)
+    {
+      target = &options.frameRateLimit;
+    }
+    else if (std::strcmp(argv[i], "--present-mode") == 0)
+    {
+      vke::PresentMode mode{};
+      if (i + 1 >= argc || !parsePresentMode(argv[++i], mode))
+      {
+        return false;
+      }
+
+      options.presentMode = mode;
+      continue;
     }
 
     if (target == nullptr || i + 1 >= argc || !parseValue(argv[++i], *target))
@@ -433,13 +498,26 @@ void printMetric(const char* name,
 }
 
 void printSummary(const Options& options,
-                  const vke::SceneViewRect& sceneView,
+                  const vke::RenderingManager& rendering,
                   Samples& samples)
 {
+  const vke::SceneViewRect sceneView = rendering.getSceneViewRect();
+
   std::cout << std::fixed << std::setprecision(3);
   std::cout << "objects " << options.objects << " frames " << samples.frame.size() << " warmup " << options.warmup
             << " scene " << static_cast<int>(sceneView.width) << "x" << static_cast<int>(sceneView.height)
             << " (times in ms)\n";
+  std::cout << "frame rate limit ";
+  if (options.frameRateLimit == 0)
+  {
+    std::cout << "none";
+  }
+  else
+  {
+    std::cout << options.frameRateLimit << " fps";
+  }
+  std::cout << " present mode " << presentModeName(rendering.getActivePresentMode()) << " (requested "
+            << presentModeName(rendering.getPresentMode()) << ")\n";
   // render() also waits on the GPU and on presentation, so a GPU-bound or vsync-limited run hides CPU changes.
   std::cout << "render includes GPU and present waits; keep the window visible and untouched while measuring\n";
   printMetric("submit", samples.submit);

@@ -180,6 +180,8 @@ set(VULKAN_ENGINE_SOURCES_UTILITIES
   utilities/Buffers.cpp
   utilities/Buffers.h
   utilities/EventSystem.h
+  utilities/FrameLimiter.cpp
+  utilities/FrameLimiter.h
   utilities/Frustum.cpp
   utilities/Frustum.h
   utilities/Images.cpp
