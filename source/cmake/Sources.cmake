@@ -116,6 +116,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/window/SwapChain.h
   components/window/Window.cpp
   components/window/Window.h
+  components/window/WindowPlacement.cpp
+  components/window/WindowPlacement.h
 )
 
 # Pipeline Infrastructure

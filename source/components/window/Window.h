@@ -2,6 +2,7 @@
 #define VKE_WINDOW_H
 
 #include "../../EngineConfig.h"
+#include "WindowPlacement.h"
 #include "../../utilities/EventSystem.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -41,8 +42,12 @@ namespace vke {
 
   struct CloseRequestEvent {};
 
+  struct FullscreenChangeEvent {
+    bool fullscreen;
+  };
+
   class Window : public EventSystem<ContentScaleEvent, FramebufferResizeEvent, KeyCallbackEvent, ScrollEvent, DropEvent,
-                                    CloseRequestEvent> {
+                                    CloseRequestEvent, FullscreenChangeEvent> {
   public:
     explicit Window(const EngineConfig::Window& config);
     ~Window();
@@ -59,6 +64,14 @@ namespace vke {
     void close();
 
     void update();
+
+    // Enters fullscreen at the current video mode of the monitor the window overlaps most, or leaves it for the
+    // windowed placement it had before (centered on the monitor instead when that placement is no longer on any
+    // monitor, or when the window was created fullscreen). Emits FullscreenChangeEvent when the mode changes; the
+    // swapchain follows through the framebuffer resize this causes.
+    void setFullscreen(bool fullscreen);
+
+    [[nodiscard]] bool isFullscreen() const;
 
     void getFramebufferSize(int* width,
                             int* height) const;
@@ -141,9 +154,18 @@ namespace vke {
 
     const bool m_closeOnEscape;
 
+    // The placement to restore when leaving fullscreen. A window created fullscreen has only a size, from its config.
+    WindowRect m_windowedRect;
+    bool m_hasWindowedPosition = false;
+    bool m_windowedMaximized = false;
+
     bool m_emittingCloseRequest = false;
 
     void emitCloseRequest();
+
+    void enterFullscreen();
+
+    void leaveFullscreen();
 
     static void keyCallback(GLFWwindow* window,
                             int key,

@@ -1,10 +1,12 @@
 #include "Window.h"
 #include <stdexcept>
+#include <vector>
 
 namespace vke {
 
   Window::Window(const EngineConfig::Window& config)
-    : m_closeOnEscape(config.closeOnEscape)
+    : m_closeOnEscape(config.closeOnEscape),
+      m_windowedRect{ .width = static_cast<int>(config.width), .height = static_cast<int>(config.height) }
   {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
@@ -38,6 +40,8 @@ namespace vke {
       glfwTerminate();
       throw std::runtime_error("Failed to create GLFW window");
     }
+
+    m_hasWindowedPosition = !config.fullscreen;
 
     glfwSetWindowUserPointer(m_window, this);
     glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
@@ -110,6 +114,99 @@ namespace vke {
     m_previousMouseX = m_mouseX;
     m_previousMouseY = m_mouseY;
     glfwGetCursorPos(m_window, &m_mouseX, &m_mouseY);
+  }
+
+  void Window::setFullscreen(const bool fullscreen)
+  {
+    if (fullscreen == isFullscreen())
+    {
+      return;
+    }
+
+    if (fullscreen)
+    {
+      enterFullscreen();
+    }
+    else
+    {
+      leaveFullscreen();
+    }
+
+    if (isFullscreen() == fullscreen)
+    {
+      emit(FullscreenChangeEvent{fullscreen});
+    }
+  }
+
+  bool Window::isFullscreen() const
+  {
+    return glfwGetWindowMonitor(m_window) != nullptr;
+  }
+
+  void Window::enterFullscreen()
+  {
+    int monitorCount = 0;
+    GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+
+    if (monitorCount == 0)
+    {
+      return;
+    }
+
+    // A maximized or minimized window reports its maximized or zero size, not the placement to come back to.
+    m_windowedMaximized = glfwGetWindowAttrib(m_window, GLFW_MAXIMIZED) == GLFW_TRUE;
+    if (m_windowedMaximized || glfwGetWindowAttrib(m_window, GLFW_ICONIFIED) == GLFW_TRUE)
+    {
+      glfwRestoreWindow(m_window);
+    }
+
+    glfwGetWindowPos(m_window, &m_windowedRect.x, &m_windowedRect.y);
+    glfwGetWindowSize(m_window, &m_windowedRect.width, &m_windowedRect.height);
+    m_hasWindowedPosition = true;
+
+    std::vector<WindowRect> monitorRects(monitorCount);
+    for (int i = 0; i < monitorCount; ++i)
+    {
+      const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
+      glfwGetMonitorPos(monitors[i], &monitorRects[i].x, &monitorRects[i].y);
+      monitorRects[i].width = mode->width;
+      monitorRects[i].height = mode->height;
+    }
+
+    const auto index = findMostOverlappedArea(m_windowedRect, monitorRects);
+    GLFWmonitor* monitor = index.has_value() ? monitors[*index] : glfwGetPrimaryMonitor();
+
+    // Keeping the monitor's current mode avoids a mode switch, so this is borderless fullscreen where the platform
+    // offers it. Like a window created fullscreen, it stays on screen when focus moves to another window.
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    glfwSetWindowAttrib(m_window, GLFW_AUTO_ICONIFY, GLFW_FALSE);
+    glfwSetWindowMonitor(m_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+  }
+
+  void Window::leaveFullscreen()
+  {
+    int monitorCount = 0;
+    GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+
+    std::vector<WindowRect> workAreas(monitorCount);
+    for (int i = 0; i < monitorCount; ++i)
+    {
+      glfwGetMonitorWorkarea(monitors[i], &workAreas[i].x, &workAreas[i].y, &workAreas[i].width, &workAreas[i].height);
+    }
+
+    WindowRect fallback;
+    glfwGetMonitorWorkarea(glfwGetWindowMonitor(m_window), &fallback.x, &fallback.y, &fallback.width, &fallback.height);
+
+    const WindowRect rect = m_hasWindowedPosition
+      ? restoreWindowedRect(m_windowedRect, workAreas, fallback)
+      : centerInArea(m_windowedRect.width, m_windowedRect.height, fallback);
+
+    glfwSetWindowMonitor(m_window, nullptr, rect.x, rect.y, rect.width, rect.height, GLFW_DONT_CARE);
+
+    if (m_windowedMaximized)
+    {
+      glfwMaximizeWindow(m_window);
+    }
   }
 
   void Window::getFramebufferSize(int* width,

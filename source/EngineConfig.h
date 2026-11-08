@@ -13,6 +13,7 @@ namespace vke {
       uint32_t width = 1280;
       uint32_t height = 720;
       std::string title = "Vulkan Engine";
+      // Initial mode only; Window::setFullscreen() switches at runtime.
       bool fullscreen = false;
       bool resizable = true;
       // Escape raises a close request like the window system's close button, which listeners can veto. ImGui also
