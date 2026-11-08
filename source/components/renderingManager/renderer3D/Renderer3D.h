@@ -8,6 +8,7 @@
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 #include "../../pipelines/implementations/vertexInputs/LineInstance.h"
 #include "DebugShapes.h"
+#include "../../../utilities/Bounds.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -28,12 +29,14 @@ namespace vke {
   class AssetManager;
   class CommandBuffer;
   class DescriptorSet;
+  class Frustum;
   class ImageResource;
   class LightingManager;
   class LogicalDevice;
   class Material;
   class Model;
   class MousePicker;
+  struct ObjectData;
   class ObjectTable;
   class PipelineManager;
   struct RenderInfo;
@@ -88,11 +91,14 @@ namespace vke {
 
     // Writes the frame's object table (one entry per render submission, then one per outline), the draw slots of every
     // pass's sorted draw list and the camera, which every pass that draws render objects reads through the scene
-    // descriptor set. Everything is written before the first pass records, since the buffers must not be replaced
-    // afterwards. Call once per frame, after the frame's command buffer slot is known to be free and before the first
-    // pass that draws objects.
-    void updateSceneData(const RenderInfo* renderInfo);
+    // descriptor set. The lists are culled against the view they are drawn from (see the member comments), so the lights
+    // must already be submitted. Everything is written before the first pass records, since the buffers must not be
+    // replaced afterwards. Call once per frame, after the frame's command buffer slot is known to be free and before the
+    // first pass that draws objects.
+    void updateSceneData(const RenderInfo* renderInfo,
+                         const std::shared_ptr<LightingManager>& lightingManager);
 
+    // Draws the lists updateSceneData built
     void renderShadowMaps(const std::shared_ptr<LightingManager>& lightingManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -288,16 +294,29 @@ namespace vke {
     // The flattened list without view-only submissions, which are rasterized rather than traced
     std::vector<std::shared_ptr<RenderObject>> m_rayTracedRenderObjects;
 
-    // The other passes' draws as runs: every submission by model for the shadow maps, the pickable ones by model (and
+    // The other passes' draws as runs: the submissions by model for the shadow maps, the pickable ones by model (and
     // by material too when alpha tested) and the outlines by mask value then model. The draw slots hold the lists one after
-    // another: shadow, the pipelines', picking, outline.
+    // another: shadow (point lights', then each spot light's), the pipelines', picking, outline.
+    //
+    // Lists are culled against the view they are drawn from, using the submissions' world bounds: the picking and outline
+    // lists and the pipelines' lists (those whose vertex stage keeps geometry within the model's bounds) against the
+    // camera, a spot light's shadow list against the light. The point lights share one list of every submission, since
+    // they have no range to cull against.
     std::vector<DrawRun> m_shadowRuns;
     std::vector<DrawRun> m_pickRuns;
     std::vector<DrawRun> m_pickAlphaTestedRuns;
     std::vector<DrawRun> m_outlineRuns;
 
+    // One list per shadow-casting spot light in the order LightingManager draws them. Only the first m_spotShadowCount are
+    // current; the rest are kept so that their storage is reused.
+    std::vector<std::vector<DrawRun>> m_spotShadowRuns;
+    size_t m_spotShadowCount = 0;
+
     // Scratch reused by every list build
     std::vector<DrawItem> m_drawItems;
+
+    // By object table slot (submissions, then outlines): the world-space bounds of the slot's model
+    std::vector<AABB> m_slotBounds;
 
     // By object table slot (submissions, then outlines): what draws are grouped by
     struct SlotKey {
@@ -394,25 +413,46 @@ namespace vke {
 
     void writeObjectTable(uint32_t currentFrame);
 
+    // Writes the object's table entry and records its key and world bounds, which are by slot
+    void writeObjectEntry(ObjectData& entry,
+                          const RenderObject& object,
+                          uint32_t pickId);
+
     // Fills the draw slots with every pass's runs, each list at the offset the previous one ended at. Returns the
     // number of slots written.
-    [[nodiscard]] uint32_t buildDrawLists(uint32_t* drawSlots);
+    [[nodiscard]] uint32_t buildDrawLists(uint32_t* drawSlots,
+                                          const Frustum& camera,
+                                          const LightingManager& lightingManager);
 
     [[nodiscard]] uint32_t buildShadowRuns(uint32_t* drawSlots,
-                                           uint32_t offset);
+                                           uint32_t offset,
+                                           const LightingManager& lightingManager);
+
+    [[nodiscard]] uint32_t buildSpotShadowRuns(uint32_t* drawSlots,
+                                               uint32_t offset,
+                                               const LightingManager& lightingManager);
 
     [[nodiscard]] uint32_t buildPipelineRuns(uint32_t* drawSlots,
-                                             uint32_t offset);
+                                             uint32_t offset,
+                                             const Frustum& camera);
 
     [[nodiscard]] uint32_t buildPickRuns(uint32_t* drawSlots,
-                                         uint32_t offset);
+                                         uint32_t offset,
+                                         const Frustum& camera);
 
     [[nodiscard]] uint32_t buildOutlineRuns(uint32_t* drawSlots,
-                                            uint32_t offset);
+                                            uint32_t offset,
+                                            const Frustum& camera);
 
     [[nodiscard]] DrawItem makeDrawItem(uint32_t slot,
                                         bool byMaterial,
                                         uint32_t maskValue) const;
+
+    // Adds the slot's draw to m_drawItems if its bounds touch the frustum
+    void addVisibleDrawItem(const Frustum& frustum,
+                            uint32_t slot,
+                            bool byMaterial,
+                            uint32_t maskValue);
 
     void bindPushConstant(const std::shared_ptr<PipelineManager>& pipelineManager,
                           const std::shared_ptr<CommandBuffer>& commandBuffer,

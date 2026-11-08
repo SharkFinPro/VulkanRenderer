@@ -14,6 +14,7 @@ namespace vke {
   class DescriptorSet;
   struct DrawRun;
   class Light;
+  class SpotLight;
   class LogicalDevice;
   class PipelineManager;
   class UniformBuffer;
@@ -42,11 +43,23 @@ namespace vke {
 
     void update(uint32_t currentFrame, glm::vec3 viewPosition);
 
-    // Draws the runs into every shadow-casting light's map. Their first instances index the draw slots the scene
-    // descriptor set (set 0 of the shadow pipelines) binds.
+    // The lights submitted this frame. Whether each casts shadows is up to the caller to ask (castsShadows).
+    [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getPointLightsToRender() const;
+
+    [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getSpotLightsToRender() const;
+
+    // The light as a spot light if it is one that casts shadows, else null. The one filter both the shadow passes and
+    // whoever builds their per-light draw lists use, so the i-th list always goes to the i-th such light.
+    [[nodiscard]] static std::shared_ptr<SpotLight> asShadowCastingSpotLight(const std::shared_ptr<Light>& light);
+
+    // Draws pointLightRuns into every shadow-casting point light's map, and into each shadow-casting spot light's map
+    // its own entry of spotLightRuns, in the order of getSpotLightsToRender with the non-casting lights skipped (a light
+    // without an entry draws nothing). The runs' first instances index the draw slots the scene descriptor set (set 0 of
+    // the shadow pipelines) binds.
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
-                          std::span<const DrawRun> runs,
+                          std::span<const DrawRun> pointLightRuns,
+                          std::span<const std::vector<DrawRun>> spotLightRuns,
                           vk::DescriptorSet sceneDescriptorSet,
                           uint32_t currentFrame) const;
 
@@ -106,7 +119,7 @@ namespace vke {
 
     void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                    const std::shared_ptr<PipelineManager>& pipelineManager,
-                                   std::span<const DrawRun> runs,
+                                   std::span<const std::vector<DrawRun>> spotLightRuns,
                                    vk::DescriptorSet sceneDescriptorSet,
                                    uint32_t currentFrame) const;
 

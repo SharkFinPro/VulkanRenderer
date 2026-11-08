@@ -212,15 +212,33 @@ namespace vke {
     updateUniforms(currentFrame, viewPosition);
   }
 
+  const std::vector<std::shared_ptr<Light>>& LightingManager::getPointLightsToRender() const
+  {
+    return m_pointLightsToRender;
+  }
+
+  const std::vector<std::shared_ptr<Light>>& LightingManager::getSpotLightsToRender() const
+  {
+    return m_spotLightsToRender;
+  }
+
+  std::shared_ptr<SpotLight> LightingManager::asShadowCastingSpotLight(const std::shared_ptr<Light>& light)
+  {
+    auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
+
+    return spotLight && spotLight->castsShadows() ? spotLight : nullptr;
+  }
+
   void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<PipelineManager>& pipelineManager,
-                                         const std::span<const DrawRun> runs,
+                                         const std::span<const DrawRun> pointLightRuns,
+                                         const std::span<const std::vector<DrawRun>> spotLightRuns,
                                          const vk::DescriptorSet sceneDescriptorSet,
                                          const uint32_t currentFrame) const
   {
-    renderPointLightShadowMaps(commandBuffer, pipelineManager, runs, sceneDescriptorSet, currentFrame);
+    renderPointLightShadowMaps(commandBuffer, pipelineManager, pointLightRuns, sceneDescriptorSet, currentFrame);
 
-    renderSpotLightShadowMaps(commandBuffer, pipelineManager, runs, sceneDescriptorSet, currentFrame);
+    renderSpotLightShadowMaps(commandBuffer, pipelineManager, spotLightRuns, sceneDescriptorSet, currentFrame);
   }
 
   vk::DescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
@@ -495,17 +513,25 @@ namespace vke {
 
   void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                  const std::span<const DrawRun> runs,
+                                                  const std::span<const std::vector<DrawRun>> spotLightRuns,
                                                   const vk::DescriptorSet sceneDescriptorSet,
                                                   const uint32_t currentFrame) const
   {
+    size_t shadowCaster = 0;
+
     for (auto& light : m_spotLightsToRender)
     {
-      const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
-      if (!spotLight->castsShadows())
+      const auto spotLight = asShadowCastingSpotLight(light);
+      if (!spotLight)
       {
         continue;
       }
+
+      // Renderer3D builds one list per shadow-casting light, in this order
+      const std::span<const DrawRun> runs = shadowCaster < spotLightRuns.size()
+                                            ? std::span<const DrawRun>(spotLightRuns[shadowCaster])
+                                            : std::span<const DrawRun>();
+      ++shadowCaster;
 
       const auto shadowExtent = light->getShadowMapExtent();
 
