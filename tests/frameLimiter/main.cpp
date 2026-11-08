@@ -221,9 +221,11 @@ namespace {
     ns overshoot = std::chrono::microseconds(300);
   };
 
-  void checkSleepUntil()
+  constexpr ns SPIN_MARGIN = ONE_MS;
+
+  void checkSleepUntilFutureDeadlines()
   {
-    constexpr ns margin = ONE_MS;
+    constexpr ns margin = SPIN_MARGIN;
 
     for (const ns ahead : { ns(std::chrono::milliseconds(16)), ns(std::chrono::microseconds(2500)),
                             ns(std::chrono::microseconds(900)), ns(std::chrono::milliseconds(100)) })
@@ -252,6 +254,11 @@ namespace {
       check(fake.now >= deadline, "sleepUntil returns with now at or past the deadline");
       check(fake.now - deadline < std::chrono::microseconds(100), "sleepUntil does not overshoot by much");
     }
+  }
+
+  void checkSleepUntilNearDeadlines()
+  {
+    constexpr ns margin = SPIN_MARGIN;
 
     FakeClock past;
     vke::sleepUntil(
@@ -301,7 +308,8 @@ int main()
   checkLateFrameKeepsGrid();
   checkStallResyncs();
   checkVsync();
-  checkSleepUntil();
+  checkSleepUntilFutureDeadlines();
+  checkSleepUntilNearDeadlines();
 
   std::cout << g_checks << " checks, " << g_failures << " failures\n";
   return g_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
