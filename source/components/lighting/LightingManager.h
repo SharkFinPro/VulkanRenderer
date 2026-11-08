@@ -14,6 +14,7 @@ namespace vke {
   class DescriptorSet;
   struct DrawRun;
   class Light;
+  class SpotLight;
   class LogicalDevice;
   class PipelineManager;
   class UniformBuffer;
@@ -46,6 +47,10 @@ namespace vke {
     [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getPointLightsToRender() const;
 
     [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getSpotLightsToRender() const;
+
+    // The light as a spot light if it is one that casts shadows, else null. The one filter both the shadow passes and
+    // whoever builds their per-light draw lists use, so the i-th list always goes to the i-th such light.
+    [[nodiscard]] static std::shared_ptr<SpotLight> asShadowCastingSpotLight(const std::shared_ptr<Light>& light);
 
     // Draws pointLightRuns into every shadow-casting point light's map, and into each shadow-casting spot light's map
     // its own entry of spotLightRuns, in the order of getSpotLightsToRender with the non-casting lights skipped (a light

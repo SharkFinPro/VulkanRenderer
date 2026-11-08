@@ -222,6 +222,13 @@ namespace vke {
     return m_spotLightsToRender;
   }
 
+  std::shared_ptr<SpotLight> LightingManager::asShadowCastingSpotLight(const std::shared_ptr<Light>& light)
+  {
+    auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
+
+    return spotLight && spotLight->castsShadows() ? spotLight : nullptr;
+  }
+
   void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<PipelineManager>& pipelineManager,
                                          const std::span<const DrawRun> pointLightRuns,
@@ -514,8 +521,8 @@ namespace vke {
 
     for (auto& light : m_spotLightsToRender)
     {
-      const auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
-      if (!spotLight->castsShadows())
+      const auto spotLight = asShadowCastingSpotLight(light);
+      if (!spotLight)
       {
         continue;
       }
