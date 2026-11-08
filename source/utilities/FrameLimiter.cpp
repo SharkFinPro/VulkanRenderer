@@ -91,8 +91,9 @@ namespace vke {
     {
       const double nanoseconds = std::round(1e9 / framesPerSecond);
 
-      // Zero nanoseconds is unlimited; a rate too low for the clock's range is too
-      if (nanoseconds >= 1.0 && nanoseconds < 9e18)
+      // Zero nanoseconds is unlimited, and so is an interval over 1e15 ns (11.6 days), which keeps deadline arithmetic
+      // far from the clock's range
+      if (nanoseconds >= 1.0 && nanoseconds <= 1e15)
       {
         frameRate = framesPerSecond;
         interval = std::chrono::duration_cast<Clock::duration>(std::chrono::nanoseconds(static_cast<int64_t>(nanoseconds)));

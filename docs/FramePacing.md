@@ -31,8 +31,8 @@ are not synchronized for use from other threads.
 | `PresentMode` | Vsync | May tear | Blocks the loop | Falls back to |
 |---|---|---|---|---|
 | `fifo` | yes | no | yes, at the display rate | (always supported) |
-| `fifoRelaxed` | yes, unless a frame is late | when a frame is late | yes | `fifo` |
-| `mailbox` (default) | no; the newest frame replaces a queued one | no | no | `fifo` |
+| `fifoRelaxed` | yes, unless a frame is late | when a frame is late | yes, unless a frame is late | `fifo` |
+| `mailbox` (default) | shown at vertical blank, but the loop is not held to it; the newest frame replaces a queued one | no | no | `fifo` |
 | `immediate` | no | yes | no | `mailbox`, then `fifo` |
 
 `mailbox` never falls back to a mode that tears. The choice is made by `choosePresentMode`
@@ -40,20 +40,22 @@ are not synchronized for use from other threads.
 
 - `setPresentMode(mode)` stores the preference and returns the mode **expected** to be used, judged from the surface
   support read at the last swapchain rebuild. A request that falls back is reported this way, not silently.
-- The swapchain is rebuilt at the end of the next frame, through the same path as a window resize, and only when the
-  mode in use would change. While the main window is minimized, the rebuild waits until it is restored.
+- The swapchain is rebuilt at the end of the next frame, through the same path as a window resize. A request that would
+  not change the mode in use does not by itself schedule a rebuild. While the main window is minimized, the rebuild
+  waits until it is restored.
 - `getPresentMode()` is the stored preference. `getActivePresentMode()` is the mode the current swapchain uses.
   `getSupportedPresentModes()` lists the modes the surface offers, as of the last rebuild, in enum order. `fifo` is
   always listed.
 - The preference survives later rebuilds, so a surface that gains or loses a mode (another monitor, say) is
   re-resolved from the preference each time.
 - ImGui's detached windows have their own swapchains, which keep the ImGui backend's choice (mailbox, else immediate,
-  else FIFO). They never block the loop.
+  else FIFO). Normally they don't block the loop; on a surface with neither mailbox nor immediate they use FIFO and can.
 
 ## Frame rate cap
 
 - `setFrameRateLimit(framesPerSecond)` caps the loop; `0` means unlimited. It returns the cap now in effect. A
-  negative, non-finite or absurdly large value is rejected as unlimited and reported as `0`. `getFrameRateLimit()`
+  negative or non-finite value, or one whose interval rounds to zero nanoseconds or exceeds 1e15 ns (11.6 days), is
+  rejected as unlimited and reported as `0`. `getFrameRateLimit()`
   reads the cap back.
 - Setting the same cap again, for example every frame, keeps the schedule. A different cap starts a new schedule, and
   takes effect from the next frame.
@@ -107,5 +109,5 @@ on how far `sleep_for` overshoots; overshoot within the 1 ms spin margin costs n
   latency there.
 - **Window events.** Events are not processed during the wait. A cap far below 1 fps leaves the window unresponsive for
   that long.
-- **CPU.** The spin uses a core for up to 1 ms per frame. A cap whose interval is within that margin (about 1000 fps and
-  up) only spins.
+- **CPU.** The spin uses a core for up to 1 ms per frame (about 1000 fps and up only spins). On Windows without the
+  high-resolution timer the margin is 16 ms, so caps of about 60 fps and up spin for most or all of each frame.

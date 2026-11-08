@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -253,13 +254,14 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
   ImGui::Text("Active: %s", vke::toString(renderingManager->getActivePresentMode()));
 
   // 0 = unlimited
-  if (int frameRateLimit = static_cast<int>(renderingManager->getFrameRateLimit());
+  if (int frameRateLimit = static_cast<int>(std::lround(renderingManager->getFrameRateLimit()));
       ImGui::SliderInt("Frame Rate Limit", &frameRateLimit, 0, 480, frameRateLimit == 0 ? "Unlimited" : "%d fps"))
   {
     renderingManager->setFrameRateLimit(frameRateLimit);
   }
 
-  ImGui::Text("Frame time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+  const float framerate = ImGui::GetIO().Framerate;
+  ImGui::Text("Frame time: %.2f ms", framerate > 0.0f ? 1000.0f / framerate : 0.0f);
 
   ImGui::End();
 }

@@ -58,7 +58,7 @@ namespace {
   void checkInvalidRates()
   {
     const double rates[] { 0.0, -30.0, std::numeric_limits<double>::quiet_NaN(),
-                           std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 1e12 };
+                           std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 1e12, 1e-7 };
 
     for (const double rate : rates)
     {
@@ -70,6 +70,9 @@ namespace {
     }
 
     FrameLimiter limiter;
+    FrameLimiter unlimited;
+    check(unlimited.setTargetFrameRate(-1.0) == 0.0, "a rejected rate on an unlimited limiter reports 0");
+
     check(limiter.setTargetFrameRate(144.0) == 144.0, "a valid rate is reported as applied");
     check(limiter.getTargetFrameRate() == 144.0, "a valid rate reads back");
     check(limiter.setTargetFrameRate(144.0) == 144.0, "the same rate again is reported as applied");
