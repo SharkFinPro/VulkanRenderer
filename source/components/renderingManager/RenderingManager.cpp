@@ -26,6 +26,7 @@ namespace vke {
                                      const bool useDockspace,
                                      const bool rayTracingEnabled,
                                      const PresentMode presentMode,
+                                     const double frameRateLimit,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
@@ -36,6 +37,8 @@ namespace vke {
       m_rayTracingEnabled(rayTracingEnabled && m_logicalDevice->getPhysicalDevice()->supportsRayTracing()),
       m_presentModePreference(presentMode)
   {
+    m_frameLimiter.setTargetFrameRate(frameRateLimit);
+
     createCommandPool();
 
     m_frameScheduler = std::make_shared<FrameScheduler>(m_logicalDevice);
@@ -466,6 +469,21 @@ namespace vke {
     }
 
     return expected;
+  }
+
+  void RenderingManager::setFrameRateLimit(const double framesPerSecond)
+  {
+    m_frameLimiter.setTargetFrameRate(framesPerSecond);
+  }
+
+  double RenderingManager::getFrameRateLimit() const
+  {
+    return m_frameLimiter.getTargetFrameRate();
+  }
+
+  void RenderingManager::waitForFrameRateLimit()
+  {
+    m_frameLimiter.wait();
   }
 
   PresentMode RenderingManager::getPresentMode() const

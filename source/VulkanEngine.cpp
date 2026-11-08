@@ -82,6 +82,10 @@ namespace vke {
 
   void VulkanEngine::render()
   {
+    // The one point where the frame rate cap is enforced. Input is polled after the wait, so the camera sees fresh
+    // input; what the application built before calling render() saw input from before it.
+    m_renderingManager->waitForFrameRateLimit();
+
     m_window->update();
 
     if (m_camera->isEnabled())
@@ -176,6 +180,7 @@ namespace vke {
       engineConfig.imGui.useDockspace,
       engineConfig.rendering.rayTracingEnabled,
       engineConfig.rendering.presentMode,
+      engineConfig.rendering.frameRateLimit,
       m_assetManager
     );
 

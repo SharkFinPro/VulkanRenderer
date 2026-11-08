@@ -3,6 +3,7 @@
 
 #include "../../utilities/EventSystem.h"
 #include "../window/PresentMode.h"
+#include "../../utilities/FrameLimiter.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <functional>
 #include <memory>
@@ -46,6 +47,7 @@ namespace vke {
                      bool useDockspace,
                      bool rayTracingEnabled,
                      PresentMode presentMode,
+                     double frameRateLimit,
                      const std::shared_ptr<AssetManager>& assetManager);
 
     ~RenderingManager();
@@ -93,6 +95,15 @@ namespace vke {
     // surface support read at the last swapchain rebuild. Safe to call between frames; takes effect when the swapchain
     // is next rebuilt, normally at the end of the next frame.
     PresentMode setPresentMode(PresentMode mode);
+
+    // Caps the frame rate at the given frames per second; 0 = unlimited. Safe between frames; takes effect from the
+    // next frame.
+    void setFrameRateLimit(double framesPerSecond);
+
+    [[nodiscard]] double getFrameRateLimit() const;
+
+    // Sleeps then spins until the next frame may start; VulkanEngine::render calls it once per frame.
+    void waitForFrameRateLimit();
 
     // The requested preference.
     [[nodiscard]] PresentMode getPresentMode() const;
@@ -150,6 +161,8 @@ namespace vke {
     bool m_rayTracingEnabled;
 
     PresentMode m_presentModePreference;
+
+    FrameLimiter m_frameLimiter;
 
     std::vector<PresentMode> m_supportedPresentModes;
 
