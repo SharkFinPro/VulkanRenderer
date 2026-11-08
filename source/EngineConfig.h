@@ -37,6 +37,7 @@ namespace vke {
       std::function<void()> styleSetup;
     } imGui;
 
+    // Present mode and frame rate cap semantics: docs/FramePacing.md.
     struct Rendering {
       // Initial ray tracing state; only takes effect when the hardware supports ray tracing.
       // Can be changed at runtime via RenderingManager::enableRayTracing()/disableRayTracing().
