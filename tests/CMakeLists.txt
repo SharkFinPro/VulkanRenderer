@@ -38,3 +38,7 @@ add_dependencies(build_all cullingMath)
 add_subdirectory(drawRuns)
 add_test(NAME drawRuns COMMAND drawRuns)
 add_dependencies(build_all drawRuns)
+
+add_subdirectory(windowPlacement)
+add_test(NAME windowPlacement COMMAND windowPlacement)
+add_dependencies(build_all windowPlacement)

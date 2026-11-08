@@ -2,6 +2,7 @@
 #include <source/components/lighting/LightingManager.h>
 #include <source/components/assets/AssetManager.h>
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
+#include <source/components/window/Window.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,6 +32,8 @@ constexpr std::array AVAILABLE_PIPELINES {
 const char* getPipelineTypeName(vke::PipelineType type);
 
 void pipelineTypeGui(vke::PipelineType& currentPipeline);
+
+void fullscreenGui(const std::shared_ptr<vke::Window>& window);
 
 void linesGui(const std::shared_ptr<vke::Renderer3D>& r3d);
 
@@ -65,11 +68,22 @@ int main()
 
     const auto r3d = renderer.getRenderingManager()->getRenderer3D();
 
+    const auto window = renderer.getWindow();
+    // A raw pointer: the window owns its listeners, so holding a shared_ptr in one would keep it alive forever.
+    auto fullscreenKeyListener = window->on<vke::KeyCallbackEvent>([w = window.get()](const vke::KeyCallbackEvent& e) {
+      if (e.key == GLFW_KEY_F11 && e.action == GLFW_PRESS && !ImGui::GetIO().WantTextInput)
+      {
+        w->setFullscreen(!w->isFullscreen());
+      }
+    });
+
     while (renderer.isActive())
     {
       displayGui(renderer.getImGuiInstance(), lights, { cubeObject, curtainObject }, renderer.getRenderingManager());
 
       pipelineTypeGui(currentPipeline);
+
+      fullscreenGui(window);
 
       linesGui(r3d);
 
@@ -84,6 +98,8 @@ int main()
 
       renderer.render();
     }
+
+    window->removeListener(fullscreenKeyListener);
   }
   catch (const std::exception& e)
   {
@@ -120,6 +136,16 @@ void pipelineTypeGui(vke::PipelineType& currentPipeline)
       }
     }
     ImGui::EndCombo();
+  }
+  ImGui::End();
+}
+
+void fullscreenGui(const std::shared_ptr<vke::Window>& window)
+{
+  ImGui::Begin("Rendering");
+  if (bool fullscreen = window->isFullscreen(); ImGui::Checkbox("Fullscreen (F11)", &fullscreen))
+  {
+    window->setFullscreen(fullscreen);
   }
   ImGui::End();
 }
