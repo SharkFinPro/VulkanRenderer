@@ -8,8 +8,10 @@
 #include <source/components/pipelines/implementations/BendyPipeline.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
+#include <source/components/window/PresentMode.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+#include <algorithm>
 #include <memory>
 #include <string>
 
@@ -227,6 +229,28 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
       }
     }
   }
+
+  const auto& supportedModes = renderingManager->getSupportedPresentModes();
+  const auto requestedMode = renderingManager->getPresentMode();
+
+  if (ImGui::BeginCombo("Present Mode", vke::toString(requestedMode)))
+  {
+    for (const auto mode : { vke::PresentMode::fifo, vke::PresentMode::fifoRelaxed,
+                             vke::PresentMode::mailbox, vke::PresentMode::immediate })
+    {
+      const bool supported = std::ranges::find(supportedModes, mode) != supportedModes.end();
+
+      if (ImGui::Selectable(vke::toString(mode), mode == requestedMode,
+                            supported ? ImGuiSelectableFlags_None : ImGuiSelectableFlags_Disabled))
+      {
+        renderingManager->setPresentMode(mode);
+      }
+    }
+
+    ImGui::EndCombo();
+  }
+
+  ImGui::Text("Active: %s", vke::toString(renderingManager->getActivePresentMode()));
 
   ImGui::End();
 }

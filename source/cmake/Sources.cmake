@@ -110,6 +110,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/renderingManager/RenderTarget.h
 
   # Windows
+  components/window/PresentMode.cpp
+  components/window/PresentMode.h
   components/window/Surface.cpp
   components/window/Surface.h
   components/window/SwapChain.cpp

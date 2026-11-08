@@ -15,9 +15,10 @@ namespace vke {
                        const std::shared_ptr<Window>& window,
                        const std::shared_ptr<Surface>& surface,
                        const vk::CommandPool commandPool,
+                       const PresentMode preference,
                        const vk::SwapchainKHR oldSwapchain)
   {
-    createSwapChain(logicalDevice, window, surface, oldSwapchain);
+    createSwapChain(logicalDevice, window, surface, preference, oldSwapchain);
 
     createImageViews(logicalDevice);
 
@@ -36,19 +37,6 @@ namespace vke {
     }
 
     return availableFormats[0];
-  }
-
-  vk::PresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes)
-  {
-    for (const auto& availablePresentMode : availablePresentModes)
-    {
-      if (availablePresentMode == vk::PresentModeKHR::eMailbox)
-      {
-        return availablePresentMode;
-      }
-    }
-
-    return vk::PresentModeKHR::eFifo;
   }
 
   vk::Extent2D SwapChain::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities,
@@ -87,12 +75,13 @@ namespace vke {
   void SwapChain::createSwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                   const std::shared_ptr<Window>& window,
                                   const std::shared_ptr<Surface>& surface,
+                                  const PresentMode preference,
                                   const vk::SwapchainKHR oldSwapchain)
   {
     const SwapChainSupportDetails swapChainSupport = logicalDevice->getPhysicalDevice()->getSwapChainSupport();
 
     const vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    const vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+    const vk::PresentModeKHR presentMode = choosePresentMode(preference, swapChainSupport.presentModes);
     const vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities, window);
     const uint32_t imageCount = chooseSwapImageCount(swapChainSupport.capabilities);
 
@@ -127,6 +116,7 @@ namespace vke {
     m_swapChainImages = m_swapchain.getImages();
     m_swapChainImageFormat = surfaceFormat.format;
     m_swapChainExtent = extent;
+    m_presentMode = presentMode;
   }
 
   void SwapChain::createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice)
@@ -239,6 +229,11 @@ namespace vke {
     };
 
     commandBuffer->pipelineBarrier(dependencyInfo);
+  }
+
+  PresentMode SwapChain::getPresentMode() const
+  {
+    return toPresentMode(m_presentMode);
   }
 
   vk::Format SwapChain::getImageFormat() const
