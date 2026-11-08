@@ -8,6 +8,7 @@
 #include <source/components/pipelines/implementations/BendyPipeline.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
+#include <source/components/window/PresentMode.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <algorithm>
@@ -229,7 +230,7 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
     }
   }
 
-  const auto supportedModes = renderingManager->getSupportedPresentModes();
+  const auto& supportedModes = renderingManager->getSupportedPresentModes();
   const auto requestedMode = renderingManager->getPresentMode();
 
   if (ImGui::BeginCombo("Present Mode", vke::toString(requestedMode)))

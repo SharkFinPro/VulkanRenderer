@@ -56,6 +56,12 @@ namespace {
     constexpr std::array<Vk, 2> noRelaxed { Vk::eMailbox, Vk::eImmediate };
     check(vke::choosePresentMode(PresentMode::fifoRelaxed, noRelaxed) == Vk::eFifo, "fifoRelaxed falls to FIFO");
 
+    // FIFO relaxed is never a fallback for another preference.
+    constexpr std::array<Vk, 2> onlyRelaxed { Vk::eFifo, Vk::eFifoRelaxed };
+    check(vke::choosePresentMode(PresentMode::mailbox, onlyRelaxed) == Vk::eFifo, "mailbox does not fall to fifoRelaxed");
+    check(vke::choosePresentMode(PresentMode::immediate, onlyRelaxed) == Vk::eFifo, "immediate does not fall to fifoRelaxed");
+    check(vke::choosePresentMode(PresentMode::fifo, onlyRelaxed) == Vk::eFifo, "fifo does not take fifoRelaxed");
+
     constexpr std::array<Vk, 4> reversed { Vk::eImmediate, Vk::eMailbox, Vk::eFifoRelaxed, Vk::eFifo };
     check(vke::choosePresentMode(PresentMode::immediate, reversed) == Vk::eImmediate, "list order doesn't matter for immediate");
     check(vke::choosePresentMode(PresentMode::mailbox, reversed) == Vk::eMailbox, "list order doesn't matter for mailbox");

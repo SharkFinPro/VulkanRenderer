@@ -47,6 +47,7 @@ namespace vke {
 
     m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool,
                                              m_presentModePreference);
+    m_supportedPresentModes = supportedPresentModes(m_logicalDevice->getPhysicalDevice()->getSwapChainSupport().presentModes);
     m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
 
     m_renderTarget = std::make_shared<RenderTarget>(m_logicalDevice, m_commandPool);
@@ -174,6 +175,7 @@ namespace vke {
     m_logicalDevice->waitIdle();
 
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
+    m_supportedPresentModes = supportedPresentModes(m_logicalDevice->getPhysicalDevice()->getSwapChainSupport().presentModes);
 
     auto newSwapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool,
                                                     m_presentModePreference, m_swapChain->getSwapChain());
@@ -452,15 +454,18 @@ namespace vke {
 
   PresentMode RenderingManager::setPresentMode(const PresentMode mode)
   {
-    if (mode != m_presentModePreference)
+    m_presentModePreference = mode;
+
+    const auto support = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
+    const PresentMode expected = toPresentMode(choosePresentMode(mode, support.presentModes));
+
+    // Rebuild only when the mode in use would change; the preference is kept for later rebuilds either way.
+    if (expected != m_swapChain->getPresentMode())
     {
-      m_presentModePreference = mode;
       m_framebufferResized = true;
     }
 
-    const auto support = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
-
-    return toPresentMode(choosePresentMode(mode, support.presentModes));
+    return expected;
   }
 
   PresentMode RenderingManager::getPresentMode() const
@@ -473,11 +478,9 @@ namespace vke {
     return m_swapChain->getPresentMode();
   }
 
-  std::vector<PresentMode> RenderingManager::getSupportedPresentModes() const
+  const std::vector<PresentMode>& RenderingManager::getSupportedPresentModes() const
   {
-    const auto support = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
-
-    return supportedPresentModes(support.presentModes);
+    return m_supportedPresentModes;
   }
 
   SceneViewRect RenderingManager::getSceneViewRect() const

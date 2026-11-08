@@ -1,6 +1,7 @@
 #include "PresentMode.h"
 #include <algorithm>
 #include <array>
+#include <cstddef>
 
 namespace vke {
 
@@ -18,7 +19,7 @@ namespace vke {
                                        const std::span<const vk::PresentModeKHR> available)
   {
     std::array<vk::PresentModeKHR, 3> order{};
-    size_t count = 0;
+    std::size_t count = 0;
 
     switch (preference)
     {
@@ -36,7 +37,7 @@ namespace vke {
         break;
     }
 
-    for (size_t i = 0; i < count; ++i)
+    for (std::size_t i = 0; i < count; ++i)
     {
       if (contains(available, order[i]))
       {
