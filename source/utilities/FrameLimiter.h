@@ -14,7 +14,8 @@ namespace vke {
 
     // Frames per second. 0, a negative or non-finite value, or one so large that the interval rounds to zero
     // nanoseconds means unlimited (stored as 0). A change of rate resets the schedule; the same rate again does not.
-    void setTargetFrameRate(double framesPerSecond);
+    // Returns the rate now in effect, so a rejected request reads back as 0.
+    double setTargetFrameRate(double framesPerSecond);
 
     [[nodiscard]] double getTargetFrameRate() const;
 

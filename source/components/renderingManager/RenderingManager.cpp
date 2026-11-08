@@ -471,9 +471,9 @@ namespace vke {
     return expected;
   }
 
-  void RenderingManager::setFrameRateLimit(const double framesPerSecond)
+  double RenderingManager::setFrameRateLimit(const double framesPerSecond)
   {
-    m_frameLimiter.setTargetFrameRate(framesPerSecond);
+    return m_frameLimiter.setTargetFrameRate(framesPerSecond);
   }
 
   double RenderingManager::getFrameRateLimit() const

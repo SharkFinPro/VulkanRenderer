@@ -64,14 +64,15 @@ namespace {
     {
       FrameLimiter limiter;
       limiter.setTargetFrameRate(60.0);
-      limiter.setTargetFrameRate(rate);
+      check(limiter.setTargetFrameRate(rate) == 0.0, "an invalid or absurd rate reports 0");
       check(limiter.getTargetFrameRate() == 0.0, "an invalid or absurd rate stores 0");
       check(limiter.schedule(T0) == T0 && limiter.schedule(T0 + ONE_MS) == T0 + ONE_MS, "an invalid or absurd rate is unlimited");
     }
 
     FrameLimiter limiter;
-    limiter.setTargetFrameRate(144.0);
+    check(limiter.setTargetFrameRate(144.0) == 144.0, "a valid rate is reported as applied");
     check(limiter.getTargetFrameRate() == 144.0, "a valid rate reads back");
+    check(limiter.setTargetFrameRate(144.0) == 144.0, "the same rate again is reported as applied");
   }
 
   void checkFirstFrame()

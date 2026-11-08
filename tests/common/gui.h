@@ -252,6 +252,15 @@ inline void displaySceneOptions(const std::shared_ptr<vke::RenderingManager>& re
 
   ImGui::Text("Active: %s", vke::toString(renderingManager->getActivePresentMode()));
 
+  // 0 = unlimited
+  if (int frameRateLimit = static_cast<int>(renderingManager->getFrameRateLimit());
+      ImGui::SliderInt("Frame Rate Limit", &frameRateLimit, 0, 480, frameRateLimit == 0 ? "Unlimited" : "%d fps"))
+  {
+    renderingManager->setFrameRateLimit(frameRateLimit);
+  }
+
+  ImGui::Text("Frame time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+
   ImGui::End();
 }
 

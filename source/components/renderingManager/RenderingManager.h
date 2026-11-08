@@ -93,12 +93,13 @@ namespace vke {
 
     // Sets the preferred present mode and returns the one expected to be used (see choosePresentMode), judged from the
     // surface support read at the last swapchain rebuild. Safe to call between frames; takes effect when the swapchain
-    // is next rebuilt, normally at the end of the next frame.
+    // is next rebuilt, normally at the end of the next frame. See docs/FramePacing.md.
     PresentMode setPresentMode(PresentMode mode);
 
-    // Caps the frame rate at the given frames per second; 0 = unlimited. Safe between frames; takes effect from the
-    // next frame.
-    void setFrameRateLimit(double framesPerSecond);
+    // Caps the frame rate at the given frames per second; 0 = unlimited. Returns the cap now in effect: 0 when the
+    // request was 0, negative, non-finite or too large to time. Safe between frames; takes effect from the next frame.
+    // See docs/FramePacing.md.
+    double setFrameRateLimit(double framesPerSecond);
 
     [[nodiscard]] double getFrameRateLimit() const;
 
