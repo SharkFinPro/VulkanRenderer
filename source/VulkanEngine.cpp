@@ -175,6 +175,7 @@ namespace vke {
       engineConfig.imGui.sceneViewName.c_str(),
       engineConfig.imGui.useDockspace,
       engineConfig.rendering.rayTracingEnabled,
+      engineConfig.rendering.presentMode,
       m_assetManager
     );
 

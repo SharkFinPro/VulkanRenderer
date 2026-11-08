@@ -1,6 +1,7 @@
 #ifndef VKE_SWAPCHAIN_H
 #define VKE_SWAPCHAIN_H
 
+#include "PresentMode.h"
 #include "../renderingManager/ImageResource.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
@@ -19,7 +20,11 @@ namespace vke {
               const std::shared_ptr<Window>& window,
               const std::shared_ptr<Surface>& surface,
               vk::CommandPool commandPool,
+              PresentMode preference,
               vk::SwapchainKHR oldSwapchain = nullptr);
+
+    // The mode in use, which differs from the requested preference when the surface lacks it.
+    [[nodiscard]] PresentMode getPresentMode() const;
 
     [[nodiscard]] vk::Format getImageFormat() const;
 
@@ -42,14 +47,13 @@ namespace vke {
     std::vector<vk::Image> m_swapChainImages;
     vk::Format m_swapChainImageFormat = vk::Format::eUndefined;
     vk::Extent2D m_swapChainExtent{};
+    vk::PresentModeKHR m_presentMode = vk::PresentModeKHR::eFifo;
     std::vector<vk::raii::ImageView> m_swapChainImageViews;
 
     std::vector<ImageResource> m_colorImageResources;
     std::vector<ImageResource> m_depthImageResources;
 
     static vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
-
-    static vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
 
     [[nodiscard]] static vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities,
                                                        const std::shared_ptr<Window>& window);
@@ -59,6 +63,7 @@ namespace vke {
     void createSwapChain(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<Window>& window,
                          const std::shared_ptr<Surface>& surface,
+                         PresentMode preference,
                          vk::SwapchainKHR oldSwapchain);
 
     void createImageViews(const std::shared_ptr<LogicalDevice>& logicalDevice);

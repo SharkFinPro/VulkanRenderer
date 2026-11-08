@@ -39,6 +39,10 @@ add_subdirectory(drawRuns)
 add_test(NAME drawRuns COMMAND drawRuns)
 add_dependencies(build_all drawRuns)
 
+add_subdirectory(presentMode)
+add_test(NAME presentMode COMMAND presentMode)
+add_dependencies(build_all presentMode)
+
 add_subdirectory(windowPlacement)
 add_test(NAME windowPlacement COMMAND windowPlacement)
 add_dependencies(build_all windowPlacement)

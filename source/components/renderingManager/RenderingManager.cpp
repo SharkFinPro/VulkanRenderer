@@ -25,6 +25,7 @@ namespace vke {
                                      std::string sceneViewName,
                                      const bool useDockspace,
                                      const bool rayTracingEnabled,
+                                     const PresentMode presentMode,
                                      const std::shared_ptr<AssetManager>& assetManager)
     : m_logicalDevice(std::move(logicalDevice)),
       m_surface(std::move(surface)),
@@ -32,7 +33,8 @@ namespace vke {
       m_useDockspace(useDockspace),
       m_sceneViewName(std::move(sceneViewName)),
       m_renderer2D(std::make_shared<Renderer2D>(assetManager)),
-      m_rayTracingEnabled(rayTracingEnabled && m_logicalDevice->getPhysicalDevice()->supportsRayTracing())
+      m_rayTracingEnabled(rayTracingEnabled && m_logicalDevice->getPhysicalDevice()->supportsRayTracing()),
+      m_presentModePreference(presentMode)
   {
     createCommandPool();
 
@@ -43,7 +45,8 @@ namespace vke {
     m_offscreenCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool);
+    m_swapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool,
+                                             m_presentModePreference);
     m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
 
     m_renderTarget = std::make_shared<RenderTarget>(m_logicalDevice, m_commandPool);
@@ -173,7 +176,7 @@ namespace vke {
     m_logicalDevice->getPhysicalDevice()->updateSwapChainSupportDetails();
 
     auto newSwapChain = std::make_shared<SwapChain>(m_logicalDevice, m_window, m_surface, m_commandPool,
-                                                    m_swapChain->getSwapChain());
+                                                    m_presentModePreference, m_swapChain->getSwapChain());
     m_swapChain = std::move(newSwapChain);
 
     m_frameScheduler->updateRenderFinishedSemaphores(static_cast<uint32_t>(m_swapChain->getImages().size()));
@@ -445,6 +448,36 @@ namespace vke {
     }
 
     return false;
+  }
+
+  PresentMode RenderingManager::setPresentMode(const PresentMode mode)
+  {
+    if (mode != m_presentModePreference)
+    {
+      m_presentModePreference = mode;
+      m_framebufferResized = true;
+    }
+
+    const auto support = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
+
+    return toPresentMode(choosePresentMode(mode, support.presentModes));
+  }
+
+  PresentMode RenderingManager::getPresentMode() const
+  {
+    return m_presentModePreference;
+  }
+
+  PresentMode RenderingManager::getActivePresentMode() const
+  {
+    return m_swapChain->getPresentMode();
+  }
+
+  std::vector<PresentMode> RenderingManager::getSupportedPresentModes() const
+  {
+    const auto support = m_logicalDevice->getPhysicalDevice()->getSwapChainSupport();
+
+    return supportedPresentModes(support.presentModes);
   }
 
   SceneViewRect RenderingManager::getSceneViewRect() const

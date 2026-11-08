@@ -1,6 +1,7 @@
 #ifndef VKE_ENGINECONFIG_H
 #define VKE_ENGINECONFIG_H
 
+#include "components/window/PresentMode.h"
 #include <glm/vec3.hpp>
 #include <cstdint>
 #include <functional>
@@ -40,6 +41,9 @@ namespace vke {
       // Initial ray tracing state; only takes effect when the hardware supports ray tracing.
       // Can be changed at runtime via RenderingManager::enableRayTracing()/disableRayTracing().
       bool rayTracingEnabled = true;
+      // Initial present mode preference; falls back per choosePresentMode when the surface lacks it.
+      // RenderingManager::setPresentMode changes it at runtime.
+      PresentMode presentMode = PresentMode::mailbox;
     } rendering;
   };
 

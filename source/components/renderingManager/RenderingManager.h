@@ -2,10 +2,12 @@
 #define VKE_RENDERINGMANAGER_H
 
 #include "../../utilities/EventSystem.h"
+#include "../window/PresentMode.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 struct ImDrawList;
 
@@ -43,6 +45,7 @@ namespace vke {
                      std::string sceneViewName,
                      bool useDockspace,
                      bool rayTracingEnabled,
+                     PresentMode presentMode,
                      const std::shared_ptr<AssetManager>& assetManager);
 
     ~RenderingManager();
@@ -85,6 +88,18 @@ namespace vke {
     void disableRayTracing();
 
     [[nodiscard]] bool isRayTracingEnabled() const;
+
+    // Sets the preferred present mode and returns the one that will actually be used (see choosePresentMode). Safe to
+    // call between frames; takes effect when the swapchain is next rebuilt, normally at the end of the next frame.
+    PresentMode setPresentMode(PresentMode mode);
+
+    // The requested preference.
+    [[nodiscard]] PresentMode getPresentMode() const;
+
+    // The mode the current swapchain uses.
+    [[nodiscard]] PresentMode getActivePresentMode() const;
+
+    [[nodiscard]] std::vector<PresentMode> getSupportedPresentModes() const;
 
     [[nodiscard]] SceneViewRect getSceneViewRect() const;
 
@@ -131,6 +146,8 @@ namespace vke {
     EventListener<FramebufferResizeEvent> m_framebufferResizeEventListener;
 
     bool m_rayTracingEnabled;
+
+    PresentMode m_presentModePreference;
 
     SceneViewRect m_sceneViewRect;
 
