@@ -10,6 +10,8 @@
 #include "../../assets/textures/TextureCubemap.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
+#include "../../lighting/lights/Light.h"
+#include "../../lighting/lights/SpotLight.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
@@ -17,6 +19,7 @@
 #include "../../pipelines/implementations/common/PipelineTypes.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
 #include "../../pipelines/uniformBuffers/UniformBuffer.h"
+#include "../../../utilities/Frustum.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
 #include <algorithm>
@@ -25,6 +28,7 @@
 #include <cmath>
 #include <iostream>
 #include <iterator>
+#include <span>
 #include <stdexcept>
 #include <utility>
 
@@ -48,17 +52,47 @@ namespace {
     }
   }
 
+  // The pipelines whose vertex stage places every vertex by the model matrix alone, so the model's bounds under that
+  // matrix enclose everything they draw and the main pass can cull them against the camera. Others displace vertices
+  // (curtains, snake) or emit geometry from a geometry stage (crosses, snake), which can reach past the bounds; a pipeline
+  // not listed here is never culled.
+  [[nodiscard]] bool cullsByBounds(const vke::PipelineType pipelineType)
+  {
+    switch (pipelineType)
+    {
+      case vke::PipelineType::cubeMap:
+      case vke::PipelineType::ellipticalDots:
+      case vke::PipelineType::magnifyWhirlMosaic:
+      case vke::PipelineType::noisyEllipticalDots:
+      case vke::PipelineType::object:
+      case vke::PipelineType::texturedPlane:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  [[nodiscard]] bool castsShadows(const std::shared_ptr<vke::Light>& light)
+  {
+    return light->castsShadows();
+  }
+
+  // How many lists the shadow maps need: one shared by the point lights if any casts shadows, one per spot light that does
+  [[nodiscard]] size_t countShadowLists(const vke::LightingManager& lightingManager)
+  {
+    return (std::ranges::any_of(lightingManager.getPointLightsToRender(), castsShadows) ? 1 : 0) +
+           static_cast<size_t>(std::ranges::count_if(lightingManager.getSpotLightsToRender(), castsShadows));
+  }
+
   // The camera block of the scene set (SceneCamera in shaders/common/SceneData.glsl)
   struct SceneCamera {
     glm::mat4 view;
     glm::mat4 proj;
   };
 
-  [[nodiscard]] vke::ObjectData makeObjectData(const vke::RenderObject& object,
+  [[nodiscard]] vke::ObjectData makeObjectData(const glm::mat4& model,
                                                const uint32_t pickId)
   {
-    const glm::mat4 model = object.getModelMatrix();
-
     return {
       .model = model,
       .normalMatrix = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model)))),
@@ -105,18 +139,20 @@ namespace vke {
                                     const uint32_t currentFrame) const
   {
     lightingManager->renderShadowMaps(commandBuffer, pipelineManager, m_shadowRuns,
+                                      std::span(m_spotShadowRuns).first(m_spotShadowCount),
                                       m_sceneDescriptorSet->getDescriptorSet(currentFrame), currentFrame);
   }
 
-  void Renderer3D::updateSceneData(const RenderInfo* renderInfo)
+  void Renderer3D::updateSceneData(const RenderInfo* renderInfo,
+                                   const std::shared_ptr<LightingManager>& lightingManager)
   {
     const uint32_t currentFrame = renderInfo->currentFrame;
 
     const size_t objectCount = m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size();
 
-    // Every pass's list: all submissions for the shadow maps, then again split among the pipelines, the pickable ones
-    // and the outlines
-    const size_t slotCount = 2 * m_renderObjectsToRenderFlattened.size() +
+    // The most every pass's list can hold: each shadow list and the pipelines' lists take at most every submission
+    // (together, the pipelines' lists exactly that many), then the pickable ones and the outlines
+    const size_t slotCount = (countShadowLists(*lightingManager) + 1) * m_renderObjectsToRenderFlattened.size() +
                              m_mousePicker->m_renderObjectsToMousePick.size() + m_outlineObjects.size();
 
     if (m_objectTable->reserve(currentFrame, objectCount, slotCount))
@@ -130,16 +166,19 @@ namespace vke {
 
     writeObjectTable(currentFrame);
 
-    // slotCount is exact: each submission is in the shadow list and in one pipeline's list
-    [[maybe_unused]] const uint32_t slotsWritten = buildDrawLists(m_objectTable->getDrawSlots(currentFrame));
-    assert(slotsWritten <= m_objectTable->getDrawSlotCapacity(currentFrame));
-
     const RenderInfo sceneRenderInfo = makeSceneRenderInfo(renderInfo);
 
     const SceneCamera camera {
       .view = m_viewMatrix,
       .proj = sceneRenderInfo.getProjectionMatrix()
     };
+
+    // The same matrices the camera block gives the shaders, so the planes are the ones the vertex stages clip against
+    const Frustum cameraFrustum = Frustum::fromViewProjection(camera.proj * camera.view);
+
+    [[maybe_unused]] const uint32_t slotsWritten = buildDrawLists(m_objectTable->getDrawSlots(currentFrame),
+                                                                  cameraFrustum, *lightingManager);
+    assert(slotsWritten <= m_objectTable->getDrawSlotCapacity(currentFrame));
 
     m_cameraUniform->update(currentFrame, &camera);
   }
@@ -149,14 +188,11 @@ namespace vke {
     ObjectData* entries = m_objectTable->getEntries(currentFrame);
 
     m_slotKeys.clear();
+    m_slotBounds.clear();
 
     for (size_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
     {
-      const RenderObject& object = *m_renderObjectsToRenderFlattened[slot];
-
-      entries[slot] = makeObjectData(object, m_pickIds[slot]);
-
-      m_slotKeys.push_back({ object.getModel().get(), object.getMaterial().get() });
+      writeObjectEntry(entries[slot], *m_renderObjectsToRenderFlattened[slot], m_pickIds[slot]);
     }
 
     // The outlines' entries follow the render submissions'
@@ -164,23 +200,34 @@ namespace vke {
 
     for (size_t i = 0; i < m_outlineObjects.size(); ++i)
     {
-      const RenderObject& object = *m_outlineObjects[i].first;
-
-      entries[i] = makeObjectData(object, 0);
-
-      m_slotKeys.push_back({ object.getModel().get(), object.getMaterial().get() });
+      writeObjectEntry(entries[i], *m_outlineObjects[i].first, 0);
     }
   }
 
-  uint32_t Renderer3D::buildDrawLists(uint32_t* drawSlots)
+  void Renderer3D::writeObjectEntry(ObjectData& entry,
+                                    const RenderObject& object,
+                                    const uint32_t pickId)
   {
-    uint32_t offset = buildShadowRuns(drawSlots, 0);
+    const glm::mat4 model = object.getModelMatrix();
 
-    offset = buildPipelineRuns(drawSlots, offset);
+    entry = makeObjectData(model, pickId);
 
-    offset = buildPickRuns(drawSlots, offset);
+    m_slotKeys.push_back({ object.getModel().get(), object.getMaterial().get() });
 
-    return buildOutlineRuns(drawSlots, offset);
+    m_slotBounds.push_back(transformAABB(object.getModel()->getBounds(), model));
+  }
+
+  uint32_t Renderer3D::buildDrawLists(uint32_t* drawSlots,
+                                      const Frustum& camera,
+                                      const LightingManager& lightingManager)
+  {
+    uint32_t offset = buildShadowRuns(drawSlots, 0, lightingManager);
+
+    offset = buildPipelineRuns(drawSlots, offset, camera);
+
+    offset = buildPickRuns(drawSlots, offset, camera);
+
+    return buildOutlineRuns(drawSlots, offset, camera);
   }
 
   DrawItem Renderer3D::makeDrawItem(const uint32_t slot,
@@ -192,31 +239,100 @@ namespace vke {
     return { key.model, byMaterial ? key.material : nullptr, maskValue, slot };
   }
 
-  uint32_t Renderer3D::buildShadowRuns(uint32_t* drawSlots,
-                                       const uint32_t offset)
+  void Renderer3D::addVisibleDrawItem(const Frustum& frustum,
+                                      const uint32_t slot,
+                                      const bool byMaterial,
+                                      const uint32_t maskValue)
   {
-    m_drawItems.clear();
+    if (frustum.intersects(m_slotBounds[slot]))
+    {
+      m_drawItems.push_back(makeDrawItem(slot, byMaterial, maskValue));
+    }
+  }
+
+  uint32_t Renderer3D::buildShadowRuns(uint32_t* drawSlots,
+                                       uint32_t offset,
+                                       const LightingManager& lightingManager)
+  {
     m_shadowRuns.clear();
 
-    for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+    // The point lights share one list of every submission, built only if one casts shadows
+    if (std::ranges::any_of(lightingManager.getPointLightsToRender(), castsShadows))
     {
-      m_drawItems.push_back(makeDrawItem(slot, false, 0));
+      m_drawItems.clear();
+
+      for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+      {
+        m_drawItems.push_back(makeDrawItem(slot, false, 0));
+      }
+
+      offset = buildDrawRuns(m_drawItems, drawSlots, offset, m_shadowRuns);
     }
 
-    return buildDrawRuns(m_drawItems, drawSlots, offset, m_shadowRuns);
+    return buildSpotShadowRuns(drawSlots, offset, lightingManager);
+  }
+
+  uint32_t Renderer3D::buildSpotShadowRuns(uint32_t* drawSlots,
+                                           uint32_t offset,
+                                           const LightingManager& lightingManager)
+  {
+    m_spotShadowCount = 0;
+
+    // The order and the filter are the ones LightingManager draws the lists in
+    for (const std::shared_ptr<Light>& light : lightingManager.getSpotLightsToRender())
+    {
+      const auto* spotLight = dynamic_cast<const SpotLight*>(light.get());
+
+      if (!spotLight || !spotLight->castsShadows())
+      {
+        continue;
+      }
+
+      if (m_spotShadowCount == m_spotShadowRuns.size())
+      {
+        m_spotShadowRuns.emplace_back();
+      }
+
+      std::vector<DrawRun>& runs = m_spotShadowRuns[m_spotShadowCount++];
+      runs.clear();
+
+      // The matrix the shadow vertex shader multiplies by
+      const Frustum lightFrustum = Frustum::fromViewProjection(spotLight->getLightViewProjectionMatrix());
+
+      m_drawItems.clear();
+
+      for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+      {
+        addVisibleDrawItem(lightFrustum, slot, false, 0);
+      }
+
+      offset = buildDrawRuns(m_drawItems, drawSlots, offset, runs);
+    }
+
+    return offset;
   }
 
   uint32_t Renderer3D::buildPipelineRuns(uint32_t* drawSlots,
-                                         uint32_t offset)
+                                         uint32_t offset,
+                                         const Frustum& camera)
   {
     for (auto& [pipelineType, draws] : m_renderObjectsToRender)
     {
       m_drawItems.clear();
       draws.runs.clear();
 
+      const bool culled = cullsByBounds(pipelineType);
+
       for (const uint32_t slot : draws.slots)
       {
-        m_drawItems.push_back(makeDrawItem(slot, true, 0));
+        if (culled)
+        {
+          addVisibleDrawItem(camera, slot, true, 0);
+        }
+        else
+        {
+          m_drawItems.push_back(makeDrawItem(slot, true, 0));
+        }
       }
 
       offset = buildDrawRuns(m_drawItems, drawSlots, offset, draws.runs);
@@ -226,7 +342,8 @@ namespace vke {
   }
 
   uint32_t Renderer3D::buildPickRuns(uint32_t* drawSlots,
-                                     uint32_t offset)
+                                     uint32_t offset,
+                                     const Frustum& camera)
   {
     m_pickRuns.clear();
     m_pickAlphaTestedRuns.clear();
@@ -239,7 +356,7 @@ namespace vke {
       {
         if (entry.alphaTested == alphaTested)
         {
-          m_drawItems.push_back(makeDrawItem(entry.slot, alphaTested, 0));
+          addVisibleDrawItem(camera, entry.slot, alphaTested, 0);
         }
       }
 
@@ -250,7 +367,8 @@ namespace vke {
   }
 
   uint32_t Renderer3D::buildOutlineRuns(uint32_t* drawSlots,
-                                        const uint32_t offset)
+                                        const uint32_t offset,
+                                        const Frustum& camera)
   {
     m_drawItems.clear();
     m_outlineRuns.clear();
@@ -260,7 +378,7 @@ namespace vke {
 
     for (uint32_t i = 0; i < m_outlineObjects.size(); ++i)
     {
-      m_drawItems.push_back(makeDrawItem(firstSlot + i, false, m_outlineObjects[i].second));
+      addVisibleDrawItem(camera, firstSlot + i, false, m_outlineObjects[i].second);
     }
 
     return buildDrawRuns(m_drawItems, drawSlots, offset, m_outlineRuns);
@@ -503,6 +621,7 @@ namespace vke {
     }
 
     m_shadowRuns.clear();
+    m_spotShadowCount = 0;
     m_pickRuns.clear();
     m_pickAlphaTestedRuns.clear();
     m_outlineRuns.clear();

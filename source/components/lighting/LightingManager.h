@@ -42,11 +42,19 @@ namespace vke {
 
     void update(uint32_t currentFrame, glm::vec3 viewPosition);
 
-    // Draws the runs into every shadow-casting light's map. Their first instances index the draw slots the scene
-    // descriptor set (set 0 of the shadow pipelines) binds.
+    // The lights submitted this frame. Whether each casts shadows is up to the caller to ask (castsShadows).
+    [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getPointLightsToRender() const;
+
+    [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getSpotLightsToRender() const;
+
+    // Draws pointLightRuns into every shadow-casting point light's map, and into each shadow-casting spot light's map
+    // its own entry of spotLightRuns, in the order of getSpotLightsToRender with the non-casting lights skipped (a light
+    // without an entry draws nothing). The runs' first instances index the draw slots the scene descriptor set (set 0 of
+    // the shadow pipelines) binds.
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
-                          std::span<const DrawRun> runs,
+                          std::span<const DrawRun> pointLightRuns,
+                          std::span<const std::vector<DrawRun>> spotLightRuns,
                           vk::DescriptorSet sceneDescriptorSet,
                           uint32_t currentFrame) const;
 
@@ -106,7 +114,7 @@ namespace vke {
 
     void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                    const std::shared_ptr<PipelineManager>& pipelineManager,
-                                   std::span<const DrawRun> runs,
+                                   std::span<const std::vector<DrawRun>> spotLightRuns,
                                    vk::DescriptorSet sceneDescriptorSet,
                                    uint32_t currentFrame) const;
 

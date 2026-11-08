@@ -572,7 +572,7 @@ namespace vke {
 
     m_offscreenCommandBuffer->resetCommandBuffer();
 
-    m_offscreenCommandBuffer->record([this, currentFrame, renderShadowMaps, recordMousePicking, recordOutlineMask, recordOffscreenRendering]
+    m_offscreenCommandBuffer->record([this, currentFrame, lightingManager, renderShadowMaps, recordMousePicking, recordOutlineMask, recordOffscreenRendering]
     {
       const RenderInfo renderInfo {
         .commandBuffer = m_offscreenCommandBuffer,
@@ -590,7 +590,7 @@ namespace vke {
 
       // Before any pass that draws render objects, shadows included, and for ray tracing too, which rasterizes view-only
       // objects
-      m_renderer3D->updateSceneData(&renderInfo);
+      m_renderer3D->updateSceneData(&renderInfo, lightingManager);
 
       renderShadowMaps();
 
