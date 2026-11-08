@@ -71,7 +71,7 @@ int main()
     const auto window = renderer.getWindow();
     // A raw pointer: the window owns its listeners, so holding a shared_ptr in one would keep it alive forever.
     auto fullscreenKeyListener = window->on<vke::KeyCallbackEvent>([w = window.get()](const vke::KeyCallbackEvent& e) {
-      if (e.key == GLFW_KEY_F11 && e.action == GLFW_PRESS)
+      if (e.key == GLFW_KEY_F11 && e.action == GLFW_PRESS && !ImGui::GetIO().WantTextInput)
       {
         w->setFullscreen(!w->isFullscreen());
       }

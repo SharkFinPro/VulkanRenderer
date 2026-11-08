@@ -65,6 +65,14 @@ namespace {
     // Extents near the int range must not overflow into a negative or wrapped overlap.
     constexpr std::array<vke::WindowRect, 1> huge {{ { INT_MIN / 2, INT_MIN / 2, INT_MAX, INT_MAX } }};
     check(vke::findMostOverlappedArea({ 0, 0, INT_MAX / 2, INT_MAX / 2 }, huge) == 0, "large extents don't overflow");
+
+    // Right edges past INT_MAX: 32-bit sums would wrap negative and report no overlap.
+    constexpr std::array<vke::WindowRect, 1> farRight {{ { INT_MAX - 20, 0, 100, 100 } }};
+    check(vke::findMostOverlappedArea({ INT_MAX - 10, 0, 100, 100 }, farRight) == 0, "edges past INT_MAX still overlap");
+
+    // A 70000 x 70000 overlap is larger than a 40000 x 40000 one, but in 32 bits it wraps below it.
+    constexpr std::array<vke::WindowRect, 2> large {{ { 0, 0, 40000, 40000 }, { 0, 0, 70000, 70000 } }};
+    check(vke::findMostOverlappedArea({ 0, 0, 70000, 70000 }, large) == 1, "areas beyond 32 bits compare correctly");
   }
 
   void checkCentering()
