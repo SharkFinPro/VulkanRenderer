@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -90,6 +91,39 @@ namespace {
     limiter.setTargetFrameRate(30.0);
     check(limiter.schedule(T0 + ONE_MS * 2) == T0 + ONE_MS * 2, "a change of rate resets the schedule");
     check(limiter.schedule(T0 + ONE_MS * 3) == T0 + ONE_MS * 2 + intervalOf(30.0), "the new rate applies after the reset");
+  }
+
+  void checkSameRateKeepsSchedule()
+  {
+    FrameLimiter limiter;
+    limiter.setTargetFrameRate(60.0);
+    check(limiter.schedule(T0) == T0, "same rate: first frame");
+
+    limiter.setTargetFrameRate(60.0);
+    check(limiter.schedule(T0 + ONE_MS) == T0 + intervalOf(60.0), "setting the same rate again keeps the schedule");
+  }
+
+  // Lateness up to one interval keeps the grid; beyond it the grid restarts.
+  void checkResyncThreshold()
+  {
+    const ns interval = intervalOf(60.0);
+
+    for (const auto& [lateness, resyncs] : { std::pair { interval * 9 / 10, false }, std::pair { interval, false },
+                                             std::pair { interval * 11 / 10, true } })
+    {
+      FrameLimiter limiter;
+      limiter.setTargetFrameRate(60.0);
+
+      const Clock::time_point first = limiter.schedule(T0);
+      const Clock::time_point late = first + interval + lateness;
+      check(limiter.schedule(late) == late, "a late frame starts at once");
+
+      // A zero-length frame, so the next start is the deadline itself
+      const Clock::time_point next = limiter.schedule(late);
+      const Clock::time_point expected = resyncs ? late + interval : first + interval * 2;
+      check(next == expected, resyncs ? "more than one interval late restarts the grid"
+                                      : "up to one interval late keeps the grid");
+    }
   }
 
   void checkFastLoop()
@@ -176,7 +210,8 @@ namespace {
 
   void checkVsync()
   {
-    for (const double fps : { 144.0, 240.0 })
+    // 61 fps against 60 Hz falls behind slowly, until a resync, and never waits either
+    for (const double fps : { 61.0, 144.0, 240.0 })
     {
       FrameLimiter limiter;
       limiter.setTargetFrameRate(fps);
@@ -304,6 +339,8 @@ int main()
   checkInvalidRates();
   checkFirstFrame();
   checkRateChangeResets();
+  checkSameRateKeepsSchedule();
+  checkResyncThreshold();
   checkFastLoop();
   checkLateFrameKeepsGrid();
   checkStallResyncs();

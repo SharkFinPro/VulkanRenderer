@@ -13,7 +13,7 @@ namespace vke {
     using Clock = std::chrono::steady_clock;
 
     // Frames per second. 0, a negative or non-finite value, or one so large that the interval rounds to zero
-    // nanoseconds means unlimited (stored as 0). Any change resets the schedule.
+    // nanoseconds means unlimited (stored as 0). A change of rate resets the schedule; the same rate again does not.
     void setTargetFrameRate(double framesPerSecond);
 
     [[nodiscard]] double getTargetFrameRate() const;
@@ -24,7 +24,8 @@ namespace vke {
     // bursting to catch up.
     [[nodiscard]] Clock::time_point schedule(Clock::time_point now);
 
-    // Sleeps, then spins, until the next frame may start.
+    // Sleeps, then spins, until the next frame may start. Window events are not processed meanwhile, and a cap whose
+    // interval is within the spin margin (about 1000 fps and up) only spins.
     void wait();
 
   private:

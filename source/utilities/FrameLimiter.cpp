@@ -25,7 +25,9 @@ namespace vke {
     constexpr auto SPIN_MARGIN = std::chrono::milliseconds(1);
 
 #ifdef _WIN32
-    constexpr auto FALLBACK_SPIN_MARGIN = std::chrono::milliseconds(2);
+    // Without the high-resolution timer, sleeps round up to the default timer tick (about 15.6 ms), so only sleep
+    // when more than a tick remains
+    constexpr auto FALLBACK_SPIN_MARGIN = std::chrono::milliseconds(16);
 
     // One per thread; the handle is closed with the thread.
     class HighResolutionTimer {
@@ -82,25 +84,30 @@ namespace vke {
 
   void FrameLimiter::setTargetFrameRate(const double framesPerSecond)
   {
+    double frameRate = 0.0;
+    Clock::duration interval = Clock::duration::zero();
+
+    if (std::isfinite(framesPerSecond) && framesPerSecond > 0.0)
+    {
+      const double nanoseconds = std::round(1e9 / framesPerSecond);
+
+      // Zero nanoseconds is unlimited; a rate too low for the clock's range is too
+      if (nanoseconds >= 1.0 && nanoseconds < 9e18)
+      {
+        frameRate = framesPerSecond;
+        interval = std::chrono::duration_cast<Clock::duration>(std::chrono::nanoseconds(static_cast<int64_t>(nanoseconds)));
+      }
+    }
+
+    // Setting the same rate again (say, every frame) must not restart the grid
+    if (frameRate == m_frameRate && interval == m_interval)
+    {
+      return;
+    }
+
     m_hasSchedule = false;
-    m_frameRate = 0.0;
-    m_interval = Clock::duration::zero();
-
-    if (!std::isfinite(framesPerSecond) || framesPerSecond <= 0.0)
-    {
-      return;
-    }
-
-    const double nanoseconds = std::round(1e9 / framesPerSecond);
-
-    // Zero nanoseconds is unlimited; a rate too low for the clock's range is too
-    if (nanoseconds < 1.0 || nanoseconds >= 9e18)
-    {
-      return;
-    }
-
-    m_frameRate = framesPerSecond;
-    m_interval = std::chrono::duration_cast<Clock::duration>(std::chrono::nanoseconds(static_cast<int64_t>(nanoseconds)));
+    m_frameRate = frameRate;
+    m_interval = interval;
   }
 
   double FrameLimiter::getTargetFrameRate() const
