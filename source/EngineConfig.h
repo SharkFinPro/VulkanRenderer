@@ -48,6 +48,11 @@ namespace vke {
       // Frames per second; 0 = unlimited. RenderingManager::setFrameRateLimit changes it at runtime.
       double frameRateLimit = 0.0;
     } rendering;
+
+    struct Jobs {
+      // Worker threads for engine CPU work; 0 = hardware threads minus two, at least one.
+      uint32_t workerCount = 0;
+    } jobs;
   };
 
 } // namespace vke

@@ -47,6 +47,10 @@ add_subdirectory(frameLimiter)
 add_test(NAME frameLimiter COMMAND frameLimiter)
 add_dependencies(build_all frameLimiter)
 
+add_subdirectory(jobPool)
+add_test(NAME jobPool COMMAND jobPool)
+add_dependencies(build_all jobPool)
+
 add_subdirectory(windowPlacement)
 add_test(NAME windowPlacement COMMAND windowPlacement)
 add_dependencies(build_all windowPlacement)
