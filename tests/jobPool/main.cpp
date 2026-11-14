@@ -174,6 +174,10 @@ namespace {
           "every result is delivered exactly once");
     check(queue.size() == 0, "nothing is left in the completion queue");
 
+  }
+
+  void checkCompletionQueueDrain()
+  {
     CompletionQueue<int> ordered;
     for (int i = 0; i < 10; ++i)
     {
@@ -210,79 +214,78 @@ namespace {
 
   void checkPriorityOrder()
   {
-    {
-      Gate gate;
-      Counter started;
-      Counter done;
-      std::mutex orderMutex;
-      std::vector<int> order;
-      JobPool pool(1);
+    Gate gate;
+    Counter started;
+    Counter done;
+    std::mutex orderMutex;
+    std::vector<int> order;
+    JobPool pool(1);
 
-      blockWorker(pool, gate, started);
-      check(started.waitFor(1), "the gate job starts");
+    blockWorker(pool, gate, started);
+    check(started.waitFor(1), "the gate job starts");
 
-      const auto record = [&](const int id) {
-        return [&, id] {
-          {
-            const std::lock_guard lock(orderMutex);
-            order.push_back(id);
-          }
+    const auto record = [&](const int id) {
+      return [&, id] {
+        {
+          const std::lock_guard lock(orderMutex);
+          order.push_back(id);
+        }
 
-          done.add();
-        };
+        done.add();
       };
+    };
 
-      const int priorities[] = { 0, 5, 0, 10, 5, 10, -1 };
-      for (int id = 0; id < 7; ++id)
-      {
-        pool.submit(record(id), priorities[id]);
-      }
-      // No priority given means 0, after the earlier priority 0 jobs
-      pool.submit(record(7));
-
-      check(pool.pendingCount() == 8, "queued jobs are pending while the worker is blocked");
-
-      gate.release();
-      check(done.waitFor(8), "prioritized jobs finish");
-
-      const std::vector<int> expected = { 3, 5, 1, 4, 0, 2, 7, 6 };
-      check(order == expected, "higher priority runs first, FIFO within a priority");
-    }
-
-    // Many jobs, so the heap has to keep ties in submission order
+    const int priorities[] = { 0, 5, 0, 10, 5, 10, -1 };
+    for (int id = 0; id < 7; ++id)
     {
-      constexpr int N = 600;
-      Gate gate;
-      Counter started;
-      Counter done;
-      std::mutex orderMutex;
-      std::vector<int> order;
-      JobPool pool(1);
-
-      blockWorker(pool, gate, started);
-      check(started.waitFor(1), "the second gate job starts");
-
-      std::vector<int> expected(N);
-      std::iota(expected.begin(), expected.end(), 0);
-
-      for (int id = 0; id < N; ++id)
-      {
-        pool.submit([&, id] {
-          {
-            const std::lock_guard lock(orderMutex);
-            order.push_back(id);
-          }
-
-          done.add();
-        }, id % 3);
-      }
-
-      std::stable_sort(expected.begin(), expected.end(), [](const int a, const int b) { return a % 3 > b % 3; });
-
-      gate.release();
-      check(done.waitFor(N), "the many prioritized jobs finish");
-      check(order == expected, "ties keep submission order across many jobs");
+      pool.submit(record(id), priorities[id]);
     }
+    // No priority given means 0, after the earlier priority 0 jobs
+    pool.submit(record(7));
+
+    check(pool.pendingCount() == 8, "queued jobs are pending while the worker is blocked");
+
+    gate.release();
+    check(done.waitFor(8), "prioritized jobs finish");
+
+    const std::vector<int> expected = { 3, 5, 1, 4, 0, 2, 7, 6 };
+    check(order == expected, "higher priority runs first, FIFO within a priority");
+  }
+
+  // Many jobs, so the heap has to keep ties in submission order
+  void checkFifoAcrossManyJobs()
+  {
+    constexpr int N = 600;
+    Gate gate;
+    Counter started;
+    Counter done;
+    std::mutex orderMutex;
+    std::vector<int> order;
+    JobPool pool(1);
+
+    blockWorker(pool, gate, started);
+    check(started.waitFor(1), "the second gate job starts");
+
+    std::vector<int> expected(N);
+    std::iota(expected.begin(), expected.end(), 0);
+
+    for (int id = 0; id < N; ++id)
+    {
+      pool.submit([&, id] {
+        {
+          const std::lock_guard lock(orderMutex);
+          order.push_back(id);
+        }
+
+        done.add();
+      }, id % 3);
+    }
+
+    std::stable_sort(expected.begin(), expected.end(), [](const int a, const int b) { return a % 3 > b % 3; });
+
+    gate.release();
+    check(done.waitFor(N), "the many prioritized jobs finish");
+    check(order == expected, "ties keep submission order across many jobs");
   }
 
   void checkCancellation()
@@ -443,7 +446,9 @@ int main()
 {
   checkEveryJobRunsOnce();
   checkCompletionQueue();
+  checkCompletionQueueDrain();
   checkPriorityOrder();
+  checkFifoAcrossManyJobs();
   checkCancellation();
   checkDestructionWithFullQueue();
   checkThrowingJobs();
