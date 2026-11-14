@@ -182,20 +182,22 @@ namespace {
     check(value == 7, "move-only items are taken");
   }
 
-  void checkRandomized()
-  {
-    std::mt19937 random(12345);
-    std::uniform_int_distribution<uint64_t> sizeDistribution(0, 300);
-    std::uniform_int_distribution<int> pushDistribution(0, 5);
-    std::uniform_int_distribution<uint64_t> budgetDistribution(0, 400);
-
-    Schedule schedule;
+  struct RandomRun {
     std::vector<uint64_t> sizes;
     std::vector<int> taken;
     uint64_t bytesIn = 0;
     uint64_t bytesOut = 0;
     bool budgetRespected = true;
     bool bookkeepingMatches = true;
+  };
+
+  void runRandomFrames(Schedule& schedule,
+                       RandomRun& run)
+  {
+    std::mt19937 random(12345);
+    std::uniform_int_distribution<uint64_t> sizeDistribution(0, 300);
+    std::uniform_int_distribution<int> pushDistribution(0, 5);
+    std::uniform_int_distribution<uint64_t> budgetDistribution(0, 400);
 
     for (int frame = 0; frame < 5000; ++frame)
     {
@@ -203,9 +205,9 @@ namespace {
       for (int i = 0; i < pushes; ++i)
       {
         const uint64_t bytes = sizeDistribution(random);
-        schedule.push(static_cast<int>(sizes.size()), bytes);
-        sizes.push_back(bytes);
-        bytesIn += bytes;
+        schedule.push(static_cast<int>(run.sizes.size()), bytes);
+        run.sizes.push_back(bytes);
+        run.bytesIn += bytes;
       }
 
       const uint64_t budget = budgetDistribution(random);
@@ -215,43 +217,58 @@ namespace {
       uint64_t sum = 0;
       for (const int id : ids)
       {
-        taken.push_back(id);
-        sum += sizes[static_cast<size_t>(id)];
+        run.taken.push_back(id);
+        sum += run.sizes[static_cast<size_t>(id)];
       }
 
-      bytesOut += frameBytes;
-      bookkeepingMatches = bookkeepingMatches && sum == frameBytes && schedule.pendingBytes() == bytesIn - bytesOut &&
-                           schedule.size() == sizes.size() - taken.size();
+      run.bytesOut += frameBytes;
+      run.bookkeepingMatches = run.bookkeepingMatches && sum == frameBytes &&
+                               schedule.pendingBytes() == run.bytesIn - run.bytesOut &&
+                               schedule.size() == run.sizes.size() - run.taken.size();
 
       // Within budget, unless a single oversized item went alone.
       if (sum > budget && ids.size() != 1)
       {
-        budgetRespected = false;
+        run.budgetRespected = false;
       }
     }
+  }
 
-    // Drain what is left, with a budget that always fits something.
-    while (!schedule.empty())
+  // Bounded, so a take() that stops making progress fails here instead of hanging.
+  void drainRemaining(Schedule& schedule,
+                      RandomRun& run)
+  {
+    for (int frame = 0; frame < 100000 && !schedule.empty(); ++frame)
     {
       uint64_t frameBytes = 0;
       for (const int id : takeFrame(schedule, 250, &frameBytes))
       {
-        taken.push_back(id);
+        run.taken.push_back(id);
       }
 
-      bytesOut += frameBytes;
+      run.bytesOut += frameBytes;
     }
+  }
 
-    bool inOrder = taken.size() == sizes.size();
-    for (size_t i = 0; inOrder && i < taken.size(); ++i)
+  void checkRandomized()
+  {
+    Schedule schedule;
+    RandomRun run;
+
+    runRandomFrames(schedule, run);
+    drainRemaining(schedule, run);
+
+    bool inOrder = run.taken.size() == run.sizes.size();
+    for (size_t i = 0; inOrder && i < run.taken.size(); ++i)
     {
-      inOrder = taken[i] == static_cast<int>(i);
+      inOrder = run.taken[i] == static_cast<int>(i);
     }
 
+    check(schedule.empty(), "everything drains");
     check(inOrder, "every id taken exactly once, in order");
-    check(bytesIn == bytesOut, "bytes in equal bytes taken");
-    check(budgetRespected, "no frame exceeds the budget except a lone oversized item");
-    check(bookkeepingMatches, "bookkeeping matches every frame");
+    check(run.bytesIn == run.bytesOut, "bytes in equal bytes taken");
+    check(run.budgetRespected, "no frame exceeds the budget except a lone oversized item");
+    check(run.bookkeepingMatches, "bookkeeping matches every frame");
     check(schedule.pendingBytes() == 0, "nothing pending at the end");
   }
 

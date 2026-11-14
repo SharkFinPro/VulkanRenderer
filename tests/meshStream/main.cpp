@@ -152,6 +152,20 @@ void displayStats(const Options& options,
 void printMetric(const char* name,
                  std::vector<double>& values);
 
+[[nodiscard]] uint64_t runFrames(vke::VulkanEngine& renderer,
+                                 const Options& options,
+                                 const Scene& scene,
+                                 std::deque<Tracked>& live,
+                                 std::vector<Tracked>& released,
+                                 Stats& stats,
+                                 Samples& samples);
+
+void printSummary(const Options& options,
+                  const vke::RenderingManager& rendering,
+                  Samples& samples);
+
+[[nodiscard]] size_t countAlive(const std::vector<Tracked>& released);
+
 [[nodiscard]] int finish(vke::VulkanEngine& renderer,
                          const Options& options,
                          std::deque<Tracked>& live,
@@ -176,7 +190,7 @@ int main(int argc, char** argv)
     Options options;
     if (!parseOptions(argc, argv, options))
     {
-      std::cerr << "Usage: meshStream [--per-frame N] [--lifetime N (frames, >= 1)] [--frames N] [--warmup N]"
+      std::cerr << "Usage: meshStream [--per-frame N] [--lifetime N (frames, >= 2)] [--frames N] [--warmup N]"
                 << " [--frame-rate-limit N (0 = unlimited)] [--present-mode fifo|fifoRelaxed|mailbox|immediate]"
                 << " [--blocking]" << std::endl;
       return EXIT_FAILURE;
@@ -199,68 +213,13 @@ int main(int argc, char** argv)
     std::vector<Tracked> released;
     Stats stats;
     Samples samples;
-    std::array<FrameTimes, ROLLING_FRAMES> rolling {};
-    size_t rollingCount = 0;
-    uint64_t frameIndex = 0;
-    const auto startTime = Clock::now();
-
-    while (renderer.isActive() && (options.frames == 0 || samples.frame.size() < options.frames))
-    {
-      const auto frameStart = Clock::now();
-
-      dockWindow(renderer.getImGuiInstance(), frameIndex);
-      displayStats(options, rolling, rollingCount, live.size(), stats);
-      submitScene(renderer, scene, std::chrono::duration<float>(frameStart - startTime).count());
-
-      const double createCallsBefore = stats.createCallMs;
-
-      releaseDue(renderer, options, live, released, stats, frameIndex);
-      for (uint32_t i = 0; i < options.perFrame; ++i)
-      {
-        createStreamedMesh(renderer, options, live, stats, frameIndex);
-      }
-
-      renderer.render();
-
-      observeReady(live, stats, frameIndex);
-
-      const FrameTimes times {
-        .createMs = stats.createCallMs - createCallsBefore,
-        .frameMs = milliseconds(frameStart, Clock::now())
-      };
-
-      rolling[frameIndex % ROLLING_FRAMES] = times;
-      rollingCount = std::min(rollingCount + 1, ROLLING_FRAMES);
-
-      if (frameIndex >= options.warmup && options.frames > 0)
-      {
-        samples.create.push_back(times.createMs);
-        samples.frame.push_back(times.frameMs);
-      }
-
-      ++frameIndex;
-    }
+    const uint64_t frameIndex = runFrames(renderer, options, scene, live, released, stats, samples);
 
     int exitCode = EXIT_SUCCESS;
 
     if (options.frames > 0)
     {
-      std::cout << std::fixed << std::setprecision(3);
-      std::cout << "mode " << (options.blocking ? "blocking (createModel)" : "queued (createMesh)") << " per-frame "
-                << options.perFrame << " lifetime " << options.lifetime << " frames " << samples.frame.size()
-                << " warmup " << options.warmup << " (times in ms)\n";
-      std::cout << "frame rate limit ";
-      if (options.frameRateLimit == 0)
-      {
-        std::cout << "none";
-      }
-      else
-      {
-        std::cout << options.frameRateLimit << " fps";
-      }
-      std::cout << " present mode " << presentModeName(rendering->getActivePresentMode()) << "\n";
-      printMetric("create", samples.create);
-      printMetric("frame", samples.frame);
+      printSummary(options, *rendering, samples);
 
       exitCode = finish(renderer, options, live, released, stats, frameIndex);
     }
@@ -272,6 +231,88 @@ int main(int argc, char** argv)
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
   }
+}
+
+uint64_t runFrames(vke::VulkanEngine& renderer,
+                   const Options& options,
+                   const Scene& scene,
+                   std::deque<Tracked>& live,
+                   std::vector<Tracked>& released,
+                   Stats& stats,
+                   Samples& samples)
+{
+  uint64_t frameIndex = 0;
+  std::array<FrameTimes, ROLLING_FRAMES> rolling {};
+  size_t rollingCount = 0;
+  const auto startTime = Clock::now();
+
+  while (renderer.isActive() && (options.frames == 0 || samples.frame.size() < options.frames))
+  {
+    const auto frameStart = Clock::now();
+
+    dockWindow(renderer.getImGuiInstance(), frameIndex);
+    displayStats(options, rolling, rollingCount, live.size(), stats);
+    submitScene(renderer, scene, std::chrono::duration<float>(frameStart - startTime).count());
+
+    const double createCallsBefore = stats.createCallMs;
+
+    releaseDue(renderer, options, live, released, stats, frameIndex);
+    for (uint32_t i = 0; i < options.perFrame; ++i)
+    {
+      createStreamedMesh(renderer, options, live, stats, frameIndex);
+    }
+
+    renderer.render();
+
+    observeReady(live, stats, frameIndex);
+
+    const FrameTimes times {
+      .createMs = stats.createCallMs - createCallsBefore,
+      .frameMs = milliseconds(frameStart, Clock::now())
+    };
+
+    rolling[frameIndex % ROLLING_FRAMES] = times;
+    rollingCount = std::min(rollingCount + 1, ROLLING_FRAMES);
+
+    if (frameIndex >= options.warmup && options.frames > 0)
+    {
+      samples.create.push_back(times.createMs);
+      samples.frame.push_back(times.frameMs);
+    }
+
+    ++frameIndex;
+  }
+
+  return frameIndex;
+}
+
+void printSummary(const Options& options,
+                  const vke::RenderingManager& rendering,
+                  Samples& samples)
+{
+  std::cout << std::fixed << std::setprecision(3);
+  std::cout << "mode " << (options.blocking ? "blocking (createModel)" : "queued (createMesh)") << " per-frame "
+            << options.perFrame << " lifetime " << options.lifetime << " frames " << samples.frame.size()
+            << " warmup " << options.warmup << " (times in ms)\n";
+  std::cout << "frame rate limit ";
+  if (options.frameRateLimit == 0)
+  {
+    std::cout << "none";
+  }
+  else
+  {
+    std::cout << options.frameRateLimit << " fps";
+  }
+  std::cout << " present mode " << presentModeName(rendering.getActivePresentMode()) << "\n";
+  printMetric("create", samples.create);
+  printMetric("frame", samples.frame);
+}
+
+size_t countAlive(const std::vector<Tracked>& released)
+{
+  return static_cast<size_t>(std::ranges::count_if(released, [](const Tracked& tracked) {
+    return !tracked.weak.expired();
+  }));
 }
 
 int finish(vke::VulkanEngine& renderer,
@@ -299,16 +340,7 @@ int finish(vke::VulkanEngine& renderer,
   {
     releaseDue(renderer, drain, live, released, stats, frameIndex);
 
-    size_t alive = 0;
-    for (const Tracked& tracked : released)
-    {
-      if (!tracked.weak.expired())
-      {
-        ++alive;
-      }
-    }
-
-    if (alive == 0 || drainFrames >= DRAIN_FRAME_CAP)
+    if (countAlive(released) == 0 || drainFrames >= DRAIN_FRAME_CAP)
     {
       break;
     }
@@ -319,14 +351,7 @@ int finish(vke::VulkanEngine& renderer,
     ++drainFrames;
   }
 
-  size_t alive = 0;
-  for (const Tracked& tracked : released)
-  {
-    if (!tracked.weak.expired())
-    {
-      ++alive;
-    }
-  }
+  const size_t alive = countAlive(released);
 
   std::cout << "created " << stats.created << " released " << stats.released << " drain frames " << drainFrames << "\n";
 
@@ -580,7 +605,8 @@ bool parseOptions(const int argc,
     }
   }
 
-  return options.lifetime >= 1;
+  // A mesh is first seen ready after the following frame renders, so a lifetime of 1 would release every mesh before
+  return options.lifetime >= 2;
 }
 
 vke::EngineConfig createConfig()

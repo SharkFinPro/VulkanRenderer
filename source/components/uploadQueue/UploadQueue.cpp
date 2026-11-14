@@ -152,10 +152,8 @@ namespace vke {
 
   void UploadQueue::recordCopyBarrier(const CommandBuffer& commandBuffer) const
   {
-    vk::PipelineStageFlags2 dstStages = vk::PipelineStageFlagBits2::eVertexAttributeInput |
-                                        vk::PipelineStageFlagBits2::eIndexInput |
-                                        vk::PipelineStageFlagBits2::eVertexShader |
-                                        vk::PipelineStageFlagBits2::eFragmentShader |
+    // Every graphics stage, since a pipeline may read a mesh's buffers as storage in any of them (geometry shaders do)
+    vk::PipelineStageFlags2 dstStages = vk::PipelineStageFlagBits2::eAllGraphics |
                                         vk::PipelineStageFlagBits2::eComputeShader;
 
     if (m_logicalDevice->getPhysicalDevice()->supportsRayTracing())

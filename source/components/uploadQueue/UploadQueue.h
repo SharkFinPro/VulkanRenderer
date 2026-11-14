@@ -4,6 +4,7 @@
 #include "../../utilities/UploadSchedule.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -70,7 +71,8 @@ namespace vke {
     void enqueue(UploadRequest request);
 
     // Marks the owners of the requests recorded in the previous frame ready: those copies are ahead of every command
-    // recorded from now on, on the same queue, behind a barrier. Called right after the frame scheduler's beginFrame.
+    // recorded from now on on the graphics queue, behind a barrier. Work on another queue (compute) is not ordered
+    // after them. Called right after the frame scheduler's beginFrame.
     void beginFrame();
 
     // Records, oldest first, as many pending requests as the per-frame budget allows, then one barrier making the

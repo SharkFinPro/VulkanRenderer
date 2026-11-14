@@ -87,18 +87,13 @@ namespace vke {
     const bool rayTracing = logicalDevice->getPhysicalDevice()->supportsRayTracing();
     const bool buildBlas = createInfo.buildBLAS && rayTracing;
 
-    validate(createInfo, buildBlas);
+    // Against the request, not the hardware, so the same input is accepted or rejected on every device
+    validate(createInfo, createInfo.buildBLAS);
 
     m_vertexCount = static_cast<uint32_t>(createInfo.vertexData.size() / createInfo.vertexStride);
     m_indexCount = static_cast<uint32_t>(createInfo.indices.size());
 
-    for (uint32_t i = 0; i < m_vertexCount; ++i)
-    {
-      glm::vec3 position;
-      std::memcpy(&position, createInfo.vertexData.data() + static_cast<size_t>(i) * createInfo.vertexStride + createInfo.positionOffset, POSITION_BYTES);
-
-      m_bounds.expand(position);
-    }
+    computeBounds(createInfo);
 
     const vk::DeviceSize vertexBytes = createInfo.vertexData.size();
     const vk::DeviceSize indexBytes = createInfo.indices.size_bytes();
@@ -145,72 +140,90 @@ namespace vke {
 
     if (buildBlas)
     {
-      const vk::DeviceAddress vertexAddress = logicalDevice->getBufferDeviceAddress(*m_resources.vertexBuffer) + createInfo.positionOffset;
-      const vk::DeviceAddress indexAddress = logicalDevice->getBufferDeviceAddress(*m_resources.indexBuffer);
-      const uint32_t primitiveCount = m_indexCount / 3;
-
-      vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData {};
-      trianglesData.vertexFormat = vk::Format::eR32G32B32Sfloat;
-      trianglesData.vertexData.deviceAddress = vertexAddress;
-      trianglesData.vertexStride = createInfo.vertexStride;
-      trianglesData.maxVertex = m_vertexCount - 1;
-      trianglesData.indexType = vk::IndexType::eUint32;
-      trianglesData.indexData.deviceAddress = indexAddress;
-
-      vk::AccelerationStructureGeometryKHR geometry {};
-      geometry.geometryType = vk::GeometryTypeKHR::eTriangles;
-      geometry.geometry.triangles = trianglesData;
-      geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
-
-      vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {};
-      buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-      buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
-      buildGeometryInfo.geometryCount = 1;
-      buildGeometryInfo.pGeometries = &geometry;
-
-      vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo {};
-      logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
-
-      Buffers::createBuffer(
-        logicalDevice,
-        buildSizesInfo.accelerationStructureSize,
-        vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
-        vk::MemoryPropertyFlagBits::eDeviceLocal,
-        m_resources.blasBuffer,
-        m_resources.blasMemory
-      );
-
-      const vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
-        .buffer = *m_resources.blasBuffer,
-        .size = buildSizesInfo.accelerationStructureSize,
-        .type = vk::AccelerationStructureTypeKHR::eBottomLevel
-      };
-
-      m_resources.blas = logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo);
-
-      UploadBlasBuild build;
-      build.vertexAddress = vertexAddress;
-      build.vertexStride = createInfo.vertexStride;
-      build.maxVertex = m_vertexCount - 1;
-      build.indexAddress = indexAddress;
-      build.primitiveCount = primitiveCount;
-      build.destination = *m_resources.blas;
-
-      Buffers::createBuffer(
-        logicalDevice,
-        buildSizesInfo.buildScratchSize,
-        vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
-        vk::MemoryPropertyFlagBits::eDeviceLocal,
-        build.scratchBuffer,
-        build.scratchMemory
-      );
-
-      build.scratchAddress = logicalDevice->getBufferDeviceAddress(*build.scratchBuffer);
-
-      request.blas = std::move(build);
+      createBlas(logicalDevice, createInfo, request);
     }
 
     uploadQueue->enqueue(std::move(request));
+  }
+
+  void Mesh::computeBounds(const MeshCreateInfo& createInfo)
+  {
+    for (uint32_t i = 0; i < m_vertexCount; ++i)
+    {
+      glm::vec3 position;
+      std::memcpy(&position, createInfo.vertexData.data() + static_cast<size_t>(i) * createInfo.vertexStride + createInfo.positionOffset, POSITION_BYTES);
+
+      m_bounds.expand(position);
+    }
+  }
+
+  void Mesh::createBlas(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                        const MeshCreateInfo& createInfo,
+                        UploadRequest& request)
+  {
+    const vk::DeviceAddress vertexAddress = logicalDevice->getBufferDeviceAddress(*m_resources.vertexBuffer) + createInfo.positionOffset;
+    const vk::DeviceAddress indexAddress = logicalDevice->getBufferDeviceAddress(*m_resources.indexBuffer);
+    const uint32_t primitiveCount = m_indexCount / 3;
+
+    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData {};
+    trianglesData.vertexFormat = vk::Format::eR32G32B32Sfloat;
+    trianglesData.vertexData.deviceAddress = vertexAddress;
+    trianglesData.vertexStride = createInfo.vertexStride;
+    trianglesData.maxVertex = m_vertexCount - 1;
+    trianglesData.indexType = vk::IndexType::eUint32;
+    trianglesData.indexData.deviceAddress = indexAddress;
+
+    vk::AccelerationStructureGeometryKHR geometry {};
+    geometry.geometryType = vk::GeometryTypeKHR::eTriangles;
+    geometry.geometry.triangles = trianglesData;
+    geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
+
+    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {};
+    buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
+    buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+    buildGeometryInfo.geometryCount = 1;
+    buildGeometryInfo.pGeometries = &geometry;
+
+    vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo {};
+    logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
+
+    Buffers::createBuffer(
+      logicalDevice,
+      buildSizesInfo.accelerationStructureSize,
+      vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
+      m_resources.blasBuffer,
+      m_resources.blasMemory
+    );
+
+    const vk::AccelerationStructureCreateInfoKHR accelerationStructureCreateInfo {
+      .buffer = *m_resources.blasBuffer,
+      .size = buildSizesInfo.accelerationStructureSize,
+      .type = vk::AccelerationStructureTypeKHR::eBottomLevel
+    };
+
+    m_resources.blas = logicalDevice->createAccelerationStructure(accelerationStructureCreateInfo);
+
+    UploadBlasBuild build;
+    build.vertexAddress = vertexAddress;
+    build.vertexStride = createInfo.vertexStride;
+    build.maxVertex = m_vertexCount - 1;
+    build.indexAddress = indexAddress;
+    build.primitiveCount = primitiveCount;
+    build.destination = *m_resources.blas;
+
+    Buffers::createBuffer(
+      logicalDevice,
+      buildSizesInfo.buildScratchSize,
+      vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
+      build.scratchBuffer,
+      build.scratchMemory
+    );
+
+    build.scratchAddress = logicalDevice->getBufferDeviceAddress(*build.scratchBuffer);
+
+    request.blas = std::move(build);
   }
 
   Mesh::~Mesh()

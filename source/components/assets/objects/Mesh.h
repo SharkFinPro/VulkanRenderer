@@ -13,6 +13,7 @@ namespace vke {
   class CommandBuffer;
   class LogicalDevice;
   class UploadQueue;
+  struct UploadRequest;
   struct UploadState;
 
   struct MeshCreateInfo {
@@ -94,6 +95,13 @@ namespace vke {
     uint32_t m_vertexStride = 0;
     uint32_t m_vertexCount = 0;
     uint32_t m_indexCount = 0;
+
+    void computeBounds(const MeshCreateInfo& createInfo);
+
+    // Creates the acceleration structure and adds its build, recorded after the copies, to the request.
+    void createBlas(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                    const MeshCreateInfo& createInfo,
+                    UploadRequest& request);
   };
 
 } // namespace vke
