@@ -28,7 +28,7 @@ namespace vke {
 
     // Calls f(T&) for everything pushed so far, in push order. f runs without the lock, so it may push; that lands in
     // the next drain. Call from one thread only, and not from inside f. Both vectors keep their capacity, so a steady
-    // state allocates nothing.
+    // state allocates nothing. If f throws, the rest of this drain's results are dropped and the exception propagates.
     template <typename F>
     void drain(F&& f)
     {
@@ -38,12 +38,16 @@ namespace vke {
         m_draining.swap(m_pending);
       }
 
+      // Cleared on every exit, so a throwing f can't leave stale results to be delivered again
+      struct ClearOnExit {
+        std::vector<T>& values;
+        ~ClearOnExit() { values.clear(); }
+      } clearOnExit{ m_draining };
+
       for (T& value : m_draining)
       {
         f(value);
       }
-
-      m_draining.clear();
     }
 
     // Results waiting for the next drain.

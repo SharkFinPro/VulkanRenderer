@@ -49,6 +49,8 @@ add_dependencies(build_all frameLimiter)
 
 add_subdirectory(jobPool)
 add_test(NAME jobPool COMMAND jobPool)
+# A regression that deadlocks (say, drain holding its lock while a callback pushes) fails here instead of hanging
+set_tests_properties(jobPool PROPERTIES TIMEOUT 120)
 add_dependencies(build_all jobPool)
 
 add_subdirectory(windowPlacement)

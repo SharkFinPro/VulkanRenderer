@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <type_traits>
 #include <utility>
@@ -34,7 +35,7 @@ namespace vke {
     Job(const Job&) = delete;
     Job& operator=(const Job&) = delete;
 
-    // Must not be called on an empty job.
+    // Must not be called on an empty job. The pool drops empty jobs on submit.
     void operator()()
     {
       m_callable->invoke();
@@ -100,7 +101,8 @@ namespace vke {
     // 0 = defaultWorkerCount().
     explicit JobPool(uint32_t workerCount = 0);
 
-    // Running jobs finish; queued jobs are destroyed without running.
+    // Running jobs finish; queued jobs are destroyed without running. Only running jobs may submit once destruction
+    // begins, and what they submit is discarded.
     ~JobPool();
 
     JobPool(const JobPool&) = delete;
@@ -113,6 +115,7 @@ namespace vke {
 
     [[nodiscard]] uint32_t workerCount() const;
 
+    // An empty job is ignored.
     void submit(Job job);
 
     void submit(Job job,
@@ -134,8 +137,8 @@ namespace vke {
   private:
     struct Entry {
       Job job;
-      CancellationToken token;
-      bool hasToken = false;
+      // Empty when submitted without a token, so such jobs allocate no flag.
+      std::optional<CancellationToken> token;
       int priority = 0;
       uint64_t sequence = 0;
     };

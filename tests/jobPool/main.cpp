@@ -440,6 +440,53 @@ namespace {
     check(poolResult == 9, "a submitted move-only job ran");
   }
 
+  void checkEmptyJobIsIgnored()
+  {
+    Counter done;
+    JobPool pool(1);
+
+    pool.submit(Job{});
+    pool.submit(Job{}, CancellationToken{}, 3);
+    check(pool.pendingCount() == 0, "an empty job is not queued");
+
+    pool.submit([&done] { done.add(); });
+    check(done.waitFor(1), "the worker survives an empty job submit");
+    check(pool.failedCount() == 0, "an empty job is not a failure");
+  }
+
+  void checkThrowingDrain()
+  {
+    CompletionQueue<int> queue;
+    queue.push(1);
+    queue.push(2);
+    queue.push(3);
+
+    std::vector<int> delivered;
+    bool threw = false;
+    try
+    {
+      queue.drain([&delivered](const int value) {
+        delivered.push_back(value);
+        if (value == 2)
+        {
+          throw std::runtime_error("drain callback failed");
+        }
+      });
+    }
+    catch (const std::runtime_error&)
+    {
+      threw = true;
+    }
+
+    check(threw, "an exception from the drain callback propagates");
+    check(delivered == std::vector<int>{ 1, 2 }, "a throwing drain stops at the failing result");
+
+    queue.push(4);
+    std::vector<int> next;
+    queue.drain([&next](const int value) { next.push_back(value); });
+    check(next == std::vector<int>{ 4 }, "results from a throwing drain are not delivered again");
+  }
+
 } // namespace
 
 int main()
@@ -454,6 +501,8 @@ int main()
   checkThrowingJobs();
   checkWorkerCounts();
   checkJobIsMoveOnly();
+  checkEmptyJobIsIgnored();
+  checkThrowingDrain();
 
   std::cout << g_checks << " checks, " << g_failures << " failures\n";
   return g_failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;

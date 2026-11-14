@@ -52,7 +52,9 @@ namespace vke {
       worker.join();
     }
 
-    m_queue.clear();
+    // Destroyed outside the member, so a captured destructor that submits doesn't modify the vector being cleared.
+    std::vector<Entry> discarded = std::move(m_queue);
+    discarded.clear();
   }
 
   uint32_t JobPool::defaultWorkerCount()
@@ -89,7 +91,6 @@ namespace vke {
     Entry entry;
     entry.job = std::move(job);
     entry.token = token;
-    entry.hasToken = true;
     entry.priority = priority;
 
     enqueue(std::move(entry));
@@ -125,6 +126,11 @@ namespace vke {
 
   void JobPool::enqueue(Entry entry)
   {
+    if (!entry.job)
+    {
+      return;
+    }
+
     {
       const std::lock_guard lock(m_mutex);
 
@@ -157,7 +163,7 @@ namespace vke {
         m_queue.pop_back();
       }
 
-      if (entry.hasToken && entry.token.isCancelled())
+      if (entry.token && entry.token->isCancelled())
       {
         ++m_cancelledCount;
         continue;
@@ -170,12 +176,12 @@ namespace vke {
       catch (const std::exception& e)
       {
         ++m_failedCount;
-        std::cerr << "Job failed: " << e.what() << std::endl;
+        std::cerr << "Job failed: " << e.what() << '\n';
       }
       catch (...)
       {
         ++m_failedCount;
-        std::cerr << "Job failed with an unknown exception" << std::endl;
+        std::cerr << "Job failed with an unknown exception\n";
       }
     }
   }
