@@ -454,15 +454,10 @@ namespace {
     check(pool.failedCount() == 0, "an empty job is not a failure");
   }
 
-  void checkThrowingDrain()
+  // Drains, throwing at the result 2; returns whether the exception reached the caller.
+  bool drainThrowingAtTwo(CompletionQueue<int>& queue,
+                          std::vector<int>& delivered)
   {
-    CompletionQueue<int> queue;
-    queue.push(1);
-    queue.push(2);
-    queue.push(3);
-
-    std::vector<int> delivered;
-    bool threw = false;
     try
     {
       queue.drain([&delivered](const int value) {
@@ -475,10 +470,21 @@ namespace {
     }
     catch (const std::runtime_error&)
     {
-      threw = true;
+      return true;
     }
 
-    check(threw, "an exception from the drain callback propagates");
+    return false;
+  }
+
+  void checkThrowingDrain()
+  {
+    CompletionQueue<int> queue;
+    queue.push(1);
+    queue.push(2);
+    queue.push(3);
+
+    std::vector<int> delivered;
+    check(drainThrowingAtTwo(queue, delivered), "an exception from the drain callback propagates");
     check(delivered == std::vector<int>{ 1, 2 }, "a throwing drain stops at the failing result");
 
     queue.push(4);
