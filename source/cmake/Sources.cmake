@@ -179,6 +179,7 @@ set(VULKAN_ENGINE_SOURCES_UTILITIES
   utilities/Bounds.h
   utilities/Buffers.cpp
   utilities/Buffers.h
+  utilities/CompletionQueue.h
   utilities/EventSystem.h
   utilities/FrameLimiter.cpp
   utilities/FrameLimiter.h
@@ -186,6 +187,8 @@ set(VULKAN_ENGINE_SOURCES_UTILITIES
   utilities/Frustum.h
   utilities/Images.cpp
   utilities/Images.h
+  utilities/JobPool.cpp
+  utilities/JobPool.h
 )
 
 # Base Engine Files

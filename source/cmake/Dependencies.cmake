@@ -1,6 +1,9 @@
 # Vulkan
 find_package(Vulkan REQUIRED)
 
+# Worker threads
+find_package(Threads REQUIRED)
+
 # Configure and fetch third-party libraries
 include(cmake/External.cmake)
 
@@ -11,6 +14,7 @@ set(VULKAN_ENGINE_LINK_LIBRARIES
   assimp
   imgui
   freetype
+  Threads::Threads
 )
 
 set(VULKAN_ENGINE_INCLUDE_DIRECTORIES

@@ -13,6 +13,7 @@
 #include "components/renderingManager/renderer3D/Renderer3D.h"
 #include "components/window/Surface.h"
 #include "components/window/Window.h"
+#include "utilities/JobPool.h"
 #include <stdexcept>
 
 namespace vke {
@@ -33,6 +34,9 @@ namespace vke {
 
   VulkanEngine::~VulkanEngine()
   {
+    // Jobs may reference subsystems, so the workers must be gone before anything else, the device included.
+    m_jobPool.reset();
+
     if (m_logicalDevice)
     {
       m_logicalDevice->waitIdle();
@@ -170,6 +174,8 @@ namespace vke {
 
   void VulkanEngine::createComponents(const EngineConfig& engineConfig)
   {
+    m_jobPool = std::make_shared<JobPool>(engineConfig.jobs.workerCount);
+
     m_assetManager = std::make_shared<AssetManager>(m_logicalDevice);
 
     m_renderingManager = std::make_shared<RenderingManager>(

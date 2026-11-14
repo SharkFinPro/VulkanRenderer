@@ -11,6 +11,7 @@ namespace vke {
   class ComputingManager;
   class ImGuiInstance;
   class Instance;
+  class JobPool;
   class LightingManager;
   class LogicalDevice;
   class PhysicalDevice;
@@ -42,6 +43,8 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<Window> getWindow() const;
 
   private:
+    std::shared_ptr<JobPool> m_jobPool;
+
     std::shared_ptr<Instance> m_instance;
     std::shared_ptr<Surface> m_surface;
     std::shared_ptr<Window> m_window;
