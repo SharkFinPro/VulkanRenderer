@@ -11,6 +11,7 @@
 #include "components/renderingManager/FrameScheduler.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/renderingManager/renderer3D/Renderer3D.h"
+#include "components/uploadQueue/UploadQueue.h"
 #include "components/window/Surface.h"
 #include "components/window/Window.h"
 #include "utilities/JobPool.h"
@@ -60,6 +61,13 @@ namespace vke {
       m_computingManager.reset();
       m_lightingManager.reset();
       m_assetManager.reset();
+
+      // Pending requests hold staging buffers, which must not outlive the device. The device is idle.
+      if (m_uploadQueue)
+      {
+        m_uploadQueue->clear();
+        m_uploadQueue.reset();
+      }
 
       // Subsystems reset above may have retired resources that need ImGui to be destroyed.
       m_logicalDevice->destroyRetiredResources();
@@ -115,6 +123,8 @@ namespace vke {
     const auto frameScheduler = m_renderingManager->getFrameScheduler();
 
     frameScheduler->beginFrame();
+
+    m_uploadQueue->beginFrame();
 
     const uint32_t currentFrame = frameScheduler->getCurrentFrame();
 
@@ -176,7 +186,9 @@ namespace vke {
   {
     m_jobPool = std::make_shared<JobPool>(engineConfig.jobs.workerCount);
 
-    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice);
+    m_uploadQueue = std::make_shared<UploadQueue>(m_logicalDevice, engineConfig.rendering.uploadBytesPerFrame);
+
+    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_uploadQueue);
 
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,
@@ -187,7 +199,8 @@ namespace vke {
       engineConfig.rendering.rayTracingEnabled,
       engineConfig.rendering.presentMode,
       engineConfig.rendering.frameRateLimit,
-      m_assetManager
+      m_assetManager,
+      m_uploadQueue
     );
 
     m_lightingManager = std::make_shared<LightingManager>(m_logicalDevice);

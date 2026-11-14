@@ -47,6 +47,9 @@ namespace vke {
       PresentMode presentMode = PresentMode::mailbox;
       // Frames per second; 0 = unlimited. RenderingManager::setFrameRateLimit changes it at runtime.
       double frameRateLimit = 0.0;
+      // Bytes of mesh data copied to the GPU per frame; the rest waits for the next frame, oldest first. An upload larger
+      // than this goes alone in a frame of its own. RenderingManager::setUploadBytesPerFrame changes it at runtime.
+      uint64_t uploadBytesPerFrame = 8ull * 1024 * 1024;
     } rendering;
 
     struct Jobs {

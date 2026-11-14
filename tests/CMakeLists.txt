@@ -5,6 +5,7 @@ set(TESTS
   cubeMap
   magicLens
   manyObjects
+  meshStream
   mousePicking
   objectLoading
   plants
@@ -56,3 +57,7 @@ add_dependencies(build_all jobPool)
 add_subdirectory(windowPlacement)
 add_test(NAME windowPlacement COMMAND windowPlacement)
 add_dependencies(build_all windowPlacement)
+
+add_subdirectory(uploadSchedule)
+add_test(NAME uploadSchedule COMMAND uploadSchedule)
+add_dependencies(build_all uploadSchedule)

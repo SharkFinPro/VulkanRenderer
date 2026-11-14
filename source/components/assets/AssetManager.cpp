@@ -2,6 +2,7 @@
 #include "fonts/Font.h"
 #include "objects/Cloud.h"
 #include "objects/Material.h"
+#include "objects/Mesh.h"
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "particleSystems/SmokeSystem.h"
@@ -15,8 +16,10 @@
 
 namespace vke {
 
-  AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice)
-    : m_logicalDevice(std::move(logicalDevice))
+  AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                             std::shared_ptr<UploadQueue> uploadQueue)
+    : m_logicalDevice(std::move(logicalDevice)),
+      m_uploadQueue(std::move(uploadQueue))
   {
     createCommandPool();
 
@@ -58,6 +61,11 @@ namespace vke {
     );
   }
 
+  std::shared_ptr<Mesh> AssetManager::createMesh(const MeshCreateInfo& createInfo)
+  {
+    return std::make_shared<Mesh>(m_logicalDevice, m_uploadQueue, createInfo);
+  }
+
   std::shared_ptr<RenderObject> AssetManager::loadRenderObject(
     const std::shared_ptr<Texture2D>& texture,
     const std::shared_ptr<Texture2D>& specularMap,
@@ -78,6 +86,11 @@ namespace vke {
   void AssetManager::release(std::shared_ptr<Model> model)
   {
     queueRelease(std::move(model));
+  }
+
+  void AssetManager::release(std::shared_ptr<Mesh> mesh)
+  {
+    queueRelease(std::move(mesh));
   }
 
   void AssetManager::release(std::shared_ptr<Texture> texture)

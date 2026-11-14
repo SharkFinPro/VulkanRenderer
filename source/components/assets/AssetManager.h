@@ -19,11 +19,14 @@ namespace vke {
   class Font;
   class LogicalDevice;
   class Material;
+  struct MeshCreateInfo;
+  class Mesh;
   class Model;
   class RenderObject;
   class SmokeSystem;
   class Texture;
   class Texture2D;
+  class UploadQueue;
 
   struct FontKey {
     std::string name;
@@ -47,7 +50,8 @@ namespace vke {
 
   class AssetManager {
   public:
-    explicit AssetManager(std::shared_ptr<LogicalDevice> logicalDevice);
+    AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                 std::shared_ptr<UploadQueue> uploadQueue);
 
     [[nodiscard]] std::shared_ptr<Texture2D> loadTexture(const char* path,
                                                          bool repeat = true);
@@ -61,6 +65,13 @@ namespace vke {
     [[nodiscard]] std::shared_ptr<Model> createModel(std::span<const Vertex> vertices,
                                                      std::span<const uint32_t> indices);
 
+    // A lightweight mesh uploaded through the upload queue (see UploadQueue). Never waits on the GPU or builds on the
+    // frame's queue, so it may be called at any point in the frame. The copies are recorded at the start of the next
+    // offscreen pass, within the per-frame upload budget, and the mesh is ready (Mesh::isReady) from the frame after;
+    // drawing it before that is skipped. The data is copied. Throws std::invalid_argument on invalid input (see Mesh).
+    // Release it with release(std::shared_ptr<Mesh>).
+    [[nodiscard]] std::shared_ptr<Mesh> createMesh(const MeshCreateInfo& createInfo);
+
     [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
                                                                  const std::shared_ptr<Texture2D>& specularMap,
                                                                  const std::shared_ptr<Model>& model);
@@ -72,6 +83,8 @@ namespace vke {
     void release(std::shared_ptr<RenderObject> renderObject);
 
     void release(std::shared_ptr<Model> model);
+
+    void release(std::shared_ptr<Mesh> mesh);
 
     void release(std::shared_ptr<Texture> texture);
 
@@ -103,6 +116,8 @@ namespace vke {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<UploadQueue> m_uploadQueue;
 
     vk::raii::CommandPool m_commandPool { nullptr };
 

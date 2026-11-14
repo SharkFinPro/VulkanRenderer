@@ -18,6 +18,7 @@ namespace vke {
   class PipelineManager;
   class RenderingManager;
   class Surface;
+  class UploadQueue;
   class Window;
 
   class VulkanEngine {
@@ -54,6 +55,8 @@ namespace vke {
     std::shared_ptr<ImGuiInstance> m_imGuiInstance;
 
     std::shared_ptr<LightingManager> m_lightingManager;
+
+    std::shared_ptr<UploadQueue> m_uploadQueue;
 
     std::shared_ptr<PipelineManager> m_pipelineManager;
 
