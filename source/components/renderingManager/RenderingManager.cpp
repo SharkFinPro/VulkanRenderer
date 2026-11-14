@@ -10,6 +10,7 @@
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../pipelines/pipelineManager/PipelineManager.h"
 #include "../lighting/LightingManager.h"
+#include "../uploadQueue/UploadQueue.h"
 #include "../window/SwapChain.h"
 #include "../window/Window.h"
 #include "renderer3D/MousePicker.h"
@@ -27,8 +28,10 @@ namespace vke {
                                      const bool rayTracingEnabled,
                                      const PresentMode presentMode,
                                      const double frameRateLimit,
-                                     const std::shared_ptr<AssetManager>& assetManager)
+                                     const std::shared_ptr<AssetManager>& assetManager,
+                                     std::shared_ptr<UploadQueue> uploadQueue)
     : m_logicalDevice(std::move(logicalDevice)),
+      m_uploadQueue(std::move(uploadQueue)),
       m_surface(std::move(surface)),
       m_window(std::move(window)),
       m_useDockspace(useDockspace),
@@ -481,6 +484,16 @@ namespace vke {
     return m_frameLimiter.getTargetFrameRate();
   }
 
+  void RenderingManager::setUploadBytesPerFrame(const uint64_t bytes)
+  {
+    m_uploadQueue->setBytesPerFrame(bytes);
+  }
+
+  uint64_t RenderingManager::getUploadBytesPerFrame() const
+  {
+    return m_uploadQueue->getBytesPerFrame();
+  }
+
   void RenderingManager::waitForFrameRateLimit()
   {
     m_frameLimiter.wait();
@@ -635,6 +648,10 @@ namespace vke {
         .viewMatrix = {},
         .extent = m_offscreenViewportExtent
       };
+
+      // First, even when the scene has no area to draw into, so uploads keep moving; frames that skip this pass
+      // record none.
+      m_uploadQueue->record(*m_offscreenCommandBuffer);
 
       if (renderInfo.extent.width == 0 ||
           renderInfo.extent.height == 0)

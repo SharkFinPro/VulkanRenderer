@@ -10,6 +10,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/objects/Cloud.h
     components/assets/objects/Material.cpp
     components/assets/objects/Material.h
+    components/assets/objects/Mesh.cpp
+    components/assets/objects/Mesh.h
     components/assets/objects/Model.cpp
     components/assets/objects/Model.h
     components/assets/objects/RenderObject.cpp
@@ -109,6 +111,10 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   components/renderingManager/RenderTarget.cpp
   components/renderingManager/RenderTarget.h
 
+  # Upload Queue
+  components/uploadQueue/UploadQueue.cpp
+  components/uploadQueue/UploadQueue.h
+
   # Windows
   components/window/PresentMode.cpp
   components/window/PresentMode.h
@@ -189,6 +195,7 @@ set(VULKAN_ENGINE_SOURCES_UTILITIES
   utilities/Images.h
   utilities/JobPool.cpp
   utilities/JobPool.h
+  utilities/UploadSchedule.h
 )
 
 # Base Engine Files

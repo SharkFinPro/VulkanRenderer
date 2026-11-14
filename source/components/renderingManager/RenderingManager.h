@@ -26,6 +26,7 @@ namespace vke {
   class Renderer3D;
   class Surface;
   class SwapChain;
+  class UploadQueue;
   class Window;
 
   // Where the scene image sits, in ImGui screen coordinates (the space ImGui::GetIO().MousePos uses).
@@ -48,7 +49,8 @@ namespace vke {
                      bool rayTracingEnabled,
                      PresentMode presentMode,
                      double frameRateLimit,
-                     const std::shared_ptr<AssetManager>& assetManager);
+                     const std::shared_ptr<AssetManager>& assetManager,
+                     std::shared_ptr<UploadQueue> uploadQueue);
 
     ~RenderingManager();
 
@@ -103,6 +105,12 @@ namespace vke {
 
     [[nodiscard]] double getFrameRateLimit() const;
 
+    // Bytes of mesh data copied to the GPU per frame (EngineConfig::Rendering::uploadBytesPerFrame). Takes effect from
+    // the next frame.
+    void setUploadBytesPerFrame(uint64_t bytes);
+
+    [[nodiscard]] uint64_t getUploadBytesPerFrame() const;
+
     // Sleeps then spins until the next frame may start; VulkanEngine::render calls it once per frame.
     void waitForFrameRateLimit();
 
@@ -124,6 +132,8 @@ namespace vke {
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     std::shared_ptr<FrameScheduler> m_frameScheduler;
+
+    std::shared_ptr<UploadQueue> m_uploadQueue;
 
     std::shared_ptr<Surface> m_surface;
 
