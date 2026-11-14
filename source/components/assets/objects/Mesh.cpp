@@ -75,6 +75,39 @@ namespace vke {
       }
     }
 
+    // Same geometry as UploadQueue records for the build; only the sizes are needed here.
+    vk::AccelerationStructureBuildSizesInfoKHR queryBlasSizes(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                              const vk::DeviceAddress vertexAddress,
+                                                              const vk::DeviceSize vertexStride,
+                                                              const uint32_t maxVertex,
+                                                              const vk::DeviceAddress indexAddress,
+                                                              const uint32_t primitiveCount)
+    {
+      vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData {};
+      trianglesData.vertexFormat = vk::Format::eR32G32B32Sfloat;
+      trianglesData.vertexData.deviceAddress = vertexAddress;
+      trianglesData.vertexStride = vertexStride;
+      trianglesData.maxVertex = maxVertex;
+      trianglesData.indexType = vk::IndexType::eUint32;
+      trianglesData.indexData.deviceAddress = indexAddress;
+
+      vk::AccelerationStructureGeometryKHR geometry {};
+      geometry.geometryType = vk::GeometryTypeKHR::eTriangles;
+      geometry.geometry.triangles = trianglesData;
+      geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
+
+      vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {};
+      buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
+      buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+      buildGeometryInfo.geometryCount = 1;
+      buildGeometryInfo.pGeometries = &geometry;
+
+      vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo {};
+      logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
+
+      return buildSizesInfo;
+    }
+
   } // namespace
 
   Mesh::Mesh(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -98,27 +131,7 @@ namespace vke {
     const vk::DeviceSize vertexBytes = createInfo.vertexData.size();
     const vk::DeviceSize indexBytes = createInfo.indices.size_bytes();
 
-    const vk::BufferUsageFlags rayTracingUsage = rayTracing
-      ? vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
-      : vk::BufferUsageFlags{};
-
-    Buffers::createBuffer(
-      logicalDevice,
-      vertexBytes,
-      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
-      vk::MemoryPropertyFlagBits::eDeviceLocal,
-      m_resources.vertexBuffer,
-      m_resources.vertexMemory
-    );
-
-    Buffers::createBuffer(
-      logicalDevice,
-      indexBytes,
-      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
-      vk::MemoryPropertyFlagBits::eDeviceLocal,
-      m_resources.indexBuffer,
-      m_resources.indexMemory
-    );
+    createDeviceBuffers(logicalDevice, rayTracing, vertexBytes, indexBytes);
 
     UploadRequest request = uploadQueue->createRequest(m_state, vertexBytes + indexBytes);
 
@@ -146,6 +159,34 @@ namespace vke {
     uploadQueue->enqueue(std::move(request));
   }
 
+  void Mesh::createDeviceBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                 const bool rayTracing,
+                                 const vk::DeviceSize vertexBytes,
+                                 const vk::DeviceSize indexBytes)
+  {
+    const vk::BufferUsageFlags rayTracingUsage = rayTracing
+      ? vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+      : vk::BufferUsageFlags{};
+
+    Buffers::createBuffer(
+      logicalDevice,
+      vertexBytes,
+      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
+      m_resources.vertexBuffer,
+      m_resources.vertexMemory
+    );
+
+    Buffers::createBuffer(
+      logicalDevice,
+      indexBytes,
+      vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
+      vk::MemoryPropertyFlagBits::eDeviceLocal,
+      m_resources.indexBuffer,
+      m_resources.indexMemory
+    );
+  }
+
   void Mesh::computeBounds(const MeshCreateInfo& createInfo)
   {
     for (uint32_t i = 0; i < m_vertexCount; ++i)
@@ -165,27 +206,8 @@ namespace vke {
     const vk::DeviceAddress indexAddress = logicalDevice->getBufferDeviceAddress(*m_resources.indexBuffer);
     const uint32_t primitiveCount = m_indexCount / 3;
 
-    vk::AccelerationStructureGeometryTrianglesDataKHR trianglesData {};
-    trianglesData.vertexFormat = vk::Format::eR32G32B32Sfloat;
-    trianglesData.vertexData.deviceAddress = vertexAddress;
-    trianglesData.vertexStride = createInfo.vertexStride;
-    trianglesData.maxVertex = m_vertexCount - 1;
-    trianglesData.indexType = vk::IndexType::eUint32;
-    trianglesData.indexData.deviceAddress = indexAddress;
-
-    vk::AccelerationStructureGeometryKHR geometry {};
-    geometry.geometryType = vk::GeometryTypeKHR::eTriangles;
-    geometry.geometry.triangles = trianglesData;
-    geometry.flags = vk::GeometryFlagBitsKHR::eOpaque;
-
-    vk::AccelerationStructureBuildGeometryInfoKHR buildGeometryInfo {};
-    buildGeometryInfo.type = vk::AccelerationStructureTypeKHR::eBottomLevel;
-    buildGeometryInfo.flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
-    buildGeometryInfo.geometryCount = 1;
-    buildGeometryInfo.pGeometries = &geometry;
-
-    vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo {};
-    logicalDevice->getAccelerationStructureBuildSizes(buildGeometryInfo, primitiveCount, buildSizesInfo);
+    const vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = queryBlasSizes(
+      logicalDevice, vertexAddress, createInfo.vertexStride, m_vertexCount - 1, indexAddress, primitiveCount);
 
     Buffers::createBuffer(
       logicalDevice,

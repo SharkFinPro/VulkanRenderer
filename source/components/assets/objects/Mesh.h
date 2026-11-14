@@ -96,6 +96,11 @@ namespace vke {
     uint32_t m_vertexCount = 0;
     uint32_t m_indexCount = 0;
 
+    void createDeviceBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             bool rayTracing,
+                             vk::DeviceSize vertexBytes,
+                             vk::DeviceSize indexBytes);
+
     void computeBounds(const MeshCreateInfo& createInfo);
 
     // Creates the acceleration structure and adds its build, recorded after the copies, to the request.
