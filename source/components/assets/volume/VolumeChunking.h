@@ -17,7 +17,7 @@ namespace vke {
   // the neighbors a central difference reads at them. A sample edit therefore touches the chunks around it too.
   class VolumeChunkGrid {
   public:
-    // Throws std::invalid_argument unless chunkCells is in [1, 256] and max >= min on every axis of the bounds.
+    // Throws std::invalid_argument unless chunkCells is in [1, 64] and max >= min on every axis of the bounds.
     VolumeChunkGrid(const VolumeRegion& bounds,
                     uint32_t chunkCells);
 

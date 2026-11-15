@@ -711,6 +711,11 @@ namespace vke {
                                 const PipelineType pipelineType,
                                 bool* mousePicked)
   {
+    if (pipelineType == PipelineType::volumeSurface)
+    {
+      throw std::invalid_argument("PipelineType::volumeSurface draws volume surfaces; use renderVolumeSurface.");
+    }
+
     const auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
 
     m_renderObjectsToRender[pipelineType].slots.push_back(slot);

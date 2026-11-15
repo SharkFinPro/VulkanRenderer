@@ -8,6 +8,7 @@
 #include "../../../utilities/CompletionQueue.h"
 #include "../../../utilities/JobPool.h"
 #include <cstdint>
+#include <deque>
 #include <memory>
 #include <span>
 #include <vector>
@@ -64,7 +65,7 @@ namespace vke {
 
     // The following are called by the engine.
 
-    // Once per frame: takes finished extractions, creates their meshes and swaps in every batch that is complete and
+    // Once per frame: takes finished extractions, creates their meshes (at most 16 per call) and swaps in every batch that is complete and
     // uploaded.
     void update();
 
@@ -77,6 +78,9 @@ namespace vke {
     [[nodiscard]] std::span<const DisplayedChunk> getDisplayedChunks() const;
 
   private:
+    // Meshes created per update(), so a broad edit spreads over frames; the rest of the results wait their turn
+    static constexpr size_t s_maxMeshesPerUpdate = 16;
+
     using Scheduler = VolumeScheduler<std::shared_ptr<Mesh>>;
 
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -108,6 +112,9 @@ namespace vke {
     std::vector<DisplayedChunk> m_displayed;
     bool m_displayedChanged = false;
 
+    // Drained results not handled yet, oldest first
+    std::deque<ChunkResult> m_backlog;
+
     // Scratch reused by every call
     std::vector<uint32_t> m_touched;
     Scheduler::JobList m_newJobs;
@@ -119,7 +126,10 @@ namespace vke {
     void submitJob(JobPool& pool,
                    const std::shared_ptr<ChunkJob>& job) const;
 
-    void handleResult(ChunkResult& result);
+    // Whether a mesh was created
+    bool handleResult(ChunkResult& result);
+
+    void handleBacklog();
 
     [[nodiscard]] std::shared_ptr<Mesh> createMesh(const SurfaceMesh& mesh) const;
 

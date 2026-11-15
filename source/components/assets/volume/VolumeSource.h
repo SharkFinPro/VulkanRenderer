@@ -66,7 +66,7 @@ namespace vke {
   struct VolumeSurfaceDescription {
     // Size of one cell in the surface's local space.
     float cellSize = 1.0f;
-    // Cells per chunk edge, 1 to 256. A chunk is extracted and uploaded as a unit.
+    // Cells per chunk edge, 1 to 64. A chunk is extracted and uploaded as a unit.
     uint32_t chunkCells = 32;
   };
 

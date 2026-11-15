@@ -83,8 +83,8 @@ namespace {
     check(vke::VolumeChunkGrid({ { 0, 0, 0 }, { 0, 0, 0 } }, 32).chunkCount() == 0, "an empty volume has no chunks");
 
     check(throwsInvalidArgument([] { vke::VolumeChunkGrid({ { 0, 0, 0 }, { 8, 8, 8 } }, 0); }), "chunk size 0 throws");
-    check(throwsInvalidArgument([] { vke::VolumeChunkGrid({ { 0, 0, 0 }, { 8, 8, 8 } }, 257); }), "chunk size 257 throws");
-    check(!throwsInvalidArgument([] { vke::VolumeChunkGrid({ { 0, 0, 0 }, { 8, 8, 8 } }, 256); }), "chunk size 256 is allowed");
+    check(throwsInvalidArgument([] { vke::VolumeChunkGrid({ { 0, 0, 0 }, { 8, 8, 8 } }, 65); }), "chunk size 65 throws");
+    check(!throwsInvalidArgument([] { vke::VolumeChunkGrid({ { 0, 0, 0 }, { 8, 8, 8 } }, 64); }), "chunk size 64 is allowed");
     check(!throwsInvalidArgument([] { vke::VolumeChunkGrid({ { 0, 0, 0 }, { 8, 8, 8 } }, 1); }), "chunk size 1 is allowed");
     check(throwsInvalidArgument([] { vke::VolumeChunkGrid({ { 0, 0, 0 }, { 8, -1, 8 } }, 8); }), "max below min throws");
   }
@@ -462,16 +462,38 @@ namespace {
     check(edit.size() == 1, "chunk 0 is extracted again in its own batch");
 
     const auto absorbing = h.invalidate({ 1 });
-    check(absorbing.empty() && h.scheduler.openBatchCount() == 2, "chunk 1's queued job is shared; its batch moved to the newest");
+    check(absorbing.empty() && h.scheduler.openBatchCount() == 1, "chunk 1's queued job is shared; both older batches moved to the newest");
 
     h.finish(edit[0], 51);
-    check(h.swap() == 1 && h.shown[0] == 51, "the newer batch swaps first");
+    check(h.swap() == 0, "nothing swaps while chunk 1's older data is missing");
 
     h.finish(creation[1], 52);
-    check(h.swap() == 1, "then the batch holding the older data");
-    check(h.shown[1] == 52, "chunk 1 shows its mesh");
-    check(h.shown[0] == 51, "chunk 0 keeps the newer mesh");
-    check(std::ranges::none_of(h.installs, [](const auto& install) { return install.second == 50; }), "the older mesh was never installed");
+    check(h.swap() == 1, "then everything swaps as one batch");
+    check(h.shown[1] == 52 && h.shown[0] == 51, "chunk 0 ends on its newer mesh");
+
+    const auto first = std::ranges::find_if(h.installs, [](const auto& install) { return install.second == 50; });
+    const auto second = std::ranges::find_if(h.installs, [](const auto& install) { return install.second == 51; });
+    check(first < second, "the older mesh was installed before the newer one, never after");
+  }
+
+  void checkAbsorbKeepsLaterBatchesBehind()
+  {
+    Harness h(2);
+
+    const auto edit1 = h.invalidate({ 0, 1 });
+    h.finish(edit1[0], 60);
+
+    const auto edit2 = h.invalidate({ 0 });
+    check(edit2.size() == 1 && h.scheduler.openBatchCount() == 2, "edit 2 opens its own batch");
+
+    const auto edit3 = h.invalidate({ 1 });
+    check(edit3.empty(), "edit 3 shares chunk 1's queued job");
+
+    h.finish(edit2[0], 61);
+    check(h.swap() == 0 && h.shown.empty(), "edit 2 does not swap ahead of chunk 1's edit 1 result");
+
+    h.finish(edit1[1], 62);
+    check(h.swap() == 1 && h.shown[0] == 61 && h.shown[1] == 62, "both chunks swap together");
   }
 
   void checkEmptyAndFailedResults()
@@ -557,6 +579,7 @@ int main()
   checkFinishedJobGetsIndependentBatch();
   checkFinishedUndeliveredJobGetsNewJob();
   checkOlderEntryDoesNotOverwriteNewer();
+  checkAbsorbKeepsLaterBatchesBehind();
   checkEmptyAndFailedResults();
   checkPendingFraction();
   checkCancelAll();

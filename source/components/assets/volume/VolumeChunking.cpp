@@ -10,9 +10,9 @@ namespace vke {
     : m_bounds(bounds),
       m_chunkCells(chunkCells)
   {
-    if (chunkCells < 1 || chunkCells > 256)
+    if (chunkCells < 1 || chunkCells > 64)
     {
-      throw std::invalid_argument("Volume chunk size must be between 1 and 256 cells.");
+      throw std::invalid_argument("Volume chunk size must be between 1 and 64 cells.");
     }
 
     if (bounds.max.x < bounds.min.x || bounds.max.y < bounds.min.y || bounds.max.z < bounds.min.z)

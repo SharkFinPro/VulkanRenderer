@@ -2,7 +2,6 @@
 #define VKE_ASSETMANAGER_H
 
 #include "../pipelines/implementations/vertexInputs/Vertex.h"
-#include "volume/VolumeSource.h"
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <map>
@@ -29,7 +28,9 @@ namespace vke {
   class Texture;
   class Texture2D;
   class UploadQueue;
+  class VolumeSource;
   class VolumeSurface;
+  struct VolumeSurfaceDescription;
 
   struct FontKey {
     std::string name;

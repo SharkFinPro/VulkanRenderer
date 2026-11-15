@@ -55,7 +55,8 @@ namespace vke {
   // data, so the new batch absorbs the old one. A job that has started may have read pre-edit data: it is absorbed too,
   // but its result is discarded and the chunk extracted again. A finished job gets a new job in an independent batch.
   // Entries remember the generation of the job that produced their data, and a chunk never shows older data than it
-  // already shows.
+  // already shows. Absorbing also takes every batch opened after the absorbed one, so no batch swaps ahead of an
+  // absorbed entry.
   //
   // Known limit: when extracting a chunk keeps taking longer than the gap between edits of it, each edit absorbs the
   // open batch, which therefore stays open until the edits pause.
@@ -78,6 +79,9 @@ namespace vke {
       {
         return;
       }
+
+      // Pairs with the fence in the worker: either the phase read below says started, or the worker sees the edit
+      std::atomic_thread_fence(std::memory_order_seq_cst);
 
       m_batches.emplace_back();
 
@@ -254,7 +258,8 @@ namespace vke {
       addEntry(chunk, batch, newJobs);
     }
 
-    // Moves the entries of an open batch into the newest one, which then covers them.
+    // Moves the entries of an open batch and of every batch after it into the newest one, so nothing swaps ahead of an
+    // absorbed entry.
     void absorb(Batch& from,
                 Batch& into)
     {
@@ -263,6 +268,23 @@ namespace vke {
         return;
       }
 
+      auto it = m_batches.begin();
+
+      while (&*it != &from)
+      {
+        ++it;
+      }
+
+      while (&*it != &into)
+      {
+        moveEntries(*it, into);
+        it = m_batches.erase(it);
+      }
+    }
+
+    static void moveEntries(Batch& from,
+                            Batch& into)
+    {
       for (auto& entry : from.entries)
       {
         entry->batch = &into;
@@ -270,10 +292,6 @@ namespace vke {
       }
 
       into.pending += from.pending;
-
-      m_batches.remove_if([&from](const Batch& candidate) {
-        return &candidate == &from;
-      });
     }
 
     void addEntry(const uint32_t chunk,

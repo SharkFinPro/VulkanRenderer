@@ -6,6 +6,7 @@
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "particleSystems/SmokeSystem.h"
+#include "volume/VolumeSource.h"
 #include "volume/VolumeSurface.h"
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"

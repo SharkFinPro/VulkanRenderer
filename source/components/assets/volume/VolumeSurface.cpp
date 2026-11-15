@@ -1,6 +1,7 @@
 #include "VolumeSurface.h"
 #include "MarchingCubesExtractor.h"
 #include "../objects/Mesh.h"
+#include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <exception>
@@ -80,6 +81,9 @@ namespace vke {
 
         job->setPhase(ChunkJob::Phase::started);
 
+        // Pairs with the fence in VolumeScheduler::invalidate: either it sees started, or fill sees the edit
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+
         source->fill(region, 0, distance, material);
 
         extractor->extract({ region, distance, material }, cells, cellSize, mesh);
@@ -139,8 +143,10 @@ namespace vke {
     }
 
     m_results->drain([this](ChunkResult& result) {
-      handleResult(result);
+      m_backlog.push_back(std::move(result));
     });
+
+    handleBacklog();
 
     swapReadyBatches();
 
@@ -161,6 +167,8 @@ namespace vke {
     m_scheduler.cancelAll();
 
     m_newJobs.clear();
+
+    m_backlog.clear();
   }
 
   const VolumeSurfaceDescription& VolumeSurface::getDescription() const
@@ -212,7 +220,22 @@ namespace vke {
     pool.submit(Job(std::move(task)), m_cancellation);
   }
 
-  void VolumeSurface::handleResult(ChunkResult& result)
+  void VolumeSurface::handleBacklog()
+  {
+    size_t created = 0;
+
+    while (!m_backlog.empty() && created < s_maxMeshesPerUpdate)
+    {
+      if (handleResult(m_backlog.front()))
+      {
+        ++created;
+      }
+
+      m_backlog.pop_front();
+    }
+  }
+
+  bool VolumeSurface::handleResult(ChunkResult& result)
   {
     std::optional<std::shared_ptr<Mesh>> mesh;
     bool failed = result.failed;
@@ -231,7 +254,11 @@ namespace vke {
       }
     }
 
+    const bool created = mesh.has_value();
+
     m_scheduler.onResult(result.job, std::move(mesh), failed, m_newJobs);
+
+    return created;
   }
 
   std::shared_ptr<Mesh> VolumeSurface::createMesh(const SurfaceMesh& mesh) const
