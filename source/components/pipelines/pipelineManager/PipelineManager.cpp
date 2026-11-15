@@ -175,6 +175,9 @@ namespace vke {
       PipelineConfig::createCrossesPipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
       lightingDescriptorSetLayout));
 
+    createGraphicsPipeline(PipelineType::volumeSurface,
+      PipelineConfig::createVolumeSurfacePipelineOptions(m_logicalDevice, sceneDescriptorSetLayout));
+
     createGraphicsPipeline(PipelineType::shadow,
       PipelineConfig::createShadowMapPipelineOptions(sceneDescriptorSetLayout));
 

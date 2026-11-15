@@ -45,6 +45,7 @@ namespace vke {
   class Texture3D;
   class TextureCubemap;
   class UniformBuffer;
+  class VolumeSurface;
 
   struct BendyPlant {
     glm::vec3 position = glm::vec3(0.0f);
@@ -240,6 +241,12 @@ namespace vke {
     // Drops lines kept for a lifetime, including from the frame being built.
     void clearLines();
 
+    // Draws the surface this frame under the model matrix, with the engine's placeholder shading (not yet lit by the scene's
+    // lights, shadowed or pickable). Drawn in the scene pass and over a ray traced image. The chunks outside the camera's
+    // view are skipped.
+    void renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
+                             const glm::mat4& modelMatrix);
+
     void renderBendyPlant(const BendyPlant& bendyPlant);
 
     void renderSmokeSystem(const std::shared_ptr<SmokeSystem>& smokeSystem);
@@ -345,6 +352,13 @@ namespace vke {
     LineBatches m_lineBatches;
     std::vector<DebugSegment> m_shapeSegments;
 
+    struct VolumeSurfaceDraw {
+      std::shared_ptr<VolumeSurface> surface;
+      glm::mat4 modelMatrix;
+    };
+
+    std::vector<VolumeSurfaceDraw> m_volumeSurfacesToRender;
+
     std::vector<BendyPlant> m_bendyPlantsToRender;
 
     std::vector<std::shared_ptr<SmokeSystem>> m_smokeSystemsToRender;
@@ -394,6 +408,9 @@ namespace vke {
 
     void renderSmokeSystems(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
+
+    void renderVolumeSurfaces(const RenderInfo* renderInfo,
+                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     static void renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo);

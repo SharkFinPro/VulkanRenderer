@@ -5,7 +5,9 @@
 #include "../../assets/objects/Material.h"
 #include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
+#include "../../assets/objects/Mesh.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
+#include "../../assets/volume/VolumeSurface.h"
 #include "../../assets/textures/Texture3D.h"
 #include "../../assets/textures/TextureCubemap.h"
 #include "../../commandBuffer/CommandBuffer.h"
@@ -498,6 +500,8 @@ namespace vke {
 
     renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager, lightingManager);
 
+    renderVolumeSurfaces(&renderInfo3D, pipelineManager);
+
     pipelineManager->renderBendyPlantPipeline(&renderInfo3D, &m_bendyPlantsToRender);
 
     renderSmokeSystems(&renderInfo3D, pipelineManager);
@@ -520,6 +524,8 @@ namespace vke {
 
       renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, draws.runs);
     }
+
+    renderVolumeSurfaces(&renderInfo3D, pipelineManager);
 
     renderLinesAndGrid(&renderInfo3D, pipelineManager);
   }
@@ -645,6 +651,8 @@ namespace vke {
 
     m_bendyPlantsToRender.clear();
 
+    m_volumeSurfacesToRender.clear();
+
     m_mousePicker->clearObjectsToMousePick();
 
     m_smokeSystemsToRender.clear();
@@ -703,6 +711,11 @@ namespace vke {
                                 const PipelineType pipelineType,
                                 bool* mousePicked)
   {
+    if (pipelineType == PipelineType::volumeSurface)
+    {
+      throw std::invalid_argument("PipelineType::volumeSurface draws volume surfaces; use renderVolumeSurface.");
+    }
+
     const auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
 
     m_renderObjectsToRender[pipelineType].slots.push_back(slot);
@@ -901,6 +914,15 @@ namespace vke {
     m_timedLines.clear();
   }
 
+  void Renderer3D::renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
+                                       const glm::mat4& modelMatrix)
+  {
+    if (surface)
+    {
+      m_volumeSurfacesToRender.push_back({ surface, modelMatrix });
+    }
+  }
+
   void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)
   {
     m_bendyPlantsToRender.push_back(bendyPlant);
@@ -997,6 +1019,56 @@ namespace vke {
       system->update(renderInfo);
     }
     pipelineManager->renderSmokePipeline(renderInfo, &m_smokeSystemsToRender);
+  }
+
+  void Renderer3D::renderVolumeSurfaces(const RenderInfo* renderInfo,
+                                        const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    if (m_volumeSurfacesToRender.empty())
+    {
+      return;
+    }
+
+    constexpr auto pipelineType = PipelineType::volumeSurface;
+    const auto& commandBuffer = renderInfo->commandBuffer;
+
+    pipelineManager->bindGraphicsPipeline(commandBuffer, pipelineType);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      commandBuffer,
+      pipelineType,
+      m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    const Frustum frustum = Frustum::fromViewProjection(renderInfo->getProjectionMatrix() * renderInfo->viewMatrix);
+
+    for (const auto& [surface, modelMatrix] : m_volumeSurfacesToRender)
+    {
+      const glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
+
+      const VolumeSurfacePushConstant pushConstant {
+        .model = modelMatrix,
+        .normalMatrix = { glm::vec4(normalMatrix[0], 0.0f), glm::vec4(normalMatrix[1], 0.0f), glm::vec4(normalMatrix[2], 0.0f) },
+        .color = glm::vec4(1.0f)
+      };
+
+      pipelineManager->pushGraphicsPipelineConstants<VolumeSurfacePushConstant>(
+        commandBuffer,
+        pipelineType,
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+        0,
+        pushConstant
+      );
+
+      for (const DisplayedChunk& chunk : surface->getDisplayedChunks())
+      {
+        if (frustum.intersects(transformAABB(chunk.localBounds, modelMatrix)))
+        {
+          chunk.mesh->draw(commandBuffer);
+        }
+      }
+    }
   }
 
   void Renderer3D::renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,

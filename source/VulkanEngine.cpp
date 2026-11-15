@@ -126,6 +126,9 @@ namespace vke {
 
     m_uploadQueue->beginFrame();
 
+    // The meshes beginFrame just marked ready can swap in this frame
+    m_assetManager->updateVolumeSurfaces();
+
     const uint32_t currentFrame = frameScheduler->getCurrentFrame();
 
     m_computingManager->doComputing(m_pipelineManager, currentFrame, m_renderingManager->getRenderer2D(),
@@ -188,7 +191,7 @@ namespace vke {
 
     m_uploadQueue = std::make_shared<UploadQueue>(m_logicalDevice, engineConfig.rendering.uploadBytesPerFrame);
 
-    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_uploadQueue);
+    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_uploadQueue, m_jobPool);
 
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,

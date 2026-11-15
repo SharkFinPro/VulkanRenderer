@@ -5,6 +5,7 @@
 #include "../vertexInputs/Particle.h"
 #include "../vertexInputs/Vertex.h"
 #include "../vertexInputs/SmokeParticle.h"
+#include "../vertexInputs/SurfaceVertexInput.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan_raii.hpp>
@@ -316,6 +317,16 @@ namespace vke::gps {
     .pVertexBindingDescriptions = &vertexBindingDescription,
     .vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescriptionsPositionAndNormal.size()),
     .pVertexAttributeDescriptions = vertexAttributeDescriptionsPositionAndNormal.data()
+  };
+
+  inline vk::VertexInputBindingDescription surfaceVertexBindingDescription = SurfaceVertexInput::getBindingDescription();
+  inline std::array surfaceVertexAttributeDescriptions = SurfaceVertexInput::getAttributeDescriptions();
+
+  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateSurfaceVertex {
+    .vertexBindingDescriptionCount = 1,
+    .pVertexBindingDescriptions = &surfaceVertexBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(surfaceVertexAttributeDescriptions.size()),
+    .pVertexAttributeDescriptions = surfaceVertexAttributeDescriptions.data()
   };
 
   inline vk::VertexInputBindingDescription lineInstanceBindingDescription = LineInstance::getBindingDescription();

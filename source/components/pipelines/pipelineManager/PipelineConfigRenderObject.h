@@ -338,6 +338,38 @@ namespace vke::PipelineConfig {
     };
   }
 
+  // The placeholder pipeline of volume surfaces: unlit by scene lights, drawn from the scene set alone.
+  inline GraphicsPipelineOptions createVolumeSurfacePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                    vk::DescriptorSetLayout sceneDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/volumeSurface/VolumeSurface.vert.spv",
+        .fragmentShader = "assets/shaders/volumeSurface/VolumeSurface.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateSurfaceVertex,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+          .offset = 0,
+          .size = sizeof(VolumeSurfacePushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        sceneDescriptorSetLayout
+      }
+    };
+  }
+
   inline GraphicsPipelineOptions createSnakePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                             vk::DescriptorSetLayout sceneDescriptorSetLayout,
                                                             vk::DescriptorSetLayout materialDescriptorSetLayout,
