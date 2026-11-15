@@ -6,6 +6,7 @@
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "particleSystems/SmokeSystem.h"
+#include "volume/VolumeSurface.h"
 #include "../assets/textures/Texture2D.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/descriptorSets/DescriptorAllocator.h"
@@ -17,9 +18,11 @@
 namespace vke {
 
   AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                             std::shared_ptr<UploadQueue> uploadQueue)
+                             std::shared_ptr<UploadQueue> uploadQueue,
+                             const std::shared_ptr<JobPool>& jobPool)
     : m_logicalDevice(std::move(logicalDevice)),
-      m_uploadQueue(std::move(uploadQueue))
+      m_uploadQueue(std::move(uploadQueue)),
+      m_jobPool(jobPool)
   {
     createCommandPool();
 
@@ -66,6 +69,20 @@ namespace vke {
     return std::make_shared<Mesh>(m_logicalDevice, m_uploadQueue, createInfo);
   }
 
+  std::shared_ptr<VolumeSurface> AssetManager::createVolumeSurface(const VolumeSurfaceDescription& description,
+                                                                   std::shared_ptr<const VolumeSource> source)
+  {
+    auto surface = std::make_shared<VolumeSurface>(m_logicalDevice, m_uploadQueue, m_jobPool, description, std::move(source));
+
+    std::erase_if(m_volumeSurfaces, [](const std::weak_ptr<VolumeSurface>& weak) {
+      return weak.expired();
+    });
+
+    m_volumeSurfaces.push_back(surface);
+
+    return surface;
+  }
+
   std::shared_ptr<RenderObject> AssetManager::loadRenderObject(
     const std::shared_ptr<Texture2D>& texture,
     const std::shared_ptr<Texture2D>& specularMap,
@@ -93,6 +110,16 @@ namespace vke {
     queueRelease(std::move(mesh));
   }
 
+  void AssetManager::release(std::shared_ptr<VolumeSurface> surface)
+  {
+    if (surface)
+    {
+      surface->cancel();
+    }
+
+    queueRelease(std::move(surface));
+  }
+
   void AssetManager::release(std::shared_ptr<Texture> texture)
   {
     queueRelease(std::move(texture));
@@ -101,6 +128,20 @@ namespace vke {
   void AssetManager::release(std::shared_ptr<Texture2D> texture)
   {
     queueRelease(std::move(texture));
+  }
+
+  void AssetManager::updateVolumeSurfaces()
+  {
+    std::erase_if(m_volumeSurfaces, [](const std::weak_ptr<VolumeSurface>& weak) {
+      const std::shared_ptr<VolumeSurface> surface = weak.lock();
+
+      if (surface)
+      {
+        surface->update();
+      }
+
+      return !surface;
+    });
   }
 
   bool AssetManager::destroyReleasedResources()

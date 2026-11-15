@@ -2,6 +2,7 @@
 #define VKE_ASSETMANAGER_H
 
 #include "../pipelines/implementations/vertexInputs/Vertex.h"
+#include "volume/VolumeSource.h"
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <map>
@@ -17,6 +18,7 @@ namespace vke {
   class Cloud;
   class DescriptorAllocator;
   class Font;
+  class JobPool;
   class LogicalDevice;
   class Material;
   struct MeshCreateInfo;
@@ -27,6 +29,7 @@ namespace vke {
   class Texture;
   class Texture2D;
   class UploadQueue;
+  class VolumeSurface;
 
   struct FontKey {
     std::string name;
@@ -51,7 +54,8 @@ namespace vke {
   class AssetManager {
   public:
     AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                 std::shared_ptr<UploadQueue> uploadQueue);
+                 std::shared_ptr<UploadQueue> uploadQueue,
+                 const std::shared_ptr<JobPool>& jobPool);
 
     [[nodiscard]] std::shared_ptr<Texture2D> loadTexture(const char* path,
                                                          bool repeat = true);
@@ -72,6 +76,13 @@ namespace vke {
     // Release it with release(std::shared_ptr<Mesh>).
     [[nodiscard]] std::shared_ptr<Mesh> createMesh(const MeshCreateInfo& createInfo);
 
+    // The zero surface of a signed distance field the application owns (see VolumeSource), chunked, extracted on the job
+    // pool and drawn with Renderer3D::renderVolumeSurface. Schedules every chunk, so the surface appears over the
+    // following frames. Throws std::invalid_argument on a null source, a cell size that is not finite and positive, or an
+    // invalid chunk size or bounds. Release it with release(std::shared_ptr<VolumeSurface>).
+    [[nodiscard]] std::shared_ptr<VolumeSurface> createVolumeSurface(const VolumeSurfaceDescription& description,
+                                                                     std::shared_ptr<const VolumeSource> source);
+
     [[nodiscard]] std::shared_ptr<RenderObject> loadRenderObject(const std::shared_ptr<Texture2D>& texture,
                                                                  const std::shared_ptr<Texture2D>& specularMap,
                                                                  const std::shared_ptr<Model>& model);
@@ -86,9 +97,16 @@ namespace vke {
 
     void release(std::shared_ptr<Mesh> mesh);
 
+    // Stops the surface's work first, then retires it like the others.
+    void release(std::shared_ptr<VolumeSurface> surface);
+
     void release(std::shared_ptr<Texture> texture);
 
     void release(std::shared_ptr<Texture2D> texture);
+
+    // Called by the engine once per frame, right after the upload queue marks the previous frame's meshes ready, so
+    // those can swap in this frame: takes finished chunk extractions and swaps in the batches that are ready.
+    void updateVolumeSurfaces();
 
     // Called by the engine at the end of each frame and before teardown. Hands every released resource nothing
     // else holds to the logical device's deferred destruction; returns whether it handed over any.
@@ -118,6 +136,11 @@ namespace vke {
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     std::shared_ptr<UploadQueue> m_uploadQueue;
+
+    // Weak, so surfaces never keep the pool alive past the engine
+    std::weak_ptr<JobPool> m_jobPool;
+
+    std::vector<std::weak_ptr<VolumeSurface>> m_volumeSurfaces;
 
     vk::raii::CommandPool m_commandPool { nullptr };
 

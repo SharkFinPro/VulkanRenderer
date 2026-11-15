@@ -13,6 +13,7 @@ set(TESTS
   shadows
   smoke
   snake
+  volumeSurface
 )
 
 foreach(test ${TESTS})
@@ -61,3 +62,11 @@ add_dependencies(build_all windowPlacement)
 add_subdirectory(uploadSchedule)
 add_test(NAME uploadSchedule COMMAND uploadSchedule)
 add_dependencies(build_all uploadSchedule)
+
+add_subdirectory(surfaceExtraction)
+add_test(NAME surfaceExtraction COMMAND surfaceExtraction)
+add_dependencies(build_all surfaceExtraction)
+
+add_subdirectory(volumeScheduling)
+add_test(NAME volumeScheduling COMMAND volumeScheduling)
+add_dependencies(build_all volumeScheduling)

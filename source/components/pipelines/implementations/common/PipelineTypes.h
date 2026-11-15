@@ -14,6 +14,7 @@ namespace vke {
     object,
     texturedPlane,
     snake,
+    volumeSurface,
 
     ellipse,
     font,

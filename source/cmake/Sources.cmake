@@ -33,6 +33,18 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/textures/TextureGlyph.cpp
     components/assets/textures/TextureGlyph.h
 
+    # Volume surfaces
+    components/assets/volume/MarchingCubesExtractor.cpp
+    components/assets/volume/MarchingCubesExtractor.h
+    components/assets/volume/MarchingCubesTables.h
+    components/assets/volume/SurfaceExtractor.h
+    components/assets/volume/VolumeChunking.cpp
+    components/assets/volume/VolumeChunking.h
+    components/assets/volume/VolumeScheduler.h
+    components/assets/volume/VolumeSource.h
+    components/assets/volume/VolumeSurface.cpp
+    components/assets/volume/VolumeSurface.h
+
   components/assets/AssetManager.cpp
   components/assets/AssetManager.h
 
@@ -177,6 +189,7 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/vertexInputs/LineInstance.h
   components/pipelines/implementations/vertexInputs/Particle.h
   components/pipelines/implementations/vertexInputs/SmokeParticle.h
+  components/pipelines/implementations/vertexInputs/SurfaceVertexInput.h
   components/pipelines/implementations/vertexInputs/Vertex.h
 )
 
