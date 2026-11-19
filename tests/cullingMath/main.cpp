@@ -135,39 +135,6 @@ namespace {
           "rotated, scaled, offset box matches its transformed corners");
   }
 
-  // A volume surface chunk: an offset local box under the surface's model matrix, as the renderer culls it
-  void checkChunkBounds()
-  {
-    const vke::AABB chunk { { 0.0f, 0.0f, 0.0f }, { 16.0f, 16.0f, 16.0f } };
-
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), { 0.0f, -2.0f, 20.0f });
-    model = glm::rotate(model, glm::radians(30.0f), { 0.0f, 1.0f, 0.0f });
-    model = glm::scale(model, glm::vec3(0.5f));
-
-    const vke::AABB world = vke::transformAABB(chunk, model);
-
-    bool enclosesCorners = true;
-    for (int corner = 0; corner < 8; ++corner)
-    {
-      const glm::vec3 point {
-        (corner & 1) != 0 ? chunk.max.x : chunk.min.x,
-        (corner & 2) != 0 ? chunk.max.y : chunk.min.y,
-        (corner & 4) != 0 ? chunk.max.z : chunk.min.z
-      };
-      const glm::vec3 moved = glm::vec3(model * glm::vec4(point, 1.0f));
-
-      enclosesCorners = enclosesCorners && glm::all(glm::greaterThanEqual(moved, world.min - glm::vec3(1e-4f))) &&
-                        glm::all(glm::lessThanEqual(moved, world.max + glm::vec3(1e-4f)));
-    }
-    check(enclosesCorners, "chunk bounds under a model matrix enclose all transformed corners");
-
-    check(cameraFrustum(true).intersects(world), "a camera looking at the chunk accepts its bounds");
-
-    const glm::mat4 awayView = glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    const vke::Frustum away = vke::Frustum::fromViewProjection(cameraProjection(true) * awayView);
-    check(!away.intersects(world), "a camera looking away rejects the chunk's bounds");
-  }
-
   void checkPlanes()
   {
     for (const glm::vec4& plane : cameraFrustum(true).getPlanes())
@@ -230,7 +197,6 @@ int main()
 {
   checkAabb();
   checkTransform();
-  checkChunkBounds();
   checkPlanes();
   checkFrustumBoxes(true);
   checkFrustumBoxes(false);

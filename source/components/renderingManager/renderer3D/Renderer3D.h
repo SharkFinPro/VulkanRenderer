@@ -98,8 +98,8 @@ namespace vke {
                                uint32_t currentFrame) const;
 
     // Writes the frame's object table (one entry per render submission, then one per outline, then one per volume surface
-    // submission and outline), the draw slots of every pass's sorted draw list and the camera, which every pass that draws render objects reads through the scene
-    // descriptor set. The lists are culled against the view they are drawn from (see the member comments), so the lights
+    // submission and outline), the draw slots of every pass's sorted draw list and the camera, which every pass that
+    // draws render objects reads through the scene descriptor set. The lists are culled against the view they are drawn from (see the member comments), so the lights
     // must already be submitted. Everything is written before the first pass records, since the buffers must not be
     // replaced afterwards. Call once per frame, after the frame's command buffer slot is known to be free and before the
     // first pass that draws objects.
@@ -123,7 +123,8 @@ namespace vke {
     // Reads the result of the frame that last used this frame-in-flight slot; call once it is known to be complete.
     void resolveMousePicking(uint32_t currentFrame) const;
 
-    // Whether the shadow maps are needed even though ray tracing is on: the rasterized volume surfaces sample them.
+    // Whether the shadow maps are needed even though ray tracing is on: the rasterized volume surfaces sample them. Valid
+    // after updateSceneData, and false when every chunk is outside the camera's view.
     [[nodiscard]] bool needsShadowMapsWithRayTracing() const;
 
     [[nodiscard]] bool hasOutlines() const;
@@ -260,13 +261,14 @@ namespace vke {
     // their shadow maps (the surface casts into them unless VolumeSurface::setCastsShadows is false). Drawn in the scene
     // pass and over a ray traced image, which does not include it. Chunks outside the view each list is drawn from are
     // skipped. A non-null mousePicked makes the surface pickable and is set as renderObject's flag is, reporting a frame
-    // rendered a few frames earlier; read the outcome through getPickResult().
+    // rendered a few frames earlier; read the outcome through getPickResult(). Without a flag the surface is not
+    // pickable.
     void renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
                              const glm::mat4& modelMatrix,
                              bool* mousePicked = nullptr);
 
     // The main pass's chunk counts as of the last updateSceneData: drawn after culling against the camera, and displayed
-    // by the surfaces submitted that frame.
+    // by the surfaces submitted that frame (outlines not included). A frame with no scene area keeps the previous counts.
     [[nodiscard]] VolumeChunkCounts getVolumeChunkCounts() const;
 
     void renderBendyPlant(const BendyPlant& bendyPlant);

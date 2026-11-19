@@ -552,7 +552,7 @@ namespace vke {
 
   bool Renderer3D::needsShadowMapsWithRayTracing() const
   {
-    return !m_volumeSurfacesToRender.empty();
+    return !m_volumeRuns.empty();
   }
 
   bool Renderer3D::hasOutlines() const

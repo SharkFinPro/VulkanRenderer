@@ -5,7 +5,7 @@
 #include "../vertexInputs/Particle.h"
 #include "../vertexInputs/Vertex.h"
 #include "../vertexInputs/SmokeParticle.h"
-#include "../vertexInputs/VolumeVertex.h"
+#include "../vertexInputs/VolumeVertexInput.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan_raii.hpp>

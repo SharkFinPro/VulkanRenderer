@@ -1,25 +1,14 @@
-#ifndef VKE_VOLUMEVERTEX_H
-#define VKE_VOLUMEVERTEX_H
+#ifndef VKE_VOLUMEVERTEXINPUT_H
+#define VKE_VOLUMEVERTEXINPUT_H
 
-#include <glm/vec3.hpp>
+#include "../../../assets/volume/VolumeVertex.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <cstddef>
-#include <cstdint>
 
 namespace vke {
 
-  // The vertex a volume surface's meshes are drawn with. The materials and weights are four-way blend inputs, of which
-  // only the first material (weight 255) is used until surfaces blend materials.
-  struct VolumeVertex {
-    glm::vec3 position;
-    glm::vec3 normal;
-    std::array<uint8_t, 4> materials;
-    std::array<uint8_t, 4> weights;
-  };
-
-  static_assert(sizeof(VolumeVertex) == 32);
-
+  // How the volume surface pipelines read a VolumeVertex.
   struct VolumeVertexInput {
     static constexpr vk::VertexInputBindingDescription getBindingDescription()
     {
@@ -75,4 +64,4 @@ namespace vke {
 
 } // namespace vke
 
-#endif //VKE_VOLUMEVERTEX_H
+#endif //VKE_VOLUMEVERTEXINPUT_H

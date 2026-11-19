@@ -7,7 +7,7 @@
 #include "../../../utilities/Bounds.h"
 #include "../../../utilities/CompletionQueue.h"
 #include "../../../utilities/JobPool.h"
-#include "../../pipelines/implementations/vertexInputs/VolumeVertex.h"
+#include "VolumeVertex.h"
 #include <cstdint>
 #include <deque>
 #include <memory>
