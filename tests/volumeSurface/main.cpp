@@ -1,13 +1,21 @@
 // A volume surface over an in-memory distance field the app edits: hold the left mouse button over the scene to add
-// material with a sphere brush (Shift, or the Remove box, carves instead). With --frames N it runs scripted brush edits
+// material with a sphere brush (Shift, or the Remove box, carves instead). The surface is lit by a point light and a
+// spot light, shadowed by them, casts into their shadow maps, is pickable (Pick mode: click to print what is under the
+// cursor) and can be outlined; a cube above it shows the shadows going both ways, and a tunnel under an overhang shows
+// its self-shadowing. With --frames N it runs scripted brush edits
 // in bursts instead, prints frame time percentiles and how long edits took to show, and exits non-zero if the surface
 // never settled. The field's lock makes each edit and its invalidate call atomic to the engine's worker threads (see
 // vke::VolumeSource).
 #include <source/components/assets/AssetManager.h>
+#include <source/components/assets/objects/RenderObject.h>
 #include <source/components/assets/volume/VolumeSource.h>
 #include <source/components/assets/volume/VolumeSurface.h>
 #include <source/components/camera/Camera.h>
 #include <source/components/imGui/ImGuiInstance.h>
+#include <source/components/lighting/LightingManager.h>
+#include <source/components/lighting/lights/Light.h>
+#include <source/components/lighting/lights/SpotLight.h>
+#include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
 #include <source/components/window/PresentMode.h>
@@ -36,7 +44,9 @@
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
+#include <sstream>
 #include <span>
+#include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
@@ -85,13 +95,25 @@ namespace {
     return 24.0f + 4.0f * std::sin(x * 0.08f) * std::cos(z * 0.07f) + hill;
   }
 
-  // The ground with a cave under the first hill, in cells and negative inside
+  // A box in cells: negative inside
+  [[nodiscard]] float boxDistance(const glm::vec3 p,
+                                  const glm::vec3 center,
+                                  const glm::vec3 halfExtents)
+  {
+    const glm::vec3 q = glm::abs(p - center) - halfExtents;
+
+    return glm::length(glm::max(q, glm::vec3(0.0f))) + std::min(std::max(q.x, std::max(q.y, q.z)), 0.0f);
+  }
+
+  // The ground with a block standing on it and a tunnel through the block along Z, whose mouth faces the camera: the
+  // overhang gives the spot light a cave to shadow. In cells and negative inside.
   [[nodiscard]] float initialDistance(const glm::vec3 p)
   {
     const float ground = p.y - groundHeight(p.x, p.z);
-    const float cave = glm::length((p - glm::vec3(44.0f, 22.0f, 64.0f)) * glm::vec3(1.0f, 1.3f, 1.0f)) - 12.0f;
+    const float block = boxDistance(p, { 70.0f, 30.0f, 50.0f }, { 22.0f, 10.0f, 14.0f });
+    const float tunnel = std::max(glm::length(glm::vec2(p.x - 70.0f, p.y - 27.0f)) - 6.5f, std::abs(p.z - 50.0f) - 26.0f);
 
-    return std::max(ground, -cave);
+    return std::max(std::min(ground, block), -tunnel);
   }
 
   [[nodiscard]] uint8_t initialMaterial(const glm::vec3 p)
@@ -278,6 +300,18 @@ namespace {
     bool remove = false;
     float frameMs = 0.0f;
     Stats stats;
+
+    std::shared_ptr<vke::RenderObject> cube;
+    std::vector<std::shared_ptr<vke::Light>> lights;
+    std::shared_ptr<vke::SpotLight> spotLight;
+
+    bool pickMode = false;
+    bool outline = false;
+    bool castsShadows = true;
+    // Set by the engine, a few frames late, when the surface was under the cursor
+    bool surfacePicked = false;
+    bool cubePicked = false;
+    std::string lastPick = "none";
   };
 
   [[nodiscard]] bool parseValue(const char* text,
@@ -394,6 +428,10 @@ namespace {
       // A detached window would change what is rendered and presented between runs
       .imGui {
         .detachableWindows = false
+      },
+      // Off at first: the lit and shadowed raster path is the point of this app; the window has a checkbox
+      .rendering {
+        .rayTracingEnabled = false
       }
     };
   }
@@ -537,11 +575,39 @@ namespace {
   }
 
   void displayWindow(const Options& options,
-                     Session& session)
+                     Session& session,
+                     const std::shared_ptr<vke::RenderingManager>& rendering)
   {
     ImGui::Begin("Volume Surface");
+
+    bool rayTracing = rendering->isRayTracingEnabled();
+
+    if (ImGui::Checkbox("Ray tracing", &rayTracing))
+    {
+      if (rayTracing)
+      {
+        rendering->enableRayTracing();
+      }
+      else
+      {
+        rendering->disableRayTracing();
+      }
+    }
+
+    ImGui::Checkbox("Pick mode (click to pick, no editing)", &session.pickMode);
+    ImGui::Checkbox("Outline", &session.outline);
+
+    if (ImGui::Checkbox("Surface casts shadows", &session.castsShadows))
+    {
+      session.surface->setCastsShadows(session.castsShadows);
+    }
+
+    ImGui::Text("Last pick: %s", session.lastPick.c_str());
+
     ImGui::Text("Pending: %.0f%%", static_cast<double>(session.surface->pendingFraction()) * 100.0);
     ImGui::Text("Chunks shown: %zu", session.surface->getDisplayedChunks().size());
+    const vke::VolumeChunkCounts counts = rendering->getRenderer3D()->getVolumeChunkCounts();
+    ImGui::Text("Chunks drawn: %u / %u", counts.drawn, counts.total);
     ImGui::SliderFloat("Brush radius (cells)", &session.brush.radius, 2.0f, 20.0f);
     ImGui::Checkbox("Remove (or hold Shift)", &session.remove);
     ImGui::Text("Edits: %llu", static_cast<unsigned long long>(session.stats.edits));
@@ -565,6 +631,60 @@ namespace {
     return sorted[std::min(index, sorted.size() - 1)];
   }
 
+  // Reads the pick of the frames before this one, so call it before submitting this frame's objects
+  void reportPick(vke::VulkanEngine& renderer,
+                  Session& session)
+  {
+    const auto rendering = renderer.getRenderingManager();
+
+    if (!session.pickMode || !rendering->isSceneHovered() || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    {
+      return;
+    }
+
+    const auto pick = rendering->getRenderer3D()->getPickResult();
+
+    if (!pick)
+    {
+      session.lastPick = "nothing";
+    }
+    else
+    {
+      std::ostringstream text;
+      text << std::fixed << std::setprecision(2) << (pick->volumeSurface ? "surface" : "cube") << " at "
+           << pick->worldPosition.x << " " << pick->worldPosition.y << " " << pick->worldPosition.z;
+      session.lastPick = text.str();
+    }
+
+    std::cout << "pick: " << session.lastPick << std::endl;
+  }
+
+  void setupScene(vke::VulkanEngine& renderer,
+                  Session& session)
+  {
+    const auto assets = renderer.getAssetManager();
+
+    const auto texture = assets->loadTexture("assets/textures/white.png");
+    const auto specularMap = assets->loadTexture("assets/textures/blank_specular.png");
+    const auto model = assets->loadModel("assets/models/cube.obj");
+
+    // Beside the block, where the point light's shadow of the block falls on it and its own falls on the ground
+    session.cube = assets->loadRenderObject(texture, specularMap, model);
+    session.cube->setPosition({ 26.0f, 8.0f, 11.0f });
+    session.cube->setScale(2.0f);
+
+    const auto lighting = renderer.getLightingManager();
+
+    // The shadow depth of a point light is normalized by 100 units, so both lights stay near the terrain
+    session.lights.push_back(lighting->createPointLight({ 10.0f, 10.0f, 9.0f }, { 1.0f, 0.85f, 0.7f }, 0.05f, 0.5f, 0.5f));
+
+    const auto spot = lighting->createSpotLight({ 17.5f, 12.0f, 2.0f }, { 1.0f, 1.0f, 1.0f }, 0.1f, 0.8f, 0.5f);
+    session.spotLight = std::dynamic_pointer_cast<vke::SpotLight>(spot);
+    session.spotLight->setDirection(glm::normalize(glm::vec3(0.0f, -0.5f, 1.0f)));
+    session.spotLight->setConeAngle(35.0f);
+    session.lights.push_back(spot);
+  }
+
   void runFrame(vke::VulkanEngine& renderer,
                 const Options& options,
                 Session& session,
@@ -572,13 +692,28 @@ namespace {
                 const bool scripted)
   {
     dockWindow(renderer.getImGuiInstance(), frameIndex);
-    displayWindow(options, session);
+    displayWindow(options, session, renderer.getRenderingManager());
+
+    reportPick(renderer, session);
 
     const auto r3d = renderer.getRenderingManager()->getRenderer3D();
-    // The surface's local space is already in world units (cells times the cell size)
-    r3d->renderVolumeSurface(session.surface, glm::mat4(1.0f));
 
-    if (options.frames == 0)
+    for (const auto& light : session.lights)
+    {
+      renderer.getLightingManager()->renderLight(light);
+    }
+
+    r3d->renderObject(session.cube, vke::PipelineType::object, &session.cubePicked);
+
+    // The surface's local space is already in world units (cells times the cell size)
+    r3d->renderVolumeSurface(session.surface, glm::mat4(1.0f), &session.surfacePicked);
+
+    if (session.outline)
+    {
+      r3d->renderOutline(session.surface, glm::mat4(1.0f), { 1.0f, 0.6f, 0.1f, 1.0f });
+    }
+
+    if (options.frames == 0 && !session.pickMode)
     {
       applyMouseEdit(renderer, session);
     }
@@ -673,6 +808,9 @@ namespace {
     std::cout << "edits " << session.stats.edits << " first settled at frame " << session.stats.firstSettledFrame
               << " max frames from an edit to a settled surface " << session.stats.maxSettleFrames << "\n";
     std::cout << "chunks shown " << session.surface->getDisplayedChunks().size() << std::endl;
+
+    const vke::VolumeChunkCounts counts = rendering.getRenderer3D()->getVolumeChunkCounts();
+    std::cout << "chunks drawn " << counts.drawn << " / " << counts.total << std::endl;
   }
 
   [[nodiscard]] vke::VolumeSurfaceDescription createDescription()
@@ -701,6 +839,8 @@ namespace {
     Session session;
     session.source = std::make_shared<GridSource>();
     session.surface = assets->createVolumeSurface(createDescription(), session.source);
+
+    setupScene(renderer, session);
 
     RunResult result = runLoop(renderer, options, session);
 

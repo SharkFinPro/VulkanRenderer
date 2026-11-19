@@ -176,7 +176,21 @@ namespace vke {
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::volumeSurface,
-      PipelineConfig::createVolumeSurfacePipelineOptions(m_logicalDevice, sceneDescriptorSetLayout));
+      PipelineConfig::createVolumeSurfacePipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
+      lightingDescriptorSetLayout));
+
+    createGraphicsPipeline(PipelineType::volumeSurfaceShadow,
+      PipelineConfig::createVolumeSurfaceShadowMapPipelineOptions(sceneDescriptorSetLayout));
+
+    createGraphicsPipeline(PipelineType::volumeSurfacePointLightShadowMap,
+      PipelineConfig::createVolumeSurfacePointLightShadowMapPipelineOptions(sceneDescriptorSetLayout,
+      lightingManager->getPointLightDescriptorSetLayout()));
+
+    createGraphicsPipeline(PipelineType::volumeSurfaceMousePicking,
+      PipelineConfig::createVolumeSurfaceMousePickingPipelineOptions(sceneDescriptorSetLayout));
+
+    createGraphicsPipeline(PipelineType::volumeSurfaceOutlineMask,
+      PipelineConfig::createVolumeSurfaceOutlineMaskPipelineOptions(sceneDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::shadow,
       PipelineConfig::createShadowMapPipelineOptions(sceneDescriptorSetLayout));

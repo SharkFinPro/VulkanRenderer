@@ -7,6 +7,7 @@
 namespace vke {
 
   class Material;
+  class Mesh;
   class Model;
 
   // A draw to be grouped: the object table slot it draws and what neighboring draws must share to be one instanced draw.
@@ -16,6 +17,8 @@ namespace vke {
     const Material* material;
     uint32_t maskValue;
     uint32_t slot;
+    // Set instead of the model for a volume surface chunk
+    const Mesh* mesh = nullptr;
   };
 
   // A run of draws with equal keys, drawn with one instanced draw. firstInstance is the run's offset into the frame's
@@ -26,10 +29,11 @@ namespace vke {
     uint32_t maskValue;
     uint32_t firstInstance;
     uint32_t instanceCount;
+    const Mesh* mesh = nullptr;
   };
 
-  // Sorts the items by (maskValue, material, model, slot), writes their slots to drawSlots starting at offset, and
-  // appends one run per distinct (maskValue, material, model) to runs. Returns the offset after the last slot written.
+  // Sorts the items by (maskValue, material, mesh, model, slot), writes their slots to drawSlots starting at offset, and
+  // appends one run per distinct (maskValue, material, mesh, model) to runs. Returns the offset after the last slot written.
   // The slot is the last key, so the order within a run is the submission order without a stable sort, which would
   // allocate.
   [[nodiscard]] uint32_t buildDrawRuns(std::vector<DrawItem>& items,

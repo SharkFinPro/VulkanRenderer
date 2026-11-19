@@ -9,7 +9,8 @@ namespace vke {
     [[nodiscard]] bool sharesRun(const DrawItem& a,
                                  const DrawItem& b)
     {
-      return a.model == b.model && a.material == b.material && a.maskValue == b.maskValue;
+      return a.model == b.model && a.material == b.material && a.mesh == b.mesh &&
+             a.maskValue == b.maskValue;
     }
 
     [[nodiscard]] bool drawsBefore(const DrawItem& a,
@@ -26,6 +27,11 @@ namespace vke {
       if (a.material != b.material)
       {
         return pointerLess(a.material, b.material);
+      }
+
+      if (a.mesh != b.mesh)
+      {
+        return pointerLess(a.mesh, b.mesh);
       }
 
       if (a.model != b.model)
@@ -51,7 +57,7 @@ namespace vke {
     {
       if (next == offset || !sharesRun(items[next - offset - 1], item))
       {
-        runs.push_back({ item.model, item.material, item.maskValue, next, 0 });
+        runs.push_back({ item.model, item.material, item.maskValue, next, 0, item.mesh });
       }
 
       ++runs.back().instanceCount;

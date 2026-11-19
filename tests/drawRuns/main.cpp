@@ -25,6 +25,7 @@ namespace {
   // Stand-ins for models and materials: buildDrawRuns only compares their addresses.
   std::array<int, 3> g_models {};
   std::array<int, 2> g_materials {};
+  std::array<int, 3> g_meshes {};
 
   const vke::Model* model(const int i)
   {
@@ -34,6 +35,11 @@ namespace {
   const vke::Material* material(const int i)
   {
     return reinterpret_cast<const vke::Material*>(&g_materials[i]);
+  }
+
+  const vke::Mesh* mesh(const int i)
+  {
+    return reinterpret_cast<const vke::Mesh*>(&g_meshes[i]);
   }
 
   void checkEmpty()
@@ -149,6 +155,53 @@ namespace {
     check(runs.size() == 2 && runs[1].firstInstance == 1 && slots[1] == 7, "the new run starts at the offset");
   }
 
+  void checkMeshBreaksRuns()
+  {
+    // Volume surface chunks: no model, equal mask and material, different meshes
+    std::vector<vke::DrawItem> items {
+      { nullptr, nullptr, 0, 0, mesh(0) },
+      { nullptr, nullptr, 0, 1, mesh(1) },
+      { nullptr, nullptr, 0, 2, mesh(2) }
+    };
+    std::vector<vke::DrawRun> runs;
+    std::array<uint32_t, 3> slots {};
+
+    [[maybe_unused]] const uint32_t end = vke::buildDrawRuns(items, slots.data(), 0, runs);
+
+    check(runs.size() == 3, "different meshes form different runs");
+
+    for (const vke::DrawRun& run : runs)
+    {
+      check(run.instanceCount == 1 && run.model == nullptr, "each mesh run is one instance without a model");
+    }
+  }
+
+  void checkSameMeshSharesRun()
+  {
+    // Two submissions of the surface's chunk: the same mesh under different table slots
+    std::vector<vke::DrawItem> items {
+      { nullptr, nullptr, 0, 5, mesh(1) },
+      { nullptr, nullptr, 0, 2, mesh(0) },
+      { nullptr, nullptr, 0, 9, mesh(1) }
+    };
+    std::vector<vke::DrawRun> runs;
+    std::array<uint32_t, 3> slots {};
+
+    [[maybe_unused]] const uint32_t end = vke::buildDrawRuns(items, slots.data(), 0, runs);
+
+    check(runs.size() == 2, "the same mesh in two slots shares one run");
+
+    for (const vke::DrawRun& run : runs)
+    {
+      check(run.mesh == mesh(1) ? run.instanceCount == 2 : run.instanceCount == 1, "the run carries its mesh and count");
+
+      if (run.mesh == mesh(1))
+      {
+        check(slots[run.firstInstance] == 5 && slots[run.firstInstance + 1] == 9, "the shared run holds both slots in order");
+      }
+    }
+  }
+
 } // namespace
 
 int main()
@@ -158,6 +211,8 @@ int main()
   checkGroupsByMaterialThenModel();
   checkMaskValueBreaksRuns();
   checkAppendsToRuns();
+  checkMeshBreaksRuns();
+  checkSameMeshSharesRun();
 
   if (g_failures > 0)
   {

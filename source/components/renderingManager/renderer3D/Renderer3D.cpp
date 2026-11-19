@@ -140,8 +140,14 @@ namespace vke {
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const uint32_t currentFrame) const
   {
-    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, m_shadowRuns,
-                                      std::span(m_spotShadowRuns).first(m_spotShadowCount),
+    const ShadowDrawLists lists {
+      .pointLightRuns = m_shadowRuns,
+      .spotLightRuns = std::span(m_spotShadowRuns).first(m_spotShadowCount),
+      .volumePointLightRuns = m_volumeShadowRuns,
+      .volumeSpotLightRuns = std::span(m_volumeSpotShadowRuns).first(m_spotShadowCount)
+    };
+
+    lightingManager->renderShadowMaps(commandBuffer, pipelineManager, lists,
                                       m_sceneDescriptorSet->getDescriptorSet(currentFrame), currentFrame);
   }
 
@@ -150,12 +156,24 @@ namespace vke {
   {
     const uint32_t currentFrame = renderInfo->currentFrame;
 
-    const size_t objectCount = m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size();
+    gatherVolumeChunks();
+
+    size_t volumeSubmissionChunks = 0;
+    size_t volumeOutlineChunks = 0;
+
+    for (size_t i = 0; i < m_volumeDrawChunks.size(); ++i)
+    {
+      (i < m_volumeSurfacesToRender.size() ? volumeSubmissionChunks : volumeOutlineChunks) += m_volumeDrawChunks[i].chunkCount;
+    }
+
+    const size_t objectCount = m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size() + m_volumeDrawChunks.size();
 
     // The most every pass's list can hold: each shadow list and the pipelines' lists take at most every submission
-    // (together, the pipelines' lists exactly that many), then the pickable ones and the outlines
+    // (together, the pipelines' lists exactly that many), then the pickable ones and the outlines. The volume surfaces
+    // add the same lists of their chunks (the shadow lists, the main pass and picking), then their outlines.
     const size_t slotCount = (countShadowLists(*lightingManager) + 1) * m_renderObjectsToRenderFlattened.size() +
-                             m_mousePicker->m_renderObjectsToMousePick.size() + m_outlineObjects.size();
+                             m_mousePicker->m_renderObjectsToMousePick.size() + m_outlineObjects.size() +
+                             (countShadowLists(*lightingManager) + 2) * volumeSubmissionChunks + volumeOutlineChunks;
 
     if (m_objectTable->reserve(currentFrame, objectCount, slotCount))
     {
@@ -185,6 +203,42 @@ namespace vke {
     m_cameraUniform->update(currentFrame, &camera);
   }
 
+  void Renderer3D::gatherVolumeChunks()
+  {
+    m_volumeChunks.clear();
+    m_volumeDrawChunks.clear();
+
+    // The volume entries follow the render submissions' and the outlines'
+    auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size());
+
+    uint32_t drawnTotal = 0;
+
+    const auto gather = [&](const std::vector<VolumeSurfaceDraw>& draws) {
+      for (const VolumeSurfaceDraw& draw : draws)
+      {
+        const auto firstChunk = static_cast<uint32_t>(m_volumeChunks.size());
+
+        for (const DisplayedChunk& chunk : draw.surface->getDisplayedChunks())
+        {
+          m_volumeChunks.push_back({ chunk.mesh, transformAABB(chunk.localBounds, draw.modelMatrix) });
+        }
+
+        m_volumeDrawChunks.push_back({ slot++, firstChunk, static_cast<uint32_t>(m_volumeChunks.size()) - firstChunk });
+      }
+    };
+
+    gather(m_volumeSurfacesToRender);
+
+    for (const VolumeDrawChunks& draw : m_volumeDrawChunks)
+    {
+      drawnTotal += draw.chunkCount;
+    }
+
+    gather(m_volumeOutlines);
+
+    m_volumeChunkCounts.total = drawnTotal;
+  }
+
   void Renderer3D::writeObjectTable(const uint32_t currentFrame)
   {
     ObjectData* entries = m_objectTable->getEntries(currentFrame);
@@ -204,6 +258,23 @@ namespace vke {
     {
       writeObjectEntry(entries[i], *m_outlineObjects[i].first, 0);
     }
+
+    // The volume surfaces' entries, one per submission and outline, shared by all of its chunks. They are not in
+    // m_slotKeys and m_slotBounds, which hold render objects' slots only; the chunks are in m_volumeChunks.
+    entries += m_outlineObjects.size();
+
+    for (size_t i = 0; i < m_volumeDrawChunks.size(); ++i)
+    {
+      const VolumeSurfaceDraw& draw = getVolumeDraw(i);
+
+      entries[i] = makeObjectData(draw.modelMatrix, draw.pickId);
+    }
+  }
+
+  const Renderer3D::VolumeSurfaceDraw& Renderer3D::getVolumeDraw(const size_t index) const
+  {
+    return index < m_volumeSurfacesToRender.size() ? m_volumeSurfacesToRender[index]
+                                                   : m_volumeOutlines[index - m_volumeSurfacesToRender.size()];
   }
 
   void Renderer3D::writeObjectEntry(ObjectData& entry,
@@ -227,9 +298,61 @@ namespace vke {
 
     offset = buildPipelineRuns(drawSlots, offset, camera);
 
+    offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &camera, VolumeFilter::all, m_volumeRuns);
+
+    m_volumeChunkCounts.drawn = 0;
+
+    for (const DrawRun& run : m_volumeRuns)
+    {
+      m_volumeChunkCounts.drawn += run.instanceCount;
+    }
+
     offset = buildPickRuns(drawSlots, offset, camera);
 
-    return buildOutlineRuns(drawSlots, offset, camera);
+    offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &camera, VolumeFilter::pickable,
+                             m_volumePickRuns);
+
+    offset = buildOutlineRuns(drawSlots, offset, camera);
+
+    return buildVolumeRuns(drawSlots, offset, m_volumeSurfacesToRender.size(), m_volumeOutlines.size(), &camera,
+                           VolumeFilter::all, m_volumeOutlineRuns);
+  }
+
+  uint32_t Renderer3D::buildVolumeRuns(uint32_t* drawSlots,
+                                       const uint32_t offset,
+                                       const size_t firstDraw,
+                                       const size_t drawCount,
+                                       const Frustum* frustum,
+                                       const VolumeFilter filter,
+                                       std::vector<DrawRun>& runs)
+  {
+    m_drawItems.clear();
+    runs.clear();
+
+    for (size_t i = firstDraw; i < firstDraw + drawCount; ++i)
+    {
+      const VolumeSurfaceDraw& draw = getVolumeDraw(i);
+
+      if ((filter == VolumeFilter::castsShadows && !draw.surface->castsShadows()) ||
+          (filter == VolumeFilter::pickable && draw.pickId == 0))
+      {
+        continue;
+      }
+
+      const VolumeDrawChunks& chunks = m_volumeDrawChunks[i];
+
+      for (uint32_t c = chunks.firstChunk; c < chunks.firstChunk + chunks.chunkCount; ++c)
+      {
+        const VolumeChunk& chunk = m_volumeChunks[c];
+
+        if (!frustum || frustum->intersects(chunk.worldBounds))
+        {
+          m_drawItems.push_back({ nullptr, nullptr, draw.maskValue, chunks.slot, chunk.mesh });
+        }
+      }
+    }
+
+    return buildDrawRuns(m_drawItems, drawSlots, offset, runs);
   }
 
   DrawItem Renderer3D::makeDrawItem(const uint32_t slot,
@@ -257,6 +380,7 @@ namespace vke {
                                        const LightingManager& lightingManager)
   {
     m_shadowRuns.clear();
+    m_volumeShadowRuns.clear();
 
     // The point lights share one list of every submission, built only if one casts shadows
     if (std::ranges::any_of(lightingManager.getPointLightsToRender(), castsShadows))
@@ -269,6 +393,9 @@ namespace vke {
       }
 
       offset = buildDrawRuns(m_drawItems, drawSlots, offset, m_shadowRuns);
+
+      offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), nullptr, VolumeFilter::castsShadows,
+                               m_volumeShadowRuns);
     }
 
     return buildSpotShadowRuns(drawSlots, offset, lightingManager);
@@ -293,8 +420,10 @@ namespace vke {
       if (m_spotShadowCount == m_spotShadowRuns.size())
       {
         m_spotShadowRuns.emplace_back();
+        m_volumeSpotShadowRuns.emplace_back();
       }
 
+      std::vector<DrawRun>& volumeRuns = m_volumeSpotShadowRuns[m_spotShadowCount];
       std::vector<DrawRun>& runs = m_spotShadowRuns[m_spotShadowCount++];
       runs.clear();
 
@@ -309,6 +438,9 @@ namespace vke {
       }
 
       offset = buildDrawRuns(m_drawItems, drawSlots, offset, runs);
+
+      offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &lightFrustum,
+                               VolumeFilter::castsShadows, volumeRuns);
     }
 
     return offset;
@@ -356,7 +488,8 @@ namespace vke {
 
       for (const auto& entry : m_mousePicker->m_renderObjectsToMousePick)
       {
-        if (entry.alphaTested == alphaTested)
+        // Volume surfaces have no table slot of a render object; their pick runs are built from the submissions
+        if (!entry.surface && entry.alphaTested == alphaTested)
         {
           addVisibleDrawItem(camera, entry.slot, alphaTested, 0);
         }
@@ -401,7 +534,8 @@ namespace vke {
     };
 
     m_mousePicker->render(&renderInfoMousePicking, pipelineManager,
-                          m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame), m_pickRuns, m_pickAlphaTestedRuns);
+                          m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame), m_pickRuns, m_pickAlphaTestedRuns,
+                          m_volumePickRuns);
   }
 
   void Renderer3D::recordMousePickingReadback(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -416,9 +550,14 @@ namespace vke {
     m_mousePicker->resolveReadback(currentFrame);
   }
 
+  bool Renderer3D::needsShadowMapsWithRayTracing() const
+  {
+    return !m_volumeSurfacesToRender.empty();
+  }
+
   bool Renderer3D::hasOutlines() const
   {
-    return !m_outlineObjects.empty();
+    return !m_outlineObjects.empty() || !m_volumeOutlines.empty();
   }
 
   void Renderer3D::renderOutlineMask(const RenderInfo* renderInfo,
@@ -453,6 +592,41 @@ namespace vke {
       }
 
       run.model->draw(renderInfo->commandBuffer, run.firstInstance, run.instanceCount);
+    }
+
+    if (m_volumeOutlineRuns.empty())
+    {
+      return;
+    }
+
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::volumeSurfaceOutlineMask);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::volumeSurfaceOutlineMask,
+      m_sceneDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    // Pushed again after the bind, since the pipeline is a different one
+    pushedMaskValue = 0;
+
+    for (const DrawRun& run : m_volumeOutlineRuns)
+    {
+      if (run.maskValue != pushedMaskValue)
+      {
+        pushedMaskValue = run.maskValue;
+
+        pipelineManager->pushGraphicsPipelineConstants<uint32_t>(
+          renderInfo->commandBuffer,
+          PipelineType::volumeSurfaceOutlineMask,
+          vk::ShaderStageFlagBits::eFragment,
+          0,
+          pushedMaskValue
+        );
+      }
+
+      run.mesh->draw(renderInfo->commandBuffer, run.firstInstance, run.instanceCount);
     }
   }
 
@@ -500,7 +674,7 @@ namespace vke {
 
     renderRenderObjectsByPipeline(&renderInfo3D, pipelineManager, lightingManager);
 
-    renderVolumeSurfaces(&renderInfo3D, pipelineManager);
+    renderVolumeSurfaces(&renderInfo3D, pipelineManager, lightingManager);
 
     pipelineManager->renderBendyPlantPipeline(&renderInfo3D, &m_bendyPlantsToRender);
 
@@ -525,7 +699,7 @@ namespace vke {
       renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, draws.runs);
     }
 
-    renderVolumeSurfaces(&renderInfo3D, pipelineManager);
+    renderVolumeSurfaces(&renderInfo3D, pipelineManager, lightingManager);
 
     renderLinesAndGrid(&renderInfo3D, pipelineManager);
   }
@@ -631,6 +805,10 @@ namespace vke {
     m_pickRuns.clear();
     m_pickAlphaTestedRuns.clear();
     m_outlineRuns.clear();
+    m_volumeRuns.clear();
+    m_volumeShadowRuns.clear();
+    m_volumePickRuns.clear();
+    m_volumeOutlineRuns.clear();
 
     m_renderObjectsToRenderFlattened.clear();
     m_pickIds.clear();
@@ -652,6 +830,7 @@ namespace vke {
     m_bendyPlantsToRender.clear();
 
     m_volumeSurfacesToRender.clear();
+    m_volumeOutlines.clear();
 
     m_mousePicker->clearObjectsToMousePick();
 
@@ -711,9 +890,9 @@ namespace vke {
                                 const PipelineType pipelineType,
                                 bool* mousePicked)
   {
-    if (pipelineType == PipelineType::volumeSurface)
+    if (isVolumeSurfacePipeline(pipelineType))
     {
-      throw std::invalid_argument("PipelineType::volumeSurface draws volume surfaces; use renderVolumeSurface.");
+      throw std::invalid_argument("Volume surface pipelines draw volume surfaces; use renderVolumeSurface.");
     }
 
     const auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size());
@@ -753,6 +932,21 @@ namespace vke {
   void Renderer3D::renderOutline(const std::shared_ptr<RenderObject>& renderObject,
                                  const glm::vec4 color)
   {
+    m_outlineObjects.emplace_back(renderObject, getOutlineMaskValue(color));
+  }
+
+  void Renderer3D::renderOutline(const std::shared_ptr<VolumeSurface>& surface,
+                                 const glm::mat4& modelMatrix,
+                                 const glm::vec4 color)
+  {
+    if (surface)
+    {
+      m_volumeOutlines.push_back({ surface, modelMatrix, 0, getOutlineMaskValue(color) });
+    }
+  }
+
+  uint32_t Renderer3D::getOutlineMaskValue(const glm::vec4 color)
+  {
     auto colorIt = std::ranges::find(m_outlineColors, color);
 
     if (colorIt == m_outlineColors.end())
@@ -774,7 +968,7 @@ namespace vke {
       }
     }
 
-    m_outlineObjects.emplace_back(renderObject, static_cast<uint32_t>(colorIt - m_outlineColors.begin()) + 1);
+    return static_cast<uint32_t>(colorIt - m_outlineColors.begin()) + 1;
   }
 
   void Renderer3D::setOutlineWidth(const float pixels)
@@ -915,12 +1109,22 @@ namespace vke {
   }
 
   void Renderer3D::renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
-                                       const glm::mat4& modelMatrix)
+                                       const glm::mat4& modelMatrix,
+                                       bool* mousePicked)
   {
-    if (surface)
+    if (!surface)
     {
-      m_volumeSurfacesToRender.push_back({ surface, modelMatrix });
+      return;
     }
+
+    const uint32_t pickId = mousePicked ? m_mousePicker->renderVolumeSurface(surface, mousePicked) : 0;
+
+    m_volumeSurfacesToRender.push_back({ surface, modelMatrix, pickId, 0 });
+  }
+
+  VolumeChunkCounts Renderer3D::getVolumeChunkCounts() const
+  {
+    return m_volumeChunkCounts;
   }
 
   void Renderer3D::renderBendyPlant(const BendyPlant& bendyPlant)
@@ -1022,9 +1226,10 @@ namespace vke {
   }
 
   void Renderer3D::renderVolumeSurfaces(const RenderInfo* renderInfo,
-                                        const std::shared_ptr<PipelineManager>& pipelineManager) const
+                                        const std::shared_ptr<PipelineManager>& pipelineManager,
+                                        const std::shared_ptr<LightingManager>& lightingManager) const
   {
-    if (m_volumeSurfacesToRender.empty())
+    if (m_volumeRuns.empty())
     {
       return;
     }
@@ -1034,6 +1239,7 @@ namespace vke {
 
     pipelineManager->bindGraphicsPipeline(commandBuffer, pipelineType);
 
+    // The scene set at 0 and the lighting set at 2; set 1 is reserved for materials and unused
     pipelineManager->bindGraphicsPipelineDescriptorSet(
       commandBuffer,
       pipelineType,
@@ -1041,33 +1247,16 @@ namespace vke {
       0
     );
 
-    const Frustum frustum = Frustum::fromViewProjection(renderInfo->getProjectionMatrix() * renderInfo->viewMatrix);
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      commandBuffer,
+      pipelineType,
+      lightingManager->getLightingDescriptorSet()->getDescriptorSet(renderInfo->currentFrame),
+      2
+    );
 
-    for (const auto& [surface, modelMatrix] : m_volumeSurfacesToRender)
+    for (const DrawRun& run : m_volumeRuns)
     {
-      const glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-
-      const VolumeSurfacePushConstant pushConstant {
-        .model = modelMatrix,
-        .normalMatrix = { glm::vec4(normalMatrix[0], 0.0f), glm::vec4(normalMatrix[1], 0.0f), glm::vec4(normalMatrix[2], 0.0f) },
-        .color = glm::vec4(1.0f)
-      };
-
-      pipelineManager->pushGraphicsPipelineConstants<VolumeSurfacePushConstant>(
-        commandBuffer,
-        pipelineType,
-        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-        0,
-        pushConstant
-      );
-
-      for (const DisplayedChunk& chunk : surface->getDisplayedChunks())
-      {
-        if (frustum.intersects(transformAABB(chunk.localBounds, modelMatrix)))
-        {
-          chunk.mesh->draw(commandBuffer);
-        }
-      }
+      run.mesh->draw(commandBuffer, run.firstInstance, run.instanceCount);
     }
   }
 

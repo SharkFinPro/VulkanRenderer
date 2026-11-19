@@ -1,6 +1,7 @@
 #ifndef VKE_LIGHTINGMANAGER_H
 #define VKE_LIGHTINGMANAGER_H
 
+#include "../renderingManager/renderer3D/DrawRun.h"
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <cstddef>
@@ -12,12 +13,20 @@ namespace vke {
 
   class CommandBuffer;
   class DescriptorSet;
-  struct DrawRun;
   class Light;
   class SpotLight;
   class LogicalDevice;
   class PipelineManager;
   class UniformBuffer;
+
+  // What the shadow passes draw: runs of render objects and runs of volume surface chunks, for the point lights (one list
+  // shared by all) and per shadow-casting spot light (see renderShadowMaps).
+  struct ShadowDrawLists {
+    std::span<const DrawRun> pointLightRuns;
+    std::span<const std::vector<DrawRun>> spotLightRuns;
+    std::span<const DrawRun> volumePointLightRuns;
+    std::span<const std::vector<DrawRun>> volumeSpotLightRuns;
+  };
 
   class LightingManager {
   public:
@@ -54,12 +63,12 @@ namespace vke {
 
     // Draws pointLightRuns into every shadow-casting point light's map, and into each shadow-casting spot light's map
     // its own entry of spotLightRuns, in the order of getSpotLightsToRender with the non-casting lights skipped (a light
-    // without an entry draws nothing). The runs' first instances index the draw slots the scene descriptor set (set 0 of
-    // the shadow pipelines) binds.
+    // without an entry draws nothing). The volume lists are drawn the same way after them, with the volume surface
+    // pipelines. The runs' first instances index the draw slots the scene descriptor set (set 0 of the shadow pipelines)
+    // binds.
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
-                          std::span<const DrawRun> pointLightRuns,
-                          std::span<const std::vector<DrawRun>> spotLightRuns,
+                          const ShadowDrawLists& lists,
                           vk::DescriptorSet sceneDescriptorSet,
                           uint32_t currentFrame) const;
 
@@ -114,12 +123,14 @@ namespace vke {
     void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     std::span<const DrawRun> runs,
+                                    std::span<const DrawRun> volumeRuns,
                                     vk::DescriptorSet sceneDescriptorSet,
                                     uint32_t currentFrame) const;
 
     void renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                    const std::shared_ptr<PipelineManager>& pipelineManager,
                                    std::span<const std::vector<DrawRun>> spotLightRuns,
+                                   std::span<const std::vector<DrawRun>> volumeSpotLightRuns,
                                    vk::DescriptorSet sceneDescriptorSet,
                                    uint32_t currentFrame) const;
 

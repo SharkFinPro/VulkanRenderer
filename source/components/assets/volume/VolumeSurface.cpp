@@ -176,6 +176,16 @@ namespace vke {
     return m_description;
   }
 
+  void VolumeSurface::setCastsShadows(const bool castsShadows)
+  {
+    m_castsShadows = castsShadows;
+  }
+
+  bool VolumeSurface::castsShadows() const
+  {
+    return m_castsShadows;
+  }
+
   std::span<const DisplayedChunk> VolumeSurface::getDisplayedChunks() const
   {
     return m_displayed;
@@ -263,10 +273,23 @@ namespace vke {
 
   std::shared_ptr<Mesh> VolumeSurface::createMesh(const SurfaceMesh& mesh) const
   {
+    // The mesh copies the bytes at creation, so the scratch is free again when this returns
+    m_vertexScratch.clear();
+
+    for (const SurfaceVertex& vertex : mesh.vertices)
+    {
+      m_vertexScratch.push_back({
+        .position = vertex.position,
+        .normal = vertex.normal,
+        .materials = { static_cast<uint8_t>(vertex.material), 0, 0, 0 },
+        .weights = { 255, 0, 0, 0 }
+      });
+    }
+
     const MeshCreateInfo createInfo {
-      .vertexData = std::as_bytes(std::span<const SurfaceVertex>(mesh.vertices)),
-      .vertexStride = sizeof(SurfaceVertex),
-      .positionOffset = offsetof(SurfaceVertex, position),
+      .vertexData = std::as_bytes(std::span<const VolumeVertex>(m_vertexScratch)),
+      .vertexStride = sizeof(VolumeVertex),
+      .positionOffset = offsetof(VolumeVertex, position),
       .indices = mesh.indices,
       .buildBLAS = false
     };

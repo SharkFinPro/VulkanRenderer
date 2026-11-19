@@ -1,7 +1,9 @@
 #include "MousePicker.h"
 #include "../../assets/objects/Material.h"
 #include "../../assets/objects/Model.h"
+#include "../../assets/objects/Mesh.h"
 #include "../../assets/objects/RenderObject.h"
+#include "../../assets/volume/VolumeSurface.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../pipelines/pipelineManager/PipelineManager.h"
@@ -54,13 +56,17 @@ namespace vke {
     }
 
     auto renderObject = m_pick->renderObject.lock();
-    if (!renderObject)
+    auto volumeSurface = m_pick->volumeSurface.lock();
+
+    // Whichever was picked has been destroyed
+    if (!renderObject && !volumeSurface)
     {
       return std::nullopt;
     }
 
     return PickResult {
-      .renderObject = renderObject,
+      .renderObject = std::move(renderObject),
+      .volumeSurface = std::move(volumeSurface),
       .triangleIndex = m_pick->triangleIndex,
       .worldPosition = m_pick->worldPosition,
       .depth = m_pick->depth
@@ -119,17 +125,47 @@ namespace vke {
     return objectID;
   }
 
+  uint32_t MousePicker::renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
+                                            bool* mousePicked)
+  {
+    const auto objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
+    m_renderObjectsToMousePick.push_back({ nullptr, 0, false, surface });
+    m_mousePickingFlags.push_back(mousePicked);
+
+    if (mousePicked)
+    {
+      *mousePicked = false;
+    }
+
+    return objectID;
+  }
+
   void MousePicker::render(const RenderInfo* renderInfo,
                            const std::shared_ptr<PipelineManager>& pipelineManager,
                            const vk::DescriptorSet sceneDescriptorSet,
                            const std::span<const DrawRun> plainRuns,
-                           const std::span<const DrawRun> alphaTestedRuns) const
+                           const std::span<const DrawRun> alphaTestedRuns,
+                           const std::span<const DrawRun> volumeRuns) const
   {
     m_viewMatrix = renderInfo->viewMatrix;
     m_projectionMatrix = renderInfo->getProjectionMatrix();
 
     renderRuns(renderInfo, pipelineManager, sceneDescriptorSet, plainRuns, false);
     renderRuns(renderInfo, pipelineManager, sceneDescriptorSet, alphaTestedRuns, true);
+
+    if (!volumeRuns.empty())
+    {
+      constexpr auto pipelineType = PipelineType::volumeSurfaceMousePicking;
+
+      pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
+
+      pipelineManager->bindGraphicsPipelineDescriptorSet(renderInfo->commandBuffer, pipelineType, sceneDescriptorSet, 0);
+
+      for (const DrawRun& run : volumeRuns)
+      {
+        run.mesh->draw(renderInfo->commandBuffer, run.firstInstance, run.instanceCount);
+      }
+    }
   }
 
   void MousePicker::renderRuns(const RenderInfo* renderInfo,
@@ -203,24 +239,28 @@ namespace vke {
     float depth;
     std::memcpy(&depth, &depthBits, sizeof(depth));
 
-    const auto& object = slot.entries[objectID - 1].object;
+    const PickEntry& entry = slot.entries[objectID - 1];
 
     m_pick = Pick {
-      .renderObject = object,
+      .renderObject = entry.object,
+      .volumeSurface = entry.surface,
       .triangleIndex = triangleIndex,
       .worldPosition = getWorldPosition(slot, depth),
       .depth = depth
     };
 
-    flagCurrentSubmissions(object.get());
+    flagCurrentSubmissions(entry.object.get(), entry.surface.get());
   }
 
-  void MousePicker::flagCurrentSubmissions(const RenderObject* picked)
+  void MousePicker::flagCurrentSubmissions(const RenderObject* pickedObject,
+                                           const VolumeSurface* pickedSurface)
   {
-    // The ids belong to an earlier frame, so match this frame's submissions by object.
+    // The ids belong to an earlier frame, so match this frame's submissions by object or surface.
     for (size_t i = 0; i < m_renderObjectsToMousePick.size(); i++)
     {
-      if (m_renderObjectsToMousePick[i].object.get() == picked && m_mousePickingFlags[i])
+      const PickEntry& entry = m_renderObjectsToMousePick[i];
+
+      if (entry.object.get() == pickedObject && entry.surface.get() == pickedSurface && m_mousePickingFlags[i])
       {
         *m_mousePickingFlags[i] = true;
       }

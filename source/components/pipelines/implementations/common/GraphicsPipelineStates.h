@@ -5,7 +5,7 @@
 #include "../vertexInputs/Particle.h"
 #include "../vertexInputs/Vertex.h"
 #include "../vertexInputs/SmokeParticle.h"
-#include "../vertexInputs/SurfaceVertexInput.h"
+#include "../vertexInputs/VolumeVertex.h"
 #include "../../../logicalDevice/LogicalDevice.h"
 #include "../../../physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan_raii.hpp>
@@ -319,14 +319,23 @@ namespace vke::gps {
     .pVertexAttributeDescriptions = vertexAttributeDescriptionsPositionAndNormal.data()
   };
 
-  inline vk::VertexInputBindingDescription surfaceVertexBindingDescription = SurfaceVertexInput::getBindingDescription();
-  inline std::array surfaceVertexAttributeDescriptions = SurfaceVertexInput::getAttributeDescriptions();
+  inline vk::VertexInputBindingDescription volumeVertexBindingDescription = VolumeVertexInput::getBindingDescription();
+  inline std::array volumeVertexAttributeDescriptions = VolumeVertexInput::getAttributeDescriptions();
 
-  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateSurfaceVertex {
+  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateVolumeVertex {
     .vertexBindingDescriptionCount = 1,
-    .pVertexBindingDescriptions = &surfaceVertexBindingDescription,
-    .vertexAttributeDescriptionCount = static_cast<uint32_t>(surfaceVertexAttributeDescriptions.size()),
-    .pVertexAttributeDescriptions = surfaceVertexAttributeDescriptions.data()
+    .pVertexBindingDescriptions = &volumeVertexBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(volumeVertexAttributeDescriptions.size()),
+    .pVertexAttributeDescriptions = volumeVertexAttributeDescriptions.data()
+  };
+
+  inline std::array volumeVertexAttributeDescriptionsPositionOnly = VolumeVertexInput::getPositionAttributeDescriptions();
+
+  inline vk::PipelineVertexInputStateCreateInfo vertexInputStateVolumeVertexPositionOnly {
+    .vertexBindingDescriptionCount = 1,
+    .pVertexBindingDescriptions = &volumeVertexBindingDescription,
+    .vertexAttributeDescriptionCount = static_cast<uint32_t>(volumeVertexAttributeDescriptionsPositionOnly.size()),
+    .pVertexAttributeDescriptions = volumeVertexAttributeDescriptionsPositionOnly.data()
   };
 
   inline vk::VertexInputBindingDescription lineInstanceBindingDescription = LineInstance::getBindingDescription();
