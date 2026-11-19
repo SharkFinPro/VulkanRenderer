@@ -34,6 +34,7 @@ namespace vke {
   class LightingManager;
   class LogicalDevice;
   class Material;
+  class Mesh;
   class Model;
   class MousePicker;
   struct ObjectData;
@@ -71,6 +72,12 @@ namespace vke {
     vk::ShaderStageFlags stages;
   };
 
+  // How many of the displayed chunks of the submitted volume surfaces the main pass drew
+  struct VolumeChunkCounts {
+    uint32_t drawn = 0;
+    uint32_t total = 0;
+  };
+
   // How a debug shape's lines look; the fields mean what they do for renderLine.
   struct DebugStyle {
     glm::vec4 color = { 0.0f, 1.0f, 0.0f, 1.0f };
@@ -90,9 +97,9 @@ namespace vke {
     void updateLightingManager(const std::shared_ptr<LightingManager>& lightingManager,
                                uint32_t currentFrame) const;
 
-    // Writes the frame's object table (one entry per render submission, then one per outline), the draw slots of every
-    // pass's sorted draw list and the camera, which every pass that draws render objects reads through the scene
-    // descriptor set. The lists are culled against the view they are drawn from (see the member comments), so the lights
+    // Writes the frame's object table (one entry per render submission, then one per outline, then one per volume surface
+    // submission and outline), the draw slots of every pass's sorted draw list and the camera, which every pass that
+    // draws render objects reads through the scene descriptor set. The lists are culled against the view they are drawn from (see the member comments), so the lights
     // must already be submitted. Everything is written before the first pass records, since the buffers must not be
     // replaced afterwards. Call once per frame, after the frame's command buffer slot is known to be free and before the
     // first pass that draws objects.
@@ -115,6 +122,10 @@ namespace vke {
 
     // Reads the result of the frame that last used this frame-in-flight slot; call once it is known to be complete.
     void resolveMousePicking(uint32_t currentFrame) const;
+
+    // Whether the shadow maps are needed even though ray tracing is on: the rasterized volume surfaces sample them. Valid
+    // after updateSceneData, and false when every chunk is outside the camera's view.
+    [[nodiscard]] bool needsShadowMapsWithRayTracing() const;
 
     [[nodiscard]] bool hasOutlines() const;
 
@@ -192,6 +203,11 @@ namespace vke {
     // different colors in a frame, further colors draw in the last one.
     void renderOutline(const std::shared_ptr<RenderObject>& renderObject, glm::vec4 color);
 
+    // The same for a volume surface under the model matrix, drawn from its chunks' own draw calls.
+    void renderOutline(const std::shared_ptr<VolumeSurface>& surface,
+                       const glm::mat4& modelMatrix,
+                       glm::vec4 color);
+
     // Outline width in pixels of the scene image, clamped to 1..8.
     void setOutlineWidth(float pixels);
 
@@ -241,11 +257,19 @@ namespace vke {
     // Drops lines kept for a lifetime, including from the frame being built.
     void clearLines();
 
-    // Draws the surface this frame under the model matrix, with the engine's placeholder shading (not yet lit by the scene's
-    // lights, shadowed or pickable). Drawn in the scene pass and over a ray traced image. The chunks outside the camera's
-    // view are skipped.
+    // Draws the surface this frame under the model matrix, lit by the scene's point and spot lights and shadowed by
+    // their shadow maps (the surface casts into them unless VolumeSurface::setCastsShadows is false). Drawn in the scene
+    // pass and over a ray traced image, which does not include it. Chunks outside the view each list is drawn from are
+    // skipped. A non-null mousePicked makes the surface pickable and is set as renderObject's flag is, reporting a frame
+    // rendered a few frames earlier; read the outcome through getPickResult(). Without a flag the surface is not
+    // pickable.
     void renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
-                             const glm::mat4& modelMatrix);
+                             const glm::mat4& modelMatrix,
+                             bool* mousePicked = nullptr);
+
+    // The main pass's chunk counts as of the last updateSceneData: drawn after culling against the camera, and displayed
+    // by the surfaces submitted that frame (outlines not included). A frame with no scene area keeps the previous counts.
+    [[nodiscard]] VolumeChunkCounts getVolumeChunkCounts() const;
 
     void renderBendyPlant(const BendyPlant& bendyPlant);
 
@@ -303,7 +327,8 @@ namespace vke {
 
     // The other passes' draws as runs: the submissions by model for the shadow maps, the pickable ones by model (and
     // by material too when alpha tested) and the outlines by mask value then model. The draw slots hold the lists one after
-    // another: shadow (point lights', then each spot light's), the pipelines', picking, outline.
+    // another: shadow (point lights', then each spot light's, each followed by its volume surface list), the pipelines',
+    // the volume surfaces', picking (the volume surfaces' last), outline (the volume surfaces' last).
     //
     // Lists are culled against the view they are drawn from, using the submissions' world bounds: the picking and outline
     // lists and the pipelines' lists (those whose vertex stage keeps geometry within the model's bounds) against the
@@ -314,10 +339,20 @@ namespace vke {
     std::vector<DrawRun> m_pickAlphaTestedRuns;
     std::vector<DrawRun> m_outlineRuns;
 
+    // The volume surfaces' chunks as runs, by mesh: the main pass (culled against the camera), the point lights' shadow
+    // maps (every chunk of the surfaces that cast shadows), the pickable surfaces and the outlines.
+    std::vector<DrawRun> m_volumeRuns;
+    std::vector<DrawRun> m_volumeShadowRuns;
+    std::vector<DrawRun> m_volumePickRuns;
+    std::vector<DrawRun> m_volumeOutlineRuns;
+
     // One list per shadow-casting spot light in the order LightingManager draws them. Only the first m_spotShadowCount are
     // current; the rest are kept so that their storage is reused.
     std::vector<std::vector<DrawRun>> m_spotShadowRuns;
     size_t m_spotShadowCount = 0;
+
+    // The volume surface lists of the same spot lights, by the same index; kept in step with m_spotShadowRuns
+    std::vector<std::vector<DrawRun>> m_volumeSpotShadowRuns;
 
     // Scratch reused by every list build
     std::vector<DrawItem> m_drawItems;
@@ -352,12 +387,42 @@ namespace vke {
     LineBatches m_lineBatches;
     std::vector<DebugSegment> m_shapeSegments;
 
+    // A volume surface submission: pickId is its 1-based picking id (0 when not pickable) and maskValue its outline color
+    // value (0 when it is not an outline)
     struct VolumeSurfaceDraw {
       std::shared_ptr<VolumeSurface> surface;
       glm::mat4 modelMatrix;
+      uint32_t pickId;
+      uint32_t maskValue;
     };
 
     std::vector<VolumeSurfaceDraw> m_volumeSurfacesToRender;
+    std::vector<VolumeSurfaceDraw> m_volumeOutlines;
+
+    // Scratch by volume draw (the submissions, then the outlines): its object table entry, shared by all its chunks, and
+    // its chunks' range in m_volumeChunks. Rebuilt by every updateSceneData.
+    struct VolumeDrawChunks {
+      uint32_t slot;
+      uint32_t firstChunk;
+      uint32_t chunkCount;
+    };
+
+    struct VolumeChunk {
+      const Mesh* mesh;
+      AABB worldBounds;
+    };
+
+    std::vector<VolumeDrawChunks> m_volumeDrawChunks;
+    std::vector<VolumeChunk> m_volumeChunks;
+
+    VolumeChunkCounts m_volumeChunkCounts;
+
+    // Which volume draws a list takes
+    enum class VolumeFilter {
+      all,
+      castsShadows,
+      pickable
+    };
 
     std::vector<BendyPlant> m_bendyPlantsToRender;
 
@@ -410,7 +475,11 @@ namespace vke {
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
     void renderVolumeSurfaces(const RenderInfo* renderInfo,
-                              const std::shared_ptr<PipelineManager>& pipelineManager) const;
+                              const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const std::shared_ptr<LightingManager>& lightingManager) const;
+
+    // The outline mask value of the color, adding the color to the frame's list if it is new
+    [[nodiscard]] uint32_t getOutlineMaskValue(glm::vec4 color);
 
     static void renderGrid(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo);
@@ -427,6 +496,9 @@ namespace vke {
                              const RenderInfo* renderInfo,
                              PipelineType pipelineType,
                              const std::vector<DrawRun>& runs) const;
+
+    // Fills m_volumeDrawChunks and m_volumeChunks, with every chunk's world bounds computed once
+    void gatherVolumeChunks();
 
     void writeObjectTable(uint32_t currentFrame);
 
@@ -460,6 +532,18 @@ namespace vke {
     [[nodiscard]] uint32_t buildOutlineRuns(uint32_t* drawSlots,
                                             uint32_t offset,
                                             const Frustum& camera);
+
+    // Builds runs from the chunks of the volume draws [firstDraw, firstDraw + drawCount) that pass the filter and, unless
+    // frustum is null, touch it. Clears runs first.
+    [[nodiscard]] uint32_t buildVolumeRuns(uint32_t* drawSlots,
+                                           uint32_t offset,
+                                           size_t firstDraw,
+                                           size_t drawCount,
+                                           const Frustum* frustum,
+                                           VolumeFilter filter,
+                                           std::vector<DrawRun>& runs);
+
+    [[nodiscard]] const VolumeSurfaceDraw& getVolumeDraw(size_t index) const;
 
     [[nodiscard]] DrawItem makeDrawItem(uint32_t slot,
                                         bool byMaterial,

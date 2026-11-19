@@ -529,7 +529,8 @@ namespace vke {
                                                       const uint32_t currentFrame) const
   {
     auto renderShadowMaps = [this, currentFrame, lightingManager, pipelineManager] {
-      if (m_rayTracingEnabled)
+      // Ray tracing shadows itself; the rasterized volume surfaces still sample the maps
+      if (m_rayTracingEnabled && !m_renderer3D->needsShadowMapsWithRayTracing())
       {
         return;
       }

@@ -44,6 +44,7 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/volume/VolumeSource.h
     components/assets/volume/VolumeSurface.cpp
     components/assets/volume/VolumeSurface.h
+    components/assets/volume/VolumeVertex.h
 
   components/assets/AssetManager.cpp
   components/assets/AssetManager.h
@@ -189,7 +190,7 @@ set(VULKAN_ENGINE_SOURCES_PIPELINES_IMPLEMENTATIONS
   components/pipelines/implementations/vertexInputs/LineInstance.h
   components/pipelines/implementations/vertexInputs/Particle.h
   components/pipelines/implementations/vertexInputs/SmokeParticle.h
-  components/pipelines/implementations/vertexInputs/SurfaceVertexInput.h
+  components/pipelines/implementations/vertexInputs/VolumeVertexInput.h
   components/pipelines/implementations/vertexInputs/Vertex.h
 )
 

@@ -20,6 +20,7 @@ namespace vke {
   enum class PipelineType;
   struct RenderInfo;
   class RenderObject;
+  class VolumeSurface;
 
   class MousePicker {
   public:
@@ -61,12 +62,13 @@ namespace vke {
 
     // sceneDescriptorSet is the frame's scene set (set 0), which holds the object table and draw slots the runs index.
     // Renderer3D builds the runs from the pick entries: plainRuns for the objects drawn as opaque, alphaTestedRuns
-    // (grouped by material too) for those whose texture cuts them out.
+    // (grouped by material too) for those whose texture cuts them out, volumeRuns for the volume surfaces' chunks.
     void render(const RenderInfo* renderInfo,
                 const std::shared_ptr<PipelineManager>& pipelineManager,
                 vk::DescriptorSet sceneDescriptorSet,
                 std::span<const DrawRun> plainRuns,
-                std::span<const DrawRun> alphaTestedRuns) const;
+                std::span<const DrawRun> alphaTestedRuns,
+                std::span<const DrawRun> volumeRuns) const;
 
     // Records the one-pixel copy under the cursor into the frame's command buffer, after the picking pass has ended.
     // Only the host read after the frame completes uses the result. Also updates canMousePick.
@@ -89,6 +91,10 @@ namespace vke {
                                         bool alphaTested,
                                         uint32_t slot);
 
+    // The same for a volume surface submission; the picking id comes from the surface's table entry, shared by its chunks.
+    [[nodiscard]] uint32_t renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
+                                               bool* mousePicked);
+
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     vk::Extent2D m_viewportExtent { 1, 1 };
@@ -103,6 +109,8 @@ namespace vke {
       std::shared_ptr<RenderObject> object;
       uint32_t slot;
       bool alphaTested;
+      // Set for a volume surface, which has no render object or slot of its own
+      std::shared_ptr<VolumeSurface> surface = nullptr;
     };
 
     std::vector<PickEntry> m_renderObjectsToMousePick;
@@ -115,6 +123,7 @@ namespace vke {
 
     struct Pick {
       std::weak_ptr<RenderObject> renderObject;
+      std::weak_ptr<VolumeSurface> volumeSurface;
       uint32_t triangleIndex;
       glm::vec3 worldPosition;
       float depth;
@@ -154,7 +163,8 @@ namespace vke {
     void storePick(const ReadbackSlot& slot,
                    const std::array<uint32_t, 4>& pixel);
 
-    void flagCurrentSubmissions(const RenderObject* picked);
+    void flagCurrentSubmissions(const RenderObject* pickedObject,
+                                const VolumeSurface* pickedSurface);
 
     [[nodiscard]] static glm::vec3 getWorldPosition(const ReadbackSlot& slot,
                                                     float depth);

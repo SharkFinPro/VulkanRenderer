@@ -7,6 +7,7 @@
 #include "../../../utilities/Bounds.h"
 #include "../../../utilities/CompletionQueue.h"
 #include "../../../utilities/JobPool.h"
+#include "VolumeVertex.h"
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -74,6 +75,11 @@ namespace vke {
 
     [[nodiscard]] const VolumeSurfaceDescription& getDescription() const;
 
+    // Whether the surface is drawn into shadow maps (default true). It is always lit and receives shadows.
+    void setCastsShadows(bool castsShadows);
+
+    [[nodiscard]] bool castsShadows() const;
+
     // The chunks to draw, in no particular order, valid until the next update().
     [[nodiscard]] std::span<const DisplayedChunk> getDisplayedChunks() const;
 
@@ -105,6 +111,8 @@ namespace vke {
 
     bool m_cancelled = false;
 
+    bool m_castsShadows = true;
+
     // By chunk; null where a chunk shows nothing
     std::vector<std::shared_ptr<Mesh>> m_meshes;
 
@@ -117,6 +125,7 @@ namespace vke {
 
     // Scratch reused by every call
     std::vector<uint32_t> m_touched;
+    mutable std::vector<VolumeVertex> m_vertexScratch;
     Scheduler::JobList m_newJobs;
 
     void scheduleAll();

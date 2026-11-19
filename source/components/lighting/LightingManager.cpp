@@ -4,6 +4,7 @@
 #include "lights/Light.h"
 #include "lights/PointLight.h"
 #include "lights/SpotLight.h"
+#include "../assets/objects/Mesh.h"
 #include "../assets/objects/Model.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -28,6 +29,16 @@ namespace {
     for (const vke::DrawRun& run : runs)
     {
       run.model->draw(commandBuffer, run.firstInstance, run.instanceCount);
+    }
+  }
+
+  // The same for volume surface chunks, which draw meshes
+  void drawVolumeShadowCasters(const std::shared_ptr<vke::CommandBuffer>& commandBuffer,
+                               const std::span<const vke::DrawRun> runs)
+  {
+    for (const vke::DrawRun& run : runs)
+    {
+      run.mesh->draw(commandBuffer, run.firstInstance, run.instanceCount);
     }
   }
 
@@ -231,14 +242,15 @@ namespace vke {
 
   void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<PipelineManager>& pipelineManager,
-                                         const std::span<const DrawRun> pointLightRuns,
-                                         const std::span<const std::vector<DrawRun>> spotLightRuns,
+                                         const ShadowDrawLists& lists,
                                          const vk::DescriptorSet sceneDescriptorSet,
                                          const uint32_t currentFrame) const
   {
-    renderPointLightShadowMaps(commandBuffer, pipelineManager, pointLightRuns, sceneDescriptorSet, currentFrame);
+    renderPointLightShadowMaps(commandBuffer, pipelineManager, lists.pointLightRuns, lists.volumePointLightRuns,
+                               sceneDescriptorSet, currentFrame);
 
-    renderSpotLightShadowMaps(commandBuffer, pipelineManager, spotLightRuns, sceneDescriptorSet, currentFrame);
+    renderSpotLightShadowMaps(commandBuffer, pipelineManager, lists.spotLightRuns, lists.volumeSpotLightRuns,
+                              sceneDescriptorSet, currentFrame);
   }
 
   vk::DescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
@@ -443,6 +455,7 @@ namespace vke {
   void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const std::shared_ptr<PipelineManager>& pipelineManager,
                                                    const std::span<const DrawRun> runs,
+                                                   const std::span<const DrawRun> volumeRuns,
                                                    const vk::DescriptorSet sceneDescriptorSet,
                                                    const uint32_t currentFrame) const
   {
@@ -507,6 +520,33 @@ namespace vke {
 
       drawShadowCasters(shadowRenderInfo.commandBuffer, runs);
 
+      if (!volumeRuns.empty())
+      {
+        constexpr auto volumePipeline = PipelineType::volumeSurfacePointLightShadowMap;
+
+        pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, volumePipeline);
+
+        pipelineManager->pushGraphicsPipelineConstants<glm::vec3>(
+          shadowRenderInfo.commandBuffer,
+          volumePipeline,
+          vk::ShaderStageFlagBits::eFragment,
+          0,
+          shadowRenderInfo.viewPosition
+        );
+
+        // Rebound, since the pipeline layouts differ
+        pipelineManager->bindGraphicsPipelineDescriptorSet(shadowRenderInfo.commandBuffer, volumePipeline, sceneDescriptorSet, 0);
+
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
+          shadowRenderInfo.commandBuffer,
+          volumePipeline,
+          pointLight->getDescriptorSet(currentFrame),
+          1
+        );
+
+        drawVolumeShadowCasters(shadowRenderInfo.commandBuffer, volumeRuns);
+      }
+
       endShadowRendering(commandBuffer, light);
     }
   }
@@ -514,6 +554,7 @@ namespace vke {
   void LightingManager::renderSpotLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                   const std::shared_ptr<PipelineManager>& pipelineManager,
                                                   const std::span<const std::vector<DrawRun>> spotLightRuns,
+                                                  const std::span<const std::vector<DrawRun>> volumeSpotLightRuns,
                                                   const vk::DescriptorSet sceneDescriptorSet,
                                                   const uint32_t currentFrame) const
   {
@@ -531,6 +572,9 @@ namespace vke {
       const std::span<const DrawRun> runs = shadowCaster < spotLightRuns.size()
                                             ? std::span<const DrawRun>(spotLightRuns[shadowCaster])
                                             : std::span<const DrawRun>();
+      const std::span<const DrawRun> volumeRuns = shadowCaster < volumeSpotLightRuns.size()
+                                                  ? std::span<const DrawRun>(volumeSpotLightRuns[shadowCaster])
+                                                  : std::span<const DrawRun>();
       ++shadowCaster;
 
       const auto shadowExtent = light->getShadowMapExtent();
@@ -576,6 +620,26 @@ namespace vke {
       );
 
       drawShadowCasters(shadowRenderInfo.commandBuffer, runs);
+
+      if (!volumeRuns.empty())
+      {
+        constexpr auto volumePipeline = PipelineType::volumeSurfaceShadow;
+
+        pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, volumePipeline);
+
+        pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(
+          shadowRenderInfo.commandBuffer,
+          volumePipeline,
+          vk::ShaderStageFlagBits::eVertex,
+          0,
+          shadowRenderInfo.viewMatrix
+        );
+
+        // Rebound, since the pipeline layouts differ
+        pipelineManager->bindGraphicsPipelineDescriptorSet(shadowRenderInfo.commandBuffer, volumePipeline, sceneDescriptorSet, 0);
+
+        drawVolumeShadowCasters(shadowRenderInfo.commandBuffer, volumeRuns);
+      }
 
       endShadowRendering(commandBuffer, light);
     }

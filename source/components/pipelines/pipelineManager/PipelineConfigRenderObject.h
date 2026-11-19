@@ -151,7 +151,7 @@ namespace vke::PipelineConfig {
         .inputAssemblyState = gps::inputAssemblyStateTriangleList,
         .multisampleState = gps::multisampleStateNone,
         .rasterizationState = gps::rasterizationStateCullBack,
-        .vertexInputState = gps::vertexInputStateVertex,
+        .vertexInputState = gps::vertexInputStateVertexPositionOnly,
         .viewportState = gps::viewportState
       },
       .pushConstantRanges {
@@ -184,7 +184,7 @@ namespace vke::PipelineConfig {
         .inputAssemblyState = gps::inputAssemblyStateTriangleList,
         .multisampleState = gps::multisampleStateNone,
         .rasterizationState = gps::rasterizationStateCullBack,
-        .vertexInputState = gps::vertexInputStateVertex,
+        .vertexInputState = gps::vertexInputStateVertexPositionOnly,
         .viewportState = gps::viewportState
       },
       .pushConstantRanges {
@@ -338,9 +338,12 @@ namespace vke::PipelineConfig {
     };
   }
 
-  // The placeholder pipeline of volume surfaces: unlit by scene lights, drawn from the scene set alone.
+  // Volume surfaces: lit by the scene's lights like objects. Set 1 is the material layout reserved for surface
+  // materials; the shaders do not use it yet and it is not bound.
   inline GraphicsPipelineOptions createVolumeSurfacePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                                                    vk::DescriptorSetLayout sceneDescriptorSetLayout)
+                                                                    vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                    vk::DescriptorSetLayout materialDescriptorSetLayout,
+                                                                    vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -354,20 +357,57 @@ namespace vke::PipelineConfig {
         .inputAssemblyState = gps::inputAssemblyStateTriangleList,
         .multisampleState = gps::getMultsampleState(logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
-        .vertexInputState = gps::vertexInputStateSurfaceVertex,
+        .vertexInputState = gps::vertexInputStateVolumeVertex,
         .viewportState = gps::viewportState
       },
-      .pushConstantRanges {
-        {
-          .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-          .offset = 0,
-          .size = sizeof(VolumeSurfacePushConstant)
-        }
-      },
       .descriptorSetLayouts {
-        sceneDescriptorSetLayout
+        sceneDescriptorSetLayout,
+        materialDescriptorSetLayout,
+        lightingDescriptorSetLayout
       }
     };
+  }
+
+  // The volume surface variants of the internal passes reuse the object shaders, which read only the position, and
+  // draw both sides of the surface.
+  inline GraphicsPipelineOptions createVolumeSurfaceShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
+  {
+    auto options = createShadowMapPipelineOptions(sceneDescriptorSetLayout);
+
+    options.states.rasterizationState = gps::rasterizationStateNoCull;
+    options.states.vertexInputState = gps::vertexInputStateVolumeVertexPositionOnly;
+
+    return options;
+  }
+
+  inline GraphicsPipelineOptions createVolumeSurfacePointLightShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout,
+                                                                                       vk::DescriptorSetLayout pointLightDescriptorSetLayout)
+  {
+    auto options = createPointLightShadowMapPipelineOptions(sceneDescriptorSetLayout, pointLightDescriptorSetLayout);
+
+    options.states.rasterizationState = gps::rasterizationStateNoCull;
+    options.states.vertexInputState = gps::vertexInputStateVolumeVertexPositionOnly;
+
+    return options;
+  }
+
+  inline GraphicsPipelineOptions createVolumeSurfaceMousePickingPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
+  {
+    auto options = createMousePickingPipelineOptions(sceneDescriptorSetLayout);
+
+    options.states.rasterizationState = gps::rasterizationStateNoCull;
+    options.states.vertexInputState = gps::vertexInputStateVolumeVertexPositionOnly;
+
+    return options;
+  }
+
+  inline GraphicsPipelineOptions createVolumeSurfaceOutlineMaskPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
+  {
+    auto options = createOutlineMaskPipelineOptions(sceneDescriptorSetLayout);
+
+    options.states.vertexInputState = gps::vertexInputStateVolumeVertexPositionOnly;
+
+    return options;
   }
 
   inline GraphicsPipelineOptions createSnakePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,

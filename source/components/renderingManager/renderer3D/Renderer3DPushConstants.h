@@ -75,15 +75,6 @@ namespace vke {
     float wiggle = 0.0f;
   };
 
-  // The normal matrix is three vec4 columns so the layout matches GLSL's mat3 in a push constant block.
-  struct VolumeSurfacePushConstant {
-    glm::mat4 model;
-    glm::vec4 normalMatrix[3];
-    glm::vec4 color;
-  };
-
-  static_assert(sizeof(VolumeSurfacePushConstant) == 128);
-
 } // vke
 
 #endif //VULKANPROJECT_RENDERER3DPUSHCONSTANTS_H
