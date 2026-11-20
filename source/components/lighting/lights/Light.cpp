@@ -2,6 +2,8 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/ImageResource.h"
 
+#include <stdexcept>
+
 namespace vke {
 
   Light::Light(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -68,6 +70,21 @@ namespace vke {
   vk::Extent2D Light::getShadowMapExtent() const
   {
     return m_shadowMapExtent;
+  }
+
+  float Light::getShadowRange() const
+  {
+    return m_shadowRange;
+  }
+
+  void Light::setShadowRange(const float range)
+  {
+    if (!(range > s_shadowNearPlane))
+    {
+      throw std::invalid_argument("Light::setShadowRange: the range must be greater than the shadow near plane");
+    }
+
+    m_shadowRange = range;
   }
 
   std::shared_ptr<ImageResource> Light::getShadowMapDepthImageResource() const

@@ -191,7 +191,7 @@ namespace vke::PipelineConfig {
         {
           .stageFlags = vk::ShaderStageFlagBits::eFragment,
           .offset = 0,
-          .size = sizeof(glm::vec3)
+          .size = sizeof(glm::vec4) // Light position, shadow range
         }
       },
       .descriptorSetLayouts {

@@ -50,7 +50,8 @@ namespace vke {
       .diffuse = m_diffuse,
       .direction = m_direction,
       .specular = m_specular,
-      .coneAngle = glm::radians(m_coneAngle)
+      .coneAngle = glm::radians(m_coneAngle),
+      .shadowRange = m_shadowRange
     };
   }
 
@@ -70,8 +71,8 @@ namespace vke {
     glm::mat4 proj = glm::perspective(
       glm::radians(fov),
       1.0f,
-      0.1f,
-      100.0f
+      s_shadowNearPlane,
+      m_shadowRange
     );
 
     proj[1][1] *= -1;

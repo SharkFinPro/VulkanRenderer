@@ -38,7 +38,8 @@ namespace vke {
       .color = m_color,
       .ambient = m_ambient,
       .diffuse = m_diffuse,
-      .specular = m_specular
+      .specular = m_specular,
+      .shadowRange = m_shadowRange
     };
   }
 
@@ -47,8 +48,8 @@ namespace vke {
     glm::mat4 projection = glm::perspective(
       glm::radians(90.0f),
       1.0f,
-      0.1f,
-      100.0f
+      s_shadowNearPlane,
+      m_shadowRange
     );
 
     projection[1][1] *= -1;
