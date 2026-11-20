@@ -5,6 +5,7 @@
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
+#include <cstddef>
 #include <memory>
 #include <variant>
 
@@ -23,7 +24,7 @@ namespace vke {
     float ambient;
     float diffuse;
     float specular;
-    float padding3;
+    float shadowRange;
   };
 
   struct alignas(16) SpotLightUniform {
@@ -35,7 +36,12 @@ namespace vke {
     glm::vec3 direction;
     float specular;
     float coneAngle;
+    float shadowRange;
   };
+
+  // Both are arrays in shader storage buffers, mirrored by the structs in shaders/common/Lighting.glsl
+  static_assert(sizeof(PointLightUniform) == 432 && offsetof(PointLightUniform, shadowRange) == 428);
+  static_assert(sizeof(SpotLightUniform) == 128 && offsetof(SpotLightUniform, shadowRange) == 116);
 
   using LightUniform = std::variant<PointLightUniform, SpotLightUniform>;
 
@@ -58,6 +64,11 @@ namespace vke {
     // attachment format. D32Sfloat is also what makes ImageResource mark depth images sampled.
     static constexpr auto s_shadowMapFormat = vk::Format::eD32Sfloat;
 
+    // Near plane of every shadow map projection; a shadow range must lie beyond it
+    static constexpr float s_shadowNearPlane = 0.1f;
+
+    static constexpr float s_defaultShadowRange = 1000.0f;
+
     Light(std::shared_ptr<LogicalDevice> logicalDevice,
           const CommonLightData& commonLightData);
 
@@ -77,6 +88,13 @@ namespace vke {
 
     [[nodiscard]] vk::Extent2D getShadowMapExtent() const;
 
+    // Distance from the light that its shadow map covers. Fragments beyond it are lit, not shadowed;
+    // the light itself reaches any distance.
+    [[nodiscard]] float getShadowRange() const;
+
+    // Throws std::invalid_argument unless range is finite and greater than s_shadowNearPlane
+    void setShadowRange(float range);
+
     [[nodiscard]] bool castsShadows() const;
 
     [[nodiscard]] virtual LightType getLightType() const = 0;
@@ -91,6 +109,7 @@ namespace vke {
     std::shared_ptr<ImageResource> m_shadowMapDepthImageResource;
 
     bool m_castsShadows = true;
+    float m_shadowRange = s_defaultShadowRange;
     vk::Extent2D m_shadowMapExtent = {
       1024,
       1024

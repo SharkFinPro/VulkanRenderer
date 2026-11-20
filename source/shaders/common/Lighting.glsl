@@ -7,7 +7,7 @@ struct PointLight {
   float ambient;
   float diffuse;
   float specular;
-  float padding3; // Padding to ensure alignment
+  float shadowRange; // Distance the shadow map covers; lit beyond it
 };
 
 struct SpotLight {
@@ -19,6 +19,7 @@ struct SpotLight {
   vec3 direction;
   float specular;
   float coneAngle;
+  float shadowRange; // Distance the shadow map covers; lit beyond it
 };
 
 bool isInSpotlight(SpotLight light, vec3 fragPos)

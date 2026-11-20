@@ -494,12 +494,14 @@ namespace vke {
 
       pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, PipelineType::pointLightShadowMap);
 
-      pipelineManager->pushGraphicsPipelineConstants<glm::vec3>(
+      const glm::vec4 lightPositionAndRange(pointLight->getPosition(), pointLight->getShadowRange());
+
+      pipelineManager->pushGraphicsPipelineConstants<glm::vec4>(
         shadowRenderInfo.commandBuffer,
         PipelineType::pointLightShadowMap,
         vk::ShaderStageFlagBits::eFragment,
         0,
-        shadowRenderInfo.viewPosition
+        lightPositionAndRange
       );
 
       pointLight->updateUniform(shadowRenderInfo.currentFrame);
@@ -526,12 +528,12 @@ namespace vke {
 
         pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, volumePipeline);
 
-        pipelineManager->pushGraphicsPipelineConstants<glm::vec3>(
+        pipelineManager->pushGraphicsPipelineConstants<glm::vec4>(
           shadowRenderInfo.commandBuffer,
           volumePipeline,
           vk::ShaderStageFlagBits::eFragment,
           0,
-          shadowRenderInfo.viewPosition
+          lightPositionAndRange
         );
 
         // Rebound, since the pipeline layouts differ

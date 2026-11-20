@@ -29,11 +29,18 @@ float pointLightShadow(int i, vec3 fragPos)
   vec3 fragToLight = pointLights[i].position - fragPos;
   fragToLight.xz *= -1.0;
 
+  float range = pointLights[i].shadowRange;
   float currentDist = length(fragToLight);
-  float ref = currentDist / 100.0;
 
-  float bias = 0.001;
-  ref -= bias;
+  // Nothing beyond the range is in the map, so it can't hide the fragment
+  if (currentDist >= range)
+  {
+    return 1.0;
+  }
+
+  // The bias is a world distance, so it doesn't grow with the range
+  const float bias = 0.1;
+  float ref = (currentDist - bias) / range;
 
   return texture(pointLightShadowMaps[nonuniformEXT(i)], vec4(fragToLight, ref));
 }
@@ -43,6 +50,12 @@ float spotLightShadow(int i, vec3 fragPos)
   vec4 fragPosLightSpace = spotLights[i].lightViewProjection * vec4(fragPos, 1.0);
   vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
   projCoords.xy = projCoords.xy * 0.5 + 0.5;
+
+  // Beyond the far plane (the shadow range) nothing is in the map, so the fragment is lit
+  if (projCoords.z > 1.0)
+  {
+    return 1.0;
+  }
 
   float bias = 0.00005;
   projCoords.z -= bias;
