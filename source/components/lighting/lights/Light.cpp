@@ -2,6 +2,7 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/ImageResource.h"
 
+#include <cmath>
 #include <stdexcept>
 
 namespace vke {
@@ -79,9 +80,9 @@ namespace vke {
 
   void Light::setShadowRange(const float range)
   {
-    if (!(range > s_shadowNearPlane))
+    if (!std::isfinite(range) || !(range > s_shadowNearPlane))
     {
-      throw std::invalid_argument("Light::setShadowRange: the range must be greater than the shadow near plane");
+      throw std::invalid_argument("Light::setShadowRange: the range must be finite and greater than the shadow near plane");
     }
 
     m_shadowRange = range;

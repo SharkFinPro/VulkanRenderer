@@ -92,7 +92,7 @@ namespace vke {
     // the light itself reaches any distance.
     [[nodiscard]] float getShadowRange() const;
 
-    // Throws std::invalid_argument unless range is greater than s_shadowNearPlane
+    // Throws std::invalid_argument unless range is finite and greater than s_shadowNearPlane
     void setShadowRange(float range);
 
     [[nodiscard]] bool castsShadows() const;
