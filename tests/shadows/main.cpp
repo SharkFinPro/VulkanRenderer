@@ -76,7 +76,7 @@ void setupScene(const vke::VulkanEngine& renderer,
   object3->setPosition({ 10, 0, 15 });
   objects.push_back(object3);
 
-  // Reaches well past the lights' default shadow range, so the range's edge would show on it
+  // Reaches well past 100 units from the lights, where rasterized shadows used to stop
   const auto ground = renderer.getAssetManager()->loadRenderObject(texture, specularMap, model);
   ground->setPosition({ 0, -15, 0 });
   ground->setScale({ 20.0f, 1.0f, 20.0f }); // 400 x 2 x 400

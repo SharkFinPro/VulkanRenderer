@@ -67,7 +67,7 @@ namespace vke {
     // Near plane of every shadow map projection; a shadow range must lie beyond it
     static constexpr float s_shadowNearPlane = 0.1f;
 
-    static constexpr float s_defaultShadowRange = 100.0f;
+    static constexpr float s_defaultShadowRange = 1000.0f;
 
     Light(std::shared_ptr<LogicalDevice> logicalDevice,
           const CommonLightData& commonLightData);

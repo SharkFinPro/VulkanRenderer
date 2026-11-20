@@ -38,10 +38,9 @@ float pointLightShadow(int i, vec3 fragPos)
     return 1.0;
   }
 
-  float ref = currentDist / range;
-
-  float bias = 0.001;
-  ref -= bias;
+  // The bias is a world distance, so it doesn't grow with the range
+  const float bias = 0.1;
+  float ref = (currentDist - bias) / range;
 
   return texture(pointLightShadowMaps[nonuniformEXT(i)], vec4(fragToLight, ref));
 }
