@@ -208,6 +208,25 @@ namespace {
 
     check(grid.getBounds().min == glm::ivec3(0) && grid.getBounds().max == glm::ivec3(129), "wider sample bounds leave the bounds alone");
     check(grid.chunkCount() == 64, "wider sample bounds leave the chunks alone");
+
+    const vke::VolumeChunkGrid narrow({ { 0, 0, 0 }, { 129, 129, 129 } }, 32);
+    check(grid.chunkCount() == narrow.chunkCount() && grid.chunkCounts() == narrow.chunkCounts(),
+          "wider sample bounds give the chunk counts of the default grid");
+
+    const vke::CellRange firstCells = grid.cellRange(0);
+    const vke::CellRange lastCells = grid.cellRange(grid.chunkCount() - 1);
+    check(firstCells.min == grid.getBounds().min, "the first chunk's cells start at the bounds, not the sample bounds");
+    check(lastCells.max == grid.getBounds().max - 1, "the last chunk's cells end at the bounds, not the sample bounds");
+
+    bool sameRanges = true;
+
+    for (uint32_t chunk = 0; chunk < grid.chunkCount(); ++chunk)
+    {
+      sameRanges = sameRanges && grid.cellRange(chunk).min == narrow.cellRange(chunk).min &&
+                   grid.cellRange(chunk).max == narrow.cellRange(chunk).max;
+    }
+
+    check(sameRanges, "every chunk's cell range is that of the default grid");
   }
 
   // The chunks whose fetch region contains the sample
@@ -326,6 +345,70 @@ namespace {
 
     check(mismatches == 0, "touchedChunks matches a scan of every chunk's needed samples");
     check(nonEmpty > 100, "the random regions touch chunks");
+  }
+
+  // Random bounds (some empty or one sample thick) with sample bounds 0 to 3 wider per side, and queries reaching up to
+  // 8 samples outside. A chunk is touched exactly when its fetch region meets the query.
+  void checkTouchedChunksWithSampleBoundsAgainstBruteForce()
+  {
+    std::mt19937 generator(2024);
+    std::uniform_int_distribution<int> origin(-6, 6);
+    std::uniform_int_distribution<int> size(0, 30);
+    std::uniform_int_distribution<int> thin(0, 2);
+    std::uniform_int_distribution<int> margin(0, 3);
+    std::uniform_int_distribution<int> chunkCells(1, 9);
+    std::uniform_int_distribution<int> reach(-8, 8);
+    std::uniform_int_distribution<int> length(-1, 20);
+
+    size_t mismatches = 0;
+    size_t nonEmpty = 0;
+    size_t cases = 0;
+
+    for (int i = 0; i < 4000; ++i)
+    {
+      vke::VolumeRegion bounds;
+      vke::VolumeRegion sampleBounds;
+
+      for (int axis = 0; axis < 3; ++axis)
+      {
+        bounds.min[axis] = origin(generator);
+        bounds.max[axis] = bounds.min[axis] + (i % 5 == 0 ? thin(generator) : size(generator));
+        sampleBounds.min[axis] = bounds.min[axis] - margin(generator);
+        sampleBounds.max[axis] = bounds.max[axis] + margin(generator);
+      }
+
+      const vke::VolumeChunkGrid grid(bounds, sampleBounds, static_cast<uint32_t>(chunkCells(generator)));
+
+      for (int query = 0; query < 3; ++query)
+      {
+        glm::ivec3 low;
+        glm::ivec3 high;
+
+        for (int axis = 0; axis < 3; ++axis)
+        {
+          low[axis] = (query == 2 ? sampleBounds.min[axis] : bounds.min[axis]) + reach(generator);
+          high[axis] = low[axis] + length(generator);
+        }
+
+        const vke::VolumeRegion region { low, high };
+        Chunks expected;
+
+        for (uint32_t chunk = 0; chunk < grid.chunkCount(); ++chunk)
+        {
+          if (!vke::isEmpty(vke::intersect(grid.fetchRegion(chunk), region)))
+          {
+            expected.push_back(chunk);
+          }
+        }
+
+        mismatches += touched(grid, region) == expected ? 0 : 1;
+        nonEmpty += expected.empty() ? 0 : 1;
+        ++cases;
+      }
+    }
+
+    check(mismatches == 0, "touchedChunks with sample bounds matches the chunks whose fetch region meets the query");
+    check(nonEmpty > cases / 4, "the random queries touch chunks");
   }
 
   // Scheduler
@@ -677,6 +760,7 @@ int main()
   checkSampleBoundsContainBounds();
   checkTouchedChunksRegions();
   checkTouchedChunksAgainstBruteForce();
+  checkTouchedChunksWithSampleBoundsAgainstBruteForce();
 
   checkCreationBatch();
   checkUnreadyMeshKeepsOldMeshes();

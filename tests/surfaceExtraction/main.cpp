@@ -564,7 +564,17 @@ namespace {
     compareWithSingleChunk(source, meshes, testCase.name + " (edge)");
   }
 
-  // Every distinct vertex of the meshes on the plane x = 32 (local x = 16), by position, with its normal's bits
+  // Whether the vertex lies strictly inside an edge along y or z (a vertex on an x edge, or on a sample, has both
+  // other coordinates on the lattice). Cell coordinates are exact, as the cell size is a power of two.
+  bool onYOrZEdge(const vke::SurfaceVertex& vertex)
+  {
+    const glm::vec3 cells = vertex.position / s_cellSize;
+
+    return cells.y != std::floor(cells.y) || cells.z != std::floor(cells.z);
+  }
+
+  // Every distinct vertex of the meshes on the plane x = 32 (local x = 16), by position, with its normal's bits. Only
+  // vertices on y and z edges: an x edge ending at the plane (crossing at t == 1) is meshed by one side only.
   std::map<std::array<float, 3>, std::array<uint32_t, 3>> seamVertices(const std::vector<vke::SurfaceMesh>& meshes)
   {
     std::map<std::array<float, 3>, std::array<uint32_t, 3>> seam;
@@ -573,7 +583,7 @@ namespace {
     {
       for (const vke::SurfaceVertex& vertex : mesh.vertices)
       {
-        if (vertex.position.x == 32.0f * s_cellSize)
+        if (vertex.position.x == 32.0f * s_cellSize && onYOrZEdge(vertex))
         {
           std::array<uint32_t, 3> normal {};
           std::memcpy(normal.data(), &vertex.normal, sizeof(normal));
@@ -639,6 +649,36 @@ namespace {
     check(positions(narrowLeftSeam) == positions(leftSeam) && positions(narrowRightSeam) == positions(leftSeam),
           "seam canary: positions on the shared plane do not depend on the sample bounds");
     check(narrowLeftSeam != narrowRightSeam, "seam canary: without wider sample bounds the shared normals disagree");
+
+    // The extra samples feed normals only: nothing is meshed past the bounds' cells
+    const auto wideMeshes = extractAll(wideRight, gridOf(wideRight, 16));
+    const auto narrowMeshes = extractAll(narrowRight, gridOf(narrowRight, 16));
+    const glm::vec3 low = glm::vec3(right.min) * s_cellSize;
+    const glm::vec3 high = glm::vec3(right.max - 1) * s_cellSize;
+
+    size_t wideVertices = 0;
+    size_t narrowVertices = 0;
+    size_t wideIndices = 0;
+    size_t narrowIndices = 0;
+    bool inside = true;
+
+    for (const vke::SurfaceMesh& mesh : wideMeshes)
+    {
+      wideVertices += mesh.vertices.size();
+      wideIndices += mesh.indices.size();
+      inside = inside && verticesInside(mesh, low, high).size() == mesh.vertices.size();
+    }
+
+    for (const vke::SurfaceMesh& mesh : narrowMeshes)
+    {
+      narrowVertices += mesh.vertices.size();
+      narrowIndices += mesh.indices.size();
+    }
+
+    check(wideVertices > 0, "wide bounds: the surface has vertices");
+    check(inside, "wide bounds: every vertex lies inside the bounds' cells");
+    check(wideVertices == narrowVertices && wideIndices == narrowIndices,
+          "wide bounds: the vertex and index counts equal those of the default sample bounds");
   }
 
   void checkDeterministic()
