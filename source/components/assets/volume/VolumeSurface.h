@@ -56,7 +56,8 @@ namespace vke {
     VolumeSurface& operator=(const VolumeSurface&) = delete;
 
     // Reports that the samples in the region changed (see the thread rule on VolumeSource). The region is clipped to the
-    // bounds, and an empty one does nothing. The chunks it touches are extracted again and swap in together once
+    // samples the surface can read (the sample bounds, and no more than one past the bounds), and an empty one does
+    // nothing. The chunks it touches are extracted again and swap in together once
     // every one of them is ready, so the surface changes without cracks.
     void invalidate(const VolumeRegion& region);
 

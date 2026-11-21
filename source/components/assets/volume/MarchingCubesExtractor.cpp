@@ -39,7 +39,7 @@ namespace vke {
     }
 
     // The vertex on the edge from lower to lower + axis. It depends on nothing but the samples around that edge. The
-    // caller passes samples clipped to the volume's bounds, so clamping to them equals clamping to the bounds, and two
+    // caller passes samples clipped to the volume's sample bounds, so clamping to them equals clamping to the sample bounds, and two
     // chunks that share the edge read the same values.
     [[nodiscard]] SurfaceVertex makeVertex(const VolumeSamples& samples,
                                            const glm::ivec3 lower,

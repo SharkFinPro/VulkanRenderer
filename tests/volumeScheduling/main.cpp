@@ -177,6 +177,109 @@ namespace {
           "a grid without chunks touches nothing");
   }
 
+  void checkDefaultSampleBounds()
+  {
+    const vke::VolumeRegion bounds { { 0, 0, 0 }, { 129, 129, 129 } };
+    const vke::VolumeChunkGrid grid(bounds, 32);
+
+    check(grid.getSampleBounds().min == bounds.min && grid.getSampleBounds().max == bounds.max, "the default sample bounds are the bounds");
+
+    const vke::VolumeRegion fetchFirst = grid.fetchRegion(0);
+    check(fetchFirst.min == glm::ivec3(0) && fetchFirst.max == glm::ivec3(34), "default: the first chunk's fetch region is clipped to the bounds");
+
+    const vke::VolumeRegion fetchLast = grid.fetchRegion(63);
+    check(fetchLast.min == glm::ivec3(95) && fetchLast.max == glm::ivec3(129), "default: the last chunk's fetch region ends at the bounds");
+
+    check(touched(grid, sampleRegion({ -1, 40, 40 })).empty(), "default: a sample one before the bounds touches nothing");
+    check(touched(grid, sampleRegion({ 129, 40, 40 })).empty(), "default: a sample one past the bounds touches nothing");
+    check(touched(grid, sampleRegion({ 0, 40, 40 })) == Chunks({ 20 }), "default: the first sample touches the first chunk of its row");
+    check(touched(grid, sampleRegion({ 128, 40, 40 })) == Chunks({ 23 }), "default: the last sample touches the last chunk of its row");
+  }
+
+  void checkSampleBoundsFetchRegions()
+  {
+    const vke::VolumeChunkGrid grid({ { 0, 0, 0 }, { 129, 129, 129 } }, { { -1, 0, -5 }, { 130, 129, 140 } }, 32);
+
+    const vke::VolumeRegion first = grid.fetchRegion(0);
+    check(first.min == glm::ivec3(-1, 0, -1) && first.max == glm::ivec3(34, 34, 34), "fetch regions reach into wider sample bounds");
+
+    const vke::VolumeRegion last = grid.fetchRegion(63);
+    check(last.min == glm::ivec3(95) && last.max == glm::ivec3(130, 129, 130), "the last chunk fetches up to the sample bounds' maximum");
+
+    check(grid.getBounds().min == glm::ivec3(0) && grid.getBounds().max == glm::ivec3(129), "wider sample bounds leave the bounds alone");
+    check(grid.chunkCount() == 64, "wider sample bounds leave the chunks alone");
+  }
+
+  // The chunks whose fetch region contains the sample
+  Chunks chunksFetching(const vke::VolumeChunkGrid& grid,
+                        const glm::ivec3 position)
+  {
+    Chunks expected;
+
+    for (uint32_t chunk = 0; chunk < grid.chunkCount(); ++chunk)
+    {
+      if (!vke::isEmpty(vke::intersect(grid.fetchRegion(chunk), sampleRegion(position))))
+      {
+        expected.push_back(chunk);
+      }
+    }
+
+    return expected;
+  }
+
+  void checkTouchedChunksOutsideBounds()
+  {
+    const vke::VolumeRegion bounds { { 0, 0, 0 }, { 129, 129, 129 } };
+    const vke::VolumeChunkGrid grid(bounds, { { -5, -5, -5 }, { 134, 134, 134 } }, 32);
+
+    // The chunks of the row at y = z = 40 are 20 to 23 along x
+    check(touched(grid, sampleRegion({ -1, 40, 40 })) == Chunks({ 20 }), "a sample one before the bounds touches the edge chunk");
+    check(touched(grid, sampleRegion({ 129, 40, 40 })) == Chunks({ 23 }), "a sample one past the bounds touches the edge chunk");
+    check(touched(grid, sampleRegion({ -1, 40, 40 })) == chunksFetching(grid, { -1, 40, 40 }), "the chunks touched on the min side are those fetching the sample");
+    check(touched(grid, sampleRegion({ 129, 40, 40 })) == chunksFetching(grid, { 129, 40, 40 }), "the chunks touched on the max side are those fetching the sample");
+    check(touched(grid, sampleRegion({ -1, -1, -1 })) == Chunks({ 0 }), "a sample diagonally outside the corner touches the corner chunk");
+    check(touched(grid, sampleRegion({ 129, 129, 129 })) == Chunks({ 63 }), "a sample diagonally outside the far corner touches the far chunk");
+    check(touched(grid, { { -4, 40, 40 }, { 3, 41, 41 } }) == Chunks({ 20 }), "a region straddling the min face touches its edge chunk");
+
+    for (const int far : { -2, -3, -5, 130, 131, 133 })
+    {
+      check(touched(grid, sampleRegion({ far, 40, 40 })).empty(), "a sample " + std::to_string(far) + " is more than one past the bounds and touches nothing");
+    }
+
+    check(touched(grid, { { -5, 40, 40 }, { -1, 41, 41 } }).empty(), "a region wholly more than one before the bounds touches nothing");
+    check(touched(grid, { { 130, 40, 40 }, { 134, 41, 41 } }).empty(), "a region wholly more than one past the bounds touches nothing");
+
+    // Sample bounds wider on one side only
+    const vke::VolumeChunkGrid oneSided(bounds, { { -1, 0, 0 }, { 129, 129, 129 } }, 32);
+    check(touched(oneSided, sampleRegion({ -1, 40, 40 })) == Chunks({ 20 }), "a sample inside the sample bounds is touched");
+    check(touched(oneSided, sampleRegion({ 129, 40, 40 })).empty(), "a sample outside the sample bounds is ignored");
+  }
+
+  void checkSampleBoundsContainBounds()
+  {
+    const vke::VolumeRegion bounds { { 0, 0, 0 }, { 8, 8, 8 } };
+
+    check(!throwsInvalidArgument([&] { vke::VolumeChunkGrid(bounds, bounds, 8); }), "sample bounds equal to the bounds are allowed");
+    check(!throwsInvalidArgument([&] { vke::VolumeChunkGrid(bounds, { { -1, -1, -1 }, { 9, 9, 9 } }, 8); }), "wider sample bounds are allowed");
+
+    for (int axis = 0; axis < 3; ++axis)
+    {
+      vke::VolumeRegion highMin = bounds;
+      highMin.min[axis] = 1;
+      vke::VolumeRegion lowMax = bounds;
+      lowMax.max[axis] = 7;
+
+      check(throwsInvalidArgument([&] { vke::VolumeChunkGrid(bounds, highMin, 8); }), "sample bounds starting inside the bounds throw on axis " + std::to_string(axis));
+      check(throwsInvalidArgument([&] { vke::VolumeChunkGrid(bounds, lowMax, 8); }), "sample bounds ending inside the bounds throw on axis " + std::to_string(axis));
+    }
+
+    const vke::VolumeRegion empty { { 3, 3, 3 }, { 3, 3, 3 } };
+    check(!throwsInvalidArgument([&] { vke::VolumeChunkGrid(empty, empty, 8); }), "empty bounds with equal sample bounds are allowed");
+    check(vke::VolumeChunkGrid(empty, { { 2, 2, 2 }, { 4, 4, 4 } }, 8).chunkCount() == 0, "empty bounds with wider sample bounds have no chunks");
+    check(throwsInvalidArgument([&] { vke::VolumeChunkGrid(empty, { { 4, 4, 4 }, { 4, 4, 4 } }, 8); }), "sample bounds elsewhere than empty bounds throw");
+    check(throwsInvalidArgument([&] { vke::VolumeChunkGrid(bounds, bounds, 0); }), "chunk size 0 still throws with sample bounds");
+  }
+
   vke::VolumeRegion randomRegion(std::mt19937& generator,
                                  const vke::VolumeRegion& around)
   {
@@ -568,6 +671,10 @@ int main()
   checkGridCounts();
   checkCellRangesAndFetchRegions();
   checkTouchedChunksSingleSample();
+  checkDefaultSampleBounds();
+  checkSampleBoundsFetchRegions();
+  checkTouchedChunksOutsideBounds();
+  checkSampleBoundsContainBounds();
   checkTouchedChunksRegions();
   checkTouchedChunksAgainstBruteForce();
 
