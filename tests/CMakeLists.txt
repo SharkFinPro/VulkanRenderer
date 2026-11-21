@@ -13,6 +13,7 @@ set(TESTS
   shadows
   smoke
   snake
+  volumeSeams
   volumeSurface
 )
 
