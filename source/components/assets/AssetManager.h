@@ -79,8 +79,9 @@ namespace vke {
 
     // The zero surface of a signed distance field the application owns (see VolumeSource), chunked, extracted on the job
     // pool and drawn with Renderer3D::renderVolumeSurface. Schedules every chunk, so the surface appears over the
-    // following frames. Throws std::invalid_argument on a null source, a cell size that is not finite and positive, or an
-    // invalid chunk size or bounds. Release it with release(std::shared_ptr<VolumeSurface>).
+    // following frames. Throws std::invalid_argument on a null source, a cell size that is not finite and positive, an
+    // invalid chunk size or bounds, or sample bounds that do not contain the bounds. Release it with
+    // release(std::shared_ptr<VolumeSurface>).
     [[nodiscard]] std::shared_ptr<VolumeSurface> createVolumeSurface(const VolumeSurfaceDescription& description,
                                                                      std::shared_ptr<const VolumeSource> source);
 

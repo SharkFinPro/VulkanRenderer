@@ -48,15 +48,23 @@ namespace {
 
   constexpr float s_cellSize = 0.5f;
 
-  // A field sampled into memory. Requests outside the bounds are failures, as the engine never makes them.
+  // A field sampled into memory over its sample bounds (the bounds unless given). Requests outside the sample bounds
+  // are failures, as the engine never makes them.
   class GridSource final : public vke::VolumeSource {
   public:
     GridSource(const vke::VolumeRegion& bounds,
                const Field& field)
+      : GridSource(bounds, bounds, field)
+    {}
+
+    GridSource(const vke::VolumeRegion& bounds,
+               const vke::VolumeRegion& sampleBounds,
+               const Field& field)
       : m_bounds(bounds),
-        m_size(vke::extent(bounds)),
-        m_distance(vke::sampleCount(bounds)),
-        m_material(vke::sampleCount(bounds))
+        m_sampleBounds(sampleBounds),
+        m_size(vke::extent(sampleBounds)),
+        m_distance(vke::sampleCount(sampleBounds)),
+        m_material(vke::sampleCount(sampleBounds))
     {
       for (int z = 0; z < m_size.z; ++z)
       {
@@ -64,7 +72,7 @@ namespace {
         {
           for (int x = 0; x < m_size.x; ++x)
           {
-            const glm::ivec3 position = bounds.min + glm::ivec3(x, y, z);
+            const glm::ivec3 position = sampleBounds.min + glm::ivec3(x, y, z);
             const size_t index = indexOf(position);
 
             m_distance[index] = field(glm::vec3(position));
@@ -79,8 +87,8 @@ namespace {
               std::span<float> distance,
               std::span<uint8_t> material) const override
     {
-      const vke::VolumeRegion inside = vke::intersect(region, m_bounds);
-      check(inside.min == region.min && inside.max == region.max, "fill stays inside the bounds");
+      const vke::VolumeRegion inside = vke::intersect(region, m_sampleBounds);
+      check(inside.min == region.min && inside.max == region.max, "fill stays inside the sample bounds");
       check(distance.size() == vke::sampleCount(region) && material.size() == distance.size(), "fill spans match the region");
 
       if (inside.min != region.min || inside.max != region.max)
@@ -111,6 +119,11 @@ namespace {
       return m_bounds;
     }
 
+    [[nodiscard]] vke::VolumeRegion sampleBounds() const override
+    {
+      return m_sampleBounds;
+    }
+
     [[nodiscard]] float sampleDistance(const glm::ivec3 position) const
     {
       return m_distance[indexOf(position)];
@@ -118,13 +131,14 @@ namespace {
 
   private:
     vke::VolumeRegion m_bounds;
+    vke::VolumeRegion m_sampleBounds;
     glm::ivec3 m_size;
     std::vector<float> m_distance;
     std::vector<uint8_t> m_material;
 
     [[nodiscard]] size_t indexOf(const glm::ivec3 position) const
     {
-      const glm::ivec3 local = position - m_bounds.min;
+      const glm::ivec3 local = position - m_sampleBounds.min;
 
       return static_cast<size_t>(local.x) + static_cast<size_t>(m_size.x) * (static_cast<size_t>(local.y) + static_cast<size_t>(m_size.y) * static_cast<size_t>(local.z));
     }
@@ -550,6 +564,136 @@ namespace {
     compareWithSingleChunk(source, meshes, testCase.name + " (edge)");
   }
 
+  // Whether the vertex lies strictly inside an edge along y or z (a vertex on an x edge, or on a sample, has both
+  // other coordinates on the lattice). Cell coordinates are exact, as the cell size is a power of two.
+  bool onYOrZEdge(const vke::SurfaceVertex& vertex)
+  {
+    const glm::vec3 cells = vertex.position / s_cellSize;
+
+    return cells.y != std::floor(cells.y) || cells.z != std::floor(cells.z);
+  }
+
+  // Every distinct vertex of the meshes on the plane x = 32 (local x = 16), by position, with its normal's bits. Only
+  // vertices on y and z edges: an x edge ending at the plane (crossing at t == 1) is meshed by one side only.
+  std::map<std::array<float, 3>, std::array<uint32_t, 3>> seamVertices(const std::vector<vke::SurfaceMesh>& meshes)
+  {
+    std::map<std::array<float, 3>, std::array<uint32_t, 3>> seam;
+
+    for (const vke::SurfaceMesh& mesh : meshes)
+    {
+      for (const vke::SurfaceVertex& vertex : mesh.vertices)
+      {
+        if (vertex.position.x == 32.0f * s_cellSize && onYOrZEdge(vertex))
+        {
+          std::array<uint32_t, 3> normal {};
+          std::memcpy(normal.data(), &vertex.normal, sizeof(normal));
+
+          seam.emplace(std::array<float, 3> { vertex.position.x, vertex.position.y, vertex.position.z }, normal);
+        }
+      }
+    }
+
+    return seam;
+  }
+
+  vke::VolumeChunkGrid gridOf(const vke::VolumeSource& source,
+                              const uint32_t chunkCells)
+  {
+    return { source.bounds(), source.sampleBounds(), chunkCells };
+  }
+
+  [[nodiscard]] std::set<std::array<float, 3>> seamPositions(const std::map<std::array<float, 3>, std::array<uint32_t, 3>>& seam)
+  {
+    std::set<std::array<float, 3>> result;
+
+    for (const auto& entry : seam)
+    {
+      result.insert(entry.first);
+    }
+
+    return result;
+  }
+
+  [[nodiscard]] float seamField(const glm::vec3 p)
+  {
+    return glm::length(p - glm::vec3(32.4f, 12.3f, 11.7f)) - 9.3f;
+  }
+
+  // Two surfaces placed edge to edge over one curved field, sharing the sample plane x = 32. Both compute a seam vertex
+  // from identical sample values with identical operations, so exact comparison is valid.
+  void checkSeamNormals()
+  {
+    const vke::VolumeRegion left { { 0, 0, 0 }, { 33, 25, 25 } };
+    const vke::VolumeRegion right { { 32, 0, 0 }, { 65, 25, 25 } };
+    const vke::VolumeRegion leftSamples { { 0, 0, 0 }, { 34, 25, 25 } };
+    const vke::VolumeRegion rightSamples { { 31, 0, 0 }, { 65, 25, 25 } };
+    const vke::VolumeRegion whole { { 0, 0, 0 }, { 65, 25, 25 } };
+
+    const Field field = seamField;
+
+    const GridSource wideLeft(left, leftSamples, field);
+    const GridSource wideRight(right, rightSamples, field);
+    const GridSource single(whole, field);
+
+    const auto leftSeam = seamVertices(extractAll(wideLeft, gridOf(wideLeft, 16)));
+    const auto rightSeam = seamVertices(extractAll(wideRight, gridOf(wideRight, 16)));
+    const auto wholeSeam = seamVertices(extractAll(single, gridOf(single, 24)));
+
+    check(leftSeam.size() > 8, "seam: the sphere crosses the shared plane");
+    check(leftSeam == rightSeam, "seam: both sides produce identical vertices on the shared plane with wider sample bounds");
+    check(leftSeam == wholeSeam, "seam: the shared plane's vertices equal those of a single surface");
+
+    // Without the wider sample bounds the normals at the shared faces are one-sided differences, which disagree
+    const GridSource narrowLeft(left, field);
+    const GridSource narrowRight(right, field);
+
+    const auto narrowLeftSeam = seamVertices(extractAll(narrowLeft, gridOf(narrowLeft, 16)));
+    const auto narrowRightSeam = seamVertices(extractAll(narrowRight, gridOf(narrowRight, 16)));
+
+    check(seamPositions(narrowLeftSeam) == seamPositions(leftSeam) && seamPositions(narrowRightSeam) == seamPositions(leftSeam),
+          "seam canary: positions on the shared plane do not depend on the sample bounds");
+    check(narrowLeftSeam != narrowRightSeam, "seam canary: without wider sample bounds the shared normals disagree");
+  }
+
+  // The extra samples feed normals only: nothing is meshed past the bounds' cells
+  void checkApronMeshesNothingExtra()
+  {
+    const vke::VolumeRegion right { { 32, 0, 0 }, { 65, 25, 25 } };
+    const vke::VolumeRegion rightSamples { { 31, 0, 0 }, { 65, 25, 25 } };
+    const Field field = seamField;
+    const GridSource wideRight(right, rightSamples, field);
+    const GridSource narrowRight(right, field);
+
+    const auto wideMeshes = extractAll(wideRight, gridOf(wideRight, 16));
+    const auto narrowMeshes = extractAll(narrowRight, gridOf(narrowRight, 16));
+    const glm::vec3 low = glm::vec3(right.min) * s_cellSize;
+    const glm::vec3 high = glm::vec3(right.max - 1) * s_cellSize;
+
+    size_t wideVertices = 0;
+    size_t narrowVertices = 0;
+    size_t wideIndices = 0;
+    size_t narrowIndices = 0;
+    bool inside = true;
+
+    for (const vke::SurfaceMesh& mesh : wideMeshes)
+    {
+      wideVertices += mesh.vertices.size();
+      wideIndices += mesh.indices.size();
+      inside = inside && verticesInside(mesh, low, high).size() == mesh.vertices.size();
+    }
+
+    for (const vke::SurfaceMesh& mesh : narrowMeshes)
+    {
+      narrowVertices += mesh.vertices.size();
+      narrowIndices += mesh.indices.size();
+    }
+
+    check(wideVertices > 0, "wide bounds: the surface has vertices");
+    check(inside, "wide bounds: every vertex lies inside the bounds' cells");
+    check(wideVertices == narrowVertices && wideIndices == narrowIndices,
+          "wide bounds: the vertex and index counts equal those of the default sample bounds");
+  }
+
   void checkDeterministic()
   {
     const GridSource source(s_bounds, randomField(s_bounds));
@@ -729,6 +873,8 @@ int main()
     checkEdgeClamping(testCase);
   }
 
+  checkSeamNormals();
+  checkApronMeshesNothingExtra();
   checkDeterministic();
   checkEmptyAndFull();
   checkPlaneSplitsChunks();
