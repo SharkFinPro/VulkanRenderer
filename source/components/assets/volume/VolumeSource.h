@@ -45,7 +45,11 @@ namespace vke {
   // Contract:
   //  - A sample is a distance to the surface in cells (negative inside) and a material index. The surface is the zero
   //    set of the distance.
-  //  - The engine requests only regions inside bounds(), which is read once, at creation. lod is always 0 for now.
+  //  - The engine requests only regions inside sampleBounds(), which is read once, at creation like bounds(). lod is
+  //    always 0 for now.
+  //  - Cells are meshed only inside bounds(). Samples outside bounds() but inside sampleBounds() only feed the normals
+  //    at the faces of the bounds (at most one sample past them is read), so surfaces that tile one field can shade
+  //    their shared faces identically.
   //  - fill() writes x-fastest: index = x + sx * (y + sy * z) relative to region.min, where s is the region's size.
   //  - Threads: fill() runs on engine worker threads, several at once and concurrently with the frame thread. An edit
   //    and the VolumeSurface::invalidate call that reports it must appear atomic to fill(): for instance, hold a
@@ -61,6 +65,12 @@ namespace vke {
                       std::span<uint8_t> material) const = 0;
 
     [[nodiscard]] virtual VolumeRegion bounds() const = 0;
+
+    // The samples fill() can answer. Must contain bounds(); the default is bounds() itself.
+    [[nodiscard]] virtual VolumeRegion sampleBounds() const
+    {
+      return bounds();
+    }
   };
 
   struct VolumeSurfaceDescription {

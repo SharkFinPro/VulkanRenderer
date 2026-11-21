@@ -17,11 +17,20 @@ namespace vke {
   // the neighbors a central difference reads at them. A sample edit therefore touches the chunks around it too.
   class VolumeChunkGrid {
   public:
-    // Throws std::invalid_argument unless chunkCells is in [1, 64] and max >= min on every axis of the bounds.
+    // Sample bounds equal to the bounds.
     VolumeChunkGrid(const VolumeRegion& bounds,
                     uint32_t chunkCells);
 
+    // The sample bounds are the samples the source can answer, which neighbors of the bounds' faces may read. Throws
+    // std::invalid_argument unless chunkCells is in [1, 64], max >= min on every axis of the bounds, and the sample
+    // bounds contain the bounds (min no greater and max no smaller on every axis, even when the bounds are empty).
+    VolumeChunkGrid(const VolumeRegion& bounds,
+                    const VolumeRegion& sampleBounds,
+                    uint32_t chunkCells);
+
     [[nodiscard]] const VolumeRegion& getBounds() const;
+
+    [[nodiscard]] const VolumeRegion& getSampleBounds() const;
 
     [[nodiscard]] uint32_t getChunkCells() const;
 
@@ -35,20 +44,21 @@ namespace vke {
     // The samples the chunk's cells read, which can reach past the bounds.
     [[nodiscard]] VolumeRegion neededSamples(uint32_t chunk) const;
 
-    // neededSamples clipped to the bounds: what to fetch, and what the extractor clamps reads to.
+    // neededSamples clipped to the sample bounds: what to fetch, and what the extractor clamps reads to.
     [[nodiscard]] VolumeRegion fetchRegion(uint32_t chunk) const;
 
     // Chunk-local bounds in surface local space: the cell range times cellSize.
     [[nodiscard]] AABB localBounds(uint32_t chunk,
                                    float cellSize) const;
 
-    // Every chunk whose needed samples intersect the region, ascending. Clears out first. Samples outside the bounds
-    // are ignored.
+    // Every chunk whose needed samples intersect the region, ascending. Clears out first. Samples outside the sample
+    // bounds, or more than one past the bounds, are ignored.
     void touchedChunks(const VolumeRegion& region,
                        std::vector<uint32_t>& out) const;
 
   private:
     VolumeRegion m_bounds;
+    VolumeRegion m_sampleBounds;
     uint32_t m_chunkCells;
     glm::ivec3 m_cells { 0 };
     glm::uvec3 m_counts { 0 };

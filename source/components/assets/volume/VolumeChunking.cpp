@@ -1,4 +1,5 @@
 #include "VolumeChunking.h"
+#include <glm/vector_relational.hpp>
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
@@ -7,7 +8,14 @@ namespace vke {
 
   VolumeChunkGrid::VolumeChunkGrid(const VolumeRegion& bounds,
                                    const uint32_t chunkCells)
+    : VolumeChunkGrid(bounds, bounds, chunkCells)
+  {}
+
+  VolumeChunkGrid::VolumeChunkGrid(const VolumeRegion& bounds,
+                                   const VolumeRegion& sampleBounds,
+                                   const uint32_t chunkCells)
     : m_bounds(bounds),
+      m_sampleBounds(sampleBounds),
       m_chunkCells(chunkCells)
   {
     if (chunkCells < 1 || chunkCells > 64)
@@ -18,6 +26,11 @@ namespace vke {
     if (bounds.max.x < bounds.min.x || bounds.max.y < bounds.min.y || bounds.max.z < bounds.min.z)
     {
       throw std::invalid_argument("Volume bounds must have max >= min on every axis.");
+    }
+
+    if (glm::any(glm::greaterThan(sampleBounds.min, bounds.min)) || glm::any(glm::lessThan(sampleBounds.max, bounds.max)))
+    {
+      throw std::invalid_argument("Volume sample bounds must contain the bounds.");
     }
 
     m_cells = bounds.max - bounds.min - 1;
@@ -47,6 +60,11 @@ namespace vke {
   const VolumeRegion& VolumeChunkGrid::getBounds() const
   {
     return m_bounds;
+  }
+
+  const VolumeRegion& VolumeChunkGrid::getSampleBounds() const
+  {
+    return m_sampleBounds;
   }
 
   uint32_t VolumeChunkGrid::getChunkCells() const
@@ -81,7 +99,7 @@ namespace vke {
 
   VolumeRegion VolumeChunkGrid::fetchRegion(const uint32_t chunk) const
   {
-    return intersect(neededSamples(chunk), m_bounds);
+    return intersect(neededSamples(chunk), m_sampleBounds);
   }
 
   AABB VolumeChunkGrid::localBounds(const uint32_t chunk,
@@ -97,7 +115,9 @@ namespace vke {
   {
     out.clear();
 
-    const VolumeRegion clipped = intersect(region, m_bounds);
+    // No chunk needs a sample more than one past the bounds, and chunkRange maps only those correctly.
+    const VolumeRegion reachable = intersect(m_sampleBounds, { m_bounds.min - 1, m_bounds.max + 1 });
+    const VolumeRegion clipped = intersect(region, reachable);
 
     if (m_chunkCount == 0 || isEmpty(clipped))
     {
@@ -143,8 +163,8 @@ namespace vke {
     const auto count = static_cast<int>(m_counts[axis]);
 
     // Chunk c needs the samples [c * size - 1, min((c + 1) * size, cells) + 2). It starts before high when
-    // c * size <= high, and ends after low when (c + 1) * size + 2 > low (the last chunk always does, since low <= cells
-    // there).
+    // c * size <= high, and ends after low when (c + 1) * size + 2 > low (the last chunk always does, since low is at
+    // most cells + 1 there). Both hold for low = -1 and high = cells + 2, the furthest the caller reaches.
     last = std::min(count - 1, high / size);
 
     const int minimumEnd = low - 1;

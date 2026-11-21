@@ -36,8 +36,8 @@ namespace vke {
     glm::ivec3 max { 0 };
   };
 
-  // A read-only view of fetched samples. Reads clamp to the view's region, which is how reads past the volume's bounds
-  // are answered.
+  // A read-only view of fetched samples. Reads clamp to the view's region, which is how reads past the volume's sample
+  // bounds are answered.
   struct VolumeSamples {
     VolumeRegion region;
     std::span<const float> distance;
@@ -72,7 +72,7 @@ namespace vke {
     virtual ~SurfaceExtractor() = default;
 
     // Thread-safe: called from several workers at once. Clears out first. The samples must cover what the cells need
-    // (see VolumeChunkGrid::neededSamples), clipped to the volume's bounds.
+    // (see VolumeChunkGrid::neededSamples), clipped to the volume's sample bounds.
     virtual void extract(const VolumeSamples& samples,
                          const CellRange& cells,
                          float cellSize,

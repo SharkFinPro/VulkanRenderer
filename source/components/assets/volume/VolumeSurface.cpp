@@ -103,7 +103,7 @@ namespace vke {
       m_description(validate(description)),
       m_source(std::move(source)),
       m_extractor(std::make_shared<MarchingCubesExtractor>()),
-      m_grid(requireSource(m_source).bounds(), description.chunkCells),
+      m_grid(requireSource(m_source).bounds(), m_source->sampleBounds(), description.chunkCells),
       m_results(std::make_shared<CompletionQueue<ChunkResult>>()),
       m_scheduler(m_grid.chunkCount()),
       m_meshes(m_grid.chunkCount())
