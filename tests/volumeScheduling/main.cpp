@@ -347,6 +347,22 @@ namespace {
     check(nonEmpty > 100, "the random regions touch chunks");
   }
 
+  Chunks chunksFetchingRegion(const vke::VolumeChunkGrid& grid,
+                              const vke::VolumeRegion& region)
+  {
+    Chunks expected;
+
+    for (uint32_t chunk = 0; chunk < grid.chunkCount(); ++chunk)
+    {
+      if (!vke::isEmpty(vke::intersect(grid.fetchRegion(chunk), region)))
+      {
+        expected.push_back(chunk);
+      }
+    }
+
+    return expected;
+  }
+
   // Random bounds (some empty or one sample thick) with sample bounds 0 to 3 wider per side, and queries reaching up to
   // 8 samples outside. A chunk is touched exactly when its fetch region meets the query.
   void checkTouchedChunksWithSampleBoundsAgainstBruteForce()
@@ -391,15 +407,7 @@ namespace {
         }
 
         const vke::VolumeRegion region { low, high };
-        Chunks expected;
-
-        for (uint32_t chunk = 0; chunk < grid.chunkCount(); ++chunk)
-        {
-          if (!vke::isEmpty(vke::intersect(grid.fetchRegion(chunk), region)))
-          {
-            expected.push_back(chunk);
-          }
-        }
+        const Chunks expected = chunksFetchingRegion(grid, region);
 
         mismatches += touched(grid, region) == expected ? 0 : 1;
         nonEmpty += expected.empty() ? 0 : 1;

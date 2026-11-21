@@ -298,6 +298,51 @@ namespace {
     std::cout << "SEAMS READY" << std::endl;
   }
 
+  [[nodiscard]] std::vector<Tile> createTiles(const std::shared_ptr<vke::AssetManager>& assets,
+                                              const Options& options)
+  {
+    std::vector<Tile> tiles;
+
+    for (int i = 0; i < static_cast<int>(options.tiles); ++i)
+    {
+      Tile tile;
+      tile.source = std::make_shared<TileSource>(tileBounds(i), tileSampleBounds(options, i));
+      tile.surface = assets->createVolumeSurface({ .cellSize = CELL_SIZE, .chunkCells = 32 }, tile.source);
+      tile.surface->setCastsShadows(false);
+      tiles.push_back(std::move(tile));
+    }
+
+    return tiles;
+  }
+
+  // High above the terrain along its tilted up direction, with a shadow range too short to reach it
+  [[nodiscard]] std::shared_ptr<vke::Light> createLight(vke::VulkanEngine& renderer,
+                                                        const Scene& scene)
+  {
+    const glm::vec3 up = glm::vec3(scene.model * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+    const glm::vec3 centerInWorld = glm::vec3(scene.model * glm::vec4(scene.center, 1.0f));
+    const auto light = renderer.getLightingManager()->createPointLight(centerInWorld + up * 40.0f, { 1.0f, 1.0f, 1.0f }, 0.1f, 1.0f, 0.0f);
+    light->setShadowRange(0.2f);
+
+    return light;
+  }
+
+  template <typename RenderFrame>
+  [[nodiscard]] bool finishSettling(vke::VulkanEngine& renderer,
+                                    const std::vector<Tile>& tiles,
+                                    const RenderFrame& renderFrame)
+  {
+    bool settled = allSettled(tiles);
+
+    for (uint32_t i = 0; i < SETTLE_FRAME_CAP && !settled && renderer.isActive(); ++i)
+    {
+      renderFrame();
+      settled = allSettled(tiles);
+    }
+
+    return settled;
+  }
+
   [[nodiscard]] int run(const Options& options)
   {
     vke::VulkanEngine renderer(createConfig());
@@ -310,26 +355,13 @@ namespace {
 
     const auto assets = renderer.getAssetManager();
 
-    std::vector<Tile> tiles;
-
-    for (int i = 0; i < static_cast<int>(options.tiles); ++i)
-    {
-      Tile tile;
-      tile.source = std::make_shared<TileSource>(tileBounds(i), tileSampleBounds(options, i));
-      tile.surface = assets->createVolumeSurface({ .cellSize = CELL_SIZE, .chunkCells = 32 }, tile.source);
-      tile.surface->setCastsShadows(false);
-      tiles.push_back(std::move(tile));
-    }
+    std::vector<Tile> tiles = createTiles(assets, options);
 
     Scene scene = createScene(options);
     scene.cameraPosition = renderer.getCamera()->getPosition();
     scene.view = renderer.getCamera()->getViewMatrix();
 
-    // High above the terrain along its tilted up direction, with a shadow range too short to reach it
-    const glm::vec3 up = glm::vec3(scene.model * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-    const glm::vec3 centerInWorld = glm::vec3(scene.model * glm::vec4(scene.center, 1.0f));
-    const auto light = renderer.getLightingManager()->createPointLight(centerInWorld + up * 40.0f, { 1.0f, 1.0f, 1.0f }, 0.1f, 1.0f, 0.0f);
-    light->setShadowRange(0.2f);
+    const auto light = createLight(renderer, scene);
 
     const auto renderFrame = [&] {
       r3d->setCameraParameters(scene.cameraPosition, scene.view);
@@ -361,13 +393,7 @@ namespace {
       }
     }
 
-    bool settled = allSettled(tiles);
-
-    for (uint32_t i = 0; i < SETTLE_FRAME_CAP && !settled && renderer.isActive(); ++i)
-    {
-      renderFrame();
-      settled = allSettled(tiles);
-    }
+    const bool settled = finishSettling(renderer, tiles, renderFrame);
 
     if (options.frames > 0)
     {

@@ -602,6 +602,23 @@ namespace {
     return { source.bounds(), source.sampleBounds(), chunkCells };
   }
 
+  [[nodiscard]] std::set<std::array<float, 3>> seamPositions(const std::map<std::array<float, 3>, std::array<uint32_t, 3>>& seam)
+  {
+    std::set<std::array<float, 3>> result;
+
+    for (const auto& entry : seam)
+    {
+      result.insert(entry.first);
+    }
+
+    return result;
+  }
+
+  [[nodiscard]] float seamField(const glm::vec3 p)
+  {
+    return glm::length(p - glm::vec3(32.4f, 12.3f, 11.7f)) - 9.3f;
+  }
+
   // Two surfaces placed edge to edge over one curved field, sharing the sample plane x = 32. Both compute a seam vertex
   // from identical sample values with identical operations, so exact comparison is valid.
   void checkSeamNormals()
@@ -612,9 +629,7 @@ namespace {
     const vke::VolumeRegion rightSamples { { 31, 0, 0 }, { 65, 25, 25 } };
     const vke::VolumeRegion whole { { 0, 0, 0 }, { 65, 25, 25 } };
 
-    const Field field = [](const glm::vec3 p) {
-      return glm::length(p - glm::vec3(32.4f, 12.3f, 11.7f)) - 9.3f;
-    };
+    const Field field = seamField;
 
     const GridSource wideLeft(left, leftSamples, field);
     const GridSource wideRight(right, rightSamples, field);
@@ -635,22 +650,20 @@ namespace {
     const auto narrowLeftSeam = seamVertices(extractAll(narrowLeft, gridOf(narrowLeft, 16)));
     const auto narrowRightSeam = seamVertices(extractAll(narrowRight, gridOf(narrowRight, 16)));
 
-    const auto positions = [](const auto& seam) {
-      std::set<std::array<float, 3>> result;
-
-      for (const auto& entry : seam)
-      {
-        result.insert(entry.first);
-      }
-
-      return result;
-    };
-
-    check(positions(narrowLeftSeam) == positions(leftSeam) && positions(narrowRightSeam) == positions(leftSeam),
+    check(seamPositions(narrowLeftSeam) == seamPositions(leftSeam) && seamPositions(narrowRightSeam) == seamPositions(leftSeam),
           "seam canary: positions on the shared plane do not depend on the sample bounds");
     check(narrowLeftSeam != narrowRightSeam, "seam canary: without wider sample bounds the shared normals disagree");
+  }
 
-    // The extra samples feed normals only: nothing is meshed past the bounds' cells
+  // The extra samples feed normals only: nothing is meshed past the bounds' cells
+  void checkApronMeshesNothingExtra()
+  {
+    const vke::VolumeRegion right { { 32, 0, 0 }, { 65, 25, 25 } };
+    const vke::VolumeRegion rightSamples { { 31, 0, 0 }, { 65, 25, 25 } };
+    const Field field = seamField;
+    const GridSource wideRight(right, rightSamples, field);
+    const GridSource narrowRight(right, field);
+
     const auto wideMeshes = extractAll(wideRight, gridOf(wideRight, 16));
     const auto narrowMeshes = extractAll(narrowRight, gridOf(narrowRight, 16));
     const glm::vec3 low = glm::vec3(right.min) * s_cellSize;
@@ -861,6 +874,7 @@ int main()
   }
 
   checkSeamNormals();
+  checkApronMeshesNothingExtra();
   checkDeterministic();
   checkEmptyAndFull();
   checkPlaneSplitsChunks();
