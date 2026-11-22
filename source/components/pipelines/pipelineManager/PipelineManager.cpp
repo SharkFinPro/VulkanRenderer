@@ -218,6 +218,9 @@ namespace vke {
     createGraphicsPipeline(PipelineType::rayTracingComposite,
       PipelineConfig::createRayTracingCompositePipelineOptions(m_logicalDevice,
       renderingManager->getRayTracingImagesDescriptorSetLayout()));
+
+    createGraphicsPipeline(PipelineType::sky,
+      PipelineConfig::createSkyPipelineOptions(m_logicalDevice));
   }
 
   void PipelineManager::createMiscPipelines(const std::shared_ptr<AssetManager>& assetManager,

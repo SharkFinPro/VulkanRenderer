@@ -85,6 +85,34 @@ namespace vke::PipelineConfig {
     };
   }
 
+  // Fills the multisampled scene pass with the sky, without touching depth.
+  inline GraphicsPipelineOptions createSkyPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/Sky.vert.spv",
+        .fragmentShader = "assets/shaders/Sky.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilStateNone,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = vk::ShaderStageFlagBits::eFragment,
+          .offset = 0,
+          .size = sizeof(glm::mat4) * 2
+        }
+      }
+    };
+  }
+
   // The outline composite is drawn into the multisampled scene pass.
   inline GraphicsPipelineOptions createOutlinePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                               const vk::DescriptorSetLayout maskDescriptorSetLayout,
