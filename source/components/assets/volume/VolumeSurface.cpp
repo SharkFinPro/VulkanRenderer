@@ -291,7 +291,7 @@ namespace vke {
       .vertexStride = sizeof(VolumeVertex),
       .positionOffset = offsetof(VolumeVertex, position),
       .indices = mesh.indices,
-      .buildBLAS = false
+      .buildBLAS = true
     };
 
     return std::make_shared<Mesh>(m_logicalDevice, m_uploadQueue, createInfo);

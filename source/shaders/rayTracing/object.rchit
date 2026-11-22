@@ -52,7 +52,7 @@ layout(binding = 5, set = 0) readonly buffer MeshInfoBuffer {
   MeshInfo meshInfos[];
 };
 
-layout(binding = 8, set = 0) uniform sampler2D textures[];
+layout(binding = 9, set = 0) uniform sampler2D textures[];
 
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
@@ -110,7 +110,7 @@ void main()
     traceRayEXT(
       tlas,
       gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-      0xFF,
+      0x02,
       0,
       0,
       1,
@@ -142,7 +142,7 @@ void main()
     traceRayEXT(
       tlas,
       gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-      0xFF,
+      0x02,
       0,
       0,
       1,

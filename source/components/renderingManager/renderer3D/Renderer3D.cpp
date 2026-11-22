@@ -239,6 +239,28 @@ namespace vke {
     m_volumeChunkCounts.total = drawnTotal;
   }
 
+  void Renderer3D::gatherTracedVolumeChunks()
+  {
+    m_tracedVolumeChunks.clear();
+
+    // The submitted surfaces only, whole: shadows and reflections reach chunks outside the view
+    for (size_t i = 0; i < m_volumeSurfacesToRender.size(); ++i)
+    {
+      const VolumeSurfaceDraw& draw = m_volumeSurfacesToRender[i];
+      const VolumeDrawChunks& chunks = m_volumeDrawChunks[i];
+
+      for (uint32_t c = chunks.firstChunk; c < chunks.firstChunk + chunks.chunkCount; ++c)
+      {
+        const Mesh* mesh = m_volumeChunks[c].mesh;
+
+        if (mesh->hasBLAS())
+        {
+          m_tracedVolumeChunks.push_back({ mesh, draw.modelMatrix, draw.surface->castsShadows() });
+        }
+      }
+    }
+  }
+
   void Renderer3D::writeObjectTable(const uint32_t currentFrame)
   {
     ObjectData* entries = m_objectTable->getEntries(currentFrame);
@@ -550,11 +572,6 @@ namespace vke {
     m_mousePicker->resolveReadback(currentFrame);
   }
 
-  bool Renderer3D::needsShadowMapsWithRayTracing() const
-  {
-    return !m_volumeRuns.empty();
-  }
-
   bool Renderer3D::hasOutlines() const
   {
     return !m_outlineObjects.empty() || !m_volumeOutlines.empty();
@@ -699,8 +716,6 @@ namespace vke {
       renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, draws.runs);
     }
 
-    renderVolumeSurfaces(&renderInfo3D, pipelineManager, lightingManager);
-
     renderLinesAndGrid(&renderInfo3D, pipelineManager);
   }
 
@@ -761,9 +776,11 @@ namespace vke {
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const std::shared_ptr<LightingManager>& lightingManager,
                                 const ImageResource& imageResource,
-                                const ImageResource& depthImageResource) const
+                                const ImageResource& depthImageResource)
   {
     const RenderInfo renderInfoRayTracing = makeSceneRenderInfo(renderInfo);
+
+    gatherTracedVolumeChunks();
 
     return m_rayTracer->doRayTracing(
       &renderInfoRayTracing,
@@ -772,7 +789,8 @@ namespace vke {
       imageResource,
       depthImageResource,
       m_rayTracedRenderObjects,
-      m_cloudToRender
+      m_cloudToRender,
+      m_tracedVolumeChunks
     );
   }
 
@@ -1181,7 +1199,7 @@ namespace vke {
     std::vector<vk::DescriptorPoolSize> poolSizes {{
       {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 256},
       {vk::DescriptorType::eStorageImage, m_logicalDevice->getMaxFramesInFlight() * 4},
-      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 14},
+      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 15},
     }};
 
     poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 7});

@@ -71,6 +71,12 @@ namespace vke {
 
     [[nodiscard]] vk::Buffer getIndexBuffer() const;
 
+    // Device addresses of the vertex and index buffers, for shaders that read them directly; 0 when ray tracing is
+    // unsupported.
+    [[nodiscard]] vk::DeviceAddress getVertexBufferAddress() const;
+
+    [[nodiscard]] vk::DeviceAddress getIndexBufferAddress() const;
+
   private:
     // Retired together once the GPU may still use them; members are destroyed in reverse order, so the acceleration
     // structure goes before its buffer and each buffer before its memory.
@@ -95,6 +101,9 @@ namespace vke {
     uint32_t m_vertexStride = 0;
     uint32_t m_vertexCount = 0;
     uint32_t m_indexCount = 0;
+
+    vk::DeviceAddress m_vertexAddress = 0;
+    vk::DeviceAddress m_indexAddress = 0;
 
     void createDeviceBuffers(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              bool rayTracing,

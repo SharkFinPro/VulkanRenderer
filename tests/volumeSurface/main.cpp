@@ -73,6 +73,7 @@ namespace {
     uint32_t burst = 30;
     uint32_t pause = 90;
     std::optional<vke::PresentMode> presentMode;
+    std::optional<bool> rayTracing;
   };
 
   struct Brush {
@@ -398,6 +399,17 @@ namespace {
         }
 
         options.presentMode = mode;
+        continue;
+      }
+
+      if (std::strcmp(argv[i], "--ray-tracing") == 0)
+      {
+        if (i + 1 >= argc || (std::strcmp(argv[i + 1], "on") != 0 && std::strcmp(argv[i + 1], "off") != 0))
+        {
+          return false;
+        }
+
+        options.rayTracing = std::strcmp(argv[++i], "on") == 0;
         continue;
       }
 
@@ -832,6 +844,24 @@ namespace {
       rendering->setPresentMode(*options.presentMode);
     }
 
+    if (options.rayTracing)
+    {
+      if (*options.rayTracing && !rendering->supportsRayTracing())
+      {
+        std::cout << "Ray tracing is not supported on this device; rasterizing\n";
+      }
+      else if (*options.rayTracing)
+      {
+        rendering->enableRayTracing();
+      }
+      else
+      {
+        rendering->disableRayTracing();
+      }
+    }
+
+    std::cout << "Ray tracing " << (rendering->isRayTracingEnabled() ? "on" : "off") << "\n";
+
     rendering->getRenderer3D()->setProjectionParameters(FIELD_OF_VIEW, 0.1f, 500.0f);
 
     const auto assets = renderer.getAssetManager();
@@ -886,7 +916,8 @@ int main(int argc, char** argv)
     if (!parseOptions(argc, argv, options))
     {
       std::cerr << "Usage: volumeSurface [--frames N] [--warmup N] [--burst N (>= 1)] [--pause N]"
-                << " [--frame-rate-limit N (0 = unlimited)] [--present-mode fifo|fifoRelaxed|mailbox|immediate]" << std::endl;
+                << " [--frame-rate-limit N (0 = unlimited)] [--present-mode fifo|fifoRelaxed|mailbox|immediate]"
+                << " [--ray-tracing on|off]" << std::endl;
       return EXIT_FAILURE;
     }
 
