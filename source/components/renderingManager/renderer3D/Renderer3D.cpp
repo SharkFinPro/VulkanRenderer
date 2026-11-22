@@ -207,6 +207,7 @@ namespace vke {
   {
     m_volumeChunks.clear();
     m_volumeDrawChunks.clear();
+    m_tracedVolumeChunks.clear();
 
     // The volume entries follow the render submissions' and the outlines'
     auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size());
@@ -221,6 +222,12 @@ namespace vke {
         for (const DisplayedChunk& chunk : draw.surface->getDisplayedChunks())
         {
           m_volumeChunks.push_back({ chunk.mesh, transformAABB(chunk.localBounds, draw.modelMatrix) });
+
+          // The submitted surfaces only, whole: shadows and reflections reach chunks outside the view
+          if (m_rayTracer && &draws == &m_volumeSurfacesToRender && chunk.mesh->hasBLAS())
+          {
+            m_tracedVolumeChunks.push_back({ chunk.mesh, draw.modelMatrix, draw.surface->castsShadows() });
+          }
         }
 
         m_volumeDrawChunks.push_back({ slot++, firstChunk, static_cast<uint32_t>(m_volumeChunks.size()) - firstChunk });
@@ -550,11 +557,6 @@ namespace vke {
     m_mousePicker->resolveReadback(currentFrame);
   }
 
-  bool Renderer3D::needsShadowMapsWithRayTracing() const
-  {
-    return !m_volumeRuns.empty();
-  }
-
   bool Renderer3D::hasOutlines() const
   {
     return !m_outlineObjects.empty() || !m_volumeOutlines.empty();
@@ -699,8 +701,6 @@ namespace vke {
       renderRenderObjects(pipelineManager, lightingManager, &renderInfo3D, pipelineType, draws.runs);
     }
 
-    renderVolumeSurfaces(&renderInfo3D, pipelineManager, lightingManager);
-
     renderLinesAndGrid(&renderInfo3D, pipelineManager);
   }
 
@@ -772,7 +772,8 @@ namespace vke {
       imageResource,
       depthImageResource,
       m_rayTracedRenderObjects,
-      m_cloudToRender
+      m_cloudToRender,
+      m_tracedVolumeChunks
     );
   }
 
@@ -1181,7 +1182,7 @@ namespace vke {
     std::vector<vk::DescriptorPoolSize> poolSizes {{
       {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 256},
       {vk::DescriptorType::eStorageImage, m_logicalDevice->getMaxFramesInFlight() * 4},
-      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 14},
+      {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 15},
     }};
 
     poolSizes.push_back({vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * 7});

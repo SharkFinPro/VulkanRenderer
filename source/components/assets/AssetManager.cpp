@@ -385,16 +385,23 @@ namespace vke {
         .descriptorCount = 1,
         .stageFlags = vk::ShaderStageFlagBits::eRaygenKHR
       },
-      vk::DescriptorSetLayoutBinding {
+      vk::DescriptorSetLayoutBinding { // Vertex and index addresses of the volume surface chunks
         .binding = 8,
+        .descriptorType = vk::DescriptorType::eStorageBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 9,
         .descriptorType = vk::DescriptorType::eCombinedImageSampler,
         .descriptorCount = 256,
         .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
       }
     };
 
-    // Binding 8, the last, uses variable descriptor count and partial binding.
+    // Binding 9, the last, uses variable descriptor count and partial binding.
     constexpr std::array bindingFlags {
+      vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},

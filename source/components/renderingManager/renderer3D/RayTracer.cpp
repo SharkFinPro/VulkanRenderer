@@ -2,6 +2,7 @@
 #include "../ImageResource.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/objects/Cloud.h"
+#include "../../assets/objects/Mesh.h"
 #include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/textures/Texture.h"
@@ -77,9 +78,10 @@ namespace vke {
                                const ImageResource& imageResource,
                                const ImageResource& depthImageResource,
                                const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                               const std::shared_ptr<Cloud>& cloud)
+                               const std::shared_ptr<Cloud>& cloud,
+                               const std::span<const TracedVolumeChunk> volumeChunks)
   {
-    if (renderObjects.empty() && !cloud)
+    if (renderObjects.empty() && !cloud && volumeChunks.empty())
     {
       return false;
     }
@@ -90,7 +92,9 @@ namespace vke {
 
     updateMeshInfos(frame, renderObjects);
 
-    buildTLAS(renderInfo, renderObjects, cloud);
+    updateVolumeChunkInfos(frame, volumeChunks);
+
+    buildTLAS(renderInfo, renderObjects, cloud, volumeChunks);
 
     recordTraceInputBarrier(renderInfo, copiedGeometry);
 
@@ -153,15 +157,16 @@ namespace vke {
 
   void RayTracer::buildTLAS(const RenderInfo* renderInfo,
                             const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                            const std::shared_ptr<Cloud>& cloud)
+                            const std::shared_ptr<Cloud>& cloud,
+                            const std::span<const TracedVolumeChunk> volumeChunks)
   {
     auto& frame = m_frameResources[renderInfo->currentFrame];
 
-    const auto instanceCount = static_cast<uint32_t>(renderObjects.size() + (cloud ? 1 : 0));
+    const auto instanceCount = static_cast<uint32_t>(renderObjects.size() + volumeChunks.size() + (cloud ? 1 : 0));
 
     reserveTLAS(frame, instanceCount);
 
-    populateInstances(static_cast<vk::AccelerationStructureInstanceKHR*>(frame.instances.data), renderObjects, cloud);
+    populateInstances(static_cast<vk::AccelerationStructureInstanceKHR*>(frame.instances.data), renderObjects, cloud, volumeChunks);
 
     const vk::AccelerationStructureGeometryInstancesDataKHR instancesData {
       .arrayOfPointers = vk::False,
@@ -317,7 +322,8 @@ namespace vke {
 
   void RayTracer::populateInstances(vk::AccelerationStructureInstanceKHR* instances,
                                     const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                    const std::shared_ptr<Cloud>& cloud) const
+                                    const std::shared_ptr<Cloud>& cloud,
+                                    const std::span<const TracedVolumeChunk> volumeChunks) const
   {
     uint32_t instanceIndex = 0;
 
@@ -326,6 +332,20 @@ namespace vke {
       instances[instanceIndex] = makeInstance(renderObject->getModelMatrix(), renderObject->getModel()->getBLAS(), instanceIndex, 0);
 
       ++instanceIndex;
+    }
+
+    // Volume surfaces are double-sided, so their triangles are not culled by facing; their custom index is the chunk's
+    // entry in the volume chunk table.
+    uint32_t chunkIndex = 0;
+
+    for (const TracedVolumeChunk& chunk : volumeChunks)
+    {
+      instances[instanceIndex] = makeInstance(chunk.modelMatrix, chunk.mesh->getBLAS(), chunkIndex, 2,
+                                              chunk.castsShadows ? 0xFFu : 0x01u,
+                                              vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+
+      ++instanceIndex;
+      ++chunkIndex;
     }
 
     if (cloud)
@@ -338,8 +358,10 @@ namespace vke {
 
   vk::AccelerationStructureInstanceKHR RayTracer::makeInstance(const glm::mat4& modelMatrix,
                                                                const vk::AccelerationStructureKHR blas,
-                                                               const uint32_t instanceIndex,
-                                                               const uint32_t hitGroupOffset) const
+                                                               const uint32_t customIndex,
+                                                               const uint32_t hitGroupOffset,
+                                                               const uint32_t mask,
+                                                               const vk::GeometryInstanceFlagsKHR flags) const
   {
     const glm::mat4 rowMajorMatrix = glm::transpose(modelMatrix);
 
@@ -353,10 +375,10 @@ namespace vke {
     // Returned by value: assigning a braced list into the mapped element is ambiguous on GCC.
     return {
       .transform = transformMatrix,
-      .instanceCustomIndex = instanceIndex,
-      .mask = 0xFF,
+      .instanceCustomIndex = customIndex,
+      .mask = mask,
       .instanceShaderBindingTableRecordOffset = hitGroupOffset,
-      .flags = 0,
+      .flags = static_cast<VkGeometryInstanceFlagsKHR>(flags),
       .accelerationStructureReference = m_logicalDevice->getAccelerationStructureDeviceAddress(&accelerationStructureDeviceAddressInfo)
     };
   }
@@ -546,6 +568,35 @@ namespace vke {
     }
   }
 
+  void RayTracer::updateVolumeChunkInfos(FrameResources& frame,
+                                         const std::span<const TracedVolumeChunk> volumeChunks) const
+  {
+    // The descriptor needs a buffer even when no volume surface is traced.
+    const size_t chunkCount = std::max<size_t>(volumeChunks.size(), 1);
+
+    if (chunkCount * sizeof(VolumeChunkInfo) > frame.volumeChunkInfos.size)
+    {
+      reserveMappedBuffer(frame.volumeChunkInfos, growCapacity(chunkCount) * sizeof(VolumeChunkInfo), vk::BufferUsageFlagBits::eStorageBuffer);
+      frame.volumeChunkInfoInfo.buffer = *frame.volumeChunkInfos.buffer;
+    }
+
+    auto* infos = static_cast<VolumeChunkInfo*>(frame.volumeChunkInfos.data);
+
+    if (volumeChunks.empty())
+    {
+      infos[0] = VolumeChunkInfo{};
+      return;
+    }
+
+    for (size_t i = 0; i < volumeChunks.size(); ++i)
+    {
+      infos[i] = {
+        .vertexAddress = volumeChunks[i].mesh->getVertexBufferAddress(),
+        .indexAddress = volumeChunks[i].mesh->getIndexBufferAddress()
+      };
+    }
+  }
+
   uint32_t RayTracer::getTextureIndex(const std::shared_ptr<Texture>& texture)
   {
     const auto entry = std::ranges::find(m_textureKeys, texture.get());
@@ -643,16 +694,19 @@ namespace vke {
     m_descriptorWrites[7] = write(7, vk::DescriptorType::eStorageImage);
     m_descriptorWrites[7].pImageInfo = &depthImageResource.getDescriptorImageInfo();
 
+    m_descriptorWrites[8] = write(8, vk::DescriptorType::eStorageBuffer);
+    m_descriptorWrites[8].pBufferInfo = &frameResources.volumeChunkInfoInfo;
+
     if (m_textureImageInfos.empty())
     {
-      return 8;
+      return 9;
     }
 
-    m_descriptorWrites[8] = write(8, vk::DescriptorType::eCombinedImageSampler);
-    m_descriptorWrites[8].descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size());
-    m_descriptorWrites[8].pImageInfo = m_textureImageInfos.data();
+    m_descriptorWrites[9] = write(9, vk::DescriptorType::eCombinedImageSampler);
+    m_descriptorWrites[9].descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size());
+    m_descriptorWrites[9].pImageInfo = m_textureImageInfos.data();
 
-    return 9;
+    return 10;
   }
 
   void RayTracer::updateRTDescriptorSetData(const RenderInfo* renderInfo)

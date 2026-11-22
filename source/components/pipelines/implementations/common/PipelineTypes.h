@@ -38,7 +38,7 @@ namespace vke {
   // View-only pipelines draw aids the ray tracer does not model, drawn by raster over the traced image.
   [[nodiscard]] constexpr bool isViewOnlyPipeline(const PipelineType pipelineType)
   {
-    return pipelineType == PipelineType::texturedPlane || pipelineType == PipelineType::volumeSurface;
+    return pipelineType == PipelineType::texturedPlane;
   }
 
   // The main pass pipeline of volume surfaces and its variants for the shadow, picking and outline mask passes. Surfaces

@@ -133,6 +133,12 @@ namespace vke {
 
     createDeviceBuffers(logicalDevice, rayTracing, vertexBytes, indexBytes);
 
+    if (rayTracing)
+    {
+      m_vertexAddress = logicalDevice->getBufferDeviceAddress(*m_resources.vertexBuffer);
+      m_indexAddress = logicalDevice->getBufferDeviceAddress(*m_resources.indexBuffer);
+    }
+
     UploadRequest request = uploadQueue->createRequest(m_state, vertexBytes + indexBytes);
 
     request.write(0, createInfo.vertexData.data(), vertexBytes);
@@ -314,6 +320,16 @@ namespace vke {
   vk::Buffer Mesh::getIndexBuffer() const
   {
     return *m_resources.indexBuffer;
+  }
+
+  vk::DeviceAddress Mesh::getVertexBufferAddress() const
+  {
+    return m_vertexAddress;
+  }
+
+  vk::DeviceAddress Mesh::getIndexBufferAddress() const
+  {
+    return m_indexAddress;
   }
 
 } // namespace vke

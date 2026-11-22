@@ -6,6 +6,7 @@
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -17,6 +18,7 @@ namespace vke {
   class ImageResource;
   class LightingManager;
   class LogicalDevice;
+  class Mesh;
   class Model;
   class PipelineManager;
   struct RenderInfo;
@@ -35,6 +37,20 @@ namespace vke {
     float padding = 0.0f;
   };
 
+  // One displayed chunk of a volume surface: its mesh (which must have a BLAS), the surface's model matrix and whether
+  // it casts traced shadows.
+  struct TracedVolumeChunk {
+    const Mesh* mesh = nullptr;
+    glm::mat4 modelMatrix{1.0f};
+    bool castsShadows = true;
+  };
+
+  // What the volume closest hit shader reads through buffer references; 16 bytes, as std430 lays it out.
+  struct VolumeChunkInfo {
+    vk::DeviceAddress vertexAddress = 0;
+    vk::DeviceAddress indexAddress = 0;
+  };
+
   class RayTracer {
   public:
     explicit RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -48,7 +64,8 @@ namespace vke {
                                     const ImageResource& imageResource,
                                     const ImageResource& depthImageResource,
                                     const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                                    const std::shared_ptr<Cloud>& cloud);
+                                    const std::shared_ptr<Cloud>& cloud,
+                                    std::span<const TracedVolumeChunk> volumeChunks);
 
   private:
     // Memory is declared first so that, on destruction, the buffer goes before the memory bound to it.
@@ -84,6 +101,9 @@ namespace vke {
 
       MappedBuffer meshInfos;
       vk::DescriptorBufferInfo meshInfoInfo = { nullptr, 0, vk::WholeSize };
+
+      MappedBuffer volumeChunkInfos;
+      vk::DescriptorBufferInfo volumeChunkInfoInfo = { nullptr, 0, vk::WholeSize };
     };
 
     // Where a model's vertices and indices start in the merged buffers. The weak pointer tells a live
@@ -116,8 +136,8 @@ namespace vke {
     std::vector<vk::DescriptorImageInfo> m_textureImageInfos;
     std::vector<const Texture*> m_textureKeys;
 
-    // Scratch for updateRTDescriptorSet, which runs every frame: 8 fixed bindings plus the texture array.
-    std::array<vk::WriteDescriptorSet, 9> m_descriptorWrites{};
+    // Scratch for updateRTDescriptorSet, which runs every frame: 9 fixed bindings plus the texture array.
+    std::array<vk::WriteDescriptorSet, 10> m_descriptorWrites{};
 
     std::shared_ptr<UniformBuffer> m_cloudUniform;
 
@@ -128,7 +148,8 @@ namespace vke {
     // Records a build of this frame's TLAS into the frame's command buffer.
     void buildTLAS(const RenderInfo* renderInfo,
                    const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                   const std::shared_ptr<Cloud>& cloud);
+                   const std::shared_ptr<Cloud>& cloud,
+                   std::span<const TracedVolumeChunk> volumeChunks);
 
     void reserveTLAS(FrameResources& frame,
                      uint32_t instanceCount) const;
@@ -143,12 +164,16 @@ namespace vke {
 
     void populateInstances(vk::AccelerationStructureInstanceKHR* instances,
                            const std::vector<std::shared_ptr<RenderObject>>& renderObjects,
-                           const std::shared_ptr<Cloud>& cloud) const;
+                           const std::shared_ptr<Cloud>& cloud,
+                           std::span<const TracedVolumeChunk> volumeChunks) const;
 
+    // Mask bit 0x01 is seen by camera and secondary rays, 0x02 casts traced shadows.
     [[nodiscard]] vk::AccelerationStructureInstanceKHR makeInstance(const glm::mat4& modelMatrix,
                                                                     vk::AccelerationStructureKHR blas,
-                                                                    uint32_t instanceIndex,
-                                                                    uint32_t hitGroupOffset) const;
+                                                                    uint32_t customIndex,
+                                                                    uint32_t hitGroupOffset,
+                                                                    uint32_t mask = 0xFF,
+                                                                    vk::GeometryInstanceFlagsKHR flags = {}) const;
 
     // Returns true when it recorded a copy into the merged geometry buffers.
     [[nodiscard]] bool updateMergedGeometry(const RenderInfo* renderInfo,
@@ -170,6 +195,9 @@ namespace vke {
 
     void updateMeshInfos(FrameResources& frame,
                          const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
+
+    void updateVolumeChunkInfos(FrameResources& frame,
+                                std::span<const TracedVolumeChunk> volumeChunks) const;
 
     [[nodiscard]] uint32_t getTextureIndex(const std::shared_ptr<Texture>& texture);
 

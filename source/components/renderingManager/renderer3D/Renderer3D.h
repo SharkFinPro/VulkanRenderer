@@ -123,9 +123,6 @@ namespace vke {
     // Reads the result of the frame that last used this frame-in-flight slot; call once it is known to be complete.
     void resolveMousePicking(uint32_t currentFrame) const;
 
-    // Whether the shadow maps are needed even though ray tracing is on: the rasterized volume surfaces sample them. Valid
-    // after updateSceneData, and false when every chunk is outside the camera's view.
-    [[nodiscard]] bool needsShadowMapsWithRayTracing() const;
 
     [[nodiscard]] bool hasOutlines() const;
 
@@ -259,7 +256,7 @@ namespace vke {
 
     // Draws the surface this frame under the model matrix, lit by the scene's point and spot lights and shadowed by
     // their shadow maps (the surface casts into them unless VolumeSurface::setCastsShadows is false). Drawn in the scene
-    // pass and over a ray traced image, which does not include it. Chunks outside the view each list is drawn from are
+    // pass, or traced (every displayed chunk, off-screen ones included) with ray tracing on. Chunks outside the view each list is drawn from are
     // skipped. A non-null mousePicked makes the surface pickable and is set as renderObject's flag is, reporting a frame
     // rendered a few frames earlier; read the outcome through getPickResult(). Without a flag the surface is not
     // pickable.
@@ -414,6 +411,9 @@ namespace vke {
 
     std::vector<VolumeDrawChunks> m_volumeDrawChunks;
     std::vector<VolumeChunk> m_volumeChunks;
+
+    // The displayed chunks of the submitted surfaces, unculled, for the ray tracer's TLAS; empty without ray tracing
+    std::vector<TracedVolumeChunk> m_tracedVolumeChunks;
 
     VolumeChunkCounts m_volumeChunkCounts;
 
