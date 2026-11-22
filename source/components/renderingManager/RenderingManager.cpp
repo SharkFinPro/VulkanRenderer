@@ -618,10 +618,14 @@ namespace vke {
 
         m_renderTarget->beginOffscreenRendering(renderInfo.commandBuffer, currentFrame);
 
-        // With nothing traced the images hold garbage, and the cleared scene stays
+        // With nothing traced the images hold garbage, so the sky stands in for them
         if (traced)
         {
           m_renderer3D->renderRayTracingComposite(&renderInfo, pipelineManager, m_renderTarget->getRayTracingImagesDescriptorSet(currentFrame));
+        }
+        else
+        {
+          m_renderer3D->renderSky(&renderInfo, pipelineManager);
         }
 
         m_renderer3D->renderViewOnly(&renderInfo, pipelineManager, lightingManager);
@@ -629,6 +633,8 @@ namespace vke {
       else
       {
         m_renderTarget->beginOffscreenRendering(renderInfo.commandBuffer, currentFrame);
+
+        m_renderer3D->renderSky(&renderInfo, pipelineManager);
 
         m_renderer3D->render(&renderInfo, pipelineManager, lightingManager);
       }

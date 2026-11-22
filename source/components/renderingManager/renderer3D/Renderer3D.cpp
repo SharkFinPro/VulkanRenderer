@@ -678,6 +678,32 @@ namespace vke {
     renderInfo->commandBuffer->draw(3, 1, 0, 0);
   }
 
+  void Renderer3D::renderSky(const RenderInfo* renderInfo,
+                             const std::shared_ptr<PipelineManager>& pipelineManager) const
+  {
+    struct SkyPushConstant {
+      glm::mat4 viewInverse;
+      glm::mat4 projInverse;
+    };
+
+    const RenderInfo sceneInfo = makeSceneRenderInfo(renderInfo);
+
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::sky);
+
+    pipelineManager->pushGraphicsPipelineConstants<SkyPushConstant>(
+      renderInfo->commandBuffer,
+      PipelineType::sky,
+      vk::ShaderStageFlagBits::eFragment,
+      0,
+      SkyPushConstant {
+        .viewInverse = glm::inverse(sceneInfo.viewMatrix),
+        .projInverse = glm::inverse(sceneInfo.getProjectionMatrix())
+      }
+    );
+
+    renderInfo->commandBuffer->draw(3, 1, 0, 0);
+  }
+
   void Renderer3D::render(const RenderInfo* renderInfo,
                           const std::shared_ptr<PipelineManager>& pipelineManager,
                           const std::shared_ptr<LightingManager>& lightingManager)
