@@ -123,7 +123,6 @@ namespace vke {
     // Reads the result of the frame that last used this frame-in-flight slot; call once it is known to be complete.
     void resolveMousePicking(uint32_t currentFrame) const;
 
-
     [[nodiscard]] bool hasOutlines() const;
 
     // Draws the objects submitted with renderOutline into the mask the outline composite reads, one value per color.
