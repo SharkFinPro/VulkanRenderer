@@ -51,6 +51,8 @@ namespace vke {
     vk::DeviceAddress indexAddress = 0;
   };
 
+  static_assert(sizeof(VolumeChunkInfo) == 16);
+
   class RayTracer {
   public:
     explicit RayTracer(std::shared_ptr<LogicalDevice> logicalDevice,

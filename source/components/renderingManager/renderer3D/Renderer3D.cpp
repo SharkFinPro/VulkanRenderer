@@ -207,7 +207,6 @@ namespace vke {
   {
     m_volumeChunks.clear();
     m_volumeDrawChunks.clear();
-    m_tracedVolumeChunks.clear();
 
     // The volume entries follow the render submissions' and the outlines'
     auto slot = static_cast<uint32_t>(m_renderObjectsToRenderFlattened.size() + m_outlineObjects.size());
@@ -222,12 +221,6 @@ namespace vke {
         for (const DisplayedChunk& chunk : draw.surface->getDisplayedChunks())
         {
           m_volumeChunks.push_back({ chunk.mesh, transformAABB(chunk.localBounds, draw.modelMatrix) });
-
-          // The submitted surfaces only, whole: shadows and reflections reach chunks outside the view
-          if (m_rayTracer && &draws == &m_volumeSurfacesToRender && chunk.mesh->hasBLAS())
-          {
-            m_tracedVolumeChunks.push_back({ chunk.mesh, draw.modelMatrix, draw.surface->castsShadows() });
-          }
         }
 
         m_volumeDrawChunks.push_back({ slot++, firstChunk, static_cast<uint32_t>(m_volumeChunks.size()) - firstChunk });
@@ -244,6 +237,28 @@ namespace vke {
     gather(m_volumeOutlines);
 
     m_volumeChunkCounts.total = drawnTotal;
+  }
+
+  void Renderer3D::gatherTracedVolumeChunks()
+  {
+    m_tracedVolumeChunks.clear();
+
+    // The submitted surfaces only, whole: shadows and reflections reach chunks outside the view
+    for (size_t i = 0; i < m_volumeSurfacesToRender.size(); ++i)
+    {
+      const VolumeSurfaceDraw& draw = m_volumeSurfacesToRender[i];
+      const VolumeDrawChunks& chunks = m_volumeDrawChunks[i];
+
+      for (uint32_t c = chunks.firstChunk; c < chunks.firstChunk + chunks.chunkCount; ++c)
+      {
+        const Mesh* mesh = m_volumeChunks[c].mesh;
+
+        if (mesh->hasBLAS())
+        {
+          m_tracedVolumeChunks.push_back({ mesh, draw.modelMatrix, draw.surface->castsShadows() });
+        }
+      }
+    }
   }
 
   void Renderer3D::writeObjectTable(const uint32_t currentFrame)
@@ -761,9 +776,11 @@ namespace vke {
                                 const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const std::shared_ptr<LightingManager>& lightingManager,
                                 const ImageResource& imageResource,
-                                const ImageResource& depthImageResource) const
+                                const ImageResource& depthImageResource)
   {
     const RenderInfo renderInfoRayTracing = makeSceneRenderInfo(renderInfo);
+
+    gatherTracedVolumeChunks();
 
     return m_rayTracer->doRayTracing(
       &renderInfoRayTracing,

@@ -62,8 +62,13 @@ layout(set = 1, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
-bool isOccluded(vec3 fragPos, vec3 toLight)
+// Starts off the surface along the normal facing the ray, since facing culling is off and a ray from the hit point could
+// hit its own triangle again
+bool isOccluded(vec3 fragPos, vec3 normal, vec3 lightPosition)
 {
+  const vec3 origin = fragPos + normal * 0.01;
+  const vec3 toLight = lightPosition - origin;
+
   isShadowed = true;
   traceRayEXT(
     tlas,
@@ -72,7 +77,7 @@ bool isOccluded(vec3 fragPos, vec3 toLight)
     0,
     0,
     1,
-    fragPos,
+    origin,
     0.001,
     normalize(toLight),
     length(toLight) - 0.001,
@@ -117,7 +122,7 @@ void main()
   {
     const PointLight light = pointLights[i];
 
-    if (!isOccluded(fragPos, light.position - fragPos))
+    if (!isOccluded(fragPos, normal, light.position))
     {
       result += StandardPointLightAffect(light, albedo, normal, fragPos, camera.position, 32);
     }
@@ -131,7 +136,7 @@ void main()
   {
     const SpotLight light = spotLights[i];
 
-    if (!isOccluded(fragPos, light.position - fragPos))
+    if (!isOccluded(fragPos, normal, light.position))
     {
       result += StandardSpotLightAffect(light, albedo, normal, fragPos, camera.position, 32);
     }

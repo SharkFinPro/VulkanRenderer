@@ -154,7 +154,7 @@ namespace vke {
                                     const std::shared_ptr<PipelineManager>& pipelineManager,
                                     const std::shared_ptr<LightingManager>& lightingManager,
                                     const ImageResource& imageResource,
-                                    const ImageResource& depthImageResource) const;
+                                    const ImageResource& depthImageResource);
 
     // Draws the traced color and depth into the scene pass.
     void renderRayTracingComposite(const RenderInfo* renderInfo,
@@ -498,6 +498,9 @@ namespace vke {
 
     // Fills m_volumeDrawChunks and m_volumeChunks, with every chunk's world bounds computed once
     void gatherVolumeChunks();
+
+    // Fills m_tracedVolumeChunks from the chunks gatherVolumeChunks found; only frames that ray trace call it
+    void gatherTracedVolumeChunks();
 
     void writeObjectTable(uint32_t currentFrame);
 

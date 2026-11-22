@@ -3,6 +3,7 @@
 
 #include <glm/vec3.hpp>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 
 namespace vke {
@@ -16,7 +17,11 @@ namespace vke {
     std::array<uint8_t, 4> weights;
   };
 
+  // The ray tracing closest hit shader mirrors this layout
   static_assert(sizeof(VolumeVertex) == 32);
+  static_assert(offsetof(VolumeVertex, normal) == 12);
+  static_assert(offsetof(VolumeVertex, materials) == 24);
+  static_assert(offsetof(VolumeVertex, weights) == 28);
 
 } // namespace vke
 
