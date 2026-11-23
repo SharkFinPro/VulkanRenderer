@@ -333,24 +333,32 @@ namespace vke {
 
     // The other passes' draws as runs: the submissions by model for the shadow maps, the pickable ones by model (and
     // by material too when alpha tested) and the outlines by mask value then model. The draw slots hold the lists one after
-    // another: shadow (point lights', then each spot light's, each followed by its volume surface list), the pipelines',
-    // the volume surfaces', picking (the volume surfaces' last), outline (the volume surfaces' last).
+    // another: shadow (each point light's six faces', then each spot light's, each followed by its volume surface list),
+    // the pipelines', the volume surfaces', picking (the volume surfaces' last), outline (the volume surfaces' last).
     //
     // Lists are culled against the view they are drawn from, using the submissions' world bounds: the picking and outline
     // lists and the pipelines' lists (those whose vertex stage keeps geometry within the model's bounds) against the
-    // camera, a spot light's shadow list against the light. The point lights share one list of every submission, since
-    // they have no range to cull against.
-    std::vector<DrawRun> m_shadowRuns;
+    // camera, a spot light's shadow list against the light, a point light's face lists against its shadow range and then
+    // the face's frustum.
     std::vector<DrawRun> m_pickRuns;
     std::vector<DrawRun> m_pickAlphaTestedRuns;
     std::vector<DrawRun> m_outlineRuns;
 
-    // The volume surfaces' chunks as runs, by mesh: the main pass (culled against the camera), the point lights' shadow
-    // maps (every chunk of the surfaces that cast shadows), the pickable surfaces and the outlines.
+    // The volume surfaces' chunks as runs, by mesh: the main pass (culled against the camera), the pickable surfaces and
+    // the outlines.
     std::vector<DrawRun> m_volumeRuns;
-    std::vector<DrawRun> m_volumeShadowRuns;
     std::vector<DrawRun> m_volumePickRuns;
     std::vector<DrawRun> m_volumeOutlineRuns;
+
+    // Six lists per shadow-casting point light (one per cube face, in face order) in the order LightingManager draws them,
+    // and the volume surface lists of the same faces by the same index. Only the first m_pointShadowListCount are current;
+    // the rest are kept so that their storage is reused.
+    std::vector<std::vector<DrawRun>> m_pointShadowFaceRuns;
+    std::vector<std::vector<DrawRun>> m_volumePointShadowFaceRuns;
+    size_t m_pointShadowListCount = 0;
+
+    // Scratch: the slots within the current point light's shadow range
+    std::vector<uint32_t> m_shadowCandidates;
 
     // One list per shadow-casting spot light in the order LightingManager draws them. Only the first m_spotShadowCount are
     // current; the rest are kept so that their storage is reused.
@@ -528,6 +536,10 @@ namespace vke {
     [[nodiscard]] uint32_t buildShadowRuns(uint32_t* drawSlots,
                                            uint32_t offset,
                                            const LightingManager& lightingManager);
+
+    [[nodiscard]] uint32_t buildPointShadowRuns(uint32_t* drawSlots,
+                                                uint32_t offset,
+                                                const LightingManager& lightingManager);
 
     [[nodiscard]] uint32_t buildSpotShadowRuns(uint32_t* drawSlots,
                                                uint32_t offset,

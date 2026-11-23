@@ -49,7 +49,8 @@ namespace vke {
                                         vk::ImageAspectFlags aspectFlags,
                                         uint32_t mipLevels,
                                         vk::ImageViewType viewType,
-                                        uint32_t layerCount);
+                                        uint32_t layerCount,
+                                        uint32_t baseArrayLayer = 0);
 
     bool hasStencilComponent(vk::Format format);
 

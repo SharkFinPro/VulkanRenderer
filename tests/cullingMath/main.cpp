@@ -191,6 +191,48 @@ namespace {
     check(!frustum.intersects(boxAt({ 50.0f, -5.0f, 0.0f }, 1.0f)), "spot light culls a box outside the cone");
   }
 
+  void checkBoxSphere()
+  {
+    const vke::AABB box = boxAt({ 0.0f, 0.0f, 0.0f }, 1.0f);
+
+    check(vke::intersectsSphere(box, { 0.0f, 0.0f, 0.0f }, 0.5f), "sphere inside the box");
+    check(vke::intersectsSphere(box, { 3.0f, 0.0f, 0.0f }, 2.5f), "sphere reaching a face");
+    check(!vke::intersectsSphere(box, { 3.0f, 0.0f, 0.0f }, 1.5f), "sphere short of a face");
+    // Nearest point is the corner (1, 1, 1), sqrt(3) * 2 = 3.46 from (3, 3, 3)
+    check(!vke::intersectsSphere(box, { 3.0f, 3.0f, 3.0f }, 3.4f), "sphere short of a corner");
+    check(vke::intersectsSphere(box, { 3.0f, 3.0f, 3.0f }, 3.5f), "sphere reaching a corner");
+    check(!vke::intersectsSphere(vke::AABB {}, { 0.0f, 0.0f, 0.0f }, 100.0f), "empty box and a sphere");
+  }
+
+  // Mirrors PointLight::getLightViewProjectionMatrices for the +X face: a light at the origin, range 50, reversed depth
+  // (the planes swapped), Y flipped.
+  void checkPointLightFace()
+  {
+    constexpr float nearPlane = 0.1f;
+    constexpr float range = 50.0f;
+
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, range, nearPlane);
+    projection[1][1] *= -1;
+    const glm::mat4 view = glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+    const glm::mat4 viewProjection = projection * view;
+    const vke::Frustum frustum = vke::Frustum::fromViewProjection(viewProjection);
+
+    check(frustum.intersects(boxAt({ 10.0f, 0.0f, 0.0f }, 1.0f)), "cube face keeps a box along its axis");
+    check(!frustum.intersects(boxAt({ -10.0f, 0.0f, 0.0f }, 1.0f)), "cube face culls a box behind it");
+    check(!frustum.intersects(boxAt({ 10.0f, 30.0f, 0.0f }, 1.0f)), "cube face culls a box in another face");
+    check(frustum.intersects(boxAt({ 10.0f, 10.0f, 0.0f }, 1.0f)), "cube face keeps a box on its edge");
+    check(!frustum.intersects(boxAt({ 60.0f, 0.0f, 0.0f }, 1.0f)), "cube face culls a box beyond the range");
+
+    // The depth pointLightShadow in SceneLighting.glsl rebuilds from the view depth must be the one the face writes
+    for (const float depth : { 0.5f, 7.0f, 49.0f })
+    {
+      const glm::vec4 clip = viewProjection * glm::vec4(depth, 0.3f * depth, -0.2f * depth, 1.0f);
+      const float rebuilt = nearPlane * (range - depth) / (depth * (range - nearPlane));
+
+      check(std::abs(clip.z / clip.w - rebuilt) < 1e-6f, "point light depth matches the shader's");
+    }
+  }
+
 } // namespace
 
 int main()
@@ -202,6 +244,8 @@ int main()
   checkFrustumBoxes(false);
   checkFrustumSpheres();
   checkSpotLight();
+  checkBoxSphere();
+  checkPointLightFace();
 
   if (g_failures > 0)
   {

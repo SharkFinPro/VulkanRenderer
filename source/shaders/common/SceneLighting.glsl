@@ -23,24 +23,34 @@ layout(set = 2, binding = 4) uniform sampler2DShadow[] spotLightShadowMaps;
 
 layout(set = 2, binding = 5) uniform samplerCubeShadow[] pointLightShadowMaps;
 
+// Near plane of the shadow projections; keep in step with Light::s_shadowNearPlane
+const float SHADOW_NEAR_PLANE = 0.1;
+
 // 1 where the fragment is lit by the point light, 0 where its shadow map hides it
 float pointLightShadow(int i, vec3 fragPos)
 {
   vec3 fragToLight = pointLights[i].position - fragPos;
   fragToLight.xz *= -1.0;
 
+  // The face the lookup reads is the one of the major axis, and that face's view depth is the distance along it
+  vec3 absToLight = abs(fragToLight);
+  float viewDepth = max(absToLight.x, max(absToLight.y, absToLight.z));
+
   float range = pointLights[i].shadowRange;
-  float currentDist = length(fragToLight);
 
   // Nothing beyond the range is in the map, so it can't hide the fragment
-  if (currentDist >= range)
+  if (viewDepth >= range)
   {
     return 1.0;
   }
 
   // The bias is a world distance, so it doesn't grow with the range
   const float bias = 0.1;
-  float ref = (currentDist - bias) / range;
+  float biasedDepth = max(viewDepth - bias, SHADOW_NEAR_PLANE);
+
+  // The reversed depth the face's projection gives at that view depth (PointLight::getLightViewProjectionMatrices). The
+  // sampler compares greater-or-equal: lit where the fragment is at least as near as what the map holds.
+  float ref = SHADOW_NEAR_PLANE * (range - biasedDepth) / (biasedDepth * (range - SHADOW_NEAR_PLANE));
 
   return texture(pointLightShadowMaps[nonuniformEXT(i)], vec4(fragToLight, ref));
 }

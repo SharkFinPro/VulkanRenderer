@@ -267,7 +267,8 @@ namespace vke::Images {
                                        const vk::ImageAspectFlags aspectFlags,
                                        const uint32_t mipLevels,
                                        const vk::ImageViewType viewType,
-                                       const uint32_t layerCount)
+                                       const uint32_t layerCount,
+                                       const uint32_t baseArrayLayer)
   {
     const vk::ImageViewCreateInfo imageViewCreateInfo {
       .image = image,
@@ -283,7 +284,7 @@ namespace vke::Images {
         .aspectMask = aspectFlags,
         .baseMipLevel = 0,
         .levelCount = mipLevels,
-        .baseArrayLayer = 0,
+        .baseArrayLayer = baseArrayLayer,
         .layerCount = layerCount
       }
     };

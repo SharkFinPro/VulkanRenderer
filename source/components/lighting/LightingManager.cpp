@@ -105,15 +105,6 @@ namespace {
     pointLightsSamplerLayout
   };
 
-  inline std::vector pointLightShadowMapBindings {
-    vk::DescriptorSetLayoutBinding{
-      .binding = 0,
-      .descriptorType = vk::DescriptorType::eUniformBuffer,
-      .descriptorCount = 1,
-      .stageFlags = vk::ShaderStageFlagBits::eVertex
-    }
-  };
-
 }
 
 namespace {
@@ -135,8 +126,6 @@ namespace vke {
     createCommandPool();
 
     createDescriptorPool();
-
-    createPointLightDescriptorSetLayout();
 
     createUniforms();
 
@@ -162,9 +151,7 @@ namespace vke {
     auto light = std::make_shared<PointLight>(
       m_logicalDevice,
       commonLightData,
-      m_commandPool,
-      getDescriptorPool(),
-      m_pointLightDescriptorSetLayout
+      m_commandPool
     );
 
     return light;
@@ -233,6 +220,13 @@ namespace vke {
     return m_spotLightsToRender;
   }
 
+  std::shared_ptr<PointLight> LightingManager::asShadowCastingPointLight(const std::shared_ptr<Light>& light)
+  {
+    auto pointLight = std::dynamic_pointer_cast<PointLight>(light);
+
+    return pointLight && pointLight->castsShadows() ? pointLight : nullptr;
+  }
+
   std::shared_ptr<SpotLight> LightingManager::asShadowCastingSpotLight(const std::shared_ptr<Light>& light)
   {
     auto spotLight = std::dynamic_pointer_cast<SpotLight>(light);
@@ -246,16 +240,11 @@ namespace vke {
                                          const vk::DescriptorSet sceneDescriptorSet,
                                          const uint32_t currentFrame) const
   {
-    renderPointLightShadowMaps(commandBuffer, pipelineManager, lists.pointLightRuns, lists.volumePointLightRuns,
-                               sceneDescriptorSet, currentFrame);
+    renderPointLightShadowMaps(commandBuffer, pipelineManager, lists.pointLightFaceRuns, lists.volumePointLightFaceRuns,
+                               sceneDescriptorSet);
 
     renderSpotLightShadowMaps(commandBuffer, pipelineManager, lists.spotLightRuns, lists.volumeSpotLightRuns,
                               sceneDescriptorSet, currentFrame);
-  }
-
-  vk::DescriptorSetLayout LightingManager::getPointLightDescriptorSetLayout() const
-  {
-    return m_pointLightDescriptorSetLayout;
   }
 
   void LightingManager::createUniforms()
@@ -338,7 +327,7 @@ namespace vke {
       }
 
       imageInfos[imageInfoCount++] = {
-        m_shadowMapSampler,
+        m_pointShadowMapSampler,
         light->getShadowMapDepthImageResource()->getImageView(),
         vk::ImageLayout::eDepthStencilReadOnlyOptimal
       };
@@ -450,106 +439,86 @@ namespace vke {
     };
 
     m_shadowMapSampler = m_logicalDevice->createSampler(samplerInfo);
+
+    vk::SamplerCreateInfo pointSamplerInfo = samplerInfo;
+    pointSamplerInfo.compareOp = vk::CompareOp::eGreaterOrEqual;
+
+    m_pointShadowMapSampler = m_logicalDevice->createSampler(pointSamplerInfo);
   }
 
   void LightingManager::renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                                    const std::shared_ptr<PipelineManager>& pipelineManager,
-                                                   const std::span<const DrawRun> runs,
-                                                   const std::span<const DrawRun> volumeRuns,
-                                                   const vk::DescriptorSet sceneDescriptorSet,
-                                                   const uint32_t currentFrame) const
+                                                   const std::span<const std::vector<DrawRun>> faceRuns,
+                                                   const std::span<const std::vector<DrawRun>> volumeFaceRuns,
+                                                   const vk::DescriptorSet sceneDescriptorSet) const
   {
+    size_t shadowCaster = 0;
+
     for (auto& light : m_pointLightsToRender)
     {
-      const auto pointLight = std::dynamic_pointer_cast<PointLight>(light);
-      if (!pointLight->castsShadows())
+      const auto pointLight = asShadowCastingPointLight(light);
+      if (!pointLight)
       {
         continue;
       }
 
+      // Renderer3D builds six lists per shadow-casting light, in this order and in face order
+      const size_t firstList = shadowCaster++ * 6;
+
       const auto shadowExtent = light->getShadowMapExtent();
+      const auto viewProjections = pointLight->getLightViewProjectionMatrices();
+      const auto& shadowMap = light->getShadowMapDepthImageResource();
 
-      beginShadowRendering(commandBuffer, light);
+      transitionShadowMapForRendering(commandBuffer, light);
 
-      vk::Viewport viewport {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(shadowExtent.width),
-        .height = static_cast<float>(shadowExtent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-      };
-      commandBuffer->setViewport(viewport);
-
-      vk::Rect2D scissor = {{0, 0}, shadowExtent};
-      commandBuffer->setScissor(scissor);
-
-      RenderInfo shadowRenderInfo = {
-        .commandBuffer = commandBuffer,
-        .currentFrame = currentFrame,
-        .viewPosition = pointLight->getPosition(),
-        .viewMatrix = glm::mat4(1.0),
-        .extent = shadowExtent
-      };
-
-      pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, PipelineType::pointLightShadowMap);
-
-      const glm::vec4 lightPositionAndRange(pointLight->getPosition(), pointLight->getShadowRange());
-
-      pipelineManager->pushGraphicsPipelineConstants<glm::vec4>(
-        shadowRenderInfo.commandBuffer,
-        PipelineType::pointLightShadowMap,
-        vk::ShaderStageFlagBits::eFragment,
-        0,
-        lightPositionAndRange
-      );
-
-      pointLight->updateUniform(shadowRenderInfo.currentFrame);
-
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        shadowRenderInfo.commandBuffer,
-        PipelineType::pointLightShadowMap,
-        sceneDescriptorSet,
-        0
-      );
-
-      pipelineManager->bindGraphicsPipelineDescriptorSet(
-        shadowRenderInfo.commandBuffer,
-        PipelineType::pointLightShadowMap,
-        pointLight->getDescriptorSet(currentFrame),
-        1
-      );
-
-      drawShadowCasters(shadowRenderInfo.commandBuffer, runs);
-
-      if (!volumeRuns.empty())
+      for (uint32_t face = 0; face < 6; ++face)
       {
-        constexpr auto volumePipeline = PipelineType::volumeSurfacePointLightShadowMap;
+        const size_t list = firstList + face;
+        const std::span<const DrawRun> runs = list < faceRuns.size()
+                                              ? std::span<const DrawRun>(faceRuns[list])
+                                              : std::span<const DrawRun>();
+        const std::span<const DrawRun> volumeRuns = list < volumeFaceRuns.size()
+                                                    ? std::span<const DrawRun>(volumeFaceRuns[list])
+                                                    : std::span<const DrawRun>();
 
-        pipelineManager->bindGraphicsPipeline(shadowRenderInfo.commandBuffer, volumePipeline);
+        // Every face is begun, so that an empty one is still cleared
+        beginShadowRendering(commandBuffer, shadowMap->getFaceImageView(face), shadowExtent, 0.0f);
 
-        pipelineManager->pushGraphicsPipelineConstants<glm::vec4>(
-          shadowRenderInfo.commandBuffer,
-          volumePipeline,
-          vk::ShaderStageFlagBits::eFragment,
-          0,
-          lightPositionAndRange
-        );
+        if (!runs.empty())
+        {
+          constexpr auto pipeline = PipelineType::pointLightShadowMap;
 
-        // Rebound, since the pipeline layouts differ
-        pipelineManager->bindGraphicsPipelineDescriptorSet(shadowRenderInfo.commandBuffer, volumePipeline, sceneDescriptorSet, 0);
+          pipelineManager->bindGraphicsPipeline(commandBuffer, pipeline);
 
-        pipelineManager->bindGraphicsPipelineDescriptorSet(
-          shadowRenderInfo.commandBuffer,
-          volumePipeline,
-          pointLight->getDescriptorSet(currentFrame),
-          1
-        );
+          pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, pipeline,
+                                                                    vk::ShaderStageFlagBits::eVertex, 0,
+                                                                    viewProjections[face]);
 
-        drawVolumeShadowCasters(shadowRenderInfo.commandBuffer, volumeRuns);
+          pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, pipeline, sceneDescriptorSet, 0);
+
+          drawShadowCasters(commandBuffer, runs);
+        }
+
+        if (!volumeRuns.empty())
+        {
+          constexpr auto volumePipeline = PipelineType::volumeSurfacePointLightShadowMap;
+
+          pipelineManager->bindGraphicsPipeline(commandBuffer, volumePipeline);
+
+          pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, volumePipeline,
+                                                                    vk::ShaderStageFlagBits::eVertex, 0,
+                                                                    viewProjections[face]);
+
+          // Rebound, since the pipeline layouts differ
+          pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, volumePipeline, sceneDescriptorSet, 0);
+
+          drawVolumeShadowCasters(commandBuffer, volumeRuns);
+        }
+
+        commandBuffer->endRendering();
       }
 
-      endShadowRendering(commandBuffer, light);
+      transitionShadowMapForSampling(commandBuffer, light);
     }
   }
 
@@ -581,20 +550,9 @@ namespace vke {
 
       const auto shadowExtent = light->getShadowMapExtent();
 
-      beginShadowRendering(commandBuffer, light);
+      transitionShadowMapForRendering(commandBuffer, light);
 
-      vk::Viewport viewport {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(shadowExtent.width),
-        .height = static_cast<float>(shadowExtent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-      };
-      commandBuffer->setViewport(viewport);
-
-      vk::Rect2D scissor = {{0, 0}, shadowExtent};
-      commandBuffer->setScissor(scissor);
+      beginShadowRendering(commandBuffer, light->getShadowMapDepthImageResource()->getImageView(), shadowExtent, 1.0f);
 
       RenderInfo shadowRenderInfo = {
         .commandBuffer = commandBuffer,
@@ -643,18 +601,10 @@ namespace vke {
         drawVolumeShadowCasters(shadowRenderInfo.commandBuffer, volumeRuns);
       }
 
-      endShadowRendering(commandBuffer, light);
+      commandBuffer->endRendering();
+
+      transitionShadowMapForSampling(commandBuffer, light);
     }
-  }
-
-  void LightingManager::createPointLightDescriptorSetLayout()
-  {
-    const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-      .bindingCount = static_cast<uint32_t>(pointLightShadowMapBindings.size()),
-      .pBindings = pointLightShadowMapBindings.data()
-    };
-
-    m_pointLightDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
   void LightingManager::createCommandPool()
@@ -721,16 +671,11 @@ namespace vke {
     m_prevNumSpotLights = numSpotLights;
   }
 
-  void LightingManager::beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                             const std::shared_ptr<Light>& light)
+  void LightingManager::transitionShadowMapForRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                        const std::shared_ptr<Light>& light)
   {
-    static constexpr vk::ClearValue s_clearDepth = vk::ClearDepthStencilValue{
-      .depth = 1.0f,
-      .stencil = 0
-    };
-
     // The shadow map was last sampled as DEPTH_STENCIL_READ_ONLY_OPTIMAL (or is in its initial
-    // layout). It is cleared on load, so discard the old contents.
+    // layout). Every layer is cleared on load, so discard the old contents.
     const vk::ImageMemoryBarrier2 shadowMapBarrier {
       .srcStageMask = vk::PipelineStageFlagBits2::eFragmentShader,
       .srcAccessMask = vk::AccessFlagBits2::eNone,
@@ -758,36 +703,50 @@ namespace vke {
     };
 
     commandBuffer->pipelineBarrier(dependencyInfo);
+  }
 
-    vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
-      .imageView = light->getShadowMapDepthImageResource()->getImageView(),
+  void LightingManager::beginShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                             const vk::ImageView depthView,
+                                             const vk::Extent2D extent,
+                                             const float clearDepth)
+  {
+    const vk::RenderingAttachmentInfo depthRenderingAttachmentInfo {
+      .imageView = depthView,
       .imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal,
       .loadOp = vk::AttachmentLoadOp::eClear,
       .storeOp = vk::AttachmentStoreOp::eStore,
-      .clearValue = s_clearDepth
+      .clearValue = vk::ClearDepthStencilValue{ .depth = clearDepth, .stencil = 0 }
     };
 
-    constexpr uint32_t kCubemapFacesMask = 0x3Fu;
     const vk::RenderingInfo renderingInfo {
       .renderArea = {
         .offset = {0, 0},
-        .extent = light->getShadowMapExtent(),
+        .extent = extent,
       },
       .layerCount = 1,
-      .viewMask = light->getLightType() == LightType::pointLight ? kCubemapFacesMask : 0,
       .colorAttachmentCount = 0,
       .pColorAttachments = nullptr,
       .pDepthAttachment = &depthRenderingAttachmentInfo,
     };
 
     commandBuffer->beginRendering(renderingInfo);
+
+    const vk::Viewport viewport {
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(extent.width),
+      .height = static_cast<float>(extent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f
+    };
+    commandBuffer->setViewport(viewport);
+
+    commandBuffer->setScissor(vk::Rect2D{{0, 0}, extent});
   }
 
-  void LightingManager::endShadowRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                           const std::shared_ptr<Light>& light)
+  void LightingManager::transitionShadowMapForSampling(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                       const std::shared_ptr<Light>& light)
   {
-    commandBuffer->endRendering();
-
     // Hand the shadow map over to the lighting shaders, which sample it with a descriptor
     // declaring DEPTH_STENCIL_READ_ONLY_OPTIMAL.
     const vk::ImageMemoryBarrier2 shadowMapBarrier {
