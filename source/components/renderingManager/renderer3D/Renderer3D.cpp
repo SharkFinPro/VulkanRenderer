@@ -541,6 +541,16 @@ namespace vke {
     return buildDrawRuns(m_drawItems, drawSlots, offset, m_outlineRuns);
   }
 
+  bool Renderer3D::isMousePickingActive() const
+  {
+    return m_mousePicker->isPicking();
+  }
+
+  void Renderer3D::updateMousePickingHover() const
+  {
+    m_mousePicker->updateCanMousePick();
+  }
+
   void Renderer3D::renderMousePicking(const RenderInfo* renderInfo,
                                       const std::shared_ptr<PipelineManager>& pipelineManager) const
   {

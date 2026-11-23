@@ -539,6 +539,12 @@ namespace vke {
     };
 
     auto recordMousePicking = [this, currentFrame, pipelineManager](const RenderInfo& renderInfo) {
+      if (!m_renderer3D->isMousePickingActive())
+      {
+        m_renderer3D->updateMousePickingHover();
+        return;
+      }
+
       m_renderTarget->beginMousePickingRendering(renderInfo.commandBuffer, currentFrame);
 
       m_renderer3D->renderMousePicking(&renderInfo, pipelineManager);

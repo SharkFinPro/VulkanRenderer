@@ -2,11 +2,13 @@
 #define VKE_MOUSEPICKER_H
 
 #include "DrawRun.h"
+#include "PickRequests.h"
 #include "PickResult.h"
 #include <glm/mat4x4.hpp>
 #include <imgui.h>
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <span>
@@ -22,19 +24,51 @@ namespace vke {
   class RenderObject;
   class VolumeSurface;
 
+  // continuous picks every frame the cursor is over the scene and something pickable was submitted. onRequest picks only
+  // in frames that a requestPick call asked for, and skips the picking pass, its readback and the per-submission
+  // bookkeeping in every other frame.
+  enum class PickMode {
+    continuous,
+    onRequest
+  };
+
+  // Receives what the cursor was over in the picked frame, or nullopt (see MousePicker::requestPick).
+  using PickCallback = std::function<void(const std::optional<PickResult>&)>;
+
   class MousePicker {
   public:
     explicit MousePicker(std::shared_ptr<LogicalDevice> logicalDevice);
 
+    // Continuous by default. In onRequest mode the flags passed to renderObject/renderVolumeSurface and getPickResult
+    // only update for frames that picked, so use requestPick to read a result.
+    void setPickMode(PickMode pickMode);
+
+    [[nodiscard]] PickMode getPickMode() const;
+
+    // Takes a pick in the first frame whose objects are submitted after the render() that follows this call, using the
+    // cursor position in that frame, and calls callback exactly once, from inside render(), when that frame's readback
+    // resolves (up to the frames in flight later). It receives what getPickResult would report for that frame, or
+    // nullopt over empty space, when the cursor is not over the scene or nothing pickable was submitted, or once the
+    // object has been destroyed. A request made while frames never reach their readback (a minimized window, a frame
+    // abandoned for a swapchain rebuild) waits for the next frame that does. Works in both modes; in continuous mode it
+    // attaches to the next frame's readback. In onRequest mode only pickable submissions are drawn into the pick: render
+    // objects through Renderer3D::renderPickableObject (or renderObject with a non-null flag), volume surfaces with a
+    // non-null flag; renderObject with a null flag is not pickable. Frame thread only. A request made from inside a callback is active for the
+    // very next frame. Callbacks still queued when the picker is destroyed are dropped without firing, so one that
+    // captures a shared_ptr back to the engine would keep it alive forever. getPickResult and the flags describe a
+    // pick only in the application iteration right after the render() that resolved it, so in onRequest mode read the
+    // result in the callback.
+    void requestPick(PickCallback callback);
+
     // Whether the cursor was over the scene image in the most recently rendered frame, whether or not anything pickable
-    // was submitted. False after a frame that skipped picking. It describes a newer frame than getPickResult, so a pick
-    // can still be reported for a moment after this turns false.
+    // was submitted. False after a frame that never reached the picking pass (zero-sized scene, abandoned frame). It
+    // describes a newer frame than getPickResult, so a pick can still be reported for a moment after this turns false.
     [[nodiscard]] bool canMousePick() const;
 
     // What the cursor was over in a frame rendered a few frames ago: nullopt over empty space, off the scene, when no
-    // result has arrived, or once the object has been destroyed. Objects submitted without a flag are picked too. The
-    // one-pixel readback is recorded into the frame's command buffer and read when that frame-in-flight slot comes
-    // around again, so the answer lags by up to the number of frames in flight and nothing waits on the GPU. Like the
+    // result has arrived, or once the object has been destroyed. Only objects submitted as pickable are picked (a
+    // non-null flag, or renderPickableObject). The one-pixel readback is recorded into the frame's command buffer and
+    // read when that frame-in-flight slot comes around again, so the answer lags by up to the number of frames in flight and nothing waits on the GPU. Like the
     // flags, it is set while the frame renders, so read it before submitting this frame's objects.
     [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
@@ -44,9 +78,10 @@ namespace vke {
 
     // Reads the result recorded when this frame-in-flight slot was last used, once the frame has completed (call after
     // FrameScheduler::beginFrame and beginFrame). Sets the pick result and the flags of this frame's submissions of the
-    // picked object.
+    // picked object, then calls the callbacks of the requests that frame carried.
     void resolveReadback(uint32_t currentFrame);
 
+    // At the end of every frame: drops its submissions and activates the requests made so far for the next frame.
     void clearObjectsToMousePick();
 
     void setViewportExtent(vk::Extent2D viewportExtent);
@@ -81,17 +116,25 @@ namespace vke {
     // it reads them to build the picking draws.
     friend class Renderer3D;
 
+    // Whether this frame's submissions are picked: always in continuous mode, otherwise only with a request active.
+    [[nodiscard]] bool isPicking() const;
+
+    // Refreshes canMousePick for a frame that skips picking.
+    void updateCanMousePick();
+
     // mousePicked may be null; otherwise it is set to whether the object was under the cursor in the frame the readback
     // describes (see getPickResult), on every submission of that object this frame. An alpha-tested object is picked
     // only where its texture is opaque enough, matching how it is drawn. slot is the object table slot of the render
     // submission this is for (Renderer3D submits the object for rendering first). Returns the picking id the table
-    // entry of that slot must carry, which the picking shaders write.
+    // entry of that slot must carry, which the picking shaders write. Returns 0 (nothing recorded) when the frame is not
+    // picking.
     [[nodiscard]] uint32_t renderObject(const std::shared_ptr<RenderObject>& renderObject,
                                         bool* mousePicked,
                                         bool alphaTested,
                                         uint32_t slot);
 
     // The same for a volume surface submission; the picking id comes from the surface's table entry, shared by its chunks.
+    // Returns 0 when the frame is not picking.
     [[nodiscard]] uint32_t renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
                                                bool* mousePicked);
 
@@ -104,6 +147,10 @@ namespace vke {
     ImVec2 m_viewportDisplaySize {0, 0};
 
     bool m_sceneHovered = false;
+
+    PickMode m_pickMode = PickMode::continuous;
+
+    PickRequests<PickResult> m_pickRequests;
 
     struct PickEntry {
       std::shared_ptr<RenderObject> object;
@@ -134,7 +181,8 @@ namespace vke {
 
     // One per frame in flight: the readback buffer (persistently mapped) and what is needed to interpret it. The
     // entries are the frame's pick entries, swapped in so nothing is copied; they keep the objects alive for at most
-    // the frames in flight after the application stops submitting them. The application's flags are not kept.
+    // the frames in flight after the application stops submitting them. The application's flags are not kept. The
+    // callbacks are the requests the frame carries, fired when it resolves, also when the frame could not pick.
     struct ReadbackSlot {
       vk::raii::Buffer buffer = nullptr;
       vk::raii::DeviceMemory memory = nullptr;
@@ -146,6 +194,7 @@ namespace vke {
       glm::mat4 viewMatrix { 1.0f };
       glm::mat4 projectionMatrix { 1.0f };
       std::vector<PickEntry> entries;
+      std::vector<PickCallback> callbacks;
     };
     std::vector<ReadbackSlot> m_readbackSlots;
 

@@ -71,15 +71,59 @@ int main()
       drawList->AddLine(ImVec2(center.x, center.y - crosshairSize), ImVec2(center.x, center.y + crosshairSize), IM_COL32(255, 255, 0, 255));
     });
 
+    bool pickOnClick = false;
+    int lastPick = -2;
+
     while (renderer.isActive())
     {
       displayGui(renderer.getImGuiInstance(), lights, objects, renderer.getRenderingManager());
 
-      if (renderer.getRenderingManager()->getRenderer3D()->getMousePicker()->canMousePick() && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+      const auto mousePicker = renderer.getRenderingManager()->getRenderer3D()->getMousePicker();
+
+      ImGui::Begin("Pick Mode");
+      if (ImGui::Checkbox("Pick on click", &pickOnClick))
       {
-        for (auto& [object, hovering, selected, pipelineType] : mousePickingObjects)
+        mousePicker->setPickMode(pickOnClick ? vke::PickMode::onRequest : vke::PickMode::continuous);
+      }
+      if (pickOnClick)
+      {
+        if (lastPick >= 0)
         {
-          selected = hovering;
+          ImGui::Text("Last pick: object %d", lastPick);
+        }
+        else
+        {
+          ImGui::TextUnformatted(lastPick == -1 ? "Last pick: empty space" : "Last pick: none yet");
+        }
+      }
+      ImGui::End();
+
+      if (mousePicker->canMousePick())
+      {
+        if (pickOnClick && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        {
+          // Runs inside render(), a few frames later
+          mousePicker->requestPick([&mousePickingObjects, &lastPick](const std::optional<vke::PickResult>& pick) {
+            lastPick = -1;
+
+            for (int i = 0; i < static_cast<int>(mousePickingObjects.size()); i++)
+            {
+              auto& candidate = mousePickingObjects[i];
+              candidate.selected = pick && candidate.object == pick->renderObject;
+
+              if (candidate.selected)
+              {
+                lastPick = i;
+              }
+            }
+          });
+        }
+        else if (!pickOnClick && renderer.getWindow()->buttonIsPressed(GLFW_MOUSE_BUTTON_LEFT))
+        {
+          for (auto& [object, hovering, selected, pipelineType] : mousePickingObjects)
+          {
+            selected = hovering;
+          }
         }
       }
 

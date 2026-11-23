@@ -43,6 +43,32 @@ namespace vke {
     }
   }
 
+  void MousePicker::setPickMode(const PickMode pickMode)
+  {
+    m_pickMode = pickMode;
+  }
+
+  PickMode MousePicker::getPickMode() const
+  {
+    return m_pickMode;
+  }
+
+  void MousePicker::requestPick(PickCallback callback)
+  {
+    m_pickRequests.request(std::move(callback));
+  }
+
+  bool MousePicker::isPicking() const
+  {
+    return m_pickMode == PickMode::continuous || m_pickRequests.hasActive();
+  }
+
+  void MousePicker::updateCanMousePick()
+  {
+    int32_t mouseX, mouseY;
+    validateMousePickingMousePosition(mouseX, mouseY);
+  }
+
   bool MousePicker::canMousePick() const
   {
     return m_canMousePick;
@@ -83,6 +109,8 @@ namespace vke {
   {
     m_renderObjectsToMousePick.clear();
 
+    m_pickRequests.promote();
+
     // Ids restart at 1 each frame, and the pointers belong to the application, which may free them once it stops
     // submitting an object.
     m_mousePickingFlags.clear();
@@ -113,6 +141,16 @@ namespace vke {
                                      const bool alphaTested,
                                      const uint32_t slot)
   {
+    if (!isPicking())
+    {
+      if (mousePicked)
+      {
+        *mousePicked = false;
+      }
+
+      return 0;
+    }
+
     const auto objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
     m_renderObjectsToMousePick.push_back({ renderObject, slot, alphaTested });
     m_mousePickingFlags.push_back(mousePicked);
@@ -128,6 +166,16 @@ namespace vke {
   uint32_t MousePicker::renderVolumeSurface(const std::shared_ptr<VolumeSurface>& surface,
                                             bool* mousePicked)
   {
+    if (!isPicking())
+    {
+      if (mousePicked)
+      {
+        *mousePicked = false;
+      }
+
+      return 0;
+    }
+
     const auto objectID = static_cast<uint32_t>(m_renderObjectsToMousePick.size()) + 1;
     m_renderObjectsToMousePick.push_back({ nullptr, 0, false, surface });
     m_mousePickingFlags.push_back(mousePicked);
@@ -210,17 +258,27 @@ namespace vke {
   {
     auto& slot = m_readbackSlots[currentFrame];
 
-    if (!slot.pending)
+    if (!slot.pending && slot.callbacks.empty())
     {
       return;
     }
 
-    slot.pending = false;
+    if (slot.pending)
+    {
+      slot.pending = false;
 
-    std::array<uint32_t, 4> pixel {};
-    std::memcpy(pixel.data(), slot.mapped, sizeof(pixel));
+      std::array<uint32_t, 4> pixel {};
+      std::memcpy(pixel.data(), slot.mapped, sizeof(pixel));
 
-    storePick(slot, pixel);
+      storePick(slot, pixel);
+    }
+
+    // Before the entries are dropped, so a picked object the application has already released is still reported.
+    // m_pick was reset for this frame, so a slot that could not pick reports nothing.
+    if (!slot.callbacks.empty())
+    {
+      PickRequests<PickResult>::fire(slot.callbacks, getPickResult());
+    }
 
     // Drops the objects; the vector keeps its capacity for the next swap.
     slot.entries.clear();
@@ -273,12 +331,17 @@ namespace vke {
   {
     // Checked even with nothing to pick, so canMousePick() still says whether the cursor is over the scene.
     int32_t mouseX, mouseY;
-    if (!validateMousePickingMousePosition(mouseX, mouseY) || m_renderObjectsToMousePick.empty())
+    const bool canPick = validateMousePickingMousePosition(mouseX, mouseY) && !m_renderObjectsToMousePick.empty();
+
+    auto& slot = m_readbackSlots[currentFrame];
+
+    // The frame's requests resolve with it, with nothing when it could not pick.
+    m_pickRequests.take(slot.callbacks);
+
+    if (!canPick)
     {
       return;
     }
-
-    auto& slot = m_readbackSlots[currentFrame];
 
     slot.pending = true;
     slot.mouseX = mouseX;
