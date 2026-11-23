@@ -294,13 +294,8 @@ namespace vke {
       .bufferDeviceAddress = getPhysicalDevice()->supportsRayTracing() ? vk::True : vk::False
     };
 
-    vk::PhysicalDeviceVulkan11Features vulkan11Features {
-      .pNext = &vulkan12Features,
-      .multiview = vk::True
-    };
-
     vk::PhysicalDeviceFeatures2 deviceFeatures2 {
-      .pNext = &vulkan11Features,
+      .pNext = &vulkan12Features,
       .features {
         .geometryShader = vk::True,
         .fillModeNonSolid = vk::True,

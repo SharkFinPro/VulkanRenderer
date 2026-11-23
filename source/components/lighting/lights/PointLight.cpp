@@ -25,6 +25,7 @@ namespace vke {
     return PointLightUniform {
       .lightViewProjections = getLightViewProjectionMatrices(),
       .position = m_position,
+      .shadowNearPlane = s_shadowNearPlane,
       .color = m_color,
       .ambient = m_ambient,
       .diffuse = m_diffuse,

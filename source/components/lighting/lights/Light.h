@@ -17,7 +17,7 @@ namespace vke {
   struct alignas(16) PointLightUniform {
     std::array<glm::mat4, 6> lightViewProjections;
     glm::vec3 position;
-    float padding1;
+    float shadowNearPlane;
     glm::vec3 color;
     float padding2;
 
