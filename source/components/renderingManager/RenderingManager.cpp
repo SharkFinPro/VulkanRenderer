@@ -424,6 +424,7 @@ namespace vke {
     if (ImGui::IsItemActive() || ImGui::IsItemDeactivated())
     {
       m_sceneIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+      m_renderer3D->getMousePicker()->setSceneHovered(m_sceneIsHovered);
     }
 
     // ImGui focuses a window on a left press only, so a right press has to focus the scene itself for the keyboard to
