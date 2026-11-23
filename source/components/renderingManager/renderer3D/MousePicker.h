@@ -51,7 +51,9 @@ namespace vke {
     // nullopt over empty space, when the cursor is not over the scene or nothing pickable was submitted, or once the
     // object has been destroyed. A request made while frames never reach their readback (a minimized window, a frame
     // abandoned for a swapchain rebuild) waits for the next frame that does. Works in both modes; in continuous mode it
-    // attaches to the next frame's readback. Frame thread only. A request made from inside a callback is active for the
+    // attaches to the next frame's readback. In onRequest mode only pickable submissions are drawn into the pick: render
+    // objects through Renderer3D::renderPickableObject (or renderObject with a non-null flag), volume surfaces with a
+    // non-null flag; renderObject with a null flag is not pickable. Frame thread only. A request made from inside a callback is active for the
     // very next frame. Callbacks still queued when the picker is destroyed are dropped without firing, so one that
     // captures a shared_ptr back to the engine would keep it alive forever. getPickResult and the flags describe a
     // pick only in the application iteration right after the render() that resolved it, so in onRequest mode read the
@@ -59,14 +61,14 @@ namespace vke {
     void requestPick(PickCallback callback);
 
     // Whether the cursor was over the scene image in the most recently rendered frame, whether or not anything pickable
-    // was submitted. False after a frame that never reached the picking pass (zero-sized scene, abandoned frame). It describes a newer frame than getPickResult, so a pick
-    // can still be reported for a moment after this turns false.
+    // was submitted. False after a frame that never reached the picking pass (zero-sized scene, abandoned frame). It
+    // describes a newer frame than getPickResult, so a pick can still be reported for a moment after this turns false.
     [[nodiscard]] bool canMousePick() const;
 
     // What the cursor was over in a frame rendered a few frames ago: nullopt over empty space, off the scene, when no
-    // result has arrived, or once the object has been destroyed. Objects submitted without a flag are picked too. The
-    // one-pixel readback is recorded into the frame's command buffer and read when that frame-in-flight slot comes
-    // around again, so the answer lags by up to the number of frames in flight and nothing waits on the GPU. Like the
+    // result has arrived, or once the object has been destroyed. Only objects submitted as pickable are picked (a
+    // non-null flag, or renderPickableObject). The one-pixel readback is recorded into the frame's command buffer and
+    // read when that frame-in-flight slot comes around again, so the answer lags by up to the number of frames in flight and nothing waits on the GPU. Like the
     // flags, it is set while the frame renders, so read it before submitting this frame's objects.
     [[nodiscard]] std::optional<PickResult> getPickResult() const;
 
