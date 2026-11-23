@@ -6,6 +6,7 @@
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <variant>
 
@@ -17,9 +18,9 @@ namespace vke {
   struct alignas(16) PointLightUniform {
     std::array<glm::mat4, 6> lightViewProjections;
     glm::vec3 position;
-    float padding1;
+    float shadowNearPlane;
     glm::vec3 color;
-    float padding2;
+    int32_t shadowMapIndex; // Into the point light shadow maps, or -1 when the light has none
 
     float ambient;
     float diffuse;
@@ -37,11 +38,14 @@ namespace vke {
     float specular;
     float coneAngle;
     float shadowRange;
+    int32_t shadowMapIndex; // Into the spot light shadow maps, or -1 when the light has none
   };
 
   // Both are arrays in shader storage buffers, mirrored by the structs in shaders/common/Lighting.glsl
-  static_assert(sizeof(PointLightUniform) == 432 && offsetof(PointLightUniform, shadowRange) == 428);
-  static_assert(sizeof(SpotLightUniform) == 128 && offsetof(SpotLightUniform, shadowRange) == 116);
+  static_assert(sizeof(PointLightUniform) == 432 && offsetof(PointLightUniform, shadowRange) == 428 &&
+                offsetof(PointLightUniform, shadowMapIndex) == 412);
+  static_assert(sizeof(SpotLightUniform) == 128 && offsetof(SpotLightUniform, shadowRange) == 116 &&
+                offsetof(SpotLightUniform, shadowMapIndex) == 120);
 
   using LightUniform = std::variant<PointLightUniform, SpotLightUniform>;
 

@@ -13,6 +13,7 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../lighting/lights/Light.h"
+#include "../../lighting/lights/PointLight.h"
 #include "../../lighting/lights/SpotLight.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
@@ -79,10 +80,11 @@ namespace {
     return light->castsShadows();
   }
 
-  // How many lists the shadow maps need: one shared by the point lights if any casts shadows, one per spot light that does
+  // How many lists the shadow maps need: one per cube face of each point light that casts shadows, one per spot light that
+  // does
   [[nodiscard]] size_t countShadowLists(const vke::LightingManager& lightingManager)
   {
-    return (std::ranges::any_of(lightingManager.getPointLightsToRender(), castsShadows) ? 1 : 0) +
+    return 6 * static_cast<size_t>(std::ranges::count_if(lightingManager.getPointLightsToRender(), castsShadows)) +
            static_cast<size_t>(std::ranges::count_if(lightingManager.getSpotLightsToRender(), castsShadows));
   }
 
@@ -141,9 +143,9 @@ namespace vke {
                                     const uint32_t currentFrame) const
   {
     const ShadowDrawLists lists {
-      .pointLightRuns = m_shadowRuns,
+      .pointLightFaceRuns = std::span(m_pointShadowFaceRuns).first(m_pointShadowListCount),
       .spotLightRuns = std::span(m_spotShadowRuns).first(m_spotShadowCount),
-      .volumePointLightRuns = m_volumeShadowRuns,
+      .volumePointLightFaceRuns = std::span(m_volumePointShadowFaceRuns).first(m_pointShadowListCount),
       .volumeSpotLightRuns = std::span(m_volumeSpotShadowRuns).first(m_spotShadowCount)
     };
 
@@ -401,26 +403,74 @@ namespace vke {
                                        uint32_t offset,
                                        const LightingManager& lightingManager)
   {
-    m_shadowRuns.clear();
-    m_volumeShadowRuns.clear();
+    offset = buildPointShadowRuns(drawSlots, offset, lightingManager);
 
-    // The point lights share one list of every submission, built only if one casts shadows
-    if (std::ranges::any_of(lightingManager.getPointLightsToRender(), castsShadows))
+    return buildSpotShadowRuns(drawSlots, offset, lightingManager);
+  }
+
+  uint32_t Renderer3D::buildPointShadowRuns(uint32_t* drawSlots,
+                                            uint32_t offset,
+                                            const LightingManager& lightingManager)
+  {
+    m_pointShadowListCount = 0;
+
+    // The order and the filter are the ones LightingManager draws the lists in
+    for (const std::shared_ptr<Light>& light : lightingManager.getPointLightsToRender())
     {
-      m_drawItems.clear();
+      const auto pointLight = LightingManager::asShadowCastingPointLight(light);
+
+      if (!pointLight)
+      {
+        continue;
+      }
+
+      // The submissions within the shadow range; each face draws those of them in its frustum
+      const glm::vec3 position = pointLight->getPosition();
+      const float range = pointLight->getShadowRange();
+
+      m_shadowCandidates.clear();
 
       for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
       {
-        m_drawItems.push_back(makeDrawItem(slot, false, 0));
+        if (intersectsSphere(m_slotBounds[slot], position, range))
+        {
+          m_shadowCandidates.push_back(slot);
+        }
       }
 
-      offset = buildDrawRuns(m_drawItems, drawSlots, offset, m_shadowRuns);
+      // The matrices the shadow vertex shader multiplies by
+      const auto viewProjections = pointLight->getLightViewProjectionMatrices();
 
-      offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), nullptr, VolumeFilter::castsShadows,
-                               m_volumeShadowRuns);
+      for (const glm::mat4& viewProjection : viewProjections)
+      {
+        if (m_pointShadowListCount == m_pointShadowFaceRuns.size())
+        {
+          m_pointShadowFaceRuns.emplace_back();
+          m_volumePointShadowFaceRuns.emplace_back();
+        }
+
+        std::vector<DrawRun>& volumeRuns = m_volumePointShadowFaceRuns[m_pointShadowListCount];
+        std::vector<DrawRun>& runs = m_pointShadowFaceRuns[m_pointShadowListCount++];
+        runs.clear();
+
+        const Frustum faceFrustum = Frustum::fromViewProjection(viewProjection);
+
+        m_drawItems.clear();
+
+        for (const uint32_t slot : m_shadowCandidates)
+        {
+          addVisibleDrawItem(faceFrustum, slot, false, 0);
+        }
+
+        offset = buildDrawRuns(m_drawItems, drawSlots, offset, runs);
+
+        // The face's far plane keeps the chunks it draws within the shadow range's cube
+        offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &faceFrustum,
+                                 VolumeFilter::castsShadows, volumeRuns);
+      }
     }
 
-    return buildSpotShadowRuns(drawSlots, offset, lightingManager);
+    return offset;
   }
 
   uint32_t Renderer3D::buildSpotShadowRuns(uint32_t* drawSlots,
@@ -854,13 +904,12 @@ namespace vke {
       draws.runs.clear();
     }
 
-    m_shadowRuns.clear();
+    m_pointShadowListCount = 0;
     m_spotShadowCount = 0;
     m_pickRuns.clear();
     m_pickAlphaTestedRuns.clear();
     m_outlineRuns.clear();
     m_volumeRuns.clear();
-    m_volumeShadowRuns.clear();
     m_volumePickRuns.clear();
     m_volumeOutlineRuns.clear();
 

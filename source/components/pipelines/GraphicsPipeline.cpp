@@ -52,7 +52,6 @@ namespace vke {
     const bool hasColorFormat = graphicsPipelineOptions.colorFormat != vk::Format::eUndefined;
 
     vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo {
-      .viewMask = graphicsPipelineOptions.renderToCubeMap ? 0x3Fu : 0u,
       .colorAttachmentCount = static_cast<uint32_t>(hasColorFormat),
       .pColorAttachmentFormats = hasColorFormat ? &graphicsPipelineOptions.colorFormat : nullptr,
       .depthAttachmentFormat = !graphicsPipelineOptions.hasDepthAttachment

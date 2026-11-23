@@ -183,8 +183,7 @@ namespace vke {
       PipelineConfig::createVolumeSurfaceShadowMapPipelineOptions(sceneDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::volumeSurfacePointLightShadowMap,
-      PipelineConfig::createVolumeSurfacePointLightShadowMapPipelineOptions(sceneDescriptorSetLayout,
-      lightingManager->getPointLightDescriptorSetLayout()));
+      PipelineConfig::createVolumeSurfacePointLightShadowMapPipelineOptions(sceneDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::volumeSurfaceMousePicking,
       PipelineConfig::createVolumeSurfaceMousePickingPipelineOptions(sceneDescriptorSetLayout));
@@ -196,8 +195,7 @@ namespace vke {
       PipelineConfig::createShadowMapPipelineOptions(sceneDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::pointLightShadowMap,
-      PipelineConfig::createPointLightShadowMapPipelineOptions(sceneDescriptorSetLayout,
-      lightingManager->getPointLightDescriptorSetLayout()));
+      PipelineConfig::createPointLightShadowMapPipelineOptions(sceneDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::mousePicking,
       PipelineConfig::createMousePickingPipelineOptions(sceneDescriptorSetLayout));

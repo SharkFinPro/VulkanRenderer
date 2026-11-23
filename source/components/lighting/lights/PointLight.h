@@ -6,38 +6,23 @@
 
 namespace vke {
 
-  class DescriptorSet;
-  class UniformBuffer;
-
   class PointLight final : public Light {
   public:
     PointLight(std::shared_ptr<LogicalDevice> logicalDevice,
                const CommonLightData& commonLightData,
-               const vk::CommandPool& commandPool,
-               vk::DescriptorPool descriptorPool,
-               vk::DescriptorSetLayout descriptorSetLayout);
+               const vk::CommandPool& commandPool);
 
     [[nodiscard]] LightType getLightType() const override;
 
     [[nodiscard]] LightUniform getUniform() const override;
 
+    // One view-projection per cube face, in face order. Reversed depth: the near plane maps to 1 and the shadow range to
+    // 0, so the 32-bit float depth keeps its precision across the whole range (see pointLightShadow in
+    // shaders/common/SceneLighting.glsl, which rebuilds the same depth).
     [[nodiscard]] std::array<glm::mat4, 6> getLightViewProjectionMatrices() const;
 
-    void updateUniform(uint32_t currentFrame) const;
-
-    [[nodiscard]] vk::DescriptorSet getDescriptorSet(uint32_t currentFrame) const;
-
   private:
-    std::shared_ptr<DescriptorSet> m_descriptorSet;
-
-    std::shared_ptr<UniformBuffer> m_viewProjectionUniform;
-
     void createShadowMap(vk::CommandPool commandPool) override;
-
-    void createUniform();
-
-    void createDescriptorSet(vk::DescriptorPool descriptorPool,
-                             vk::DescriptorSetLayout descriptorSetLayout);
   };
 
 } // vke

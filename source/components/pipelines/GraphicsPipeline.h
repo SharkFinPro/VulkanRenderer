@@ -133,8 +133,6 @@ namespace vke {
     // Pipelines rendering to other depth targets (e.g. shadow maps) must set this explicitly.
     vk::Format depthFormat = vk::Format::eUndefined;
 
-    bool renderToCubeMap = false;
-
     // False for pipelines drawn in a pass that has no depth attachment.
     bool hasDepthAttachment = true;
   };

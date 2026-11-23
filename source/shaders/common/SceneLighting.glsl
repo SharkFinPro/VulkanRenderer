@@ -26,27 +26,51 @@ layout(set = 2, binding = 5) uniform samplerCubeShadow[] pointLightShadowMaps;
 // 1 where the fragment is lit by the point light, 0 where its shadow map hides it
 float pointLightShadow(int i, vec3 fragPos)
 {
-  vec3 fragToLight = pointLights[i].position - fragPos;
-  fragToLight.xz *= -1.0;
+  int shadowMap = pointLights[i].shadowMapIndex;
 
-  float range = pointLights[i].shadowRange;
-  float currentDist = length(fragToLight);
-
-  // Nothing beyond the range is in the map, so it can't hide the fragment
-  if (currentDist >= range)
+  // A light without a map casts no shadows
+  if (shadowMap < 0)
   {
     return 1.0;
   }
 
-  // The bias is a world distance, so it doesn't grow with the range
-  const float bias = 0.1;
-  float ref = (currentDist - bias) / range;
+  vec3 fragToLight = pointLights[i].position - fragPos;
+  fragToLight.xz *= -1.0;
 
-  return texture(pointLightShadowMaps[nonuniformEXT(i)], vec4(fragToLight, ref));
+  float range = pointLights[i].shadowRange;
+  float nearPlane = pointLights[i].shadowNearPlane;
+  float dist = length(fragToLight);
+
+  // The shadow casters are culled to the range's sphere, so nothing beyond it can hide the fragment
+  if (dist >= range)
+  {
+    return 1.0;
+  }
+
+  // The face the lookup reads is the one of the major axis, and that face's view depth is the distance along it. The bias
+  // is a world distance along the ray, so it doesn't grow with the range or the angle.
+  const float bias = 0.1;
+  vec3 absToLight = abs(fragToLight);
+  float viewDepth = max(absToLight.x, max(absToLight.y, absToLight.z));
+  float biasedDepth = max(viewDepth * (dist - bias) / dist, nearPlane);
+
+  // The reversed depth the face's projection gives at that view depth (PointLight::getLightViewProjectionMatrices). The
+  // sampler compares greater-or-equal: lit where the fragment is at least as near as what the map holds.
+  float ref = nearPlane * (range - biasedDepth) / (biasedDepth * (range - nearPlane));
+
+  return texture(pointLightShadowMaps[nonuniformEXT(shadowMap)], vec4(fragToLight, ref));
 }
 
 float spotLightShadow(int i, vec3 fragPos)
 {
+  int shadowMap = spotLights[i].shadowMapIndex;
+
+  // A light without a map casts no shadows
+  if (shadowMap < 0)
+  {
+    return 1.0;
+  }
+
   vec4 fragPosLightSpace = spotLights[i].lightViewProjection * vec4(fragPos, 1.0);
   vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
   projCoords.xy = projCoords.xy * 0.5 + 0.5;
@@ -60,5 +84,5 @@ float spotLightShadow(int i, vec3 fragPos)
   float bias = 0.00005;
   projCoords.z -= bias;
 
-  return texture(spotLightShadowMaps[nonuniformEXT(i)], projCoords);
+  return texture(spotLightShadowMaps[nonuniformEXT(shadowMap)], projCoords);
 }

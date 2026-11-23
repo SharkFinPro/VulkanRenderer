@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan_raii.hpp>
 #include <memory>
+#include <vector>
 
 namespace vke {
 
@@ -46,6 +47,9 @@ namespace vke {
 
     [[nodiscard]] vk::ImageView getImageView() const;
 
+    // A 2D view of one face of a cube map image (face < 6), for rendering into that face alone
+    [[nodiscard]] vk::ImageView getFaceImageView(uint32_t face) const;
+
     [[nodiscard]] vk::DescriptorSet getDescriptorSet() const;
 
     [[nodiscard]] const vk::DescriptorImageInfo& getDescriptorImageInfo() const;
@@ -53,6 +57,7 @@ namespace vke {
   private:
     vk::raii::Image m_image = nullptr;
     vk::raii::ImageView m_imageView = nullptr;
+    std::vector<vk::raii::ImageView> m_faceImageViews;
     vk::raii::DeviceMemory m_imageMemory = nullptr;
 
     vk::DescriptorSet m_descriptorSet = nullptr;

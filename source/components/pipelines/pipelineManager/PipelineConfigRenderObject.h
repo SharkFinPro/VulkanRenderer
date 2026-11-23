@@ -169,39 +169,15 @@ namespace vke::PipelineConfig {
     };
   }
 
-  inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout,
-                                                                          vk::DescriptorSetLayout pointLightDescriptorSetLayout)
+  // A point light's cube faces, each drawn as its own pass with the face's view-projection pushed, into a reversed depth
+  // map (see PointLight::getLightViewProjectionMatrices). Depth only, so nothing stops early depth testing.
+  inline GraphicsPipelineOptions createPointLightShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
   {
-    return {
-      .shaders {
-        .vertexShader = "assets/shaders/renderObject/ShadowCubeMap.vert.spv",
-        .fragmentShader = "assets/shaders/renderObject/ShadowCubeMap.frag.spv"
-      },
-      .states {
-        .colorBlendState = gps::colorBlendStateShadow,
-        .depthStencilState = gps::depthStencilState,
-        .dynamicState = gps::dynamicState,
-        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
-        .multisampleState = gps::multisampleStateNone,
-        .rasterizationState = gps::rasterizationStateCullBack,
-        .vertexInputState = gps::vertexInputStateVertexPositionOnly,
-        .viewportState = gps::viewportState
-      },
-      .pushConstantRanges {
-        {
-          .stageFlags = vk::ShaderStageFlagBits::eFragment,
-          .offset = 0,
-          .size = sizeof(glm::vec4) // Light position, shadow range
-        }
-      },
-      .descriptorSetLayouts {
-        sceneDescriptorSetLayout,
-        pointLightDescriptorSetLayout
-      },
-      .colorFormat = vk::Format::eUndefined,
-      .depthFormat = Light::s_shadowMapFormat,
-      .renderToCubeMap = true
-    };
+    auto options = createShadowMapPipelineOptions(sceneDescriptorSetLayout);
+
+    options.states.depthStencilState = gps::depthStencilStateReversed;
+
+    return options;
   }
 
   inline GraphicsPipelineOptions createEllipticalDotsPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -380,10 +356,9 @@ namespace vke::PipelineConfig {
     return options;
   }
 
-  inline GraphicsPipelineOptions createVolumeSurfacePointLightShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout,
-                                                                                       vk::DescriptorSetLayout pointLightDescriptorSetLayout)
+  inline GraphicsPipelineOptions createVolumeSurfacePointLightShadowMapPipelineOptions(vk::DescriptorSetLayout sceneDescriptorSetLayout)
   {
-    auto options = createPointLightShadowMapPipelineOptions(sceneDescriptorSetLayout, pointLightDescriptorSetLayout);
+    auto options = createPointLightShadowMapPipelineOptions(sceneDescriptorSetLayout);
 
     options.states.rasterizationState = gps::rasterizationStateNoCull;
     options.states.vertexInputState = gps::vertexInputStateVolumeVertexPositionOnly;

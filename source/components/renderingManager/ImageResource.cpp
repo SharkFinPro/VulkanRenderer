@@ -54,6 +54,11 @@ namespace vke {
       return m_imageView;
     }
 
+    vk::ImageView ImageResource::getFaceImageView(const uint32_t face) const
+    {
+      return m_faceImageViews.at(face);
+    }
+
     vk::DescriptorSet ImageResource::getDescriptorSet() const
     {
       return m_descriptorSet;
@@ -161,6 +166,17 @@ namespace vke {
         config.isCubeMap ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
         config.isCubeMap ? 6 : 1
       );
+
+      if (config.isCubeMap)
+      {
+        m_faceImageViews.reserve(6);
+
+        for (uint32_t face = 0; face < 6; ++face)
+        {
+          m_faceImageViews.push_back(Images::createImageView(config.logicalDevice, m_image, getFormat(config),
+                                                             imageAspectFlags, 1, vk::ImageViewType::e2D, 1, face));
+        }
+      }
     }
 
     void ImageResource::transitionImageLayout(const ImageResourceConfig& config) const

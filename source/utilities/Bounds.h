@@ -37,6 +37,22 @@ namespace vke {
     }
   };
 
+  // Whether the box and the sphere overlap: the point of the box nearest the center is within the radius. An empty box
+  // overlaps nothing.
+  [[nodiscard]] inline bool intersectsSphere(const AABB& box,
+                                             const glm::vec3 center,
+                                             const float radius)
+  {
+    if (box.isEmpty())
+    {
+      return false;
+    }
+
+    const glm::vec3 offset = glm::clamp(center, box.min, box.max) - center;
+
+    return offset.x * offset.x + offset.y * offset.y + offset.z * offset.z <= radius * radius;
+  }
+
   // The world-space box enclosing a box under an affine transform (Arvo's method). The transform must be
   // affine (no perspective row). An empty box stays empty.
   [[nodiscard]] inline AABB transformAABB(const AABB& box,
