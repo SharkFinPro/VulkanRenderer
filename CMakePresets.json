@@ -34,10 +34,11 @@
       "name": "vke-profile",
       "inherits": "vke-base",
       "displayName": "VulkanRenderer Profile",
-      "description": "Optimized build with full debug info (a PDB next to each DLL and executable on MSVC) and frame pointers, for sampling profilers. Unlike vke-release, call stacks unwind and resolve to source lines. Writes to cmake-build-vke-profile.",
+      "description": "Optimized build with full debug info (a PDB next to each DLL and executable on MSVC), frame pointers and shader debug info, for CPU and GPU profilers. Unlike vke-release, call stacks unwind and resolve to source lines. Writes to cmake-build-vke-profile.",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "VKE_PROFILE": "ON"
+        "VKE_PROFILE": "ON",
+        "VKE_SHADER_DEBUG_INFO": "ON"
       }
     }
   ]
