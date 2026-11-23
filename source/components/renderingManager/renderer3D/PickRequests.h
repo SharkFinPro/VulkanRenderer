@@ -52,16 +52,24 @@ namespace vke {
       m_active.clear();
     }
 
-    // Calls each callback once, in request order, then empties the vector (keeping its capacity).
+    // Calls each callback once, in request order, then empties the vector (keeping its capacity). If a callback throws,
+    // the vector is still emptied: the ones after it are dropped, and none that already ran can run again.
     static void fire(std::vector<Callback>& slotCallbacks,
                      const std::optional<Result>& result)
     {
+      struct Clear {
+        std::vector<Callback>& callbacks;
+
+        ~Clear()
+        {
+          callbacks.clear();
+        }
+      } clear { slotCallbacks };
+
       for (Callback& callback : slotCallbacks)
       {
         callback(result);
       }
-
-      slotCallbacks.clear();
     }
 
   private:

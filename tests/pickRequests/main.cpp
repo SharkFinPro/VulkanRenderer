@@ -259,6 +259,44 @@ namespace {
     check(calls.size() == 2 && calls[1].id == 2, "it fires for the following frame");
   }
 
+  void checkThrowingCallback()
+  {
+    Requests requests;
+    std::vector<Call> calls;
+    Callbacks slot;
+
+    requests.request(recorder(calls, 1));
+    requests.request([&calls](const std::optional<int>&) {
+      calls.push_back({ 2, 0 });
+      throw 2;
+    });
+    requests.promote();
+    requests.take(slot);
+
+    bool threw = false;
+
+    try
+    {
+      Requests::fire(slot, 0);
+    }
+    catch (int)
+    {
+      threw = true;
+    }
+
+    check(threw, "the exception reaches the caller");
+    check(slot.empty(), "the slot is emptied even though a callback threw");
+
+    // The slot's next use must not run the earlier callbacks again
+    requests.request(recorder(calls, 3));
+    requests.promote();
+    requests.take(slot);
+    Requests::fire(slot, 0);
+
+    check(calls.size() == 3 && calls[0].id == 1 && calls[1].id == 2 && calls[2].id == 3,
+          "callbacks that already ran do not run again, and the next request still fires");
+  }
+
 } // namespace
 
 int main()
@@ -272,6 +310,7 @@ int main()
   checkExactlyOnce();
   checkIdle();
   checkReentrantRequest();
+  checkThrowingCallback();
 
   std::cout << g_checks << " checks, " << g_failures << " failures\n";
 
