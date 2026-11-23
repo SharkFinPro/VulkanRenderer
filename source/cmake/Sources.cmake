@@ -109,6 +109,7 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/renderingManager/renderer3D/MousePicker.h
     components/renderingManager/renderer3D/ObjectTable.cpp
     components/renderingManager/renderer3D/ObjectTable.h
+    components/renderingManager/renderer3D/PickRequests.h
     components/renderingManager/renderer3D/PickResult.h
     components/renderingManager/renderer3D/RayTracer.cpp
     components/renderingManager/renderer3D/RayTracer.h

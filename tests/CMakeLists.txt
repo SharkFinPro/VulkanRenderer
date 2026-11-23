@@ -60,6 +60,10 @@ add_subdirectory(windowPlacement)
 add_test(NAME windowPlacement COMMAND windowPlacement)
 add_dependencies(build_all windowPlacement)
 
+add_subdirectory(pickRequests)
+add_test(NAME pickRequests COMMAND pickRequests)
+add_dependencies(build_all pickRequests)
+
 add_subdirectory(uploadSchedule)
 add_test(NAME uploadSchedule COMMAND uploadSchedule)
 add_dependencies(build_all uploadSchedule)

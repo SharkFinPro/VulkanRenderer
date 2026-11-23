@@ -112,6 +112,12 @@ namespace vke {
                           const std::shared_ptr<PipelineManager>& pipelineManager,
                           uint32_t currentFrame) const;
 
+    // Whether this frame has a picking pass to draw: false in on-request mode with no request active.
+    [[nodiscard]] bool isMousePickingActive() const;
+
+    // For a frame without a picking pass: keeps MousePicker::canMousePick current.
+    void updateMousePickingHover() const;
+
     void renderMousePicking(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager) const;
 
