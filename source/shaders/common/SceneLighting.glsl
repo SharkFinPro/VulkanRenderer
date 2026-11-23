@@ -26,6 +26,14 @@ layout(set = 2, binding = 5) uniform samplerCubeShadow[] pointLightShadowMaps;
 // 1 where the fragment is lit by the point light, 0 where its shadow map hides it
 float pointLightShadow(int i, vec3 fragPos)
 {
+  int shadowMap = pointLights[i].shadowMapIndex;
+
+  // A light without a map casts no shadows
+  if (shadowMap < 0)
+  {
+    return 1.0;
+  }
+
   vec3 fragToLight = pointLights[i].position - fragPos;
   fragToLight.xz *= -1.0;
 
@@ -50,11 +58,19 @@ float pointLightShadow(int i, vec3 fragPos)
   // sampler compares greater-or-equal: lit where the fragment is at least as near as what the map holds.
   float ref = nearPlane * (range - biasedDepth) / (biasedDepth * (range - nearPlane));
 
-  return texture(pointLightShadowMaps[nonuniformEXT(i)], vec4(fragToLight, ref));
+  return texture(pointLightShadowMaps[nonuniformEXT(shadowMap)], vec4(fragToLight, ref));
 }
 
 float spotLightShadow(int i, vec3 fragPos)
 {
+  int shadowMap = spotLights[i].shadowMapIndex;
+
+  // A light without a map casts no shadows
+  if (shadowMap < 0)
+  {
+    return 1.0;
+  }
+
   vec4 fragPosLightSpace = spotLights[i].lightViewProjection * vec4(fragPos, 1.0);
   vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
   projCoords.xy = projCoords.xy * 0.5 + 0.5;
@@ -68,5 +84,5 @@ float spotLightShadow(int i, vec3 fragPos)
   float bias = 0.00005;
   projCoords.z -= bias;
 
-  return texture(spotLightShadowMaps[nonuniformEXT(i)], projCoords);
+  return texture(spotLightShadowMaps[nonuniformEXT(shadowMap)], projCoords);
 }

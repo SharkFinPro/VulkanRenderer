@@ -304,9 +304,16 @@ namespace vke {
     // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
     m_lightUniformScratch.assign(sizeof(PointLightUniform) * MAX_POINT_LIGHTS, std::byte{0});
     auto* lightUniforms = reinterpret_cast<PointLightUniform*>(m_lightUniformScratch.data());
+    // The maps are written in this order by updatePointLightShadowMaps, so a caster's index is its place among them
+    int32_t shadowMapCount = 0;
     for (size_t i = 0; i < count; i++)
     {
       lightUniforms[i] = std::get<PointLightUniform>(m_pointLightsToRender[i]->getUniform());
+
+      if (m_pointLightsToRender[i]->castsShadows() && shadowMapCount < static_cast<int32_t>(MAX_SHADOW_MAPS))
+      {
+        lightUniforms[i].shadowMapIndex = shadowMapCount++;
+      }
     }
 
     m_pointLightsUniform->update(currentFrame, lightUniforms);
@@ -368,9 +375,16 @@ namespace vke {
     // the source must cover it. Unused entries stay zeroed and are ignored via the light count.
     m_lightUniformScratch.assign(sizeof(SpotLightUniform) * MAX_SPOT_LIGHTS, std::byte{0});
     auto* lightUniforms = reinterpret_cast<SpotLightUniform*>(m_lightUniformScratch.data());
+    // The maps are written in this order by updateSpotLightShadowMaps, so a caster's index is its place among them
+    int32_t shadowMapCount = 0;
     for (size_t i = 0; i < count; i++)
     {
       lightUniforms[i] = std::get<SpotLightUniform>(m_spotLightsToRender[i]->getUniform());
+
+      if (m_spotLightsToRender[i]->castsShadows() && shadowMapCount < static_cast<int32_t>(MAX_SHADOW_MAPS))
+      {
+        lightUniforms[i].shadowMapIndex = shadowMapCount++;
+      }
     }
 
     m_spotLightsUniform->update(currentFrame, lightUniforms);

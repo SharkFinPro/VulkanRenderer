@@ -27,6 +27,7 @@ namespace vke {
       .position = m_position,
       .shadowNearPlane = s_shadowNearPlane,
       .color = m_color,
+      .shadowMapIndex = -1,
       .ambient = m_ambient,
       .diffuse = m_diffuse,
       .specular = m_specular,

@@ -51,7 +51,8 @@ namespace vke {
       .direction = m_direction,
       .specular = m_specular,
       .coneAngle = glm::radians(m_coneAngle),
-      .shadowRange = m_shadowRange
+      .shadowRange = m_shadowRange,
+      .shadowMapIndex = -1
     };
   }
 
