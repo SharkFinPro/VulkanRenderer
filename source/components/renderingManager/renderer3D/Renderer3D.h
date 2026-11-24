@@ -166,7 +166,8 @@ namespace vke {
                                     const ImageResource& imageResource,
                                     const ImageResource& depthImageResource);
 
-    // Draws the traced color and depth into the scene pass.
+    // Draws the traced color into the scene pass, and the traced depth only when something renderViewOnly draws tests
+    // depth.
     void renderRayTracingComposite(const RenderInfo* renderInfo,
                                    const std::shared_ptr<PipelineManager>& pipelineManager,
                                    vk::DescriptorSet rayTracingImagesDescriptorSet) const;
@@ -504,6 +505,10 @@ namespace vke {
     [[nodiscard]] RenderInfo makeSceneRenderInfo(const RenderInfo* renderInfo) const;
 
     void buildLineBatches();
+
+    // Whether anything renderViewOnly draws this frame tests depth: view-only objects, tested or x-ray lines, the grid
+    // Keep in step with renderViewOnly: a depth-tested draw added there must be counted here
+    [[nodiscard]] bool viewOnlyDrawsTestDepth() const;
 
     void renderLinesAndGrid(const RenderInfo* renderInfo,
                             const std::shared_ptr<PipelineManager>& pipelineManager);
