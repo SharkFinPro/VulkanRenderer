@@ -90,25 +90,11 @@ namespace vke::PipelineConfig {
   inline GraphicsPipelineOptions createRayTracingCompositeColorPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                                const vk::DescriptorSetLayout rayTracingImagesDescriptorSetLayout)
   {
-    return {
-      .shaders {
-        .vertexShader = "assets/shaders/Outline.vert.spv",
-        .fragmentShader = "assets/shaders/RayTracingCompositeColor.frag.spv"
-      },
-      .states {
-        .colorBlendState = gps::colorBlendState,
-        .depthStencilState = gps::depthStencilStateNone,
-        .dynamicState = gps::dynamicState,
-        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
-        .multisampleState = gps::getMultsampleState(logicalDevice),
-        .rasterizationState = gps::rasterizationStateNoCull,
-        .vertexInputState = gps::vertexInputStateRaw,
-        .viewportState = gps::viewportState
-      },
-      .descriptorSetLayouts {
-        rayTracingImagesDescriptorSetLayout
-      }
-    };
+    GraphicsPipelineOptions options = createRayTracingCompositePipelineOptions(logicalDevice, rayTracingImagesDescriptorSetLayout);
+    options.shaders.fragmentShader = "assets/shaders/RayTracingCompositeColor.frag.spv";
+    options.states.depthStencilState = gps::depthStencilStateNone;
+
+    return options;
   }
 
   // Fills the multisampled scene pass with the sky, without touching depth.
