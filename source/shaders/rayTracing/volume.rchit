@@ -122,7 +122,7 @@ void main()
   {
     const PointLight light = pointLights[i];
 
-    if (!isOccluded(fragPos, normal, light.position))
+    if (facesLight(normal, fragPos, light.position) && !isOccluded(fragPos, normal, light.position))
     {
       result += StandardPointLightAffect(light, albedo, normal, fragPos, camera.position, 32);
     }
@@ -136,7 +136,7 @@ void main()
   {
     const SpotLight light = spotLights[i];
 
-    if (!isOccluded(fragPos, normal, light.position))
+    if (facesLight(normal, fragPos, light.position) && !isOccluded(fragPos, normal, light.position))
     {
       result += StandardSpotLightAffect(light, albedo, normal, fragPos, camera.position, 32);
     }
