@@ -85,6 +85,32 @@ namespace vke::PipelineConfig {
     };
   }
 
+  // The composite without the traced depth, for frames where nothing drawn after it tests depth. Depth written from the
+  // shader differs at every pixel, so the hardware can't compress it and stores every sample in full.
+  inline GraphicsPipelineOptions createRayTracingCompositeColorPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                                               const vk::DescriptorSetLayout rayTracingImagesDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .vertexShader = "assets/shaders/Outline.vert.spv",
+        .fragmentShader = "assets/shaders/RayTracingCompositeColor.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilStateNone,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .descriptorSetLayouts {
+        rayTracingImagesDescriptorSetLayout
+      }
+    };
+  }
+
   // Fills the multisampled scene pass with the sky, without touching depth.
   inline GraphicsPipelineOptions createSkyPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {

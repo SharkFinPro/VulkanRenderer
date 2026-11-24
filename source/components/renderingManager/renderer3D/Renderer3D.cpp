@@ -884,16 +884,48 @@ namespace vke {
                                              const std::shared_ptr<PipelineManager>& pipelineManager,
                                              const vk::DescriptorSet rayTracingImagesDescriptorSet) const
   {
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::rayTracingComposite);
+    // The pass clears depth to the far plane and discards it at the end, so without a depth test after this nothing
+    // reads the traced depth
+    const PipelineType pipelineType = viewOnlyDrawsTestDepth()
+      ? PipelineType::rayTracingComposite
+      : PipelineType::rayTracingCompositeColor;
+
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, pipelineType);
 
     pipelineManager->bindGraphicsPipelineDescriptorSet(
       renderInfo->commandBuffer,
-      PipelineType::rayTracingComposite,
+      pipelineType,
       rayTracingImagesDescriptorSet,
       0
     );
 
     renderInfo->commandBuffer->draw(3, 1, 0, 0);
+  }
+
+  bool Renderer3D::viewOnlyDrawsTestDepth() const
+  {
+    if (m_shouldRenderGrid)
+    {
+      return true;
+    }
+
+    for (const auto& [pipelineType, draws] : m_renderObjectsToRender)
+    {
+      if (!draws.runs.empty() && isViewOnlyPipeline(pipelineType))
+      {
+        return true;
+      }
+    }
+
+    if (!m_linesToRender[static_cast<size_t>(DebugDepth::tested)].empty() ||
+        !m_linesToRender[static_cast<size_t>(DebugDepth::xray)].empty())
+    {
+      return true;
+    }
+
+    return std::ranges::any_of(m_timedLines, [](const TimedLine& timedLine) {
+      return timedLine.depth != DebugDepth::onTop;
+    });
   }
 
   void Renderer3D::createNewFrame()

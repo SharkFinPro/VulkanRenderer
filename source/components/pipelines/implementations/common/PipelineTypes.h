@@ -24,6 +24,7 @@ namespace vke {
     outline,
     outlineMask,
     rayTracingComposite,
+    rayTracingCompositeColor,
     sky,
     offscreenToSwapchain,
     pointLightShadowMap,

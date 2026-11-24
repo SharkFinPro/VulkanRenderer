@@ -217,6 +217,10 @@ namespace vke {
       PipelineConfig::createRayTracingCompositePipelineOptions(m_logicalDevice,
       renderingManager->getRayTracingImagesDescriptorSetLayout()));
 
+    createGraphicsPipeline(PipelineType::rayTracingCompositeColor,
+      PipelineConfig::createRayTracingCompositeColorPipelineOptions(m_logicalDevice,
+      renderingManager->getRayTracingImagesDescriptorSetLayout()));
+
     createGraphicsPipeline(PipelineType::sky,
       PipelineConfig::createSkyPipelineOptions(m_logicalDevice));
   }
