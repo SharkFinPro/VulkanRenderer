@@ -24,7 +24,7 @@ void main()
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
   {
-    if (pointLightShadow(i, fragPos) > 0.1)
+    if (facesLight(normal, fragPos, pointLights[i].position) && pointLightShadow(i, fragPos) > 0.1)
     {
       result += StandardPointLightAffect(pointLights[i], albedo, normal, fragPos, camera.position, 32);
     }
@@ -36,7 +36,7 @@ void main()
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    if (spotLightShadow(i, fragPos) > 0.5)
+    if (facesLight(normal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos) > 0.5)
     {
       result += StandardSpotLightAffect(spotLights[i], albedo, normal, fragPos, camera.position, 32);
     }

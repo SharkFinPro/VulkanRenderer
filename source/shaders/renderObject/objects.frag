@@ -24,7 +24,7 @@ void main()
   {
     PointLight light = pointLights[i];
 
-    if (pointLightShadow(i, fragPos) > 0.1)
+    if (facesLight(fragNormal, fragPos, light.position) && pointLightShadow(i, fragPos) > 0.1)
     {
       result += SpecularMapPointLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
@@ -36,7 +36,7 @@ void main()
 
   for (int i = 0; i < numSpotLights; i++)
   {
-    if (spotLightShadow(i, fragPos) > 0.5)
+    if (facesLight(fragNormal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos) > 0.5)
     {
       result += SpecularMapSpotLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }

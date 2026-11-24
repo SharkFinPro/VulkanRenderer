@@ -71,6 +71,29 @@ layout(set = 1, binding = 3) uniform Camera {
   vec3 position;
 } camera;
 
+bool isOccluded(vec3 fragPos, vec3 lightPosition)
+{
+  vec3 toLight = lightPosition - fragPos;
+  float lightDist = length(toLight);
+
+  isShadowed = true;
+  traceRayEXT(
+    tlas,
+    gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+    0x02,
+    0,
+    0,
+    1,
+    fragPos,
+    0.001,
+    normalize(toLight),
+    lightDist - 0.001,
+    1
+  );
+
+  return isShadowed;
+}
+
 void main()
 {
   vec3 bary = vec3(1.0 - barycentrics.x - barycentrics.y,
@@ -103,25 +126,7 @@ void main()
   {
     PointLight light = pointLights[i];
 
-    vec3 toLight = light.position - fragPos;
-    float lightDist = length(toLight);
-
-    isShadowed = true;
-    traceRayEXT(
-      tlas,
-      gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-      0x02,
-      0,
-      0,
-      1,
-      fragPos,
-      0.001,
-      normalize(toLight),
-      lightDist - 0.001,
-      1
-    );
-
-    if (!isShadowed)
+    if (facesLight(fragNormal, fragPos, light.position) && !isOccluded(fragPos, light.position))
     {
       result += SpecularMapPointLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
@@ -135,25 +140,7 @@ void main()
   {
     SpotLight light = spotLights[i];
 
-    vec3 toLight = light.position - fragPos;
-    float lightDist = length(toLight);
-
-    isShadowed = true;
-    traceRayEXT(
-      tlas,
-      gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-      0x02,
-      0,
-      0,
-      1,
-      fragPos,
-      0.001,
-      normalize(toLight),
-      lightDist - 0.001,
-      1
-    );
-
-    if (!isShadowed)
+    if (facesLight(fragNormal, fragPos, light.position) && !isOccluded(fragPos, light.position))
     {
       result += SpecularMapSpotLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }

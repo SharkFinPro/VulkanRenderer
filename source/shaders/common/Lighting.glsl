@@ -33,6 +33,13 @@ bool isInSpotlight(SpotLight light, vec3 fragPos)
   return theta >= cutoffAngle;
 }
 
+// False where the surface faces away from the light, which then adds no diffuse or specular light whether or not
+// anything is in the way, so callers skip the shadow test and take the shadowed result
+bool facesLight(vec3 normal, vec3 fragPos, vec3 lightPosition)
+{
+  return dot(normal, lightPosition - fragPos) > 0.0;
+}
+
 vec3 getStandardAmbient(float lightAmbient, vec3 color)
 {
   vec3 ambient = lightAmbient * color;
