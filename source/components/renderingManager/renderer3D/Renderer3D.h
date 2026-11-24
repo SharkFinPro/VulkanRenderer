@@ -507,6 +507,7 @@ namespace vke {
     void buildLineBatches();
 
     // Whether anything renderViewOnly draws this frame tests depth: view-only objects, tested or x-ray lines, the grid
+    // Keep in step with renderViewOnly: a depth-tested draw added there must be counted here
     [[nodiscard]] bool viewOnlyDrawsTestDepth() const;
 
     void renderLinesAndGrid(const RenderInfo* renderInfo,
