@@ -124,7 +124,7 @@ namespace vke {
                                                     s_shadowMapSize, casterBounds);
 
       m_cascadeViewProjections[cascade] = fitted.viewProjection;
-      m_cascadeBiases[cascade] = fitted.depthBias;
+      m_cascadeTexelSizes[cascade] = fitted.texelSize;
     }
 
     m_fittedCascadeCount = m_cascadeCount;
@@ -149,15 +149,16 @@ namespace vke {
   {
     DirectionalLightUniform uniform {};
 
-    glm::vec4 biases(0.0f);
+    glm::vec4 texelSizes(0.0f);
 
     for (uint32_t cascade = 0; cascade < m_fittedCascadeCount; ++cascade)
     {
       uniform.cascadeViewProjections[cascade] = m_cascadeViewProjections[cascade];
-      biases[static_cast<glm::length_t>(cascade)] = m_cascadeBiases[cascade];
+      texelSizes[static_cast<glm::length_t>(cascade)] = m_cascadeTexelSizes[cascade];
     }
 
-    uniform.cascadeBiases = biases;
+    uniform.cascadeTexelSizes = texelSizes;
+    uniform.shadowBias = glm::vec4(m_shadowBias.constant, m_shadowBias.slope, m_shadowBias.normalOffset, 0.0f);
     uniform.direction = m_direction;
     uniform.ambient = m_ambient;
     uniform.color = m_color;

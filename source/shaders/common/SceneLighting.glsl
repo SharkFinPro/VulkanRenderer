@@ -30,8 +30,11 @@ layout(set = 2, binding = 6) readonly buffer DirectionalLights {
 
 layout(set = 2, binding = 7) uniform sampler2DArrayShadow[] directionalLightShadowMaps;
 
+// The shadow lookups below move the fragment off its surface with shadowLookupPosition (the light's ShadowBias, in texels
+// of the map at the fragment), so no depth bias is needed. normal is the unit shading normal.
+
 // 1 where the fragment is lit by the point light, 0 where its shadow map hides it
-float pointLightShadow(int i, vec3 fragPos)
+float pointLightShadow(int i, vec3 fragPos, vec3 normal)
 {
   int shadowMap = pointLights[i].shadowMapIndex;
 
@@ -41,12 +44,11 @@ float pointLightShadow(int i, vec3 fragPos)
     return 1.0;
   }
 
-  vec3 fragToLight = pointLights[i].position - fragPos;
-  fragToLight.xz *= -1.0;
+  vec3 toLight = pointLights[i].position - fragPos;
 
   float range = pointLights[i].shadowRange;
   float nearPlane = pointLights[i].shadowNearPlane;
-  float dist = length(fragToLight);
+  float dist = length(toLight);
 
   // The shadow casters are culled to the range's sphere, so nothing beyond it can hide the fragment
   if (dist >= range)
@@ -54,21 +56,26 @@ float pointLightShadow(int i, vec3 fragPos)
     return 1.0;
   }
 
-  // The face the lookup reads is the one of the major axis, and that face's view depth is the distance along it. The bias
-  // is a world distance along the ray, so it doesn't grow with the range or the angle.
-  const float bias = 0.1;
-  vec3 absToLight = abs(fragToLight);
-  float viewDepth = max(absToLight.x, max(absToLight.y, absToLight.z));
-  float biasedDepth = max(viewDepth * (dist - bias) / dist, nearPlane);
+  // The face a lookup reads is the one of the major axis, and that face's view depth is the distance along it. A texel of
+  // a 90 degree face is 2 / mapSize of that depth wide.
+  vec3 absToLight = abs(toLight);
+  float texel = pointLights[i].shadowBias.w * max(absToLight.x, max(absToLight.y, absToLight.z));
+  vec3 lookup = shadowLookupPosition(fragPos, normal, toLight / dist, texel, pointLights[i].shadowBias.xyz);
+
+  vec3 fragToLight = pointLights[i].position - lookup;
+  fragToLight.xz *= -1.0;
+
+  vec3 absLookup = abs(fragToLight);
+  float lookupDepth = max(max(absLookup.x, max(absLookup.y, absLookup.z)), nearPlane);
 
   // The reversed depth the face's projection gives at that view depth (PointLight::getLightViewProjectionMatrices). The
   // sampler compares greater-or-equal: lit where the fragment is at least as near as what the map holds.
-  float ref = nearPlane * (range - biasedDepth) / (biasedDepth * (range - nearPlane));
+  float ref = nearPlane * (range - lookupDepth) / (lookupDepth * (range - nearPlane));
 
   return texture(pointLightShadowMaps[nonuniformEXT(shadowMap)], vec4(fragToLight, ref));
 }
 
-float spotLightShadow(int i, vec3 fragPos)
+float spotLightShadow(int i, vec3 fragPos, vec3 normal)
 {
   int shadowMap = spotLights[i].shadowMapIndex;
 
@@ -78,7 +85,13 @@ float spotLightShadow(int i, vec3 fragPos)
     return 1.0;
   }
 
-  vec4 fragPosLightSpace = spotLights[i].lightViewProjection * vec4(fragPos, 1.0);
+  // A texel of the map is shadowBias.w wide per unit of depth along the spot's axis
+  vec3 toLight = spotLights[i].position - fragPos;
+  float viewDepth = max(dot(-toLight, normalize(spotLights[i].direction)), 0.0);
+  vec3 lookup = shadowLookupPosition(fragPos, normal, normalize(toLight), spotLights[i].shadowBias.w * viewDepth,
+                                     spotLights[i].shadowBias.xyz);
+
+  vec4 fragPosLightSpace = spotLights[i].lightViewProjection * vec4(lookup, 1.0);
   vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
   projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
@@ -88,16 +101,15 @@ float spotLightShadow(int i, vec3 fragPos)
     return 1.0;
   }
 
-  float bias = 0.00005;
-  projCoords.z -= bias;
-
   return texture(spotLightShadowMaps[nonuniformEXT(shadowMap)], projCoords);
 }
 
-// The fragment in the clip space of cascade c of the directional light: xy mapped to [0, 1], z the depth
-vec3 directionalCascadeCoords(int i, int c, vec3 fragPos)
+// The fragment, moved by the bias, in the clip space of cascade c of the directional light: xy mapped to [0, 1], z the depth
+vec3 directionalCascadeCoords(int i, int c, vec3 fragPos, vec3 normal)
 {
-  vec4 clip = directionalLights[i].cascadeViewProjections[c] * vec4(fragPos, 1.0);
+  vec3 lookup = shadowLookupPosition(fragPos, normal, -directionalLights[i].direction,
+                                     directionalLights[i].cascadeTexelSizes[c], directionalLights[i].shadowBias.xyz);
+  vec4 clip = directionalLights[i].cascadeViewProjections[c] * vec4(lookup, 1.0);
   vec3 coords = clip.xyz / clip.w;
   coords.xy = coords.xy * 0.5 + 0.5;
 
@@ -112,7 +124,7 @@ bool insideUnitCube(vec3 coords)
 // 1 where the fragment is lit by the directional light, 0 where its shadow map hides it. The map has one layer per
 // cascade (DirectionalLight): the first cascade that contains the fragment is sampled, blended with the next near its
 // edge, and the shadow fades out over the last tenth of the shadow distance. Fragments beyond it, or in no cascade, are lit.
-float directionalLightShadow(int i, vec3 fragPos)
+float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
 {
   int shadowMap = directionalLights[i].shadowMapIndex;
   int cascadeCount = directionalLights[i].cascadeCount;
@@ -133,7 +145,7 @@ float directionalLightShadow(int i, vec3 fragPos)
 
   for (int c = 0; c < cascadeCount; c++)
   {
-    vec3 coords = directionalCascadeCoords(i, c, fragPos);
+    vec3 coords = directionalCascadeCoords(i, c, fragPos, normal);
 
     if (!insideUnitCube(coords))
     {
@@ -143,7 +155,7 @@ float directionalLightShadow(int i, vec3 fragPos)
     // Explicit zero gradients: the map has one level, and this runs in non-uniform control flow, where implicit
     // derivatives are undefined
     float shadow = textureGrad(directionalLightShadowMaps[nonuniformEXT(shadowMap)],
-                               vec4(coords.xy, float(c), coords.z - directionalLights[i].cascadeBiases[c]),
+                               vec4(coords.xy, float(c), coords.z),
                                vec2(0.0), vec2(0.0));
 
     // Near the edge of the cascade, blend toward the next one so the change of resolution isn't a visible line
@@ -152,12 +164,12 @@ float directionalLightShadow(int i, vec3 fragPos)
 
     if (edge < blendWidth && c + 1 < cascadeCount)
     {
-      vec3 nextCoords = directionalCascadeCoords(i, c + 1, fragPos);
+      vec3 nextCoords = directionalCascadeCoords(i, c + 1, fragPos, normal);
 
       if (insideUnitCube(nextCoords))
       {
         float nextShadow = textureGrad(directionalLightShadowMaps[nonuniformEXT(shadowMap)],
-                                       vec4(nextCoords.xy, float(c + 1), nextCoords.z - directionalLights[i].cascadeBiases[c + 1]),
+                                       vec4(nextCoords.xy, float(c + 1), nextCoords.z),
                                        vec2(0.0), vec2(0.0));
 
         shadow = mix(nextShadow, shadow, edge / blendWidth);

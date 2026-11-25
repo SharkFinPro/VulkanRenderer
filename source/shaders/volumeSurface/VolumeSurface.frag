@@ -30,7 +30,7 @@ void main()
       continue;
     }
 
-    if (facesLight(normal, fragPos, pointLights[i].position) && pointLightShadow(i, fragPos) > 0.1)
+    if (facesLight(normal, fragPos, pointLights[i].position) && pointLightShadow(i, fragPos, normal) > 0.1)
     {
       result += StandardPointLightAffect(pointLights[i], albedo, normal, fragPos, camera.position, 32);
     }
@@ -48,7 +48,7 @@ void main()
       continue;
     }
 
-    if (facesLight(normal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos) > 0.5)
+    if (facesLight(normal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos, normal) > 0.5)
     {
       result += StandardSpotLightAffect(spotLights[i], albedo, normal, fragPos, camera.position, 32);
     }
@@ -62,7 +62,7 @@ void main()
   {
     DirectionalLight light = directionalLights[i];
 
-    if (facesDirectionalLight(normal, light.direction) && directionalLightShadow(i, fragPos) > 0.5)
+    if (facesDirectionalLight(normal, light.direction) && directionalLightShadow(i, fragPos, normal) > 0.5)
     {
       result += StandardDirectionalLightAffect(light, albedo, normal, fragPos, camera.position, 32);
     }

@@ -7,6 +7,9 @@
 #include <source/components/pipelines/implementations/common/PipelineTypes.h>
 #include <source/VulkanEngine.h>
 #include <imgui.h>
+#include <glm/geometric.hpp>
+#include <glm/trigonometric.hpp>
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -17,12 +20,66 @@ void setupScene(const vke::VulkanEngine& renderer,
                 float lightRange,
                 bool sun,
                 int cascades,
-                float shadowDistance);
+                float shadowDistance,
+                const vke::ShadowBias& shadowBias,
+                const glm::vec3& sunDirection);
 
 void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::ImGuiInstance>& gui,
                  const std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                  const std::vector<std::shared_ptr<vke::Light>>& lights);
+
+namespace {
+
+  // Three comma separated finite numbers that are not negative
+  vke::ShadowBias parseShadowBias(const std::string& text)
+  {
+    const auto malformed = [] {
+      return std::invalid_argument("--shadow-bias needs three comma separated numbers, not negative: C,S,N");
+    };
+
+    float values[3];
+    size_t start = 0;
+
+    for (int term = 0; term < 3; term++)
+    {
+      const size_t end = term < 2 ? text.find(',', start) : text.size();
+
+      if (end == std::string::npos || end == start)
+      {
+        throw malformed();
+      }
+
+      size_t used = 0;
+
+      try
+      {
+        values[term] = std::stof(text.substr(start, end - start), &used);
+      }
+      catch (const std::logic_error&)
+      {
+        throw malformed();
+      }
+
+      if (used != end - start)
+      {
+        throw malformed();
+      }
+
+      start = end + 1;
+    }
+
+    const vke::ShadowBias bias { values[0], values[1], values[2] };
+
+    if (!vke::isValidShadowBias(bias))
+    {
+      throw malformed();
+    }
+
+    return bias;
+  }
+
+} // namespace
 
 int main(const int argc,
          char** argv)
@@ -30,11 +87,14 @@ int main(const int argc,
   try
   {
     // --light-range R gives every light that range (0 = none); --sun adds a directional light, whose cascade count and
-    // shadow distance --cascades N (1 to 4) and --shadow-distance D set (0 keeps the light's default)
+    // shadow distance --cascades N (1 to 4) and --shadow-distance D set (0 keeps the light's default) and whose angle
+    // above the horizon --sun-elevation DEG (up to 90) sets; --shadow-bias C,S,N sets every light's shadow bias
     float lightRange = 0.0f;
     bool sun = false;
     int cascades = 0;
     float shadowDistance = 0.0f;
+    vke::ShadowBias shadowBias;
+    glm::vec3 sunDirection(0.4f, -1.0f, 0.3f);
     for (int i = 1; i < argc; i++)
     {
       if (std::string(argv[i]) == "--sun")
@@ -78,6 +138,39 @@ int main(const int argc,
           throw std::invalid_argument("--shadow-distance must be greater than 0");
         }
       }
+      else if (std::string(argv[i]) == "--shadow-bias")
+      {
+        if (i + 1 >= argc)
+        {
+          throw std::invalid_argument("--shadow-bias needs a value");
+        }
+
+        shadowBias = parseShadowBias(argv[++i]);
+      }
+      else if (std::string(argv[i]) == "--sun-elevation")
+      {
+        if (i + 1 >= argc)
+        {
+          throw std::invalid_argument("--sun-elevation needs a value");
+        }
+
+        const std::string value = argv[++i];
+        size_t used = 0;
+        const float elevation = std::stof(value, &used);
+
+        if (used != value.size())
+        {
+          throw std::invalid_argument("--sun-elevation must be a number of degrees");
+        }
+
+        if (!(elevation > 0.0f && elevation <= 90.0f))
+        {
+          throw std::invalid_argument("--sun-elevation must be greater than 0 and at most 90");
+        }
+
+        const float radians = glm::radians(elevation);
+        sunDirection = glm::normalize(glm::vec3(std::cos(radians) * 0.8f, -std::sin(radians), std::cos(radians) * 0.6f));
+      }
     }
 
     const vke::EngineConfig engineConfig {
@@ -99,7 +192,7 @@ int main(const int argc,
 
     std::vector<std::shared_ptr<vke::RenderObject>> objects;
     std::vector<std::shared_ptr<vke::Light>> lights;
-    setupScene(renderer, objects, lights, lightRange, sun, cascades, shadowDistance);
+    setupScene(renderer, objects, lights, lightRange, sun, cascades, shadowDistance, shadowBias, sunDirection);
 
     while (renderer.isActive())
     {
@@ -121,7 +214,9 @@ void setupScene(const vke::VulkanEngine& renderer,
                 const float lightRange,
                 const bool sun,
                 const int cascades,
-                const float shadowDistance)
+                const float shadowDistance,
+                const vke::ShadowBias& shadowBias,
+                const glm::vec3& sunDirection)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -168,7 +263,7 @@ void setupScene(const vke::VulkanEngine& renderer,
     // Travels down (-y is toward the floor here) and slants toward +x and +z. It has no range, so it is added after the
     // range above. Its cascades follow the camera out to the shadow distance.
     const auto sunLight = renderer.getLightingManager()->createDirectionalLight(
-      { 0.4f, -1.0f, 0.3f }, { 1.0f, 1.0f, 0.95f }, 0.0f, 0.6f, 0.5f);
+      sunDirection, { 1.0f, 1.0f, 0.95f }, 0.0f, 0.6f, 0.5f);
     const auto directionalLight = std::dynamic_pointer_cast<vke::DirectionalLight>(sunLight);
 
     if (cascades != 0)
@@ -182,6 +277,11 @@ void setupScene(const vke::VulkanEngine& renderer,
     }
 
     lights.push_back(sunLight);
+  }
+
+  for (const auto& light : lights)
+  {
+    light->setShadowBias(shadowBias);
   }
 }
 

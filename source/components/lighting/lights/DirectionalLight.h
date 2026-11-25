@@ -67,7 +67,7 @@ namespace vke {
     uint32_t m_fittedCascadeCount = 0;
     float m_fittedShadowDistance = 0.0f;
     std::array<glm::mat4, s_maxShadowCascades> m_cascadeViewProjections{};
-    std::array<float, s_maxShadowCascades> m_cascadeBiases{};
+    std::array<float, s_maxShadowCascades> m_cascadeTexelSizes{};
 
     void createShadowMap(vk::CommandPool commandPool) override;
   };

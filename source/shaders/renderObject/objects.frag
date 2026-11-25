@@ -19,6 +19,8 @@ void main()
   vec3 texColor = texture(texSampler, fragTexCoord).rgb;
   vec3 specColor = texture(specSampler, fragTexCoord).rgb;
 
+  vec3 shadowNormal = normalize(fragNormal);
+
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
   {
@@ -30,7 +32,7 @@ void main()
       continue;
     }
 
-    if (facesLight(fragNormal, fragPos, light.position) && pointLightShadow(i, fragPos) > 0.1)
+    if (facesLight(fragNormal, fragPos, light.position) && pointLightShadow(i, fragPos, shadowNormal) > 0.1)
     {
       result += SpecularMapPointLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
@@ -48,7 +50,7 @@ void main()
       continue;
     }
 
-    if (facesLight(fragNormal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos) > 0.5)
+    if (facesLight(fragNormal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos, shadowNormal) > 0.5)
     {
       result += SpecularMapSpotLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
@@ -62,7 +64,7 @@ void main()
   {
     DirectionalLight light = directionalLights[i];
 
-    if (facesDirectionalLight(fragNormal, light.direction) && directionalLightShadow(i, fragPos) > 0.5)
+    if (facesDirectionalLight(fragNormal, light.direction) && directionalLightShadow(i, fragPos, shadowNormal) > 0.5)
     {
       result += SpecularMapDirectionalLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }

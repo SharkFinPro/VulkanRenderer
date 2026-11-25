@@ -3,6 +3,7 @@
 
 #include "DirectionalShadow.h"
 #include "LightRange.h"
+#include "ShadowBias.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -31,6 +32,8 @@ namespace vke {
     float specular;
     float shadowRange;
     float range; // 0 when the light has no range
+
+    alignas(16) glm::vec4 shadowBias; // The ShadowBias (constant, slope, normal offset), then the world size of a texel per unit of view depth
   };
 
   struct alignas(16) SpotLightUniform {
@@ -45,11 +48,13 @@ namespace vke {
     float shadowRange;
     int32_t shadowMapIndex; // Into the spot light shadow maps, or -1 when the light has none
     float range; // 0 when the light has no range
+
+    alignas(16) glm::vec4 shadowBias; // The ShadowBias (constant, slope, normal offset), then the world size of a texel per unit of view depth
   };
 
   struct alignas(16) DirectionalLightUniform {
     std::array<glm::mat4, s_maxShadowCascades> cascadeViewProjections; // The fitted cascades; the rest are zero
-    glm::vec4 cascadeBiases; // In normalized depth, per cascade
+    glm::vec4 cascadeTexelSizes; // World size of a texel, per cascade
     glm::vec3 direction; // The way the light travels, normalized
     float ambient;
     glm::vec3 color;
@@ -58,22 +63,27 @@ namespace vke {
     int32_t shadowMapIndex; // Into the directional light shadow maps, or -1 when the light has none
     int32_t cascadeCount; // The fitted cascades, 0 when none
     float shadowDistance; // Fragments farther than this from the camera are lit; the last cascade ends here
+
+    alignas(16) glm::vec4 shadowBias; // The ShadowBias (constant, slope, normal offset), then 0
   };
 
   // All three are arrays in shader storage buffers, mirrored by the structs in shaders/common/Lighting.glsl
-  static_assert(sizeof(PointLightUniform) == 448 && offsetof(PointLightUniform, shadowRange) == 428 &&
-                offsetof(PointLightUniform, shadowMapIndex) == 412 && offsetof(PointLightUniform, range) == 432);
-  static_assert(sizeof(DirectionalLightUniform) == 320 && s_maxShadowCascades == 4 &&
-                offsetof(DirectionalLightUniform, cascadeBiases) == 256 &&
+  static_assert(sizeof(PointLightUniform) == 464 && offsetof(PointLightUniform, shadowRange) == 428 &&
+                offsetof(PointLightUniform, shadowMapIndex) == 412 && offsetof(PointLightUniform, range) == 432 &&
+                offsetof(PointLightUniform, shadowBias) == 448);
+  static_assert(sizeof(DirectionalLightUniform) == 336 && s_maxShadowCascades == 4 &&
+                offsetof(DirectionalLightUniform, cascadeTexelSizes) == 256 &&
                 offsetof(DirectionalLightUniform, direction) == 272 && offsetof(DirectionalLightUniform, ambient) == 284 &&
                 offsetof(DirectionalLightUniform, color) == 288 && offsetof(DirectionalLightUniform, diffuse) == 300 &&
                 offsetof(DirectionalLightUniform, specular) == 304 &&
                 offsetof(DirectionalLightUniform, shadowMapIndex) == 308 &&
                 offsetof(DirectionalLightUniform, cascadeCount) == 312 &&
-                offsetof(DirectionalLightUniform, shadowDistance) == 316);
-  static_assert(sizeof(SpotLightUniform) == 128 && offsetof(SpotLightUniform, shadowRange) == 116 &&
+                offsetof(DirectionalLightUniform, shadowDistance) == 316 &&
+                offsetof(DirectionalLightUniform, shadowBias) == 320);
+  static_assert(sizeof(SpotLightUniform) == 144 && offsetof(SpotLightUniform, shadowRange) == 116 &&
                 offsetof(SpotLightUniform, shadowMapIndex) == 120 &&
-                offsetof(SpotLightUniform, range) == 124);
+                offsetof(SpotLightUniform, range) == 124 &&
+                offsetof(SpotLightUniform, shadowBias) == 128);
 
   using LightUniform = std::variant<PointLightUniform, SpotLightUniform, DirectionalLightUniform>;
 
@@ -138,6 +148,11 @@ namespace vke {
     // Throws std::invalid_argument unless range is finite and greater than s_shadowNearPlane
     void setShadowRange(float range);
 
+    // How shadow lookups are moved off the surface (see ShadowBias), in texels of the light's shadow map. Throws
+    // std::invalid_argument unless all three are finite and not negative.
+    [[nodiscard]] ShadowBias getShadowBias() const;
+    void setShadowBias(const ShadowBias& bias);
+
     [[nodiscard]] bool castsShadows() const;
 
     [[nodiscard]] virtual LightType getLightType() const = 0;
@@ -154,6 +169,7 @@ namespace vke {
     bool m_castsShadows = true;
     float m_shadowRange = s_defaultShadowRange;
     float m_range = 0.0f;
+    ShadowBias m_shadowBias;
     vk::Extent2D m_shadowMapExtent = {
       1024,
       1024

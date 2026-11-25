@@ -108,6 +108,21 @@ namespace vke {
     m_shadowRange = range;
   }
 
+  ShadowBias Light::getShadowBias() const
+  {
+    return m_shadowBias;
+  }
+
+  void Light::setShadowBias(const ShadowBias& bias)
+  {
+    if (!isValidShadowBias(bias))
+    {
+      throw std::invalid_argument("Light::setShadowBias: the terms must be finite and not negative");
+    }
+
+    m_shadowBias = bias;
+  }
+
   std::shared_ptr<ImageResource> Light::getShadowMapDepthImageResource() const
   {
     return m_shadowMapDepthImageResource;
