@@ -115,8 +115,9 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
 
   glm::vec3 direction = isSpotLight ? spotLight->getDirection()
                                     : isDirectionalLight ? directionalLight->getDirection() : glm::vec3(0.0f);
-  glm::vec3 shadowCenter = isDirectionalLight ? directionalLight->getShadowCenter() : glm::vec3(0.0f);
-  float shadowHalfExtent = isDirectionalLight ? directionalLight->getShadowHalfExtent() : 0.0f;
+  int cascadeCount = isDirectionalLight ? static_cast<int>(directionalLight->getCascadeCount()) : 0;
+  float shadowDistance = isDirectionalLight ? directionalLight->getShadowDistance() : 0.0f;
+  float splitLambda = isDirectionalLight ? directionalLight->getCascadeSplitLambda() : 0.0f;
   float coneAngle = isSpotLight ? spotLight->getConeAngle() : 0.0f;
 
   ImGui::PushID(id);
@@ -136,8 +137,9 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
     if (isDirectionalLight)
     {
       ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
-      ImGui::SliderFloat3("Shadow Center", value_ptr(shadowCenter), -200.0f, 200.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
-      ImGui::SliderFloat("Shadow Half Extent", &shadowHalfExtent, 1.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+      ImGui::SliderInt("Cascade Count", &cascadeCount, 1, 4, "%d", ImGuiSliderFlags_AlwaysClamp);
+      ImGui::SliderFloat("Shadow Distance", &shadowDistance, 1.0f, 1000.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+      ImGui::SliderFloat("Split Lambda", &splitLambda, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
     }
     else
     {
@@ -166,8 +168,9 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
       directionalLight->setDirection(glm::normalize(direction));
     }
 
-    directionalLight->setShadowCenter(shadowCenter);
-    directionalLight->setShadowHalfExtent(shadowHalfExtent);
+    directionalLight->setCascadeCount(static_cast<uint32_t>(cascadeCount));
+    directionalLight->setShadowDistance(shadowDistance);
+    directionalLight->setCascadeSplitLambda(splitLambda);
 
     return;
   }

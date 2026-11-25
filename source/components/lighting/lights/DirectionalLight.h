@@ -1,13 +1,17 @@
 #ifndef VKE_DIRECTIONALLIGHT_H
 #define VKE_DIRECTIONALLIGHT_H
 
+#include "DirectionalShadow.h"
 #include "Light.h"
+
+#include <array>
 
 namespace vke {
 
   // A sun: it has a direction and no position or range (the inherited position, range and shadow range are unused).
-  // Its shadow is one orthographic map fitted to a box (see directionalShadowViewProjection): casters outside the box are
-  // not in the map, and fragments outside it are lit.
+  // Its shadow is cascaded: the camera frustum out to the shadow distance is split into up to s_maxShadowCascades slices,
+  // each fitted by an orthographic map (see fitShadowCascade) in a layer of one 2D array image. updateCascades fits them
+  // each frame; fragments beyond the shadow distance are lit.
   class DirectionalLight final : public Light {
   public:
     // Side of the shadow map in texels
@@ -24,26 +28,46 @@ namespace vke {
     // Throws std::invalid_argument for a zero-length or non-finite direction
     void setDirection(const glm::vec3& direction);
 
-    // The center and half the side of the box the shadow map covers
-    [[nodiscard]] glm::vec3 getShadowCenter() const;
-    [[nodiscard]] float getShadowHalfExtent() const;
+    // The number of cascades to fit, 1 to s_maxShadowCascades (default 4). Throws std::invalid_argument outside that.
+    [[nodiscard]] uint32_t getCascadeCount() const;
+    void setCascadeCount(uint32_t count);
 
-    // Throws std::invalid_argument for a non-finite center
-    void setShadowCenter(const glm::vec3& center);
+    // How far from the camera the shadows reach (default 100); the last cascade ends there. Throws
+    // std::invalid_argument unless it is finite and greater than 0.
+    [[nodiscard]] float getShadowDistance() const;
+    void setShadowDistance(float distance);
 
-    // Throws std::invalid_argument unless the half extent is finite and greater than 0
-    void setShadowHalfExtent(float halfExtent);
+    // Blends the logarithmic (1) and uniform (0) distribution of the splits (default 0.75). Throws
+    // std::invalid_argument unless it is finite and in [0, 1].
+    [[nodiscard]] float getCascadeSplitLambda() const;
+    void setCascadeSplitLambda(float lambda);
+
+    // Fits the cascades to the camera for this frame. The shadow distance is cut to farPlane; casterBounds is the world
+    // box of every shadow caster (may be empty). With nothing between the near plane and that distance no cascade is fitted.
+    void updateCascades(const CascadeCamera& camera,
+                        float farPlane,
+                        const AABB& casterBounds);
+
+    // The cascades the last updateCascades fitted; 0 before the first call
+    [[nodiscard]] uint32_t getFittedCascadeCount() const;
+
+    // Throws std::out_of_range unless cascade < s_maxShadowCascades
+    [[nodiscard]] const glm::mat4& getCascadeViewProjection(uint32_t cascade) const;
 
     [[nodiscard]] LightType getLightType() const override;
 
     [[nodiscard]] LightUniform getUniform() const override;
 
-    [[nodiscard]] glm::mat4 getLightViewProjectionMatrix() const;
-
   private:
     glm::vec3 m_direction = glm::vec3(0, -1, 0);
-    glm::vec3 m_shadowCenter = glm::vec3(0, 0, 0);
-    float m_shadowHalfExtent = 50.0f;
+    uint32_t m_cascadeCount = s_maxShadowCascades;
+    float m_shadowDistance = 100.0f;
+    float m_cascadeSplitLambda = 0.75f;
+
+    uint32_t m_fittedCascadeCount = 0;
+    float m_fittedShadowDistance = 0.0f;
+    std::array<glm::mat4, s_maxShadowCascades> m_cascadeViewProjections{};
+    std::array<float, s_maxShadowCascades> m_cascadeBiases{};
 
     void createShadowMap(vk::CommandPool commandPool) override;
   };

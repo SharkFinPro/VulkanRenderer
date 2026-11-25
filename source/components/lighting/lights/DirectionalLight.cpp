@@ -1,8 +1,8 @@
 #include "DirectionalLight.h"
-#include "DirectionalShadow.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../renderingManager/ImageResource.h"
 
+#include <algorithm>
 #include <cmath>
 #include <glm/geometric.hpp>
 #include <stdexcept>
@@ -57,34 +57,87 @@ namespace vke {
     m_direction = normalizedDirection(direction);
   }
 
-  glm::vec3 DirectionalLight::getShadowCenter() const
+  uint32_t DirectionalLight::getCascadeCount() const
   {
-    return m_shadowCenter;
+    return m_cascadeCount;
   }
 
-  float DirectionalLight::getShadowHalfExtent() const
+  void DirectionalLight::setCascadeCount(const uint32_t count)
   {
-    return m_shadowHalfExtent;
-  }
-
-  void DirectionalLight::setShadowCenter(const glm::vec3& center)
-  {
-    if (!isFinite(center))
+    if (count < 1 || count > s_maxShadowCascades)
     {
-      throw std::invalid_argument("DirectionalLight::setShadowCenter: the center must be finite");
+      throw std::invalid_argument("DirectionalLight::setCascadeCount: the count must be from 1 to the most cascades");
     }
 
-    m_shadowCenter = center;
+    m_cascadeCount = count;
   }
 
-  void DirectionalLight::setShadowHalfExtent(const float halfExtent)
+  float DirectionalLight::getShadowDistance() const
   {
-    if (!std::isfinite(halfExtent) || !(halfExtent > 0.0f))
+    return m_shadowDistance;
+  }
+
+  void DirectionalLight::setShadowDistance(const float distance)
+  {
+    if (!std::isfinite(distance) || !(distance > 0.0f))
     {
-      throw std::invalid_argument("DirectionalLight::setShadowHalfExtent: the half extent must be finite and greater than 0");
+      throw std::invalid_argument("DirectionalLight::setShadowDistance: the distance must be finite and greater than 0");
     }
 
-    m_shadowHalfExtent = halfExtent;
+    m_shadowDistance = distance;
+  }
+
+  float DirectionalLight::getCascadeSplitLambda() const
+  {
+    return m_cascadeSplitLambda;
+  }
+
+  void DirectionalLight::setCascadeSplitLambda(const float lambda)
+  {
+    if (!std::isfinite(lambda) || lambda < 0.0f || lambda > 1.0f)
+    {
+      throw std::invalid_argument("DirectionalLight::setCascadeSplitLambda: the lambda must be finite and in [0, 1]");
+    }
+
+    m_cascadeSplitLambda = lambda;
+  }
+
+  void DirectionalLight::updateCascades(const CascadeCamera& camera,
+                                        const float farPlane,
+                                        const AABB& casterBounds)
+  {
+    const float distance = std::min(m_shadowDistance, farPlane);
+
+    m_fittedCascadeCount = 0;
+    m_fittedShadowDistance = distance;
+
+    if (!(distance > camera.nearPlane))
+    {
+      return;
+    }
+
+    const auto splits = cascadeSplitDistances(camera.nearPlane, distance, m_cascadeCount, m_cascadeSplitLambda);
+
+    for (uint32_t cascade = 0; cascade < m_cascadeCount; ++cascade)
+    {
+      const ShadowCascade fitted = fitShadowCascade(m_direction, camera, splits[cascade], splits[cascade + 1],
+                                                    s_shadowMapSize, casterBounds);
+
+      m_cascadeViewProjections[cascade] = fitted.viewProjection;
+      m_cascadeBiases[cascade] = fitted.depthBias;
+    }
+
+    m_fittedCascadeCount = m_cascadeCount;
+  }
+
+  uint32_t DirectionalLight::getFittedCascadeCount() const
+  {
+    return m_fittedCascadeCount;
+  }
+
+  const glm::mat4& DirectionalLight::getCascadeViewProjection(const uint32_t cascade) const
+  {
+    return m_cascadeViewProjections.at(cascade);
   }
 
   LightType DirectionalLight::getLightType() const
@@ -94,22 +147,27 @@ namespace vke {
 
   LightUniform DirectionalLight::getUniform() const
   {
-    return DirectionalLightUniform {
-      .lightViewProjection = getLightViewProjectionMatrix(),
-      .direction = m_direction,
-      .ambient = m_ambient,
-      .color = m_color,
-      .diffuse = m_diffuse,
-      .specular = m_specular,
-      .shadowMapIndex = -1,
-      .shadowBias = directionalShadowBias(s_shadowMapSize),
-      .pad0 = 0.0f
-    };
-  }
+    DirectionalLightUniform uniform {};
 
-  glm::mat4 DirectionalLight::getLightViewProjectionMatrix() const
-  {
-    return directionalShadowViewProjection(m_direction, m_shadowCenter, m_shadowHalfExtent);
+    glm::vec4 biases(0.0f);
+
+    for (uint32_t cascade = 0; cascade < m_fittedCascadeCount; ++cascade)
+    {
+      uniform.cascadeViewProjections[cascade] = m_cascadeViewProjections[cascade];
+      biases[static_cast<glm::length_t>(cascade)] = m_cascadeBiases[cascade];
+    }
+
+    uniform.cascadeBiases = biases;
+    uniform.direction = m_direction;
+    uniform.ambient = m_ambient;
+    uniform.color = m_color;
+    uniform.diffuse = m_diffuse;
+    uniform.specular = m_specular;
+    uniform.shadowMapIndex = -1;
+    uniform.cascadeCount = static_cast<int32_t>(m_fittedCascadeCount);
+    uniform.shadowDistance = m_fittedShadowDistance;
+
+    return uniform;
   }
 
   void DirectionalLight::createShadowMap(const vk::CommandPool commandPool)
@@ -125,7 +183,8 @@ namespace vke {
       .extent = m_shadowMapExtent,
       .commandPool = commandPool,
       .depthFormat = s_shadowMapFormat,
-      .numSamples = vk::SampleCountFlagBits::e1
+      .numSamples = vk::SampleCountFlagBits::e1,
+      .layerCount = s_maxShadowCascades
     };
 
     m_shadowMapDepthImageResource = std::make_shared<ImageResource>(imageResourceConfig);

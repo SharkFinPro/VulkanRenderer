@@ -22,8 +22,8 @@ namespace vke {
   class UniformBuffer;
 
   // What the shadow passes draw: runs of render objects and runs of volume surface chunks, six lists per shadow-casting
-  // point light (one per cube face, in face order) and one per shadow-casting spot or directional light (see
-  // renderShadowMaps).
+  // point light (one per cube face, in face order), one per shadow-casting spot light and s_maxShadowCascades per
+  // shadow-casting directional light (one per cascade, in cascade order; see renderShadowMaps).
   struct ShadowDrawLists {
     std::span<const std::vector<DrawRun>> pointLightFaceRuns;
     std::span<const std::vector<DrawRun>> spotLightRuns;
@@ -64,6 +64,11 @@ namespace vke {
 
     void update(uint32_t currentFrame, glm::vec3 viewPosition);
 
+    // Writes the directional lights' storage buffer for the frame and gives each shadow-casting one its shadow map index.
+    // The uniforms carry the fitted cascades, so this must run after every directional light's updateCascades (done by
+    // Renderer3D::updateSceneData) and before the frame is submitted; update() does not write it.
+    void writeDirectionalLights(uint32_t currentFrame);
+
     // The lights submitted this frame. Whether each casts shadows is up to the caller to ask (castsShadows).
     [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getPointLightsToRender() const;
 
@@ -84,8 +89,10 @@ namespace vke {
     // Draws into each face of every shadow-casting point light's cube map its own entry of pointLightFaceRuns (six per
     // light, in the order of getPointLightsToRender with the non-casting lights skipped, then in face order), and into each
     // shadow-casting spot light's map its own entry of spotLightRuns, in the order of getSpotLightsToRender likewise, and
-    // into each shadow-casting directional light's map its own entry of directionalLightRuns, in the order of
-    // getDirectionalLightsToRender (a light or face without an entry draws nothing). The volume lists are drawn the same way after them, with the volume surface
+    // into each fitted cascade of each shadow-casting directional light's map its own entry of directionalLightRuns
+    // (s_maxShadowCascades per light, so cascade c of the n-th light is entry n * s_maxShadowCascades + c), with the
+    // lights in the order of getDirectionalLightsToRender (a light, face or cascade without an entry draws nothing). The
+    // volume lists are drawn the same way after them, with the volume surface
     // pipelines. The runs' first instances index the draw slots the scene descriptor set (set 0 of the shadow pipelines)
     // binds.
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -141,8 +148,6 @@ namespace vke {
     void updateSpotLightUniforms(uint32_t currentFrame);
 
     void updateSpotLightShadowMaps(uint32_t currentFrame) const;
-
-    void updateDirectionalLightUniforms(uint32_t currentFrame);
 
     void updateDirectionalLightShadowMaps(uint32_t currentFrame) const;
 
