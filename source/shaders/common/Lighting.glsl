@@ -9,6 +9,7 @@ struct PointLight {
   float specular;
   float shadowRange; // Distance the shadow map covers; lit beyond it
   float range; // 0 when the light has no range
+  vec4 shadowBias; // ShadowBias (constant, slope, normal offset, all in texels), then the world size of a texel per unit of view depth
 };
 
 struct SpotLight {
@@ -23,11 +24,12 @@ struct SpotLight {
   float shadowRange; // Distance the shadow map covers; lit beyond it
   int shadowMapIndex; // Into spotLightShadowMaps, or -1 when the light has none
   float range; // 0 when the light has no range
+  vec4 shadowBias; // ShadowBias (constant, slope, normal offset, all in texels), then the world size of a texel per unit of view depth
 };
 
 struct DirectionalLight {
   mat4 cascadeViewProjections[4]; // The fitted cascades
-  vec4 cascadeBiases; // In normalized depth, per cascade
+  vec4 cascadeTexelSizes; // World size of a texel, per cascade
   vec3 direction; // The direction the light travels, normalized
   float ambient;
   vec3 color;
@@ -36,6 +38,7 @@ struct DirectionalLight {
   int shadowMapIndex; // Into directionalLightShadowMaps, or -1 when the light has none
   int cascadeCount; // The fitted cascades, 0 when none
   float shadowDistance; // Fragments farther than this from the camera are lit
+  vec4 shadowBias; // ShadowBias (constant, slope, normal offset, all in texels), then 0
 };
 
 // 1 for a light without a range (0). Otherwise inverse square in world units, windowed smoothly to 0 at the range;
@@ -60,6 +63,19 @@ float lightAttenuation(float range, vec3 lightPosition, vec3 fragPos)
   float window = clamp(1.0 - ratio * ratio, 0.0, 1.0);
 
   return window * window / (distSq + 1.0);
+}
+
+// The position a shadow map is looked up at: the fragment moved along its normal and toward the light, by amounts in
+// texels (bias is constant, slope, normal offset; texel the world size of a shadow map texel at the fragment). normal and
+// toLight are unit vectors. ShadowBias.h mirrors it on the CPU.
+vec3 shadowLookupPosition(vec3 fragPos, vec3 normal, vec3 toLight, float texel, vec3 bias)
+{
+  const float maxTangent = 10.0;
+
+  float cosTheta = clamp(dot(normal, toLight), 0.0, 1.0);
+  float tanTheta = min(sqrt(1.0 - cosTheta * cosTheta) / max(cosTheta, 1e-4), maxTangent);
+
+  return fragPos + normal * (bias.z * texel) + toLight * (texel * (bias.x + bias.y * tanTheta));
 }
 
 bool isInSpotlight(SpotLight light, vec3 fragPos)

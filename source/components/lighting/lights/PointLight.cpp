@@ -32,7 +32,9 @@ namespace vke {
       .diffuse = m_diffuse,
       .specular = m_specular,
       .shadowRange = getEffectiveShadowRange(),
-      .range = m_range
+      .range = m_range,
+      .shadowBias = glm::vec4(m_shadowBias.constant, m_shadowBias.slope, m_shadowBias.normalOffset,
+                              pointShadowTexelPerDepth(static_cast<float>(m_shadowMapExtent.width)))
     };
   }
 

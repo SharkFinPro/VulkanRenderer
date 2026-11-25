@@ -120,7 +120,7 @@ namespace vke {
 
   struct ShadowCascade {
     glm::mat4 viewProjection; // Depth [0, 1], y flipped for Vulkan
-    float depthBias; // In normalized depth
+    float texelSize; // World size of one shadow map texel
   };
 
   // Fits one cascade: an orthographic projection along direction over the part of the camera frustum between the view
@@ -128,7 +128,7 @@ namespace vke {
   // shape and not on where the camera looks, and its center is snapped to whole texels, so the map doesn't shimmer as the
   // camera moves (the box is a texel larger than the sphere for that). The depth range also reaches back to casterBounds
   // (the world box of every shadow caster; may be empty), so casters between the light and the slice, outside the slice
-  // itself, still shadow it. The bias is 2 texels along the light.
+  // itself, still shadow it.
   [[nodiscard]] inline ShadowCascade fitShadowCascade(const glm::vec3 direction,
                                                       const CascadeCamera& camera,
                                                       const float sliceNear,
@@ -168,7 +168,7 @@ namespace vke {
     projection[1][1] *= -1;
     projection[3][1] *= -1;
 
-    return { projection * lightView, 2.0f * texel / (farDistance - nearDistance) };
+    return { projection * lightView, texel };
   }
 
 } // namespace vke

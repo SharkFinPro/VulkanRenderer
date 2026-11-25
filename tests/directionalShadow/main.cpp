@@ -398,7 +398,7 @@ namespace {
     }
   }
 
-  void checkBias()
+  void checkTexelSize()
   {
     const auto splits = defaultSplits();
 
@@ -412,12 +412,11 @@ namespace {
                                                                   splits[cascade + 1], mapSize, {});
           const glm::mat4& m = fitted.viewProjection;
 
-          // Read back from the matrix: x scales a world distance by 1 / half size, depth by 1 / range
+          // Read back from the matrix: x scales a world distance by 1 / half size
           const float texel = 2.0f / (static_cast<float>(mapSize) * inverseHalfSize(m));
-          const float depthRange = 1.0f / glm::length(glm::vec3(m[0][2], m[1][2], m[2][2]));
 
-          check(nearlyEqual(fitted.depthBias, 2.0f * texel / depthRange, 1e-4f),
-                "the bias is 2 texels over the depth range (" + c.name + ", cascade " + std::to_string(cascade) + ")");
+          check(nearlyEqual(fitted.texelSize, texel, 1e-4f),
+                "the texel size is the world size of one map texel (" + c.name + ", cascade " + std::to_string(cascade) + ")");
         }
       }
     }
@@ -437,8 +436,8 @@ namespace {
           const vke::ShadowCascade fitted = vke::fitShadowCascade(direction, c.camera, splits[cascade],
                                                                   splits[cascade + 1], mapSize, {});
 
-          check(finite(fitted.viewProjection) && std::isfinite(fitted.depthBias) && fitted.depthBias > 0.0f,
-                "the matrix and bias are finite (" + c.name + ")");
+          check(finite(fitted.viewProjection) && std::isfinite(fitted.texelSize) && fitted.texelSize > 0.0f,
+                "the matrix and texel size are finite (" + c.name + ")");
         }
       }
     }
@@ -454,7 +453,7 @@ int main()
   checkRotationStability();
   checkTranslationSnapping();
   checkCasterReach();
-  checkBias();
+  checkTexelSize();
   checkFinite();
 
   std::cout << g_checks << " checks, " << g_failures << " failures\n";

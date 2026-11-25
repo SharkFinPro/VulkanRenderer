@@ -53,7 +53,9 @@ namespace vke {
       .coneAngle = glm::radians(m_coneAngle),
       .shadowRange = getEffectiveShadowRange(),
       .shadowMapIndex = -1,
-      .range = m_range
+      .range = m_range,
+      .shadowBias = glm::vec4(m_shadowBias.constant, m_shadowBias.slope, m_shadowBias.normalOffset,
+                              spotShadowTexelPerDepth(m_coneAngle * 2.0f, static_cast<float>(m_shadowMapExtent.width)))
     };
   }
 

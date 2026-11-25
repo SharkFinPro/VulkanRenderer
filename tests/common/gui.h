@@ -98,6 +98,7 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
   float diffuse = light->getDiffuse();
   float specular = light->getSpecular();
   float shadowRange = light->getShadowRange();
+  vke::ShadowBias shadowBias = light->getShadowBias();
   float range = light->getRange();
   bool isSpotLight = light->getLightType() == vke::LightType::spotLight;
 
@@ -133,6 +134,9 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
     ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
     ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
     ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
+    ImGui::SliderFloat("Bias Constant", &shadowBias.constant, 0.0f, 8.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("Bias Slope", &shadowBias.slope, 0.0f, 8.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("Bias Normal Offset", &shadowBias.normalOffset, 0.0f, 8.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
     if (isDirectionalLight)
     {
@@ -159,6 +163,7 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
+  light->setShadowBias(shadowBias);
 
   if (isDirectionalLight)
   {
