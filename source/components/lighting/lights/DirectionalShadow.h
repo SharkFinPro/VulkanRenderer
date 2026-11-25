@@ -66,23 +66,17 @@ namespace vke {
     return glm::lookAt(glm::vec3(0.0f), dir, up);
   }
 
-  struct ShadowCascade {
-    glm::mat4 viewProjection; // Depth [0, 1], y flipped for Vulkan
-    float depthBias; // In normalized depth
+  struct BoundingSphere {
+    glm::vec3 center;
+    float radius;
   };
 
-  // Fits one cascade: an orthographic projection along direction over the part of the camera frustum between the view
-  // depths sliceNear and sliceFar. It covers the bounding sphere of that slice, so its size depends only on the slice's
-  // shape and not on where the camera looks, and its center is snapped to whole texels, so the map doesn't shimmer as the
-  // camera moves (the box is a texel larger than the sphere for that). The depth range also reaches back to casterBounds
-  // (the world box of every shadow caster; may be empty), so casters between the light and the slice, outside the slice
-  // itself, still shadow it. The bias is 2 texels along the light.
-  [[nodiscard]] inline ShadowCascade fitShadowCascade(const glm::vec3 direction,
-                                                      const CascadeCamera& camera,
-                                                      const float sliceNear,
-                                                      const float sliceFar,
-                                                      const uint32_t mapSize,
-                                                      const AABB& casterBounds)
+  // The sphere around the part of the camera frustum between the view depths sliceNear and sliceFar: centered on the
+  // centroid of its 8 corners, through the farthest one. Both depend only on the slice's shape, so the radius doesn't
+  // change as the camera moves or turns.
+  [[nodiscard]] inline BoundingSphere frustumSliceBoundingSphere(const CascadeCamera& camera,
+                                                                 const float sliceNear,
+                                                                 const float sliceFar)
   {
     const glm::mat4 inverseView = glm::inverse(camera.view);
     const float tanHalfFov = std::tan(glm::radians(camera.fieldOfViewDegrees) * 0.5f);
@@ -120,7 +114,30 @@ namespace vke {
       radius = std::max(radius, glm::length(corner - center));
     }
 
-    radius = std::ceil(radius * 16.0f) / 16.0f;
+    return { center, radius };
+  }
+
+  struct ShadowCascade {
+    glm::mat4 viewProjection; // Depth [0, 1], y flipped for Vulkan
+    float depthBias; // In normalized depth
+  };
+
+  // Fits one cascade: an orthographic projection along direction over the part of the camera frustum between the view
+  // depths sliceNear and sliceFar. It covers the bounding sphere of that slice, so its size depends only on the slice's
+  // shape and not on where the camera looks, and its center is snapped to whole texels, so the map doesn't shimmer as the
+  // camera moves (the box is a texel larger than the sphere for that). The depth range also reaches back to casterBounds
+  // (the world box of every shadow caster; may be empty), so casters between the light and the slice, outside the slice
+  // itself, still shadow it. The bias is 2 texels along the light.
+  [[nodiscard]] inline ShadowCascade fitShadowCascade(const glm::vec3 direction,
+                                                      const CascadeCamera& camera,
+                                                      const float sliceNear,
+                                                      const float sliceFar,
+                                                      const uint32_t mapSize,
+                                                      const AABB& casterBounds)
+  {
+    const auto [center, sliceRadius] = frustumSliceBoundingSphere(camera, sliceNear, sliceFar);
+
+    float radius = std::ceil(sliceRadius * 16.0f) / 16.0f;
 
     // Snapping the center moves the box by less than a texel (2 * radius / mapSize); grow it by that much so the sphere
     // stays inside
