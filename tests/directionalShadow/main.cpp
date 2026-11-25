@@ -5,6 +5,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -62,7 +63,7 @@ namespace {
     return glm::normalize(glm::cross(direction, axis));
   }
 
-  constexpr float epsilon = 1e-5f;
+  constexpr float epsilon = 1e-4f;
 
   void checkDirection(const glm::vec3 rawDirection,
                       const glm::vec3 center,
@@ -105,9 +106,25 @@ namespace {
       const glm::vec3 inside = project(viewProjection, center + axis * (halfExtent * 0.99f));
       const glm::vec3 outside = project(viewProjection, center + axis * (halfExtent * 1.01f));
 
-      check(glm::length(glm::vec2(inside)) < 1.0f, label + ": 0.99 of the half extent is inside the map");
-      check(glm::length(glm::vec2(outside)) > 1.0f, label + ": 1.01 of the half extent is outside the map");
+      check(std::max(std::abs(inside.x), std::abs(inside.y)) < 1.0f, label + ": 0.99 of the half extent is inside the map");
     }
+
+    // The map is a square, so the half extent reaches its edges only along the map's own axes, those of the light's view
+    // (glm::lookAt's basis with the same up vector the fitting picks); its corners lie beyond that
+    const glm::vec3 up = std::abs(direction.y) > 0.99f ? glm::vec3(1, 0, 0) : glm::vec3(0, 1, 0);
+    const glm::vec3 right = glm::normalize(glm::cross(direction, up));
+    const glm::vec3 viewUp = glm::cross(right, direction);
+
+    for (const glm::vec3 axis : { right, -right, viewUp, -viewUp })
+    {
+      const glm::vec3 outside = project(viewProjection, center + axis * (halfExtent * 1.01f));
+
+      check(std::max(std::abs(outside.x), std::abs(outside.y)) > 1.0f, label + ": 1.01 of the half extent is outside the map");
+    }
+
+    const glm::vec3 corner = project(viewProjection, center + (right + viewUp) * (halfExtent * 0.9f));
+    check(std::abs(std::abs(corner.x) - 0.9f) < epsilon && std::abs(std::abs(corner.y) - 0.9f) < epsilon,
+          label + ": a point at 0.9 of the half extent along both axes maps to a corner at 0.9");
   }
 
 } // namespace

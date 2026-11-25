@@ -135,8 +135,8 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
 
     if (isDirectionalLight)
     {
-      ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f);
-      ImGui::SliderFloat3("Shadow Center", value_ptr(shadowCenter), -200.0f, 200.0f);
+      ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+      ImGui::SliderFloat3("Shadow Center", value_ptr(shadowCenter), -200.0f, 200.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
       ImGui::SliderFloat("Shadow Half Extent", &shadowHalfExtent, 1.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
     }
     else
