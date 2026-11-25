@@ -130,11 +130,7 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
-  // The displayed shadow range is clamped to the range, so write it back only when it was edited
-  if (shadowRange != light->getShadowRange())
-  {
-    light->setShadowRange(shadowRange);
-  }
+  light->setShadowRange(shadowRange);
 
   // A range in (0, near plane] is invalid; snap it to none
   if (range != light->getRange())

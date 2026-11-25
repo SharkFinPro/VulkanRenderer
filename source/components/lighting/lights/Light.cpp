@@ -90,6 +90,11 @@ namespace vke {
 
   float Light::getShadowRange() const
   {
+    return m_shadowRange;
+  }
+
+  float Light::getEffectiveShadowRange() const
+  {
     return effectiveShadowRange(m_shadowRange, m_range);
   }
 

@@ -104,9 +104,12 @@ namespace vke {
     // Throws std::invalid_argument unless range is 0 or finite and greater than s_shadowNearPlane
     void setRange(float range);
 
-    // Distance from the light that its shadow map covers, never more than the light's range. Fragments beyond it are
-    // lit, not shadowed (or unlit, past the light's own range).
+    // Distance from the light that its shadow map covers, as set. Fragments beyond it are lit, not shadowed.
     [[nodiscard]] float getShadowRange() const;
+
+    // The shadow range clamped to the light's range, since shadows beyond where the light reaches would never be
+    // seen; what the shadow projections, the caster culling and the shaders use
+    [[nodiscard]] float getEffectiveShadowRange() const;
 
     // Throws std::invalid_argument unless range is finite and greater than s_shadowNearPlane
     void setShadowRange(float range);

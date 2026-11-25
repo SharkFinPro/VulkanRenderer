@@ -27,8 +27,8 @@ namespace {
     constexpr float nearPlane = 0.1f;
 
     check(vke::isValidLightRange(0.0f, nearPlane), "range 0 is valid");
-    check(!vke::isValidLightRange(nearPlane, nearPlane), "range equal to the nearPlane plane is invalid");
-    check(vke::isValidLightRange(0.11f, nearPlane), "range just above the nearPlane plane is valid");
+    check(!vke::isValidLightRange(nearPlane, nearPlane), "range equal to the near plane is invalid");
+    check(vke::isValidLightRange(0.11f, nearPlane), "range just above the near plane is valid");
     check(!vke::isValidLightRange(-1.0f, nearPlane), "negative range is invalid");
     check(!vke::isValidLightRange(std::numeric_limits<float>::quiet_NaN(), nearPlane), "NaN range is invalid");
     check(!vke::isValidLightRange(std::numeric_limits<float>::infinity(), nearPlane), "infinite range is invalid");
@@ -53,6 +53,9 @@ namespace {
     check(vke::lightAttenuation(10.0f, 10.5f) == 0.0f, "zero beyond the range");
     check(vke::lightAttenuation(10.0f, 1e6f) == 0.0f, "zero far beyond the range");
     check(vke::lightAttenuation(10.0f, 10.0f * (1.0f - 1e-4f)) < 1e-6f, "continuous at the range");
+
+    // Halfway: (1 - 0.5^4)^2 / (5^2 + 1), which pins the window's shape and the inverse square
+    check(std::abs(vke::lightAttenuation(10.0f, 5.0f) - 0.87890625f / 26.0f) < 1e-6f, "reference value halfway to the range");
 
     constexpr float range = 25.0f;
     constexpr int steps = 1000;

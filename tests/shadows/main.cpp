@@ -7,6 +7,7 @@
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 void setupScene(const vke::VulkanEngine& renderer,
@@ -26,11 +27,16 @@ int main(const int argc,
   {
     // --light-range R gives every light that range (0 = none)
     float lightRange = 0.0f;
-    for (int i = 1; i + 1 < argc; i++)
+    for (int i = 1; i < argc; i++)
     {
       if (std::string(argv[i]) == "--light-range")
       {
-        lightRange = std::stof(argv[i + 1]);
+        if (i + 1 >= argc)
+        {
+          throw std::invalid_argument("--light-range needs a value");
+        }
+
+        lightRange = std::stof(argv[++i]);
       }
     }
 

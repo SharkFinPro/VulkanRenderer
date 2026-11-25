@@ -51,7 +51,7 @@ namespace vke {
       .direction = m_direction,
       .specular = m_specular,
       .coneAngle = glm::radians(m_coneAngle),
-      .shadowRange = getShadowRange(),
+      .shadowRange = getEffectiveShadowRange(),
       .shadowMapIndex = -1,
       .range = m_range
     };
@@ -74,7 +74,7 @@ namespace vke {
       glm::radians(fov),
       1.0f,
       s_shadowNearPlane,
-      getShadowRange()
+      getEffectiveShadowRange()
     );
 
     proj[1][1] *= -1;
