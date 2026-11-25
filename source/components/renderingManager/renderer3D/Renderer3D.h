@@ -25,6 +25,7 @@
 
 namespace vke {
   class Cloud;
+  struct CascadeCamera;
 
   class AssetManager;
   class CommandBuffer;
@@ -334,12 +335,12 @@ namespace vke {
 
     // The other passes' draws as runs: the submissions by model for the shadow maps, the pickable ones by model (and
     // by material too when alpha tested) and the outlines by mask value then model. The draw slots hold the lists one after
-    // another: shadow (each point light's six faces', then each spot light's, then each directional light's, each followed
+    // another: shadow (each point light's six faces', then each spot light's, then each directional light's cascades', each followed
     // by its volume surface list), the pipelines', the volume surfaces', picking (the volume surfaces' last), outline (the volume surfaces' last).
     //
     // Lists are culled against the view they are drawn from, using the submissions' world bounds: the picking and outline
     // lists and the pipelines' lists (those whose vertex stage keeps geometry within the model's bounds) against the
-    // camera, a spot or directional light's shadow list against the light's frustum, a point light's face lists
+    // camera, a spot light's shadow list against the light's frustum, a directional light's cascade lists against the cascade's, a point light's face lists
     // against its shadow range and then the face's frustum.
     std::vector<DrawRun> m_pickRuns;
     std::vector<DrawRun> m_pickAlphaTestedRuns;
@@ -369,7 +370,8 @@ namespace vke {
     // The volume surface lists of the same spot lights, by the same index; kept in step with m_spotShadowRuns
     std::vector<std::vector<DrawRun>> m_volumeSpotShadowRuns;
 
-    // The same for the shadow-casting directional lights: one list each, and the volume surface lists by the same index
+    // The same for the shadow-casting directional lights: s_maxShadowCascades lists each (one per cascade, in cascade order;
+    // the unfitted ones are empty), and the volume surface lists by the same index
     std::vector<std::vector<DrawRun>> m_directionalShadowRuns;
     std::vector<std::vector<DrawRun>> m_volumeDirectionalShadowRuns;
     size_t m_directionalShadowCount = 0;
@@ -541,10 +543,12 @@ namespace vke {
     // number of slots written.
     [[nodiscard]] uint32_t buildDrawLists(uint32_t* drawSlots,
                                           const Frustum& camera,
+                                          const CascadeCamera& cascadeCamera,
                                           const LightingManager& lightingManager);
 
     [[nodiscard]] uint32_t buildShadowRuns(uint32_t* drawSlots,
                                            uint32_t offset,
+                                           const CascadeCamera& cascadeCamera,
                                            const LightingManager& lightingManager);
 
     [[nodiscard]] uint32_t buildPointShadowRuns(uint32_t* drawSlots,
@@ -555,8 +559,10 @@ namespace vke {
                                                uint32_t offset,
                                                const LightingManager& lightingManager);
 
+    // Fits each shadow-casting directional light's cascades to the camera, then builds each cascade's lists
     [[nodiscard]] uint32_t buildDirectionalShadowRuns(uint32_t* drawSlots,
                                                       uint32_t offset,
+                                                      const CascadeCamera& cascadeCamera,
                                                       const LightingManager& lightingManager);
 
     [[nodiscard]] uint32_t buildPipelineRuns(uint32_t* drawSlots,

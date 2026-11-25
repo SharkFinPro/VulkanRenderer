@@ -81,13 +81,22 @@ namespace {
     return light->castsShadows();
   }
 
-  // How many lists the shadow maps need: one per cube face of each point light that casts shadows, one per spot or
-  // directional light that does
+  // How many lists the shadow maps need: one per cube face of each point light that casts shadows, one per spot light that
+  // does and one per configured cascade of each directional light that does (at least the fitted ones)
   [[nodiscard]] size_t countShadowLists(const vke::LightingManager& lightingManager)
   {
+    size_t cascades = 0;
+
+    for (const std::shared_ptr<vke::Light>& light : lightingManager.getDirectionalLightsToRender())
+    {
+      if (const auto directionalLight = vke::LightingManager::asShadowCastingDirectionalLight(light))
+      {
+        cascades += directionalLight->getCascadeCount();
+      }
+    }
+
     return 6 * static_cast<size_t>(std::ranges::count_if(lightingManager.getPointLightsToRender(), castsShadows)) +
-           static_cast<size_t>(std::ranges::count_if(lightingManager.getSpotLightsToRender(), castsShadows)) +
-           static_cast<size_t>(std::ranges::count_if(lightingManager.getDirectionalLightsToRender(), castsShadows));
+           static_cast<size_t>(std::ranges::count_if(lightingManager.getSpotLightsToRender(), castsShadows)) + cascades;
   }
 
   // The camera block of the scene set (SceneCamera in shaders/common/SceneData.glsl)
@@ -202,11 +211,22 @@ namespace vke {
     // The same matrices the camera block gives the shaders, so the planes are the ones the vertex stages clip against
     const Frustum cameraFrustum = Frustum::fromViewProjection(camera.proj * camera.view);
 
+    // What the scene projection uses, so the cascades slice the frustum that is drawn
+    const CascadeCamera cascadeCamera {
+      .view = m_viewMatrix,
+      .fieldOfViewDegrees = m_fieldOfView,
+      .aspect = static_cast<float>(sceneRenderInfo.extent.width) / static_cast<float>(sceneRenderInfo.extent.height),
+      .nearPlane = m_nearPlane
+    };
+
     [[maybe_unused]] const uint32_t slotsWritten = buildDrawLists(m_objectTable->getDrawSlots(currentFrame),
-                                                                  cameraFrustum, *lightingManager);
+                                                                  cameraFrustum, cascadeCamera, *lightingManager);
     assert(slotsWritten <= m_objectTable->getDrawSlotCapacity(currentFrame));
 
     m_cameraUniform->update(currentFrame, &camera);
+
+    // The lights' cascades are fitted now
+    lightingManager->writeDirectionalLights(currentFrame);
   }
 
   void Renderer3D::gatherVolumeChunks()
@@ -320,9 +340,10 @@ namespace vke {
 
   uint32_t Renderer3D::buildDrawLists(uint32_t* drawSlots,
                                       const Frustum& camera,
+                                      const CascadeCamera& cascadeCamera,
                                       const LightingManager& lightingManager)
   {
-    uint32_t offset = buildShadowRuns(drawSlots, 0, lightingManager);
+    uint32_t offset = buildShadowRuns(drawSlots, 0, cascadeCamera, lightingManager);
 
     offset = buildPipelineRuns(drawSlots, offset, camera);
 
@@ -405,13 +426,14 @@ namespace vke {
 
   uint32_t Renderer3D::buildShadowRuns(uint32_t* drawSlots,
                                        uint32_t offset,
+                                       const CascadeCamera& cascadeCamera,
                                        const LightingManager& lightingManager)
   {
     offset = buildPointShadowRuns(drawSlots, offset, lightingManager);
 
     offset = buildSpotShadowRuns(drawSlots, offset, lightingManager);
 
-    return buildDirectionalShadowRuns(drawSlots, offset, lightingManager);
+    return buildDirectionalShadowRuns(drawSlots, offset, cascadeCamera, lightingManager);
   }
 
   uint32_t Renderer3D::buildPointShadowRuns(uint32_t* drawSlots,
@@ -526,9 +548,45 @@ namespace vke {
 
   uint32_t Renderer3D::buildDirectionalShadowRuns(uint32_t* drawSlots,
                                                   uint32_t offset,
+                                                  const CascadeCamera& cascadeCamera,
                                                   const LightingManager& lightingManager)
   {
     m_directionalShadowCount = 0;
+
+    // The world box of everything that casts shadows, which the cascades' depth ranges reach back to
+    AABB casterBounds;
+
+    for (size_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+    {
+      const AABB& bounds = m_slotBounds[slot];
+
+      if (!bounds.isEmpty())
+      {
+        casterBounds.expand(bounds.min);
+        casterBounds.expand(bounds.max);
+      }
+    }
+
+    for (size_t i = 0; i < m_volumeSurfacesToRender.size(); ++i)
+    {
+      if (!getVolumeDraw(i).surface->castsShadows())
+      {
+        continue;
+      }
+
+      const VolumeDrawChunks& chunks = m_volumeDrawChunks[i];
+
+      for (uint32_t c = chunks.firstChunk; c < chunks.firstChunk + chunks.chunkCount; ++c)
+      {
+        const AABB& bounds = m_volumeChunks[c].worldBounds;
+
+        if (!bounds.isEmpty())
+        {
+          casterBounds.expand(bounds.min);
+          casterBounds.expand(bounds.max);
+        }
+      }
+    }
 
     // The order and the filter are the ones LightingManager draws the lists in
     for (const std::shared_ptr<Light>& light : lightingManager.getDirectionalLightsToRender())
@@ -540,30 +598,44 @@ namespace vke {
         continue;
       }
 
-      if (m_directionalShadowCount == m_directionalShadowRuns.size())
+      directionalLight->updateCascades(cascadeCamera, m_farPlane, casterBounds);
+
+      // s_maxShadowCascades lists per light, so that cascade c of a light is entry light * s_maxShadowCascades + c
+      while (m_directionalShadowRuns.size() < m_directionalShadowCount + s_maxShadowCascades)
       {
         m_directionalShadowRuns.emplace_back();
         m_volumeDirectionalShadowRuns.emplace_back();
       }
 
-      std::vector<DrawRun>& volumeRuns = m_volumeDirectionalShadowRuns[m_directionalShadowCount];
-      std::vector<DrawRun>& runs = m_directionalShadowRuns[m_directionalShadowCount++];
-      runs.clear();
+      const uint32_t fittedCascades = directionalLight->getFittedCascadeCount();
 
-      // The matrix the shadow vertex shader multiplies by
-      const Frustum lightFrustum = Frustum::fromViewProjection(directionalLight->getLightViewProjectionMatrix());
-
-      m_drawItems.clear();
-
-      for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+      for (uint32_t cascade = 0; cascade < s_maxShadowCascades; ++cascade)
       {
-        addVisibleDrawItem(lightFrustum, slot, false, 0);
+        std::vector<DrawRun>& volumeRuns = m_volumeDirectionalShadowRuns[m_directionalShadowCount];
+        std::vector<DrawRun>& runs = m_directionalShadowRuns[m_directionalShadowCount++];
+        runs.clear();
+        volumeRuns.clear();
+
+        if (cascade >= fittedCascades)
+        {
+          continue;
+        }
+
+        // The matrix the shadow vertex shader multiplies by
+        const Frustum cascadeFrustum = Frustum::fromViewProjection(directionalLight->getCascadeViewProjection(cascade));
+
+        m_drawItems.clear();
+
+        for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+        {
+          addVisibleDrawItem(cascadeFrustum, slot, false, 0);
+        }
+
+        offset = buildDrawRuns(m_drawItems, drawSlots, offset, runs);
+
+        offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &cascadeFrustum,
+                                 VolumeFilter::castsShadows, volumeRuns);
       }
-
-      offset = buildDrawRuns(m_drawItems, drawSlots, offset, runs);
-
-      offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &lightFrustum,
-                               VolumeFilter::castsShadows, volumeRuns);
     }
 
     return offset;

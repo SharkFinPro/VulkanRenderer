@@ -15,7 +15,9 @@ void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights,
                 float lightRange,
-                bool sun);
+                bool sun,
+                int cascades,
+                float shadowDistance);
 
 void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::ImGuiInstance>& gui,
@@ -27,9 +29,12 @@ int main(const int argc,
 {
   try
   {
-    // --light-range R gives every light that range (0 = none); --sun adds a directional light
+    // --light-range R gives every light that range (0 = none); --sun adds a directional light, whose cascade count and
+    // shadow distance --cascades N (1 to 4) and --shadow-distance D set (0 keeps the light's default)
     float lightRange = 0.0f;
     bool sun = false;
+    int cascades = 0;
+    float shadowDistance = 0.0f;
     for (int i = 1; i < argc; i++)
     {
       if (std::string(argv[i]) == "--sun")
@@ -44,6 +49,34 @@ int main(const int argc,
         }
 
         lightRange = std::stof(argv[++i]);
+      }
+      else if (std::string(argv[i]) == "--cascades")
+      {
+        if (i + 1 >= argc)
+        {
+          throw std::invalid_argument("--cascades needs a value");
+        }
+
+        cascades = std::stoi(argv[++i]);
+
+        if (cascades < 1 || cascades > 4)
+        {
+          throw std::invalid_argument("--cascades must be from 1 to 4");
+        }
+      }
+      else if (std::string(argv[i]) == "--shadow-distance")
+      {
+        if (i + 1 >= argc)
+        {
+          throw std::invalid_argument("--shadow-distance needs a value");
+        }
+
+        shadowDistance = std::stof(argv[++i]);
+
+        if (!(shadowDistance > 0.0f))
+        {
+          throw std::invalid_argument("--shadow-distance must be greater than 0");
+        }
       }
     }
 
@@ -66,7 +99,7 @@ int main(const int argc,
 
     std::vector<std::shared_ptr<vke::RenderObject>> objects;
     std::vector<std::shared_ptr<vke::Light>> lights;
-    setupScene(renderer, objects, lights, lightRange, sun);
+    setupScene(renderer, objects, lights, lightRange, sun, cascades, shadowDistance);
 
     while (renderer.isActive())
     {
@@ -86,7 +119,9 @@ void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights,
                 const float lightRange,
-                const bool sun)
+                const bool sun,
+                const int cascades,
+                const float shadowDistance)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -131,13 +166,21 @@ void setupScene(const vke::VulkanEngine& renderer,
   if (sun)
   {
     // Travels down (-y is toward the floor here) and slants toward +x and +z. It has no range, so it is added after the
-    // range above. The shadow box is centered on the origin and covers 60 units, which holds the objects and the floor
-    // under them; the rest of the floor is lit but not shadowed.
+    // range above. Its cascades follow the camera out to the shadow distance.
     const auto sunLight = renderer.getLightingManager()->createDirectionalLight(
       { 0.4f, -1.0f, 0.3f }, { 1.0f, 1.0f, 0.95f }, 0.0f, 0.6f, 0.5f);
     const auto directionalLight = std::dynamic_pointer_cast<vke::DirectionalLight>(sunLight);
-    directionalLight->setShadowCenter({ 0.0f, 0.0f, 0.0f });
-    directionalLight->setShadowHalfExtent(30.0f);
+
+    if (cascades != 0)
+    {
+      directionalLight->setCascadeCount(static_cast<uint32_t>(cascades));
+    }
+
+    if (shadowDistance != 0.0f)
+    {
+      directionalLight->setShadowDistance(shadowDistance);
+    }
+
     lights.push_back(sunLight);
   }
 }

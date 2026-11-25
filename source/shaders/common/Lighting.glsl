@@ -26,15 +26,16 @@ struct SpotLight {
 };
 
 struct DirectionalLight {
-  mat4 lightViewProjection;
+  mat4 cascadeViewProjections[4]; // The fitted cascades
+  vec4 cascadeBiases; // In normalized depth, per cascade
   vec3 direction; // The direction the light travels, normalized
   float ambient;
   vec3 color;
   float diffuse;
   float specular;
   int shadowMapIndex; // Into directionalLightShadowMaps, or -1 when the light has none
-  float shadowBias; // In normalized depth
-  float pad0;
+  int cascadeCount; // The fitted cascades, 0 when none
+  float shadowDistance; // Fragments farther than this from the camera are lit
 };
 
 // 1 for a light without a range (0). Otherwise inverse square in world units, windowed smoothly to 0 at the range;

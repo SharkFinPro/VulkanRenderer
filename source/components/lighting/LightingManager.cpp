@@ -363,7 +363,7 @@ namespace vke {
 
     updateSpotLightUniforms(currentFrame);
 
-    updateDirectionalLightUniforms(currentFrame);
+    updateDirectionalLightShadowMaps(currentFrame);
   }
 
   void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
@@ -508,7 +508,7 @@ namespace vke {
     m_logicalDevice->updateDescriptorSets({ samplerWrite });
   }
 
-  void LightingManager::updateDirectionalLightUniforms(const uint32_t currentFrame)
+  void LightingManager::writeDirectionalLights(const uint32_t currentFrame)
   {
     if (m_directionalLightsToRender.empty())
     {
@@ -521,7 +521,7 @@ namespace vke {
     // Sized to the buffer's fixed capacity, as for the spot lights
     m_lightUniformScratch.assign(sizeof(DirectionalLightUniform) * MAX_DIRECTIONAL_LIGHTS, std::byte{0});
     auto* lightUniforms = reinterpret_cast<DirectionalLightUniform*>(m_lightUniformScratch.data());
-    // The maps are written in this order by updateDirectionalLightShadowMaps
+    // The maps are written in this order by updateDirectionalLightShadowMaps (in update)
     int32_t shadowMapCount = 0;
     for (size_t i = 0; i < count; i++)
     {
@@ -535,8 +535,6 @@ namespace vke {
     }
 
     m_directionalLightsUniform->update(currentFrame, lightUniforms);
-
-    updateDirectionalLightShadowMaps(currentFrame);
   }
 
   void LightingManager::updateDirectionalLightShadowMaps(const uint32_t currentFrame) const
@@ -784,52 +782,59 @@ namespace vke {
         continue;
       }
 
-      // Renderer3D builds one list per shadow-casting light, in this order
-      const std::span<const DrawRun> runs = shadowCaster < directionalLightRuns.size()
-                                            ? std::span<const DrawRun>(directionalLightRuns[shadowCaster])
-                                            : std::span<const DrawRun>();
-      const std::span<const DrawRun> volumeRuns = shadowCaster < volumeDirectionalLightRuns.size()
-                                                  ? std::span<const DrawRun>(volumeDirectionalLightRuns[shadowCaster])
-                                                  : std::span<const DrawRun>();
-      ++shadowCaster;
-
-      const glm::mat4 viewProjection = directionalLight->getLightViewProjectionMatrix();
+      // Renderer3D builds s_maxShadowCascades lists per shadow-casting light, in this order and in cascade order
+      const size_t firstList = shadowCaster++ * s_maxShadowCascades;
 
       transitionShadowMapForRendering(commandBuffer, light);
 
-      beginShadowRendering(commandBuffer, light->getShadowMapDepthImageResource()->getImageView(),
-                           light->getShadowMapExtent(), 1.0f);
+      const auto& shadowMap = light->getShadowMapDepthImageResource();
 
-      if (!runs.empty())
+      for (uint32_t cascade = 0; cascade < directionalLight->getFittedCascadeCount(); ++cascade)
       {
-        constexpr auto pipeline = PipelineType::shadow;
+        const size_t list = firstList + cascade;
+        const std::span<const DrawRun> runs = list < directionalLightRuns.size()
+                                              ? std::span<const DrawRun>(directionalLightRuns[list])
+                                              : std::span<const DrawRun>();
+        const std::span<const DrawRun> volumeRuns = list < volumeDirectionalLightRuns.size()
+                                                    ? std::span<const DrawRun>(volumeDirectionalLightRuns[list])
+                                                    : std::span<const DrawRun>();
 
-        pipelineManager->bindGraphicsPipeline(commandBuffer, pipeline);
+        const glm::mat4& viewProjection = directionalLight->getCascadeViewProjection(cascade);
 
-        pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, pipeline,
-                                                                  vk::ShaderStageFlagBits::eVertex, 0, viewProjection);
+        // Every fitted cascade is begun, so that an empty one is still cleared
+        beginShadowRendering(commandBuffer, shadowMap->getLayerImageView(cascade), light->getShadowMapExtent(), 1.0f);
 
-        pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, pipeline, sceneDescriptorSet, 0);
+        if (!runs.empty())
+        {
+          constexpr auto pipeline = PipelineType::shadow;
 
-        drawShadowCasters(commandBuffer, runs);
+          pipelineManager->bindGraphicsPipeline(commandBuffer, pipeline);
+
+          pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, pipeline,
+                                                                    vk::ShaderStageFlagBits::eVertex, 0, viewProjection);
+
+          pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, pipeline, sceneDescriptorSet, 0);
+
+          drawShadowCasters(commandBuffer, runs);
+        }
+
+        if (!volumeRuns.empty())
+        {
+          constexpr auto volumePipeline = PipelineType::volumeSurfaceShadow;
+
+          pipelineManager->bindGraphicsPipeline(commandBuffer, volumePipeline);
+
+          pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, volumePipeline,
+                                                                    vk::ShaderStageFlagBits::eVertex, 0, viewProjection);
+
+          // Rebound, since the pipeline layouts differ
+          pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, volumePipeline, sceneDescriptorSet, 0);
+
+          drawVolumeShadowCasters(commandBuffer, volumeRuns);
+        }
+
+        commandBuffer->endRendering();
       }
-
-      if (!volumeRuns.empty())
-      {
-        constexpr auto volumePipeline = PipelineType::volumeSurfaceShadow;
-
-        pipelineManager->bindGraphicsPipeline(commandBuffer, volumePipeline);
-
-        pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, volumePipeline,
-                                                                  vk::ShaderStageFlagBits::eVertex, 0, viewProjection);
-
-        // Rebound, since the pipeline layouts differ
-        pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, volumePipeline, sceneDescriptorSet, 0);
-
-        drawVolumeShadowCasters(commandBuffer, volumeRuns);
-      }
-
-      commandBuffer->endRendering();
 
       transitionShadowMapForSampling(commandBuffer, light);
     }

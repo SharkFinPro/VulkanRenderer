@@ -2,6 +2,7 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../../utilities/Images.h"
 #include <backends/imgui_impl_vulkan.h>
+#include <algorithm>
 
 namespace vke {
   ImageResource::ImageResource(const ImageResourceConfig& config)
@@ -56,7 +57,12 @@ namespace vke {
 
     vk::ImageView ImageResource::getFaceImageView(const uint32_t face) const
     {
-      return m_faceImageViews.at(face);
+      return getLayerImageView(face);
+    }
+
+    vk::ImageView ImageResource::getLayerImageView(const uint32_t layer) const
+    {
+      return m_layerImageViews.at(layer);
     }
 
     vk::DescriptorSet ImageResource::getDescriptorSet() const
@@ -133,7 +139,7 @@ namespace vke {
           .tiling = vk::ImageTiling::eOptimal,
           .usage = imageUsageFlags,
           .imageType = vk::ImageType::e2D,
-          .layerCount = static_cast<uint32_t>(config.isCubeMap ? 6 : 1),
+          .layerCount = getLayerCount(config),
           .properties = vk::MemoryPropertyFlagBits::eDeviceLocal
         }
       );
@@ -157,24 +163,27 @@ namespace vke {
         imageAspectFlags = vk::ImageAspectFlagBits::eDepth;
       }
 
+      const uint32_t layerCount = getLayerCount(config);
+
       m_imageView = Images::createImageView(
         config.logicalDevice,
         m_image,
         getFormat(config),
         imageAspectFlags,
         1,
-        config.isCubeMap ? vk::ImageViewType::eCube : vk::ImageViewType::e2D,
-        config.isCubeMap ? 6 : 1
+        config.isCubeMap ? vk::ImageViewType::eCube
+                         : layerCount > 1 ? vk::ImageViewType::e2DArray : vk::ImageViewType::e2D,
+        layerCount
       );
 
-      if (config.isCubeMap)
+      if (layerCount > 1)
       {
-        m_faceImageViews.reserve(6);
+        m_layerImageViews.reserve(layerCount);
 
-        for (uint32_t face = 0; face < 6; ++face)
+        for (uint32_t layer = 0; layer < layerCount; ++layer)
         {
-          m_faceImageViews.push_back(Images::createImageView(config.logicalDevice, m_image, getFormat(config),
-                                                             imageAspectFlags, 1, vk::ImageViewType::e2D, 1, face));
+          m_layerImageViews.push_back(Images::createImageView(config.logicalDevice, m_image, getFormat(config),
+                                                              imageAspectFlags, 1, vk::ImageViewType::e2D, 1, layer));
         }
       }
     }
@@ -208,8 +217,13 @@ namespace vke {
         vk::ImageLayout::eUndefined,
         imageLayout,
         1,
-        config.isCubeMap ? 6 : 1
+        getLayerCount(config)
       );
+    }
+
+    uint32_t ImageResource::getLayerCount(const ImageResourceConfig& config)
+    {
+      return config.isCubeMap ? 6 : std::max(config.layerCount, 1u);
     }
 
     vk::Format ImageResource::getFormat(const ImageResourceConfig& config)

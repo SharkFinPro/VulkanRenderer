@@ -29,6 +29,7 @@ namespace vke {
     vk::SampleCountFlagBits numSamples;
     vk::Sampler sampler = nullptr;
     bool isCubeMap = false;
+    uint32_t layerCount = 1; // Above 1 makes a 2D array image; ignored for cube maps, which have 6
   };
 
   class ImageResource final {
@@ -50,6 +51,9 @@ namespace vke {
     // A 2D view of one face of a cube map image (face < 6), for rendering into that face alone
     [[nodiscard]] vk::ImageView getFaceImageView(uint32_t face) const;
 
+    // A 2D view of one layer of a cube map or array image, for rendering into that layer alone
+    [[nodiscard]] vk::ImageView getLayerImageView(uint32_t layer) const;
+
     [[nodiscard]] vk::DescriptorSet getDescriptorSet() const;
 
     [[nodiscard]] const vk::DescriptorImageInfo& getDescriptorImageInfo() const;
@@ -57,7 +61,7 @@ namespace vke {
   private:
     vk::raii::Image m_image = nullptr;
     vk::raii::ImageView m_imageView = nullptr;
-    std::vector<vk::raii::ImageView> m_faceImageViews;
+    std::vector<vk::raii::ImageView> m_layerImageViews;
     vk::raii::DeviceMemory m_imageMemory = nullptr;
 
     vk::DescriptorSet m_descriptorSet = nullptr;
@@ -71,6 +75,8 @@ namespace vke {
     void transitionImageLayout(const ImageResourceConfig& config) const;
 
     static vk::Format getFormat(const ImageResourceConfig& config);
+
+    static uint32_t getLayerCount(const ImageResourceConfig& config);
   };
 } // vke
 

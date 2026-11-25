@@ -1,9 +1,11 @@
 #ifndef VKE_LIGHT_H
 #define VKE_LIGHT_H
 
+#include "DirectionalShadow.h"
 #include "LightRange.h"
 
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
@@ -46,22 +48,29 @@ namespace vke {
   };
 
   struct alignas(16) DirectionalLightUniform {
-    glm::mat4 lightViewProjection;
+    std::array<glm::mat4, s_maxShadowCascades> cascadeViewProjections; // The fitted cascades; the rest are zero
+    glm::vec4 cascadeBiases; // In normalized depth, per cascade
     glm::vec3 direction; // The way the light travels, normalized
     float ambient;
     glm::vec3 color;
     float diffuse;
     float specular;
     int32_t shadowMapIndex; // Into the directional light shadow maps, or -1 when the light has none
-    float shadowBias; // In normalized depth
-    float pad0;
+    int32_t cascadeCount; // The fitted cascades, 0 when none
+    float shadowDistance; // Fragments farther than this from the camera are lit; the last cascade ends here
   };
 
   // All three are arrays in shader storage buffers, mirrored by the structs in shaders/common/Lighting.glsl
   static_assert(sizeof(PointLightUniform) == 448 && offsetof(PointLightUniform, shadowRange) == 428 &&
                 offsetof(PointLightUniform, shadowMapIndex) == 412 && offsetof(PointLightUniform, range) == 432);
-  static_assert(sizeof(DirectionalLightUniform) == 112 && offsetof(DirectionalLightUniform, shadowMapIndex) == 100 &&
-                offsetof(DirectionalLightUniform, shadowBias) == 104);
+  static_assert(sizeof(DirectionalLightUniform) == 320 && s_maxShadowCascades == 4 &&
+                offsetof(DirectionalLightUniform, cascadeBiases) == 256 &&
+                offsetof(DirectionalLightUniform, direction) == 272 && offsetof(DirectionalLightUniform, ambient) == 284 &&
+                offsetof(DirectionalLightUniform, color) == 288 && offsetof(DirectionalLightUniform, diffuse) == 300 &&
+                offsetof(DirectionalLightUniform, specular) == 304 &&
+                offsetof(DirectionalLightUniform, shadowMapIndex) == 308 &&
+                offsetof(DirectionalLightUniform, cascadeCount) == 312 &&
+                offsetof(DirectionalLightUniform, shadowDistance) == 316);
   static_assert(sizeof(SpotLightUniform) == 128 && offsetof(SpotLightUniform, shadowRange) == 116 &&
                 offsetof(SpotLightUniform, shadowMapIndex) == 120 &&
                 offsetof(SpotLightUniform, range) == 124);
