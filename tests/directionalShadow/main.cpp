@@ -226,6 +226,44 @@ namespace {
     }
   }
 
+  // The box holds the whole bounding sphere of the slice, not just its corners, after its center is snapped to the texel
+  // grid: the sphere's extremes along the light's right and up axes stay inside the map. The radius is the one the fit
+  // starts from, rounded up to 1/16 as it is; without the padding of a texel, the snap would push one side out.
+  void checkSphereContainment()
+  {
+    const auto splits = defaultSplits();
+
+    for (const Case& c : cameras())
+    {
+      for (const glm::vec3& direction : directions())
+      {
+        const glm::mat4 lightView = vke::directionalLightView(direction);
+        const glm::vec3 right(lightView[0][0], lightView[1][0], lightView[2][0]);
+        const glm::vec3 up(lightView[0][1], lightView[1][1], lightView[2][1]);
+
+        for (uint32_t cascade = 0; cascade < cascadeCount; ++cascade)
+        {
+          const vke::ShadowCascade fitted = vke::fitShadowCascade(direction, c.camera, splits[cascade],
+                                                                  splits[cascade + 1], mapSize, {});
+          const vke::BoundingSphere sphere = vke::frustumSliceBoundingSphere(c.camera, splits[cascade],
+                                                                             splits[cascade + 1]);
+          const float radius = std::ceil(sphere.radius * 16.0f) / 16.0f;
+          bool contained = true;
+
+          for (const glm::vec3& axis : { right, -right, up, -up })
+          {
+            const glm::vec3 p = project(fitted.viewProjection, sphere.center + axis * radius);
+
+            contained = contained && std::abs(p.x) <= 1.0f + 1e-5f && std::abs(p.y) <= 1.0f + 1e-5f;
+          }
+
+          check(contained, "the snapped box holds the slice's bounding sphere (" + c.name + ", cascade " +
+                           std::to_string(cascade) + ", direction y " + std::to_string(direction.y) + ")");
+        }
+      }
+    }
+  }
+
   // 1 over the half size of the cascade's orthographic box, read from the matrix (the light view is a pure rotation)
   float inverseHalfSize(const glm::mat4& viewProjection)
   {
@@ -378,7 +416,7 @@ namespace {
           const float texel = 2.0f / (static_cast<float>(mapSize) * inverseHalfSize(m));
           const float depthRange = 1.0f / glm::length(glm::vec3(m[0][2], m[1][2], m[2][2]));
 
-          check(nearlyEqual(fitted.depthBias, 2.0f * texel / depthRange, 1e-3f),
+          check(nearlyEqual(fitted.depthBias, 2.0f * texel / depthRange, 1e-4f),
                 "the bias is 2 texels over the depth range (" + c.name + ", cascade " + std::to_string(cascade) + ")");
         }
       }
@@ -412,6 +450,7 @@ int main()
 {
   checkSplits();
   checkContainment();
+  checkSphereContainment();
   checkRotationStability();
   checkTranslationSnapping();
   checkCasterReach();

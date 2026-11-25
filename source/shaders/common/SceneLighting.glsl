@@ -140,8 +140,11 @@ float directionalLightShadow(int i, vec3 fragPos)
       continue;
     }
 
-    float shadow = texture(directionalLightShadowMaps[nonuniformEXT(shadowMap)],
-                           vec4(coords.xy, float(c), coords.z - directionalLights[i].cascadeBiases[c]));
+    // Explicit zero gradients: the map has one level, and this runs in non-uniform control flow, where implicit
+    // derivatives are undefined
+    float shadow = textureGrad(directionalLightShadowMaps[nonuniformEXT(shadowMap)],
+                               vec4(coords.xy, float(c), coords.z - directionalLights[i].cascadeBiases[c]),
+                               vec2(0.0), vec2(0.0));
 
     // Near the edge of the cascade, blend toward the next one so the change of resolution isn't a visible line
     const float blendWidth = 0.05;
@@ -153,8 +156,9 @@ float directionalLightShadow(int i, vec3 fragPos)
 
       if (insideUnitCube(nextCoords))
       {
-        float nextShadow = texture(directionalLightShadowMaps[nonuniformEXT(shadowMap)],
-                                   vec4(nextCoords.xy, float(c + 1), nextCoords.z - directionalLights[i].cascadeBiases[c + 1]));
+        float nextShadow = textureGrad(directionalLightShadowMaps[nonuniformEXT(shadowMap)],
+                                       vec4(nextCoords.xy, float(c + 1), nextCoords.z - directionalLights[i].cascadeBiases[c + 1]),
+                                       vec2(0.0), vec2(0.0));
 
         shadow = mix(nextShadow, shadow, edge / blendWidth);
       }
