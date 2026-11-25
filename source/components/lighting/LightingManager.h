@@ -16,17 +16,21 @@ namespace vke {
   class Light;
   class PointLight;
   class SpotLight;
+  class DirectionalLight;
   class LogicalDevice;
   class PipelineManager;
   class UniformBuffer;
 
   // What the shadow passes draw: runs of render objects and runs of volume surface chunks, six lists per shadow-casting
-  // point light (one per cube face, in face order) and one per shadow-casting spot light (see renderShadowMaps).
+  // point light (one per cube face, in face order) and one per shadow-casting spot or directional light (see
+  // renderShadowMaps).
   struct ShadowDrawLists {
     std::span<const std::vector<DrawRun>> pointLightFaceRuns;
     std::span<const std::vector<DrawRun>> spotLightRuns;
     std::span<const std::vector<DrawRun>> volumePointLightFaceRuns;
     std::span<const std::vector<DrawRun>> volumeSpotLightRuns;
+    std::span<const std::vector<DrawRun>> directionalLightRuns;
+    std::span<const std::vector<DrawRun>> volumeDirectionalLightRuns;
   };
 
   class LightingManager {
@@ -45,6 +49,13 @@ namespace vke {
                                                          float diffuse,
                                                          float specular = 1.0f);
 
+    // At most 4 directional lights are taken per frame; later ones are ignored.
+    [[nodiscard]] std::shared_ptr<Light> createDirectionalLight(glm::vec3 direction,
+                                                                glm::vec3 color,
+                                                                float ambient,
+                                                                float diffuse,
+                                                                float specular = 1.0f);
+
     void renderLight(const std::shared_ptr<Light>& light);
 
     [[nodiscard]] std::shared_ptr<DescriptorSet> getLightingDescriptorSet() const;
@@ -58,6 +69,8 @@ namespace vke {
 
     [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getSpotLightsToRender() const;
 
+    [[nodiscard]] const std::vector<std::shared_ptr<Light>>& getDirectionalLightsToRender() const;
+
     // The light as a spot light if it is one that casts shadows, else null. The one filter both the shadow passes and
     // whoever builds their per-light draw lists use, so the i-th list always goes to the i-th such light.
     [[nodiscard]] static std::shared_ptr<SpotLight> asShadowCastingSpotLight(const std::shared_ptr<Light>& light);
@@ -65,10 +78,14 @@ namespace vke {
     // The same for point lights, whose lists come six to a light
     [[nodiscard]] static std::shared_ptr<PointLight> asShadowCastingPointLight(const std::shared_ptr<Light>& light);
 
+    // The same for directional lights
+    [[nodiscard]] static std::shared_ptr<DirectionalLight> asShadowCastingDirectionalLight(const std::shared_ptr<Light>& light);
+
     // Draws into each face of every shadow-casting point light's cube map its own entry of pointLightFaceRuns (six per
     // light, in the order of getPointLightsToRender with the non-casting lights skipped, then in face order), and into each
-    // shadow-casting spot light's map its own entry of spotLightRuns, in the order of getSpotLightsToRender likewise (a
-    // light or face without an entry draws nothing). The volume lists are drawn the same way after them, with the volume surface
+    // shadow-casting spot light's map its own entry of spotLightRuns, in the order of getSpotLightsToRender likewise, and
+    // into each shadow-casting directional light's map its own entry of directionalLightRuns, in the order of
+    // getDirectionalLightsToRender (a light or face without an entry draws nothing). The volume lists are drawn the same way after them, with the volume surface
     // pipelines. The runs' first instances index the draw slots the scene descriptor set (set 0 of the shadow pipelines)
     // binds.
     void renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -85,6 +102,7 @@ namespace vke {
     std::shared_ptr<UniformBuffer> m_lightMetadataUniform;
     std::shared_ptr<UniformBuffer> m_spotLightsUniform;
     std::shared_ptr<UniformBuffer> m_pointLightsUniform;
+    std::shared_ptr<UniformBuffer> m_directionalLightsUniform;
     std::shared_ptr<UniformBuffer> m_cameraUniform;
 
     // Reused every frame to stage the point or spot light array before it is copied into its uniform buffer.
@@ -92,9 +110,11 @@ namespace vke {
 
     int m_prevNumPointLights = 0;
     int m_prevNumSpotLights = 0;
+    int m_prevNumDirectionalLights = 0;
 
     std::vector<std::shared_ptr<Light>> m_pointLightsToRender;
     std::vector<std::shared_ptr<Light>> m_spotLightsToRender;
+    std::vector<std::shared_ptr<Light>> m_directionalLightsToRender;
 
     vk::raii::CommandPool m_commandPool = nullptr;
 
@@ -122,6 +142,10 @@ namespace vke {
 
     void updateSpotLightShadowMaps(uint32_t currentFrame) const;
 
+    void updateDirectionalLightUniforms(uint32_t currentFrame);
+
+    void updateDirectionalLightShadowMaps(uint32_t currentFrame) const;
+
     void createShadowMapSampler();
 
     void renderPointLightShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -136,6 +160,12 @@ namespace vke {
                                    std::span<const std::vector<DrawRun>> volumeSpotLightRuns,
                                    vk::DescriptorSet sceneDescriptorSet,
                                    uint32_t currentFrame) const;
+
+    void renderDirectionalShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                     const std::shared_ptr<PipelineManager>& pipelineManager,
+                                     std::span<const std::vector<DrawRun>> directionalLightRuns,
+                                     std::span<const std::vector<DrawRun>> volumeDirectionalLightRuns,
+                                     vk::DescriptorSet sceneDescriptorSet) const;
 
     void createCommandPool();
 

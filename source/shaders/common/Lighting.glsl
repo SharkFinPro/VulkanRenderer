@@ -25,6 +25,18 @@ struct SpotLight {
   float range; // 0 when the light has no range
 };
 
+struct DirectionalLight {
+  mat4 lightViewProjection;
+  vec3 direction; // The direction the light travels, normalized
+  float ambient;
+  vec3 color;
+  float diffuse;
+  float specular;
+  int shadowMapIndex; // Into directionalLightShadowMaps, or -1 when the light has none
+  float shadowBias; // In normalized depth
+  float pad0;
+};
+
 // 1 for a light without a range (0). Otherwise inverse square in world units, windowed smoothly to 0 at the range;
 // LightRange.h mirrors it on the CPU.
 float lightAttenuation(float range, vec3 lightPosition, vec3 fragPos)
@@ -66,6 +78,12 @@ bool facesLight(vec3 normal, vec3 fragPos, vec3 lightPosition)
   return dot(normal, lightPosition - fragPos) > 0.0;
 }
 
+// The same for a directional light, whose light vector is the reverse of its direction
+bool facesDirectionalLight(vec3 normal, vec3 lightDirection)
+{
+  return dot(normal, -lightDirection) > 0.0;
+}
+
 vec3 getStandardAmbient(float lightAmbient, vec3 color)
 {
   vec3 ambient = lightAmbient * color;
@@ -73,20 +91,19 @@ vec3 getStandardAmbient(float lightAmbient, vec3 color)
   return ambient;
 }
 
-vec3 getStandardDiffuse(vec3 lightPosition, float lightDiffuse, vec3 fragPos, vec3 normal, vec3 color)
+// lightDir points from the fragment toward the light, normalized
+vec3 getDiffuseFromDirection(vec3 lightDir, float lightDiffuse, vec3 normal, vec3 color)
 {
-  vec3 lightDir = normalize(lightPosition - fragPos);
   float d = max(dot(normal, lightDir), 0.0);
   vec3 diffuse = lightDiffuse * d * color;
 
   return diffuse;
 }
 
-vec3 getStandardSpecular(vec3 lightPosition, float lightSpecular, vec3 lightColor, vec3 cameraPosition, vec3 fragPos, vec3 normal, float shininess)
+vec3 getSpecularFromDirection(vec3 lightDir, float lightSpecular, vec3 lightColor, vec3 cameraPosition, vec3 fragPos, vec3 normal, float shininess)
 {
   vec3 specular = vec3(0);
 
-  vec3 lightDir = normalize(lightPosition - fragPos);
   float d = max(dot(normal, lightDir), 0.0);
   if(d > 0.0) // only do specular if the light can see the point
   {
@@ -101,6 +118,16 @@ vec3 getStandardSpecular(vec3 lightPosition, float lightSpecular, vec3 lightColo
   }
 
   return specular;
+}
+
+vec3 getStandardDiffuse(vec3 lightPosition, float lightDiffuse, vec3 fragPos, vec3 normal, vec3 color)
+{
+  return getDiffuseFromDirection(normalize(lightPosition - fragPos), lightDiffuse, normal, color);
+}
+
+vec3 getStandardSpecular(vec3 lightPosition, float lightSpecular, vec3 lightColor, vec3 cameraPosition, vec3 fragPos, vec3 normal, float shininess)
+{
+  return getSpecularFromDirection(normalize(lightPosition - fragPos), lightSpecular, lightColor, cameraPosition, fragPos, normal, shininess);
 }
 
 vec3 StandardPointLightAffect(PointLight light,
@@ -241,4 +268,44 @@ vec3 SmokeSpotLightAffect(SpotLight light, vec3 color, vec3 fragPos)
 
   // Combined Output
   return (light.ambient + light.diffuse) * color * light.color * attenuation; // Color * Color for brighter color
+}
+
+vec3 StandardDirectionalLightAffect(DirectionalLight light,
+                                    vec3 color,
+                                    vec3 normal,
+                                    vec3 fragPos,
+                                    vec3 cameraPosition,
+                                    float shininess)
+{
+  vec3 lightDir = -light.direction;
+  vec3 normalizedNormal = normalize(normal);
+
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getDiffuseFromDirection(lightDir, light.diffuse, normalizedNormal, color);
+  vec3 specular = getSpecularFromDirection(lightDir, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess);
+
+  return (ambient + diffuse + specular) * light.color;
+}
+
+vec3 SpecularMapDirectionalLightAffect(DirectionalLight light,
+                                       vec3 color,
+                                       vec3 specColor,
+                                       vec3 normal,
+                                       vec3 fragPos,
+                                       vec3 cameraPosition,
+                                       float shininess)
+{
+  vec3 lightDir = -light.direction;
+  vec3 normalizedNormal = normalize(normal);
+
+  vec3 ambient = getStandardAmbient(light.ambient, color);
+  vec3 diffuse = getDiffuseFromDirection(lightDir, light.diffuse, normalizedNormal, color);
+  vec3 specular = getSpecularFromDirection(lightDir, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
+
+  return (ambient + diffuse + specular) * light.color;
+}
+
+vec3 SmokeDirectionalLightAffect(DirectionalLight light, vec3 color)
+{
+  return (light.ambient + light.diffuse) * color * light.color; // Color * Color for brighter color
 }

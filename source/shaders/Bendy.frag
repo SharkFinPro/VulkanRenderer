@@ -7,6 +7,7 @@ layout(set = 0, binding = 2) uniform sampler2D texSampler;
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
+  int numDirectionalLights;
 };
 
 layout(set = 1, binding = 1) readonly buffer PointLights {
@@ -15,6 +16,10 @@ layout(set = 1, binding = 1) readonly buffer PointLights {
 
 layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
+};
+
+layout(set = 1, binding = 6) readonly buffer DirectionalLights {
+  DirectionalLight directionalLights[];
 };
 
 layout(location = 0) in vec2 fragTexCoord;
@@ -40,6 +45,11 @@ void main()
   for (int i = 0; i < numSpotLights; i++)
   {
     result += SmokeSpotLightAffect(spotLights[i], texColor.rgb, fragPos);
+  }
+
+  for (int i = 0; i < numDirectionalLights; i++)
+  {
+    result += SmokeDirectionalLightAffect(directionalLights[i], texColor.rgb);
   }
 
   outColor = vec4(result, texColor.a);

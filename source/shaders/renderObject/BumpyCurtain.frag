@@ -15,6 +15,7 @@ layout(push_constant) uniform BumpyCurtainPC {
 layout(set = 2, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
+  int numDirectionalLights;
 };
 
 layout(set = 2, binding = 1) readonly buffer PointLights {
@@ -23,6 +24,10 @@ layout(set = 2, binding = 1) readonly buffer PointLights {
 
 layout(set = 2, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
+};
+
+layout(set = 2, binding = 6) readonly buffer DirectionalLights {
+  DirectionalLight directionalLights[];
 };
 
 layout(set = 2, binding = 3) uniform Camera {
@@ -63,6 +68,11 @@ void main()
   for (int i = 0; i < numSpotLights; i++)
   {
     result += StandardSpotLightAffect(spotLights[i], fragColor, fragNormal, fragPos, camera.position, pc.shininess);
+  }
+
+  for (int i = 0; i < numDirectionalLights; i++)
+  {
+    result += StandardDirectionalLightAffect(directionalLights[i], fragColor, n, fragPos, camera.position, pc.shininess);
   }
 
   outColor = vec4(result, 1.0);

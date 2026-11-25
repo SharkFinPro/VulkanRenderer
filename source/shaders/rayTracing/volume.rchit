@@ -48,6 +48,7 @@ layout(binding = 8, set = 0) readonly buffer VolumeChunkBuffer {
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
+  int numDirectionalLights;
 };
 
 layout(set = 1, binding = 1) readonly buffer PointLights {
@@ -56,6 +57,10 @@ layout(set = 1, binding = 1) readonly buffer PointLights {
 
 layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
+};
+
+layout(set = 1, binding = 6) readonly buffer DirectionalLights {
+  DirectionalLight directionalLights[];
 };
 
 layout(set = 1, binding = 3) uniform Camera {
@@ -81,6 +86,29 @@ bool isOccluded(vec3 fragPos, vec3 normal, vec3 lightPosition)
     0.001,
     normalize(toLight),
     length(toLight) - 0.001,
+    1
+  );
+
+  return isShadowed;
+}
+
+// A directional light has no position: the ray along the light vector has no end
+bool isOccludedAlongDirection(vec3 fragPos, vec3 normal, vec3 toLight)
+{
+  const vec3 origin = fragPos + normal * 0.01;
+
+  isShadowed = true;
+  traceRayEXT(
+    tlas,
+    gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+    0x02,
+    0,
+    0,
+    1,
+    origin,
+    0.001,
+    toLight,
+    1.0e30,
     1
   );
 
@@ -155,6 +183,20 @@ void main()
     else
     {
       result += getStandardAmbient(light.ambient, albedo) * attenuation;
+    }
+  }
+
+  for (int i = 0; i < numDirectionalLights; i++)
+  {
+    const DirectionalLight light = directionalLights[i];
+
+    if (facesDirectionalLight(normal, light.direction) && !isOccludedAlongDirection(fragPos, normal, -light.direction))
+    {
+      result += StandardDirectionalLightAffect(light, albedo, normal, fragPos, camera.position, 32);
+    }
+    else
+    {
+      result += getStandardAmbient(light.ambient, albedo);
     }
   }
 

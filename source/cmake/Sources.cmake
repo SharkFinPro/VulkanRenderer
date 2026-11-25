@@ -75,6 +75,9 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
 
   # Lighting
     # Lights
+    components/lighting/lights/DirectionalLight.cpp
+    components/lighting/lights/DirectionalLight.h
+    components/lighting/lights/DirectionalShadow.h
     components/lighting/lights/Light.cpp
     components/lighting/lights/Light.h
     components/lighting/lights/LightRange.h

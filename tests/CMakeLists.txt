@@ -38,6 +38,10 @@ add_subdirectory(cullingMath)
 add_test(NAME cullingMath COMMAND cullingMath)
 add_dependencies(build_all cullingMath)
 
+add_subdirectory(directionalShadow)
+add_test(NAME directionalShadow COMMAND directionalShadow)
+add_dependencies(build_all directionalShadow)
+
 add_subdirectory(drawRuns)
 add_test(NAME drawRuns COMMAND drawRuns)
 add_dependencies(build_all drawRuns)

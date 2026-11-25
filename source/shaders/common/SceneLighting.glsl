@@ -5,6 +5,7 @@
 layout(set = 2, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
+  int numDirectionalLights;
 };
 
 layout(set = 2, binding = 1) readonly buffer PointLights {
@@ -22,6 +23,12 @@ layout(set = 2, binding = 3) uniform Camera {
 layout(set = 2, binding = 4) uniform sampler2DShadow[] spotLightShadowMaps;
 
 layout(set = 2, binding = 5) uniform samplerCubeShadow[] pointLightShadowMaps;
+
+layout(set = 2, binding = 6) readonly buffer DirectionalLights {
+  DirectionalLight directionalLights[];
+};
+
+layout(set = 2, binding = 7) uniform sampler2DShadow[] directionalLightShadowMaps;
 
 // 1 where the fragment is lit by the point light, 0 where its shadow map hides it
 float pointLightShadow(int i, vec3 fragPos)
@@ -85,4 +92,32 @@ float spotLightShadow(int i, vec3 fragPos)
   projCoords.z -= bias;
 
   return texture(spotLightShadowMaps[nonuniformEXT(shadowMap)], projCoords);
+}
+
+// 1 where the fragment is lit by the directional light, 0 where its shadow map hides it. The map covers only the box the
+// light is fitted to (DirectionalLight); fragments outside it are lit.
+float directionalLightShadow(int i, vec3 fragPos)
+{
+  int shadowMap = directionalLights[i].shadowMapIndex;
+
+  // A light without a map casts no shadows
+  if (shadowMap < 0)
+  {
+    return 1.0;
+  }
+
+  vec4 fragPosLightSpace = directionalLights[i].lightViewProjection * vec4(fragPos, 1.0);
+  vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+  projCoords.xy = projCoords.xy * 0.5 + 0.5;
+
+  if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+      projCoords.y < 0.0 || projCoords.y > 1.0 ||
+      projCoords.z < 0.0 || projCoords.z > 1.0)
+  {
+    return 1.0;
+  }
+
+  projCoords.z -= directionalLights[i].shadowBias;
+
+  return texture(directionalLightShadowMaps[nonuniformEXT(shadowMap)], projCoords);
 }
