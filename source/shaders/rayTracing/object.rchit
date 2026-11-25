@@ -126,13 +126,19 @@ void main()
   {
     PointLight light = pointLights[i];
 
+    float attenuation = lightAttenuation(light.range, light.position, fragPos);
+    if (attenuation <= 0.0)
+    {
+      continue;
+    }
+
     if (facesLight(fragNormal, fragPos, light.position) && !isOccluded(fragPos, light.position))
     {
       result += SpecularMapPointLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
     else
     {
-      result += getStandardAmbient(light.ambient, texColor);
+      result += getStandardAmbient(light.ambient, texColor) * attenuation;
     }
   }
 
@@ -140,13 +146,19 @@ void main()
   {
     SpotLight light = spotLights[i];
 
+    float attenuation = lightAttenuation(light.range, light.position, fragPos);
+    if (attenuation <= 0.0)
+    {
+      continue;
+    }
+
     if (facesLight(fragNormal, fragPos, light.position) && !isOccluded(fragPos, light.position))
     {
       result += SpecularMapSpotLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
     else
     {
-      result += getStandardAmbient(light.ambient, texColor);
+      result += getStandardAmbient(light.ambient, texColor) * attenuation;
     }
   }
 

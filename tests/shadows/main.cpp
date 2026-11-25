@@ -7,20 +7,33 @@
 #include <source/VulkanEngine.h>
 #include <imgui.h>
 #include <iostream>
+#include <string>
 
 void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<std::shared_ptr<vke::RenderObject>>& objects,
-                std::vector<std::shared_ptr<vke::Light>>& lights);
+                std::vector<std::shared_ptr<vke::Light>>& lights,
+                float lightRange);
 
 void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::ImGuiInstance>& gui,
                  const std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                  const std::vector<std::shared_ptr<vke::Light>>& lights);
 
-int main()
+int main(const int argc,
+         char** argv)
 {
   try
   {
+    // --light-range R gives every light that range (0 = none)
+    float lightRange = 0.0f;
+    for (int i = 1; i + 1 < argc; i++)
+    {
+      if (std::string(argv[i]) == "--light-range")
+      {
+        lightRange = std::stof(argv[i + 1]);
+      }
+    }
+
     const vke::EngineConfig engineConfig {
       .window {
         .width = 800,
@@ -40,7 +53,7 @@ int main()
 
     std::vector<std::shared_ptr<vke::RenderObject>> objects;
     std::vector<std::shared_ptr<vke::Light>> lights;
-    setupScene(renderer, objects, lights);
+    setupScene(renderer, objects, lights, lightRange);
 
     while (renderer.isActive())
     {
@@ -58,7 +71,8 @@ int main()
 
 void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<std::shared_ptr<vke::RenderObject>>& objects,
-                std::vector<std::shared_ptr<vke::Light>>& lights)
+                std::vector<std::shared_ptr<vke::Light>>& lights,
+                const float lightRange)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -91,6 +105,14 @@ void setupScene(const vke::VulkanEngine& renderer,
   lights.push_back(renderer.getLightingManager()->createPointLight({5.0f, -3.5f, -5.0f}, {0, 1.0f, 0}, 0, 0.5f, 1.0f));
 
   lights.push_back(renderer.getLightingManager()->createPointLight({-5.0f, -3.5f, 5.0f}, {1.0f, 0.5f, 1.0f}, 0, 0.5f, 1.0f));
+
+  if (lightRange != 0.0f)
+  {
+    for (const auto& light : lights)
+    {
+      light->setRange(lightRange);
+    }
+  }
 }
 
 void renderScene(vke::VulkanEngine& renderer,

@@ -8,6 +8,7 @@ struct PointLight {
   float diffuse;
   float specular;
   float shadowRange; // Distance the shadow map covers; lit beyond it
+  float range; // 0 when the light has no range
 };
 
 struct SpotLight {
@@ -21,7 +22,32 @@ struct SpotLight {
   float coneAngle;
   float shadowRange; // Distance the shadow map covers; lit beyond it
   int shadowMapIndex; // Into spotLightShadowMaps, or -1 when the light has none
+  float range; // 0 when the light has no range
 };
+
+// 1 for a light without a range (0). Otherwise inverse square in world units, windowed smoothly to 0 at the range;
+// LightRange.h mirrors it on the CPU.
+float lightAttenuation(float range, vec3 lightPosition, vec3 fragPos)
+{
+  if (range <= 0.0)
+  {
+    return 1.0;
+  }
+
+  vec3 toLight = lightPosition - fragPos;
+  float distSq = dot(toLight, toLight);
+  float rangeSq = range * range;
+
+  if (distSq >= rangeSq)
+  {
+    return 0.0;
+  }
+
+  float ratio = distSq / rangeSq;
+  float window = clamp(1.0 - ratio * ratio, 0.0, 1.0);
+
+  return window * window / (distSq + 1.0);
+}
 
 bool isInSpotlight(SpotLight light, vec3 fragPos)
 {
@@ -84,13 +110,20 @@ vec3 StandardPointLightAffect(PointLight light,
                               vec3 cameraPosition,
                               float shininess)
 {
+  float attenuation = lightAttenuation(light.range, light.position, fragPos);
+
+  if (attenuation <= 0.0)
+  {
+    return vec3(0);
+  }
+
   vec3 normalizedNormal = normalize(normal);
 
   vec3 ambient = getStandardAmbient(light.ambient, color);
   vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
   vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess);
 
-  return (ambient + diffuse + specular) * light.color;
+  return (ambient + diffuse + specular) * light.color * attenuation;
 }
 
 vec3 StandardSpotLightAffect(SpotLight light,
@@ -100,11 +133,18 @@ vec3 StandardSpotLightAffect(SpotLight light,
                               vec3 cameraPosition,
                               float shininess)
 {
+  float attenuation = lightAttenuation(light.range, light.position, fragPos);
+
+  if (attenuation <= 0.0)
+  {
+    return vec3(0);
+  }
+
   if (!isInSpotlight(light, fragPos))
   {
     vec3 ambient = getStandardAmbient(light.ambient, color);
 
-    return ambient * light.color;
+    return ambient * light.color * attenuation;
   }
 
   vec3 normalizedNormal = normalize(normal);
@@ -113,7 +153,7 @@ vec3 StandardSpotLightAffect(SpotLight light,
   vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
   vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess);
 
-  return (ambient + diffuse + specular) * light.color;
+  return (ambient + diffuse + specular) * light.color * attenuation;
 }
 
 vec3 SpecularMapPointLightAffect(PointLight light,
@@ -124,13 +164,20 @@ vec3 SpecularMapPointLightAffect(PointLight light,
                                  vec3 cameraPosition,
                                  float shininess)
 {
+  float attenuation = lightAttenuation(light.range, light.position, fragPos);
+
+  if (attenuation <= 0.0)
+  {
+    return vec3(0);
+  }
+
   vec3 normalizedNormal = normalize(normal);
 
   vec3 ambient = getStandardAmbient(light.ambient, color);
   vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
   vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
 
-  return (ambient + diffuse + specular) * light.color;
+  return (ambient + diffuse + specular) * light.color * attenuation;
 }
 
 vec3 SpecularMapSpotLightAffect(SpotLight light,
@@ -141,11 +188,18 @@ vec3 SpecularMapSpotLightAffect(SpotLight light,
                                  vec3 cameraPosition,
                                  float shininess)
 {
+  float attenuation = lightAttenuation(light.range, light.position, fragPos);
+
+  if (attenuation <= 0.0)
+  {
+    return vec3(0);
+  }
+
   if (!isInSpotlight(light, fragPos))
   {
     vec3 ambient = getStandardAmbient(light.ambient, color);
 
-    return ambient * light.color;
+    return ambient * light.color * attenuation;
   }
 
   vec3 normalizedNormal = normalize(normal);
@@ -154,7 +208,7 @@ vec3 SpecularMapSpotLightAffect(SpotLight light,
   vec3 diffuse = getStandardDiffuse(light.position, light.diffuse, fragPos, normalizedNormal, color);
   vec3 specular = getStandardSpecular(light.position, light.specular, light.color, cameraPosition, fragPos, normalizedNormal, shininess) * specColor;
 
-  return (ambient + diffuse + specular) * light.color;
+  return (ambient + diffuse + specular) * light.color * attenuation;
 }
 
 vec3 SmokePointLightAffect(PointLight light, vec3 color, vec3 fragPos)
