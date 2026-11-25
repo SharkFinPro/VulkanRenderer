@@ -84,7 +84,7 @@ namespace {
   float parseShadowFilterRadius(const std::string& text)
   {
     const auto malformed = [] {
-      return std::invalid_argument("--shadow-filter needs a number of texels that is finite and not negative");
+      return std::invalid_argument("--shadow-filter needs a number of texels from 0 to 64");
     };
 
     size_t used = 0;

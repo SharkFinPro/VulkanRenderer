@@ -49,7 +49,10 @@ void main()
       continue;
     }
 
-    float shadow = facesLight(fragNormal, fragPos, spotLights[i].position) ? spotLightShadow(i, fragPos, shadowNormal) : 0.0;
+    // Outside the cone the light adds only its ambient whatever the shadow, so skip the lookup there
+    float shadow = !facesLight(fragNormal, fragPos, spotLights[i].position) ? 0.0
+                 : !isInSpotlight(spotLights[i], fragPos)               ? 1.0
+                                                                         : spotLightShadow(i, fragPos, shadowNormal);
     vec3 shadowed = getStandardAmbient(spotLights[i].ambient, texColor) * attenuation;
 
     result += shadow > 0.0

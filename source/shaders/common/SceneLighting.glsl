@@ -98,6 +98,12 @@ float pointShadowSample(int i, int shadowMap, vec3 lookup)
   vec3 absLookup = abs(fragToLight);
   float lookupDepth = max(max(absLookup.x, max(absLookup.y, absLookup.z)), nearPlane);
 
+  // A filter tap can reach past the shadow range, where nothing casts (and the depth below would go negative)
+  if (lookupDepth >= range)
+  {
+    return 1.0;
+  }
+
   // The reversed depth the face's projection gives at that view depth (PointLight::getLightViewProjectionMatrices). The
   // sampler compares greater-or-equal: lit where the fragment is at least as near as what the map holds.
   float ref = nearPlane * (range - lookupDepth) / (lookupDepth * (range - nearPlane));

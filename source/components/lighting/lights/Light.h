@@ -161,7 +161,7 @@ namespace vke {
     void setShadowBias(const ShadowBias& bias);
 
     // Radius of the percentage-closer filter on the light's shadow lookups, in texels of its shadow map (see
-    // ShadowFilter.h); 0 takes a single sample. Throws std::invalid_argument unless finite and not negative.
+    // ShadowFilter.h); 0 takes a single sample. Throws std::invalid_argument outside [0, s_maxShadowFilterRadius].
     [[nodiscard]] float getShadowFilterRadius() const;
     void setShadowFilterRadius(float texels);
 

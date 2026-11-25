@@ -6,8 +6,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <limits>
+#include <regex>
+#include <sstream>
+#include <string>
 #include <vector>
 
 namespace {
@@ -187,6 +191,66 @@ namespace {
     check(!vke::isValidShadowFilterRadius(nan), "a NaN radius is invalid");
     check(!vke::isValidShadowFilterRadius(inf), "an infinite radius is invalid");
     check(!vke::isValidShadowFilterRadius(-inf), "a negative infinite radius is invalid");
+    check(vke::isValidShadowFilterRadius(vke::s_maxShadowFilterRadius), "the widest radius is valid");
+    check(!vke::isValidShadowFilterRadius(vke::s_maxShadowFilterRadius + 0.5f), "a radius past the widest is invalid");
+    check(!vke::isValidShadowFilterRadius(1e30f), "a huge finite radius is invalid");
+  }
+
+  // The shader holds its own copies of the disc, the noise constants and the slide's clamp; read them out of the source
+  // so the C++ mirror can't drift from what the GPU runs
+  void testShaderMatchesMirror()
+  {
+    std::ifstream file(VKE_SCENE_LIGHTING_GLSL);
+    check(file.good(), "SceneLighting.glsl can be read");
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    const std::string source = buffer.str();
+
+    const size_t discStart = source.find("shadowFilterDisc[shadowFilterTaps] = vec2[shadowFilterTaps](");
+    const size_t discEnd = source.find(");", discStart);
+    check(discStart != std::string::npos && discEnd != std::string::npos, "the shader declares the disc");
+
+    if (discStart != std::string::npos && discEnd != std::string::npos)
+    {
+      const std::string disc = source.substr(discStart, discEnd - discStart);
+      const std::regex point(R"(vec2\(\s*([-0-9.]+)\s*,\s*([-0-9.]+)\s*\))");
+
+      int count = 0;
+      bool same = true;
+
+      for (auto it = std::sregex_iterator(disc.begin(), disc.end(), point); it != std::sregex_iterator(); ++it)
+      {
+        if (count < vke::s_shadowFilterTaps)
+        {
+          const glm::vec2 expected = vke::s_shadowFilterDisc[static_cast<size_t>(count)];
+          same = same && std::abs(std::stof((*it)[1].str()) - expected.x) <= 1e-6f &&
+                 std::abs(std::stof((*it)[2].str()) - expected.y) <= 1e-6f;
+        }
+
+        ++count;
+      }
+
+      check(count == vke::s_shadowFilterTaps, "the shader's disc has as many points as the mirror's");
+      check(same, "the shader's disc points equal the mirror's, in order");
+    }
+
+    check(source.find("const int shadowFilterTaps = 16;") != std::string::npos && vke::s_shadowFilterTaps == 16,
+          "the shader takes as many taps as the mirror");
+    check(source.find("52.9829189 * fract(dot(fragCoord, vec2(0.06711056, 0.00583715)))") != std::string::npos,
+          "the shader's noise uses the mirror's constants");
+
+    const std::regex tangent(R"(const float maxTangent = ([0-9.]+);)");
+    bool tangentsMatch = true;
+    int tangents = 0;
+
+    for (auto it = std::sregex_iterator(source.begin(), source.end(), tangent); it != std::sregex_iterator(); ++it)
+    {
+      tangentsMatch = tangentsMatch && std::stof((*it)[1].str()) == vke::s_maxShadowBiasTangent;
+      ++tangents;
+    }
+
+    check(tangents > 0 && tangentsMatch, "the shader clamps the slide with the mirror's tangent");
   }
 
   // Taps slid onto the receiver's plane: they lie in it, they moved only along the light (so they still land on the same
@@ -236,6 +300,13 @@ namespace {
 
     check(nearlyEqual(glm::length(slid - offset), vke::s_maxShadowBiasTangent * 0.1f, 1e-4f),
           "the slide is clamped to the slope bias's tangent times the offset where the light grazes");
+
+    // A normal facing away from the light (callers never pass one, but the floor and the clamp must still hold)
+    const glm::vec3 away = vke::receiverPlaneTapOffset(glm::vec3(0.05f, 0.0f, 0.02f), glm::vec3(0.0f, -1.0f, 0.0f),
+                                                       glm::normalize(glm::vec3(0.2f, 1.0f, 0.1f)));
+    check(std::isfinite(away.x) && std::isfinite(away.y) && std::isfinite(away.z) &&
+          glm::length(away - glm::vec3(0.05f, 0.0f, 0.02f)) <= vke::s_maxShadowBiasTangent * glm::length(glm::vec3(0.05f, 0.0f, 0.02f)) * 1.0001f,
+          "a normal facing away from the light gives a finite, clamped slide");
   }
 
 } // namespace
@@ -248,6 +319,7 @@ int main()
   testRadiusAndTexelScaling();
   testNoise();
   testValidity();
+  testShaderMatchesMirror();
 
   std::cout << g_checks << " checks, " << g_failures << " failures\n";
 

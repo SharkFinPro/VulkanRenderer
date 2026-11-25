@@ -132,7 +132,7 @@ namespace vke {
   {
     if (!isValidShadowFilterRadius(texels))
     {
-      throw std::invalid_argument("Light::setShadowFilterRadius: the radius must be finite and not negative");
+      throw std::invalid_argument("Light::setShadowFilterRadius: the radius must be between 0 and 64 texels");
     }
 
     m_shadowFilterRadius = texels;

@@ -2,12 +2,14 @@
 #define VKE_SHADOWFILTER_H
 
 #include "ShadowBias.h"
+#include <glm/common.hpp>
 #include <glm/geometric.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 
 namespace vke {
 
@@ -38,10 +40,13 @@ namespace vke {
     { -0.321681f, -0.880796f }
   } };
 
-  // True when the radius is finite and not negative
+  // The widest filter a light takes, in texels; far past any useful softness, and it keeps radius * texel finite
+  inline constexpr float s_maxShadowFilterRadius = 64.0f;
+
+  // True when the radius is in [0, s_maxShadowFilterRadius]
   [[nodiscard]] inline bool isValidShadowFilterRadius(const float radius)
   {
-    return std::isfinite(radius) && radius >= 0.0f;
+    return std::isfinite(radius) && radius >= 0.0f && radius <= s_maxShadowFilterRadius;
   }
 
   // Must match interleavedGradientNoise in shaders/common/SceneLighting.glsl.
