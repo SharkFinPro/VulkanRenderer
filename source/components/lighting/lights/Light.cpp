@@ -123,6 +123,21 @@ namespace vke {
     m_shadowBias = bias;
   }
 
+  float Light::getShadowFilterRadius() const
+  {
+    return m_shadowFilterRadius;
+  }
+
+  void Light::setShadowFilterRadius(const float texels)
+  {
+    if (!isValidShadowFilterRadius(texels))
+    {
+      throw std::invalid_argument("Light::setShadowFilterRadius: the radius must be finite and not negative");
+    }
+
+    m_shadowFilterRadius = texels;
+  }
+
   std::shared_ptr<ImageResource> Light::getShadowMapDepthImageResource() const
   {
     return m_shadowMapDepthImageResource;

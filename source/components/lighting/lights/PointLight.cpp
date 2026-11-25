@@ -34,7 +34,8 @@ namespace vke {
       .shadowRange = getEffectiveShadowRange(),
       .range = m_range,
       .shadowBias = glm::vec4(m_shadowBias.constant, m_shadowBias.slope, m_shadowBias.normalOffset,
-                              pointShadowTexelPerDepth(static_cast<float>(m_shadowMapExtent.width)))
+                              pointShadowTexelPerDepth(static_cast<float>(m_shadowMapExtent.width))),
+      .shadowFilter = glm::vec4(m_shadowFilterRadius, 0.0f, 0.0f, 0.0f)
     };
   }
 

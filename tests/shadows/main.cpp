@@ -22,6 +22,7 @@ void setupScene(const vke::VulkanEngine& renderer,
                 int cascades,
                 float shadowDistance,
                 const vke::ShadowBias& shadowBias,
+                float shadowFilterRadius,
                 const glm::vec3& sunDirection);
 
 void renderScene(vke::VulkanEngine& renderer,
@@ -79,6 +80,33 @@ namespace {
     return bias;
   }
 
+  // A finite number that is not negative
+  float parseShadowFilterRadius(const std::string& text)
+  {
+    const auto malformed = [] {
+      return std::invalid_argument("--shadow-filter needs a number of texels that is finite and not negative");
+    };
+
+    size_t used = 0;
+    float radius = 0.0f;
+
+    try
+    {
+      radius = std::stof(text, &used);
+    }
+    catch (const std::logic_error&)
+    {
+      throw malformed();
+    }
+
+    if (used != text.size() || !vke::isValidShadowFilterRadius(radius))
+    {
+      throw malformed();
+    }
+
+    return radius;
+  }
+
 } // namespace
 
 int main(const int argc,
@@ -88,12 +116,14 @@ int main(const int argc,
   {
     // --light-range R gives every light that range (0 = none); --sun adds a directional light, whose cascade count and
     // shadow distance --cascades N (1 to 4) and --shadow-distance D set (0 keeps the light's default) and whose angle
-    // above the horizon --sun-elevation DEG (up to 90) sets; --shadow-bias C,S,N sets every light's shadow bias
+    // above the horizon --sun-elevation DEG (up to 90) sets; --shadow-bias C,S,N sets every light's shadow bias;
+    // --shadow-filter R sets the radius, in shadow map texels, of every light's shadow filter (0 = one sample)
     float lightRange = 0.0f;
     bool sun = false;
     int cascades = 0;
     float shadowDistance = 0.0f;
     vke::ShadowBias shadowBias;
+    float shadowFilterRadius = vke::s_defaultShadowFilterRadius;
     glm::vec3 sunDirection(0.4f, -1.0f, 0.3f);
     for (int i = 1; i < argc; i++)
     {
@@ -147,6 +177,15 @@ int main(const int argc,
 
         shadowBias = parseShadowBias(argv[++i]);
       }
+      else if (std::string(argv[i]) == "--shadow-filter")
+      {
+        if (i + 1 >= argc)
+        {
+          throw std::invalid_argument("--shadow-filter needs a value");
+        }
+
+        shadowFilterRadius = parseShadowFilterRadius(argv[++i]);
+      }
       else if (std::string(argv[i]) == "--sun-elevation")
       {
         if (i + 1 >= argc)
@@ -192,7 +231,7 @@ int main(const int argc,
 
     std::vector<std::shared_ptr<vke::RenderObject>> objects;
     std::vector<std::shared_ptr<vke::Light>> lights;
-    setupScene(renderer, objects, lights, lightRange, sun, cascades, shadowDistance, shadowBias, sunDirection);
+    setupScene(renderer, objects, lights, lightRange, sun, cascades, shadowDistance, shadowBias, shadowFilterRadius, sunDirection);
 
     while (renderer.isActive())
     {
@@ -216,6 +255,7 @@ void setupScene(const vke::VulkanEngine& renderer,
                 const int cascades,
                 const float shadowDistance,
                 const vke::ShadowBias& shadowBias,
+                const float shadowFilterRadius,
                 const glm::vec3& sunDirection)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
@@ -282,6 +322,7 @@ void setupScene(const vke::VulkanEngine& renderer,
   for (const auto& light : lights)
   {
     light->setShadowBias(shadowBias);
+    light->setShadowFilterRadius(shadowFilterRadius);
   }
 }
 
