@@ -154,7 +154,14 @@ int main(const int argc,
           throw std::invalid_argument("--sun-elevation needs a value");
         }
 
-        const float elevation = std::stof(argv[++i]);
+        const std::string value = argv[++i];
+        size_t used = 0;
+        const float elevation = std::stof(value, &used);
+
+        if (used != value.size())
+        {
+          throw std::invalid_argument("--sun-elevation must be a number of degrees");
+        }
 
         if (!(elevation > 0.0f && elevation <= 90.0f))
         {

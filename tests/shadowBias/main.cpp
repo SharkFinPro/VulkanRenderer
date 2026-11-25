@@ -155,7 +155,7 @@ namespace {
 
   void testTexelPerDepth()
   {
-    check(nearlyEqual(vke::pointShadowTexelPerDepth(1024.0f), 2.0f / 1024.0f), "a point face covers 2 / mapSize per unit of depth");
+    check(nearlyEqual(vke::pointShadowTexelPerDepth(1024.0f), 0.001953125f), "a point face covers 2 / mapSize per unit of depth");
     check(nearlyEqual(vke::pointShadowTexelPerDepth(512.0f), 2.0f / 512.0f), "a smaller map has larger texels");
     check(nearlyEqual(vke::spotShadowTexelPerDepth(90.0f, 1024.0f), 2.0f / 1024.0f), "a 90 degree spot matches a point face");
     check(nearlyEqual(vke::spotShadowTexelPerDepth(60.0f, 1024.0f), 2.0f * std::tan(glm::radians(30.0f)) / 1024.0f),
