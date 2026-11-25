@@ -84,6 +84,7 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/lighting/lights/PointLight.cpp
     components/lighting/lights/PointLight.h
     components/lighting/lights/ShadowBias.h
+    components/lighting/lights/ShadowFilter.h
     components/lighting/lights/SpotLight.cpp
     components/lighting/lights/SpotLight.h
 

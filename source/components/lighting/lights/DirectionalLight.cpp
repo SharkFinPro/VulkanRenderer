@@ -159,6 +159,7 @@ namespace vke {
 
     uniform.cascadeTexelSizes = texelSizes;
     uniform.shadowBias = glm::vec4(m_shadowBias.constant, m_shadowBias.slope, m_shadowBias.normalOffset, 0.0f);
+    uniform.shadowFilter = glm::vec4(m_shadowFilterRadius, 0.0f, 0.0f, 0.0f);
     uniform.direction = m_direction;
     uniform.ambient = m_ambient;
     uniform.color = m_color;

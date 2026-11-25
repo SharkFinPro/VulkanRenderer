@@ -72,6 +72,10 @@ add_subdirectory(shadowBias)
 add_test(NAME shadowBias COMMAND shadowBias)
 add_dependencies(build_all shadowBias)
 
+add_subdirectory(shadowFilter)
+add_test(NAME shadowFilter COMMAND shadowFilter)
+add_dependencies(build_all shadowFilter)
+
 add_subdirectory(pickRequests)
 add_test(NAME pickRequests COMMAND pickRequests)
 add_dependencies(build_all pickRequests)

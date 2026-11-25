@@ -30,14 +30,13 @@ void main()
       continue;
     }
 
-    if (facesLight(normal, fragPos, pointLights[i].position) && pointLightShadow(i, fragPos, normal) > 0.1)
-    {
-      result += StandardPointLightAffect(pointLights[i], albedo, normal, fragPos, camera.position, 32);
-    }
-    else
-    {
-      result += getStandardAmbient(pointLights[i].ambient, albedo) * attenuation;
-    }
+    float shadow = facesLight(normal, fragPos, pointLights[i].position) ? pointLightShadow(i, fragPos, normal) : 0.0;
+    vec3 shadowed = getStandardAmbient(pointLights[i].ambient, albedo) * attenuation;
+
+    // The shadow is a fraction, so the edge of a shadow blends from one result to the other
+    result += shadow > 0.0
+      ? mix(shadowed, StandardPointLightAffect(pointLights[i], albedo, normal, fragPos, camera.position, 32), shadow)
+      : shadowed;
   }
 
   for (int i = 0; i < numSpotLights; i++)
@@ -48,28 +47,27 @@ void main()
       continue;
     }
 
-    if (facesLight(normal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos, normal) > 0.5)
-    {
-      result += StandardSpotLightAffect(spotLights[i], albedo, normal, fragPos, camera.position, 32);
-    }
-    else
-    {
-      result += getStandardAmbient(spotLights[i].ambient, albedo) * attenuation;
-    }
+    // Outside the cone the light adds only its ambient whatever the shadow, so skip the lookup there
+    float shadow = !facesLight(normal, fragPos, spotLights[i].position) ? 0.0
+                 : !isInSpotlight(spotLights[i], fragPos)               ? 1.0
+                                                                         : spotLightShadow(i, fragPos, normal);
+    vec3 shadowed = getStandardAmbient(spotLights[i].ambient, albedo) * attenuation;
+
+    result += shadow > 0.0
+      ? mix(shadowed, StandardSpotLightAffect(spotLights[i], albedo, normal, fragPos, camera.position, 32), shadow)
+      : shadowed;
   }
 
   for (int i = 0; i < numDirectionalLights; i++)
   {
     DirectionalLight light = directionalLights[i];
 
-    if (facesDirectionalLight(normal, light.direction) && directionalLightShadow(i, fragPos, normal) > 0.5)
-    {
-      result += StandardDirectionalLightAffect(light, albedo, normal, fragPos, camera.position, 32);
-    }
-    else
-    {
-      result += getStandardAmbient(light.ambient, albedo);
-    }
+    float shadow = facesDirectionalLight(normal, light.direction) ? directionalLightShadow(i, fragPos, normal) : 0.0;
+    vec3 shadowed = getStandardAmbient(light.ambient, albedo);
+
+    result += shadow > 0.0
+      ? mix(shadowed, StandardDirectionalLightAffect(light, albedo, normal, fragPos, camera.position, 32), shadow)
+      : shadowed;
   }
 
   outColor = vec4(result, 1.0);

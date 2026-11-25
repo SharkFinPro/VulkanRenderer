@@ -10,6 +10,7 @@ struct PointLight {
   float shadowRange; // Distance the shadow map covers; lit beyond it
   float range; // 0 when the light has no range
   vec4 shadowBias; // ShadowBias (constant, slope, normal offset, all in texels), then the world size of a texel per unit of view depth
+  vec4 shadowFilter; // The filter radius in texels, then 0
 };
 
 struct SpotLight {
@@ -25,6 +26,7 @@ struct SpotLight {
   int shadowMapIndex; // Into spotLightShadowMaps, or -1 when the light has none
   float range; // 0 when the light has no range
   vec4 shadowBias; // ShadowBias (constant, slope, normal offset, all in texels), then the world size of a texel per unit of view depth
+  vec4 shadowFilter; // The filter radius in texels, then 0
 };
 
 struct DirectionalLight {
@@ -39,6 +41,7 @@ struct DirectionalLight {
   int cascadeCount; // The fitted cascades, 0 when none
   float shadowDistance; // Fragments farther than this from the camera are lit
   vec4 shadowBias; // ShadowBias (constant, slope, normal offset, all in texels), then 0
+  vec4 shadowFilter; // The filter radius in texels, then 0
 };
 
 // 1 for a light without a range (0). Otherwise inverse square in world units, windowed smoothly to 0 at the range;
