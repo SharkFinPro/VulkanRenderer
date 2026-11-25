@@ -41,7 +41,8 @@ namespace vke {
                                      const vk::CommandPool commandPool)
     : Light(std::move(logicalDevice), commonLightData), m_direction(normalizedDirection(direction))
   {
-    m_shadowMapExtent = { s_shadowMapSize, s_shadowMapSize };
+    m_shadowMapExtent.width = s_shadowMapSize;
+    m_shadowMapExtent.height = s_shadowMapSize;
 
     DirectionalLight::createShadowMap(commandPool);
   }
