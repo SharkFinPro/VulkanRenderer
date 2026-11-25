@@ -58,5 +58,19 @@ void main()
     }
   }
 
+  for (int i = 0; i < numDirectionalLights; i++)
+  {
+    DirectionalLight light = directionalLights[i];
+
+    if (facesDirectionalLight(fragNormal, light.direction) && directionalLightShadow(i, fragPos) > 0.5)
+    {
+      result += SpecularMapDirectionalLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
+    }
+    else
+    {
+      result += getStandardAmbient(light.ambient, texColor);
+    }
+  }
+
   outColor = vec4(result, 1.0);
 }

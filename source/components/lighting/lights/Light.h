@@ -45,18 +45,33 @@ namespace vke {
     float range; // 0 when the light has no range
   };
 
-  // Both are arrays in shader storage buffers, mirrored by the structs in shaders/common/Lighting.glsl
+  struct alignas(16) DirectionalLightUniform {
+    glm::mat4 lightViewProjection;
+    glm::vec3 direction; // The way the light travels, normalized
+    float ambient;
+    glm::vec3 color;
+    float diffuse;
+    float specular;
+    int32_t shadowMapIndex; // Into the directional light shadow maps, or -1 when the light has none
+    float shadowBias; // In normalized depth
+    float pad0;
+  };
+
+  // All three are arrays in shader storage buffers, mirrored by the structs in shaders/common/Lighting.glsl
   static_assert(sizeof(PointLightUniform) == 448 && offsetof(PointLightUniform, shadowRange) == 428 &&
                 offsetof(PointLightUniform, shadowMapIndex) == 412 && offsetof(PointLightUniform, range) == 432);
+  static_assert(sizeof(DirectionalLightUniform) == 112 && offsetof(DirectionalLightUniform, shadowMapIndex) == 100 &&
+                offsetof(DirectionalLightUniform, shadowBias) == 104);
   static_assert(sizeof(SpotLightUniform) == 128 && offsetof(SpotLightUniform, shadowRange) == 116 &&
                 offsetof(SpotLightUniform, shadowMapIndex) == 120 &&
                 offsetof(SpotLightUniform, range) == 124);
 
-  using LightUniform = std::variant<PointLightUniform, SpotLightUniform>;
+  using LightUniform = std::variant<PointLightUniform, SpotLightUniform, DirectionalLightUniform>;
 
   enum class LightType {
     pointLight,
-    spotLight
+    spotLight,
+    directionalLight
   };
 
   struct CommonLightData {

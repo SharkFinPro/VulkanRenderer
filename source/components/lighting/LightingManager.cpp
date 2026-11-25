@@ -1,6 +1,7 @@
 #include <array>
 #include <type_traits>
 #include "LightingManager.h"
+#include "lights/DirectionalLight.h"
 #include "lights/Light.h"
 #include "lights/PointLight.h"
 #include "lights/SpotLight.h"
@@ -47,12 +48,18 @@ namespace {
   // in-flight frames. Lights beyond the cap are ignored.
   constexpr uint32_t MAX_POINT_LIGHTS = 64;
   constexpr uint32_t MAX_SPOT_LIGHTS = 64;
+  constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 4;
+
+  // Each directional light that casts shadows has a map, so every light can have one
+  constexpr uint32_t MAX_DIRECTIONAL_SHADOW_MAPS = MAX_DIRECTIONAL_LIGHTS;
 
   // m_lightUniformScratch is plain operator new storage, which is only aligned to the default new alignment.
   static_assert(alignof(vke::PointLightUniform) <= __STDCPP_DEFAULT_NEW_ALIGNMENT__ &&
-                alignof(vke::SpotLightUniform) <= __STDCPP_DEFAULT_NEW_ALIGNMENT__,
+                alignof(vke::SpotLightUniform) <= __STDCPP_DEFAULT_NEW_ALIGNMENT__ &&
+                alignof(vke::DirectionalLightUniform) <= __STDCPP_DEFAULT_NEW_ALIGNMENT__,
                 "light uniforms need over-aligned scratch storage");
-  static_assert(std::is_trivially_copyable_v<vke::PointLightUniform> && std::is_trivially_copyable_v<vke::SpotLightUniform>);
+  static_assert(std::is_trivially_copyable_v<vke::PointLightUniform> && std::is_trivially_copyable_v<vke::SpotLightUniform> &&
+                std::is_trivially_copyable_v<vke::DirectionalLightUniform>);
 
   constexpr vk::DescriptorSetLayoutBinding lightMetadataLayout {
     .binding = 0,
@@ -96,13 +103,29 @@ namespace {
     .stageFlags = vk::ShaderStageFlagBits::eFragment
   };
 
+  constexpr vk::DescriptorSetLayoutBinding directionalLightsLayout {
+    .binding = 6,
+    .descriptorType = vk::DescriptorType::eStorageBuffer,
+    .descriptorCount = 1,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment | vk::ShaderStageFlagBits::eClosestHitKHR
+  };
+
+  constexpr vk::DescriptorSetLayoutBinding directionalLightsSamplerLayout {
+    .binding = 7,
+    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+    .descriptorCount = MAX_DIRECTIONAL_SHADOW_MAPS,
+    .stageFlags = vk::ShaderStageFlagBits::eFragment
+  };
+
   inline std::vector lightingLayoutBindings {
     lightMetadataLayout,
     pointLightsLayout,
     spotLightsLayout,
     cameraLayout,
     spotLightsSamplerLayout,
-    pointLightsSamplerLayout
+    pointLightsSamplerLayout,
+    directionalLightsLayout,
+    directionalLightsSamplerLayout
   };
 
 }
@@ -112,6 +135,7 @@ namespace {
   struct LightMetadataUniform {
     int numPointLights;
     int numSpotLights;
+    int numDirectionalLights;
   };
 
   using CameraUniform = glm::vec3;
@@ -180,6 +204,30 @@ namespace vke {
     return light;
   }
 
+  std::shared_ptr<Light> LightingManager::createDirectionalLight(const glm::vec3 direction,
+                                                                 const glm::vec3 color,
+                                                                 const float ambient,
+                                                                 const float diffuse,
+                                                                 const float specular)
+  {
+    CommonLightData commonLightData {
+      .position = glm::vec3(0.0f),
+      .color = color,
+      .ambient = ambient,
+      .diffuse = diffuse,
+      .specular = specular
+    };
+
+    auto light = std::make_shared<DirectionalLight>(
+      m_logicalDevice,
+      commonLightData,
+      direction,
+      m_commandPool
+    );
+
+    return light;
+  }
+
   void LightingManager::renderLight(const std::shared_ptr<Light>& light)
   {
     const auto lightType = light->getLightType();
@@ -192,6 +240,10 @@ namespace vke {
     {
       m_pointLightsToRender.push_back(light);
     }
+    else if (lightType == LightType::directionalLight && m_directionalLightsToRender.size() < MAX_DIRECTIONAL_LIGHTS)
+    {
+      m_directionalLightsToRender.push_back(light);
+    }
   }
 
   std::shared_ptr<DescriptorSet> LightingManager::getLightingDescriptorSet() const
@@ -203,6 +255,7 @@ namespace vke {
   {
     m_pointLightsToRender.clear();
     m_spotLightsToRender.clear();
+    m_directionalLightsToRender.clear();
   }
 
   void LightingManager::update(const uint32_t currentFrame, const glm::vec3 viewPosition)
@@ -220,6 +273,11 @@ namespace vke {
     return m_spotLightsToRender;
   }
 
+  const std::vector<std::shared_ptr<Light>>& LightingManager::getDirectionalLightsToRender() const
+  {
+    return m_directionalLightsToRender;
+  }
+
   std::shared_ptr<PointLight> LightingManager::asShadowCastingPointLight(const std::shared_ptr<Light>& light)
   {
     auto pointLight = std::dynamic_pointer_cast<PointLight>(light);
@@ -234,6 +292,13 @@ namespace vke {
     return spotLight && spotLight->castsShadows() ? spotLight : nullptr;
   }
 
+  std::shared_ptr<DirectionalLight> LightingManager::asShadowCastingDirectionalLight(const std::shared_ptr<Light>& light)
+  {
+    auto directionalLight = std::dynamic_pointer_cast<DirectionalLight>(light);
+
+    return directionalLight && directionalLight->castsShadows() ? directionalLight : nullptr;
+  }
+
   void LightingManager::renderShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                          const std::shared_ptr<PipelineManager>& pipelineManager,
                                          const ShadowDrawLists& lists,
@@ -245,6 +310,9 @@ namespace vke {
 
     renderSpotLightShadowMaps(commandBuffer, pipelineManager, lists.spotLightRuns, lists.volumeSpotLightRuns,
                               sceneDescriptorSet, currentFrame);
+
+    renderDirectionalShadowMaps(commandBuffer, pipelineManager, lists.directionalLightRuns,
+                                lists.volumeDirectionalLightRuns, sceneDescriptorSet);
   }
 
   void LightingManager::createUniforms()
@@ -254,6 +322,9 @@ namespace vke {
     m_pointLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(PointLightUniform) * MAX_POINT_LIGHTS);
 
     m_spotLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(SpotLightUniform) * MAX_SPOT_LIGHTS);
+
+    m_directionalLightsUniform = std::make_shared<UniformBuffer>(m_logicalDevice,
+                                                                 sizeof(DirectionalLightUniform) * MAX_DIRECTIONAL_LIGHTS);
 
     m_cameraUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CameraUniform));
   }
@@ -267,11 +338,13 @@ namespace vke {
         m_lightMetadataUniform->getDescriptorSet(0, descriptorSet, frame),
         m_pointLightsUniform->getDescriptorSet(1, descriptorSet, frame),
         m_spotLightsUniform->getDescriptorSet(2, descriptorSet, frame),
-        m_cameraUniform->getDescriptorSet(3, descriptorSet, frame)
+        m_cameraUniform->getDescriptorSet(3, descriptorSet, frame),
+        m_directionalLightsUniform->getDescriptorSet(6, descriptorSet, frame)
       }};
 
       descriptorWrites[1].descriptorType = vk::DescriptorType::eStorageBuffer;
       descriptorWrites[2].descriptorType = vk::DescriptorType::eStorageBuffer;
+      descriptorWrites[4].descriptorType = vk::DescriptorType::eStorageBuffer;
 
       return descriptorWrites;
     });
@@ -289,6 +362,8 @@ namespace vke {
     updatePointLightUniforms(currentFrame);
 
     updateSpotLightUniforms(currentFrame);
+
+    updateDirectionalLightUniforms(currentFrame);
   }
 
   void LightingManager::updatePointLightUniforms(const uint32_t currentFrame)
@@ -424,6 +499,78 @@ namespace vke {
     const vk::WriteDescriptorSet samplerWrite {
       .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
       .dstBinding = 4,
+      .dstArrayElement = 0,
+      .descriptorCount = static_cast<uint32_t>(imageInfoCount),
+      .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+      .pImageInfo = imageInfos.data(),
+    };
+
+    m_logicalDevice->updateDescriptorSets({ samplerWrite });
+  }
+
+  void LightingManager::updateDirectionalLightUniforms(const uint32_t currentFrame)
+  {
+    if (m_directionalLightsToRender.empty())
+    {
+      return;
+    }
+
+    // renderLight already keeps at most MAX_DIRECTIONAL_LIGHTS
+    const size_t count = std::min<size_t>(m_directionalLightsToRender.size(), MAX_DIRECTIONAL_LIGHTS);
+
+    // Sized to the buffer's fixed capacity, as for the spot lights
+    m_lightUniformScratch.assign(sizeof(DirectionalLightUniform) * MAX_DIRECTIONAL_LIGHTS, std::byte{0});
+    auto* lightUniforms = reinterpret_cast<DirectionalLightUniform*>(m_lightUniformScratch.data());
+    // The maps are written in this order by updateDirectionalLightShadowMaps
+    int32_t shadowMapCount = 0;
+    for (size_t i = 0; i < count; i++)
+    {
+      lightUniforms[i] = std::get<DirectionalLightUniform>(m_directionalLightsToRender[i]->getUniform());
+
+      if (m_directionalLightsToRender[i]->castsShadows() &&
+          shadowMapCount < static_cast<int32_t>(MAX_DIRECTIONAL_SHADOW_MAPS))
+      {
+        lightUniforms[i].shadowMapIndex = shadowMapCount++;
+      }
+    }
+
+    m_directionalLightsUniform->update(currentFrame, lightUniforms);
+
+    updateDirectionalLightShadowMaps(currentFrame);
+  }
+
+  void LightingManager::updateDirectionalLightShadowMaps(const uint32_t currentFrame) const
+  {
+    std::array<vk::DescriptorImageInfo, MAX_DIRECTIONAL_SHADOW_MAPS> imageInfos;
+    size_t imageInfoCount = 0;
+
+    for (auto& light : m_directionalLightsToRender)
+    {
+      if (!light->castsShadows())
+      {
+        continue;
+      }
+
+      imageInfos[imageInfoCount++] = {
+        m_shadowMapSampler,
+        light->getShadowMapDepthImageResource()->getImageView(),
+        vk::ImageLayout::eDepthStencilReadOnlyOptimal
+      };
+
+      if (imageInfoCount >= MAX_DIRECTIONAL_SHADOW_MAPS)
+      {
+        break;
+      }
+    }
+
+    if (imageInfoCount == 0)
+    {
+      return;
+    }
+
+    const vk::WriteDescriptorSet samplerWrite {
+      .dstSet = m_lightingDescriptorSet->getDescriptorSet(currentFrame),
+      .dstBinding = 7,
       .dstArrayElement = 0,
       .descriptorCount = static_cast<uint32_t>(imageInfoCount),
       .descriptorType = vk::DescriptorType::eCombinedImageSampler,
@@ -621,6 +768,73 @@ namespace vke {
     }
   }
 
+  void LightingManager::renderDirectionalShadowMaps(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                                    const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                    const std::span<const std::vector<DrawRun>> directionalLightRuns,
+                                                    const std::span<const std::vector<DrawRun>> volumeDirectionalLightRuns,
+                                                    const vk::DescriptorSet sceneDescriptorSet) const
+  {
+    size_t shadowCaster = 0;
+
+    for (auto& light : m_directionalLightsToRender)
+    {
+      const auto directionalLight = asShadowCastingDirectionalLight(light);
+      if (!directionalLight)
+      {
+        continue;
+      }
+
+      // Renderer3D builds one list per shadow-casting light, in this order
+      const std::span<const DrawRun> runs = shadowCaster < directionalLightRuns.size()
+                                            ? std::span<const DrawRun>(directionalLightRuns[shadowCaster])
+                                            : std::span<const DrawRun>();
+      const std::span<const DrawRun> volumeRuns = shadowCaster < volumeDirectionalLightRuns.size()
+                                                  ? std::span<const DrawRun>(volumeDirectionalLightRuns[shadowCaster])
+                                                  : std::span<const DrawRun>();
+      ++shadowCaster;
+
+      const glm::mat4 viewProjection = directionalLight->getLightViewProjectionMatrix();
+
+      transitionShadowMapForRendering(commandBuffer, light);
+
+      beginShadowRendering(commandBuffer, light->getShadowMapDepthImageResource()->getImageView(),
+                           light->getShadowMapExtent(), 1.0f);
+
+      if (!runs.empty())
+      {
+        constexpr auto pipeline = PipelineType::shadow;
+
+        pipelineManager->bindGraphicsPipeline(commandBuffer, pipeline);
+
+        pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, pipeline,
+                                                                  vk::ShaderStageFlagBits::eVertex, 0, viewProjection);
+
+        pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, pipeline, sceneDescriptorSet, 0);
+
+        drawShadowCasters(commandBuffer, runs);
+      }
+
+      if (!volumeRuns.empty())
+      {
+        constexpr auto volumePipeline = PipelineType::volumeSurfaceShadow;
+
+        pipelineManager->bindGraphicsPipeline(commandBuffer, volumePipeline);
+
+        pipelineManager->pushGraphicsPipelineConstants<glm::mat4>(commandBuffer, volumePipeline,
+                                                                  vk::ShaderStageFlagBits::eVertex, 0, viewProjection);
+
+        // Rebound, since the pipeline layouts differ
+        pipelineManager->bindGraphicsPipelineDescriptorSet(commandBuffer, volumePipeline, sceneDescriptorSet, 0);
+
+        drawVolumeShadowCasters(commandBuffer, volumeRuns);
+      }
+
+      commandBuffer->endRendering();
+
+      transitionShadowMapForSampling(commandBuffer, light);
+    }
+  }
+
   void LightingManager::createCommandPool()
   {
     const vk::CommandPoolCreateInfo poolInfo {
@@ -634,7 +848,8 @@ namespace vke {
   {
     const std::array<vk::DescriptorPoolSize, 3> poolSizes {{
       {vk::DescriptorType::eUniformBuffer, m_logicalDevice->getMaxFramesInFlight() * m_descriptorPoolSize},
-      {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * MAX_SHADOW_MAPS * 2},
+      {vk::DescriptorType::eCombinedImageSampler,
+       m_logicalDevice->getMaxFramesInFlight() * (MAX_SHADOW_MAPS * 2 + MAX_DIRECTIONAL_SHADOW_MAPS)},
       {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 20}
     }};
 
@@ -665,15 +880,20 @@ namespace vke {
     const int numPointLights = static_cast<int>(std::min<size_t>(m_pointLightsToRender.size(), MAX_POINT_LIGHTS));
     const int numSpotLights = static_cast<int>(std::min<size_t>(m_spotLightsToRender.size(), MAX_SPOT_LIGHTS));
 
+    const int numDirectionalLights = static_cast<int>(
+      std::min<size_t>(m_directionalLightsToRender.size(), MAX_DIRECTIONAL_LIGHTS));
+
     if (m_prevNumPointLights == numPointLights &&
-        m_prevNumSpotLights == numSpotLights)
+        m_prevNumSpotLights == numSpotLights &&
+        m_prevNumDirectionalLights == numDirectionalLights)
     {
       return;
     }
 
     const LightMetadataUniform lightMetadataUBO {
       .numPointLights = numPointLights,
-      .numSpotLights = numSpotLights
+      .numSpotLights = numSpotLights,
+      .numDirectionalLights = numDirectionalLights
     };
 
     for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); ++i)
@@ -683,6 +903,7 @@ namespace vke {
 
     m_prevNumPointLights = numPointLights;
     m_prevNumSpotLights = numSpotLights;
+    m_prevNumDirectionalLights = numDirectionalLights;
   }
 
   void LightingManager::transitionShadowMapForRendering(const std::shared_ptr<CommandBuffer>& commandBuffer,

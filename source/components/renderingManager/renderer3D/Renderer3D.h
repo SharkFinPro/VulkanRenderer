@@ -264,7 +264,7 @@ namespace vke {
     // Drops lines kept for a lifetime, including from the frame being built.
     void clearLines();
 
-    // Draws the surface this frame under the model matrix, lit by the scene's point and spot lights and shadowed by
+    // Draws the surface this frame under the model matrix, lit by the scene's lights and shadowed by
     // their shadow maps (the surface casts into them unless VolumeSurface::setCastsShadows is false). Drawn in the scene
     // pass, or traced (every displayed chunk, off-screen ones included) with ray tracing on. Chunks outside the view each list is drawn from are
     // skipped. A non-null mousePicked makes the surface pickable and is set as renderObject's flag is, reporting a frame
@@ -334,13 +334,13 @@ namespace vke {
 
     // The other passes' draws as runs: the submissions by model for the shadow maps, the pickable ones by model (and
     // by material too when alpha tested) and the outlines by mask value then model. The draw slots hold the lists one after
-    // another: shadow (each point light's six faces', then each spot light's, each followed by its volume surface list),
-    // the pipelines', the volume surfaces', picking (the volume surfaces' last), outline (the volume surfaces' last).
+    // another: shadow (each point light's six faces', then each spot light's, then each directional light's, each followed
+    // by its volume surface list), the pipelines', the volume surfaces', picking (the volume surfaces' last), outline (the volume surfaces' last).
     //
     // Lists are culled against the view they are drawn from, using the submissions' world bounds: the picking and outline
     // lists and the pipelines' lists (those whose vertex stage keeps geometry within the model's bounds) against the
-    // camera, a spot light's shadow list against the light, a point light's face lists against its shadow range and then
-    // the face's frustum.
+    // camera, a spot or directional light's shadow list against the light's frustum, a point light's face lists
+    // against its shadow range and then the face's frustum.
     std::vector<DrawRun> m_pickRuns;
     std::vector<DrawRun> m_pickAlphaTestedRuns;
     std::vector<DrawRun> m_outlineRuns;
@@ -368,6 +368,11 @@ namespace vke {
 
     // The volume surface lists of the same spot lights, by the same index; kept in step with m_spotShadowRuns
     std::vector<std::vector<DrawRun>> m_volumeSpotShadowRuns;
+
+    // The same for the shadow-casting directional lights: one list each, and the volume surface lists by the same index
+    std::vector<std::vector<DrawRun>> m_directionalShadowRuns;
+    std::vector<std::vector<DrawRun>> m_volumeDirectionalShadowRuns;
+    size_t m_directionalShadowCount = 0;
 
     // Scratch reused by every list build
     std::vector<DrawItem> m_drawItems;
@@ -549,6 +554,10 @@ namespace vke {
     [[nodiscard]] uint32_t buildSpotShadowRuns(uint32_t* drawSlots,
                                                uint32_t offset,
                                                const LightingManager& lightingManager);
+
+    [[nodiscard]] uint32_t buildDirectionalShadowRuns(uint32_t* drawSlots,
+                                                      uint32_t offset,
+                                                      const LightingManager& lightingManager);
 
     [[nodiscard]] uint32_t buildPipelineRuns(uint32_t* drawSlots,
                                              uint32_t offset,

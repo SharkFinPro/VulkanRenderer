@@ -1,5 +1,6 @@
 #include "../common/gui.h"
 #include <source/components/lighting/LightingManager.h>
+#include <source/components/lighting/lights/DirectionalLight.h>
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/window/Window.h>
 #include <source/components/assets/AssetManager.h>
@@ -13,7 +14,8 @@
 void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights,
-                float lightRange);
+                float lightRange,
+                bool sun);
 
 void renderScene(vke::VulkanEngine& renderer,
                  const std::shared_ptr<vke::ImGuiInstance>& gui,
@@ -25,11 +27,16 @@ int main(const int argc,
 {
   try
   {
-    // --light-range R gives every light that range (0 = none)
+    // --light-range R gives every light that range (0 = none); --sun adds a directional light
     float lightRange = 0.0f;
+    bool sun = false;
     for (int i = 1; i < argc; i++)
     {
-      if (std::string(argv[i]) == "--light-range")
+      if (std::string(argv[i]) == "--sun")
+      {
+        sun = true;
+      }
+      else if (std::string(argv[i]) == "--light-range")
       {
         if (i + 1 >= argc)
         {
@@ -59,7 +66,7 @@ int main(const int argc,
 
     std::vector<std::shared_ptr<vke::RenderObject>> objects;
     std::vector<std::shared_ptr<vke::Light>> lights;
-    setupScene(renderer, objects, lights, lightRange);
+    setupScene(renderer, objects, lights, lightRange, sun);
 
     while (renderer.isActive())
     {
@@ -78,7 +85,8 @@ int main(const int argc,
 void setupScene(const vke::VulkanEngine& renderer,
                 std::vector<std::shared_ptr<vke::RenderObject>>& objects,
                 std::vector<std::shared_ptr<vke::Light>>& lights,
-                const float lightRange)
+                const float lightRange,
+                const bool sun)
 {
   const auto texture = renderer.getAssetManager()->loadTexture("assets/textures/white.png");
   const auto specularMap = renderer.getAssetManager()->loadTexture("assets/textures/blank_specular.png");
@@ -118,6 +126,19 @@ void setupScene(const vke::VulkanEngine& renderer,
     {
       light->setRange(lightRange);
     }
+  }
+
+  if (sun)
+  {
+    // Travels down (-y is toward the floor here) and slants toward +x and +z. It has no range, so it is added after the
+    // range above. The shadow box is centered on the origin and covers 60 units, which holds the objects and the floor
+    // under them; the rest of the floor is lit but not shadowed.
+    const auto sunLight = renderer.getLightingManager()->createDirectionalLight(
+      { 0.4f, -1.0f, 0.3f }, { 1.0f, 1.0f, 0.95f }, 0.0f, 0.6f, 0.5f);
+    const auto directionalLight = std::dynamic_pointer_cast<vke::DirectionalLight>(sunLight);
+    directionalLight->setShadowCenter({ 0.0f, 0.0f, 0.0f });
+    directionalLight->setShadowHalfExtent(30.0f);
+    lights.push_back(sunLight);
   }
 }
 

@@ -3,12 +3,14 @@
 
 #include <source/components/assets/objects/RenderObject.h>
 #include <source/components/imGui/ImGuiInstance.h>
+#include <source/components/lighting/lights/DirectionalLight.h>
 #include <source/components/lighting/lights/Light.h>
 #include <source/components/lighting/lights/SpotLight.h>
 #include <source/components/pipelines/implementations/BendyPipeline.h>
 #include <source/components/renderingManager/RenderingManager.h>
 #include <source/components/renderingManager/renderer3D/Renderer3D.h>
 #include <source/components/window/PresentMode.h>
+#include <glm/geometric.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <algorithm>
@@ -88,6 +90,7 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
                             const int id)
 {
   std::shared_ptr<vke::SpotLight> spotLight = nullptr;
+  std::shared_ptr<vke::DirectionalLight> directionalLight = nullptr;
 
   glm::vec3 position = light->getPosition();
   glm::vec3 color = light->getColor();
@@ -103,33 +106,73 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
     spotLight = std::dynamic_pointer_cast<vke::SpotLight>(light);
   }
 
-  glm::vec3 direction = isSpotLight ? spotLight->getDirection() : glm::vec3(0.0f);
+  const bool isDirectionalLight = light->getLightType() == vke::LightType::directionalLight;
+
+  if (isDirectionalLight)
+  {
+    directionalLight = std::dynamic_pointer_cast<vke::DirectionalLight>(light);
+  }
+
+  glm::vec3 direction = isSpotLight ? spotLight->getDirection()
+                                    : isDirectionalLight ? directionalLight->getDirection() : glm::vec3(0.0f);
+  glm::vec3 shadowCenter = isDirectionalLight ? directionalLight->getShadowCenter() : glm::vec3(0.0f);
+  float shadowHalfExtent = isDirectionalLight ? directionalLight->getShadowHalfExtent() : 0.0f;
   float coneAngle = isSpotLight ? spotLight->getConeAngle() : 0.0f;
 
   ImGui::PushID(id);
 
   if (ImGui::CollapsingHeader(("Light " + std::to_string(id)).c_str()))
   {
-    ImGui::Checkbox("Spot Light", &isSpotLight);
+    if (!isDirectionalLight)
+    {
+      ImGui::Checkbox("Spot Light", &isSpotLight);
+    }
+
     ImGui::ColorEdit3("Color", value_ptr(color));
     ImGui::SliderFloat("Ambient", &ambient, 0.0f, 1.0f);
     ImGui::SliderFloat("Diffuse", &diffuse, 0.0f, 1.0f);
     ImGui::SliderFloat("Specular", &specular, 0.0f, 1.0f);
-    ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
-    ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f);
-    ImGui::SliderFloat("Cone Angle", &coneAngle, 0.0f, 180.0f);
-    ImGui::SliderFloat("Shadow Range", &shadowRange, 1.0f, 2000.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::SliderFloat("Range (0 = none)", &range, 0.0f, 200.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+
+    if (isDirectionalLight)
+    {
+      ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f);
+      ImGui::SliderFloat3("Shadow Center", value_ptr(shadowCenter), -200.0f, 200.0f);
+      ImGui::SliderFloat("Shadow Half Extent", &shadowHalfExtent, 1.0f, 500.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    }
+    else
+    {
+      ImGui::SliderFloat3("Position", value_ptr(position), -50.0f, 50.0f);
+      ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f);
+      ImGui::SliderFloat("Cone Angle", &coneAngle, 0.0f, 180.0f);
+      ImGui::SliderFloat("Shadow Range", &shadowRange, 1.0f, 2000.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+      ImGui::SliderFloat("Range (0 = none)", &range, 0.0f, 200.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    }
+
     ImGui::Separator();
   }
 
   ImGui::PopID();
 
-  light->setPosition(position);
   light->setColor(color);
   light->setAmbient(ambient);
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
+
+  if (isDirectionalLight)
+  {
+    // The sliders can reach a zero vector, which a direction can't be
+    if (glm::dot(direction, direction) > 1e-6f)
+    {
+      directionalLight->setDirection(glm::normalize(direction));
+    }
+
+    directionalLight->setShadowCenter(shadowCenter);
+    directionalLight->setShadowHalfExtent(shadowHalfExtent);
+
+    return;
+  }
+
+  light->setPosition(position);
   light->setShadowRange(shadowRange);
 
   // A range in (0, near plane] is invalid; snap it to none

@@ -58,5 +58,19 @@ void main()
     }
   }
 
+  for (int i = 0; i < numDirectionalLights; i++)
+  {
+    DirectionalLight light = directionalLights[i];
+
+    if (facesDirectionalLight(normal, light.direction) && directionalLightShadow(i, fragPos) > 0.5)
+    {
+      result += StandardDirectionalLightAffect(light, albedo, normal, fragPos, camera.position, 32);
+    }
+    else
+    {
+      result += getStandardAmbient(light.ambient, albedo);
+    }
+  }
+
   outColor = vec4(result, 1.0);
 }

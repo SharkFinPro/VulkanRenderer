@@ -5,6 +5,7 @@
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
+  int numDirectionalLights;
 };
 
 layout(set = 1, binding = 1) readonly buffer PointLights {
@@ -13,6 +14,10 @@ layout(set = 1, binding = 1) readonly buffer PointLights {
 
 layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
+};
+
+layout(set = 1, binding = 6) readonly buffer DirectionalLights {
+  DirectionalLight directionalLights[];
 };
 
 layout(location = 0) in vec3 fragPos;
@@ -62,6 +67,11 @@ void main()
   for (int i = 0; i < numSpotLights; i++)
   {
     result += SmokeSpotLightAffect(spotLights[i], fragColor.rgb, fragPos);
+  }
+
+  for (int i = 0; i < numDirectionalLights; i++)
+  {
+    result += SmokeDirectionalLightAffect(directionalLights[i], fragColor.rgb);
   }
 
   outColor = vec4(result, finalMask * fragColor.a);

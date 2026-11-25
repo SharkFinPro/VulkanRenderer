@@ -14,6 +14,7 @@
 #include "../../lighting/LightingManager.h"
 #include "../../lighting/lights/Light.h"
 #include "../../lighting/lights/PointLight.h"
+#include "../../lighting/lights/DirectionalLight.h"
 #include "../../lighting/lights/SpotLight.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
@@ -80,12 +81,13 @@ namespace {
     return light->castsShadows();
   }
 
-  // How many lists the shadow maps need: one per cube face of each point light that casts shadows, one per spot light that
-  // does
+  // How many lists the shadow maps need: one per cube face of each point light that casts shadows, one per spot or
+  // directional light that does
   [[nodiscard]] size_t countShadowLists(const vke::LightingManager& lightingManager)
   {
     return 6 * static_cast<size_t>(std::ranges::count_if(lightingManager.getPointLightsToRender(), castsShadows)) +
-           static_cast<size_t>(std::ranges::count_if(lightingManager.getSpotLightsToRender(), castsShadows));
+           static_cast<size_t>(std::ranges::count_if(lightingManager.getSpotLightsToRender(), castsShadows)) +
+           static_cast<size_t>(std::ranges::count_if(lightingManager.getDirectionalLightsToRender(), castsShadows));
   }
 
   // The camera block of the scene set (SceneCamera in shaders/common/SceneData.glsl)
@@ -146,7 +148,9 @@ namespace vke {
       .pointLightFaceRuns = std::span(m_pointShadowFaceRuns).first(m_pointShadowListCount),
       .spotLightRuns = std::span(m_spotShadowRuns).first(m_spotShadowCount),
       .volumePointLightFaceRuns = std::span(m_volumePointShadowFaceRuns).first(m_pointShadowListCount),
-      .volumeSpotLightRuns = std::span(m_volumeSpotShadowRuns).first(m_spotShadowCount)
+      .volumeSpotLightRuns = std::span(m_volumeSpotShadowRuns).first(m_spotShadowCount),
+      .directionalLightRuns = std::span(m_directionalShadowRuns).first(m_directionalShadowCount),
+      .volumeDirectionalLightRuns = std::span(m_volumeDirectionalShadowRuns).first(m_directionalShadowCount)
     };
 
     lightingManager->renderShadowMaps(commandBuffer, pipelineManager, lists,
@@ -405,7 +409,9 @@ namespace vke {
   {
     offset = buildPointShadowRuns(drawSlots, offset, lightingManager);
 
-    return buildSpotShadowRuns(drawSlots, offset, lightingManager);
+    offset = buildSpotShadowRuns(drawSlots, offset, lightingManager);
+
+    return buildDirectionalShadowRuns(drawSlots, offset, lightingManager);
   }
 
   uint32_t Renderer3D::buildPointShadowRuns(uint32_t* drawSlots,
@@ -501,6 +507,51 @@ namespace vke {
 
       // The matrix the shadow vertex shader multiplies by
       const Frustum lightFrustum = Frustum::fromViewProjection(spotLight->getLightViewProjectionMatrix());
+
+      m_drawItems.clear();
+
+      for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+      {
+        addVisibleDrawItem(lightFrustum, slot, false, 0);
+      }
+
+      offset = buildDrawRuns(m_drawItems, drawSlots, offset, runs);
+
+      offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &lightFrustum,
+                               VolumeFilter::castsShadows, volumeRuns);
+    }
+
+    return offset;
+  }
+
+  uint32_t Renderer3D::buildDirectionalShadowRuns(uint32_t* drawSlots,
+                                                  uint32_t offset,
+                                                  const LightingManager& lightingManager)
+  {
+    m_directionalShadowCount = 0;
+
+    // The order and the filter are the ones LightingManager draws the lists in
+    for (const std::shared_ptr<Light>& light : lightingManager.getDirectionalLightsToRender())
+    {
+      const auto directionalLight = LightingManager::asShadowCastingDirectionalLight(light);
+
+      if (!directionalLight)
+      {
+        continue;
+      }
+
+      if (m_directionalShadowCount == m_directionalShadowRuns.size())
+      {
+        m_directionalShadowRuns.emplace_back();
+        m_volumeDirectionalShadowRuns.emplace_back();
+      }
+
+      std::vector<DrawRun>& volumeRuns = m_volumeDirectionalShadowRuns[m_directionalShadowCount];
+      std::vector<DrawRun>& runs = m_directionalShadowRuns[m_directionalShadowCount++];
+      runs.clear();
+
+      // The matrix the shadow vertex shader multiplies by
+      const Frustum lightFrustum = Frustum::fromViewProjection(directionalLight->getLightViewProjectionMatrix());
 
       m_drawItems.clear();
 
@@ -938,6 +989,7 @@ namespace vke {
 
     m_pointShadowListCount = 0;
     m_spotShadowCount = 0;
+    m_directionalShadowCount = 0;
     m_pickRuns.clear();
     m_pickAlphaTestedRuns.clear();
     m_outlineRuns.clear();

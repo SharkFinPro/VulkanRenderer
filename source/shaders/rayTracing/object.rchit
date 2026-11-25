@@ -57,6 +57,7 @@ layout(binding = 9, set = 0) uniform sampler2D textures[];
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
   int numSpotLights;
+  int numDirectionalLights;
 };
 
 layout(set = 1, binding = 1) readonly buffer PointLights {
@@ -67,9 +68,34 @@ layout(set = 1, binding = 2) readonly buffer SpotLights {
   SpotLight spotLights[];
 };
 
+layout(set = 1, binding = 6) readonly buffer DirectionalLights {
+  DirectionalLight directionalLights[];
+};
+
 layout(set = 1, binding = 3) uniform Camera {
   vec3 position;
 } camera;
+
+// A directional light has no position: the ray along the light vector has no end
+bool isOccludedAlongDirection(vec3 fragPos, vec3 toLight)
+{
+  isShadowed = true;
+  traceRayEXT(
+    tlas,
+    gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+    0x02,
+    0,
+    0,
+    1,
+    fragPos,
+    0.001,
+    toLight,
+    1.0e30,
+    1
+  );
+
+  return isShadowed;
+}
 
 bool isOccluded(vec3 fragPos, vec3 lightPosition)
 {
@@ -159,6 +185,20 @@ void main()
     else
     {
       result += getStandardAmbient(light.ambient, texColor) * attenuation;
+    }
+  }
+
+  for (int i = 0; i < numDirectionalLights; i++)
+  {
+    DirectionalLight light = directionalLights[i];
+
+    if (facesDirectionalLight(fragNormal, light.direction) && !isOccludedAlongDirection(fragPos, -light.direction))
+    {
+      result += SpecularMapDirectionalLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
+    }
+    else
+    {
+      result += getStandardAmbient(light.ambient, texColor);
     }
   }
 
