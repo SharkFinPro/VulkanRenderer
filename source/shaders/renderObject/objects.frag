@@ -24,25 +24,37 @@ void main()
   {
     PointLight light = pointLights[i];
 
+    float attenuation = lightAttenuation(light.range, light.position, fragPos);
+    if (attenuation <= 0.0)
+    {
+      continue;
+    }
+
     if (facesLight(fragNormal, fragPos, light.position) && pointLightShadow(i, fragPos) > 0.1)
     {
       result += SpecularMapPointLightAffect(light, texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
     else
     {
-      result += getStandardAmbient(light.ambient, texColor);
+      result += getStandardAmbient(light.ambient, texColor) * attenuation;
     }
   }
 
   for (int i = 0; i < numSpotLights; i++)
   {
+    float attenuation = lightAttenuation(spotLights[i].range, spotLights[i].position, fragPos);
+    if (attenuation <= 0.0)
+    {
+      continue;
+    }
+
     if (facesLight(fragNormal, fragPos, spotLights[i].position) && spotLightShadow(i, fragPos) > 0.5)
     {
       result += SpecularMapSpotLightAffect(spotLights[i], texColor, specColor, fragNormal, fragPos, camera.position, 32);
     }
     else
     {
-      result += getStandardAmbient(spotLights[i].ambient, texColor);
+      result += getStandardAmbient(spotLights[i].ambient, texColor) * attenuation;
     }
   }
 

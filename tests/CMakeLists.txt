@@ -60,6 +60,10 @@ add_subdirectory(windowPlacement)
 add_test(NAME windowPlacement COMMAND windowPlacement)
 add_dependencies(build_all windowPlacement)
 
+add_subdirectory(lightRange)
+add_test(NAME lightRange COMMAND lightRange)
+add_dependencies(build_all lightRange)
+
 add_subdirectory(pickRequests)
 add_test(NAME pickRequests COMMAND pickRequests)
 add_dependencies(build_all pickRequests)

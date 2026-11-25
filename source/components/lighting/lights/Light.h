@@ -1,6 +1,8 @@
 #ifndef VKE_LIGHT_H
 #define VKE_LIGHT_H
 
+#include "LightRange.h"
+
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan_raii.hpp>
@@ -26,6 +28,7 @@ namespace vke {
     float diffuse;
     float specular;
     float shadowRange;
+    float range; // 0 when the light has no range
   };
 
   struct alignas(16) SpotLightUniform {
@@ -39,13 +42,15 @@ namespace vke {
     float coneAngle;
     float shadowRange;
     int32_t shadowMapIndex; // Into the spot light shadow maps, or -1 when the light has none
+    float range; // 0 when the light has no range
   };
 
   // Both are arrays in shader storage buffers, mirrored by the structs in shaders/common/Lighting.glsl
-  static_assert(sizeof(PointLightUniform) == 432 && offsetof(PointLightUniform, shadowRange) == 428 &&
-                offsetof(PointLightUniform, shadowMapIndex) == 412);
+  static_assert(sizeof(PointLightUniform) == 448 && offsetof(PointLightUniform, shadowRange) == 428 &&
+                offsetof(PointLightUniform, shadowMapIndex) == 412 && offsetof(PointLightUniform, range) == 432);
   static_assert(sizeof(SpotLightUniform) == 128 && offsetof(SpotLightUniform, shadowRange) == 116 &&
-                offsetof(SpotLightUniform, shadowMapIndex) == 120);
+                offsetof(SpotLightUniform, shadowMapIndex) == 120 &&
+                offsetof(SpotLightUniform, range) == 124);
 
   using LightUniform = std::variant<PointLightUniform, SpotLightUniform>;
 
@@ -92,9 +97,19 @@ namespace vke {
 
     [[nodiscard]] vk::Extent2D getShadowMapExtent() const;
 
-    // Distance from the light that its shadow map covers. Fragments beyond it are lit, not shadowed;
-    // the light itself reaches any distance.
+    // Distance the light reaches; 0 means unbounded and unattenuated. With a range the light falls off with inverse
+    // square, windowed smoothly to zero at the range.
+    [[nodiscard]] float getRange() const;
+
+    // Throws std::invalid_argument unless range is 0 or finite and greater than s_shadowNearPlane
+    void setRange(float range);
+
+    // Distance from the light that its shadow map covers, as set. Fragments beyond it are lit, not shadowed.
     [[nodiscard]] float getShadowRange() const;
+
+    // The shadow range clamped to the light's range, since shadows beyond where the light reaches would never be
+    // seen; what the shadow projections, the caster culling and the shaders use
+    [[nodiscard]] float getEffectiveShadowRange() const;
 
     // Throws std::invalid_argument unless range is finite and greater than s_shadowNearPlane
     void setShadowRange(float range);
@@ -114,6 +129,7 @@ namespace vke {
 
     bool m_castsShadows = true;
     float m_shadowRange = s_defaultShadowRange;
+    float m_range = 0.0f;
     vk::Extent2D m_shadowMapExtent = {
       1024,
       1024

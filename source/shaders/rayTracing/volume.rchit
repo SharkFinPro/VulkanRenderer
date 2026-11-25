@@ -122,13 +122,19 @@ void main()
   {
     const PointLight light = pointLights[i];
 
+    float attenuation = lightAttenuation(light.range, light.position, fragPos);
+    if (attenuation <= 0.0)
+    {
+      continue;
+    }
+
     if (facesLight(normal, fragPos, light.position) && !isOccluded(fragPos, normal, light.position))
     {
       result += StandardPointLightAffect(light, albedo, normal, fragPos, camera.position, 32);
     }
     else
     {
-      result += getStandardAmbient(light.ambient, albedo);
+      result += getStandardAmbient(light.ambient, albedo) * attenuation;
     }
   }
 
@@ -136,13 +142,19 @@ void main()
   {
     const SpotLight light = spotLights[i];
 
+    float attenuation = lightAttenuation(light.range, light.position, fragPos);
+    if (attenuation <= 0.0)
+    {
+      continue;
+    }
+
     if (facesLight(normal, fragPos, light.position) && !isOccluded(fragPos, normal, light.position))
     {
       result += StandardSpotLightAffect(light, albedo, normal, fragPos, camera.position, 32);
     }
     else
     {
-      result += getStandardAmbient(light.ambient, albedo);
+      result += getStandardAmbient(light.ambient, albedo) * attenuation;
     }
   }
 

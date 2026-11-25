@@ -31,7 +31,8 @@ namespace vke {
       .ambient = m_ambient,
       .diffuse = m_diffuse,
       .specular = m_specular,
-      .shadowRange = m_shadowRange
+      .shadowRange = getEffectiveShadowRange(),
+      .range = m_range
     };
   }
 
@@ -41,7 +42,7 @@ namespace vke {
     glm::mat4 projection = glm::perspective(
       glm::radians(90.0f),
       1.0f,
-      m_shadowRange,
+      getEffectiveShadowRange(),
       s_shadowNearPlane
     );
 

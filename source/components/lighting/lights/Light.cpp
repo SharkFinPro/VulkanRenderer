@@ -73,9 +73,29 @@ namespace vke {
     return m_shadowMapExtent;
   }
 
+  float Light::getRange() const
+  {
+    return m_range;
+  }
+
+  void Light::setRange(const float range)
+  {
+    if (!isValidLightRange(range, s_shadowNearPlane))
+    {
+      throw std::invalid_argument("Light::setRange: the range must be 0 or finite and greater than the shadow near plane");
+    }
+
+    m_range = range;
+  }
+
   float Light::getShadowRange() const
   {
     return m_shadowRange;
+  }
+
+  float Light::getEffectiveShadowRange() const
+  {
+    return effectiveShadowRange(m_shadowRange, m_range);
   }
 
   void Light::setShadowRange(const float range)

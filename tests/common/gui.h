@@ -95,6 +95,7 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
   float diffuse = light->getDiffuse();
   float specular = light->getSpecular();
   float shadowRange = light->getShadowRange();
+  float range = light->getRange();
   bool isSpotLight = light->getLightType() == vke::LightType::spotLight;
 
   if (isSpotLight)
@@ -118,6 +119,7 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
     ImGui::SliderFloat3("Direction", value_ptr(direction), -1.0f, 1.0f);
     ImGui::SliderFloat("Cone Angle", &coneAngle, 0.0f, 180.0f);
     ImGui::SliderFloat("Shadow Range", &shadowRange, 1.0f, 2000.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::SliderFloat("Range (0 = none)", &range, 0.0f, 200.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::Separator();
   }
 
@@ -129,6 +131,13 @@ inline void displayLightGui(const std::shared_ptr<vke::Light>& light,
   light->setDiffuse(diffuse);
   light->setSpecular(specular);
   light->setShadowRange(shadowRange);
+
+  // A range in (0, near plane] is invalid; snap it to none
+  if (range != light->getRange())
+  {
+    light->setRange(vke::isValidLightRange(range, vke::Light::s_shadowNearPlane) ? range : 0.0f);
+  }
+
   if (isSpotLight)
   {
     spotLight->setDirection(direction);

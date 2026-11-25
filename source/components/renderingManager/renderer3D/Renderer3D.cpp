@@ -426,7 +426,7 @@ namespace vke {
 
       // The submissions within the shadow range; each face draws those of them in its frustum
       const glm::vec3 position = pointLight->getPosition();
-      const float range = pointLight->getShadowRange();
+      const float range = pointLight->getEffectiveShadowRange();
 
       m_shadowCandidates.clear();
 
