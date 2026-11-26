@@ -251,14 +251,23 @@ vec3 directionalCascadeLookup(int i, int c, vec3 fragPos, vec3 normal)
                               directionalLights[i].cascadeTexelSizes[c], directionalLights[i].shadowBias.xyz);
 }
 
-// A world position in the clip space of cascade c: xy mapped to [0, 1], z the depth
+// A world position in the clip space of cascade c: xy mapped to [0, 1], z the depth. The cascade projection is
+// orthographic with a rigid view (fitShadowCascade), so w is 1 and needs no divide, and the mapping is affine: a world
+// offset moves the coordinates by directionalCascadeMapVector of it, whatever the position it is added to.
 vec3 directionalCascadeCoords(int i, int c, vec3 lookup)
 {
-  vec4 clip = directionalLights[i].cascadeViewProjections[c] * vec4(lookup, 1.0);
-  vec3 coords = clip.xyz / clip.w;
+  vec3 coords = (directionalLights[i].cascadeViewProjections[c] * vec4(lookup, 1.0)).xyz;
   coords.xy = coords.xy * 0.5 + 0.5;
 
   return coords;
+}
+
+// A world space vector (an offset, not a position) in the coordinates of cascade c, as directionalCascadeCoords maps
+vec3 directionalCascadeMapVector(int i, int c, vec3 v)
+{
+  vec3 mapped = mat3(directionalLights[i].cascadeViewProjections[c]) * v;
+
+  return vec3(mapped.xy * 0.5, mapped.z);
 }
 
 bool insideUnitCube(vec3 coords)
@@ -275,9 +284,8 @@ float directionalShadowSample(int shadowMap, int c, vec3 coords)
   return textureLod(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), coords.z), 0.0);
 }
 
-// The filtered lit fraction in cascade c, given the lookup position and its coordinates there
-float directionalCascadeShadow(int i, int shadowMap, int c, vec3 lookup, vec3 coords, vec3 t, vec3 b, vec2 rotation,
-                               vec3 normal)
+// The filtered lit fraction in cascade c, given the lookup position's coordinates there
+float directionalCascadeShadow(int i, int shadowMap, int c, vec3 coords, vec3 t, vec3 b, vec2 rotation, vec3 normal)
 {
   float radius = directionalLights[i].shadowFilter.x;
 
@@ -288,13 +296,19 @@ float directionalCascadeShadow(int i, int shadowMap, int c, vec3 lookup, vec3 co
 
   float scale = radius * directionalLights[i].cascadeTexelSizes[c];
   ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, -directionalLights[i].direction);
+
+  // A tap's offset is linear in the frame's vectors and the cascade mapping is affine, so map the three vectors once and
+  // each tap's offset comes out in map coordinates, added to the lookup's own, instead of a matrix multiply per tap. The
+  // slide and its clamp are scalars, so they carry over unchanged.
+  frame.t = directionalCascadeMapVector(i, c, frame.t);
+  frame.b = directionalCascadeMapVector(i, c, frame.b);
+  frame.toLight = directionalCascadeMapVector(i, c, frame.toLight);
+
   float sum = 0.0;
 
   for (int tap = 0; tap < shadowFilterTaps; tap++)
   {
-    vec3 tapOffset = shadowFilterOffset(tap, frame);
-    vec3 tapCoords = directionalCascadeCoords(i, c, lookup + tapOffset);
-    sum += directionalShadowSample(shadowMap, c, tapCoords);
+    sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(tap, frame));
   }
 
   return sum / float(shadowFilterTaps);
@@ -337,7 +351,7 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
       continue;
     }
 
-    float shadow = directionalCascadeShadow(i, shadowMap, c, lookup, coords, t, b, rotation, normal);
+    float shadow = directionalCascadeShadow(i, shadowMap, c, coords, t, b, rotation, normal);
 
     // Near the edge of the cascade, blend toward the next one so the change of resolution isn't a visible line
     const float blendWidth = 0.05;
@@ -350,8 +364,7 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
 
       if (insideUnitCube(nextCoords))
       {
-        float nextShadow = directionalCascadeShadow(i, shadowMap, c + 1, nextLookup, nextCoords, t, b, rotation,
-                                                     normal);
+        float nextShadow = directionalCascadeShadow(i, shadowMap, c + 1, nextCoords, t, b, rotation, normal);
 
         shadow = mix(nextShadow, shadow, edge / blendWidth);
       }

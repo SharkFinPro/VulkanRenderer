@@ -438,6 +438,12 @@ namespace {
 
           check(finite(fitted.viewProjection) && std::isfinite(fitted.texelSize) && fitted.texelSize > 0.0f,
                 "the matrix and texel size are finite (" + c.name + ")");
+
+          // The shader's tap filter maps world offsets through the matrix's 3x3 part alone and skips the divide
+          // (directionalCascadeMapVector in SceneLighting.glsl), which holds only while the projection stays affine
+          const glm::mat4& m = fitted.viewProjection;
+          check(m[0][3] == 0.0f && m[1][3] == 0.0f && m[2][3] == 0.0f && m[3][3] == 1.0f,
+                "the cascade projection is affine, so w is 1 (" + c.name + ")");
         }
       }
     }
