@@ -346,8 +346,8 @@ namespace vke {
     std::vector<DrawRun> m_pickAlphaTestedRuns;
     std::vector<DrawRun> m_outlineRuns;
 
-    // The volume surfaces' chunks as runs, by mesh: the main pass (culled against the camera), the pickable surfaces and
-    // the outlines.
+    // The volume surfaces' chunks as runs, by mesh: the main pass (culled against the camera, and drawn nearest first),
+    // the pickable surfaces and the outlines.
     std::vector<DrawRun> m_volumeRuns;
     std::vector<DrawRun> m_volumePickRuns;
     std::vector<DrawRun> m_volumeOutlineRuns;
@@ -378,6 +378,9 @@ namespace vke {
 
     // Scratch reused by every list build
     std::vector<DrawItem> m_drawItems;
+
+    // Scratch for ordering the scene pass's volume chunk runs front to back
+    std::vector<std::pair<float, DrawRun>> m_runOrderScratch;
 
     // By object table slot (submissions, then outlines): the world-space bounds of the slot's model
     std::vector<AABB> m_slotBounds;
@@ -578,14 +581,16 @@ namespace vke {
                                             const Frustum& camera);
 
     // Builds runs from the chunks of the volume draws [firstDraw, firstDraw + drawCount) that pass the filter and, unless
-    // frustum is null, touch it. Clears runs first.
+    // frustum is null, touch it. Clears runs first. With an eye, each item carries its chunk's squared distance from it,
+    // for sortRunsFrontToBack (on m_drawItems, which this leaves as buildDrawRuns sorted it).
     [[nodiscard]] uint32_t buildVolumeRuns(uint32_t* drawSlots,
                                            uint32_t offset,
                                            size_t firstDraw,
                                            size_t drawCount,
                                            const Frustum* frustum,
                                            VolumeFilter filter,
-                                           std::vector<DrawRun>& runs);
+                                           std::vector<DrawRun>& runs,
+                                           const glm::vec3* eye = nullptr);
 
     [[nodiscard]] const VolumeSurfaceDraw& getVolumeDraw(size_t index) const;
 

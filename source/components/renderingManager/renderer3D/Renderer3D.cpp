@@ -347,7 +347,15 @@ namespace vke {
 
     offset = buildPipelineRuns(drawSlots, offset, camera);
 
-    offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &camera, VolumeFilter::all, m_volumeRuns);
+    // The scene pass's chunks are drawn nearest first: their lit fragment shader (with its shadow lookups) is most of the
+    // frame, and each chunk is its own draw, so the order costs nothing, while the grouping order (by mesh address) has
+    // no relation to depth and shaded the fragments of chunks that nearer ones then hid
+    const glm::vec3 eye(glm::inverse(cascadeCamera.view)[3]);
+    const uint32_t sceneVolumeOffset = offset;
+
+    offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &camera, VolumeFilter::all, m_volumeRuns,
+                             &eye);
+    sortRunsFrontToBack(m_drawItems, sceneVolumeOffset, m_volumeRuns, m_runOrderScratch);
 
     m_volumeChunkCounts.drawn = 0;
 
@@ -373,7 +381,8 @@ namespace vke {
                                        const size_t drawCount,
                                        const Frustum* frustum,
                                        const VolumeFilter filter,
-                                       std::vector<DrawRun>& runs)
+                                       std::vector<DrawRun>& runs,
+                                       const glm::vec3* eye)
   {
     m_drawItems.clear();
     runs.clear();
@@ -396,7 +405,16 @@ namespace vke {
 
         if (!frustum || frustum->intersects(chunk.worldBounds))
         {
-          m_drawItems.push_back({ nullptr, nullptr, draw.maskValue, chunks.slot, chunk.mesh });
+          float distance = 0.0f;
+
+          if (eye)
+          {
+            // To the nearest point of the bounds, so a large chunk the camera is in or beside comes first
+            const glm::vec3 toBounds = glm::clamp(*eye, chunk.worldBounds.min, chunk.worldBounds.max) - *eye;
+            distance = glm::dot(toBounds, toBounds);
+          }
+
+          m_drawItems.push_back({ nullptr, nullptr, draw.maskValue, chunks.slot, chunk.mesh, distance });
         }
       }
     }

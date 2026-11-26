@@ -202,10 +202,51 @@ namespace {
     }
   }
 
+  // The scene pass's chunk runs drawn nearest first: each run moves whole, with the slots it was built with, and a run
+  // shared by two items sorts by the nearer of them
+  void checkFrontToBack()
+  {
+    // Offset 4, as for a list built after others. mesh(0) is shared: one item far, one nearest of all.
+    std::vector<vke::DrawItem> items {
+      { nullptr, nullptr, 0, 10, mesh(2), 9.0f },
+      { nullptr, nullptr, 0, 11, mesh(0), 25.0f },
+      { nullptr, nullptr, 0, 12, mesh(1), 4.0f },
+      { nullptr, nullptr, 0, 13, mesh(0), 1.0f }
+    };
+    std::vector<vke::DrawRun> runs;
+    std::array<uint32_t, 8> slots {};
+    std::vector<std::pair<float, vke::DrawRun>> scratch;
+
+    [[maybe_unused]] const uint32_t end = vke::buildDrawRuns(items, slots.data(), 4, runs);
+    vke::sortRunsFrontToBack(items, 4, runs, scratch);
+
+    check(runs.size() == 3 && runs[0].mesh == mesh(0) && runs[1].mesh == mesh(1) && runs[2].mesh == mesh(2),
+          "runs are ordered by their nearest item");
+    check(runs.size() == 3 && runs[0].instanceCount == 2 && slots[runs[0].firstInstance] == 11 &&
+          slots[runs[0].firstInstance + 1] == 13, "a moved run keeps its instances and slots");
+    check(runs.size() == 3 && slots[runs[1].firstInstance] == 12 && slots[runs[2].firstInstance] == 10,
+          "every run still points at its own slot");
+
+    // Equal distances keep the grouping order
+    std::vector<vke::DrawItem> tied {
+      { nullptr, nullptr, 0, 1, mesh(1), 2.0f },
+      { nullptr, nullptr, 0, 2, mesh(0), 2.0f }
+    };
+    std::vector<vke::DrawRun> tiedRuns;
+
+    [[maybe_unused]] const uint32_t tiedEnd = vke::buildDrawRuns(tied, slots.data(), 0, tiedRuns);
+    const std::vector<vke::DrawRun> grouped = tiedRuns;
+    vke::sortRunsFrontToBack(tied, 0, tiedRuns, scratch);
+
+    check(tiedRuns.size() == 2 && tiedRuns[0].firstInstance == grouped[0].firstInstance &&
+          tiedRuns[1].firstInstance == grouped[1].firstInstance, "runs at equal distances keep the grouping order");
+  }
+
 } // namespace
 
 int main()
 {
+  checkFrontToBack();
   checkEmpty();
   checkGroupsByModel();
   checkGroupsByMaterialThenModel();

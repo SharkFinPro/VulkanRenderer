@@ -2,6 +2,7 @@
 #define VKE_DRAWRUN_H
 
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 namespace vke {
@@ -19,6 +20,9 @@ namespace vke {
     uint32_t slot;
     // Set instead of the model for a volume surface chunk
     const Mesh* mesh = nullptr;
+    // Squared distance from the camera to the item's world bounds, where a list orders its runs front to back
+    // (sortRunsFrontToBack); not a grouping key
+    float distance = 0.0f;
   };
 
   // A run of draws with equal keys, drawn with one instanced draw. firstInstance is the run's offset into the frame's
@@ -40,6 +44,15 @@ namespace vke {
                                        uint32_t* drawSlots,
                                        uint32_t offset,
                                        std::vector<DrawRun>& runs);
+
+  // Reorders runs, just built by buildDrawRuns from items (still in the order it left them, its slots written from offset),
+  // nearest first by the smallest distance among each run's items. An opaque, depth-tested list drawn this way lets the
+  // early depth test reject what the nearer runs hide before it is shaded, where the grouping order is unrelated to depth.
+  // The runs' slots are unchanged, so each run still draws the same instances. scratch is reused storage.
+  void sortRunsFrontToBack(const std::vector<DrawItem>& items,
+                           uint32_t offset,
+                           std::vector<DrawRun>& runs,
+                           std::vector<std::pair<float, DrawRun>>& scratch);
 
 } // namespace vke
 
