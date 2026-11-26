@@ -251,6 +251,42 @@ namespace {
     }
 
     check(tangents > 0 && tangentsMatch, "the shader clamps the slide with the mirror's tangent");
+
+    check(source.find("const ivec2 shadowFilterEarlyTaps = ivec2(" + std::to_string(vke::s_shadowFilterFirstEarlyTap) +
+                      ", " + std::to_string(vke::s_shadowFilterLastEarlyTap) + ");") != std::string::npos,
+          "the shader takes the mirror's early taps first");
+  }
+
+  // The early taps stand in for the whole disc where they agree, so they must be four points on its rim, spread around it:
+  // no gap between neighbors wider than a third of the circle
+  void testEarlyTaps()
+  {
+    check(vke::s_shadowFilterLastEarlyTap - vke::s_shadowFilterFirstEarlyTap + 1 == 4 &&
+          vke::s_shadowFilterFirstEarlyTap >= 0 && vke::s_shadowFilterLastEarlyTap < vke::s_shadowFilterTaps,
+          "there are four early taps, all in the disc");
+
+    std::vector<float> angles;
+    bool onRim = true;
+
+    for (int tap = vke::s_shadowFilterFirstEarlyTap; tap <= vke::s_shadowFilterLastEarlyTap; ++tap)
+    {
+      const glm::vec2 d = vke::s_shadowFilterDisc[static_cast<size_t>(tap)];
+      onRim = onRim && glm::length(d) > 0.85f;
+      angles.push_back(std::atan2(d.y, d.x));
+    }
+
+    std::sort(angles.begin(), angles.end());
+
+    float widestGap = 0.0f;
+
+    for (size_t k = 0; k < angles.size(); ++k)
+    {
+      const float next = k + 1 < angles.size() ? angles[k + 1] : angles.front() + 2.0f * 3.14159265f;
+      widestGap = std::max(widestGap, next - angles[k]);
+    }
+
+    check(onRim, "the early taps lie on the disc's rim");
+    check(widestGap < 2.0f * 3.14159265f / 3.0f, "the early taps spread around the rim");
   }
 
   // Taps slid onto the receiver's plane: they lie in it, they moved only along the light (so they still land on the same
@@ -366,6 +402,7 @@ int main()
   testNoise();
   testValidity();
   testShaderMatchesMirror();
+  testEarlyTaps();
 
   std::cout << g_checks << " checks, " << g_failures << " failures\n";
 

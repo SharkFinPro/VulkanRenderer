@@ -44,6 +44,15 @@ const vec2 shadowFilterDisc[shadowFilterTaps] = vec2[shadowFilterTaps](
   vec2(-0.425273, -0.058974), vec2(-0.046156, 0.544012), vec2(0.855842, -0.370545), vec2(0.386474, 0.335194),
   vec2(0.054615, 0.958519), vec2(0.410468, -0.288637), vec2(-0.934812, -0.243051), vec2(-0.321681, -0.880796));
 
+// Early out, in every light's filter: most of the screen is wholly lit or wholly in shadow, where all 16 taps agree, so
+// the four taps on the disc's rim go first (disc points 1 to 4, spread around it no more than 109 degrees apart), and only
+// where they disagree, the penumbra, are the other twelve taken. A comparison sample is exactly 0 or 1 only when all four
+// texels it filters agree, so 0 or 4 from the rim taps means every texel they read agrees. Penumbra pixels still take all
+// 16 and give the same result as without it; a wholly lit or shadowed one could differ only where a shadow feature
+// narrower than the disc falls between the rim taps without touching any of them. These are the first and last of them;
+// ShadowFilter.h mirrors the range and its headless test checks their spread.
+const ivec2 shadowFilterEarlyTaps = ivec2(1, 4);
+
 // A value in [0, 1) that varies from pixel to pixel
 float interleavedGradientNoise(vec2 fragCoord)
 {
@@ -182,9 +191,23 @@ float pointLightShadow(int i, vec3 fragPos, vec3 normal)
   vec2 rotation = shadowFilterRotation();
   float scale = radius * texel;
   ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
+  // The rim taps first, and the rest only in the penumbra (shadowFilterEarlyTaps). A tap past the shadow range returns
+  // exactly 1, so it takes part in the test like any other.
   float sum = 0.0;
 
-  [[unroll]] for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.x; tap <= shadowFilterEarlyTaps.y; tap++)
+  {
+    sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
+  }
+
+  if (sum == 0.0 || sum == 4.0)
+  {
+    return sum * 0.25;
+  }
+
+  sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(0, frame));
+
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.y + 1; tap < shadowFilterTaps; tap++)
   {
     sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
@@ -238,9 +261,23 @@ float spotLightShadow(int i, vec3 fragPos, vec3 normal)
   vec2 rotation = shadowFilterRotation();
   float scale = radius * texel;
   ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
+  // The rim taps first, and the rest only in the penumbra (shadowFilterEarlyTaps). A tap past the shadow range returns
+  // exactly 1, so it takes part in the test like any other.
   float sum = 0.0;
 
-  [[unroll]] for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.x; tap <= shadowFilterEarlyTaps.y; tap++)
+  {
+    sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
+  }
+
+  if (sum == 0.0 || sum == 4.0)
+  {
+    return sum * 0.25;
+  }
+
+  sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(0, frame));
+
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.y + 1; tap < shadowFilterTaps; tap++)
   {
     sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
@@ -326,9 +363,22 @@ float directionalCascadeShadow(int i, int shadowMap, int c, vec3 coords, Directi
   frame.b *= mapScale;
   frame.toLight *= mapScale;
 
+  // The rim taps first, and the rest only in the penumbra (shadowFilterEarlyTaps)
   float sum = 0.0;
 
-  [[unroll]] for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.x; tap <= shadowFilterEarlyTaps.y; tap++)
+  {
+    sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(tap, frame));
+  }
+
+  if (sum == 0.0 || sum == 4.0)
+  {
+    return sum * 0.25;
+  }
+
+  sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(0, frame));
+
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.y + 1; tap < shadowFilterTaps; tap++)
   {
     sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(tap, frame));
   }

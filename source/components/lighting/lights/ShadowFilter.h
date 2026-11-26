@@ -40,6 +40,12 @@ namespace vke {
     { -0.321681f, -0.880796f }
   } };
 
+  // Must match shadowFilterEarlyTaps in shaders/common/SceneLighting.glsl.
+  // Every light's filter takes these disc points first (first to last, inclusive) and the rest only where they disagree,
+  // so they must lie on the rim and spread around it
+  inline constexpr int s_shadowFilterFirstEarlyTap = 1;
+  inline constexpr int s_shadowFilterLastEarlyTap = 4;
+
   // The widest filter a light takes, in texels; far past any useful softness, and it keeps radius * texel finite
   inline constexpr float s_maxShadowFilterRadius = 64.0f;
 
