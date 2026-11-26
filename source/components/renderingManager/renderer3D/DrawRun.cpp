@@ -13,43 +13,48 @@ namespace vke {
              a.maskValue == b.maskValue;
     }
 
-    [[nodiscard]] bool drawsBefore(const DrawItem& a,
-                                   const DrawItem& b)
+  } // namespace
+
+  bool drawsBefore(const DrawItem& a,
+                   const DrawItem& b)
+  {
+    // std::less, since < on pointers to unrelated objects is unspecified
+    constexpr std::less<const void*> pointerLess;
+
+    if (a.maskValue != b.maskValue)
     {
-      // std::less, since < on pointers to unrelated objects is unspecified
-      constexpr std::less<const void*> pointerLess;
-
-      if (a.maskValue != b.maskValue)
-      {
-        return a.maskValue < b.maskValue;
-      }
-
-      if (a.material != b.material)
-      {
-        return pointerLess(a.material, b.material);
-      }
-
-      if (a.mesh != b.mesh)
-      {
-        return pointerLess(a.mesh, b.mesh);
-      }
-
-      if (a.model != b.model)
-      {
-        return pointerLess(a.model, b.model);
-      }
-
-      return a.slot < b.slot;
+      return a.maskValue < b.maskValue;
     }
 
-  } // namespace
+    if (a.material != b.material)
+    {
+      return pointerLess(a.material, b.material);
+    }
+
+    if (a.mesh != b.mesh)
+    {
+      return pointerLess(a.mesh, b.mesh);
+    }
+
+    if (a.model != b.model)
+    {
+      return pointerLess(a.model, b.model);
+    }
+
+    return a.slot < b.slot;
+  }
 
   uint32_t buildDrawRuns(std::vector<DrawItem>& items,
                          uint32_t* drawSlots,
                          const uint32_t offset,
                          std::vector<DrawRun>& runs)
   {
-    std::ranges::sort(items, drawsBefore);
+    // Lists cut from an order sorted once per frame (Renderer3D) arrive sorted, and checking is linear where sorting
+    // again is not
+    if (!std::ranges::is_sorted(items, drawsBefore))
+    {
+      std::ranges::sort(items, drawsBefore);
+    }
 
     uint32_t next = offset;
 

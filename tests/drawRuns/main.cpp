@@ -1,5 +1,6 @@
 // Headless checks of buildDrawRuns, which groups a pass's draws into instanced runs. No engine, no GPU: ctest runs this.
 #include "source/components/renderingManager/renderer3D/DrawRun.h"
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <iostream>
@@ -242,11 +243,59 @@ namespace {
           tiedRuns[1].firstInstance == grouped[1].firstInstance, "runs at equal distances keep the grouping order");
   }
 
+  // Renderer3D sorts each frame's candidates once with drawsBefore and cuts every list from that order: a list cut from it
+  // must give exactly what sorting it gives, and a list in any other order is still sorted
+  void checkPresortedInput()
+  {
+    const std::vector<vke::DrawItem> candidates {
+      { model(2), nullptr, 0, 0 },
+      { model(0), nullptr, 0, 1 },
+      { nullptr, nullptr, 0, 7, mesh(1) },
+      { model(2), nullptr, 0, 3 },
+      { model(1), nullptr, 0, 4 },
+      { nullptr, nullptr, 0, 6, mesh(0) },
+      { model(0), nullptr, 0, 5 }
+    };
+
+    std::vector<vke::DrawItem> presorted = candidates;
+    std::ranges::sort(presorted, vke::drawsBefore);
+
+    // A subset in the presorted order, as a culled list is
+    std::vector<vke::DrawItem> cut;
+    for (size_t i = 0; i < presorted.size(); i += 2)
+    {
+      cut.push_back(presorted[i]);
+    }
+
+    std::vector<vke::DrawItem> shuffled(cut.rbegin(), cut.rend());
+
+    std::vector<vke::DrawRun> cutRuns;
+    std::vector<vke::DrawRun> shuffledRuns;
+    std::array<uint32_t, 8> cutSlots {};
+    std::array<uint32_t, 8> shuffledSlots {};
+
+    [[maybe_unused]] const uint32_t cutEnd = vke::buildDrawRuns(cut, cutSlots.data(), 0, cutRuns);
+    [[maybe_unused]] const uint32_t shuffledEnd = vke::buildDrawRuns(shuffled, shuffledSlots.data(), 0, shuffledRuns);
+
+    bool sameRuns = cutRuns.size() == shuffledRuns.size();
+
+    for (size_t i = 0; sameRuns && i < cutRuns.size(); ++i)
+    {
+      sameRuns = cutRuns[i].model == shuffledRuns[i].model && cutRuns[i].mesh == shuffledRuns[i].mesh &&
+                 cutRuns[i].firstInstance == shuffledRuns[i].firstInstance &&
+                 cutRuns[i].instanceCount == shuffledRuns[i].instanceCount;
+    }
+
+    check(sameRuns && cutSlots == shuffledSlots, "a list cut from the presorted order gives what sorting it gives");
+    check(std::ranges::is_sorted(shuffled, vke::drawsBefore), "a list in any other order is still sorted");
+  }
+
 } // namespace
 
 int main()
 {
   checkFrontToBack();
+  checkPresortedInput();
   checkEmpty();
   checkGroupsByModel();
   checkGroupsByMaterialThenModel();

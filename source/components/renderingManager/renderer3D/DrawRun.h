@@ -36,10 +36,16 @@ namespace vke {
     const Mesh* mesh = nullptr;
   };
 
-  // Sorts the items by (maskValue, material, mesh, model, slot), writes their slots to drawSlots starting at offset, and
-  // appends one run per distinct (maskValue, material, mesh, model) to runs. Returns the offset after the last slot written.
-  // The slot is the last key, so the order within a run is the submission order without a stable sort, which would
-  // allocate.
+  // The order buildDrawRuns sorts items into: (maskValue, material, mesh, model, slot), pointers by std::less. A caller
+  // building many lists from the same candidates can sort them once with it, and buildDrawRuns then finds each list
+  // already in order.
+  [[nodiscard]] bool drawsBefore(const DrawItem& a,
+                                 const DrawItem& b);
+
+  // Sorts the items by (maskValue, material, mesh, model, slot) unless they already are in that order (drawsBefore),
+  // writes their slots to drawSlots starting at offset, and appends one run per distinct (maskValue, material, mesh, model)
+  // to runs. Returns the offset after the last slot written. The slot is the last key, so the order within a run is the
+  // submission order without a stable sort, which would allocate.
   [[nodiscard]] uint32_t buildDrawRuns(std::vector<DrawItem>& items,
                                        uint32_t* drawSlots,
                                        uint32_t offset,

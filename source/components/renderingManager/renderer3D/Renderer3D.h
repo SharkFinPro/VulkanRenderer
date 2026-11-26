@@ -440,6 +440,19 @@ namespace vke {
     std::vector<VolumeDrawChunks> m_volumeDrawChunks;
     std::vector<VolumeChunk> m_volumeChunks;
 
+    // The frame's draw candidates in the order buildDrawRuns sorts a list into (drawsBefore), sorted once by
+    // sortDrawCandidates: the render submissions' slots as a list that groups by model alone keys them (the shadow lists),
+    // and the submitted surfaces' chunks, by draw and chunk index. Every list cut from them in this order arrives sorted,
+    // so the dozen or more lists built from the same candidates each frame (four per directional light, six per point
+    // light, the scene and picking lists) don't each sort again.
+    struct VolumeChunkRef {
+      uint32_t draw;
+      uint32_t chunk;
+    };
+
+    std::vector<uint32_t> m_slotsByModel;
+    std::vector<VolumeChunkRef> m_volumeChunkOrder;
+
     // The displayed chunks of the submitted surfaces, unculled, for the ray tracer's TLAS; empty without ray tracing
     std::vector<TracedVolumeChunk> m_tracedVolumeChunks;
 
@@ -593,6 +606,9 @@ namespace vke {
                                            const glm::vec3* eye = nullptr);
 
     [[nodiscard]] const VolumeSurfaceDraw& getVolumeDraw(size_t index) const;
+
+    // Fills m_slotsByModel and m_volumeChunkOrder for this frame's submissions; before any list is built
+    void sortDrawCandidates();
 
     [[nodiscard]] DrawItem makeDrawItem(uint32_t slot,
                                         bool byMaterial,
