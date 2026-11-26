@@ -336,9 +336,17 @@ bool insideUnitCube(vec3 coords)
 // non-uniform control flow, where implicit derivatives are undefined. An explicit lod, not explicit gradients: a gradient
 // sample is issued at a fraction of the texture unit's rate (and carries four more operands), which made these 16 taps
 // most of the frame, while a lod sample is full rate and filters the same single level identically.
+//
+// The reference depth is clamped to the cascade's far plane. A filter tap slides along the light onto the receiver's plane,
+// so a tap of a fragment just inside the cascade can land past it, at a depth above 1; nothing past the far plane is in
+// the map (the texel holds the clear depth, 1, or a nearer occluder), and a D32 float map doesn't clamp the reference
+// itself, so such a tap compared above 1 failed against every texel and read as shadowed, a dark line along the terrain
+// where each cascade's far plane cuts it. Clamped, it is lit unless something in the map is in front of it, as the point
+// and spot lookups treat taps past their shadow range.
 float directionalShadowSample(int shadowMap, int c, vec3 coords)
 {
-  return textureLod(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), coords.z), 0.0);
+  return textureLod(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), min(coords.z, 1.0)),
+                    0.0);
 }
 
 // The filtered lit fraction in cascade c, given the lookup's coordinates there

@@ -16,9 +16,13 @@ void main()
 {
   const vec3 albedo = volumePaletteAlbedo(fragMaterial);
 
-  // Drawn double-sided, and caves are seen from inside
+  // Drawn double-sided, so a back face (the surface seen from inside the solid) is lit as its other side. Which side is
+  // in view is the rasterizer's to say: the meshes wind consistently, outward faces front. Judging it from the shading
+  // normal instead misfires where that normal leans away from the camera on a face that is in front of it (a thin lip,
+  // whose interpolated normals bend around it): the normal was flipped to face away from every light, which left a line
+  // of ambient-only, nearly black pixels along the lip.
   vec3 normal = normalize(fragNormal);
-  if (dot(normal, camera.position - fragPos) < 0.0)
+  if (!gl_FrontFacing)
   {
     normal = -normal;
   }
