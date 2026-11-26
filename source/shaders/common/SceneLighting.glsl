@@ -1,5 +1,6 @@
 // The lighting set (set 2) of the lit object pipelines and the shadow lookups on it. The including shader enables
-// GL_EXT_nonuniform_qualifier and GL_GOOGLE_include_directive.
+// GL_EXT_nonuniform_qualifier, GL_EXT_texture_shadow_lod (textureLod on the directional maps' array shadow sampler) and
+// GL_GOOGLE_include_directive.
 #include "Lighting.glsl"
 
 layout(set = 2, binding = 0) uniform PointLightsMetadata {
@@ -239,12 +240,13 @@ bool insideUnitCube(vec3 coords)
   return all(greaterThanEqual(coords, vec3(0.0))) && all(lessThanEqual(coords, vec3(1.0)));
 }
 
-// One comparison sample of layer c of the directional light's map. Explicit zero gradients: the map has one level, and
-// this runs in non-uniform control flow, where implicit derivatives are undefined.
+// One comparison sample of layer c of the directional light's map, at level 0: the map has one level, and this runs in
+// non-uniform control flow, where implicit derivatives are undefined. An explicit lod, not explicit gradients: a gradient
+// sample is issued at a fraction of the texture unit's rate (and carries four more operands), which made these 16 taps
+// most of the frame, while a lod sample is full rate and filters the same single level identically.
 float directionalShadowSample(int shadowMap, int c, vec3 coords)
 {
-  return textureGrad(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), coords.z),
-                     vec2(0.0), vec2(0.0));
+  return textureLod(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), coords.z), 0.0);
 }
 
 // The filtered lit fraction in cascade c, given the lookup position and its coordinates there

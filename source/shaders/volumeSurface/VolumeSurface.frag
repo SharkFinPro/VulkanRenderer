@@ -1,6 +1,7 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_texture_shadow_lod : require
 #include "../common/SceneLighting.glsl"
 #include "../common/VolumePalette.glsl"
 
