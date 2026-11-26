@@ -346,8 +346,8 @@ namespace vke {
     std::vector<DrawRun> m_pickAlphaTestedRuns;
     std::vector<DrawRun> m_outlineRuns;
 
-    // The volume surfaces' chunks as runs, by mesh: the main pass (culled against the camera), the pickable surfaces and
-    // the outlines.
+    // The volume surfaces' chunks as runs, by mesh: the main pass (culled against the camera, and drawn nearest first),
+    // the pickable surfaces and the outlines.
     std::vector<DrawRun> m_volumeRuns;
     std::vector<DrawRun> m_volumePickRuns;
     std::vector<DrawRun> m_volumeOutlineRuns;
@@ -378,6 +378,9 @@ namespace vke {
 
     // Scratch reused by every list build
     std::vector<DrawItem> m_drawItems;
+
+    // Scratch for ordering the scene pass's volume chunk runs front to back
+    std::vector<std::pair<float, DrawRun>> m_runOrderScratch;
 
     // By object table slot (submissions, then outlines): the world-space bounds of the slot's model
     std::vector<AABB> m_slotBounds;
@@ -436,6 +439,19 @@ namespace vke {
 
     std::vector<VolumeDrawChunks> m_volumeDrawChunks;
     std::vector<VolumeChunk> m_volumeChunks;
+
+    // The frame's draw candidates in the order buildDrawRuns sorts a list into (drawsBefore), sorted once by
+    // sortDrawCandidates: the render submissions' slots as a list that groups by model alone keys them (the shadow lists),
+    // and the submitted surfaces' chunks, by draw and chunk index. Every list cut from them in this order arrives sorted,
+    // so the dozen or more lists built from the same candidates each frame (four per directional light, six per point
+    // light, the scene and picking lists) don't each sort again.
+    struct VolumeChunkRef {
+      uint32_t draw;
+      uint32_t chunk;
+    };
+
+    std::vector<uint32_t> m_slotsByModel;
+    std::vector<VolumeChunkRef> m_volumeChunkOrder;
 
     // The displayed chunks of the submitted surfaces, unculled, for the ray tracer's TLAS; empty without ray tracing
     std::vector<TracedVolumeChunk> m_tracedVolumeChunks;
@@ -578,16 +594,21 @@ namespace vke {
                                             const Frustum& camera);
 
     // Builds runs from the chunks of the volume draws [firstDraw, firstDraw + drawCount) that pass the filter and, unless
-    // frustum is null, touch it. Clears runs first.
+    // frustum is null, touch it. Clears runs first. With an eye, each item carries its chunk's squared distance from it,
+    // for sortRunsFrontToBack (on m_drawItems, which this leaves as buildDrawRuns sorted it).
     [[nodiscard]] uint32_t buildVolumeRuns(uint32_t* drawSlots,
                                            uint32_t offset,
                                            size_t firstDraw,
                                            size_t drawCount,
                                            const Frustum* frustum,
                                            VolumeFilter filter,
-                                           std::vector<DrawRun>& runs);
+                                           std::vector<DrawRun>& runs,
+                                           const glm::vec3* eye = nullptr);
 
     [[nodiscard]] const VolumeSurfaceDraw& getVolumeDraw(size_t index) const;
+
+    // Fills m_slotsByModel and m_volumeChunkOrder for this frame's submissions; before any list is built
+    void sortDrawCandidates();
 
     [[nodiscard]] DrawItem makeDrawItem(uint32_t slot,
                                         bool byMaterial,

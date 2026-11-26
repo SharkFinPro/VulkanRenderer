@@ -2,6 +2,7 @@
 #define VKE_DRAWRUN_H
 
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 namespace vke {
@@ -19,6 +20,9 @@ namespace vke {
     uint32_t slot;
     // Set instead of the model for a volume surface chunk
     const Mesh* mesh = nullptr;
+    // Squared distance from the camera to the item's world bounds, where a list orders its runs front to back
+    // (sortRunsFrontToBack); not a grouping key
+    float distance = 0.0f;
   };
 
   // A run of draws with equal keys, drawn with one instanced draw. firstInstance is the run's offset into the frame's
@@ -32,14 +36,29 @@ namespace vke {
     const Mesh* mesh = nullptr;
   };
 
-  // Sorts the items by (maskValue, material, mesh, model, slot), writes their slots to drawSlots starting at offset, and
-  // appends one run per distinct (maskValue, material, mesh, model) to runs. Returns the offset after the last slot written.
-  // The slot is the last key, so the order within a run is the submission order without a stable sort, which would
-  // allocate.
+  // The order buildDrawRuns sorts items into: (maskValue, material, mesh, model, slot), pointers by std::less. A caller
+  // building many lists from the same candidates can sort them once with it, and buildDrawRuns then finds each list
+  // already in order.
+  [[nodiscard]] bool drawsBefore(const DrawItem& a,
+                                 const DrawItem& b);
+
+  // Sorts the items by (maskValue, material, mesh, model, slot) unless they already are in that order (drawsBefore),
+  // writes their slots to drawSlots starting at offset, and appends one run per distinct (maskValue, material, mesh, model)
+  // to runs. Returns the offset after the last slot written. The slot is the last key, so the order within a run is the
+  // submission order without a stable sort, which would allocate.
   [[nodiscard]] uint32_t buildDrawRuns(std::vector<DrawItem>& items,
                                        uint32_t* drawSlots,
                                        uint32_t offset,
                                        std::vector<DrawRun>& runs);
+
+  // Reorders runs, just built by buildDrawRuns from items (still in the order it left them, its slots written from offset),
+  // nearest first by the smallest distance among each run's items. An opaque, depth-tested list drawn this way lets the
+  // early depth test reject what the nearer runs hide before it is shaded, where the grouping order is unrelated to depth.
+  // The runs' slots are unchanged, so each run still draws the same instances. scratch is reused storage.
+  void sortRunsFrontToBack(const std::vector<DrawItem>& items,
+                           uint32_t offset,
+                           std::vector<DrawRun>& runs,
+                           std::vector<std::pair<float, DrawRun>>& scratch);
 
 } // namespace vke
 

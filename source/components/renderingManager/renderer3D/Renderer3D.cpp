@@ -32,6 +32,7 @@
 #include <cmath>
 #include <iostream>
 #include <iterator>
+#include <numeric>
 #include <span>
 #include <stdexcept>
 #include <utility>
@@ -343,11 +344,21 @@ namespace vke {
                                       const CascadeCamera& cascadeCamera,
                                       const LightingManager& lightingManager)
   {
+    sortDrawCandidates();
+
     uint32_t offset = buildShadowRuns(drawSlots, 0, cascadeCamera, lightingManager);
 
     offset = buildPipelineRuns(drawSlots, offset, camera);
 
-    offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &camera, VolumeFilter::all, m_volumeRuns);
+    // The scene pass's chunks are drawn nearest first: their lit fragment shader (with its shadow lookups) is most of the
+    // frame, and each chunk is its own draw, so the order costs nothing, while the grouping order (by mesh address) has
+    // no relation to depth and shaded the fragments of chunks that nearer ones then hid
+    const glm::vec3 eye(glm::inverse(cascadeCamera.view)[3]);
+    const uint32_t sceneVolumeOffset = offset;
+
+    offset = buildVolumeRuns(drawSlots, offset, 0, m_volumeSurfacesToRender.size(), &camera, VolumeFilter::all, m_volumeRuns,
+                             &eye);
+    sortRunsFrontToBack(m_drawItems, sceneVolumeOffset, m_volumeRuns, m_runOrderScratch);
 
     m_volumeChunkCounts.drawn = 0;
 
@@ -373,35 +384,99 @@ namespace vke {
                                        const size_t drawCount,
                                        const Frustum* frustum,
                                        const VolumeFilter filter,
-                                       std::vector<DrawRun>& runs)
+                                       std::vector<DrawRun>& runs,
+                                       const glm::vec3* eye)
   {
     m_drawItems.clear();
     runs.clear();
 
-    for (size_t i = firstDraw; i < firstDraw + drawCount; ++i)
-    {
-      const VolumeSurfaceDraw& draw = getVolumeDraw(i);
+    const auto addChunk = [&](const size_t drawIndex, const uint32_t chunkIndex) {
+      const VolumeSurfaceDraw& draw = getVolumeDraw(drawIndex);
 
       if ((filter == VolumeFilter::castsShadows && !draw.surface->castsShadows()) ||
           (filter == VolumeFilter::pickable && draw.pickId == 0))
       {
-        continue;
+        return;
       }
 
-      const VolumeDrawChunks& chunks = m_volumeDrawChunks[i];
+      const VolumeChunk& chunk = m_volumeChunks[chunkIndex];
 
-      for (uint32_t c = chunks.firstChunk; c < chunks.firstChunk + chunks.chunkCount; ++c)
+      if (frustum && !frustum->intersects(chunk.worldBounds))
       {
-        const VolumeChunk& chunk = m_volumeChunks[c];
+        return;
+      }
 
-        if (!frustum || frustum->intersects(chunk.worldBounds))
+      float distance = 0.0f;
+
+      if (eye)
+      {
+        // To the nearest point of the bounds, so a large chunk the camera is in or beside comes first
+        const glm::vec3 toBounds = glm::clamp(*eye, chunk.worldBounds.min, chunk.worldBounds.max) - *eye;
+        distance = glm::dot(toBounds, toBounds);
+      }
+
+      m_drawItems.push_back({ nullptr, nullptr, draw.maskValue, m_volumeDrawChunks[drawIndex].slot, chunk.mesh, distance });
+    };
+
+    if (firstDraw == 0 && drawCount == m_volumeSurfacesToRender.size())
+    {
+      // The submitted surfaces, the range every list but the outlines' takes: in the frame's presorted order, so the
+      // list arrives sorted
+      for (const VolumeChunkRef& ref : m_volumeChunkOrder)
+      {
+        addChunk(ref.draw, ref.chunk);
+      }
+    }
+    else
+    {
+      for (size_t i = firstDraw; i < firstDraw + drawCount; ++i)
+      {
+        const VolumeDrawChunks& chunks = m_volumeDrawChunks[i];
+
+        for (uint32_t c = chunks.firstChunk; c < chunks.firstChunk + chunks.chunkCount; ++c)
         {
-          m_drawItems.push_back({ nullptr, nullptr, draw.maskValue, chunks.slot, chunk.mesh });
+          addChunk(i, c);
         }
       }
     }
 
     return buildDrawRuns(m_drawItems, drawSlots, offset, runs);
+  }
+
+  void Renderer3D::sortDrawCandidates()
+  {
+    // The render submissions as a list keyed by model alone (no material, no mask value) sorts them: the shadow lists.
+    // Lists that also key by material (the scene and picking lists) build their own items and sort them.
+    m_slotsByModel.resize(m_renderObjectsToRenderFlattened.size());
+    std::iota(m_slotsByModel.begin(), m_slotsByModel.end(), 0u);
+
+    std::ranges::sort(m_slotsByModel, [this](const uint32_t a, const uint32_t b)
+    {
+      return drawsBefore(makeDrawItem(a, false, 0), makeDrawItem(b, false, 0));
+    });
+
+    // The submitted surfaces' chunks, keyed as buildVolumeRuns keys them (mask value, mesh, slot)
+    m_volumeChunkOrder.clear();
+
+    for (uint32_t i = 0; i < m_volumeSurfacesToRender.size(); ++i)
+    {
+      const VolumeDrawChunks& chunks = m_volumeDrawChunks[i];
+
+      for (uint32_t c = chunks.firstChunk; c < chunks.firstChunk + chunks.chunkCount; ++c)
+      {
+        m_volumeChunkOrder.push_back({ i, c });
+      }
+    }
+
+    const auto chunkItem = [this](const VolumeChunkRef& ref) -> DrawItem {
+      return { nullptr, nullptr, getVolumeDraw(ref.draw).maskValue, m_volumeDrawChunks[ref.draw].slot,
+               m_volumeChunks[ref.chunk].mesh };
+    };
+
+    std::ranges::sort(m_volumeChunkOrder, [&](const VolumeChunkRef& a, const VolumeChunkRef& b)
+    {
+      return drawsBefore(chunkItem(a), chunkItem(b));
+    });
   }
 
   DrawItem Renderer3D::makeDrawItem(const uint32_t slot,
@@ -458,7 +533,7 @@ namespace vke {
 
       m_shadowCandidates.clear();
 
-      for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+      for (const uint32_t slot : m_slotsByModel)
       {
         if (intersectsSphere(m_slotBounds[slot], position, range))
         {
@@ -532,7 +607,7 @@ namespace vke {
 
       m_drawItems.clear();
 
-      for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+      for (const uint32_t slot : m_slotsByModel)
       {
         addVisibleDrawItem(lightFrustum, slot, false, 0);
       }
@@ -626,7 +701,7 @@ namespace vke {
 
         m_drawItems.clear();
 
-        for (uint32_t slot = 0; slot < m_renderObjectsToRenderFlattened.size(); ++slot)
+        for (const uint32_t slot : m_slotsByModel)
         {
           addVisibleDrawItem(cascadeFrustum, slot, false, 0);
         }

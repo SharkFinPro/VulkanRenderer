@@ -1,5 +1,6 @@
 // The lighting set (set 2) of the lit object pipelines and the shadow lookups on it. The including shader enables
-// GL_EXT_nonuniform_qualifier and GL_GOOGLE_include_directive.
+// GL_EXT_nonuniform_qualifier, GL_EXT_texture_shadow_lod (textureLod on the directional maps' array shadow sampler),
+// GL_EXT_control_flow_attributes ([[unroll]] on the filter's tap loops) and GL_GOOGLE_include_directive.
 #include "Lighting.glsl"
 
 layout(set = 2, binding = 0) uniform PointLightsMetadata {
@@ -43,6 +44,15 @@ const vec2 shadowFilterDisc[shadowFilterTaps] = vec2[shadowFilterTaps](
   vec2(-0.425273, -0.058974), vec2(-0.046156, 0.544012), vec2(0.855842, -0.370545), vec2(0.386474, 0.335194),
   vec2(0.054615, 0.958519), vec2(0.410468, -0.288637), vec2(-0.934812, -0.243051), vec2(-0.321681, -0.880796));
 
+// Early out, in every light's filter: most of the screen is wholly lit or wholly in shadow, where all 16 taps agree, so
+// the four taps on the disc's rim go first (disc points 1 to 4, spread around it no more than 109 degrees apart), and only
+// where they disagree, the penumbra, are the other twelve taken. A comparison sample is exactly 0 or 1 only when all four
+// texels it filters agree, so 0 or 4 from the rim taps means every texel they read agrees. Penumbra pixels still take all
+// 16 and give the same result as without it; a wholly lit or shadowed one could differ only where a shadow feature
+// narrower than the disc falls between the rim taps without touching any of them. These are the first and last of them;
+// ShadowFilter.h mirrors the range and its headless test checks their spread.
+const ivec2 shadowFilterEarlyTaps = ivec2(1, 4);
+
 // A value in [0, 1) that varies from pixel to pixel
 float interleavedGradientNoise(vec2 fragCoord)
 {
@@ -69,21 +79,49 @@ void shadowFilterBasis(vec3 toLight, out vec3 t, out vec3 b)
   b = cross(toLight, t);
 }
 
-// The world space offset of one tap; scale is the radius in texels times the world size of a texel. The disc lies in the
+// The taps' offsets are world space; scale is the radius in texels times the world size of a texel. The disc lies in the
 // plane facing the light, so each tap is then slid along the light onto the receiver's plane (the plane through the
 // fragment with its normal): on a surface the light grazes, a tap left in the disc's plane would sit below the surface
 // and read as shadowed. The slide is clamped like the slope bias.
-vec3 shadowFilterOffset(int tap, vec2 rotation, vec3 t, vec3 b, float scale, vec3 normal, vec3 toLight)
+//
+// Everything but the disc point is the same for all of a lookup's taps, and both the offset and its slide are linear in
+// that point, so the rotation, the scale, the slide's dot products and its division are folded into a frame once per
+// lookup (shadowFilterFrame), and a tap is then two multiply-adds and a clamp. ShadowFilter.h mirrors both forms.
+//
+// The tap loops are [[unroll]]ed: each tap's disc point is then a constant, so length(d) folds away (left as a loop it is
+// a square root per tap), and the 16 comparison samples are independent instructions the GPU issues back to back,
+// instead of a loop waiting on each sample before it starts the next.
+struct ShadowFilterFrame
 {
-  vec2 d = shadowFilterDisc[tap];
-  vec2 rotated = vec2(rotation.x * d.x - rotation.y * d.y, rotation.y * d.x + rotation.x * d.y);
-  vec3 offset = (t * rotated.x + b * rotated.y) * scale;
+  vec3 t;       // Where the disc's x axis lands: the basis rotated by the pixel's rotation, times scale
+  vec3 b;       // Where the disc's y axis lands
+  vec3 toLight; // The unit direction the taps slide along
+  vec2 slide;   // The unclamped slide per unit of the disc point's x and y
+  float limit;  // The slide's clamp per unit of the disc point's length (|offset| = scale * |d|, as t and b are orthonormal)
+};
+
+ShadowFilterFrame shadowFilterFrame(vec2 rotation, vec3 t, vec3 b, float scale, vec3 normal, vec3 toLight)
+{
+  ShadowFilterFrame frame;
+  frame.t = (t * rotation.x + b * rotation.y) * scale;
+  frame.b = (b * rotation.x - t * rotation.y) * scale;
+  frame.toLight = toLight;
+  frame.slide = -vec2(dot(frame.t, normal), dot(frame.b, normal)) / max(dot(normal, toLight), 1e-4);
 
   const float maxTangent = 10.0;
-  float limit = maxTangent * length(offset);
-  float slide = clamp(-dot(offset, normal) / max(dot(normal, toLight), 1e-4), -limit, limit);
+  frame.limit = maxTangent * scale;
 
-  return offset + toLight * slide;
+  return frame;
+}
+
+// The world space offset of one tap
+vec3 shadowFilterOffset(int tap, ShadowFilterFrame frame)
+{
+  vec2 d = shadowFilterDisc[tap];
+  float limit = frame.limit * length(d);
+  float slide = clamp(dot(d, frame.slide), -limit, limit);
+
+  return frame.t * d.x + frame.b * d.y + frame.toLight * slide;
 }
 
 // One comparison sample of a point light's cube map at a world position
@@ -152,11 +190,26 @@ float pointLightShadow(int i, vec3 fragPos, vec3 normal)
   shadowFilterBasis(unitToLight, t, b);
   vec2 rotation = shadowFilterRotation();
   float scale = radius * texel;
+  ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
+  // The rim taps first, and the rest only in the penumbra (shadowFilterEarlyTaps). A tap past the shadow range returns
+  // exactly 1, so it takes part in the test like any other.
   float sum = 0.0;
 
-  for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.x; tap <= shadowFilterEarlyTaps.y; tap++)
   {
-    sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, rotation, t, b, scale, normal, unitToLight));
+    sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
+  }
+
+  if (sum == 0.0 || sum == 4.0)
+  {
+    return sum * 0.25;
+  }
+
+  sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(0, frame));
+
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.y + 1; tap < shadowFilterTaps; tap++)
+  {
+    sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
 
   return sum / float(shadowFilterTaps);
@@ -207,31 +260,71 @@ float spotLightShadow(int i, vec3 fragPos, vec3 normal)
   shadowFilterBasis(unitToLight, t, b);
   vec2 rotation = shadowFilterRotation();
   float scale = radius * texel;
+  ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
+  // The rim taps first, and the rest only in the penumbra (shadowFilterEarlyTaps). A tap past the shadow range returns
+  // exactly 1, so it takes part in the test like any other.
   float sum = 0.0;
 
-  for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.x; tap <= shadowFilterEarlyTaps.y; tap++)
   {
-    sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, rotation, t, b, scale, normal, unitToLight));
+    sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
+  }
+
+  if (sum == 0.0 || sum == 4.0)
+  {
+    return sum * 0.25;
+  }
+
+  sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(0, frame));
+
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.y + 1; tap < shadowFilterTaps; tap++)
+  {
+    sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
 
   return sum / float(shadowFilterTaps);
 }
 
-// The fragment, moved by the bias, in cascade c of the directional light, in world space
-vec3 directionalCascadeLookup(int i, int c, vec3 fragPos, vec3 normal)
+// A directional light's shadow lookup in the light's view, which every cascade shares (Lighting.glsl, DirectionalLight):
+// built once per fragment, so each cascade tried then costs a scale and offset instead of a full matrix. The view is a
+// rotation (directionalLightView), so the filter's dot products (the slide, shadowFilterFrame) come out the same in it.
+struct DirectionalShadowView
 {
-  return shadowLookupPosition(fragPos, normal, -directionalLights[i].direction,
-                              directionalLights[i].cascadeTexelSizes[c], directionalLights[i].shadowBias.xyz);
+  vec3 position; // The fragment
+  vec3 bias;     // The bias's move per texel (shadowBiasDirection); a cascade's lookup is position + bias * its texel
+  vec3 t;        // The filter disc's basis
+  vec3 b;
+  vec3 normal;
+  vec3 toLight;
+};
+
+DirectionalShadowView directionalShadowView(int i, vec3 fragPos, vec3 normal)
+{
+  mat3 view = mat3(directionalLights[i].lightView);
+  vec3 toLight = -directionalLights[i].direction;
+
+  vec3 t;
+  vec3 b;
+  shadowFilterBasis(toLight, t, b);
+
+  DirectionalShadowView shadowView;
+  shadowView.position = view * fragPos;
+  // The bias's square root and division are the same in every cascade, so they are paid once, not per cascade
+  shadowView.bias = view * shadowBiasDirection(normal, toLight, directionalLights[i].shadowBias.xyz);
+  shadowView.t = view * t;
+  shadowView.b = view * b;
+  shadowView.normal = view * normal;
+  shadowView.toLight = view * toLight;
+
+  return shadowView;
 }
 
-// A world position in the clip space of cascade c: xy mapped to [0, 1], z the depth
-vec3 directionalCascadeCoords(int i, int c, vec3 lookup)
+// The fragment's lookup, moved by the bias, in cascade c's map coordinates: xy in [0, 1], z the depth
+vec3 directionalCascadeCoords(int i, int c, DirectionalShadowView shadowView)
 {
-  vec4 clip = directionalLights[i].cascadeViewProjections[c] * vec4(lookup, 1.0);
-  vec3 coords = clip.xyz / clip.w;
-  coords.xy = coords.xy * 0.5 + 0.5;
+  vec4 scale = directionalLights[i].cascadeScales[c];
 
-  return coords;
+  return (shadowView.position + shadowView.bias * scale.w) * scale.xyz + directionalLights[i].cascadeOffsets[c].xyz;
 }
 
 bool insideUnitCube(vec3 coords)
@@ -239,17 +332,25 @@ bool insideUnitCube(vec3 coords)
   return all(greaterThanEqual(coords, vec3(0.0))) && all(lessThanEqual(coords, vec3(1.0)));
 }
 
-// One comparison sample of layer c of the directional light's map. Explicit zero gradients: the map has one level, and
-// this runs in non-uniform control flow, where implicit derivatives are undefined.
+// One comparison sample of layer c of the directional light's map, at level 0: the map has one level, and this runs in
+// non-uniform control flow, where implicit derivatives are undefined. An explicit lod, not explicit gradients: a gradient
+// sample is issued at a fraction of the texture unit's rate (and carries four more operands), which made these 16 taps
+// most of the frame, while a lod sample is full rate and filters the same single level identically.
+//
+// The reference depth is clamped to the cascade's far plane. A filter tap slides along the light onto the receiver's plane,
+// so a tap of a fragment just inside the cascade can land past it, at a depth above 1; nothing past the far plane is in
+// the map (the texel holds the clear depth, 1, or a nearer occluder), and a D32 float map doesn't clamp the reference
+// itself, so such a tap compared above 1 failed against every texel and read as shadowed, a dark line along the terrain
+// where each cascade's far plane cuts it. Clamped, it is lit unless something in the map is in front of it, as the point
+// and spot lookups treat taps past their shadow range.
 float directionalShadowSample(int shadowMap, int c, vec3 coords)
 {
-  return textureGrad(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), coords.z),
-                     vec2(0.0), vec2(0.0));
+  return textureLod(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), min(coords.z, 1.0)),
+                    0.0);
 }
 
-// The filtered lit fraction in cascade c, given the lookup position and its coordinates there
-float directionalCascadeShadow(int i, int shadowMap, int c, vec3 lookup, vec3 coords, vec3 t, vec3 b, vec2 rotation,
-                               vec3 normal)
+// The filtered lit fraction in cascade c, given the lookup's coordinates there
+float directionalCascadeShadow(int i, int shadowMap, int c, vec3 coords, DirectionalShadowView shadowView, vec2 rotation)
 {
   float radius = directionalLights[i].shadowFilter.x;
 
@@ -258,14 +359,36 @@ float directionalCascadeShadow(int i, int shadowMap, int c, vec3 lookup, vec3 co
     return directionalShadowSample(shadowMap, c, coords);
   }
 
-  float scale = radius * directionalLights[i].cascadeTexelSizes[c];
+  vec3 mapScale = directionalLights[i].cascadeScales[c].xyz;
+  float scale = radius * directionalLights[i].cascadeScales[c].w;
+  ShadowFilterFrame frame = shadowFilterFrame(rotation, shadowView.t, shadowView.b, scale, shadowView.normal,
+                                              shadowView.toLight);
+
+  // A tap's offset is linear in the frame's vectors and the cascade mapping is affine, so scale the three (light view)
+  // vectors into map coordinates once and each tap's offset is added to the lookup's own coordinates, instead of a matrix
+  // multiply per tap. The slide and its clamp are scalars, so they carry over unchanged.
+  frame.t *= mapScale;
+  frame.b *= mapScale;
+  frame.toLight *= mapScale;
+
+  // The rim taps first, and the rest only in the penumbra (shadowFilterEarlyTaps)
   float sum = 0.0;
 
-  for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.x; tap <= shadowFilterEarlyTaps.y; tap++)
   {
-    vec3 tapOffset = shadowFilterOffset(tap, rotation, t, b, scale, normal, -directionalLights[i].direction);
-    vec3 tapCoords = directionalCascadeCoords(i, c, lookup + tapOffset);
-    sum += directionalShadowSample(shadowMap, c, tapCoords);
+    sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(tap, frame));
+  }
+
+  if (sum == 0.0 || sum == 4.0)
+  {
+    return sum * 0.25;
+  }
+
+  sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(0, frame));
+
+  [[unroll]] for (int tap = shadowFilterEarlyTaps.y + 1; tap < shadowFilterTaps; tap++)
+  {
+    sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(tap, frame));
   }
 
   return sum / float(shadowFilterTaps);
@@ -293,22 +416,19 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
     return 1.0;
   }
 
-  vec3 t;
-  vec3 b;
-  shadowFilterBasis(-directionalLights[i].direction, t, b);
+  DirectionalShadowView shadowView = directionalShadowView(i, fragPos, normal);
   vec2 rotation = shadowFilterRotation();
 
   for (int c = 0; c < cascadeCount; c++)
   {
-    vec3 lookup = directionalCascadeLookup(i, c, fragPos, normal);
-    vec3 coords = directionalCascadeCoords(i, c, lookup);
+    vec3 coords = directionalCascadeCoords(i, c, shadowView);
 
     if (!insideUnitCube(coords))
     {
       continue;
     }
 
-    float shadow = directionalCascadeShadow(i, shadowMap, c, lookup, coords, t, b, rotation, normal);
+    float shadow = directionalCascadeShadow(i, shadowMap, c, coords, shadowView, rotation);
 
     // Near the edge of the cascade, blend toward the next one so the change of resolution isn't a visible line
     const float blendWidth = 0.05;
@@ -316,13 +436,11 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
 
     if (edge < blendWidth && c + 1 < cascadeCount)
     {
-      vec3 nextLookup = directionalCascadeLookup(i, c + 1, fragPos, normal);
-      vec3 nextCoords = directionalCascadeCoords(i, c + 1, nextLookup);
+      vec3 nextCoords = directionalCascadeCoords(i, c + 1, shadowView);
 
       if (insideUnitCube(nextCoords))
       {
-        float nextShadow = directionalCascadeShadow(i, shadowMap, c + 1, nextLookup, nextCoords, t, b, rotation,
-                                                     normal);
+        float nextShadow = directionalCascadeShadow(i, shadowMap, c + 1, nextCoords, shadowView, rotation);
 
         shadow = mix(nextShadow, shadow, edge / blendWidth);
       }

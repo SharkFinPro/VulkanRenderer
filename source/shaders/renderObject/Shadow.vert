@@ -9,5 +9,7 @@ layout(push_constant) uniform PushConstants {
 layout(location = 0) in vec3 inPosition;
 
 void main() {
-    gl_Position = pc.lightViewProj * objects[objectSlot()].model * vec4(inPosition, 1.0);
+    // Transform the vector twice rather than multiply the matrices: left to right, lightViewProj * model is a 4x4 matrix
+    // product per vertex (64 multiply-adds) before the vector multiply, against 32 this way
+    gl_Position = pc.lightViewProj * (objects[objectSlot()].model * vec4(inPosition, 1.0));
 }

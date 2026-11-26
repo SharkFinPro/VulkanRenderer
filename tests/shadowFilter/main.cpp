@@ -251,6 +251,42 @@ namespace {
     }
 
     check(tangents > 0 && tangentsMatch, "the shader clamps the slide with the mirror's tangent");
+
+    check(source.find("const ivec2 shadowFilterEarlyTaps = ivec2(" + std::to_string(vke::s_shadowFilterFirstEarlyTap) +
+                      ", " + std::to_string(vke::s_shadowFilterLastEarlyTap) + ");") != std::string::npos,
+          "the shader takes the mirror's early taps first");
+  }
+
+  // The early taps stand in for the whole disc where they agree, so they must be four points on its rim, spread around it:
+  // no gap between neighbors wider than a third of the circle
+  void testEarlyTaps()
+  {
+    check(vke::s_shadowFilterLastEarlyTap - vke::s_shadowFilterFirstEarlyTap + 1 == 4 &&
+          vke::s_shadowFilterFirstEarlyTap >= 0 && vke::s_shadowFilterLastEarlyTap < vke::s_shadowFilterTaps,
+          "there are four early taps, all in the disc");
+
+    std::vector<float> angles;
+    bool onRim = true;
+
+    for (int tap = vke::s_shadowFilterFirstEarlyTap; tap <= vke::s_shadowFilterLastEarlyTap; ++tap)
+    {
+      const glm::vec2 d = vke::s_shadowFilterDisc[static_cast<size_t>(tap)];
+      onRim = onRim && glm::length(d) > 0.85f;
+      angles.push_back(std::atan2(d.y, d.x));
+    }
+
+    std::sort(angles.begin(), angles.end());
+
+    float widestGap = 0.0f;
+
+    for (size_t k = 0; k < angles.size(); ++k)
+    {
+      const float next = k + 1 < angles.size() ? angles[k + 1] : angles.front() + 2.0f * 3.14159265f;
+      widestGap = std::max(widestGap, next - angles[k]);
+    }
+
+    check(onRim, "the early taps lie on the disc's rim");
+    check(widestGap < 2.0f * 3.14159265f / 3.0f, "the early taps spread around the rim");
   }
 
   // Taps slid onto the receiver's plane: they lie in it, they moved only along the light (so they still land on the same
@@ -309,6 +345,51 @@ namespace {
           "a normal facing away from the light gives a finite, clamped slide");
   }
 
+  // The shader's per-lookup frame gives the same taps as the per-tap reference, slid and clamped alike
+  void testFactoredFrame()
+  {
+    bool same = true;
+
+    for (const glm::vec3& toLight : lightDirections())
+    {
+      // The basis shadowFilterTapOffset builds: rotation 0 and unit scale put disc points (1, 0) and (0, 1) on t and b
+      const glm::vec3 absLight = glm::abs(toLight);
+      const glm::vec3 helper = absLight.x <= absLight.y && absLight.x <= absLight.z ? glm::vec3(1.0f, 0.0f, 0.0f)
+                               : absLight.y <= absLight.z ? glm::vec3(0.0f, 1.0f, 0.0f)
+                                                          : glm::vec3(0.0f, 0.0f, 1.0f);
+      const glm::vec3 t = glm::normalize(glm::cross(toLight, helper));
+      const glm::vec3 b = glm::cross(toLight, t);
+
+      // Head-on, tilted and grazing (clamped). Not facing away: callers skip the lookup there (facesLight), and both forms
+      // divide a dot product that is 0 up to rounding by the 1e-4 floor, so they agree only to that rounding times 1e4
+      // (testReceiverPlane checks such a slide stays finite and clamped).
+      const glm::vec3 grazing = glm::normalize(glm::cross(toLight, t) + toLight * 0.001f);
+
+      for (const glm::vec3& normal : { toLight, glm::normalize(toLight + t * 0.8f), grazing })
+      {
+        for (const float rotation : { 0.0f, 0.7f, 2.9f, 5.5f })
+        {
+          const float radius = 1.5f;
+          const float texel = 0.04f;
+          const vke::ShadowFilterFrame frame = vke::shadowFilterFrame(glm::vec2(std::cos(rotation), std::sin(rotation)),
+                                                                      t, b, radius * texel, normal, toLight);
+
+          for (int tap = 0; tap < vke::s_shadowFilterTaps; ++tap)
+          {
+            const glm::vec3 reference = vke::receiverPlaneTapOffset(
+              vke::shadowFilterTapOffset(tap, rotation, radius, texel, toLight), normal, toLight);
+            const glm::vec3 factored = vke::shadowFilterFrameOffset(tap, frame);
+            const float size = std::max(glm::length(reference), radius * texel);
+
+            same = same && glm::length(factored - reference) <= 1e-4f * size;
+          }
+        }
+      }
+    }
+
+    check(same, "the per-lookup frame gives the per-tap reference's offsets");
+  }
+
 } // namespace
 
 int main()
@@ -316,10 +397,12 @@ int main()
   testDisc();
   testTapOffsets();
   testReceiverPlane();
+  testFactoredFrame();
   testRadiusAndTexelScaling();
   testNoise();
   testValidity();
   testShaderMatchesMirror();
+  testEarlyTaps();
 
   std::cout << g_checks << " checks, " << g_failures << " failures\n";
 

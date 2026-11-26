@@ -136,8 +136,11 @@ void main()
 
   vec3 normal = normalize(localNormal * mat3(gl_WorldToObjectEXT));
 
-  // Double-sided, and caves are seen from inside
-  if (dot(normal, -gl_WorldRayDirectionEXT) < 0.0)
+  // Double-sided: a back face (the surface seen from inside the solid) is lit as its other side. Which side the ray hit is
+  // the hit kind's to say, as gl_FrontFacing says in the raster shader (VolumeSurface.frag): judged from the shading
+  // normal, a face in front of the ray whose interpolated normal leans away from it (a thin lip) had its normal flipped to
+  // face away from every light.
+  if (gl_HitKindEXT == gl_HitKindBackFacingTriangleEXT)
   {
     normal = -normal;
   }
