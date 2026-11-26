@@ -70,21 +70,45 @@ void shadowFilterBasis(vec3 toLight, out vec3 t, out vec3 b)
   b = cross(toLight, t);
 }
 
-// The world space offset of one tap; scale is the radius in texels times the world size of a texel. The disc lies in the
+// The taps' offsets are world space; scale is the radius in texels times the world size of a texel. The disc lies in the
 // plane facing the light, so each tap is then slid along the light onto the receiver's plane (the plane through the
 // fragment with its normal): on a surface the light grazes, a tap left in the disc's plane would sit below the surface
 // and read as shadowed. The slide is clamped like the slope bias.
-vec3 shadowFilterOffset(int tap, vec2 rotation, vec3 t, vec3 b, float scale, vec3 normal, vec3 toLight)
+//
+// Everything but the disc point is the same for all of a lookup's taps, and both the offset and its slide are linear in
+// that point, so the rotation, the scale, the slide's dot products and its division are folded into a frame once per
+// lookup (shadowFilterFrame), and a tap is then two multiply-adds and a clamp. ShadowFilter.h mirrors both forms.
+struct ShadowFilterFrame
 {
-  vec2 d = shadowFilterDisc[tap];
-  vec2 rotated = vec2(rotation.x * d.x - rotation.y * d.y, rotation.y * d.x + rotation.x * d.y);
-  vec3 offset = (t * rotated.x + b * rotated.y) * scale;
+  vec3 t;       // Where the disc's x axis lands: the basis rotated by the pixel's rotation, times scale
+  vec3 b;       // Where the disc's y axis lands
+  vec3 toLight; // The unit direction the taps slide along
+  vec2 slide;   // The unclamped slide per unit of the disc point's x and y
+  float limit;  // The slide's clamp per unit of the disc point's length (|offset| = scale * |d|, as t and b are orthonormal)
+};
+
+ShadowFilterFrame shadowFilterFrame(vec2 rotation, vec3 t, vec3 b, float scale, vec3 normal, vec3 toLight)
+{
+  ShadowFilterFrame frame;
+  frame.t = (t * rotation.x + b * rotation.y) * scale;
+  frame.b = (b * rotation.x - t * rotation.y) * scale;
+  frame.toLight = toLight;
+  frame.slide = -vec2(dot(frame.t, normal), dot(frame.b, normal)) / max(dot(normal, toLight), 1e-4);
 
   const float maxTangent = 10.0;
-  float limit = maxTangent * length(offset);
-  float slide = clamp(-dot(offset, normal) / max(dot(normal, toLight), 1e-4), -limit, limit);
+  frame.limit = maxTangent * scale;
 
-  return offset + toLight * slide;
+  return frame;
+}
+
+// The world space offset of one tap
+vec3 shadowFilterOffset(int tap, ShadowFilterFrame frame)
+{
+  vec2 d = shadowFilterDisc[tap];
+  float limit = frame.limit * length(d);
+  float slide = clamp(dot(d, frame.slide), -limit, limit);
+
+  return frame.t * d.x + frame.b * d.y + frame.toLight * slide;
 }
 
 // One comparison sample of a point light's cube map at a world position
@@ -153,11 +177,12 @@ float pointLightShadow(int i, vec3 fragPos, vec3 normal)
   shadowFilterBasis(unitToLight, t, b);
   vec2 rotation = shadowFilterRotation();
   float scale = radius * texel;
+  ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
   float sum = 0.0;
 
   for (int tap = 0; tap < shadowFilterTaps; tap++)
   {
-    sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, rotation, t, b, scale, normal, unitToLight));
+    sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
 
   return sum / float(shadowFilterTaps);
@@ -208,11 +233,12 @@ float spotLightShadow(int i, vec3 fragPos, vec3 normal)
   shadowFilterBasis(unitToLight, t, b);
   vec2 rotation = shadowFilterRotation();
   float scale = radius * texel;
+  ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
   float sum = 0.0;
 
   for (int tap = 0; tap < shadowFilterTaps; tap++)
   {
-    sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, rotation, t, b, scale, normal, unitToLight));
+    sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
 
   return sum / float(shadowFilterTaps);
@@ -261,11 +287,12 @@ float directionalCascadeShadow(int i, int shadowMap, int c, vec3 lookup, vec3 co
   }
 
   float scale = radius * directionalLights[i].cascadeTexelSizes[c];
+  ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, -directionalLights[i].direction);
   float sum = 0.0;
 
   for (int tap = 0; tap < shadowFilterTaps; tap++)
   {
-    vec3 tapOffset = shadowFilterOffset(tap, rotation, t, b, scale, normal, -directionalLights[i].direction);
+    vec3 tapOffset = shadowFilterOffset(tap, frame);
     vec3 tapCoords = directionalCascadeCoords(i, c, lookup + tapOffset);
     sum += directionalShadowSample(shadowMap, c, tapCoords);
   }

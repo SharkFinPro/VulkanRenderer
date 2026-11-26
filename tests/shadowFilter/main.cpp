@@ -309,6 +309,51 @@ namespace {
           "a normal facing away from the light gives a finite, clamped slide");
   }
 
+  // The shader's per-lookup frame gives the same taps as the per-tap reference, slid and clamped alike
+  void testFactoredFrame()
+  {
+    bool same = true;
+
+    for (const glm::vec3& toLight : lightDirections())
+    {
+      // The basis shadowFilterTapOffset builds: rotation 0 and unit scale put disc points (1, 0) and (0, 1) on t and b
+      const glm::vec3 absLight = glm::abs(toLight);
+      const glm::vec3 helper = absLight.x <= absLight.y && absLight.x <= absLight.z ? glm::vec3(1.0f, 0.0f, 0.0f)
+                               : absLight.y <= absLight.z ? glm::vec3(0.0f, 1.0f, 0.0f)
+                                                          : glm::vec3(0.0f, 0.0f, 1.0f);
+      const glm::vec3 t = glm::normalize(glm::cross(toLight, helper));
+      const glm::vec3 b = glm::cross(toLight, t);
+
+      // Head-on, tilted and grazing (clamped). Not facing away: callers skip the lookup there (facesLight), and both forms
+      // divide a dot product that is 0 up to rounding by the 1e-4 floor, so they agree only to that rounding times 1e4
+      // (testReceiverPlane checks such a slide stays finite and clamped).
+      const glm::vec3 grazing = glm::normalize(glm::cross(toLight, t) + toLight * 0.001f);
+
+      for (const glm::vec3& normal : { toLight, glm::normalize(toLight + t * 0.8f), grazing })
+      {
+        for (const float rotation : { 0.0f, 0.7f, 2.9f, 5.5f })
+        {
+          const float radius = 1.5f;
+          const float texel = 0.04f;
+          const vke::ShadowFilterFrame frame = vke::shadowFilterFrame(glm::vec2(std::cos(rotation), std::sin(rotation)),
+                                                                      t, b, radius * texel, normal, toLight);
+
+          for (int tap = 0; tap < vke::s_shadowFilterTaps; ++tap)
+          {
+            const glm::vec3 reference = vke::receiverPlaneTapOffset(
+              vke::shadowFilterTapOffset(tap, rotation, radius, texel, toLight), normal, toLight);
+            const glm::vec3 factored = vke::shadowFilterFrameOffset(tap, frame);
+            const float size = std::max(glm::length(reference), radius * texel);
+
+            same = same && glm::length(factored - reference) <= 1e-4f * size;
+          }
+        }
+      }
+    }
+
+    check(same, "the per-lookup frame gives the per-tap reference's offsets");
+  }
+
 } // namespace
 
 int main()
@@ -316,6 +361,7 @@ int main()
   testDisc();
   testTapOffsets();
   testReceiverPlane();
+  testFactoredFrame();
   testRadiusAndTexelScaling();
   testNoise();
   testValidity();

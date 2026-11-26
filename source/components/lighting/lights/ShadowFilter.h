@@ -96,6 +96,47 @@ namespace vke {
     return offset + toLight * slide;
   }
 
+  // Must match ShadowFilterFrame, shadowFilterFrame and shadowFilterOffset in shaders/common/SceneLighting.glsl.
+  // The shader's factored form of receiverPlaneTapOffset(shadowFilterTapOffset(...)): the offset and its slide are linear
+  // in the disc point, so everything else is folded once per lookup and a tap costs two multiply-adds and a clamp.
+  struct ShadowFilterFrame
+  {
+    glm::vec3 t;
+    glm::vec3 b;
+    glm::vec3 toLight;
+    glm::vec2 slide;
+    float limit;
+  };
+
+  // t and b are an orthonormal basis of the plane perpendicular to the unit toLight; rotation is (cos, sin)
+  [[nodiscard]] inline ShadowFilterFrame shadowFilterFrame(const glm::vec2& rotation,
+                                                           const glm::vec3& t,
+                                                           const glm::vec3& b,
+                                                           const float scale,
+                                                           const glm::vec3& normal,
+                                                           const glm::vec3& toLight)
+  {
+    ShadowFilterFrame frame;
+    frame.t = (t * rotation.x + b * rotation.y) * scale;
+    frame.b = (b * rotation.x - t * rotation.y) * scale;
+    frame.toLight = toLight;
+    frame.slide = -glm::vec2(glm::dot(frame.t, normal), glm::dot(frame.b, normal)) /
+                  std::max(glm::dot(normal, toLight), 1e-4f);
+    frame.limit = s_maxShadowBiasTangent * scale;
+
+    return frame;
+  }
+
+  [[nodiscard]] inline glm::vec3 shadowFilterFrameOffset(const int tap,
+                                                         const ShadowFilterFrame& frame)
+  {
+    const glm::vec2 d = s_shadowFilterDisc[static_cast<size_t>(tap)];
+    const float limit = frame.limit * glm::length(d);
+    const float slide = std::clamp(glm::dot(d, frame.slide), -limit, limit);
+
+    return frame.t * d.x + frame.b * d.y + frame.toLight * slide;
+  }
+
 } // namespace vke
 
 #endif //VKE_SHADOWFILTER_H
