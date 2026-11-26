@@ -56,8 +56,11 @@ namespace vke {
   };
 
   struct alignas(16) DirectionalLightUniform {
-    std::array<glm::mat4, s_maxShadowCascades> cascadeViewProjections; // The fitted cascades; the rest are zero
-    glm::vec4 cascadeTexelSizes; // World size of a texel, per cascade
+    // The shadow lookups take the light's view once and then a per-axis scale and offset per cascade, rather than a full
+    // matrix per cascade (ShadowCascade::mapScale): map coordinates = (lightView * p).xyz * scale.xyz + offset.xyz
+    glm::mat4 lightView; // Shared by every cascade
+    std::array<glm::vec4, s_maxShadowCascades> cascadeScales; // xyz mapScale, w the world size of a texel; unfitted ones 0
+    std::array<glm::vec4, s_maxShadowCascades> cascadeOffsets; // xyz mapOffset, then 0
     glm::vec3 direction; // The way the light travels, normalized
     float ambient;
     glm::vec3 color;
@@ -76,16 +79,17 @@ namespace vke {
                 offsetof(PointLightUniform, shadowMapIndex) == 412 && offsetof(PointLightUniform, range) == 432 &&
                 offsetof(PointLightUniform, shadowBias) == 448 &&
                 offsetof(PointLightUniform, shadowFilter) == 464);
-  static_assert(sizeof(DirectionalLightUniform) == 352 && s_maxShadowCascades == 4 &&
-                offsetof(DirectionalLightUniform, cascadeTexelSizes) == 256 &&
-                offsetof(DirectionalLightUniform, direction) == 272 && offsetof(DirectionalLightUniform, ambient) == 284 &&
-                offsetof(DirectionalLightUniform, color) == 288 && offsetof(DirectionalLightUniform, diffuse) == 300 &&
-                offsetof(DirectionalLightUniform, specular) == 304 &&
-                offsetof(DirectionalLightUniform, shadowMapIndex) == 308 &&
-                offsetof(DirectionalLightUniform, cascadeCount) == 312 &&
-                offsetof(DirectionalLightUniform, shadowDistance) == 316 &&
-                offsetof(DirectionalLightUniform, shadowBias) == 320 &&
-                offsetof(DirectionalLightUniform, shadowFilter) == 336);
+  static_assert(sizeof(DirectionalLightUniform) == 272 && s_maxShadowCascades == 4 &&
+                offsetof(DirectionalLightUniform, cascadeScales) == 64 &&
+                offsetof(DirectionalLightUniform, cascadeOffsets) == 128 &&
+                offsetof(DirectionalLightUniform, direction) == 192 && offsetof(DirectionalLightUniform, ambient) == 204 &&
+                offsetof(DirectionalLightUniform, color) == 208 && offsetof(DirectionalLightUniform, diffuse) == 220 &&
+                offsetof(DirectionalLightUniform, specular) == 224 &&
+                offsetof(DirectionalLightUniform, shadowMapIndex) == 228 &&
+                offsetof(DirectionalLightUniform, cascadeCount) == 232 &&
+                offsetof(DirectionalLightUniform, shadowDistance) == 236 &&
+                offsetof(DirectionalLightUniform, shadowBias) == 240 &&
+                offsetof(DirectionalLightUniform, shadowFilter) == 256);
   static_assert(sizeof(SpotLightUniform) == 160 && offsetof(SpotLightUniform, shadowRange) == 116 &&
                 offsetof(SpotLightUniform, shadowMapIndex) == 120 &&
                 offsetof(SpotLightUniform, range) == 124 &&

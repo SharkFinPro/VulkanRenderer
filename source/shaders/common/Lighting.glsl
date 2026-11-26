@@ -30,8 +30,11 @@ struct SpotLight {
 };
 
 struct DirectionalLight {
-  mat4 cascadeViewProjections[4]; // The fitted cascades
-  vec4 cascadeTexelSizes; // World size of a texel, per cascade
+  // A world point's map coordinates in cascade c (xy in [0, 1], z the depth) are
+  // (lightView * p).xyz * cascadeScales[c].xyz + cascadeOffsets[c].xyz: one view for the light, a scale and offset per cascade
+  mat4 lightView;
+  vec4 cascadeScales[4]; // xyz the scale, w the world size of a texel in the cascade
+  vec4 cascadeOffsets[4]; // xyz the offset, then 0
   vec3 direction; // The direction the light travels, normalized
   float ambient;
   vec3 color;

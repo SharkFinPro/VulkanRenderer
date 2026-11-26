@@ -121,6 +121,13 @@ namespace vke {
   struct ShadowCascade {
     glm::mat4 viewProjection; // Depth [0, 1], y flipped for Vulkan
     float texelSize; // World size of one shadow map texel
+
+    // The cascade's map coordinates (xy in [0, 1], z the depth) of a world point p, from its position in the light's view,
+    // which every cascade of a light shares (directionalLightView): (lightView * p).xyz * mapScale + mapOffset. The
+    // projection is orthographic, so this per-axis scale and offset is the whole of it; the shader takes the light view
+    // once per fragment and only these per cascade.
+    glm::vec3 mapScale;
+    glm::vec3 mapOffset;
   };
 
   // Fits one cascade: an orthographic projection along direction over the part of the camera frustum between the view
@@ -168,7 +175,11 @@ namespace vke {
     projection[1][1] *= -1;
     projection[3][1] *= -1;
 
-    return { projection * lightView, texel };
+    // An orthographic projection is diagonal plus a translation; xy then map from [-1, 1] to [0, 1]
+    const glm::vec3 mapScale(projection[0][0] * 0.5f, projection[1][1] * 0.5f, projection[2][2]);
+    const glm::vec3 mapOffset(projection[3][0] * 0.5f + 0.5f, projection[3][1] * 0.5f + 0.5f, projection[3][2]);
+
+    return { projection * lightView, texel, mapScale, mapOffset };
   }
 
 } // namespace vke

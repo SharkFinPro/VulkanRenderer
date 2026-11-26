@@ -444,6 +444,26 @@ namespace {
           const glm::mat4& m = fitted.viewProjection;
           check(m[0][3] == 0.0f && m[1][3] == 0.0f && m[2][3] == 0.0f && m[3][3] == 1.0f,
                 "the cascade projection is affine, so w is 1 (" + c.name + ")");
+
+          // The shader takes the light's view once and each cascade's scale and offset (DirectionalShadowView in
+          // SceneLighting.glsl); they must give the map coordinates the full matrix gives
+          const glm::mat4 lightView = vke::directionalLightView(direction);
+          bool sameCoords = true;
+
+          for (const glm::vec3& p : { glm::vec3(0.0f), glm::vec3(3.0f, -2.0f, 7.0f), glm::vec3(-40.0f, 5.0f, 12.5f),
+                                      glm::vec3(100.0f, 30.0f, -80.0f) })
+          {
+            const glm::vec3 clip = glm::vec3(m * glm::vec4(p, 1.0f));
+            const glm::vec3 expected(clip.x * 0.5f + 0.5f, clip.y * 0.5f + 0.5f, clip.z);
+            const glm::vec3 factored = glm::vec3(lightView * glm::vec4(p, 1.0f)) * fitted.mapScale + fitted.mapOffset;
+
+            sameCoords = sameCoords && glm::length(factored - expected) <= 1e-4f * std::max(1.0f, glm::length(expected));
+          }
+
+          check(sameCoords, "the shared light view and the cascade's scale and offset give the matrix's map coordinates (" +
+                c.name + ")");
+          check(lightView[3][0] == 0.0f && lightView[3][1] == 0.0f && lightView[3][2] == 0.0f,
+                "the light view is a rotation, so the shader's mat3 of it keeps the filter's dot products (" + c.name + ")");
         }
       }
     }

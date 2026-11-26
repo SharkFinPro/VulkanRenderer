@@ -248,30 +248,46 @@ float spotLightShadow(int i, vec3 fragPos, vec3 normal)
   return sum / float(shadowFilterTaps);
 }
 
-// The fragment, moved by the bias, in cascade c of the directional light, in world space. biasDirection is the light's
-// shadowBiasDirection at the fragment, the same for every cascade; only the texel it is scaled by differs.
-vec3 directionalCascadeLookup(int i, int c, vec3 fragPos, vec3 biasDirection)
+// A directional light's shadow lookup in the light's view, which every cascade shares (Lighting.glsl, DirectionalLight):
+// built once per fragment, so each cascade tried then costs a scale and offset instead of a full matrix. The view is a
+// rotation (directionalLightView), so the filter's dot products (the slide, shadowFilterFrame) come out the same in it.
+struct DirectionalShadowView
 {
-  return fragPos + biasDirection * directionalLights[i].cascadeTexelSizes[c];
+  vec3 position; // The fragment
+  vec3 bias;     // The bias's move per texel (shadowBiasDirection); a cascade's lookup is position + bias * its texel
+  vec3 t;        // The filter disc's basis
+  vec3 b;
+  vec3 normal;
+  vec3 toLight;
+};
+
+DirectionalShadowView directionalShadowView(int i, vec3 fragPos, vec3 normal)
+{
+  mat3 view = mat3(directionalLights[i].lightView);
+  vec3 toLight = -directionalLights[i].direction;
+
+  vec3 t;
+  vec3 b;
+  shadowFilterBasis(toLight, t, b);
+
+  DirectionalShadowView shadowView;
+  shadowView.position = view * fragPos;
+  // The bias's square root and division are the same in every cascade, so they are paid once, not per cascade
+  shadowView.bias = view * shadowBiasDirection(normal, toLight, directionalLights[i].shadowBias.xyz);
+  shadowView.t = view * t;
+  shadowView.b = view * b;
+  shadowView.normal = view * normal;
+  shadowView.toLight = view * toLight;
+
+  return shadowView;
 }
 
-// A world position in the clip space of cascade c: xy mapped to [0, 1], z the depth. The cascade projection is
-// orthographic with a rigid view (fitShadowCascade), so w is 1 and needs no divide, and the mapping is affine: a world
-// offset moves the coordinates by directionalCascadeMapVector of it, whatever the position it is added to.
-vec3 directionalCascadeCoords(int i, int c, vec3 lookup)
+// The fragment's lookup, moved by the bias, in cascade c's map coordinates: xy in [0, 1], z the depth
+vec3 directionalCascadeCoords(int i, int c, DirectionalShadowView shadowView)
 {
-  vec3 coords = (directionalLights[i].cascadeViewProjections[c] * vec4(lookup, 1.0)).xyz;
-  coords.xy = coords.xy * 0.5 + 0.5;
+  vec4 scale = directionalLights[i].cascadeScales[c];
 
-  return coords;
-}
-
-// A world space vector (an offset, not a position) in the coordinates of cascade c, as directionalCascadeCoords maps
-vec3 directionalCascadeMapVector(int i, int c, vec3 v)
-{
-  vec3 mapped = mat3(directionalLights[i].cascadeViewProjections[c]) * v;
-
-  return vec3(mapped.xy * 0.5, mapped.z);
+  return (shadowView.position + shadowView.bias * scale.w) * scale.xyz + directionalLights[i].cascadeOffsets[c].xyz;
 }
 
 bool insideUnitCube(vec3 coords)
@@ -288,8 +304,8 @@ float directionalShadowSample(int shadowMap, int c, vec3 coords)
   return textureLod(directionalLightShadowMaps[nonuniformEXT(shadowMap)], vec4(coords.xy, float(c), coords.z), 0.0);
 }
 
-// The filtered lit fraction in cascade c, given the lookup position's coordinates there
-float directionalCascadeShadow(int i, int shadowMap, int c, vec3 coords, vec3 t, vec3 b, vec2 rotation, vec3 normal)
+// The filtered lit fraction in cascade c, given the lookup's coordinates there
+float directionalCascadeShadow(int i, int shadowMap, int c, vec3 coords, DirectionalShadowView shadowView, vec2 rotation)
 {
   float radius = directionalLights[i].shadowFilter.x;
 
@@ -298,15 +314,17 @@ float directionalCascadeShadow(int i, int shadowMap, int c, vec3 coords, vec3 t,
     return directionalShadowSample(shadowMap, c, coords);
   }
 
-  float scale = radius * directionalLights[i].cascadeTexelSizes[c];
-  ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, -directionalLights[i].direction);
+  vec3 mapScale = directionalLights[i].cascadeScales[c].xyz;
+  float scale = radius * directionalLights[i].cascadeScales[c].w;
+  ShadowFilterFrame frame = shadowFilterFrame(rotation, shadowView.t, shadowView.b, scale, shadowView.normal,
+                                              shadowView.toLight);
 
-  // A tap's offset is linear in the frame's vectors and the cascade mapping is affine, so map the three vectors once and
-  // each tap's offset comes out in map coordinates, added to the lookup's own, instead of a matrix multiply per tap. The
-  // slide and its clamp are scalars, so they carry over unchanged.
-  frame.t = directionalCascadeMapVector(i, c, frame.t);
-  frame.b = directionalCascadeMapVector(i, c, frame.b);
-  frame.toLight = directionalCascadeMapVector(i, c, frame.toLight);
+  // A tap's offset is linear in the frame's vectors and the cascade mapping is affine, so scale the three (light view)
+  // vectors into map coordinates once and each tap's offset is added to the lookup's own coordinates, instead of a matrix
+  // multiply per tap. The slide and its clamp are scalars, so they carry over unchanged.
+  frame.t *= mapScale;
+  frame.b *= mapScale;
+  frame.toLight *= mapScale;
 
   float sum = 0.0;
 
@@ -340,25 +358,19 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
     return 1.0;
   }
 
-  vec3 t;
-  vec3 b;
-  shadowFilterBasis(-directionalLights[i].direction, t, b);
+  DirectionalShadowView shadowView = directionalShadowView(i, fragPos, normal);
   vec2 rotation = shadowFilterRotation();
-  // The bias's move per texel is the same in every cascade, so its square root and division are paid once, not per cascade
-  vec3 biasDirection = shadowBiasDirection(normal, -directionalLights[i].direction,
-                                           directionalLights[i].shadowBias.xyz);
 
   for (int c = 0; c < cascadeCount; c++)
   {
-    vec3 lookup = directionalCascadeLookup(i, c, fragPos, biasDirection);
-    vec3 coords = directionalCascadeCoords(i, c, lookup);
+    vec3 coords = directionalCascadeCoords(i, c, shadowView);
 
     if (!insideUnitCube(coords))
     {
       continue;
     }
 
-    float shadow = directionalCascadeShadow(i, shadowMap, c, coords, t, b, rotation, normal);
+    float shadow = directionalCascadeShadow(i, shadowMap, c, coords, shadowView, rotation);
 
     // Near the edge of the cascade, blend toward the next one so the change of resolution isn't a visible line
     const float blendWidth = 0.05;
@@ -366,12 +378,11 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
 
     if (edge < blendWidth && c + 1 < cascadeCount)
     {
-      vec3 nextLookup = directionalCascadeLookup(i, c + 1, fragPos, biasDirection);
-      vec3 nextCoords = directionalCascadeCoords(i, c + 1, nextLookup);
+      vec3 nextCoords = directionalCascadeCoords(i, c + 1, shadowView);
 
       if (insideUnitCube(nextCoords))
       {
-        float nextShadow = directionalCascadeShadow(i, shadowMap, c + 1, nextCoords, t, b, rotation, normal);
+        float nextShadow = directionalCascadeShadow(i, shadowMap, c + 1, nextCoords, shadowView, rotation);
 
         shadow = mix(nextShadow, shadow, edge / blendWidth);
       }
