@@ -41,6 +41,20 @@ namespace vke {
     return 2.0f * std::tan(glm::radians(fovDegrees) * 0.5f) / mapSize;
   }
 
+  // Must match shadowBiasDirection in shaders/common/Lighting.glsl.
+  // The lookup's move per texel: along the normal by the normal offset, toward the light by the constant and slope terms.
+  // shadowLookupPosition is linear in texel, so the shader computes this once for all of a light's maps.
+  [[nodiscard]] inline glm::vec3 shadowBiasDirection(const glm::vec3& normal,
+                                                     const glm::vec3& toLight,
+                                                     const glm::vec3& bias)
+  {
+    const float cosTheta = std::clamp(glm::dot(normal, toLight), 0.0f, 1.0f);
+    const float tanTheta = std::min(std::sqrt(1.0f - cosTheta * cosTheta) / std::max(cosTheta, 1e-4f),
+                                    s_maxShadowBiasTangent);
+
+    return normal * bias.z + toLight * (bias.x + bias.y * tanTheta);
+  }
+
   // Must match shadowLookupPosition in shaders/common/Lighting.glsl.
   // The position the shadow map is looked up at: the fragment moved along its normal and toward the light. normal and
   // toLight are unit vectors, texel the world size of a shadow map texel at the fragment, bias the three terms
@@ -51,11 +65,7 @@ namespace vke {
                                                       const float texel,
                                                       const glm::vec3& bias)
   {
-    const float cosTheta = std::clamp(glm::dot(normal, toLight), 0.0f, 1.0f);
-    const float tanTheta = std::min(std::sqrt(1.0f - cosTheta * cosTheta) / std::max(cosTheta, 1e-4f),
-                                    s_maxShadowBiasTangent);
-
-    return fragPos + normal * (bias.z * texel) + toLight * (texel * (bias.x + bias.y * tanTheta));
+    return fragPos + shadowBiasDirection(normal, toLight, bias) * texel;
   }
 
 } // namespace vke

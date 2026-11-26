@@ -1,6 +1,6 @@
 // The lighting set (set 2) of the lit object pipelines and the shadow lookups on it. The including shader enables
-// GL_EXT_nonuniform_qualifier, GL_EXT_texture_shadow_lod (textureLod on the directional maps' array shadow sampler) and
-// GL_GOOGLE_include_directive.
+// GL_EXT_nonuniform_qualifier, GL_EXT_texture_shadow_lod (textureLod on the directional maps' array shadow sampler),
+// GL_EXT_control_flow_attributes ([[unroll]] on the filter's tap loops) and GL_GOOGLE_include_directive.
 #include "Lighting.glsl"
 
 layout(set = 2, binding = 0) uniform PointLightsMetadata {
@@ -78,6 +78,10 @@ void shadowFilterBasis(vec3 toLight, out vec3 t, out vec3 b)
 // Everything but the disc point is the same for all of a lookup's taps, and both the offset and its slide are linear in
 // that point, so the rotation, the scale, the slide's dot products and its division are folded into a frame once per
 // lookup (shadowFilterFrame), and a tap is then two multiply-adds and a clamp. ShadowFilter.h mirrors both forms.
+//
+// The tap loops are [[unroll]]ed: each tap's disc point is then a constant, so length(d) folds away (left as a loop it is
+// a square root per tap), and the 16 comparison samples are independent instructions the GPU issues back to back,
+// instead of a loop waiting on each sample before it starts the next.
 struct ShadowFilterFrame
 {
   vec3 t;       // Where the disc's x axis lands: the basis rotated by the pixel's rotation, times scale
@@ -180,7 +184,7 @@ float pointLightShadow(int i, vec3 fragPos, vec3 normal)
   ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
   float sum = 0.0;
 
-  for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = 0; tap < shadowFilterTaps; tap++)
   {
     sum += pointShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
@@ -236,7 +240,7 @@ float spotLightShadow(int i, vec3 fragPos, vec3 normal)
   ShadowFilterFrame frame = shadowFilterFrame(rotation, t, b, scale, normal, unitToLight);
   float sum = 0.0;
 
-  for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = 0; tap < shadowFilterTaps; tap++)
   {
     sum += spotShadowSample(i, shadowMap, lookup + shadowFilterOffset(tap, frame));
   }
@@ -244,11 +248,11 @@ float spotLightShadow(int i, vec3 fragPos, vec3 normal)
   return sum / float(shadowFilterTaps);
 }
 
-// The fragment, moved by the bias, in cascade c of the directional light, in world space
-vec3 directionalCascadeLookup(int i, int c, vec3 fragPos, vec3 normal)
+// The fragment, moved by the bias, in cascade c of the directional light, in world space. biasDirection is the light's
+// shadowBiasDirection at the fragment, the same for every cascade; only the texel it is scaled by differs.
+vec3 directionalCascadeLookup(int i, int c, vec3 fragPos, vec3 biasDirection)
 {
-  return shadowLookupPosition(fragPos, normal, -directionalLights[i].direction,
-                              directionalLights[i].cascadeTexelSizes[c], directionalLights[i].shadowBias.xyz);
+  return fragPos + biasDirection * directionalLights[i].cascadeTexelSizes[c];
 }
 
 // A world position in the clip space of cascade c: xy mapped to [0, 1], z the depth. The cascade projection is
@@ -306,7 +310,7 @@ float directionalCascadeShadow(int i, int shadowMap, int c, vec3 coords, vec3 t,
 
   float sum = 0.0;
 
-  for (int tap = 0; tap < shadowFilterTaps; tap++)
+  [[unroll]] for (int tap = 0; tap < shadowFilterTaps; tap++)
   {
     sum += directionalShadowSample(shadowMap, c, coords + shadowFilterOffset(tap, frame));
   }
@@ -340,10 +344,13 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
   vec3 b;
   shadowFilterBasis(-directionalLights[i].direction, t, b);
   vec2 rotation = shadowFilterRotation();
+  // The bias's move per texel is the same in every cascade, so its square root and division are paid once, not per cascade
+  vec3 biasDirection = shadowBiasDirection(normal, -directionalLights[i].direction,
+                                           directionalLights[i].shadowBias.xyz);
 
   for (int c = 0; c < cascadeCount; c++)
   {
-    vec3 lookup = directionalCascadeLookup(i, c, fragPos, normal);
+    vec3 lookup = directionalCascadeLookup(i, c, fragPos, biasDirection);
     vec3 coords = directionalCascadeCoords(i, c, lookup);
 
     if (!insideUnitCube(coords))
@@ -359,7 +366,7 @@ float directionalLightShadow(int i, vec3 fragPos, vec3 normal)
 
     if (edge < blendWidth && c + 1 < cascadeCount)
     {
-      vec3 nextLookup = directionalCascadeLookup(i, c + 1, fragPos, normal);
+      vec3 nextLookup = directionalCascadeLookup(i, c + 1, fragPos, biasDirection);
       vec3 nextCoords = directionalCascadeCoords(i, c + 1, nextLookup);
 
       if (insideUnitCube(nextCoords))

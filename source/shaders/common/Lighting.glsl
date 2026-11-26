@@ -70,15 +70,24 @@ float lightAttenuation(float range, vec3 lightPosition, vec3 fragPos)
 
 // The position a shadow map is looked up at: the fragment moved along its normal and toward the light, by amounts in
 // texels (bias is constant, slope, normal offset; texel the world size of a shadow map texel at the fragment). normal and
-// toLight are unit vectors. ShadowBias.h mirrors it on the CPU.
-vec3 shadowLookupPosition(vec3 fragPos, vec3 normal, vec3 toLight, float texel, vec3 bias)
+// toLight are unit vectors. ShadowBias.h mirrors both functions on the CPU.
+//
+// The move is linear in texel, so it is split: shadowBiasDirection is the move per texel, which depends only on the
+// normal, the light and the bias (its square root and division are the expensive part), and a caller looking the same
+// fragment up in several maps of one light (the directional cascades, whose texels differ) computes it once.
+vec3 shadowBiasDirection(vec3 normal, vec3 toLight, vec3 bias)
 {
   const float maxTangent = 10.0;
 
   float cosTheta = clamp(dot(normal, toLight), 0.0, 1.0);
   float tanTheta = min(sqrt(1.0 - cosTheta * cosTheta) / max(cosTheta, 1e-4), maxTangent);
 
-  return fragPos + normal * (bias.z * texel) + toLight * (texel * (bias.x + bias.y * tanTheta));
+  return normal * bias.z + toLight * (bias.x + bias.y * tanTheta);
+}
+
+vec3 shadowLookupPosition(vec3 fragPos, vec3 normal, vec3 toLight, float texel, vec3 bias)
+{
+  return fragPos + shadowBiasDirection(normal, toLight, bias) * texel;
 }
 
 bool isInSpotlight(SpotLight light, vec3 fragPos)

@@ -2,6 +2,7 @@
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_nonuniform_qualifier : require
 #extension GL_EXT_texture_shadow_lod : require
+#extension GL_EXT_control_flow_attributes : require
 #include "../common/SceneLighting.glsl"
 
 layout(set = 1, binding = 0) uniform sampler2D texSampler;
