@@ -223,49 +223,61 @@ namespace vke {
   void LogicalDevice::releaseToPool(const PooledMemoryKey& key,
                                     PooledBlock&& block) noexcept
   {
-    std::vector<PooledBlock> evicted;
-
     try
     {
-      const std::lock_guard lock(m_poolMutex);
-
-      if (key.size > s_maxPooledBlockBytes)
-      {
-        evicted.push_back(std::move(block));
-        return;
-      }
-
-      // Make room by evicting other idle blocks, so a pool full of sizes that stopped recurring still takes new ones.
-      for (auto bucket = m_memoryPool.begin(); bucket != m_memoryPool.end() && m_pooledBytes + key.size > s_maxPooledBytes;)
-      {
-        while (!bucket->second.empty() && m_pooledBytes + key.size > s_maxPooledBytes)
-        {
-          evicted.push_back(std::move(bucket->second.back()));
-          bucket->second.pop_back();
-          m_pooledBytes -= bucket->first.size;
-        }
-
-        bucket = bucket->second.empty() ? m_memoryPool.erase(bucket) : std::next(bucket);
-      }
-
-      m_memoryPool[key].push_back(std::move(block));
-      m_pooledBytes += key.size;
+      // What storeInPool returns is freed at the end of this statement, after it has released the lock.
+      static_cast<void>(storeInPool(key, std::move(block)));
     }
     catch (...)
     {
-      // Out of host memory while pooling: the block is simply freed instead, by evicted or by block going out of scope.
+      // Out of host memory while pooling: the block is simply freed instead, when the caller's block goes out of scope.
     }
+  }
+
+  std::vector<PooledBlock> LogicalDevice::storeInPool(const PooledMemoryKey& key,
+                                                      PooledBlock&& block)
+  {
+    std::vector<PooledBlock> evicted;
+    const std::lock_guard lock(m_poolMutex);
+
+    if (key.size > s_maxPooledBlockBytes)
+    {
+      evicted.push_back(std::move(block));
+      return evicted;
+    }
+
+    // Make room by evicting other idle blocks, so a pool full of sizes that stopped recurring still takes new ones.
+    for (auto bucket = m_memoryPool.begin(); bucket != m_memoryPool.end() && m_pooledBytes + key.size > s_maxPooledBytes;)
+    {
+      while (!bucket->second.empty() && m_pooledBytes + key.size > s_maxPooledBytes)
+      {
+        evicted.push_back(std::move(bucket->second.back()));
+        bucket->second.pop_back();
+        m_pooledBytes -= bucket->first.size;
+      }
+
+      bucket = bucket->second.empty() ? m_memoryPool.erase(bucket) : std::next(bucket);
+    }
+
+    m_memoryPool[key].push_back(std::move(block));
+    m_pooledBytes += key.size;
+
+    return evicted;
   }
 
   void LogicalDevice::trimPool()
   {
-    std::map<PooledMemoryKey, std::vector<PooledBlock>> freed;
+    // The taken blocks are freed when the returned map is destroyed, after takePool has released the lock.
+    static_cast<void>(takePool());
+  }
 
-    {
-      const std::lock_guard lock(m_poolMutex);
-      freed.swap(m_memoryPool);
-      m_pooledBytes = 0;
-    }
+  std::map<PooledMemoryKey, std::vector<PooledBlock>> LogicalDevice::takePool()
+  {
+    const std::lock_guard lock(m_poolMutex);
+
+    m_pooledBytes = 0;
+
+    return std::exchange(m_memoryPool, {});
   }
 
   vk::raii::Sampler LogicalDevice::createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const

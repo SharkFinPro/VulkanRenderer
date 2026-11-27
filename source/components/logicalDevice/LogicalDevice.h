@@ -147,6 +147,14 @@ namespace vke {
     std::map<PooledMemoryKey, std::vector<PooledBlock>> m_memoryPool;
     vk::DeviceSize m_pooledBytes = 0;
 
+    // Stores the block under the lock and returns what must be freed (evicted blocks, or the block itself when it is
+    // too large to pool), so the caller frees them after the lock is released.
+    [[nodiscard]] std::vector<PooledBlock> storeInPool(const PooledMemoryKey& key,
+                                                       PooledBlock&& block);
+
+    // Empties the pool under the lock and returns its blocks for the caller to free.
+    [[nodiscard]] std::map<PooledMemoryKey, std::vector<PooledBlock>> takePool();
+
     vk::raii::Queue m_graphicsQueue = nullptr;
     vk::raii::Queue m_presentQueue = nullptr;
     vk::raii::Queue m_computeQueue = nullptr;
