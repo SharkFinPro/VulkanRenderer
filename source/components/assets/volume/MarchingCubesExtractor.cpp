@@ -272,11 +272,22 @@ namespace vke {
 
         for (int i = 0; i < 15 && triangles[i] >= 0; i += 3)
         {
-          const MaterialSet set = materialSet({
-            cornerMaterial(cell, triangles[i]),
-            cornerMaterial(cell, triangles[i + 1]),
-            cornerMaterial(cell, triangles[i + 2])
-          });
+          const uint8_t first = cornerMaterial(cell, triangles[i]);
+          const uint8_t second = cornerMaterial(cell, triangles[i + 1]);
+          const uint8_t third = cornerMaterial(cell, triangles[i + 2]);
+
+          // Most triangles have one material, which needs no sorting or blending
+          if (first == second && second == third)
+          {
+            for (int k = 0; k < 3; ++k)
+            {
+              m_out.indices.push_back(edgeVertex(cell, triangles[i + k]));
+            }
+
+            continue;
+          }
+
+          const MaterialSet set = materialSet({ first, second, third });
 
           for (int k = 0; k < 3; ++k)
           {
@@ -380,7 +391,15 @@ namespace vke {
     thread_local std::unordered_map<uint64_t, uint32_t> blendedVertices;
     thread_local std::vector<uint8_t> inside;
 
-    CellMesher(samples, cells, cellSize, out, edgeVertices, blendedVertices, inside).run();
+    // Built in per-thread scratch whose capacity survives, then copied out at its final size, so a chunk's mesh costs
+    // one allocation per array instead of a series of growing ones.
+    thread_local SurfaceMesh scratch;
+    scratch.clear();
+
+    CellMesher(samples, cells, cellSize, scratch, edgeVertices, blendedVertices, inside).run();
+
+    out.vertices.assign(scratch.vertices.begin(), scratch.vertices.end());
+    out.indices.assign(scratch.indices.begin(), scratch.indices.end());
   }
 
 } // namespace vke
