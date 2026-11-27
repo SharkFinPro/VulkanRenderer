@@ -128,8 +128,8 @@ namespace vke {
       {
         const glm::ivec3 points = m_size + 1;
 
-        m_edgeVertices.assign(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z) * 3, s_noVertex);
         m_blendedVertices.clear();
+        m_rowSigns.assign(static_cast<size_t>(points.y) * static_cast<size_t>(points.z), 0);
 
         // Each corner's sign is read once here instead of once per cell that shares it (eight times).
         m_inside.resize(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z));
@@ -155,28 +155,67 @@ namespace vke {
                                     static_cast<size_t>(regionSize.y) * static_cast<size_t>(m_origin.z + z - region.min.z));
               const float* distances = m_samples.distance.data() + row;
 
+              uint8_t seen = 0;
+
               for (int x = 0; x < points.x; ++x)
               {
-                m_inside[next++] = distances[x] < 0.0f ? 1 : 0;
+                const uint8_t sign = distances[x] < 0.0f ? 1 : 0;
+                seen |= static_cast<uint8_t>(1u << sign);
+                m_inside[next++] = sign;
               }
 
+              m_rowSigns[static_cast<size_t>(z) * static_cast<size_t>(points.y) + static_cast<size_t>(y)] = seen;
               continue;
             }
 
+            uint8_t seen = 0;
+
             for (int x = 0; x < points.x; ++x)
             {
-              m_inside[next++] = m_samples.distanceAt(m_origin + glm::ivec3(x, y, z)) < 0.0f ? 1 : 0;
+              const uint8_t sign = m_samples.distanceAt(m_origin + glm::ivec3(x, y, z)) < 0.0f ? 1 : 0;
+              seen |= static_cast<uint8_t>(1u << sign);
+              m_inside[next++] = sign;
             }
+
+            m_rowSigns[static_cast<size_t>(z) * static_cast<size_t>(points.y) + static_cast<size_t>(y)] = seen;
           }
         }
       }
 
       void run()
       {
+        const glm::ivec3 points = m_size + 1;
+        const auto rowSigns = [&](const int y, const int z) {
+          return m_rowSigns[static_cast<size_t>(z) * static_cast<size_t>(points.y) + static_cast<size_t>(y)];
+        };
+
+        // A bit per sign seen in a row of corners: 1 outside, 2 inside. A cell row whose four corner rows hold one sign
+        // only has no surface, so most rows of a chunk that is mostly air or solid are skipped unread.
+        uint8_t everything = 0;
+
+        for (const uint8_t signs : m_rowSigns)
+        {
+          everything |= signs;
+        }
+
+        if (everything != 3)
+        {
+          return;
+        }
+
+        m_edgeVertices.assign(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z) * 3, s_noVertex);
+
         for (int z = 0; z < m_size.z; ++z)
         {
           for (int y = 0; y < m_size.y; ++y)
           {
+            const uint8_t around = rowSigns(y, z) | rowSigns(y + 1, z) | rowSigns(y, z + 1) | rowSigns(y + 1, z + 1);
+
+            if (around != 3)
+            {
+              continue;
+            }
+
             for (int x = 0; x < m_size.x; ++x)
             {
               meshCell({ x, y, z });
@@ -194,6 +233,7 @@ namespace vke {
       std::vector<uint32_t>& m_edgeVertices;
       std::unordered_map<uint64_t, uint32_t>& m_blendedVertices;
       std::vector<uint8_t>& m_inside;
+      std::vector<uint8_t> m_rowSigns;
 
       [[nodiscard]] bool insideAt(const glm::ivec3 local) const
       {
