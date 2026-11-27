@@ -452,9 +452,10 @@ namespace {
     {
       job->setPhase(Phase::finished);
 
-      scheduler.onResult(job, mesh, failed);
+      Scheduler::JobList jobs;
+      scheduler.onResult(job, mesh, failed, jobs);
 
-      return {};
+      return jobs;
     }
 
     size_t swap()
@@ -557,25 +558,25 @@ namespace {
     check(h.swap() == 1 && h.shown[0] == 30 && h.shown[1] == 31, "both swap together, as one batch");
   }
 
-  void checkStartedJobGetsIndependentBatch()
+  void checkStartedJobGetsFollowUp()
   {
     Harness h(3);
     h.createAll(3);
 
     const auto first = h.invalidate({ 0 });
     first[0]->setPhase(Phase::started);
-    check(h.scheduler.wantsResult(first[0]), "a started job's result is wanted");
 
-    const auto second = h.invalidate({ 0 });
-    check(second.size() == 1 && second[0]->chunk == 0, "an edit during extraction submits a new job");
-    check(h.scheduler.openBatchCount() == 2, "in a batch of its own");
+    check(h.invalidate({ 0 }).empty(), "an edit during extraction submits nothing yet");
+    check(h.invalidate({ 0 }).empty(), "a second edit shares the same follow-up");
     check(h.scheduler.wantsResult(first[0]), "the started job's result is still wanted");
 
-    h.finish(first[0], 40);
-    check(h.swap() == 1 && h.shown[0] == 40, "the older extraction shows while the newer one runs");
+    const auto followUp = h.finish(first[0], 40);
+    check(followUp.size() == 1 && followUp[0]->chunk == 0, "its result submits one follow-up extraction");
+    check(followUp[0]->generation > first[0]->generation, "in a newer batch");
+    check(h.swap() == 1 && h.shown[0] == 40, "the started job's mesh shows while the follow-up runs");
 
-    h.finish(second[0], 41);
-    check(h.swap() == 1 && h.shown[0] == 41, "the newer extraction replaces it");
+    check(h.finish(followUp[0], 41).empty(), "a follow-up with no edit during it submits nothing");
+    check(h.swap() == 1 && h.shown[0] == 41, "the follow-up's mesh replaces it");
   }
 
   void checkContinuousEditsKeepShowing()
@@ -583,18 +584,18 @@ namespace {
     Harness h(2);
     h.createAll(2);
 
-    auto previous = h.invalidate({ 0 });
+    auto running = h.invalidate({ 0 });
 
     for (int step = 0; step < 4; ++step)
     {
-      previous[0]->setPhase(Phase::started);
-      const auto next = h.invalidate({ 0 });
-      check(next.size() == 1, "every edit during extraction submits its own job");
+      running[0]->setPhase(Phase::started);
+      check(h.invalidate({ 0 }).empty(), "an edit during extraction waits for it");
 
-      h.finish(previous[0], 50 + step);
+      const auto next = h.finish(running[0], 50 + step);
+      check(next.size() == 1, "one extraction at a time, the next submitted when the last finishes");
       check(h.swap() == 1 && h.shown[0] == 50 + step, "a finished extraction shows without waiting for the edits to pause");
 
-      previous = next;
+      running = next;
     }
   }
 
@@ -619,7 +620,7 @@ namespace {
     check(h.shown[0] == 11 && h.shown[1] == 12, "the newer data ends up shown");
   }
 
-  void checkFinishedUndeliveredJobGetsNewJob()
+  void checkFinishedUndeliveredJobGetsFollowUp()
   {
     Harness h(2);
     h.createAll(2);
@@ -627,12 +628,12 @@ namespace {
     const auto first = h.invalidate({ 0 });
     first[0]->setPhase(Phase::finished);
 
-    const auto second = h.invalidate({ 0 });
-    check(second.size() == 1, "a job finished but not yet delivered gets a new job");
-    check(h.scheduler.openBatchCount() == 2, "in its own batch");
+    check(h.invalidate({ 0 }).empty(), "a job finished but not yet delivered is followed up, not doubled");
 
-    h.finish(first[0], 60);
-    h.finish(second[0], 61);
+    const auto followUp = h.finish(first[0], 60);
+    check(followUp.size() == 1, "its delivery submits the follow-up");
+
+    h.finish(followUp[0], 61);
     check(h.swap() == 2 && h.shown[0] == 61, "both deliver; the newer shows last");
   }
 
@@ -765,10 +766,10 @@ int main()
   checkCreationBatch();
   checkUnreadyMeshKeepsOldMeshes();
   checkQueuedJobIsShared();
-  checkStartedJobGetsIndependentBatch();
+  checkStartedJobGetsFollowUp();
   checkContinuousEditsKeepShowing();
   checkFinishedJobGetsIndependentBatch();
-  checkFinishedUndeliveredJobGetsNewJob();
+  checkFinishedUndeliveredJobGetsFollowUp();
   checkOlderEntryDoesNotOverwriteNewer();
   checkAbsorbKeepsLaterBatchesBehind();
   checkEmptyAndFailedResults();

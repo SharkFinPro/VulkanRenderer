@@ -290,7 +290,7 @@ namespace vke {
 
     const bool created = mesh.has_value();
 
-    m_scheduler.onResult(result.job, std::move(mesh), failed);
+    m_scheduler.onResult(result.job, std::move(mesh), failed, m_newJobs);
 
     return created;
   }

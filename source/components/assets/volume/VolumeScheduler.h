@@ -52,9 +52,11 @@ namespace vke {
   // ones.
   //
   // An edit of a chunk whose latest job has not read the samples yet needs no new job: the queued job reads post-edit
-  // data, so the new batch absorbs the old one. A job that has started may have read pre-edit data, and one that has
-  // finished has; either gets a new job in an independent batch, and the older job's result still swaps in, so a chunk
-  // edited every frame keeps showing the newest finished extraction instead of waiting for the edits to pause.
+  // data, so the new batch absorbs the old one. A job that has started may have read pre-edit data: its result still
+  // swaps in, and once it arrives the chunk is extracted again in a batch of its own. Edits that land meanwhile share
+  // that one follow-up, so a chunk edited every frame runs at most one extraction at a time, always shows the newest
+  // finished one, and is never left waiting for the edits to pause. A job whose result was delivered gets a new job
+  // in the edit's batch.
   // Entries remember the generation of the job that produced their data, and a chunk never shows older data than it
   // already shows. Absorbing also takes every batch opened after the absorbed one, so no batch swaps ahead of an
   // absorbed entry.
@@ -96,10 +98,11 @@ namespace vke {
     }
 
     // The result of a job: no mesh means the chunk has no surface, failed means extraction threw. A result of a job that
-    // is not (or no longer) known is dropped.
+    // is not (or no longer) known is dropped. May append the follow-up extraction of a chunk edited while its job ran.
     void onResult(const std::shared_ptr<ChunkJob>& job,
                   std::optional<MeshHandle> mesh,
-                  const bool failed)
+                  const bool failed,
+                  JobList& newJobs)
     {
       const auto found = m_entries.find(job.get());
 
@@ -115,6 +118,18 @@ namespace vke {
       entry.mesh = std::move(mesh);
 
       --entry.batch->pending;
+
+      if (entry.followUp)
+      {
+        entry.followUp = false;
+
+        m_batches.emplace_back();
+
+        Batch& batch = m_batches.back();
+        batch.generation = ++m_lastGeneration;
+
+        addEntry(entry.chunk, batch, newJobs);
+      }
     }
 
     // Whether onResult would keep this job's result, so a caller can skip building what would be discarded.
@@ -187,6 +202,8 @@ namespace vke {
       uint64_t generation = 0;
       bool done = false;
       bool failed = false;
+      // Edited after the job started: extracted again once its result arrives
+      bool followUp = false;
       std::optional<MeshHandle> mesh;
     };
 
@@ -228,6 +245,9 @@ namespace vke {
           absorb(*latest->batch, batch);
           return;
         }
+
+        latest->followUp = true;
+        return;
       }
 
       addEntry(chunk, batch, newJobs);
