@@ -136,10 +136,33 @@ namespace vke {
 
         size_t next = 0;
 
+        const VolumeRegion& region = m_samples.region;
+        const glm::ivec3 regionSize = extent(region);
+        const glm::ivec3 last = m_origin + points;
+        const bool covered = m_origin.x >= region.min.x && m_origin.y >= region.min.y && m_origin.z >= region.min.z &&
+                             last.x <= region.max.x && last.y <= region.max.y && last.z <= region.max.z;
+
         for (int z = 0; z < points.z; ++z)
         {
           for (int y = 0; y < points.y; ++y)
           {
+            if (covered)
+            {
+              // No read needs clamping, so the row is read straight from the samples
+              const size_t row = static_cast<size_t>(m_origin.x - region.min.x) +
+                                 static_cast<size_t>(regionSize.x) *
+                                   (static_cast<size_t>(m_origin.y + y - region.min.y) +
+                                    static_cast<size_t>(regionSize.y) * static_cast<size_t>(m_origin.z + z - region.min.z));
+              const float* distances = m_samples.distance.data() + row;
+
+              for (int x = 0; x < points.x; ++x)
+              {
+                m_inside[next++] = distances[x] < 0.0f ? 1 : 0;
+              }
+
+              continue;
+            }
+
             for (int x = 0; x < points.x; ++x)
             {
               m_inside[next++] = m_samples.distanceAt(m_origin + glm::ivec3(x, y, z)) < 0.0f ? 1 : 0;
