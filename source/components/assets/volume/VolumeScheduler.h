@@ -95,6 +95,13 @@ namespace vke {
       {
         invalidateChunk(chunk, *batch, newJobs);
       }
+
+      // Every chunk only marked a follow-up: an empty batch would swap nothing yet count as a swap.
+      if (batch->entries.empty())
+      {
+        m_batches.pop_back();
+        --m_lastGeneration;
+      }
     }
 
     // The result of a job: no mesh means the chunk has no surface, failed means extraction threw. A result of a job that

@@ -620,6 +620,42 @@ namespace {
     check(h.shown[0] == 11 && h.shown[1] == 12, "the newer data ends up shown");
   }
 
+  void checkFollowUpEditsOpenNoEmptyBatch()
+  {
+    Harness h(2);
+    h.createAll(2);
+
+    const auto first = h.invalidate({ 0 });
+    first[0]->setPhase(Phase::started);
+
+    check(h.invalidate({ 0 }).empty() && h.scheduler.openBatchCount() == 1, "an edit that only marks a follow-up opens no batch");
+
+    const auto followUp = h.finish(first[0], 70);
+    check(followUp.size() == 1, "the follow-up is submitted");
+
+    check(h.invalidate({ 0 }).empty(), "an edit while the follow-up is queued shares it");
+    check(h.scheduler.openBatchCount() == 2, "the follow-up's batch absorbed that edit; nothing else opened");
+
+    check(h.finish(followUp[0], 71).empty(), "a queued follow-up reads the edit, so no further job");
+    check(h.swap() == 2 && h.shown[0] == 71, "both batches swap and the follow-up's mesh shows");
+  }
+
+  void checkCancelWithFollowUpPending()
+  {
+    Harness h(2);
+    h.createAll(2);
+
+    const auto first = h.invalidate({ 0 });
+    first[0]->setPhase(Phase::started);
+    check(h.invalidate({ 0 }).empty(), "the edit marks a follow-up");
+
+    h.scheduler.cancelAll();
+
+    check(h.finish(first[0], 80).empty(), "a result after cancelAll is dropped and submits no follow-up");
+    check(h.swap() == 0 && h.installs.empty(), "nothing swaps after cancelAll");
+    check(h.scheduler.pendingFraction() == 0.0f && h.scheduler.openBatchCount() == 0, "nothing stays open");
+  }
+
   void checkFinishedUndeliveredJobGetsFollowUp()
   {
     Harness h(2);
@@ -770,6 +806,8 @@ int main()
   checkContinuousEditsKeepShowing();
   checkFinishedJobGetsIndependentBatch();
   checkFinishedUndeliveredJobGetsFollowUp();
+  checkFollowUpEditsOpenNoEmptyBatch();
+  checkCancelWithFollowUpPending();
   checkOlderEntryDoesNotOverwriteNewer();
   checkAbsorbKeepsLaterBatchesBehind();
   checkEmptyAndFailedResults();

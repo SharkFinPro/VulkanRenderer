@@ -128,7 +128,6 @@ namespace vke {
       {
         const glm::ivec3 points = m_size + 1;
 
-        m_blendedVertices.clear();
         m_rowSigns.assign(static_cast<size_t>(points.y) * static_cast<size_t>(points.z), 0);
 
         // Each corner's sign is read once here instead of once per cell that shares it (eight times).
@@ -203,13 +202,20 @@ namespace vke {
           return;
         }
 
+        // Cleared only when a chunk has surface, and only if a previous chunk left entries, since clearing a map costs
+        // its bucket count.
+        if (!m_blendedVertices.empty())
+        {
+          m_blendedVertices.clear();
+        }
+
         m_edgeVertices.assign(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z) * 3, s_noVertex);
 
         for (int z = 0; z < m_size.z; ++z)
         {
           for (int y = 0; y < m_size.y; ++y)
           {
-            const uint8_t around = rowSigns(y, z) | rowSigns(y + 1, z) | rowSigns(y, z + 1) | rowSigns(y + 1, z + 1);
+            const auto around = static_cast<uint8_t>(rowSigns(y, z) | rowSigns(y + 1, z) | rowSigns(y, z + 1) | rowSigns(y + 1, z + 1));
 
             if (around != 3)
             {

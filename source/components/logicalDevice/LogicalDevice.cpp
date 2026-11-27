@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <iterator>
 #include <set>
 
 namespace vke {
@@ -155,9 +156,18 @@ namespace vke {
 
     constexpr vk::DeviceSize s_maxPooledBytes = 256ull * 1024 * 1024;
 
+    // Blocks above this are allocated at their exact size and freed rather than pooled: rounding them would waste the
+    // most, and they recur too rarely to be worth holding.
+    constexpr vk::DeviceSize s_maxPooledBlockBytes = 16ull * 1024 * 1024;
+
     // Sizes within a quarter octave share a rounded size, so meshes of similar size reuse each other's memory.
     [[nodiscard]] vk::DeviceSize roundPooledSize(const vk::DeviceSize size)
     {
+      if (size > s_maxPooledBlockBytes)
+      {
+        return size;
+      }
+
       const vk::DeviceSize step = std::max<vk::DeviceSize>(std::bit_floor(size) / 4, 4096);
 
       return (size + step - 1) / step * step;
@@ -188,29 +198,74 @@ namespace vke {
       .flags = deviceAddress ? vk::MemoryAllocateFlagBits::eDeviceAddress : vk::MemoryAllocateFlags{}
     };
 
-    PooledBlock block;
-
-    allocateMemory({
+    const vk::MemoryAllocateInfo allocateInfo {
       .pNext = &allocateFlagsInfo,
       .allocationSize = key.size,
       .memoryTypeIndex = memoryTypeIndex
-    }, block.memory);
+    };
+
+    PooledBlock block;
+
+    try
+    {
+      allocateMemory(allocateInfo, block.memory);
+    }
+    catch (const vk::OutOfDeviceMemoryError&)
+    {
+      // Idle pooled blocks may be what is holding the memory: free them all and try once more.
+      trimPool();
+      allocateMemory(allocateInfo, block.memory);
+    }
 
     return { this, key, std::move(block) };
   }
 
   void LogicalDevice::releaseToPool(const PooledMemoryKey& key,
-                                    PooledBlock&& block)
+                                    PooledBlock&& block) noexcept
   {
-    const std::lock_guard lock(m_poolMutex);
+    std::vector<PooledBlock> evicted;
 
-    if (m_pooledBytes + key.size > s_maxPooledBytes)
+    try
     {
-      return;
-    }
+      const std::lock_guard lock(m_poolMutex);
 
-    m_memoryPool[key].push_back(std::move(block));
-    m_pooledBytes += key.size;
+      if (key.size > s_maxPooledBlockBytes)
+      {
+        evicted.push_back(std::move(block));
+        return;
+      }
+
+      // Make room by evicting other idle blocks, so a pool full of sizes that stopped recurring still takes new ones.
+      for (auto bucket = m_memoryPool.begin(); bucket != m_memoryPool.end() && m_pooledBytes + key.size > s_maxPooledBytes;)
+      {
+        while (!bucket->second.empty() && m_pooledBytes + key.size > s_maxPooledBytes)
+        {
+          evicted.push_back(std::move(bucket->second.back()));
+          bucket->second.pop_back();
+          m_pooledBytes -= bucket->first.size;
+        }
+
+        bucket = bucket->second.empty() ? m_memoryPool.erase(bucket) : std::next(bucket);
+      }
+
+      m_memoryPool[key].push_back(std::move(block));
+      m_pooledBytes += key.size;
+    }
+    catch (...)
+    {
+      // Out of host memory while pooling: the block is simply freed instead, by evicted or by block going out of scope.
+    }
+  }
+
+  void LogicalDevice::trimPool()
+  {
+    std::map<PooledMemoryKey, std::vector<PooledBlock>> freed;
+
+    {
+      const std::lock_guard lock(m_poolMutex);
+      freed.swap(m_memoryPool);
+      m_pooledBytes = 0;
+    }
   }
 
   vk::raii::Sampler LogicalDevice::createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const

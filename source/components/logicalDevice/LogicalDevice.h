@@ -93,9 +93,13 @@ namespace vke {
                                                     uint32_t memoryTypeIndex,
                                                     bool deviceAddress);
 
-    // For PooledMemory: takes a block back. Drops it when the pool is full.
+    // For PooledMemory: takes a block back, evicting other idle blocks when the pool is full. A block larger than the
+    // pooled size limit, or one that cannot be stored, is freed instead.
     void releaseToPool(const PooledMemoryKey& key,
-                       PooledBlock&& block);
+                       PooledBlock&& block) noexcept;
+
+    // Frees every idle pooled block.
+    void trimPool();
 
     [[nodiscard]] vk::raii::Sampler createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const;
 
@@ -137,7 +141,8 @@ namespace vke {
     // Declared after m_device so retired resources are destroyed before the device.
     std::unique_ptr<DeferredDestructionQueue> m_retiredResources;
 
-    // Declared after m_device so the blocks are freed before the device.
+    // Declared after m_device so the blocks are freed before the device. Retired blocks return here from the deferred
+    // queue, which the destructor empties in its body while this is still alive.
     std::mutex m_poolMutex;
     std::map<PooledMemoryKey, std::vector<PooledBlock>> m_memoryPool;
     vk::DeviceSize m_pooledBytes = 0;
