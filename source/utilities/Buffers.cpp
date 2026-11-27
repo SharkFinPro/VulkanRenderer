@@ -44,8 +44,7 @@ namespace vke::Buffers {
                           const vk::BufferUsageFlags usage,
                           const vk::MemoryPropertyFlags properties,
                           vk::raii::Buffer& buffer,
-                          vk::raii::DeviceMemory& bufferMemory,
-                          PooledMemoryKey& memoryKey)
+                          PooledMemory& bufferMemory)
   {
     const vk::BufferCreateInfo bufferInfo {
       .size = size,
@@ -57,15 +56,13 @@ namespace vke::Buffers {
 
     const vk::MemoryRequirements memoryRequirements = buffer.getMemoryRequirements();
 
-    logicalDevice->allocatePooledMemory(
+    bufferMemory = logicalDevice->allocatePooledMemory(
       memoryRequirements.size,
       logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits, properties),
-      static_cast<bool>(usage & vk::BufferUsageFlagBits::eShaderDeviceAddress),
-      bufferMemory,
-      memoryKey
+      static_cast<bool>(usage & vk::BufferUsageFlagBits::eShaderDeviceAddress)
     );
 
-    buffer.bindMemory(bufferMemory, 0);
+    buffer.bindMemory(*bufferMemory.get(), 0);
   }
 
   void copyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,

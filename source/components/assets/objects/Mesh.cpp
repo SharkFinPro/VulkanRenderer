@@ -181,8 +181,7 @@ namespace vke {
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_resources.vertexBuffer,
-      m_resources.vertexMemory,
-      m_vertexMemoryKey
+      m_resources.vertexMemory
     );
 
     Buffers::createPooledBuffer(
@@ -191,8 +190,7 @@ namespace vke {
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_resources.indexBuffer,
-      m_resources.indexMemory,
-      m_indexMemoryKey
+      m_resources.indexMemory
     );
   }
 
@@ -218,7 +216,7 @@ namespace vke {
     const vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = queryBlasSizes(
       logicalDevice, vertexAddress, createInfo.vertexStride, m_vertexCount - 1, indexAddress, primitiveCount);
 
-    Buffers::createBuffer(
+    Buffers::createPooledBuffer(
       logicalDevice,
       buildSizesInfo.accelerationStructureSize,
       vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
@@ -243,7 +241,7 @@ namespace vke {
     build.primitiveCount = primitiveCount;
     build.destination = *m_resources.blas;
 
-    Buffers::createBuffer(
+    Buffers::createPooledBuffer(
       logicalDevice,
       buildSizesInfo.buildScratchSize,
       vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
@@ -259,14 +257,8 @@ namespace vke {
 
   Mesh::~Mesh()
   {
-    // Frames in flight may still draw this mesh. The buffers go first and their memory after, so a block is back in the
-    // pool only once the buffers bound to it are gone.
-    vk::raii::DeviceMemory vertexMemory = std::move(m_resources.vertexMemory);
-    vk::raii::DeviceMemory indexMemory = std::move(m_resources.indexMemory);
-
+    // Frames in flight may still draw this mesh.
     m_logicalDevice->retireHandles(std::move(m_resources));
-    m_logicalDevice->retirePooledMemory(m_vertexMemoryKey, std::move(vertexMemory));
-    m_logicalDevice->retirePooledMemory(m_indexMemoryKey, std::move(indexMemory));
   }
 
   bool Mesh::isReady() const

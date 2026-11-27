@@ -1,6 +1,7 @@
 #ifndef VKE_LOGICALDEVICE_H
 #define VKE_LOGICALDEVICE_H
 
+#include "PooledMemory.h"
 #include "PooledMemoryKey.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <map>
@@ -86,18 +87,15 @@ namespace vke {
                         vk::raii::DeviceMemory& deviceMemory) const;
 
     // Memory for a buffer whose memory is recycled instead of freed: the size is rounded up so blocks of similar
-    // buffers are interchangeable, and a block handed back through retirePooledMemory is reused by the next request
-    // with the same key. Skips the driver's allocation, which dominates creating many small meshes.
-    void allocatePooledMemory(vk::DeviceSize requiredSize,
-                              uint32_t memoryTypeIndex,
-                              bool deviceAddress,
-                              vk::raii::DeviceMemory& deviceMemory,
-                              PooledMemoryKey& key);
+    // buffers are interchangeable, and a block that is destroyed goes back to the pool for the next request with the
+    // same key. Skips the driver's allocation, which dominates creating many small meshes.
+    [[nodiscard]] PooledMemory allocatePooledMemory(vk::DeviceSize requiredSize,
+                                                    uint32_t memoryTypeIndex,
+                                                    bool deviceAddress);
 
-    // Returns the block to the pool once the last frame that could use it has completed. Retire the buffers bound to
-    // it first, so they are destroyed before it is handed out again.
-    void retirePooledMemory(const PooledMemoryKey& key,
-                            vk::raii::DeviceMemory&& deviceMemory);
+    // For PooledMemory: takes a block back. Drops it when the pool is full.
+    void releaseToPool(const PooledMemoryKey& key,
+                       PooledBlock&& block);
 
     [[nodiscard]] vk::raii::Sampler createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const;
 
@@ -141,11 +139,8 @@ namespace vke {
 
     // Declared after m_device so the blocks are freed before the device.
     std::mutex m_poolMutex;
-    std::map<PooledMemoryKey, std::vector<vk::raii::DeviceMemory>> m_memoryPool;
+    std::map<PooledMemoryKey, std::vector<PooledBlock>> m_memoryPool;
     vk::DeviceSize m_pooledBytes = 0;
-
-    void releaseToPool(const PooledMemoryKey& key,
-                       vk::raii::DeviceMemory&& deviceMemory);
 
     vk::raii::Queue m_graphicsQueue = nullptr;
     vk::raii::Queue m_presentQueue = nullptr;

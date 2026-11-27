@@ -163,32 +163,24 @@ namespace vke {
       return (size + step - 1) / step * step;
     }
 
-    struct RetiredBlock {
-      PooledMemoryKey key;
-      vk::raii::DeviceMemory memory = nullptr;
-      LogicalDevice* device = nullptr;
-    };
-
   } // namespace
 
-  void LogicalDevice::allocatePooledMemory(const vk::DeviceSize requiredSize,
-                                           const uint32_t memoryTypeIndex,
-                                           const bool deviceAddress,
-                                           vk::raii::DeviceMemory& deviceMemory,
-                                           PooledMemoryKey& key)
+  PooledMemory LogicalDevice::allocatePooledMemory(const vk::DeviceSize requiredSize,
+                                                   const uint32_t memoryTypeIndex,
+                                                   const bool deviceAddress)
   {
-    key = { memoryTypeIndex, roundPooledSize(requiredSize), deviceAddress };
+    const PooledMemoryKey key { memoryTypeIndex, roundPooledSize(requiredSize), deviceAddress };
 
     {
       const std::lock_guard lock(m_poolMutex);
 
       if (const auto found = m_memoryPool.find(key); found != m_memoryPool.end() && !found->second.empty())
       {
-        deviceMemory = std::move(found->second.back());
+        PooledBlock block = std::move(found->second.back());
         found->second.pop_back();
         m_pooledBytes -= key.size;
 
-        return;
+        return { this, key, std::move(block) };
       }
     }
 
@@ -196,34 +188,19 @@ namespace vke {
       .flags = deviceAddress ? vk::MemoryAllocateFlagBits::eDeviceAddress : vk::MemoryAllocateFlags{}
     };
 
+    PooledBlock block;
+
     allocateMemory({
       .pNext = &allocateFlagsInfo,
       .allocationSize = key.size,
       .memoryTypeIndex = memoryTypeIndex
-    }, deviceMemory);
-  }
+    }, block.memory);
 
-  void LogicalDevice::retirePooledMemory(const PooledMemoryKey& key,
-                                         vk::raii::DeviceMemory&& deviceMemory)
-  {
-    if (!*deviceMemory)
-    {
-      return;
-    }
-
-    auto* block = new RetiredBlock { key, std::move(deviceMemory), this };
-
-    retire(std::shared_ptr<void>(block, [](void* raw) {
-      auto* retired = static_cast<RetiredBlock*>(raw);
-
-      retired->device->releaseToPool(retired->key, std::move(retired->memory));
-
-      delete retired;
-    }));
+    return { this, key, std::move(block) };
   }
 
   void LogicalDevice::releaseToPool(const PooledMemoryKey& key,
-                                    vk::raii::DeviceMemory&& deviceMemory)
+                                    PooledBlock&& block)
   {
     const std::lock_guard lock(m_poolMutex);
 
@@ -232,7 +209,7 @@ namespace vke {
       return;
     }
 
-    m_memoryPool[key].push_back(std::move(deviceMemory));
+    m_memoryPool[key].push_back(std::move(block));
     m_pooledBytes += key.size;
   }
 

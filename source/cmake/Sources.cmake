@@ -99,6 +99,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
   # Logical Device Management
   components/logicalDevice/DeferredDestructionQueue.cpp
   components/logicalDevice/DeferredDestructionQueue.h
+  components/logicalDevice/PooledMemory.cpp
+  components/logicalDevice/PooledMemory.h
   components/logicalDevice/PooledMemoryKey.h
   components/logicalDevice/LogicalDevice.cpp
   components/logicalDevice/LogicalDevice.h
