@@ -115,27 +115,113 @@ namespace vke {
                  const float cellSize,
                  SurfaceMesh& out,
                  std::vector<uint32_t>& edgeVertices,
-                 std::unordered_map<uint64_t, uint32_t>& blendedVertices)
+                 std::unordered_map<uint64_t, uint32_t>& blendedVertices,
+                 std::vector<uint8_t>& inside)
         : m_samples(samples),
           m_origin(cells.min),
           m_size(cells.max - cells.min),
           m_cellSize(cellSize),
           m_out(out),
           m_edgeVertices(edgeVertices),
-          m_blendedVertices(blendedVertices)
+          m_blendedVertices(blendedVertices),
+          m_inside(inside)
       {
         const glm::ivec3 points = m_size + 1;
 
-        m_edgeVertices.assign(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z) * 3, s_noVertex);
-        m_blendedVertices.clear();
+        m_rowSigns.assign(static_cast<size_t>(points.y) * static_cast<size_t>(points.z), 0);
+
+        // Each corner's sign is read once here instead of once per cell that shares it (eight times).
+        m_inside.resize(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z));
+
+        size_t next = 0;
+
+        const VolumeRegion& region = m_samples.region;
+        const glm::ivec3 regionSize = extent(region);
+        const glm::ivec3 last = m_origin + points;
+        const bool covered = m_origin.x >= region.min.x && m_origin.y >= region.min.y && m_origin.z >= region.min.z &&
+                             last.x <= region.max.x && last.y <= region.max.y && last.z <= region.max.z;
+
+        for (int z = 0; z < points.z; ++z)
+        {
+          for (int y = 0; y < points.y; ++y)
+          {
+            if (covered)
+            {
+              // No read needs clamping, so the row is read straight from the samples
+              const size_t row = static_cast<size_t>(m_origin.x - region.min.x) +
+                                 static_cast<size_t>(regionSize.x) *
+                                   (static_cast<size_t>(m_origin.y + y - region.min.y) +
+                                    static_cast<size_t>(regionSize.y) * static_cast<size_t>(m_origin.z + z - region.min.z));
+              const float* distances = m_samples.distance.data() + row;
+
+              uint8_t seen = 0;
+
+              for (int x = 0; x < points.x; ++x)
+              {
+                const uint8_t sign = distances[x] < 0.0f ? 1 : 0;
+                seen |= static_cast<uint8_t>(1u << sign);
+                m_inside[next++] = sign;
+              }
+
+              m_rowSigns[static_cast<size_t>(z) * static_cast<size_t>(points.y) + static_cast<size_t>(y)] = seen;
+              continue;
+            }
+
+            uint8_t seen = 0;
+
+            for (int x = 0; x < points.x; ++x)
+            {
+              const uint8_t sign = m_samples.distanceAt(m_origin + glm::ivec3(x, y, z)) < 0.0f ? 1 : 0;
+              seen |= static_cast<uint8_t>(1u << sign);
+              m_inside[next++] = sign;
+            }
+
+            m_rowSigns[static_cast<size_t>(z) * static_cast<size_t>(points.y) + static_cast<size_t>(y)] = seen;
+          }
+        }
       }
 
       void run()
       {
+        const glm::ivec3 points = m_size + 1;
+        const auto rowSigns = [&](const int y, const int z) {
+          return m_rowSigns[static_cast<size_t>(z) * static_cast<size_t>(points.y) + static_cast<size_t>(y)];
+        };
+
+        // A bit per sign seen in a row of corners: 1 outside, 2 inside. A cell row whose four corner rows hold one sign
+        // only has no surface, so most rows of a chunk that is mostly air or solid are skipped unread.
+        uint8_t everything = 0;
+
+        for (const uint8_t signs : m_rowSigns)
+        {
+          everything |= signs;
+        }
+
+        if (everything != 3)
+        {
+          return;
+        }
+
+        // Cleared only when a chunk has surface, and only if a previous chunk left entries, since clearing a map costs
+        // its bucket count.
+        if (!m_blendedVertices.empty())
+        {
+          m_blendedVertices.clear();
+        }
+
+        m_edgeVertices.assign(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z) * 3, s_noVertex);
+
         for (int z = 0; z < m_size.z; ++z)
         {
           for (int y = 0; y < m_size.y; ++y)
           {
+            const auto around = static_cast<uint8_t>(rowSigns(y, z) | rowSigns(y + 1, z) | rowSigns(y, z + 1) | rowSigns(y + 1, z + 1));
+
+            if (around != 3)
+            {
+              continue;
+            }
+
             for (int x = 0; x < m_size.x; ++x)
             {
               meshCell({ x, y, z });
@@ -152,6 +238,16 @@ namespace vke {
       SurfaceMesh& m_out;
       std::vector<uint32_t>& m_edgeVertices;
       std::unordered_map<uint64_t, uint32_t>& m_blendedVertices;
+      std::vector<uint8_t>& m_inside;
+      std::vector<uint8_t> m_rowSigns;
+
+      [[nodiscard]] bool insideAt(const glm::ivec3 local) const
+      {
+        const glm::ivec3 points = m_size + 1;
+
+        return m_inside[static_cast<size_t>(local.x) +
+                        static_cast<size_t>(points.x) * (static_cast<size_t>(local.y) + static_cast<size_t>(points.y) * static_cast<size_t>(local.z))] != 0;
+      }
 
       [[nodiscard]] unsigned cubeIndex(const glm::ivec3 cell) const
       {
@@ -160,9 +256,7 @@ namespace vke {
         for (unsigned corner = 0; corner < 8; ++corner)
         {
           const auto& offset = marchingCubes::cornerOffsets[corner];
-          const glm::ivec3 position = m_origin + cell + glm::ivec3(offset[0], offset[1], offset[2]);
-
-          if (m_samples.distanceAt(position) < 0.0f)
+          if (insideAt(cell + glm::ivec3(offset[0], offset[1], offset[2])))
           {
             index |= 1u << corner;
           }
@@ -184,11 +278,22 @@ namespace vke {
 
         for (int i = 0; i < 15 && triangles[i] >= 0; i += 3)
         {
-          const MaterialSet set = materialSet({
-            cornerMaterial(cell, triangles[i]),
-            cornerMaterial(cell, triangles[i + 1]),
-            cornerMaterial(cell, triangles[i + 2])
-          });
+          const uint8_t first = cornerMaterial(cell, triangles[i]);
+          const uint8_t second = cornerMaterial(cell, triangles[i + 1]);
+          const uint8_t third = cornerMaterial(cell, triangles[i + 2]);
+
+          // Most triangles have one material, which needs no sorting or blending
+          if (first == second && second == third)
+          {
+            for (int k = 0; k < 3; ++k)
+            {
+              m_out.indices.push_back(edgeVertex(cell, triangles[i + k]));
+            }
+
+            continue;
+          }
+
+          const MaterialSet set = materialSet({ first, second, third });
 
           for (int k = 0; k < 3; ++k)
           {
@@ -219,7 +324,9 @@ namespace vke {
       {
         const marchingCubes::EdgeId& id = marchingCubes::edges[edge];
 
-        return edgeMaterial(m_samples, m_origin + edgeLower(cell, id), id.axis);
+        const glm::ivec3 lower = edgeLower(cell, id);
+
+        return m_samples.materialAt(m_origin + (insideAt(lower) ? lower : lower + axisStep(id.axis)));
       }
 
       // The edge's vertex for triangles of one material
@@ -288,8 +395,17 @@ namespace vke {
     // Reused by the calls of this thread, so a worker does not allocate per chunk
     thread_local std::vector<uint32_t> edgeVertices;
     thread_local std::unordered_map<uint64_t, uint32_t> blendedVertices;
+    thread_local std::vector<uint8_t> inside;
 
-    CellMesher(samples, cells, cellSize, out, edgeVertices, blendedVertices).run();
+    // Built in per-thread scratch whose capacity survives, then copied out at its final size, so a chunk's mesh costs
+    // one allocation per array instead of a series of growing ones.
+    thread_local SurfaceMesh scratch;
+    scratch.clear();
+
+    CellMesher(samples, cells, cellSize, scratch, edgeVertices, blendedVertices, inside).run();
+
+    out.vertices.assign(scratch.vertices.begin(), scratch.vertices.end());
+    out.indices.assign(scratch.indices.begin(), scratch.indices.end());
   }
 
 } // namespace vke

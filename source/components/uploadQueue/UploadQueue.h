@@ -2,6 +2,7 @@
 #define VKE_UPLOADQUEUE_H
 
 #include "../../utilities/UploadSchedule.h"
+#include "../logicalDevice/PooledMemory.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -35,13 +36,13 @@ namespace vke {
     vk::DeviceAddress indexAddress = 0;
     uint32_t primitiveCount = 0;
     vk::AccelerationStructureKHR destination;
-    vk::raii::DeviceMemory scratchMemory = nullptr;
+    PooledMemory scratchMemory;
     vk::raii::Buffer scratchBuffer = nullptr;
     vk::DeviceAddress scratchAddress = 0;
   };
 
   struct UploadRequest {
-    vk::raii::DeviceMemory stagingMemory = nullptr;
+    PooledMemory stagingMemory;
     vk::raii::Buffer stagingBuffer = nullptr;
     // The staging memory stays mapped for the life of the request; fill it with write().
     void* mapped = nullptr;
@@ -96,9 +97,9 @@ namespace vke {
   private:
     // Destroyed in reverse order: scratch before staging, each buffer before its memory.
     struct RetiredRequest {
-      vk::raii::DeviceMemory stagingMemory = nullptr;
+      PooledMemory stagingMemory;
       vk::raii::Buffer stagingBuffer = nullptr;
-      vk::raii::DeviceMemory scratchMemory = nullptr;
+      PooledMemory scratchMemory;
       vk::raii::Buffer scratchBuffer = nullptr;
     };
 

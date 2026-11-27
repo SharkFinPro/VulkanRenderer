@@ -2,6 +2,7 @@
 #define VKE_MESH_H
 
 #include "../../../utilities/Bounds.h"
+#include "../../logicalDevice/PooledMemory.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -81,11 +82,11 @@ namespace vke {
     // Retired together once the GPU may still use them; members are destroyed in reverse order, so the acceleration
     // structure goes before its buffer and each buffer before its memory.
     struct Resources {
-      vk::raii::DeviceMemory vertexMemory = nullptr;
+      PooledMemory vertexMemory;
       vk::raii::Buffer vertexBuffer = nullptr;
-      vk::raii::DeviceMemory indexMemory = nullptr;
+      PooledMemory indexMemory;
       vk::raii::Buffer indexBuffer = nullptr;
-      vk::raii::DeviceMemory blasMemory = nullptr;
+      PooledMemory blasMemory;
       vk::raii::Buffer blasBuffer = nullptr;
       vk::raii::AccelerationStructureKHR blas = nullptr;
     };

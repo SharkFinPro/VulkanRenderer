@@ -174,7 +174,8 @@ namespace vke {
       ? vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
       : vk::BufferUsageFlags{};
 
-    Buffers::createBuffer(
+    // Pooled, since a volume surface creates and drops a mesh per edited chunk and the driver's allocation is slow.
+    Buffers::createPooledBuffer(
       logicalDevice,
       vertexBytes,
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
@@ -183,7 +184,7 @@ namespace vke {
       m_resources.vertexMemory
     );
 
-    Buffers::createBuffer(
+    Buffers::createPooledBuffer(
       logicalDevice,
       indexBytes,
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
@@ -215,7 +216,7 @@ namespace vke {
     const vk::AccelerationStructureBuildSizesInfoKHR buildSizesInfo = queryBlasSizes(
       logicalDevice, vertexAddress, createInfo.vertexStride, m_vertexCount - 1, indexAddress, primitiveCount);
 
-    Buffers::createBuffer(
+    Buffers::createPooledBuffer(
       logicalDevice,
       buildSizesInfo.accelerationStructureSize,
       vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
@@ -240,7 +241,7 @@ namespace vke {
     build.primitiveCount = primitiveCount;
     build.destination = *m_resources.blas;
 
-    Buffers::createBuffer(
+    Buffers::createPooledBuffer(
       logicalDevice,
       buildSizesInfo.buildScratchSize,
       vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,

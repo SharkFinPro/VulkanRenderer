@@ -1,8 +1,12 @@
 #ifndef VKE_LOGICALDEVICE_H
 #define VKE_LOGICALDEVICE_H
 
+#include "PooledMemory.h"
+#include "PooledMemoryKey.h"
 #include <vulkan/vulkan_raii.hpp>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -82,6 +86,21 @@ namespace vke {
     void allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
                         vk::raii::DeviceMemory& deviceMemory) const;
 
+    // Memory for a buffer whose memory is recycled instead of freed: the size is rounded up so blocks of similar
+    // buffers are interchangeable, and a block that is destroyed goes back to the pool for the next request with the
+    // same key. Skips the driver's allocation, which dominates creating many small meshes.
+    [[nodiscard]] PooledMemory allocatePooledMemory(vk::DeviceSize requiredSize,
+                                                    uint32_t memoryTypeIndex,
+                                                    bool deviceAddress);
+
+    // For PooledMemory: takes a block back, evicting other idle blocks when the pool is full. A block larger than the
+    // pooled size limit, or one that cannot be stored, is freed instead.
+    void releaseToPool(const PooledMemoryKey& key,
+                       PooledBlock&& block) noexcept;
+
+    // Frees every idle pooled block.
+    void trimPool();
+
     [[nodiscard]] vk::raii::Sampler createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const;
 
     [[nodiscard]] vk::raii::ImageView createImageView(const vk::ImageViewCreateInfo& imageViewCreateInfo) const;
@@ -121,6 +140,20 @@ namespace vke {
 
     // Declared after m_device so retired resources are destroyed before the device.
     std::unique_ptr<DeferredDestructionQueue> m_retiredResources;
+
+    // Declared after m_device so the blocks are freed before the device. Retired blocks return here from the deferred
+    // queue, which the destructor empties in its body while this is still alive.
+    std::mutex m_poolMutex;
+    std::map<PooledMemoryKey, std::vector<PooledBlock>> m_memoryPool;
+    vk::DeviceSize m_pooledBytes = 0;
+
+    // Stores the block under the lock and returns what must be freed (evicted blocks, or the block itself when it is
+    // too large to pool), so the caller frees them after the lock is released.
+    [[nodiscard]] std::vector<PooledBlock> storeInPool(const PooledMemoryKey& key,
+                                                       PooledBlock&& block);
+
+    // Empties the pool under the lock and returns its blocks for the caller to free.
+    [[nodiscard]] std::map<PooledMemoryKey, std::vector<PooledBlock>> takePool();
 
     vk::raii::Queue m_graphicsQueue = nullptr;
     vk::raii::Queue m_presentQueue = nullptr;

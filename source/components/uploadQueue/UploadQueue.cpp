@@ -29,7 +29,7 @@ namespace vke {
     request.stagingSize = stagingSize;
     request.owner = std::move(owner);
 
-    Buffers::createBuffer(
+    Buffers::createPooledBuffer(
       m_logicalDevice,
       stagingSize,
       vk::BufferUsageFlagBits::eTransferSrc,
@@ -38,7 +38,7 @@ namespace vke {
       request.stagingMemory
     );
 
-    request.mapped = request.stagingMemory.mapMemory(0, vk::WholeSize);
+    request.mapped = request.stagingMemory.map();
 
     return request;
   }
