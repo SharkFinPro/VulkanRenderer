@@ -281,8 +281,8 @@ namespace vke {
       m_vertexScratch.push_back({
         .position = vertex.position,
         .normal = vertex.normal,
-        .materials = { static_cast<uint8_t>(vertex.material), 0, 0, 0 },
-        .weights = { 255, 0, 0, 0 }
+        .materials = vertex.materials,
+        .weights = vertex.weights
       });
     }
 

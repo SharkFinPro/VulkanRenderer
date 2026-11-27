@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -45,6 +46,13 @@ namespace {
   }
 
   using Field = std::function<float(glm::vec3)>;
+  using MaterialField = std::function<uint8_t(glm::ivec3)>;
+
+  // Varied enough that every field above meets several materials
+  uint8_t stripedMaterial(const glm::ivec3 position)
+  {
+    return static_cast<uint8_t>((position.x / 7 + position.y / 5 + position.z / 3) % 5);
+  }
 
   constexpr float s_cellSize = 0.5f;
 
@@ -53,13 +61,15 @@ namespace {
   class GridSource final : public vke::VolumeSource {
   public:
     GridSource(const vke::VolumeRegion& bounds,
-               const Field& field)
-      : GridSource(bounds, bounds, field)
+               const Field& field,
+               const MaterialField& materialField = stripedMaterial)
+      : GridSource(bounds, bounds, field, materialField)
     {}
 
     GridSource(const vke::VolumeRegion& bounds,
                const vke::VolumeRegion& sampleBounds,
-               const Field& field)
+               const Field& field,
+               const MaterialField& materialField = stripedMaterial)
       : m_bounds(bounds),
         m_sampleBounds(sampleBounds),
         m_size(vke::extent(sampleBounds)),
@@ -76,7 +86,7 @@ namespace {
             const size_t index = indexOf(position);
 
             m_distance[index] = field(glm::vec3(position));
-            m_material[index] = static_cast<uint8_t>((position.x / 7 + position.y / 5 + position.z / 3) % 5);
+            m_material[index] = materialField(position);
           }
         }
       }
@@ -333,7 +343,7 @@ namespace {
     });
   }
 
-  using VertexKey = std::array<uint32_t, 7>;
+  using VertexKey = std::array<uint32_t, 8>;
 
   VertexKey keyOf(const vke::SurfaceVertex& vertex)
   {
@@ -343,6 +353,50 @@ namespace {
     std::memcpy(key.data(), &vertex, sizeof(key));
 
     return key;
+  }
+
+  // Position and normal bits only: the copies of an edge's vertex made for different materials share these
+  using GeometryKey = std::array<uint32_t, 6>;
+
+  GeometryKey geometryKeyOf(const vke::SurfaceVertex& vertex)
+  {
+    static_assert(offsetof(vke::SurfaceVertex, normal) == sizeof(glm::vec3));
+
+    GeometryKey key {};
+    std::memcpy(key.data(), &vertex, sizeof(key));
+
+    return key;
+  }
+
+  // The meshes' indices with vertices merged by geometry, so a material boundary, which is not welded, does not open
+  // the surface
+  std::vector<uint32_t> weldedIndices(const std::vector<vke::SurfaceMesh>& meshes)
+  {
+    std::map<GeometryKey, uint32_t> ids;
+    std::vector<uint32_t> indices;
+
+    for (const vke::SurfaceMesh& mesh : meshes)
+    {
+      for (const uint32_t index : mesh.indices)
+      {
+        const auto [it, inserted] = ids.emplace(geometryKeyOf(mesh.vertices[index]), static_cast<uint32_t>(ids.size()));
+        indices.push_back(it->second);
+      }
+    }
+
+    return indices;
+  }
+
+  std::set<GeometryKey> geometryKeys(const std::vector<vke::SurfaceVertex>& vertices)
+  {
+    std::set<GeometryKey> keys;
+
+    for (const vke::SurfaceVertex& vertex : vertices)
+    {
+      keys.insert(geometryKeyOf(vertex));
+    }
+
+    return keys;
   }
 
   std::vector<VertexKey> sortedKeys(const std::vector<vke::SurfaceVertex>& vertices)
@@ -391,8 +445,9 @@ namespace {
     return result;
   }
 
-  // Every pair of chunks that touch: the vertices in their common boundary are bit-identical, in equal number. Returns
-  // how many vertices were compared, so a test can tell it did not pass vacuously.
+  // Every pair of chunks that touch: the vertices in their common boundary are at bit-identical positions with
+  // bit-identical normals. Their materials belong to the triangles on either side, so they are not compared. Returns how
+  // many vertices were compared, so a test can tell it did not pass vacuously.
   size_t compareSharedBoundaries(const std::vector<vke::SurfaceMesh>& meshes,
                                  const vke::VolumeChunkGrid& grid,
                                  const std::string& name)
@@ -413,8 +468,8 @@ namespace {
           continue;
         }
 
-        const auto inA = sortedKeys(verticesInside(meshes[a], glm::vec3(low) * s_cellSize, glm::vec3(high) * s_cellSize));
-        const auto inB = sortedKeys(verticesInside(meshes[b], glm::vec3(low) * s_cellSize, glm::vec3(high) * s_cellSize));
+        const auto inA = geometryKeys(verticesInside(meshes[a], glm::vec3(low) * s_cellSize, glm::vec3(high) * s_cellSize));
+        const auto inB = geometryKeys(verticesInside(meshes[b], glm::vec3(low) * s_cellSize, glm::vec3(high) * s_cellSize));
 
         check(inA == inB, name + ": chunks " + std::to_string(a) + " and " + std::to_string(b) + " agree on their shared vertices");
         compared += inA.size();
@@ -461,23 +516,11 @@ namespace {
     check(triangleCount(meshes) == whole.indices.size() / 3, name + ": chunked triangle count equals the single-chunk count");
   }
 
-  // The whole volume's meshes merged by vertex bits: closed and oriented across chunk borders
+  // The whole volume's meshes merged by vertex geometry: closed and oriented across chunk borders
   void checkMergedClosed(const std::vector<vke::SurfaceMesh>& meshes,
                          const std::string& name)
   {
-    std::map<VertexKey, uint32_t> ids;
-    std::vector<uint32_t> indices;
-
-    for (const vke::SurfaceMesh& mesh : meshes)
-    {
-      for (const uint32_t index : mesh.indices)
-      {
-        const auto [it, inserted] = ids.emplace(keyOf(mesh.vertices[index]), static_cast<uint32_t>(ids.size()));
-        indices.push_back(it->second);
-      }
-    }
-
-    check(isClosedAndOriented(directedEdges(indices)), name + ": merged chunks form a closed, oriented surface");
+    check(isClosedAndOriented(directedEdges(weldedIndices(meshes))), name + ": merged chunks form a closed, oriented surface");
   }
 
   struct Case {
@@ -511,7 +554,7 @@ namespace {
 
     if (testCase.closed)
     {
-      check(isClosedAndOriented(directedEdges(mesh.indices)), testCase.name + ": closed and consistently oriented");
+      check(isClosedAndOriented(directedEdges(weldedIndices({ mesh }))), testCase.name + ": closed and consistently oriented");
       check(signedVolume(mesh) > 0.0f, testCase.name + ": winds outward (positive enclosed volume)");
     }
 
@@ -755,6 +798,140 @@ namespace {
     check(nonEmpty == 4, "plane: the four chunks of the first column");
   }
 
+  // Every vertex's weights are one-hot and sum to 255, on a listed material; the three corners of a triangle list the
+  // same materials in the same slots, ascending and distinct, exactly the corners' own materials. Returns how many
+  // triangles have two and three materials.
+  std::array<size_t, 2> checkMaterialSlots(const vke::SurfaceMesh& mesh,
+                                           const std::string& name)
+  {
+    std::array<size_t, 2> blended {};
+    bool vertexValid = true;
+    bool triangleValid = true;
+
+    for (const vke::SurfaceVertex& vertex : mesh.vertices)
+    {
+      uint32_t sum = 0;
+      uint32_t full = 0;
+
+      for (size_t i = 0; i < 4; ++i)
+      {
+        sum += vertex.weights[i];
+        full += vertex.weights[i] == 255 ? 1 : 0;
+      }
+
+      vertexValid = vertexValid && sum == 255 && full == 1;
+    }
+
+    for (size_t i = 0; i + 2 < mesh.indices.size(); i += 3)
+    {
+      const vke::SurfaceVertex& a = mesh.vertices[mesh.indices[i]];
+      const vke::SurfaceVertex& b = mesh.vertices[mesh.indices[i + 1]];
+      const vke::SurfaceVertex& c = mesh.vertices[mesh.indices[i + 2]];
+
+      std::set<uint8_t> own;
+
+      for (const vke::SurfaceVertex* vertex : { &a, &b, &c })
+      {
+        for (size_t slot = 0; slot < 4; ++slot)
+        {
+          if (vertex->weights[slot] == 255)
+          {
+            own.insert(vertex->materials[slot]);
+          }
+        }
+      }
+
+      std::vector<uint8_t> listed;
+
+      for (size_t slot = 0; slot < own.size(); ++slot)
+      {
+        listed.push_back(a.materials[slot]);
+      }
+
+      bool unusedEmpty = true;
+
+      for (size_t slot = own.size(); slot < 4; ++slot)
+      {
+        unusedEmpty = unusedEmpty && a.materials[slot] == 0 && a.weights[slot] == 0;
+      }
+
+      triangleValid = triangleValid && a.materials == b.materials && a.materials == c.materials && unusedEmpty &&
+                      listed == std::vector<uint8_t>(own.begin(), own.end());
+
+      if (own.size() > 1)
+      {
+        ++blended[own.size() - 2];
+      }
+    }
+
+    check(vertexValid, name + ": every vertex has one full weight, summing to one");
+    check(triangleValid, name + ": a triangle's corners list its materials in the same slots");
+
+    return blended;
+  }
+
+  // A sphere across three materials: x below 16 is material 1, above it y below 16 is 2, the rest 3
+  void checkMaterialBoundaries()
+  {
+    const GridSource source(s_bounds, sphereField(), [](const glm::ivec3 p) {
+      return static_cast<uint8_t>(p.x < 16 ? 1 : p.y < 16 ? 2 : 3);
+    });
+
+    const vke::VolumeChunkGrid single(s_bounds, 64);
+    const vke::SurfaceMesh mesh = extractChunk(source, single, 0);
+    const auto blended = checkMaterialSlots(mesh, "boundaries");
+
+    check(blended[0] > 0, "boundaries: some triangles blend two materials");
+    check(blended[1] > 0, "boundaries: some triangles blend three materials");
+    check(isClosedAndOriented(directedEdges(weldedIndices({ mesh }))), "boundaries: the surface stays closed across material boundaries");
+
+    // Each copy of an edge's vertex has the same own material, its edge's inside sample's
+    std::map<GeometryKey, std::set<uint8_t>> ownByVertex;
+
+    for (const vke::SurfaceVertex& vertex : mesh.vertices)
+    {
+      for (size_t slot = 0; slot < 4; ++slot)
+      {
+        if (vertex.weights[slot] == 255)
+        {
+          ownByVertex[geometryKeyOf(vertex)].insert(vertex.materials[slot]);
+        }
+      }
+    }
+
+    check(geometryKeys(mesh.vertices).size() < mesh.vertices.size(), "boundaries: material boundaries duplicate vertices");
+    check(std::ranges::all_of(ownByVertex, [](const auto& entry) { return entry.second.size() == 1; }),
+          "boundaries: every copy of a vertex has the same own material");
+
+    // Chunked: each chunk's triangles carry the same materials as the single chunk's
+    const vke::VolumeChunkGrid grid(s_bounds, 16);
+    const auto meshes = extractAll(source, grid);
+
+    for (uint32_t chunk = 0; chunk < meshes.size(); ++chunk)
+    {
+      checkMaterialSlots(meshes[chunk], "boundaries chunk " + std::to_string(chunk));
+    }
+
+    compareWithSingleChunk(source, meshes, "boundaries");
+    checkMergedClosed(meshes, "boundaries");
+  }
+
+  // One material everywhere: every vertex has its full weight on the first slot and nothing else, and the edges'
+  // vertices are welded as before
+  void checkSingleMaterial()
+  {
+    const GridSource source(s_bounds, torusField(), [](const glm::ivec3) { return static_cast<uint8_t>(3); });
+    const vke::VolumeChunkGrid grid(s_bounds, 64);
+    const vke::SurfaceMesh mesh = extractChunk(source, grid, 0);
+
+    check(!mesh.vertices.empty(), "single material: has vertices");
+    check(std::ranges::all_of(mesh.vertices, [](const vke::SurfaceVertex& vertex) {
+      return vertex.materials == std::array<uint8_t, 4> { 3, 0, 0, 0 } && vertex.weights == std::array<uint8_t, 4> { 255, 0, 0, 0 };
+    }), "single material: weight one on the first slot only");
+    check(geometryKeys(mesh.vertices).size() == mesh.vertices.size(), "single material: one vertex per crossing edge");
+    check(isClosedAndOriented(directedEdges(mesh.indices)), "single material: closed and oriented by index");
+  }
+
   // Bourke's corner order: bits 0 to 3 go around z = 0 from the origin, bits 4 to 7 sit above them
   constexpr std::array<std::array<int, 3>, 8> s_corners {{
     { 0, 0, 0 }, { 1, 0, 0 }, { 1, 1, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 1, 0, 1 }, { 1, 1, 1 }, { 0, 1, 1 }
@@ -878,6 +1055,8 @@ int main()
   checkDeterministic();
   checkEmptyAndFull();
   checkPlaneSplitsChunks();
+  checkMaterialBoundaries();
+  checkSingleMaterial();
 
   std::cout << g_checks << " checks, " << g_failures << " failures" << std::endl;
 

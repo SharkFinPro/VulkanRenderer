@@ -17,7 +17,15 @@ void main()
 
   fragPos = vec3(objects[object].model * vec4(inPosition, 1.0));
   fragNormal = mat3(objects[object].normalMatrix) * inNormal;
+  // The vertex's own material, the one with the full weight, until surfaces blend materials
   fragMaterial = inMaterials.x;
+  for (int i = 1; i < 4; i++)
+  {
+    if (inWeights[i] > inWeights[0])
+    {
+      fragMaterial = inMaterials[i];
+    }
+  }
 
   gl_Position = scene.proj * scene.view * objects[object].model * vec4(inPosition, 1.0);
 }

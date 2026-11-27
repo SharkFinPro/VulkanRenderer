@@ -2,10 +2,12 @@
 #include "MarchingCubesTables.h"
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <unordered_map>
 #include <vector>
 
 namespace vke {
@@ -38,9 +40,17 @@ namespace vke {
       return result;
     }
 
-    // The vertex on the edge from lower to lower + axis. It depends on nothing but the samples around that edge. The
-    // caller passes samples clipped to the volume's sample bounds, so a read past the view clamps exactly as a read past
-    // the sample bounds would, and two chunks that share the edge read the same values.
+    // The material of the edge's inside sample
+    [[nodiscard]] uint8_t edgeMaterial(const VolumeSamples& samples,
+                                       const glm::ivec3 lower,
+                                       const int axis)
+    {
+      return samples.materialAt(samples.distanceAt(lower) < 0.0f ? lower : lower + axisStep(axis));
+    }
+
+    // The vertex on the edge from lower to lower + axis, with its own material at full weight. It depends on nothing but
+    // the samples around that edge. The caller passes samples clipped to the volume's sample bounds, so a read past the
+    // view clamps exactly as a read past the sample bounds would, and two chunks that share the edge read the same values.
     [[nodiscard]] SurfaceVertex makeVertex(const VolumeSamples& samples,
                                            const glm::ivec3 lower,
                                            const int axis,
@@ -63,28 +73,60 @@ namespace vke {
       return {
         .position = (glm::vec3(lower) + t * glm::vec3(upper - lower)) * cellSize,
         .normal = length > 1e-12f ? normal / length : glm::vec3(0.0f, 1.0f, 0.0f),
-        .material = samples.materialAt(d0 < 0.0f ? lower : upper)
+        .materials = { edgeMaterial(samples, lower, axis), 0, 0, 0 },
+        .weights = { 255, 0, 0, 0 }
       };
     }
 
-    // Walks the cells of one call, creating each crossing edge's vertex once.
+    // The distinct materials of a triangle's corners, ascending
+    struct MaterialSet {
+      std::array<uint8_t, 3> materials {};
+      uint32_t count = 0;
+
+      [[nodiscard]] uint32_t packed() const
+      {
+        return materials[0] | static_cast<uint32_t>(materials[1]) << 8 | static_cast<uint32_t>(materials[2]) << 16 | count << 24;
+      }
+    };
+
+    [[nodiscard]] MaterialSet materialSet(std::array<uint8_t, 3> corners)
+    {
+      std::ranges::sort(corners);
+
+      MaterialSet set;
+
+      for (const uint8_t material : corners)
+      {
+        if (set.count == 0 || set.materials[set.count - 1] != material)
+        {
+          set.materials[set.count++] = material;
+        }
+      }
+
+      return set;
+    }
+
+    // Walks the cells of one call, creating each crossing edge's vertex once per material set it is used with.
     class CellMesher {
     public:
       CellMesher(const VolumeSamples& samples,
                  const CellRange& cells,
                  const float cellSize,
                  SurfaceMesh& out,
-                 std::vector<uint32_t>& edgeVertices)
+                 std::vector<uint32_t>& edgeVertices,
+                 std::unordered_map<uint64_t, uint32_t>& blendedVertices)
         : m_samples(samples),
           m_origin(cells.min),
           m_size(cells.max - cells.min),
           m_cellSize(cellSize),
           m_out(out),
-          m_edgeVertices(edgeVertices)
+          m_edgeVertices(edgeVertices),
+          m_blendedVertices(blendedVertices)
       {
         const glm::ivec3 points = m_size + 1;
 
         m_edgeVertices.assign(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z) * 3, s_noVertex);
+        m_blendedVertices.clear();
       }
 
       void run()
@@ -108,6 +150,7 @@ namespace vke {
       float m_cellSize;
       SurfaceMesh& m_out;
       std::vector<uint32_t>& m_edgeVertices;
+      std::unordered_map<uint64_t, uint32_t>& m_blendedVertices;
 
       [[nodiscard]] unsigned cubeIndex(const glm::ivec3 cell) const
       {
@@ -138,22 +181,53 @@ namespace vke {
 
         const int8_t* triangles = marchingCubes::triTable[index];
 
-        for (int i = 0; i < 15 && triangles[i] >= 0; ++i)
+        for (int i = 0; i < 15 && triangles[i] >= 0; i += 3)
         {
-          m_out.indices.push_back(edgeVertex(cell, triangles[i]));
+          const MaterialSet set = materialSet({
+            cornerMaterial(cell, triangles[i]),
+            cornerMaterial(cell, triangles[i + 1]),
+            cornerMaterial(cell, triangles[i + 2])
+          });
+
+          for (int k = 0; k < 3; ++k)
+          {
+            m_out.indices.push_back(set.count == 1 ? edgeVertex(cell, triangles[i + k])
+                                                   : blendedVertex(cell, triangles[i + k], set));
+          }
         }
       }
 
+      [[nodiscard]] static glm::ivec3 edgeLower(const glm::ivec3 cell,
+                                                const marchingCubes::EdgeId& id)
+      {
+        return cell + glm::ivec3(id.base[0], id.base[1], id.base[2]);
+      }
+
+      [[nodiscard]] size_t edgeSlot(const glm::ivec3 lower,
+                                    const int axis) const
+      {
+        const glm::ivec3 points = m_size + 1;
+
+        return (static_cast<size_t>(lower.x) +
+                static_cast<size_t>(points.x) * (static_cast<size_t>(lower.y) + static_cast<size_t>(points.y) * static_cast<size_t>(lower.z))) * 3 +
+               static_cast<size_t>(axis);
+      }
+
+      [[nodiscard]] uint8_t cornerMaterial(const glm::ivec3 cell,
+                                           const int edge) const
+      {
+        const marchingCubes::EdgeId& id = marchingCubes::edges[edge];
+
+        return edgeMaterial(m_samples, m_origin + edgeLower(cell, id), id.axis);
+      }
+
+      // The edge's vertex for triangles of one material
       [[nodiscard]] uint32_t edgeVertex(const glm::ivec3 cell,
                                         const int edge)
       {
         const marchingCubes::EdgeId& id = marchingCubes::edges[edge];
-        const glm::ivec3 lower = cell + glm::ivec3(id.base[0], id.base[1], id.base[2]);
-        const glm::ivec3 points = m_size + 1;
-
-        const size_t slot = (static_cast<size_t>(lower.x) +
-                             static_cast<size_t>(points.x) * (static_cast<size_t>(lower.y) + static_cast<size_t>(points.y) * static_cast<size_t>(lower.z))) * 3 +
-                            static_cast<size_t>(id.axis);
+        const glm::ivec3 lower = edgeLower(cell, id);
+        const size_t slot = edgeSlot(lower, id.axis);
 
         if (m_edgeVertices[slot] == s_noVertex)
         {
@@ -162,6 +236,37 @@ namespace vke {
         }
 
         return m_edgeVertices[slot];
+      }
+
+      // The edge's vertex for triangles with these materials: it lists them all and weighs its own fully
+      [[nodiscard]] uint32_t blendedVertex(const glm::ivec3 cell,
+                                           const int edge,
+                                           const MaterialSet& set)
+      {
+        const marchingCubes::EdgeId& id = marchingCubes::edges[edge];
+        const glm::ivec3 lower = edgeLower(cell, id);
+        const uint64_t key = static_cast<uint64_t>(edgeSlot(lower, id.axis)) << 32 | set.packed();
+
+        const auto [it, inserted] = m_blendedVertices.try_emplace(key, static_cast<uint32_t>(m_out.vertices.size()));
+
+        if (inserted)
+        {
+          SurfaceVertex vertex = makeVertex(m_samples, m_origin + lower, id.axis, m_cellSize);
+          const uint8_t own = vertex.materials[0];
+
+          vertex.materials = { 0, 0, 0, 0 };
+          vertex.weights = { 0, 0, 0, 0 };
+
+          for (uint32_t i = 0; i < set.count; ++i)
+          {
+            vertex.materials[i] = set.materials[i];
+            vertex.weights[i] = set.materials[i] == own ? 255 : 0;
+          }
+
+          m_out.vertices.push_back(vertex);
+        }
+
+        return it->second;
       }
     };
 
@@ -181,8 +286,9 @@ namespace vke {
 
     // Reused by the calls of this thread, so a worker does not allocate per chunk
     thread_local std::vector<uint32_t> edgeVertices;
+    thread_local std::unordered_map<uint64_t, uint32_t> blendedVertices;
 
-    CellMesher(samples, cells, cellSize, out, edgeVertices).run();
+    CellMesher(samples, cells, cellSize, out, edgeVertices, blendedVertices).run();
   }
 
 } // namespace vke

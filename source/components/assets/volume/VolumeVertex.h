@@ -8,8 +8,8 @@
 
 namespace vke {
 
-  // The vertex a volume surface's meshes are drawn with. The materials and weights are four-way blend inputs, of which
-  // only the first material (weight 255) is used until surfaces blend materials.
+  // The vertex a volume surface's meshes are drawn with. The materials and weights are four-way blend inputs, as
+  // SurfaceVertex describes them; until surfaces blend materials only the vertex's own material (weight 255) is used.
   struct VolumeVertex {
     glm::vec3 position;
     glm::vec3 normal;
