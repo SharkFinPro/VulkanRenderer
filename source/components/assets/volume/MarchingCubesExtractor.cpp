@@ -85,7 +85,8 @@ namespace vke {
 
       [[nodiscard]] uint32_t packed() const
       {
-        return materials[0] | static_cast<uint32_t>(materials[1]) << 8 | static_cast<uint32_t>(materials[2]) << 16 | count << 24;
+        return static_cast<uint32_t>(materials[0]) | (static_cast<uint32_t>(materials[1]) << 8) |
+               (static_cast<uint32_t>(materials[2]) << 16) | (count << 24);
       }
     };
 
@@ -245,7 +246,7 @@ namespace vke {
       {
         const marchingCubes::EdgeId& id = marchingCubes::edges[edge];
         const glm::ivec3 lower = edgeLower(cell, id);
-        const uint64_t key = static_cast<uint64_t>(edgeSlot(lower, id.axis)) << 32 | set.packed();
+        const uint64_t key = (static_cast<uint64_t>(edgeSlot(lower, id.axis)) << 32) | set.packed();
 
         const auto [it, inserted] = m_blendedVertices.try_emplace(key, static_cast<uint32_t>(m_out.vertices.size()));
 

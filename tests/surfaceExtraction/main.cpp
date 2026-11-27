@@ -139,6 +139,11 @@ namespace {
       return m_distance[indexOf(position)];
     }
 
+    [[nodiscard]] uint8_t sampleMaterial(const glm::ivec3 position) const
+    {
+      return m_material[indexOf(position)];
+    }
+
   private:
     vke::VolumeRegion m_bounds;
     vke::VolumeRegion m_sampleBounds;
@@ -870,7 +875,65 @@ namespace {
     return blended;
   }
 
-  // A sphere across three materials: x below 16 is material 1, above it y below 16 is 2, the rest 3
+  // Each vertex's own material is its edge's inside sample's, read back from the source: the edge is the axis along which
+  // the vertex's cell coordinate is not whole. Vertices exactly on a sample (an ambiguous edge) are skipped. Returns how
+  // many vertices were checked.
+  size_t checkOwnMaterials(const GridSource& source,
+                           const vke::SurfaceMesh& mesh,
+                           const std::string& name)
+  {
+    size_t checked = 0;
+    bool valid = true;
+
+    for (const vke::SurfaceVertex& vertex : mesh.vertices)
+    {
+      const glm::vec3 cells = vertex.position / s_cellSize;
+      const glm::vec3 lowerCells = glm::floor(cells);
+      int axis = -1;
+
+      for (int i = 0; i < 3; ++i)
+      {
+        axis = cells[i] != lowerCells[i] ? i : axis;
+      }
+
+      if (axis < 0)
+      {
+        continue;
+      }
+
+      const glm::ivec3 lower(lowerCells);
+      glm::ivec3 upper = lower;
+      upper[axis] += 1;
+
+      const uint8_t expected = source.sampleMaterial(source.sampleDistance(lower) < 0.0f ? lower : upper);
+
+      for (size_t slot = 0; slot < 4; ++slot)
+      {
+        if (vertex.weights[slot] == 255)
+        {
+          valid = valid && vertex.materials[slot] == expected;
+        }
+      }
+
+      ++checked;
+    }
+
+    check(valid, name + ": every vertex's own material is its edge's inside sample's");
+
+    return checked;
+  }
+
+  // No two vertices are equal in every byte: triangles that share an edge and a material set share its vertex
+  void checkWelded(const vke::SurfaceMesh& mesh,
+                   const std::string& name)
+  {
+    const auto keys = sortedKeys(mesh.vertices);
+
+    check(std::ranges::adjacent_find(keys) == keys.end(), name + ": vertices with the same edge and materials are welded");
+  }
+
+  // A sphere across three materials: x below 16 is material 1, above it y below 16 is 2, the rest 3. The sphere is
+  // centered near (16, 16, 16), so the line where all three meet crosses it, which gives three-material triangles.
   void checkMaterialBoundaries()
   {
     const GridSource source(s_bounds, sphereField(), [](const glm::ivec3 p) {
@@ -883,6 +946,8 @@ namespace {
 
     check(blended[0] > 0, "boundaries: some triangles blend two materials");
     check(blended[1] > 0, "boundaries: some triangles blend three materials");
+    check(checkOwnMaterials(source, mesh, "boundaries") > 0, "boundaries: own materials were checked");
+    checkWelded(mesh, "boundaries");
     check(isClosedAndOriented(directedEdges(weldedIndices({ mesh }))), "boundaries: the surface stays closed across material boundaries");
 
     // Each copy of an edge's vertex has the same own material, its edge's inside sample's
@@ -910,6 +975,8 @@ namespace {
     for (uint32_t chunk = 0; chunk < meshes.size(); ++chunk)
     {
       checkMaterialSlots(meshes[chunk], "boundaries chunk " + std::to_string(chunk));
+      checkOwnMaterials(source, meshes[chunk], "boundaries chunk " + std::to_string(chunk));
+      checkWelded(meshes[chunk], "boundaries chunk " + std::to_string(chunk));
     }
 
     compareWithSingleChunk(source, meshes, "boundaries");
@@ -1005,6 +1072,19 @@ namespace {
 
       check(actual == crossingMidpoints(source) && actual.size() == mesh.vertices.size(), name + ": a vertex per crossing edge");
       check(mesh.indices.empty() == (pattern == 0 || pattern == 255), name + ": triangles unless uniform");
+
+      // Every corner its own material, so every triangle of the table blends: the same surface, with valid slots, each
+      // vertex owning its inside sample's material, and copies only per material set
+      const GridSource mixed(cell, patternField(pattern), [](const glm::ivec3 p) {
+        return static_cast<uint8_t>(p.x + 2 * p.y + 4 * p.z);
+      });
+      const vke::SurfaceMesh mixedMesh = extractChunk(mixed, grid, 0);
+
+      check(geometryKeys(mixedMesh.vertices) == geometryKeys(mesh.vertices) && mixedMesh.indices.size() == mesh.indices.size(),
+            name + " (mixed): the same surface");
+      checkMaterialSlots(mixedMesh, name + " (mixed)");
+      checkOwnMaterials(mixed, mixedMesh, name + " (mixed)");
+      checkWelded(mixedMesh, name + " (mixed)");
     }
   }
 
