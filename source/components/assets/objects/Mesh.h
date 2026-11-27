@@ -2,6 +2,7 @@
 #define VKE_MESH_H
 
 #include "../../../utilities/Bounds.h"
+#include "../../logicalDevice/PooledMemoryKey.h"
 #include <vulkan/vulkan_raii.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -95,6 +96,9 @@ namespace vke {
     std::shared_ptr<UploadState> m_state;
 
     Resources m_resources;
+
+    PooledMemoryKey m_vertexMemoryKey;
+    PooledMemoryKey m_indexMemoryKey;
 
     AABB m_bounds;
 

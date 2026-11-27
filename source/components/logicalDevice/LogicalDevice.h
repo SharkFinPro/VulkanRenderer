@@ -1,8 +1,11 @@
 #ifndef VKE_LOGICALDEVICE_H
 #define VKE_LOGICALDEVICE_H
 
+#include "PooledMemoryKey.h"
 #include <vulkan/vulkan_raii.hpp>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -82,6 +85,20 @@ namespace vke {
     void allocateMemory(const vk::MemoryAllocateInfo& memoryAllocateInfo,
                         vk::raii::DeviceMemory& deviceMemory) const;
 
+    // Memory for a buffer whose memory is recycled instead of freed: the size is rounded up so blocks of similar
+    // buffers are interchangeable, and a block handed back through retirePooledMemory is reused by the next request
+    // with the same key. Skips the driver's allocation, which dominates creating many small meshes.
+    void allocatePooledMemory(vk::DeviceSize requiredSize,
+                              uint32_t memoryTypeIndex,
+                              bool deviceAddress,
+                              vk::raii::DeviceMemory& deviceMemory,
+                              PooledMemoryKey& key);
+
+    // Returns the block to the pool once the last frame that could use it has completed. Retire the buffers bound to
+    // it first, so they are destroyed before it is handed out again.
+    void retirePooledMemory(const PooledMemoryKey& key,
+                            vk::raii::DeviceMemory&& deviceMemory);
+
     [[nodiscard]] vk::raii::Sampler createSampler(const vk::SamplerCreateInfo& samplerCreateInfo) const;
 
     [[nodiscard]] vk::raii::ImageView createImageView(const vk::ImageViewCreateInfo& imageViewCreateInfo) const;
@@ -121,6 +138,14 @@ namespace vke {
 
     // Declared after m_device so retired resources are destroyed before the device.
     std::unique_ptr<DeferredDestructionQueue> m_retiredResources;
+
+    // Declared after m_device so the blocks are freed before the device.
+    std::mutex m_poolMutex;
+    std::map<PooledMemoryKey, std::vector<vk::raii::DeviceMemory>> m_memoryPool;
+    vk::DeviceSize m_pooledBytes = 0;
+
+    void releaseToPool(const PooledMemoryKey& key,
+                       vk::raii::DeviceMemory&& deviceMemory);
 
     vk::raii::Queue m_graphicsQueue = nullptr;
     vk::raii::Queue m_presentQueue = nullptr;

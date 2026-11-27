@@ -174,22 +174,25 @@ namespace vke {
       ? vk::BufferUsageFlagBits::eShaderDeviceAddress | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
       : vk::BufferUsageFlags{};
 
-    Buffers::createBuffer(
+    // Pooled, since a volume surface creates and drops a mesh per edited chunk and the driver's allocation is slow.
+    Buffers::createPooledBuffer(
       logicalDevice,
       vertexBytes,
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_resources.vertexBuffer,
-      m_resources.vertexMemory
+      m_resources.vertexMemory,
+      m_vertexMemoryKey
     );
 
-    Buffers::createBuffer(
+    Buffers::createPooledBuffer(
       logicalDevice,
       indexBytes,
       vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | rayTracingUsage,
       vk::MemoryPropertyFlagBits::eDeviceLocal,
       m_resources.indexBuffer,
-      m_resources.indexMemory
+      m_resources.indexMemory,
+      m_indexMemoryKey
     );
   }
 
@@ -256,8 +259,14 @@ namespace vke {
 
   Mesh::~Mesh()
   {
-    // Frames in flight may still draw this mesh.
+    // Frames in flight may still draw this mesh. The buffers go first and their memory after, so a block is back in the
+    // pool only once the buffers bound to it are gone.
+    vk::raii::DeviceMemory vertexMemory = std::move(m_resources.vertexMemory);
+    vk::raii::DeviceMemory indexMemory = std::move(m_resources.indexMemory);
+
     m_logicalDevice->retireHandles(std::move(m_resources));
+    m_logicalDevice->retirePooledMemory(m_vertexMemoryKey, std::move(vertexMemory));
+    m_logicalDevice->retirePooledMemory(m_indexMemoryKey, std::move(indexMemory));
   }
 
   bool Mesh::isReady() const
