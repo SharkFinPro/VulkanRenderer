@@ -803,73 +803,64 @@ namespace {
     check(nonEmpty == 4, "plane: the four chunks of the first column");
   }
 
-  // Every vertex's weights are one-hot and sum to 255, on a listed material; the three corners of a triangle list the
-  // same materials in the same slots, ascending and distinct, exactly the corners' own materials. Returns how many
-  // triangles have two and three materials.
+  // One weight is 255 and the rest are 0
+  bool weightsOneHot(const vke::SurfaceVertex& vertex)
+  {
+    return std::ranges::count(vertex.weights, uint8_t { 255 }) == 1 && std::ranges::count(vertex.weights, uint8_t { 0 }) == 3;
+  }
+
+  // The material in the slot with the full weight, or -1 when there is none
+  int ownMaterial(const vke::SurfaceVertex& vertex)
+  {
+    const auto full = std::ranges::find(vertex.weights, uint8_t { 255 });
+
+    return full == vertex.weights.end() ? -1 : vertex.materials[static_cast<size_t>(full - vertex.weights.begin())];
+  }
+
+  // The corners list the same materials in the same slots: exactly their own materials, ascending, then empty slots.
+  // Sets count to how many materials the triangle has.
+  bool triangleSlotsValid(const std::array<const vke::SurfaceVertex*, 3>& corners,
+                          size_t& count)
+  {
+    std::set<int> own;
+
+    for (const vke::SurfaceVertex* corner : corners)
+    {
+      own.insert(ownMaterial(*corner));
+    }
+
+    count = own.size();
+
+    std::array<uint8_t, 4> expected {};
+    std::ranges::copy(own, expected.begin());
+
+    const auto& materials = corners[0]->materials;
+
+    return !own.contains(-1) && materials == corners[1]->materials && materials == corners[2]->materials && materials == expected;
+  }
+
+  // Every vertex's weights are one-hot, so they sum to 255, and the corners of each triangle list its materials in the
+  // same slots (triangleSlotsValid). Returns how many triangles have two and three materials.
   std::array<size_t, 2> checkMaterialSlots(const vke::SurfaceMesh& mesh,
                                            const std::string& name)
   {
     std::array<size_t, 2> blended {};
-    bool vertexValid = true;
     bool triangleValid = true;
-
-    for (const vke::SurfaceVertex& vertex : mesh.vertices)
-    {
-      uint32_t sum = 0;
-      uint32_t full = 0;
-
-      for (size_t i = 0; i < 4; ++i)
-      {
-        sum += vertex.weights[i];
-        full += vertex.weights[i] == 255 ? 1 : 0;
-      }
-
-      vertexValid = vertexValid && sum == 255 && full == 1;
-    }
 
     for (size_t i = 0; i + 2 < mesh.indices.size(); i += 3)
     {
-      const vke::SurfaceVertex& a = mesh.vertices[mesh.indices[i]];
-      const vke::SurfaceVertex& b = mesh.vertices[mesh.indices[i + 1]];
-      const vke::SurfaceVertex& c = mesh.vertices[mesh.indices[i + 2]];
+      size_t count = 0;
 
-      std::set<uint8_t> own;
+      triangleValid = triangleSlotsValid({ &mesh.vertices[mesh.indices[i]], &mesh.vertices[mesh.indices[i + 1]], &mesh.vertices[mesh.indices[i + 2]] }, count) &&
+                      triangleValid;
 
-      for (const vke::SurfaceVertex* vertex : { &a, &b, &c })
+      if (count > 1 && count < 4)
       {
-        for (size_t slot = 0; slot < 4; ++slot)
-        {
-          if (vertex->weights[slot] == 255)
-          {
-            own.insert(vertex->materials[slot]);
-          }
-        }
-      }
-
-      std::vector<uint8_t> listed;
-
-      for (size_t slot = 0; slot < own.size(); ++slot)
-      {
-        listed.push_back(a.materials[slot]);
-      }
-
-      bool unusedEmpty = true;
-
-      for (size_t slot = own.size(); slot < 4; ++slot)
-      {
-        unusedEmpty = unusedEmpty && a.materials[slot] == 0 && a.weights[slot] == 0;
-      }
-
-      triangleValid = triangleValid && a.materials == b.materials && a.materials == c.materials && unusedEmpty &&
-                      listed == std::vector<uint8_t>(own.begin(), own.end());
-
-      if (own.size() > 1)
-      {
-        ++blended[own.size() - 2];
+        ++blended[count - 2];
       }
     }
 
-    check(vertexValid, name + ": every vertex has one full weight, summing to one");
+    check(std::ranges::all_of(mesh.vertices, weightsOneHot), name + ": every vertex has one full weight, summing to one");
     check(triangleValid, name + ": a triangle's corners list its materials in the same slots");
 
     return blended;
@@ -907,13 +898,7 @@ namespace {
 
       const uint8_t expected = source.sampleMaterial(source.sampleDistance(lower) < 0.0f ? lower : upper);
 
-      for (size_t slot = 0; slot < 4; ++slot)
-      {
-        if (vertex.weights[slot] == 255)
-        {
-          valid = valid && vertex.materials[slot] == expected;
-        }
-      }
+      valid = valid && ownMaterial(vertex) == expected;
 
       ++checked;
     }
@@ -951,17 +936,11 @@ namespace {
     check(isClosedAndOriented(directedEdges(weldedIndices({ mesh }))), "boundaries: the surface stays closed across material boundaries");
 
     // Each copy of an edge's vertex has the same own material, its edge's inside sample's
-    std::map<GeometryKey, std::set<uint8_t>> ownByVertex;
+    std::map<GeometryKey, std::set<int>> ownByVertex;
 
     for (const vke::SurfaceVertex& vertex : mesh.vertices)
     {
-      for (size_t slot = 0; slot < 4; ++slot)
-      {
-        if (vertex.weights[slot] == 255)
-        {
-          ownByVertex[geometryKeyOf(vertex)].insert(vertex.materials[slot]);
-        }
-      }
+      ownByVertex[geometryKeyOf(vertex)].insert(ownMaterial(vertex));
     }
 
     check(geometryKeys(mesh.vertices).size() < mesh.vertices.size(), "boundaries: material boundaries duplicate vertices");
