@@ -115,19 +115,37 @@ namespace vke {
                  const float cellSize,
                  SurfaceMesh& out,
                  std::vector<uint32_t>& edgeVertices,
-                 std::unordered_map<uint64_t, uint32_t>& blendedVertices)
+                 std::unordered_map<uint64_t, uint32_t>& blendedVertices,
+                 std::vector<uint8_t>& inside)
         : m_samples(samples),
           m_origin(cells.min),
           m_size(cells.max - cells.min),
           m_cellSize(cellSize),
           m_out(out),
           m_edgeVertices(edgeVertices),
-          m_blendedVertices(blendedVertices)
+          m_blendedVertices(blendedVertices),
+          m_inside(inside)
       {
         const glm::ivec3 points = m_size + 1;
 
         m_edgeVertices.assign(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z) * 3, s_noVertex);
         m_blendedVertices.clear();
+
+        // Each corner's sign is read once here instead of once per cell that shares it (eight times).
+        m_inside.resize(static_cast<size_t>(points.x) * static_cast<size_t>(points.y) * static_cast<size_t>(points.z));
+
+        size_t next = 0;
+
+        for (int z = 0; z < points.z; ++z)
+        {
+          for (int y = 0; y < points.y; ++y)
+          {
+            for (int x = 0; x < points.x; ++x)
+            {
+              m_inside[next++] = m_samples.distanceAt(m_origin + glm::ivec3(x, y, z)) < 0.0f ? 1 : 0;
+            }
+          }
+        }
       }
 
       void run()
@@ -152,6 +170,15 @@ namespace vke {
       SurfaceMesh& m_out;
       std::vector<uint32_t>& m_edgeVertices;
       std::unordered_map<uint64_t, uint32_t>& m_blendedVertices;
+      std::vector<uint8_t>& m_inside;
+
+      [[nodiscard]] bool insideAt(const glm::ivec3 local) const
+      {
+        const glm::ivec3 points = m_size + 1;
+
+        return m_inside[static_cast<size_t>(local.x) +
+                        static_cast<size_t>(points.x) * (static_cast<size_t>(local.y) + static_cast<size_t>(points.y) * static_cast<size_t>(local.z))] != 0;
+      }
 
       [[nodiscard]] unsigned cubeIndex(const glm::ivec3 cell) const
       {
@@ -160,9 +187,7 @@ namespace vke {
         for (unsigned corner = 0; corner < 8; ++corner)
         {
           const auto& offset = marchingCubes::cornerOffsets[corner];
-          const glm::ivec3 position = m_origin + cell + glm::ivec3(offset[0], offset[1], offset[2]);
-
-          if (m_samples.distanceAt(position) < 0.0f)
+          if (insideAt(cell + glm::ivec3(offset[0], offset[1], offset[2])))
           {
             index |= 1u << corner;
           }
@@ -219,7 +244,9 @@ namespace vke {
       {
         const marchingCubes::EdgeId& id = marchingCubes::edges[edge];
 
-        return edgeMaterial(m_samples, m_origin + edgeLower(cell, id), id.axis);
+        const glm::ivec3 lower = edgeLower(cell, id);
+
+        return m_samples.materialAt(m_origin + (insideAt(lower) ? lower : lower + axisStep(id.axis)));
       }
 
       // The edge's vertex for triangles of one material
@@ -288,8 +315,9 @@ namespace vke {
     // Reused by the calls of this thread, so a worker does not allocate per chunk
     thread_local std::vector<uint32_t> edgeVertices;
     thread_local std::unordered_map<uint64_t, uint32_t> blendedVertices;
+    thread_local std::vector<uint8_t> inside;
 
-    CellMesher(samples, cells, cellSize, out, edgeVertices, blendedVertices).run();
+    CellMesher(samples, cells, cellSize, out, edgeVertices, blendedVertices, inside).run();
   }
 
 } // namespace vke
