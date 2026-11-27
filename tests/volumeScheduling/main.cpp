@@ -452,10 +452,9 @@ namespace {
     {
       job->setPhase(Phase::finished);
 
-      Scheduler::JobList jobs;
-      scheduler.onResult(job, mesh, failed, jobs);
+      scheduler.onResult(job, mesh, failed);
 
-      return jobs;
+      return {};
     }
 
     size_t swap()
@@ -558,52 +557,45 @@ namespace {
     check(h.swap() == 1 && h.shown[0] == 30 && h.shown[1] == 31, "both swap together, as one batch");
   }
 
-  void checkStartedJobIsReExtracted()
+  void checkStartedJobGetsIndependentBatch()
   {
     Harness h(3);
     h.createAll(3);
 
     const auto first = h.invalidate({ 0 });
     first[0]->setPhase(Phase::started);
-    check(h.scheduler.wantsResult(first[0]), "a started job's result is wanted until an edit lands");
+    check(h.scheduler.wantsResult(first[0]), "a started job's result is wanted");
 
     const auto second = h.invalidate({ 0 });
-    check(second.empty() && h.scheduler.openBatchCount() == 1, "an edit during extraction submits nothing yet and absorbs the batch");
-    check(!h.scheduler.wantsResult(first[0]), "the started job's result will be discarded");
+    check(second.size() == 1 && second[0]->chunk == 0, "an edit during extraction submits a new job");
+    check(h.scheduler.openBatchCount() == 2, "in a batch of its own");
+    check(h.scheduler.wantsResult(first[0]), "the started job's result is still wanted");
 
-    h.unready.insert(40);
-    const auto again = h.finish(first[0], 40);
-    check(again.size() == 1 && again[0]->chunk == 0, "the discarded result submits the chunk again");
-    check(again[0]->generation > first[0]->generation, "the new job belongs to the newer batch");
-    check(again[0] != first[0], "the new job is a new job");
+    h.finish(first[0], 40);
+    check(h.swap() == 1 && h.shown[0] == 40, "the older extraction shows while the newer one runs");
 
-    h.unready.clear();
-    check(h.swap() == 0 && h.installs.empty(), "the discarded mesh is not installed, and the batch waits for the new job");
-    check(h.scheduler.wantsResult(again[0]), "the new job's result is wanted");
-
-    check(h.finish(first[0], 40).empty(), "a second delivery of the discarded job is ignored");
-
-    h.finish(again[0], 41);
-    check(h.swap() == 1 && h.shown[0] == 41, "the new job's mesh is shown");
-    check(std::ranges::none_of(h.installs, [](const auto& install) { return install.second == 40; }), "the discarded mesh never showed");
+    h.finish(second[0], 41);
+    check(h.swap() == 1 && h.shown[0] == 41, "the newer extraction replaces it");
   }
 
-  void checkStartedJobEditedTwice()
+  void checkContinuousEditsKeepShowing()
   {
     Harness h(2);
     h.createAll(2);
 
-    const auto first = h.invalidate({ 0 });
-    first[0]->setPhase(Phase::started);
+    auto previous = h.invalidate({ 0 });
 
-    check(h.invalidate({ 0 }).empty(), "a started job's first edit submits nothing");
+    for (int step = 0; step < 4; ++step)
+    {
+      previous[0]->setPhase(Phase::started);
+      const auto next = h.invalidate({ 0 });
+      check(next.size() == 1, "every edit during extraction submits its own job");
 
-    // The worker finishes before the frame thread takes the result; the pending re-extraction still covers the next edit
-    first[0]->setPhase(Phase::finished);
-    check(h.invalidate({ 0 }).empty(), "an edit before the result arrives submits nothing either");
+      h.finish(previous[0], 50 + step);
+      check(h.swap() == 1 && h.shown[0] == 50 + step, "a finished extraction shows without waiting for the edits to pause");
 
-    const auto again = h.finish(first[0], 50);
-    check(again.size() == 1 && again[0]->generation == 4, "a single re-extraction, from the newest batch");
+      previous = next;
+    }
   }
 
   void checkFinishedJobGetsIndependentBatch()
@@ -773,8 +765,8 @@ int main()
   checkCreationBatch();
   checkUnreadyMeshKeepsOldMeshes();
   checkQueuedJobIsShared();
-  checkStartedJobIsReExtracted();
-  checkStartedJobEditedTwice();
+  checkStartedJobGetsIndependentBatch();
+  checkContinuousEditsKeepShowing();
   checkFinishedJobGetsIndependentBatch();
   checkFinishedUndeliveredJobGetsNewJob();
   checkOlderEntryDoesNotOverwriteNewer();

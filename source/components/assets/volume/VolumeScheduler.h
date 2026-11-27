@@ -52,14 +52,15 @@ namespace vke {
   // ones.
   //
   // An edit of a chunk whose latest job has not read the samples yet needs no new job: the queued job reads post-edit
-  // data, so the new batch absorbs the old one. A job that has started may have read pre-edit data: it is absorbed too,
-  // but its result is discarded and the chunk extracted again. A finished job gets a new job in an independent batch.
+  // data, so the new batch absorbs the old one. A job that has started may have read pre-edit data, and one that has
+  // finished has; either gets a new job in an independent batch, and the older job's result still swaps in, so a chunk
+  // edited every frame keeps showing the newest finished extraction instead of waiting for the edits to pause.
   // Entries remember the generation of the job that produced their data, and a chunk never shows older data than it
   // already shows. Absorbing also takes every batch opened after the absorbed one, so no batch swaps ahead of an
   // absorbed entry.
   //
-  // Known limit: when extracting a chunk keeps taking longer than the gap between edits of it, each edit absorbs the
-  // open batch, which therefore stays open until the edits pause.
+  // Known limit: when jobs queue for longer than the gap between edits of a chunk, each edit absorbs the open batch,
+  // which therefore stays open until the queue drains.
   template <typename MeshHandle>
   class VolumeScheduler {
   public:
@@ -95,11 +96,10 @@ namespace vke {
     }
 
     // The result of a job: no mesh means the chunk has no surface, failed means extraction threw. A result of a job that
-    // is not (or no longer) current is dropped. May append the re-extraction of a chunk edited while its job ran.
+    // is not (or no longer) known is dropped.
     void onResult(const std::shared_ptr<ChunkJob>& job,
                   std::optional<MeshHandle> mesh,
-                  const bool failed,
-                  JobList& newJobs)
+                  const bool failed)
     {
       const auto found = m_entries.find(job.get());
 
@@ -109,12 +109,6 @@ namespace vke {
       }
 
       Entry& entry = *found->second;
-
-      if (entry.reExtract)
-      {
-        restart(entry, newJobs);
-        return;
-      }
 
       entry.done = true;
       entry.failed = failed;
@@ -128,7 +122,7 @@ namespace vke {
     {
       const auto found = m_entries.find(job.get());
 
-      return found != m_entries.end() && !found->second->reExtract;
+      return found != m_entries.end();
     }
 
     // Swaps in every leading batch that is complete and whose meshes are ready: calls install(chunk,
@@ -193,9 +187,6 @@ namespace vke {
       uint64_t generation = 0;
       bool done = false;
       bool failed = false;
-      // The job started before an edit: its result is discarded and the chunk extracted again at nextGeneration
-      bool reExtract = false;
-      uint64_t nextGeneration = 0;
       std::optional<MeshHandle> mesh;
     };
 
@@ -232,24 +223,8 @@ namespace vke {
 
       if (latest != nullptr && !latest->done)
       {
-        if (latest->reExtract)
+        if (latest->job->getPhase() == ChunkJob::Phase::queued)
         {
-          // Its replacement is not submitted yet and will read post-edit data
-          latest->nextGeneration = batch.generation;
-          absorb(*latest->batch, batch);
-          return;
-        }
-
-        const ChunkJob::Phase phase = latest->job->getPhase();
-
-        if (phase != ChunkJob::Phase::finished)
-        {
-          if (phase == ChunkJob::Phase::started)
-          {
-            latest->reExtract = true;
-            latest->nextGeneration = batch.generation;
-          }
-
           absorb(*latest->batch, batch);
           return;
         }
@@ -319,25 +294,6 @@ namespace vke {
       m_entries[job.get()] = entry.get();
       batch.entries.push_back(std::move(entry));
       ++batch.pending;
-
-      newJobs.push_back(std::move(job));
-    }
-
-    // Replaces the discarded job of an entry that must be extracted again.
-    void restart(Entry& entry,
-                 JobList& newJobs)
-    {
-      m_entries.erase(entry.job.get());
-
-      auto job = std::make_shared<ChunkJob>();
-      job->chunk = entry.chunk;
-      job->generation = entry.nextGeneration;
-
-      entry.job = job;
-      entry.generation = entry.nextGeneration;
-      entry.reExtract = false;
-
-      m_entries[job.get()] = &entry;
 
       newJobs.push_back(std::move(job));
     }
