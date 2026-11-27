@@ -6,6 +6,7 @@
 #include "../../assets/objects/Model.h"
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/textures/Texture.h"
+#include "../../assets/volume/VolumePalette.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../lighting/LightingManager.h"
 #include "../../logicalDevice/LogicalDevice.h"
@@ -569,7 +570,7 @@ namespace vke {
   }
 
   void RayTracer::updateVolumeChunkInfos(FrameResources& frame,
-                                         const std::span<const TracedVolumeChunk> volumeChunks) const
+                                         const std::span<const TracedVolumeChunk> volumeChunks)
   {
     // The descriptor needs a buffer even when no volume surface is traced.
     const size_t chunkCount = std::max<size_t>(volumeChunks.size(), 1);
@@ -582,6 +583,8 @@ namespace vke {
 
     auto* infos = static_cast<VolumeChunkInfo*>(frame.volumeChunkInfos.data);
 
+    m_volumePalettes.clear();
+
     if (volumeChunks.empty())
     {
       infos[0] = VolumeChunkInfo{};
@@ -590,9 +593,28 @@ namespace vke {
 
     for (size_t i = 0; i < volumeChunks.size(); ++i)
     {
+      const VolumePalette* palette = volumeChunks[i].palette;
+      auto found = std::ranges::find(m_volumePalettes, palette);
+
+      if (found == m_volumePalettes.end() && m_volumePalettes.size() < s_maxTracedVolumePalettes)
+      {
+        const size_t index = m_volumePalettes.size();
+
+        m_volumePalettes.push_back(palette);
+        m_volumePaletteImageInfos[2 * index] = palette->getAlbedoImageInfo();
+        m_volumePaletteImageInfos[2 * index + 1] = palette->getSpecularImageInfo();
+
+        found = m_volumePalettes.end() - 1;
+      }
+
+      // Past the limit a chunk uses the first palette seen
+      const uint32_t paletteIndex = found == m_volumePalettes.end() ? 0 : static_cast<uint32_t>(found - m_volumePalettes.begin());
+
       infos[i] = {
         .vertexAddress = volumeChunks[i].mesh->getVertexBufferAddress(),
-        .indexAddress = volumeChunks[i].mesh->getIndexBufferAddress()
+        .indexAddress = volumeChunks[i].mesh->getIndexBufferAddress(),
+        .paletteDataAddress = m_volumePalettes[paletteIndex]->getDataAddress(),
+        .paletteIndex = paletteIndex
       };
     }
   }
@@ -697,16 +719,26 @@ namespace vke {
     m_descriptorWrites[8] = write(8, vk::DescriptorType::eStorageBuffer);
     m_descriptorWrites[8].pBufferInfo = &frameResources.volumeChunkInfoInfo;
 
-    if (m_textureImageInfos.empty())
+    uint32_t count = 9;
+
+    // Partially bound: nothing is written when no volume surface is traced
+    if (!m_volumePalettes.empty())
     {
-      return 9;
+      m_descriptorWrites[count] = write(9, vk::DescriptorType::eCombinedImageSampler);
+      m_descriptorWrites[count].descriptorCount = static_cast<uint32_t>(2 * m_volumePalettes.size());
+      m_descriptorWrites[count].pImageInfo = m_volumePaletteImageInfos.data();
+      ++count;
     }
 
-    m_descriptorWrites[9] = write(9, vk::DescriptorType::eCombinedImageSampler);
-    m_descriptorWrites[9].descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size());
-    m_descriptorWrites[9].pImageInfo = m_textureImageInfos.data();
+    if (!m_textureImageInfos.empty())
+    {
+      m_descriptorWrites[count] = write(10, vk::DescriptorType::eCombinedImageSampler);
+      m_descriptorWrites[count].descriptorCount = static_cast<uint32_t>(m_textureImageInfos.size());
+      m_descriptorWrites[count].pImageInfo = m_textureImageInfos.data();
+      ++count;
+    }
 
-    return 10;
+    return count;
   }
 
   void RayTracer::updateRTDescriptorSetData(const RenderInfo* renderInfo)

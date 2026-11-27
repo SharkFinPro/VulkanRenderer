@@ -1,6 +1,7 @@
 #include "VolumeSurface.h"
 #include "MarchingCubesExtractor.h"
 #include "../objects/Mesh.h"
+#include "../../logicalDevice/LogicalDevice.h"
 #include <atomic>
 #include <cmath>
 #include <cstddef>
@@ -96,7 +97,9 @@ namespace vke {
                                std::shared_ptr<UploadQueue> uploadQueue,
                                std::weak_ptr<JobPool> jobPool,
                                const VolumeSurfaceDescription& description,
-                               std::shared_ptr<const VolumeSource> source)
+                               std::shared_ptr<const VolumeSource> source,
+                               VolumePaletteContext paletteContext,
+                               std::shared_ptr<VolumePalette> defaultPalette)
     : m_logicalDevice(std::move(logicalDevice)),
       m_uploadQueue(std::move(uploadQueue)),
       m_jobPool(std::move(jobPool)),
@@ -106,7 +109,10 @@ namespace vke {
       m_grid(requireSource(m_source).bounds(), m_source->sampleBounds(), description.chunkCells),
       m_results(std::make_shared<CompletionQueue<ChunkResult>>()),
       m_scheduler(m_grid.chunkCount()),
-      m_meshes(m_grid.chunkCount())
+      m_meshes(m_grid.chunkCount()),
+      m_paletteContext(std::move(paletteContext)),
+      m_defaultPalette(std::move(defaultPalette)),
+      m_palette(m_defaultPalette)
   {
     scheduleAll();
   }
@@ -184,6 +190,24 @@ namespace vke {
   bool VolumeSurface::castsShadows() const
   {
     return m_castsShadows;
+  }
+
+  void VolumeSurface::setPalette(const std::span<const VolumeMaterial> palette)
+  {
+    validateVolumePalette(palette);
+
+    std::shared_ptr<VolumePalette> next = palette.empty() ? m_defaultPalette
+                                                          : std::make_shared<VolumePalette>(m_paletteContext, palette);
+
+    // Frames in flight may still bind the previous palette's set
+    m_logicalDevice->retire(std::move(m_palette));
+
+    m_palette = std::move(next);
+  }
+
+  const VolumePalette* VolumeSurface::getPalette() const
+  {
+    return m_palette.get();
   }
 
   std::span<const DisplayedChunk> VolumeSurface::getDisplayedChunks() const

@@ -100,6 +100,11 @@ namespace vke {
                    const vk::ArrayProxy<const vk::ImageBlit>& regions,
                    vk::Filter filter) const;
 
+    void clearColorImage(const vk::Image& image,
+                         vk::ImageLayout imageLayout,
+                         const vk::ClearColorValue& color,
+                         const vk::ArrayProxy<const vk::ImageSubresourceRange>& ranges) const;
+
     void copyBuffer(const vk::Buffer& srcBuffer,
                     const vk::Buffer& dstBuffer,
                     const vk::ArrayProxy<const vk::BufferCopy>& regions) const;

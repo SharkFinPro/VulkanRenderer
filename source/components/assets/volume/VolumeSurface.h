@@ -2,6 +2,8 @@
 #define VKE_VOLUMESURFACE_H
 
 #include "VolumeChunking.h"
+#include "VolumeMaterial.h"
+#include "VolumePalette.h"
 #include "VolumeScheduler.h"
 #include "VolumeSource.h"
 #include "../../../utilities/Bounds.h"
@@ -48,7 +50,9 @@ namespace vke {
                   std::shared_ptr<UploadQueue> uploadQueue,
                   std::weak_ptr<JobPool> jobPool,
                   const VolumeSurfaceDescription& description,
-                  std::shared_ptr<const VolumeSource> source);
+                  std::shared_ptr<const VolumeSource> source,
+                  VolumePaletteContext paletteContext,
+                  std::shared_ptr<VolumePalette> defaultPalette);
 
     // Cancels the jobs that have not started.
     ~VolumeSurface();
@@ -66,6 +70,14 @@ namespace vke {
     // reported so far.
     [[nodiscard]] float pendingFraction() const;
 
+    // Sets the materials that vertex material indices select (at most s_maxVolumeMaterials, see VolumeMaterial), at the
+    // cost of building two texture arrays now. The textures are copied into the arrays, so replacing a palette texture
+    // means calling this again. An empty palette restores the default (eight flat colors). An index at or above the
+    // palette's size wraps (index % size). Nothing is extracted again, and the previous palette is retired, so frames in
+    // flight may still draw with it. Throws std::invalid_argument on an invalid palette and then changes nothing. Frame
+    // thread only.
+    void setPalette(std::span<const VolumeMaterial> palette);
+
     // The following are called by the engine.
 
     // Once per frame: takes finished extractions, creates their meshes (at most 16 per call) and swaps in every batch that is complete and
@@ -81,6 +93,9 @@ namespace vke {
     void setCastsShadows(bool castsShadows);
 
     [[nodiscard]] bool castsShadows() const;
+
+    // The palette to draw with, never null while the surface is alive
+    [[nodiscard]] const VolumePalette* getPalette() const;
 
     // The chunks to draw, in no particular order, valid until the next update().
     [[nodiscard]] std::span<const DisplayedChunk> getDisplayedChunks() const;
@@ -117,6 +132,10 @@ namespace vke {
 
     // By chunk; null where a chunk shows nothing
     std::vector<std::shared_ptr<Mesh>> m_meshes;
+
+    VolumePaletteContext m_paletteContext;
+    std::shared_ptr<VolumePalette> m_defaultPalette;
+    std::shared_ptr<VolumePalette> m_palette;
 
     // The non-null meshes with their bounds, rebuilt when a batch swaps
     std::vector<DisplayedChunk> m_displayed;

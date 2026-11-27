@@ -9,7 +9,8 @@ layout(location = 3) in vec4 inWeights;
 
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNormal;
-layout(location = 2) flat out uint fragMaterial;
+layout(location = 2) flat out uvec4 fragMaterials;
+layout(location = 3) out vec4 fragWeights;
 
 void main()
 {
@@ -17,15 +18,8 @@ void main()
 
   fragPos = vec3(objects[object].model * vec4(inPosition, 1.0));
   fragNormal = mat3(objects[object].normalMatrix) * inNormal;
-  // The vertex's own material, the one with the full weight, until surfaces blend materials
-  fragMaterial = inMaterials.x;
-  for (int i = 1; i < 4; i++)
-  {
-    if (inWeights[i] > inWeights[0])
-    {
-      fragMaterial = inMaterials[i];
-    }
-  }
+  fragMaterials = inMaterials;
+  fragWeights = inWeights;
 
   gl_Position = scene.proj * scene.view * objects[object].model * vec4(inPosition, 1.0);
 }

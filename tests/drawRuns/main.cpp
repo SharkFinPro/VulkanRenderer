@@ -228,6 +228,18 @@ namespace {
     check(runs.size() == 3 && slots[runs[1].firstInstance] == 12 && slots[runs[2].firstInstance] == 10,
           "every run still points at its own slot");
 
+    // A run takes the palette of its first item
+    const auto* palette = reinterpret_cast<const vke::VolumePalette*>(&slots);
+    std::vector<vke::DrawItem> palettes {
+      { nullptr, nullptr, 0, 1, mesh(0), 1.0f, palette },
+      { nullptr, nullptr, 0, 2, mesh(0), 2.0f, palette }
+    };
+    std::vector<vke::DrawRun> paletteRuns;
+
+    [[maybe_unused]] const uint32_t paletteEnd = vke::buildDrawRuns(palettes, slots.data(), 0, paletteRuns);
+
+    check(paletteRuns.size() == 1 && paletteRuns[0].palette == palette, "a run carries its items' palette");
+
     // Equal distances keep the grouping order
     std::vector<vke::DrawItem> tied {
       { nullptr, nullptr, 0, 1, mesh(1), 2.0f },

@@ -22,6 +22,16 @@ namespace vke {
     createImageView(logicalDevice);
   }
 
+  vk::Extent2D Texture2D::getExtent() const
+  {
+    return { m_width, m_height };
+  }
+
+  vk::Image Texture2D::getImage() const
+  {
+    return *m_textureImage;
+  }
+
   void Texture2D::createTextureImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const vk::CommandPool commandPool,
                                      const char* path)
@@ -33,6 +43,9 @@ namespace vke {
     {
       throw std::runtime_error("failed to load texture image!");
     }
+
+    m_width = static_cast<uint32_t>(texWidth);
+    m_height = static_cast<uint32_t>(texHeight);
 
     m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 

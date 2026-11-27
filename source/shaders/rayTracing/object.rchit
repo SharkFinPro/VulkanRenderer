@@ -52,7 +52,7 @@ layout(binding = 5, set = 0) readonly buffer MeshInfoBuffer {
   MeshInfo meshInfos[];
 };
 
-layout(binding = 9, set = 0) uniform sampler2D textures[];
+layout(binding = 10, set = 0) uniform sampler2D textures[];
 
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;

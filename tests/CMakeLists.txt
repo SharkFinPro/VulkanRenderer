@@ -88,6 +88,10 @@ add_subdirectory(surfaceExtraction)
 add_test(NAME surfaceExtraction COMMAND surfaceExtraction)
 add_dependencies(build_all surfaceExtraction)
 
+add_subdirectory(volumeMaterials)
+add_test(NAME volumeMaterials COMMAND volumeMaterials)
+add_dependencies(build_all volumeMaterials)
+
 add_subdirectory(volumeScheduling)
 add_test(NAME volumeScheduling COMMAND volumeScheduling)
 add_dependencies(build_all volumeScheduling)

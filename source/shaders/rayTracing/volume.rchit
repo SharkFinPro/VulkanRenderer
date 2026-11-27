@@ -2,8 +2,9 @@
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing : require
 #extension GL_EXT_buffer_reference : require
+#extension GL_EXT_nonuniform_qualifier : require
 #include "../common/Lighting.glsl"
-#include "../common/VolumePalette.glsl"
+#include "../common/VolumeMaterial.glsl"
 
 struct RayPayload {
   vec3 color;
@@ -36,14 +37,36 @@ layout(buffer_reference, std430) readonly buffer IndexRef {
   uint indices[];
 };
 
+// The palette's uniform block (VolumePaletteData), read through its device address
+layout(buffer_reference, std430) readonly buffer PaletteRef {
+  vec4 textureScales[maxVolumeMaterials];
+  uint materialCount;
+};
+
+// Mirrors VolumeChunkInfo in RayTracer.h: 32 bytes
 struct VolumeChunkInfo {
   VertexRef vertexBuffer;
   IndexRef indexBuffer;
+  PaletteRef palette;
+  uint paletteIndex;
+  uint padding;
 };
 
 layout(binding = 8, set = 0) readonly buffer VolumeChunkBuffer {
   VolumeChunkInfo volumeChunks[];
 };
+
+// Albedo and specular arrays of this frame's palettes: palette i is at 2i and 2i + 1
+layout(binding = 9, set = 0) uniform sampler2DArray volumePaletteArrays[64];
+
+layout(binding = 2, set = 0) uniform RayTracingCamera {
+  mat4 viewInverse;
+  mat4 projInverse;
+  mat4 projection;
+  vec3 position;
+  float nearPlane;
+  float farPlane;
+} rtCamera;
 
 layout(set = 1, binding = 0) uniform PointLightsMetadata {
   int numPointLights;
@@ -145,17 +168,65 @@ void main()
     normal = -normal;
   }
 
-  // The first corner's own material (the one with the full weight), as the raster vertex stage passes on
-  uint material = v0.materials & 0xFFu;
-  for (uint i = 1; i < 4; i++)
+  // A triangle's corners list the same materials, so the first corner's say which; the weights blend by barycentrics
+  const uint materials = v0.materials;
+  vec4 weights = vec4(0.0);
+  for (uint i = 0; i < 4; i++)
   {
-    if (((v0.weights >> (8 * i)) & 0xFFu) > (v0.weights & 0xFFu))
+    weights[i] = bary.x * float((v0.weights >> (8 * i)) & 0xFFu) + bary.y * float((v1.weights >> (8 * i)) & 0xFFu) +
+                 bary.z * float((v2.weights >> (8 * i)) & 0xFFu);
+  }
+  weights /= 255.0;
+
+  const vec3 axisWeights = triplanarWeights(normal);
+
+  // An approximation of the mip level from a ray cone: the pixel's spread angle over the hit distance, widened where
+  // the surface is seen at a grazing angle. Exact for primary rays; a secondary ray only knows its own hit distance.
+  const float spread = 2.0 / (abs(rtCamera.projection[1][1]) * float(gl_LaunchSizeEXT.y));
+  const float footprint = gl_HitTEXT * spread / max(abs(dot(normal, gl_WorldRayDirectionEXT)), 0.25);
+
+  const uint albedoArrayIndex = 2 * chunk.paletteIndex;
+  const uint specularArrayIndex = albedoArrayIndex + 1;
+  const vec2 albedoSize = vec2(max(textureSize(volumePaletteArrays[nonuniformEXT(albedoArrayIndex)], 0).xy, ivec2(1)));
+  const vec2 specularSize = vec2(max(textureSize(volumePaletteArrays[nonuniformEXT(specularArrayIndex)], 0).xy, ivec2(1)));
+
+  vec3 albedo = vec3(0.0);
+  vec3 specColor = vec3(0.0);
+  float totalWeight = 0.0;
+
+  for (int slot = 0; slot < 4; slot++)
+  {
+    const float materialWeight = weights[slot];
+    if (materialWeight <= 0.0)
     {
-      material = (v0.materials >> (8 * i)) & 0xFFu;
+      continue;
     }
+
+    const uint layerIndex = ((materials >> (8 * slot)) & 0xFFu) % chunk.palette.materialCount;
+    const float layer = float(layerIndex);
+    const float scale = chunk.palette.textureScales[layerIndex].x;
+
+    for (int axis = 0; axis < 3; axis++)
+    {
+      if (axisWeights[axis] <= 0.0)
+      {
+        continue;
+      }
+
+      const vec2 uv = projectAxis(axis, fragPos) * scale;
+      const float weight = materialWeight * axisWeights[axis];
+      const float albedoLod = log2(max(footprint * scale * max(albedoSize.x, albedoSize.y), 1e-6));
+      const float specularLod = log2(max(footprint * scale * max(specularSize.x, specularSize.y), 1e-6));
+
+      albedo += weight * textureLod(volumePaletteArrays[nonuniformEXT(albedoArrayIndex)], vec3(uv, layer), albedoLod).rgb;
+      specColor += weight * textureLod(volumePaletteArrays[nonuniformEXT(specularArrayIndex)], vec3(uv, layer), specularLod).rgb;
+    }
+
+    totalWeight += materialWeight;
   }
 
-  const vec3 albedo = volumePaletteAlbedo(material);
+  albedo = totalWeight > 0.0 ? albedo / totalWeight : vec3(1.0);
+  specColor = totalWeight > 0.0 ? specColor / totalWeight : vec3(1.0);
 
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)
@@ -170,7 +241,7 @@ void main()
 
     if (facesLight(normal, fragPos, light.position) && !isOccluded(fragPos, normal, light.position))
     {
-      result += StandardPointLightAffect(light, albedo, normal, fragPos, camera.position, 32);
+      result += SpecularMapPointLightAffect(light, albedo, specColor, normal, fragPos, camera.position, 32);
     }
     else
     {
@@ -190,7 +261,7 @@ void main()
 
     if (facesLight(normal, fragPos, light.position) && !isOccluded(fragPos, normal, light.position))
     {
-      result += StandardSpotLightAffect(light, albedo, normal, fragPos, camera.position, 32);
+      result += SpecularMapSpotLightAffect(light, albedo, specColor, normal, fragPos, camera.position, 32);
     }
     else
     {
@@ -204,7 +275,7 @@ void main()
 
     if (facesDirectionalLight(normal, light.direction) && !isOccludedAlongDirection(fragPos, normal, -light.direction))
     {
-      result += StandardDirectionalLightAffect(light, albedo, normal, fragPos, camera.position, 32);
+      result += SpecularMapDirectionalLightAffect(light, albedo, specColor, normal, fragPos, camera.position, 32);
     }
     else
     {

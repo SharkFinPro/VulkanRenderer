@@ -7,6 +7,7 @@
 #include "../../assets/objects/RenderObject.h"
 #include "../../assets/objects/Mesh.h"
 #include "../../assets/particleSystems/SmokeSystem.h"
+#include "../../assets/volume/VolumePalette.h"
 #include "../../assets/volume/VolumeSurface.h"
 #include "../../assets/textures/Texture3D.h"
 #include "../../assets/textures/TextureCubemap.h"
@@ -282,7 +283,7 @@ namespace vke {
 
         if (mesh->hasBLAS())
         {
-          m_tracedVolumeChunks.push_back({ mesh, draw.modelMatrix, draw.surface->castsShadows() });
+          m_tracedVolumeChunks.push_back({ mesh, draw.modelMatrix, draw.surface->castsShadows(), draw.surface->getPalette() });
         }
       }
     }
@@ -415,7 +416,7 @@ namespace vke {
         distance = glm::dot(toBounds, toBounds);
       }
 
-      m_drawItems.push_back({ nullptr, nullptr, draw.maskValue, m_volumeDrawChunks[drawIndex].slot, chunk.mesh, distance });
+      m_drawItems.push_back({ nullptr, nullptr, draw.maskValue, m_volumeDrawChunks[drawIndex].slot, chunk.mesh, distance, draw.surface->getPalette() });
     };
 
     if (firstDraw == 0 && drawCount == m_volumeSurfacesToRender.size())
@@ -1513,7 +1514,7 @@ namespace vke {
   void Renderer3D::createDescriptorPool()
   {
     std::vector<vk::DescriptorPoolSize> poolSizes {{
-      {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * 256},
+      {vk::DescriptorType::eCombinedImageSampler, m_logicalDevice->getMaxFramesInFlight() * (256 + 2 * s_maxTracedVolumePalettes)},
       {vk::DescriptorType::eStorageImage, m_logicalDevice->getMaxFramesInFlight() * 4},
       {vk::DescriptorType::eStorageBuffer, m_logicalDevice->getMaxFramesInFlight() * 15},
     }};
@@ -1573,7 +1574,8 @@ namespace vke {
 
     pipelineManager->bindGraphicsPipeline(commandBuffer, pipelineType);
 
-    // The scene set at 0 and the lighting set at 2; set 1 is reserved for materials and unused
+    // The scene set at 0 and the lighting set at 2; set 1 is the surface's palette, bound when a run's differs from the
+    // last one's (a surface's chunks come in a row only by luck, so this is at most one bind per run)
     pipelineManager->bindGraphicsPipelineDescriptorSet(
       commandBuffer,
       pipelineType,
@@ -1588,8 +1590,22 @@ namespace vke {
       2
     );
 
+    const VolumePalette* boundPalette = nullptr;
+
     for (const DrawRun& run : m_volumeRuns)
     {
+      if (run.palette != boundPalette)
+      {
+        boundPalette = run.palette;
+
+        pipelineManager->bindGraphicsPipelineDescriptorSet(
+          commandBuffer,
+          pipelineType,
+          boundPalette->getDescriptorSet(renderInfo->currentFrame),
+          1
+        );
+      }
+
       run.mesh->draw(commandBuffer, run.firstInstance, run.instanceCount);
     }
   }

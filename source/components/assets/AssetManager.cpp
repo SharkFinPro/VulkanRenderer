@@ -6,6 +6,7 @@
 #include "objects/Model.h"
 #include "objects/RenderObject.h"
 #include "particleSystems/SmokeSystem.h"
+#include "volume/VolumePalette.h"
 #include "volume/VolumeSource.h"
 #include "volume/VolumeSurface.h"
 #include "../assets/textures/Texture2D.h"
@@ -73,7 +74,20 @@ namespace vke {
   std::shared_ptr<VolumeSurface> AssetManager::createVolumeSurface(const VolumeSurfaceDescription& description,
                                                                    std::shared_ptr<const VolumeSource> source)
   {
-    auto surface = std::make_shared<VolumeSurface>(m_logicalDevice, m_uploadQueue, m_jobPool, description, std::move(source));
+    const VolumePaletteContext paletteContext {
+      .logicalDevice = m_logicalDevice,
+      .commandPool = *m_commandPool,
+      .descriptorAllocator = m_descriptorAllocator,
+      .layout = *m_volumeMaterialDescriptorSetLayout
+    };
+
+    if (!m_defaultVolumePalette)
+    {
+      m_defaultVolumePalette = VolumePalette::createDefault(paletteContext);
+    }
+
+    auto surface = std::make_shared<VolumeSurface>(m_logicalDevice, m_uploadQueue, m_jobPool, description,
+                                                   std::move(source), paletteContext, m_defaultVolumePalette);
 
     std::erase_if(m_volumeSurfaces, [](const std::weak_ptr<VolumeSurface>& weak) {
       return weak.expired();
@@ -210,6 +224,11 @@ namespace vke {
     return *m_materialDescriptorSetLayout;
   }
 
+  vk::DescriptorSetLayout AssetManager::getVolumeMaterialDescriptorSetLayout() const
+  {
+    return *m_volumeMaterialDescriptorSetLayout;
+  }
+
   vk::DescriptorSetLayout AssetManager::getFontDescriptorSetLayout() const
   {
     return *m_fontDescriptorSetLayout;
@@ -228,6 +247,8 @@ namespace vke {
   void AssetManager::createDescriptorSetLayouts()
   {
     createMaterialDescriptorSetLayout();
+
+    createVolumeMaterialDescriptorSetLayout();
 
     createFontDescriptorSetLayout();
 
@@ -263,6 +284,37 @@ namespace vke {
     };
 
     m_materialDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(materialLayoutCreateInfo);
+  }
+
+  void AssetManager::createVolumeMaterialDescriptorSetLayout()
+  {
+    constexpr std::array bindings {
+      vk::DescriptorSetLayoutBinding {
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 1,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 2,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eFragment
+      }
+    };
+
+    const vk::DescriptorSetLayoutCreateInfo layoutCreateInfo {
+      .bindingCount = static_cast<uint32_t>(bindings.size()),
+      .pBindings = bindings.data()
+    };
+
+    m_volumeMaterialDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(layoutCreateInfo);
   }
 
   void AssetManager::createFontDescriptorSetLayout()
@@ -353,7 +405,8 @@ namespace vke {
         .binding = 2,
         .descriptorType = vk::DescriptorType::eUniformBuffer,
         .descriptorCount = 1,
-        .stageFlags = vk::ShaderStageFlagBits::eRaygenKHR
+        .stageFlags = vk::ShaderStageFlagBits::eRaygenKHR |
+                      vk::ShaderStageFlagBits::eClosestHitKHR
       },
       vk::DescriptorSetLayoutBinding {
         .binding = 3,
@@ -391,15 +444,21 @@ namespace vke {
         .descriptorCount = 1,
         .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
       },
-      vk::DescriptorSetLayoutBinding {
+      vk::DescriptorSetLayoutBinding { // Albedo and specular arrays of the traced volume surface palettes
         .binding = 9,
+        .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+        .descriptorCount = 64,
+        .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
+      },
+      vk::DescriptorSetLayoutBinding {
+        .binding = 10,
         .descriptorType = vk::DescriptorType::eCombinedImageSampler,
         .descriptorCount = 256,
         .stageFlags = vk::ShaderStageFlagBits::eClosestHitKHR
       }
     };
 
-    // Binding 9, the last, uses variable descriptor count and partial binding.
+    // Binding 9 is partially bound; binding 10, the last, uses variable descriptor count and partial binding.
     constexpr std::array bindingFlags {
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
@@ -410,6 +469,7 @@ namespace vke {
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
       vk::DescriptorBindingFlags {},
+      vk::DescriptorBindingFlags { vk::DescriptorBindingFlagBits::ePartiallyBound },
       vk::DescriptorBindingFlagBits::eVariableDescriptorCount | vk::DescriptorBindingFlagBits::ePartiallyBound
     };
 

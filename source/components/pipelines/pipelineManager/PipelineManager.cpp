@@ -176,7 +176,8 @@ namespace vke {
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::volumeSurface,
-      PipelineConfig::createVolumeSurfacePipelineOptions(m_logicalDevice, sceneDescriptorSetLayout, materialDescriptorSetLayout,
+      PipelineConfig::createVolumeSurfacePipelineOptions(m_logicalDevice, sceneDescriptorSetLayout,
+      assetManager->getVolumeMaterialDescriptorSetLayout(),
       lightingDescriptorSetLayout));
 
     createGraphicsPipeline(PipelineType::volumeSurfaceShadow,

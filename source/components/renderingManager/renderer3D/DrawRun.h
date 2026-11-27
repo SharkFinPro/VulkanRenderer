@@ -10,6 +10,7 @@ namespace vke {
   class Material;
   class Mesh;
   class Model;
+  class VolumePalette;
 
   // A draw to be grouped: the object table slot it draws and what neighboring draws must share to be one instanced draw.
   // A key a list does not group by (the material of a shadow list, the mask value of a main pass list) is null or zero.
@@ -23,6 +24,9 @@ namespace vke {
     // Squared distance from the camera to the item's world bounds, where a list orders its runs front to back
     // (sortRunsFrontToBack); not a grouping key
     float distance = 0.0f;
+    // The palette a volume surface chunk is drawn with. Not a grouping key: a chunk's mesh belongs to one surface, so
+    // items with the same mesh have the same palette
+    const VolumePalette* palette = nullptr;
   };
 
   // A run of draws with equal keys, drawn with one instanced draw. firstInstance is the run's offset into the frame's
@@ -34,6 +38,8 @@ namespace vke {
     uint32_t firstInstance;
     uint32_t instanceCount;
     const Mesh* mesh = nullptr;
+    // From the run's first item (see DrawItem)
+    const VolumePalette* palette = nullptr;
   };
 
   // The order buildDrawRuns sorts items into: (maskValue, material, mesh, model, slot), pointers by std::less. A caller

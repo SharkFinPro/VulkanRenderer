@@ -62,7 +62,7 @@ namespace vke {
     {
       if (next == offset || !sharesRun(items[next - offset - 1], item))
       {
-        runs.push_back({ item.model, item.material, item.maskValue, next, 0, item.mesh });
+        runs.push_back({ item.model, item.material, item.maskValue, next, 0, item.mesh, item.palette });
       }
 
       ++runs.back().instanceCount;

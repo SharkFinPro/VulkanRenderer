@@ -12,7 +12,14 @@ namespace vke {
                        const char* path,
                        vk::SamplerAddressMode samplerAddressMode);
 
+    [[nodiscard]] vk::Extent2D getExtent() const;
+
+    [[nodiscard]] vk::Image getImage() const;
+
   private:
+    uint32_t m_width = 0;
+    uint32_t m_height = 0;
+
     void createTextureImage(const std::shared_ptr<LogicalDevice>& logicalDevice,
                             vk::CommandPool commandPool,
                             const char* path);

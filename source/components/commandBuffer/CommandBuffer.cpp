@@ -149,6 +149,14 @@ namespace vke {
     m_commandBuffers[m_currentFrame].blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regions, filter);
   }
 
+  void CommandBuffer::clearColorImage(const vk::Image& image,
+                                      const vk::ImageLayout imageLayout,
+                                      const vk::ClearColorValue& color,
+                                      const vk::ArrayProxy<const vk::ImageSubresourceRange>& ranges) const
+  {
+    m_commandBuffers[m_currentFrame].clearColorImage(image, imageLayout, color, ranges);
+  }
+
   void CommandBuffer::copyBuffer(const vk::Buffer& srcBuffer,
                                  const vk::Buffer& dstBuffer,
                                  const vk::ArrayProxy<const vk::BufferCopy>& regions) const
