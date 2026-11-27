@@ -28,6 +28,7 @@ namespace vke {
   class Texture;
   class Texture2D;
   class UploadQueue;
+  class VolumePalette;
   class VolumeSource;
   class VolumeSurface;
   struct VolumeSurfaceDescription;
@@ -126,6 +127,10 @@ namespace vke {
     // The material set (set 1 of the object pipelines): a texture at binding 0 and a specular map at binding 1.
     [[nodiscard]] vk::DescriptorSetLayout getMaterialDescriptorSetLayout() const;
 
+    // The volume surface palette set (set 1 of the volume surface pipeline): the albedo array at binding 0, the specular
+    // array at binding 1 and the palette uniform block at binding 2.
+    [[nodiscard]] vk::DescriptorSetLayout getVolumeMaterialDescriptorSetLayout() const;
+
     [[nodiscard]] vk::DescriptorSetLayout getFontDescriptorSetLayout() const;
 
     [[nodiscard]] vk::DescriptorSetLayout getSmokeSystemDescriptorSetLayout() const;
@@ -150,6 +155,11 @@ namespace vke {
 
     vk::raii::DescriptorSetLayout m_materialDescriptorSetLayout = nullptr;
 
+    vk::raii::DescriptorSetLayout m_volumeMaterialDescriptorSetLayout = nullptr;
+
+    // Built on the first volume surface and shared by all of them
+    std::shared_ptr<VolumePalette> m_defaultVolumePalette;
+
     vk::raii::DescriptorSetLayout m_fontDescriptorSetLayout = nullptr;
 
     vk::raii::DescriptorSetLayout m_smokeSystemDescriptorSetLayout = nullptr;
@@ -169,6 +179,8 @@ namespace vke {
     void createDescriptorSetLayouts();
 
     void createMaterialDescriptorSetLayout();
+
+    void createVolumeMaterialDescriptorSetLayout();
 
     void createFontDescriptorSetLayout();
 

@@ -314,11 +314,11 @@ namespace vke::PipelineConfig {
     };
   }
 
-  // Volume surfaces: lit by the scene's lights like objects. Set 1 is the material layout reserved for surface
-  // materials; the shaders do not use it yet and it is not bound.
+  // Volume surfaces: lit by the scene's lights like objects. Set 1 is the surface's palette (the volume material
+  // layout: albedo and specular arrays and the per-material scales).
   inline GraphicsPipelineOptions createVolumeSurfacePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                     vk::DescriptorSetLayout sceneDescriptorSetLayout,
-                                                                    vk::DescriptorSetLayout materialDescriptorSetLayout,
+                                                                    vk::DescriptorSetLayout paletteDescriptorSetLayout,
                                                                     vk::DescriptorSetLayout lightingDescriptorSetLayout)
   {
     return {
@@ -338,7 +338,7 @@ namespace vke::PipelineConfig {
       },
       .descriptorSetLayouts {
         sceneDescriptorSetLayout,
-        materialDescriptorSetLayout,
+        paletteDescriptorSetLayout,
         lightingDescriptorSetLayout
       }
     };

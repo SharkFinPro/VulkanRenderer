@@ -25,6 +25,7 @@ namespace vke {
   class RenderObject;
   class Texture;
   class UniformBuffer;
+  class VolumePalette;
 
   struct MeshInfo {
     uint32_t vertexOffset = 0;
@@ -43,15 +44,24 @@ namespace vke {
     const Mesh* mesh = nullptr;
     glm::mat4 modelMatrix{1.0f};
     bool castsShadows = true;
+    const VolumePalette* palette = nullptr;
   };
 
-  // What the volume closest hit shader reads through buffer references; 16 bytes, as std430 lays it out.
+  // Distinct volume surface palettes one traced frame can use (binding 9 holds an albedo and a specular array each);
+  // chunks of any further palette are shaded with the first palette seen.
+  inline constexpr uint32_t s_maxTracedVolumePalettes = 32;
+
+  // What the volume closest hit shader reads through buffer references; 32 bytes, as std430 lays it out. The palette
+  // index selects the palette's arrays in binding 9 (2i albedo, 2i + 1 specular).
   struct VolumeChunkInfo {
     vk::DeviceAddress vertexAddress = 0;
     vk::DeviceAddress indexAddress = 0;
+    vk::DeviceAddress paletteDataAddress = 0;
+    uint32_t paletteIndex = 0;
+    uint32_t padding = 0;
   };
 
-  static_assert(sizeof(VolumeChunkInfo) == 16);
+  static_assert(sizeof(VolumeChunkInfo) == 32);
 
   class RayTracer {
   public:
@@ -138,8 +148,13 @@ namespace vke {
     std::vector<vk::DescriptorImageInfo> m_textureImageInfos;
     std::vector<const Texture*> m_textureKeys;
 
-    // Scratch for updateRTDescriptorSet, which runs every frame: 9 fixed bindings plus the texture array.
-    std::array<vk::WriteDescriptorSet, 10> m_descriptorWrites{};
+    // This frame's distinct volume palettes in first-seen order, and their arrays' image infos (albedo at 2i, specular
+    // at 2i + 1); rebuilt by updateVolumeChunkInfos, so their capacity is kept
+    std::vector<const VolumePalette*> m_volumePalettes;
+    std::array<vk::DescriptorImageInfo, 2 * s_maxTracedVolumePalettes> m_volumePaletteImageInfos{};
+
+    // Scratch for updateRTDescriptorSet, which runs every frame: 9 fixed bindings, the palette arrays and the texture array.
+    std::array<vk::WriteDescriptorSet, 11> m_descriptorWrites{};
 
     std::shared_ptr<UniformBuffer> m_cloudUniform;
 
@@ -198,8 +213,11 @@ namespace vke {
     void updateMeshInfos(FrameResources& frame,
                          const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 
+    // The index of the palette among this frame's, adding it when there is room
+    [[nodiscard]] uint32_t getVolumePaletteIndex(const VolumePalette* palette);
+
     void updateVolumeChunkInfos(FrameResources& frame,
-                                std::span<const TracedVolumeChunk> volumeChunks) const;
+                                std::span<const TracedVolumeChunk> volumeChunks);
 
     [[nodiscard]] uint32_t getTextureIndex(const std::shared_ptr<Texture>& texture);
 

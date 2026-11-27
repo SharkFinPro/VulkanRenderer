@@ -26,6 +26,8 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/textures/Texture.h
     components/assets/textures/Texture2D.cpp
     components/assets/textures/Texture2D.h
+    components/assets/textures/Texture2DArray.cpp
+    components/assets/textures/Texture2DArray.h
     components/assets/textures/Texture3D.cpp
     components/assets/textures/Texture3D.h
     components/assets/textures/TextureCubemap.cpp
@@ -40,6 +42,9 @@ set(VULKAN_ENGINE_SOURCES_COMPONENTS
     components/assets/volume/SurfaceExtractor.h
     components/assets/volume/VolumeChunking.cpp
     components/assets/volume/VolumeChunking.h
+    components/assets/volume/VolumeMaterial.h
+    components/assets/volume/VolumePalette.cpp
+    components/assets/volume/VolumePalette.h
     components/assets/volume/VolumeScheduler.h
     components/assets/volume/VolumeSource.h
     components/assets/volume/VolumeSurface.cpp

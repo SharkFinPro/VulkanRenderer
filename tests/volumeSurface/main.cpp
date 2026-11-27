@@ -2,12 +2,17 @@
 // material with a sphere brush (Shift, or the Remove box, carves instead). The surface is lit by a point light and a
 // spot light, shadowed by them, casts into their shadow maps, is pickable (Pick mode: click to print what is under the
 // cursor) and can be outlined; a cube above it shows the shadows going both ways, and a tunnel under an overhang shows
-// its self-shadowing. With --frames N it runs scripted brush edits
+// its self-shadowing. It starts with a textured palette of four materials (the Textured palette box switches to the
+// default flat colors, Swap texture replaces material 0's albedo), and the Paint mode brush changes the material of the
+// samples it covers without changing the distance. With --frames N it runs scripted brush edits
 // in bursts instead, prints frame time percentiles and how long edits took to show, and exits non-zero if the surface
-// never settled. The field's lock makes each edit and its invalidate call atomic to the engine's worker threads (see
+// never settled; after the edits it swaps the palette and checks that nothing is extracted again and that a palette of
+// 17 materials is refused. The field's lock makes each edit and its invalidate call atomic to the engine's worker threads (see
 // vke::VolumeSource).
 #include <source/components/assets/AssetManager.h>
 #include <source/components/assets/objects/RenderObject.h>
+#include <source/components/assets/textures/Texture2D.h>
+#include <source/components/assets/volume/VolumeMaterial.h>
 #include <source/components/assets/volume/VolumeSource.h>
 #include <source/components/assets/volume/VolumeSurface.h>
 #include <source/components/camera/Camera.h>
@@ -46,6 +51,7 @@
 #include <shared_mutex>
 #include <sstream>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -81,6 +87,9 @@ namespace {
     glm::vec3 center { 0.0f };
     float radius = 6.0f;
     bool add = true;
+    // Changes the material of the samples inside the radius, not the distance
+    bool paint = false;
+    uint8_t material = 0;
   };
 
   struct Ray {
@@ -253,7 +262,14 @@ namespace {
       const size_t index = indexOf(position);
       const float brushDistance = glm::length(glm::vec3(position) - brush.center) - brush.radius;
 
-      if (brush.add)
+      if (brush.paint)
+      {
+        if (brushDistance <= 0.0f)
+        {
+          m_material[index] = brush.material;
+        }
+      }
+      else if (brush.add)
       {
         if (brushDistance < m_distance[index])
         {
@@ -299,6 +315,8 @@ namespace {
     std::shared_ptr<vke::VolumeSurface> surface;
     Brush brush;
     bool remove = false;
+    bool paint = false;
+    int paintMaterial = 0;
     float frameMs = 0.0f;
     Stats stats;
 
@@ -313,7 +331,42 @@ namespace {
     bool surfacePicked = false;
     bool cubePicked = false;
     std::string lastPick = "none";
+
+    // The textured palette, kept so a texture can be swapped and the palette set again
+    std::vector<vke::VolumeMaterial> palette;
+    std::shared_ptr<vke::Texture2D> containerTexture;
+    std::shared_ptr<vke::Texture2D> swapTexture;
+    bool texturedPalette = true;
+    bool materialZeroSwapped = false;
   };
+
+  [[nodiscard]] int paletteSize(const Session& session)
+  {
+    return session.texturedPalette ? static_cast<int>(session.palette.size()) : static_cast<int>(vke::s_defaultVolumeColors.size());
+  }
+
+  void applyPalette(Session& session)
+  {
+    if (session.texturedPalette)
+    {
+      session.surface->setPalette(session.palette);
+    }
+    else
+    {
+      session.surface->setPalette({});
+    }
+  }
+
+  // Material 0's albedo alternates between the container and the swap texture; the textures are copied into the
+  // palette's arrays, so the palette is set again
+  void swapMaterialZero(Session& session)
+  {
+    session.materialZeroSwapped = !session.materialZeroSwapped;
+    session.palette[0].albedo = session.materialZeroSwapped ? session.swapTexture : session.containerTexture;
+    session.texturedPalette = true;
+
+    applyPalette(session);
+  }
 
   [[nodiscard]] bool parseValue(const char* text,
                                 uint32_t& value)
@@ -495,10 +548,14 @@ namespace {
 
     session.brush.center = *hit;
     session.brush.add = !(session.remove || ImGui::GetIO().KeyShift);
+    session.brush.paint = session.paint;
+    session.brush.material = static_cast<uint8_t>(session.paintMaterial);
 
     // Where the brush would land, drawn as the engine's debug sphere
     renderer.getRenderingManager()->getRenderer3D()->renderSphere(*hit * CELL_SIZE, session.brush.radius * CELL_SIZE,
-      { .color = session.brush.add ? glm::vec4(0.2f, 1.0f, 0.2f, 1.0f) : glm::vec4(1.0f, 0.3f, 0.2f, 1.0f), .depth = vke::DebugDepth::xray });
+      { .color = session.brush.paint ? glm::vec4(0.3f, 0.5f, 1.0f, 1.0f)
+                 : session.brush.add ? glm::vec4(0.2f, 1.0f, 0.2f, 1.0f) : glm::vec4(1.0f, 0.3f, 0.2f, 1.0f),
+        .depth = vke::DebugDepth::xray });
 
     if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
     {
@@ -533,10 +590,41 @@ namespace {
     return Brush { .center = { x, groundHeight(x, z), z }, .radius = 6.0f, .add = burstIndex % 2 == 0 };
   }
 
+  // One paint stroke in the first frame of each pause, over the ground where the bursts have been: material 2, then 1
+  [[nodiscard]] std::optional<Brush> scriptedPaint(const Options& options,
+                                                   const uint64_t frameIndex)
+  {
+    if (frameIndex < options.warmup || options.pause == 0)
+    {
+      return std::nullopt;
+    }
+
+    const uint64_t scripted = frameIndex - options.warmup;
+    const uint64_t period = static_cast<uint64_t>(options.burst) + options.pause;
+
+    if (scripted % period != options.burst)
+    {
+      return std::nullopt;
+    }
+
+    const uint64_t paintIndex = scripted / period;
+
+    return Brush { .center = { 64.0f, groundHeight(64.0f, 64.0f), 64.0f }, .radius = 10.0f, .add = true, .paint = true,
+                   .material = static_cast<uint8_t>(paintIndex % 2 == 0 ? 2 : 1) };
+  }
+
   void runScriptedEdit(const Options& options,
                        Session& session,
                        const uint64_t frameIndex)
   {
+    if (const std::optional<Brush> paint = scriptedPaint(options, frameIndex))
+    {
+      session.source->edit(*paint, *session.surface);
+
+      ++session.stats.edits;
+      session.stats.outstanding.push_back(frameIndex);
+    }
+
     const std::optional<Brush> brush = scriptedBrush(options, frameIndex);
 
     if (!brush)
@@ -616,6 +704,20 @@ namespace {
 
     ImGui::Text("Last pick: %s", session.lastPick.c_str());
 
+    if (ImGui::Checkbox("Textured palette", &session.texturedPalette))
+    {
+      applyPalette(session);
+      session.paintMaterial = std::min(session.paintMaterial, paletteSize(session) - 1);
+    }
+
+    if (ImGui::Button("Swap texture"))
+    {
+      swapMaterialZero(session);
+    }
+
+    ImGui::Checkbox("Paint (material only)", &session.paint);
+    ImGui::SliderInt("Paint material", &session.paintMaterial, 0, paletteSize(session) - 1);
+
     ImGui::Text("Pending: %.0f%%", static_cast<double>(session.surface->pendingFraction()) * 100.0);
     ImGui::Text("Chunks shown: %zu", session.surface->getDisplayedChunks().size());
     const vke::VolumeChunkCounts counts = rendering->getRenderer3D()->getVolumeChunkCounts();
@@ -669,6 +771,26 @@ namespace {
     }
 
     std::cout << "pick: " << session.lastPick << std::endl;
+  }
+
+  // Four materials from the test assets, each with its own scale: the container, a brick-like texture, a model skin and
+  // the second texture again with no specular map
+  void createPalette(vke::AssetManager& assets,
+                     Session& session)
+  {
+    session.containerTexture = assets.loadTexture("assets/textures/container.png");
+    session.swapTexture = assets.loadTexture("assets/textures/icon_ring.png");
+
+    const auto texture = assets.loadTexture("assets/textures/texture.jpg");
+    const auto viking = assets.loadTexture("assets/textures/viking_room.png");
+    const auto containerSpecular = assets.loadTexture("assets/textures/container_specular.png");
+
+    session.palette = {
+      { .albedo = session.containerTexture, .specular = containerSpecular, .textureScale = 1.5f },
+      { .albedo = texture, .specular = nullptr, .textureScale = 0.6f },
+      { .albedo = viking, .specular = nullptr, .textureScale = 0.3f },
+      { .albedo = texture, .specular = nullptr, .textureScale = 3.0f }
+    };
   }
 
   void setupScene(vke::VulkanEngine& renderer,
@@ -788,6 +910,66 @@ namespace {
     return false;
   }
 
+  // A palette over the limit throws and leaves the current one in place
+  [[nodiscard]] bool tooManyMaterialsRefused(Session& session)
+  {
+    const vke::VolumePalette* before = session.surface->getPalette();
+    const std::vector<vke::VolumeMaterial> tooMany(vke::s_maxVolumeMaterials + 1);
+
+    try
+    {
+      session.surface->setPalette(tooMany);
+    }
+    catch (const std::invalid_argument&)
+    {
+      return session.surface->getPalette() == before;
+    }
+
+    return false;
+  }
+
+  // Palette changes with the surface settled: nothing may be extracted again, and a palette over the limit is refused
+  // without changing the current one
+  [[nodiscard]] bool checkPaletteChanges(vke::VulkanEngine& renderer,
+                                         const Options& options,
+                                         Session& session,
+                                         uint64_t& frameIndex)
+  {
+    bool reExtracted = false;
+
+    const auto runChecked = [&] {
+      for (int i = 0; i < 5; ++i)
+      {
+        runFrame(renderer, options, session, frameIndex++, false);
+
+        reExtracted = reExtracted || session.surface->pendingFraction() != 0.0f;
+      }
+    };
+
+    reExtracted = session.surface->pendingFraction() != 0.0f;
+
+    swapMaterialZero(session);
+    reExtracted = reExtracted || session.surface->pendingFraction() != 0.0f;
+    runChecked();
+
+    session.texturedPalette = false;
+    applyPalette(session);
+    reExtracted = reExtracted || session.surface->pendingFraction() != 0.0f;
+    runChecked();
+
+    session.texturedPalette = true;
+    applyPalette(session);
+    reExtracted = reExtracted || session.surface->pendingFraction() != 0.0f;
+    runChecked();
+
+    const bool refused = tooManyMaterialsRefused(session);
+
+    std::cout << "palette swap re-extracted: " << (reExtracted ? "yes" : "no") << '\n';
+    std::cout << "17th material refused: " << (refused ? "yes" : "no") << std::endl;
+
+    return !reExtracted && refused;
+  }
+
   void printSummary(const Options& options,
                     const vke::RenderingManager& rendering,
                     const Session& session,
@@ -870,6 +1052,9 @@ namespace {
     session.source = std::make_shared<GridSource>();
     session.surface = assets->createVolumeSurface(createDescription(), session.source);
 
+    createPalette(*assets, session);
+    applyPalette(session);
+
     setupScene(renderer, session);
 
     RunResult result = runLoop(renderer, options, session);
@@ -885,6 +1070,11 @@ namespace {
       std::cout << "settled after the last edit: " << (settled ? "yes" : "NO") << std::endl;
 
       if (!settled || session.surface->getDisplayedChunks().empty())
+      {
+        exitCode = EXIT_FAILURE;
+      }
+
+      if (settled && !checkPaletteChanges(renderer, options, session, result.frameIndex))
       {
         exitCode = EXIT_FAILURE;
       }
