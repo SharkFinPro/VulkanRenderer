@@ -145,8 +145,17 @@ void main()
     normal = -normal;
   }
 
-  // The first material, as the raster vertex stage passes on
-  const vec3 albedo = volumePaletteAlbedo(v0.materials & 0xFFu);
+  // The first corner's own material (the one with the full weight), as the raster vertex stage passes on
+  uint material = v0.materials & 0xFFu;
+  for (uint i = 1; i < 4; i++)
+  {
+    if (((v0.weights >> (8 * i)) & 0xFFu) > (v0.weights & 0xFFu))
+    {
+      material = (v0.materials >> (8 * i)) & 0xFFu;
+    }
+  }
+
+  const vec3 albedo = volumePaletteAlbedo(material);
 
   vec3 result = vec3(0);
   for (int i = 0; i < numPointLights; i++)

@@ -4,6 +4,7 @@
 #include "VolumeSource.h"
 #include <glm/common.hpp>
 #include <glm/vec3.hpp>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -11,13 +12,17 @@
 
 namespace vke {
 
+  // Materials and weights are four-way blend inputs, weights in 255ths summing to 255. A vertex of a triangle whose corners
+  // have different materials lists the triangle's materials in the same slots on all three corners, with the full weight
+  // on its own, so the weights blend across the triangle; unused slots have material and weight 0.
   struct SurfaceVertex {
     glm::vec3 position;
     glm::vec3 normal;
-    uint32_t material;
+    std::array<uint8_t, 4> materials;
+    std::array<uint8_t, 4> weights;
   };
 
-  static_assert(sizeof(SurfaceVertex) == 28);
+  static_assert(sizeof(SurfaceVertex) == 32);
 
   struct SurfaceMesh {
     std::vector<SurfaceVertex> vertices;
