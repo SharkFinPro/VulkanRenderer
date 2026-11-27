@@ -70,6 +70,8 @@ namespace vke {
 
     m_cloudUniform = std::make_shared<UniformBuffer>(m_logicalDevice, sizeof(CloudUniform));
 
+    m_volumePalettes.reserve(s_maxTracedVolumePalettes);
+
     m_frameResources.resize(m_logicalDevice->getMaxFramesInFlight());
   }
 
@@ -593,22 +595,7 @@ namespace vke {
 
     for (size_t i = 0; i < volumeChunks.size(); ++i)
     {
-      const VolumePalette* palette = volumeChunks[i].palette;
-      auto found = std::ranges::find(m_volumePalettes, palette);
-
-      if (found == m_volumePalettes.end() && m_volumePalettes.size() < s_maxTracedVolumePalettes)
-      {
-        const size_t index = m_volumePalettes.size();
-
-        m_volumePalettes.push_back(palette);
-        m_volumePaletteImageInfos[2 * index] = palette->getAlbedoImageInfo();
-        m_volumePaletteImageInfos[2 * index + 1] = palette->getSpecularImageInfo();
-
-        found = m_volumePalettes.end() - 1;
-      }
-
-      // Past the limit a chunk uses the first palette seen
-      const uint32_t paletteIndex = found == m_volumePalettes.end() ? 0 : static_cast<uint32_t>(found - m_volumePalettes.begin());
+      const uint32_t paletteIndex = getVolumePaletteIndex(volumeChunks[i].palette);
 
       infos[i] = {
         .vertexAddress = volumeChunks[i].mesh->getVertexBufferAddress(),
@@ -617,6 +604,30 @@ namespace vke {
         .paletteIndex = paletteIndex
       };
     }
+  }
+
+  uint32_t RayTracer::getVolumePaletteIndex(const VolumePalette* palette)
+  {
+    const auto found = std::ranges::find(m_volumePalettes, palette);
+
+    if (found != m_volumePalettes.end())
+    {
+      return static_cast<uint32_t>(found - m_volumePalettes.begin());
+    }
+
+    // Past the limit a chunk uses the first palette seen
+    if (m_volumePalettes.size() >= s_maxTracedVolumePalettes)
+    {
+      return 0;
+    }
+
+    const size_t index = m_volumePalettes.size();
+
+    m_volumePalettes.push_back(palette);
+    m_volumePaletteImageInfos[2 * index] = palette->getAlbedoImageInfo();
+    m_volumePaletteImageInfos[2 * index + 1] = palette->getSpecularImageInfo();
+
+    return static_cast<uint32_t>(index);
   }
 
   uint32_t RayTracer::getTextureIndex(const std::shared_ptr<Texture>& texture)

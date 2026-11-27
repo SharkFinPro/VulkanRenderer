@@ -18,7 +18,7 @@ layout(set = 1, binding = 1) uniform sampler2DArray specularArray;
 
 layout(set = 1, binding = 2) uniform VolumePalette
 {
-  vec4 textureScales[16];
+  vec4 textureScales[maxVolumeMaterials];
   uint materialCount;
 } palette;
 

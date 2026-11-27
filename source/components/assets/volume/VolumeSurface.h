@@ -74,7 +74,7 @@ namespace vke {
     // cost of building two texture arrays now. The textures are copied into the arrays, so replacing a palette texture
     // means calling this again. An empty palette restores the default (eight flat colors). An index at or above the
     // palette's size wraps (index % size). Nothing is extracted again, and the previous palette is retired, so frames in
-    // flight may still draw with it. Throws std::invalid_argument on an invalid palette and then changes nothing. Frame
+    // flight may still draw with it. Call it only while the engine (the AssetManager that created the surface) is alive. Throws std::invalid_argument on an invalid palette and then changes nothing. Frame
     // thread only.
     void setPalette(std::span<const VolumeMaterial> palette);
 

@@ -2,6 +2,7 @@
 #include "../textures/Texture2D.h"
 #include "../textures/Texture2DArray.h"
 #include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/descriptorSets/DescriptorSet.h"
 #include "../../../utilities/Buffers.h"
 #include <cstring>
@@ -49,22 +50,36 @@ namespace vke {
 
   VolumePalette::VolumePalette(const VolumePaletteContext& context,
                                Layers&& layers)
-    : m_logicalDevice(context.logicalDevice)
+    : m_logicalDevice(context.logicalDevice),
+      m_albedo(std::make_shared<Texture2DArray>(context.logicalDevice, context.commandPool, layers.albedo,
+                                                vk::SamplerAddressMode::eRepeat)),
+      m_specular(std::make_shared<Texture2DArray>(context.logicalDevice, context.commandPool, layers.specular,
+                                                  vk::SamplerAddressMode::eRepeat))
   {
-    m_albedo = std::make_shared<Texture2DArray>(context.logicalDevice, context.commandPool, layers.albedo,
-                                                vk::SamplerAddressMode::eRepeat);
-    m_specular = std::make_shared<Texture2DArray>(context.logicalDevice, context.commandPool, layers.specular,
-                                                  vk::SamplerAddressMode::eRepeat);
+    createUniformBuffer(context.logicalDevice, layers.scales);
 
+    m_descriptorSet = std::make_shared<DescriptorSet>(context.logicalDevice, context.descriptorAllocator, context.layout);
+
+    writeDescriptorSet();
+  }
+
+  void VolumePalette::createUniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                          const std::span<const float> scales)
+  {
     VolumePaletteData data {};
-    data.materialCount = static_cast<uint32_t>(layers.scales.size());
+    data.materialCount = static_cast<uint32_t>(scales.size());
 
-    for (size_t i = 0; i < layers.scales.size(); i++)
+    for (size_t i = 0; i < scales.size(); i++)
     {
-      data.textureScales[i] = glm::vec4(layers.scales[i], 0.0f, 0.0f, 0.0f);
+      data.textureScales[i] = glm::vec4(scales[i], 0.0f, 0.0f, 0.0f);
     }
 
-    Buffers::createBuffer(context.logicalDevice, sizeof(VolumePaletteData), vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+    // Only the ray tracer reads the address, and the device enables buffer device addresses only with ray tracing
+    const bool rayTracing = logicalDevice->getPhysicalDevice()->supportsRayTracing();
+    const vk::BufferUsageFlags usage = rayTracing ? vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eShaderDeviceAddress
+                                                  : vk::BufferUsageFlagBits::eUniformBuffer;
+
+    Buffers::createBuffer(logicalDevice, sizeof(VolumePaletteData), usage,
                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                           m_buffer, m_bufferMemory);
 
@@ -72,10 +87,14 @@ namespace vke {
       std::memcpy(mapped, &data, sizeof(VolumePaletteData));
     });
 
-    m_dataAddress = context.logicalDevice->getBufferDeviceAddress(*m_buffer);
+    if (rayTracing)
+    {
+      m_dataAddress = logicalDevice->getBufferDeviceAddress(*m_buffer);
+    }
+  }
 
-    m_descriptorSet = std::make_shared<DescriptorSet>(context.logicalDevice, context.descriptorAllocator, context.layout);
-
+  void VolumePalette::writeDescriptorSet() const
+  {
     const vk::DescriptorBufferInfo bufferInfo {
       .buffer = *m_buffer,
       .offset = 0,

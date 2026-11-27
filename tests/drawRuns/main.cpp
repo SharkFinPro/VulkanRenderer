@@ -228,17 +228,21 @@ namespace {
     check(runs.size() == 3 && slots[runs[1].firstInstance] == 12 && slots[runs[2].firstInstance] == 10,
           "every run still points at its own slot");
 
-    // A run takes the palette of its first item
-    const auto* palette = reinterpret_cast<const vke::VolumePalette*>(&slots);
+    // A run takes the palette of its first item; a different mesh is another run with its own
+    const auto* paletteA = reinterpret_cast<const vke::VolumePalette*>(&slots[0]);
+    const auto* paletteB = reinterpret_cast<const vke::VolumePalette*>(&slots[1]);
     std::vector<vke::DrawItem> palettes {
-      { nullptr, nullptr, 0, 1, mesh(0), 1.0f, palette },
-      { nullptr, nullptr, 0, 2, mesh(0), 2.0f, palette }
+      { nullptr, nullptr, 0, 1, mesh(0), 1.0f, paletteA },
+      { nullptr, nullptr, 0, 2, mesh(0), 2.0f, paletteB },
+      { nullptr, nullptr, 0, 3, mesh(1), 3.0f, paletteB }
     };
     std::vector<vke::DrawRun> paletteRuns;
 
     [[maybe_unused]] const uint32_t paletteEnd = vke::buildDrawRuns(palettes, slots.data(), 0, paletteRuns);
 
-    check(paletteRuns.size() == 1 && paletteRuns[0].palette == palette, "a run carries its items' palette");
+    check(paletteRuns.size() == 2 && paletteRuns[0].palette == paletteA && paletteRuns[0].instanceCount == 2,
+          "a run takes its first item's palette");
+    check(paletteRuns.size() == 2 && paletteRuns[1].palette == paletteB, "another run has its own palette");
 
     // Equal distances keep the grouping order
     std::vector<vke::DrawItem> tied {

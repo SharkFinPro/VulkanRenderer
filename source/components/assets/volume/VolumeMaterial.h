@@ -2,6 +2,7 @@
 #define VKE_VOLUMEMATERIAL_H
 
 #include <glm/common.hpp>
+#include <glm/exponential.hpp>
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
 #include <array>

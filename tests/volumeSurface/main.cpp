@@ -910,6 +910,24 @@ namespace {
     return false;
   }
 
+  // A palette over the limit throws and leaves the current one in place
+  [[nodiscard]] bool tooManyMaterialsRefused(Session& session)
+  {
+    const vke::VolumePalette* before = session.surface->getPalette();
+    const std::vector<vke::VolumeMaterial> tooMany(vke::s_maxVolumeMaterials + 1);
+
+    try
+    {
+      session.surface->setPalette(tooMany);
+    }
+    catch (const std::invalid_argument&)
+    {
+      return session.surface->getPalette() == before;
+    }
+
+    return false;
+  }
+
   // Palette changes with the surface settled: nothing may be extracted again, and a palette over the limit is refused
   // without changing the current one
   [[nodiscard]] bool checkPaletteChanges(vke::VulkanEngine& renderer,
@@ -944,20 +962,7 @@ namespace {
     reExtracted = reExtracted || session.surface->pendingFraction() != 0.0f;
     runChecked();
 
-    const vke::VolumePalette* before = session.surface->getPalette();
-    const std::vector<vke::VolumeMaterial> tooMany(vke::s_maxVolumeMaterials + 1);
-    bool refused = false;
-
-    try
-    {
-      session.surface->setPalette(tooMany);
-    }
-    catch (const std::invalid_argument&)
-    {
-      refused = true;
-    }
-
-    refused = refused && session.surface->getPalette() == before;
+    const bool refused = tooManyMaterialsRefused(session);
 
     std::cout << "palette swap re-extracted: " << (reExtracted ? "yes" : "no") << '\n';
     std::cout << "17th material refused: " << (refused ? "yes" : "no") << std::endl;

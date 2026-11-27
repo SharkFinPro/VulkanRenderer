@@ -15,21 +15,31 @@ namespace vke {
 
     constexpr vk::Format s_format = vk::Format::eR8G8B8A8Unorm;
 
+    using Layout = vk::ImageLayout;
+
+    struct Scope {
+      vk::PipelineStageFlags2 stage;
+      vk::AccessFlags2 access;
+    };
+
+    constexpr Scope s_transferWrite { vk::PipelineStageFlagBits2::eTransfer, vk::AccessFlagBits2::eTransferWrite };
+    constexpr Scope s_transferRead { vk::PipelineStageFlagBits2::eTransfer, vk::AccessFlagBits2::eTransferRead };
+    // Every stage that may sample the array: fragment and, with ray tracing, the closest hit shader
+    constexpr Scope s_sampled { vk::PipelineStageFlagBits2::eAllCommands, vk::AccessFlagBits2::eShaderSampledRead };
+
     void barrier(const SingleUseCommandBuffer& commandBuffer,
                  const vk::Image image,
                  const vk::ImageSubresourceRange& range,
-                 const vk::ImageLayout oldLayout,
-                 const vk::ImageLayout newLayout,
-                 const vk::PipelineStageFlags2 srcStage,
-                 const vk::AccessFlags2 srcAccess,
-                 const vk::PipelineStageFlags2 dstStage,
-                 const vk::AccessFlags2 dstAccess)
+                 const Layout oldLayout,
+                 const Layout newLayout,
+                 const Scope& src,
+                 const Scope& dst)
     {
       const vk::ImageMemoryBarrier2 imageBarrier {
-        .srcStageMask = srcStage,
-        .srcAccessMask = srcAccess,
-        .dstStageMask = dstStage,
-        .dstAccessMask = dstAccess,
+        .srcStageMask = src.stage,
+        .srcAccessMask = src.access,
+        .dstStageMask = dst.stage,
+        .dstAccessMask = dst.access,
         .oldLayout = oldLayout,
         .newLayout = newLayout,
         .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
@@ -58,6 +68,136 @@ namespace vke {
         .baseArrayLayer = baseLayer,
         .layerCount = layerCount
       };
+    }
+
+    // The largest width and height among the sources, 1x1 with none
+    vk::Extent2D arrayExtent(const std::span<const Texture2DArrayLayer> layers)
+    {
+      vk::Extent2D extent { 1, 1 };
+
+      for (const Texture2DArrayLayer& layer : layers)
+      {
+        if (layer.source)
+        {
+          const vk::Extent2D sourceExtent = layer.source->getExtent();
+          extent.width = std::max(extent.width, sourceExtent.width);
+          extent.height = std::max(extent.height, sourceExtent.height);
+        }
+      }
+
+      return extent;
+    }
+
+    void checkBlitSupport(const std::shared_ptr<LogicalDevice>& logicalDevice)
+    {
+      const auto features = logicalDevice->getPhysicalDevice()->getFormatProperties(s_format).optimalTilingFeatures;
+      constexpr auto required = vk::FormatFeatureFlagBits::eSampledImageFilterLinear |
+                                vk::FormatFeatureFlagBits::eBlitSrc | vk::FormatFeatureFlagBits::eBlitDst;
+
+      if ((features & required) != required)
+      {
+        throw std::runtime_error("texture image format does not support linear blitting!");
+      }
+    }
+
+    vk::ImageBlit makeBlit(const vk::ImageSubresourceLayers& src,
+                           const vk::Extent2D srcExtent,
+                           const vk::ImageSubresourceLayers& dst,
+                           const vk::Extent2D dstExtent)
+    {
+      return {
+        .srcSubresource = src,
+        .srcOffsets = std::array {
+          vk::Offset3D{ 0, 0, 0 },
+          vk::Offset3D{ static_cast<int32_t>(srcExtent.width), static_cast<int32_t>(srcExtent.height), 1 }
+        },
+        .dstSubresource = dst,
+        .dstOffsets = std::array {
+          vk::Offset3D{ 0, 0, 0 },
+          vk::Offset3D{ static_cast<int32_t>(dstExtent.width), static_cast<int32_t>(dstExtent.height), 1 }
+        }
+      };
+    }
+
+    // Copies a source's mip 0 into a layer, scaling it to the array's extent
+    void blitSourceToLayer(const SingleUseCommandBuffer& commandBuffer,
+                           const vk::Image dst,
+                           const uint32_t layer,
+                           const Texture2D& source,
+                           const vk::Extent2D extent)
+    {
+      const vk::Image src = source.getImage();
+      const auto srcRange = colorRange(0, 1, 0, 1);
+
+      // Earlier frames on the queue may still be sampling the source
+      barrier(commandBuffer, src, srcRange, Layout::eShaderReadOnlyOptimal, Layout::eTransferSrcOptimal,
+              { vk::PipelineStageFlagBits2::eAllCommands,
+                vk::AccessFlagBits2::eShaderSampledRead | vk::AccessFlagBits2::eShaderRead },
+              s_transferRead);
+
+      const vk::ImageBlit blit = makeBlit({ vk::ImageAspectFlagBits::eColor, 0, 0, 1 }, source.getExtent(),
+                                          { vk::ImageAspectFlagBits::eColor, 0, layer, 1 }, extent);
+
+      commandBuffer.blitImage(src, Layout::eTransferSrcOptimal, dst, Layout::eTransferDstOptimal, blit,
+                              vk::Filter::eLinear);
+
+      barrier(commandBuffer, src, srcRange, Layout::eTransferSrcOptimal, Layout::eShaderReadOnlyOptimal,
+              s_transferRead, s_sampled);
+    }
+
+    void fillLayers(const SingleUseCommandBuffer& commandBuffer,
+                    const vk::Image dst,
+                    const std::span<const Texture2DArrayLayer> layers,
+                    const vk::Extent2D extent)
+    {
+      for (uint32_t i = 0; i < layers.size(); i++)
+      {
+        const Texture2DArrayLayer& layer = layers[i];
+
+        if (layer.source)
+        {
+          blitSourceToLayer(commandBuffer, dst, i, *layer.source, extent);
+        }
+        else
+        {
+          const vk::ClearColorValue color { std::array { layer.fill.r, layer.fill.g, layer.fill.b, layer.fill.a } };
+
+          commandBuffer.clearColorImage(dst, Layout::eTransferDstOptimal, color, colorRange(0, 1, i, 1));
+        }
+      }
+    }
+
+    // Every mip of every layer ends in ShaderReadOnlyOptimal
+    void generateMips(const SingleUseCommandBuffer& commandBuffer,
+                      const vk::Image dst,
+                      const vk::Extent2D extent,
+                      const uint32_t mipLevels,
+                      const uint32_t layerCount)
+    {
+      vk::Extent2D mip = extent;
+
+      for (uint32_t level = 1; level < mipLevels; level++)
+      {
+        const auto previous = colorRange(level - 1, 1, 0, layerCount);
+        const vk::Extent2D next { std::max(mip.width / 2, 1u), std::max(mip.height / 2, 1u) };
+
+        barrier(commandBuffer, dst, previous, Layout::eTransferDstOptimal, Layout::eTransferSrcOptimal,
+                s_transferWrite, s_transferRead);
+
+        const vk::ImageBlit blit = makeBlit({ vk::ImageAspectFlagBits::eColor, level - 1, 0, layerCount }, mip,
+                                            { vk::ImageAspectFlagBits::eColor, level, 0, layerCount }, next);
+
+        commandBuffer.blitImage(dst, Layout::eTransferSrcOptimal, dst, Layout::eTransferDstOptimal, blit,
+                                vk::Filter::eLinear);
+
+        barrier(commandBuffer, dst, previous, Layout::eTransferSrcOptimal, Layout::eShaderReadOnlyOptimal,
+                s_transferRead, s_sampled);
+
+        mip = next;
+      }
+
+      barrier(commandBuffer, dst, colorRange(mipLevels - 1, 1, 0, layerCount), Layout::eTransferDstOptimal,
+              Layout::eShaderReadOnlyOptimal, s_transferWrite, s_sampled);
     }
 
   } // namespace
@@ -89,35 +229,17 @@ namespace vke {
                                           const vk::CommandPool commandPool,
                                           const std::span<const Texture2DArrayLayer> layers)
   {
-    uint32_t width = 1;
-    uint32_t height = 1;
-    bool anySource = false;
+    checkBlitSupport(logicalDevice);
 
-    for (const Texture2DArrayLayer& layer : layers)
-    {
-      if (layer.source)
-      {
-        const vk::Extent2D extent = layer.source->getExtent();
-        width = anySource ? std::max(width, extent.width) : extent.width;
-        height = anySource ? std::max(height, extent.height) : extent.height;
-        anySource = true;
-      }
-    }
+    const vk::Extent2D extent = arrayExtent(layers);
 
-    m_mipLevels = static_cast<uint32_t>(std::bit_width(std::max(width, height)));
-
-    const auto formatProperties = logicalDevice->getPhysicalDevice()->getFormatProperties(s_format);
-
-    if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear))
-    {
-      throw std::runtime_error("texture image format does not support linear blitting!");
-    }
+    m_mipLevels = static_cast<uint32_t>(std::bit_width(std::max(extent.width, extent.height)));
 
     auto [image, imageMemory] = Images::createImage(
       logicalDevice,
       {
         {},
-        vk::Extent3D{ width, height, 1 },
+        vk::Extent3D{ extent.width, extent.height, 1 },
         m_mipLevels,
         vk::SampleCountFlagBits::e1,
         s_format,
@@ -133,95 +255,17 @@ namespace vke {
     m_textureImageMemory = std::move(imageMemory);
 
     const vk::Image dst = *m_textureImage;
-    const uint32_t mipLevels = m_mipLevels;
-    const uint32_t layerCount = m_layerCount;
 
     const auto commandBuffer = SingleUseCommandBuffer(logicalDevice, commandPool, logicalDevice->getGraphicsQueue());
 
     commandBuffer.record([&] {
-      using Stage = vk::PipelineStageFlagBits2;
-      using Access = vk::AccessFlagBits2;
-      using Layout = vk::ImageLayout;
-
-      barrier(commandBuffer, dst, colorRange(0, mipLevels, 0, layerCount),
+      barrier(commandBuffer, dst, colorRange(0, m_mipLevels, 0, m_layerCount),
               Layout::eUndefined, Layout::eTransferDstOptimal,
-              Stage::eTopOfPipe, {}, Stage::eTransfer, Access::eTransferWrite);
+              { vk::PipelineStageFlagBits2::eTopOfPipe, {} }, s_transferWrite);
 
-      for (uint32_t i = 0; i < layerCount; i++)
-      {
-        const Texture2DArrayLayer& layer = layers[i];
+      fillLayers(commandBuffer, dst, layers, extent);
 
-        if (!layer.source)
-        {
-          const vk::ClearColorValue color { std::array { layer.fill.r, layer.fill.g, layer.fill.b, layer.fill.a } };
-
-          commandBuffer.clearColorImage(dst, Layout::eTransferDstOptimal, color, colorRange(0, 1, i, 1));
-
-          continue;
-        }
-
-        const vk::Image src = layer.source->getImage();
-        const vk::Extent2D srcExtent = layer.source->getExtent();
-        const auto srcRange = colorRange(0, 1, 0, 1);
-
-        // Earlier frames on the queue may still be sampling the source
-        barrier(commandBuffer, src, srcRange, Layout::eShaderReadOnlyOptimal, Layout::eTransferSrcOptimal,
-                Stage::eAllCommands, Access::eShaderSampledRead | Access::eShaderRead,
-                Stage::eTransfer, Access::eTransferRead);
-
-        const vk::ImageBlit blit {
-          .srcSubresource = { vk::ImageAspectFlagBits::eColor, 0, 0, 1 },
-          .srcOffsets = std::array {
-            vk::Offset3D{ 0, 0, 0 },
-            vk::Offset3D{ static_cast<int32_t>(srcExtent.width), static_cast<int32_t>(srcExtent.height), 1 }
-          },
-          .dstSubresource = { vk::ImageAspectFlagBits::eColor, 0, i, 1 },
-          .dstOffsets = std::array {
-            vk::Offset3D{ 0, 0, 0 },
-            vk::Offset3D{ static_cast<int32_t>(width), static_cast<int32_t>(height), 1 }
-          }
-        };
-
-        commandBuffer.blitImage(src, Layout::eTransferSrcOptimal, dst, Layout::eTransferDstOptimal, blit,
-                                vk::Filter::eLinear);
-
-        barrier(commandBuffer, src, srcRange, Layout::eTransferSrcOptimal, Layout::eShaderReadOnlyOptimal,
-                Stage::eTransfer, Access::eTransferRead, Stage::eAllCommands, Access::eShaderSampledRead);
-      }
-
-      int32_t mipWidth = static_cast<int32_t>(width);
-      int32_t mipHeight = static_cast<int32_t>(height);
-
-      for (uint32_t level = 1; level < mipLevels; level++)
-      {
-        barrier(commandBuffer, dst, colorRange(level - 1, 1, 0, layerCount),
-                Layout::eTransferDstOptimal, Layout::eTransferSrcOptimal,
-                Stage::eTransfer, Access::eTransferWrite, Stage::eTransfer, Access::eTransferRead);
-
-        const int32_t nextWidth = mipWidth > 1 ? mipWidth / 2 : 1;
-        const int32_t nextHeight = mipHeight > 1 ? mipHeight / 2 : 1;
-
-        const vk::ImageBlit blit {
-          .srcSubresource = { vk::ImageAspectFlagBits::eColor, level - 1, 0, layerCount },
-          .srcOffsets = std::array { vk::Offset3D{ 0, 0, 0 }, vk::Offset3D{ mipWidth, mipHeight, 1 } },
-          .dstSubresource = { vk::ImageAspectFlagBits::eColor, level, 0, layerCount },
-          .dstOffsets = std::array { vk::Offset3D{ 0, 0, 0 }, vk::Offset3D{ nextWidth, nextHeight, 1 } }
-        };
-
-        commandBuffer.blitImage(dst, Layout::eTransferSrcOptimal, dst, Layout::eTransferDstOptimal, blit,
-                                vk::Filter::eLinear);
-
-        barrier(commandBuffer, dst, colorRange(level - 1, 1, 0, layerCount),
-                Layout::eTransferSrcOptimal, Layout::eShaderReadOnlyOptimal,
-                Stage::eTransfer, Access::eTransferRead, Stage::eFragmentShader, Access::eShaderSampledRead);
-
-        mipWidth = nextWidth;
-        mipHeight = nextHeight;
-      }
-
-      barrier(commandBuffer, dst, colorRange(mipLevels - 1, 1, 0, layerCount),
-              Layout::eTransferDstOptimal, Layout::eShaderReadOnlyOptimal,
-              Stage::eTransfer, Access::eTransferWrite, Stage::eFragmentShader, Access::eShaderSampledRead);
+      generateMips(commandBuffer, dst, extent, m_mipLevels, m_layerCount);
     });
   }
 

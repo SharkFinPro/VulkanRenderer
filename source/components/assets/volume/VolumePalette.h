@@ -5,6 +5,7 @@
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan_raii.hpp>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <span>
@@ -66,6 +67,11 @@ namespace vke {
 
     VolumePalette(const VolumePaletteContext& context,
                   Layers&& layers);
+
+    void createUniformBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             std::span<const float> scales);
+
+    void writeDescriptorSet() const;
 
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

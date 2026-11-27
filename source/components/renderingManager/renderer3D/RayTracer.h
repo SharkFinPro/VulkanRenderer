@@ -213,6 +213,9 @@ namespace vke {
     void updateMeshInfos(FrameResources& frame,
                          const std::vector<std::shared_ptr<RenderObject>>& renderObjects);
 
+    // The index of the palette among this frame's, adding it when there is room
+    [[nodiscard]] uint32_t getVolumePaletteIndex(const VolumePalette* palette);
+
     void updateVolumeChunkInfos(FrameResources& frame,
                                 std::span<const TracedVolumeChunk> volumeChunks);
 
