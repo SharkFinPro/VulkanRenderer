@@ -5,6 +5,7 @@
 #include <glm/exponential.hpp>
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -19,8 +20,11 @@ namespace vke {
 
   // One entry of a volume surface's palette, chosen per vertex by material index (see VolumeSurface::setPalette).
   struct VolumeMaterial {
-    // Null: white
+    // Null: a flat color (see color)
     std::shared_ptr<Texture2D> albedo;
+    // The albedo when albedo is null, each component in [0, 1] (default white). Ignored when albedo is set: the texture
+    // is not tinted.
+    glm::vec3 color { 1.0f };
     // Null: white
     std::shared_ptr<Texture2D> specular;
     // How many times the textures repeat per world unit
@@ -29,8 +33,8 @@ namespace vke {
 
   inline constexpr size_t s_maxVolumeMaterials = 16;
 
-  // Throws std::invalid_argument on more than s_maxVolumeMaterials entries or a texture scale that is not finite and
-  // positive.
+  // Throws std::invalid_argument on more than s_maxVolumeMaterials entries, a texture scale that is not finite and
+  // positive, or a color component that is not finite or outside [0, 1].
   inline void validateVolumePalette(const std::span<const VolumeMaterial> palette)
   {
     if (palette.size() > s_maxVolumeMaterials)
@@ -46,7 +50,24 @@ namespace vke {
         throw std::invalid_argument("volume material " + std::to_string(i) +
                                     " needs a texture scale that is finite and positive");
       }
+
+      for (int c = 0; c < 3; c++)
+      {
+        const float component = palette[i].color[c];
+
+        if (!std::isfinite(component) || component < 0.0f || component > 1.0f)
+        {
+          throw std::invalid_argument("volume material " + std::to_string(i) +
+                                      " needs a color with every component finite and in [0, 1]");
+        }
+      }
     }
+  }
+
+  // The color an albedo layer starts with: the material's color, which a source texture then replaces
+  [[nodiscard]] inline glm::vec4 albedoFill(const VolumeMaterial& material)
+  {
+    return glm::vec4(material.color, 1.0f);
   }
 
   // The default palette's albedo colors

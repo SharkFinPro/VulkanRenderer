@@ -38,7 +38,7 @@ namespace vke {
 
         for (const VolumeMaterial& material : materials)
         {
-          layers.albedo.push_back({ .source = material.albedo, .fill = s_white });
+          layers.albedo.push_back({ .source = material.albedo, .fill = albedoFill(material) });
           layers.specular.push_back({ .source = material.specular, .fill = s_white });
           layers.scales.push_back(material.textureScale);
         }

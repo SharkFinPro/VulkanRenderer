@@ -2,6 +2,7 @@
 #include "source/components/assets/volume/VolumeMaterial.h"
 #include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -82,6 +83,33 @@ namespace {
     scaled[0].textureScale = 0.25f;
     scaled[1].textureScale = 8.0f;
     check(!throwsInvalidArgument(scaled), "positive finite scales are valid");
+  }
+
+  void testColor()
+  {
+    check(vke::VolumeMaterial {}.color == glm::vec3(1.0f), "the default color is white");
+    check(vke::albedoFill(vke::VolumeMaterial {}) == glm::vec4(1.0f), "an unset color fills white");
+
+    vke::VolumeMaterial red;
+    red.color = { 1.0f, 0.0f, 0.25f };
+    check(vke::albedoFill(red) == glm::vec4(1.0f, 0.0f, 0.25f, 1.0f), "a texture-less material fills its color");
+    check(!throwsInvalidArgument({ red }), "a color in range is valid");
+
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+
+    for (const float bad : { nan, inf, -0.01f, 1.01f })
+    {
+      for (int c = 0; c < 3; c++)
+      {
+        std::vector<vke::VolumeMaterial> palette(3);
+        palette[2].color[c] = bad;
+
+        std::string message;
+        check(throwsInvalidArgument(palette, &message), "a color component that is bad throws");
+        check(message.find("material 2") != std::string::npos, "the message names the material");
+      }
+    }
   }
 
   void testTriplanar()
@@ -167,6 +195,7 @@ namespace {
 int main()
 {
   testValidation();
+  testColor();
   testTriplanar();
   testShaderMirrors();
 
